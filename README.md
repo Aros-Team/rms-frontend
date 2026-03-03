@@ -1,20 +1,34 @@
 # Restaurant Management System | Frontend
 
-> A new vision of restaurant management system.
+Frontend base del RMS orientada a escalar por modulos y alineada con una arquitectura hexagonal en backend.
 
-Modern web application redefining restaurant operations with intuitive design and real-time capabilities.
+## Stack
 
+- Angular 21
+- Tailwind CSS
+- PrimeNG
 
-## Context
+## Inicio rapido
 
-Our first project, ROS, focused exclusively on order management. While it worked well for that specific task, we realized restaurants needed more—they needed a system that understood their entire business.
+- Instalar dependencias: `npm install`
+- Ejecutar en local: `npm run start`
+- Ejecutar en Docker: `docker-compose up --build`
 
-**That insight changed everything.**
+La app queda disponible en `http://localhost:4200`.
 
-This new platform represents our evolution: a comprehensive Restaurant Management System built around real business needs. We're not just tracking orders anymore; we're helping managers make smarter decisions with data-driven insights that drive actual growth.
+## Integracion con API
 
-## Technologies We're Using
+- El frontend consume la API via proxy en `/api` (`proxy.conf.json`).
+- El `apiBaseUrl` de la app apunta a `/api/v1` para mapear con los endpoints versionados de la API.
+- Dentro de Docker, el proxy usa `http://host.docker.internal:8080`.
 
-- **Angular 20**
-- **Tailwind CSS**
-- **PrimeNG**
+## Arquitectura base frontend
+
+Se adopta una variante de arquitectura hexagonal/clean para frontend:
+
+- `core`: reglas de negocio, modelos, puertos y casos de uso
+- `infrastructure`: adaptadores externos (HTTP, storage, etc.)
+- `features`: pantallas y orquestacion UI (facades)
+- `shared`: componentes utilitarios reutilizables
+
+Ejemplo inicial implementado: flujo `orders` para agregar producto a una orden.

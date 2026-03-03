@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: '3'
+
+tasks:
+  run:
+    desc: Ejecuta frontend en modo desarrollo
+    cmds:
+      - docker compose up --build
+
+  run:detached:
+    desc: Ejecuta frontend en segundo plano
+    cmds:
+      - docker compose up --build -d
+
+  install:
+    desc: Instala dependencias npm dentro de contenedor
+    cmds:
+      - docker compose run --rm rms-frontend npm install
+
+  build:
+    desc: Compila frontend en contenedor
+    cmds:
+      - docker compose run --rm rms-frontend npm run build
+
+  logs:
+    desc: Muestra logs del frontend
+    cmds:
+      - docker compose logs -f rms-frontend
+
+  stop:
+    desc: Detiene frontend y red
+    cmds:
+      - docker compose down
+
+  clean:
+    desc: Detiene y limpia orfanos
+    cmds:
+      - docker compose down --remove-orphans

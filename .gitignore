@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.cache/
+.angular/
+npm-debug.log
+yarn-error.log
+coverage/
+.env

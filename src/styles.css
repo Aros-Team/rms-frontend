@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --rms-bg-start: #f2f7fb;
+  --rms-bg-end: #d9e9f6;
+  --rms-text: #102539;
+  --rms-font: 'Manrope', 'DM Sans', 'Segoe UI', sans-serif;
+}
+
+html, body, app-root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--rms-font);
+  background:
+    radial-gradient(circle at 15% 15%, rgba(41, 109, 154, 0.15), transparent 28%),
+    radial-gradient(circle at 80% 85%, rgba(12, 66, 103, 0.17), transparent 35%),
+    linear-gradient(145deg, var(--rms-bg-start), var(--rms-bg-end));
+  color: var(--rms-text);
+}
