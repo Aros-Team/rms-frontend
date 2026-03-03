@@ -15,6 +15,7 @@ import { ProductCardViewModel } from '../../../../shared/ui/product-card/product
     <main class="layout">
       <section class="hero">
         <p class="eyebrow">Restaurant Management System</p>
+        <p class="eyebrow">Restaurant Management System</p>
         <h1>Catalogo moderno para tomar ordenes</h1>
         <p class="subtitle">
           Tarjeta de producto reutilizable, accesible y conectada a la capa de casos de uso.
@@ -206,6 +207,7 @@ import { ProductCardViewModel } from '../../../../shared/ui/product-card/product
         margin: 0.75rem 0 0;
         padding-left: 1.1rem;
       }
+
     `,
   ],
 })
@@ -310,4 +312,5 @@ export class OrdersHomePageComponent {
         },
       });
   }
+
 }

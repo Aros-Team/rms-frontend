@@ -158,3 +158,30 @@ El adaptador HTTP de orders llama:
 - Agregar interceptores (`auth`, `error`, `loading`) en infraestructura HTTP.
 - Definir estado por feature con signals/store ligero.
 - Agregar pruebas unitarias para facades y casos de uso.
+
+## 14) Modulo de Legal / Habeas Data
+
+Modal de consentimiento legal que aparece una vez al iniciar la sesion:
+
+- `shared/legal/legal-texts.ts`
+  - Textos de Terminos y Condiciones, Politica de Privacidad y Cookies
+  - Incluye referencia a Ley 1581 de 2012 (Colombia)
+- `shared/legal/legal-consent.service.ts`
+  - Servicio para manejar estado de consentimiento
+  - Guarda en localStorage con clave `rms_legal_consent`
+  - Metodos: `acceptTerms()`, `acceptPrivacy()`, `acceptCookies()`, `acceptAll()`, `resetConsent()`
+- `shared/legal/legal-consent-modal.component.ts`
+  - Modal con tres pestañas (Terminos, Privacidad, Cookies)
+  - Checkboxes individuales para cada consentimiento
+  - Boton de aceptar solo habilitador cuando los tresestan marcados
+  - Se muestra solo si no existe consentimiento previo
+
+### Integracion
+
+El modal se renderiza en `app.component.ts` y solo aparece si `consentService.needsConsent()` devuelve true.
+
+### Reglas de uso
+
+- El modal aparece una sola vez por usuario/browser
+- Una vez aceptado, se guarda en localStorage y no vuelve a aparecer
+- Para probar nuevamente: ejecutar `consentService.resetConsent()` desde consola o limpiar localStorage
