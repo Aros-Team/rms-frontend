@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { LEGAL_TEXTS } from './legal-texts';
+import { LegalConsentStateService } from './legal-consent-state.service';
 
 type LegalTab = 'terms' | 'privacy' | 'cookies';
 
@@ -240,6 +241,7 @@ type LegalTab = 'terms' | 'privacy' | 'cookies';
 })
 export class LegalConsentModalComponent {
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly consentState = inject(LegalConsentStateService);
 
   readonly activeTab = signal<LegalTab>('terms');
   readonly isVisible = signal(true);
@@ -268,9 +270,10 @@ export class LegalConsentModalComponent {
 
   accept(): void {
     this.isVisible.set(false);
+    this.consentState.accept();
   }
 
   reject(): void {
-    this.isVisible.set(false);
+    this.activeTab.set('terms');
   }
 }

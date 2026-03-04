@@ -1,14 +1,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { LegalConsentModalComponent } from './legal-consent-modal.component';
+import { LegalConsentStateService } from './legal-consent-state.service';
 
 describe('LegalConsentModalComponent', () => {
   let fixture: ComponentFixture<LegalConsentModalComponent>;
   let component: LegalConsentModalComponent;
+  let consentStateSpy: jasmine.SpyObj<LegalConsentStateService>;
 
   beforeEach(async () => {
+    consentStateSpy = jasmine.createSpyObj<LegalConsentStateService>('LegalConsentStateService', ['accept', 'reset']);
+
     await TestBed.configureTestingModule({
       imports: [LegalConsentModalComponent],
+      providers: [{ provide: LegalConsentStateService, useValue: consentStateSpy }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(LegalConsentModalComponent);
@@ -29,19 +34,17 @@ describe('LegalConsentModalComponent', () => {
     expect(title.textContent).toContain('Política de Protección de Datos Personales');
   });
 
-  it('should hide modal on accept', () => {
+  it('should call consent accept on accept action', () => {
     component.accept();
-    fixture.detectChanges();
-
-    const overlay = fixture.debugElement.query(By.css('.modal-overlay'));
-    expect(overlay).toBeNull();
+    expect(consentStateSpy.accept).toHaveBeenCalledTimes(1);
   });
 
-  it('should hide modal on reject', () => {
+  it('should keep modal visible on reject action', () => {
     component.reject();
     fixture.detectChanges();
 
     const overlay = fixture.debugElement.query(By.css('.modal-overlay'));
-    expect(overlay).toBeNull();
+    expect(overlay).toBeTruthy();
+    expect(consentStateSpy.accept).not.toHaveBeenCalled();
   });
 });

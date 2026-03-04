@@ -8,3 +8,4 @@ import {
 getTestBed().initTestEnvironment(BrowserDynamicTestingModule, platformBrowserDynamicTesting());
 
 import './app/shared/legal/legal-consent-modal.component.spec';
+import './app/shared/legal/legal-consent-state.service.spec';

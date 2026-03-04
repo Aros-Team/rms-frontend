@@ -6,6 +6,7 @@ import { OrdersFacade } from '../../application/orders.facade';
 import { ProductCardComponent } from '../../../../shared/ui/product-card/product-card.component';
 import { ProductCardSkeletonComponent } from '../../../../shared/ui/product-card/product-card-skeleton.component';
 import { ProductCardViewModel } from '../../../../shared/ui/product-card/product-card.model';
+import { LegalConsentStateService } from '../../../../shared/legal/legal-consent-state.service';
 
 @Component({
   selector: 'app-orders-home-page',
@@ -13,8 +14,11 @@ import { ProductCardViewModel } from '../../../../shared/ui/product-card/product
   imports: [CommonModule, ReactiveFormsModule, ProductCardComponent, ProductCardSkeletonComponent],
   template: `
     <main class="layout">
+      <button type="button" class="habeas-reset-btn" (click)="resetHabeasData()">
+        Reset Habeas Data
+      </button>
+
       <section class="hero">
-        <p class="eyebrow">Restaurant Management System</p>
         <p class="eyebrow">Restaurant Management System</p>
         <h1>Catalogo moderno para tomar ordenes</h1>
         <p class="subtitle">
@@ -98,6 +102,17 @@ import { ProductCardViewModel } from '../../../../shared/ui/product-card/product
         margin: 0 auto;
         display: grid;
         gap: 1rem;
+      }
+
+      .habeas-reset-btn {
+        justify-self: end;
+        border: 1px solid #c0392b;
+        background: #fff0ee;
+        color: #a1261b;
+        border-radius: 0.55rem;
+        padding: 0.45rem 0.7rem;
+        font-size: 0.8rem;
+        cursor: pointer;
       }
 
       .hero {
@@ -214,6 +229,7 @@ import { ProductCardViewModel } from '../../../../shared/ui/product-card/product
 export class OrdersHomePageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly ordersFacade = inject(OrdersFacade);
+  private readonly consentState = inject(LegalConsentStateService);
 
   readonly products = signal<ProductCardViewModel[]>([
     {
@@ -289,6 +305,11 @@ export class OrdersHomePageComponent {
     }
 
     this.selectedProductName.set(product.name);
+  }
+
+  resetHabeasData(): void {
+    this.consentState.reset();
+    window.location.reload();
   }
 
   submit(): void {

@@ -2,10 +2,11 @@ import { spawn, execSync } from 'node:child_process';
 import process from 'node:process';
 import puppeteer from 'puppeteer';
 
-const APP_URL = 'http://127.0.0.1:4300';
+const PORT = 4300 + Math.floor(Math.random() * 200);
+const APP_URL = `http://127.0.0.1:${PORT}`;
 
 function startDevServer() {
-  return spawn('npx', ['ng', 'serve', '--host', '127.0.0.1', '--port', '4300'], {
+  return spawn('npx', ['ng', 'serve', '--host', '127.0.0.1', '--port', String(PORT)], {
     cwd: process.cwd(),
     shell: process.platform === 'win32',
     stdio: 'pipe',
@@ -76,6 +77,11 @@ async function run() {
     const page = await browser.newPage();
     await page.goto(APP_URL, { waitUntil: 'networkidle0' });
 
+    await page.evaluate(() => {
+      localStorage.removeItem('rms_habeas_data_accepted');
+    });
+    await page.reload({ waitUntil: 'networkidle0' });
+
     const modalOnLoad = await page.$('.modal-overlay');
     if (!modalOnLoad) {
       throw new Error('Habeas data modal did not appear on initial load');
@@ -96,21 +102,21 @@ async function run() {
     await page.reload({ waitUntil: 'networkidle0' });
 
     const modalAfterReload = await page.$('.modal-overlay');
-    if (!modalAfterReload) {
-      throw new Error('Habeas data modal did not reappear after reload');
+    if (modalAfterReload) {
+      throw new Error('Habeas data modal should stay hidden after acceptance');
     }
 
     await page.evaluate(() => {
-      const rejectButton = Array.from(document.querySelectorAll('button')).find((btn) =>
-        (btn.textContent || '').includes('Rechazar'),
+      const resetButton = Array.from(document.querySelectorAll('button')).find((btn) =>
+        (btn.textContent || '').includes('Reset Habeas Data'),
       );
-      if (!rejectButton) {
-        throw new Error('Reject button not found');
+      if (!resetButton) {
+        throw new Error('Reset button not found');
       }
-      rejectButton.click();
+      resetButton.click();
     });
 
-    await page.waitForFunction(() => !document.querySelector('.modal-overlay'));
+    await page.waitForFunction(() => !!document.querySelector('.modal-overlay'));
 
     console.log('E2E habeas data flow passed');
   } finally {
