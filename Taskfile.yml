@@ -2,15 +2,20 @@
 version: '3'
 
 tasks:
-  run:
-    desc: Ejecuta frontend en modo desarrollo
+  rebuild:
+    desc: Reconstruye imagen del frontend
     cmds:
-      - docker compose up --build
+      - docker compose build
+
+  run:
+    desc: Ejecuta frontend en modo desarrollo (sin rebuild)
+    cmds:
+      - docker compose up
 
   run:detached:
-    desc: Ejecuta frontend en segundo plano
+    desc: Ejecuta frontend en segundo plano (sin rebuild)
     cmds:
-      - docker compose up --build -d
+      - docker compose up -d
 
   install:
     desc: Instala dependencias npm dentro de contenedor

@@ -1,2 +1,10 @@
-// This file is a minimal test entry point to satisfy the Angular CLI scaffold.
-export {};
+import 'zone.js/testing';
+import { getTestBed } from '@angular/core/testing';
+import {
+  BrowserDynamicTestingModule,
+  platformBrowserDynamicTesting,
+} from '@angular/platform-browser-dynamic/testing';
+
+getTestBed().initTestEnvironment(BrowserDynamicTestingModule, platformBrowserDynamicTesting());
+
+import './app/shared/legal/legal-consent-modal.component.spec';
