@@ -1,12 +1,20 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
+import { finalize } from 'rxjs/operators';
 import { OrdersFacade } from '../../application/orders.facade';
 import { ProductCardComponent } from '../../../../shared/ui/product-card/product-card.component';
 import { ProductCardSkeletonComponent } from '../../../../shared/ui/product-card/product-card-skeleton.component';
 import { ProductCardViewModel } from '../../../../shared/ui/product-card/product-card.model';
-import { LegalConsentStateService } from '../../../../shared/legal/legal-consent-state.service';
+import { TableResponse } from '../../../../shared/models/dto/table/table-response.model';
+
+interface CartItem {
+  productId: number;
+  productName: string;
+  price: number;
+  quantity: number;
+  instructions: string;
+}
 
 @Component({
   selector: 'app-orders-home-page',
@@ -14,222 +22,347 @@ import { LegalConsentStateService } from '../../../../shared/legal/legal-consent
   imports: [CommonModule, ReactiveFormsModule, ProductCardComponent, ProductCardSkeletonComponent],
   template: `
     <main class="layout">
-      <button type="button" class="habeas-reset-btn" (click)="resetHabeasData()">
-        Reset Habeas Data
-      </button>
-
       <section class="hero">
         <p class="eyebrow">Restaurant Management System</p>
-        <h1>Catalogo moderno para tomar ordenes</h1>
-        <p class="subtitle">
-          Tarjeta de producto reutilizable, accesible y conectada a la capa de casos de uso.
-        </p>
+        <h1>Nueva Orden</h1>
+        <p class="subtitle">Selecciona una mesa y los productos para crear una nueva orden</p>
       </section>
 
-      <section class="card">
-        <h2>Contexto de la orden</h2>
-        <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
-          <label>
-            <span>Order ID</span>
-            <input type="number" formControlName="orderId" />
-          </label>
+      <div class="content-grid">
+        <section class="card catalog">
+          <header class="catalog__header">
+            <h2>Productos</h2>
+            <p>Selecciona los productos para agregar a la orden</p>
+          </header>
 
-          <label>
-            <span>Cantidad</span>
-            <input type="number" formControlName="quantity" />
-          </label>
-
-          <label>
-            <span>Nota</span>
-            <input type="text" formControlName="note" placeholder="sin cebolla" />
-          </label>
-
-          <button type="submit" [disabled]="form.invalid || loading()">
-            {{ loading() ? 'Enviando...' : 'Enviar producto seleccionado' }}
-          </button>
-        </form>
-
-        <p class="message info" *ngIf="selectedProductName()">
-          Producto elegido: {{ selectedProductName() }}
-        </p>
-        <p class="message ok" *ngIf="lastResult()">Orden actualizada: #{{ lastResult() }}</p>
-        <p class="message error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
-      </section>
-
-      <section class="catalog">
-        <header class="catalog__header">
-          <h2>Productos destacados</h2>
-          <p>
-            Accion principal: agregar directamente desde la tarjeta. Accion secundaria: ver detalle.
-          </p>
-        </header>
-
-        <div class="grid" *ngIf="catalogLoading(); else productsList">
-          <app-product-card-skeleton></app-product-card-skeleton>
-          <app-product-card-skeleton></app-product-card-skeleton>
-          <app-product-card-skeleton></app-product-card-skeleton>
-        </div>
-
-        <ng-template #productsList>
-          <div class="grid">
-            <app-product-card
-              *ngFor="let product of products()"
-              [product]="product"
-              (add)="addFromCard($event.productId)"
-              (details)="showDetails($event.productId)"
-            ></app-product-card>
+          <div class="grid" *ngIf="catalogLoading(); else productsList">
+            <app-product-card-skeleton></app-product-card-skeleton>
+            <app-product-card-skeleton></app-product-card-skeleton>
+            <app-product-card-skeleton></app-product-card-skeleton>
           </div>
-        </ng-template>
-      </section>
 
-      <section class="card architecture">
-        <h2>Capas activas</h2>
-        <ul>
-          <li>Feature: pagina + facade + componente UI reusable</li>
-          <li>Application: caso de uso (input port)</li>
-          <li>Domain: entidades tipadas (Order, Product, OrderItem)</li>
-          <li>Infrastructure: adaptador HTTP (output port)</li>
-        </ul>
-      </section>
+          <ng-template #productsList>
+            <div class="grid">
+              <app-product-card
+                *ngFor="let product of products()"
+                [product]="product"
+                (add)="addToCart($event.productId)"
+              ></app-product-card>
+            </div>
+          </ng-template>
+        </section>
+
+        <aside class="card order-panel">
+          <h2>Orden</h2>
+          
+          <div class="form-group">
+            <label for="table">Mesa</label>
+            <select id="table" formControlName="tableId" class="input-field">
+              <option [value]="null" disabled>Selecciona una mesa</option>
+              <option *ngFor="let table of availableTables()" [value]="table.id">
+                Mesa {{ table.tableNumber }} ({{ table.capacity }} pers.) - {{ table.status }}
+              </option>
+            </select>
+          </div>
+
+          <div class="cart-items" *ngIf="cart().length > 0; else emptyCart">
+            <div class="cart-item" *ngFor="let item of cart(); let i = index; trackBy: trackByProductId">
+              <div class="cart-item-info">
+                <span class="cart-item-name">{{ item.productName }}</span>
+                <span class="cart-item-price">\${{ item.price }}</span>
+              </div>
+              <div class="cart-item-controls">
+                <button class="qty-btn" (click)="decrementQty(i)">-</button>
+                <span class="qty">{{ item.quantity }}</span>
+                <button class="qty-btn" (click)="incrementQty(i)">+</button>
+                <button class="remove-btn" (click)="removeFromCart(i)">×</button>
+              </div>
+              <input
+                type="text"
+                class="input-field instructions"
+                placeholder="Instrucciones (ej: sin cebolla)"
+                [value]="item.instructions"
+                (input)="updateInstructions(i, $event)"
+              />
+            </div>
+          </div>
+
+          <ng-template #emptyCart>
+            <p class="empty-cart">No hay productos en la orden</p>
+          </ng-template>
+
+          <div class="order-total" *ngIf="cart().length > 0">
+            <span>Total:</span>
+            <span class="total-price">\${{ totalPrice() }}</span>
+          </div>
+
+          <button
+            type="button"
+            class="submit-btn"
+            [disabled]="!canSubmit() || loading()"
+            (click)="submit()"
+          >
+            {{ loading() ? 'Creando...' : 'Crear Orden' }}
+          </button>
+
+          <p class="message error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+          <p class="message ok" *ngIf="lastOrderId()">Orden creada: #{{ lastOrderId() }}</p>
+        </aside>
+      </div>
     </main>
   `,
   styles: [
     `
       .layout {
         min-height: 100dvh;
-        padding: 2rem 1rem 3rem;
-        max-width: 1100px;
+        padding: 1.5rem 1rem 2rem;
+        max-width: 1400px;
         margin: 0 auto;
         display: grid;
-        gap: 1rem;
-      }
-
-      .habeas-reset-btn {
-        justify-self: end;
-        border: 1px solid #c0392b;
-        background: #fff0ee;
-        color: #a1261b;
-        border-radius: 0.55rem;
-        padding: 0.45rem 0.7rem;
-        font-size: 0.8rem;
-        cursor: pointer;
+        gap: 1.25rem;
       }
 
       .hero {
-        background: linear-gradient(140deg, #06213a 0%, #154e75 100%);
-        color: #ecf7ff;
+        background: linear-gradient(140deg, #0f172a 0%, #1e293b 100%);
+        color: #f1f5f9;
         border-radius: 1rem;
-        padding: 1.5rem;
+        padding: 1.25rem 1.5rem;
       }
 
       .eyebrow {
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        opacity: 0.8;
+        opacity: 0.7;
+        margin: 0;
+        font-size: 0.75rem;
+      }
+
+      h1, h2 {
         margin: 0;
       }
 
-      h1,
-      h2 {
-        margin: 0;
-      }
+      h1 { font-size: 1.5rem; }
+      h2 { font-size: 1.1rem; margin-bottom: 1rem; }
 
       .subtitle {
-        margin: 0.75rem 0 0;
+        margin: 0.5rem 0 0;
+        opacity: 0.8;
+        font-size: 0.9rem;
+      }
+
+      .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 1.25rem;
+        align-items: start;
+      }
+
+      @media (max-width: 900px) {
+        .content-grid {
+          grid-template-columns: 1fr;
+        }
       }
 
       .card {
-        background: rgba(255, 255, 255, 0.9);
-        border: 1px solid #d2e4f3;
+        background: #0f172a;
+        border: 1px solid #334155;
         border-radius: 1rem;
-        padding: 1rem;
-      }
-
-      .catalog {
-        background: rgba(255, 255, 255, 0.55);
-        border: 1px solid #cfe0ef;
-        border-radius: 1rem;
-        padding: 1rem;
+        padding: 1.25rem;
       }
 
       .catalog__header {
-        margin-bottom: 0.9rem;
+        margin-bottom: 1rem;
       }
 
       .catalog__header p {
         margin: 0.35rem 0 0;
-        color: #2b556f;
+        color: #94a3b8;
+        font-size: 0.85rem;
       }
 
       .grid {
         display: grid;
         gap: 0.9rem;
-        grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
       }
 
-      .form-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 0.75rem;
-        margin-top: 1rem;
+      .order-panel {
+        position: sticky;
+        top: 1.25rem;
       }
 
-      label {
-        display: grid;
-        gap: 0.4rem;
-        font-size: 0.92rem;
+      .form-group {
+        margin-bottom: 1rem;
       }
 
-      input {
-        border: 1px solid #b8d1e5;
+      .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #e2e8f0;
+        margin-bottom: 0.4rem;
+      }
+
+      .input-field {
+        width: 100%;
+        padding: 0.65rem 0.85rem;
+        border: 2px solid #000;
         border-radius: 0.65rem;
-        padding: 0.55rem 0.7rem;
+        background: #fff;
+        font-size: 0.9rem;
+        color: #0f172a;
+        box-sizing: border-box;
       }
 
-      button {
-        border: 0;
-        border-radius: 0.7rem;
-        background: #0f4f78;
-        color: #fff;
-        padding: 0.7rem;
+      .input-field:focus {
+        outline: none;
+        border-color: #0f172a;
+        box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.15);
+      }
+
+      select.input-field {
         cursor: pointer;
-        align-self: end;
       }
 
-      button:disabled {
-        opacity: 0.7;
+      .cart-items {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        max-height: 350px;
+        overflow-y: auto;
+      }
+
+      .cart-item {
+        background: #1e293b;
+        border-radius: 0.75rem;
+        padding: 0.75rem;
+      }
+
+      .cart-item-info {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+      }
+
+      .cart-item-name {
+        font-weight: 500;
+        color: #f1f5f9;
+      }
+
+      .cart-item-price {
+        color: #4ade80;
+        font-weight: 600;
+      }
+
+      .cart-item-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .qty-btn {
+        width: 28px;
+        height: 28px;
+        border: 1px solid #475569;
+        border-radius: 0.4rem;
+        background: #334155;
+        color: #f1f5f9;
+        cursor: pointer;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .qty-btn:hover {
+        background: #475569;
+      }
+
+      .qty {
+        min-width: 24px;
+        text-align: center;
+        color: #f1f5f9;
+        font-weight: 500;
+      }
+
+      .remove-btn {
+        margin-left: auto;
+        width: 28px;
+        height: 28px;
+        border: none;
+        border-radius: 0.4rem;
+        background: #dc2626;
+        color: #fff;
+        cursor: pointer;
+        font-size: 1.1rem;
+      }
+
+      .instructions {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.6rem;
+      }
+
+      .empty-cart {
+        text-align: center;
+        color: #64748b;
+        padding: 2rem 0;
+      }
+
+      .order-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        border-top: 1px solid #334155;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #f1f5f9;
+      }
+
+      .total-price {
+        color: #4ade80;
+        font-size: 1.25rem;
+      }
+
+      .submit-btn {
+        width: 100%;
+        padding: 0.85rem;
+        border: none;
+        border-radius: 0.75rem;
+        background: #0f172a;
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .submit-btn:hover:not(:disabled) {
+        background: #1e293b;
+      }
+
+      .submit-btn:disabled {
+        opacity: 0.5;
         cursor: not-allowed;
       }
 
       .message {
-        margin-top: 0.8rem;
-        font-weight: 600;
+        margin-top: 0.75rem;
+        font-weight: 500;
+        text-align: center;
       }
 
-      .ok {
-        color: #04652f;
-      }
-
-      .info {
-        color: #0d4f78;
-      }
-
-      .error {
-        color: #a91313;
-      }
-
-      ul {
-        margin: 0.75rem 0 0;
-        padding-left: 1.1rem;
-      }
-
+      .ok { color: #4ade80; }
+      .error { color: #f87171; }
     `,
   ],
 })
 export class OrdersHomePageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly ordersFacade = inject(OrdersFacade);
-  private readonly consentState = inject(LegalConsentStateService);
 
   readonly products = signal<ProductCardViewModel[]>([
     {
@@ -265,73 +398,171 @@ export class OrdersHomePageComponent {
         'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=1200&q=80',
       tags: ['Bebidas'],
     },
+    {
+      id: 4,
+      name: 'Ensalada César',
+      description: 'Lechuga romana, crutones, parmesan y aderezo César.',
+      price: 12,
+      stock: 10,
+      isActive: true,
+      imageUrl:
+        'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?auto=format&fit=crop&w=1200&q=80',
+      tags: ['Ensaladas'],
+    },
+    {
+      id: 5,
+      name: 'Ribeye steak',
+      description: 'Corte de res premium a la parrilla con hierbas.',
+      price: 32,
+      stock: 5,
+      isActive: true,
+      imageUrl:
+        'https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&fit=crop&w=1200&q=80',
+      tags: ['Carnes', 'Top ventas'],
+    },
+    {
+      id: 6,
+      name: 'Tiramisú',
+      description: 'Postre italiano clásico con café y mascarpone.',
+      price: 9,
+      stock: 4,
+      isActive: true,
+      imageUrl:
+        'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=1200&q=80',
+      tags: ['Postres'],
+    },
   ]);
 
+  readonly tables = signal<TableResponse[]>([]);
+  readonly cart = signal<CartItem[]>([]);
   readonly loading = signal(false);
   readonly catalogLoading = signal(true);
   readonly errorMessage = signal('');
-  readonly selectedProductName = signal('');
   readonly lastOrderId = signal<number | null>(null);
-  readonly lastResult = computed(() => this.lastOrderId());
+
+  readonly selectedTableId = signal<number | null>(null);
+
+  readonly availableTables = computed(() => this.tables().filter(t => t.status === 'AVAILABLE'));
+
+  readonly totalPrice = computed(() =>
+    this.cart().reduce((sum, item) => sum + item.price * item.quantity, 0)
+  );
+
+  readonly canSubmit = computed(() =>
+    this.selectedTableId() !== null && this.cart().length > 0
+  );
 
   readonly form = this.fb.nonNullable.group({
-    orderId: [1, [Validators.required, Validators.min(1)]],
-    productId: [1, [Validators.required, Validators.min(1)]],
-    quantity: [1, [Validators.required, Validators.min(1)]],
-    note: [''],
+    tableId: [null as number | null, Validators.required],
   });
 
   constructor() {
     window.setTimeout(() => this.catalogLoading.set(false), 650);
+    this.loadTables();
   }
 
-  addFromCard(productId: number): void {
-    const product = this.products().find((item) => item.id === productId);
+  loadTables(): void {
+    this.ordersFacade.getTables().subscribe({
+      next: (tables) => this.tables.set(tables),
+      error: () => this.tables.set([]),
+    });
+  }
 
-    if (!product) {
-      return;
+  addToCart(productId: number): void {
+    const product = this.products().find(p => p.id === productId);
+    if (!product) return;
+
+    const existing = this.cart().find(item => item.productId === productId);
+    if (existing) {
+      this.cart.update(items =>
+        items.map(item =>
+          item.productId === productId
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        )
+      );
+    } else {
+      this.cart.update(items => [
+        ...items,
+        {
+          productId: product.id,
+          productName: product.name,
+          price: product.price,
+          quantity: 1,
+          instructions: '',
+        },
+      ]);
     }
-
-    this.form.patchValue({ productId, quantity: 1 });
-    this.selectedProductName.set(product.name);
-    this.submit();
   }
 
-  showDetails(productId: number): void {
-    const product = this.products().find((item) => item.id === productId);
+  incrementQty(index: number): void {
+    this.cart.update(items =>
+      items.map((item, i) =>
+        i === index ? { ...item, quantity: item.quantity + 1 } : item
+      )
+    );
+  }
 
-    if (!product) {
-      return;
+  decrementQty(index: number): void {
+    const item = this.cart()[index];
+    if (item.quantity <= 1) {
+      this.removeFromCart(index);
+    } else {
+      this.cart.update(items =>
+        items.map((item, i) =>
+          i === index ? { ...item, quantity: item.quantity - 1 } : item
+        )
+      );
     }
-
-    this.selectedProductName.set(product.name);
   }
 
-  resetHabeasData(): void {
-    this.consentState.reset();
-    window.location.reload();
+  removeFromCart(index: number): void {
+    this.cart.update(items => items.filter((_, i) => i !== index));
+  }
+
+  updateInstructions(index: number, event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.cart.update(items =>
+      items.map((item, i) =>
+        i === index ? { ...item, instructions: value } : item
+      )
+    );
+  }
+
+  trackByProductId(index: number, item: CartItem): number {
+    return item.productId;
   }
 
   submit(): void {
-    if (this.form.invalid || this.loading()) {
+    const tableId = this.selectedTableId();
+    if (!tableId || this.cart().length === 0 || this.loading()) {
       return;
     }
 
     this.loading.set(true);
     this.errorMessage.set('');
 
+    const payload = {
+      tableId,
+      details: this.cart().map(item => ({
+        productId: item.productId,
+        instructions: item.instructions || undefined,
+      })),
+    };
+
     this.ordersFacade
-      .addProduct(this.form.getRawValue())
+      .createOrder(payload)
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (order) => {
           this.lastOrderId.set(order.id);
+          this.cart.set([]);
+          this.selectedTableId.set(null);
         },
         error: (err) => {
           const backendMessage = err?.error?.message || err?.message;
-          this.errorMessage.set(backendMessage || 'No se pudo procesar la solicitud.');
+          this.errorMessage.set(backendMessage || 'No se pudo crear la orden.');
         },
       });
   }
-
 }
