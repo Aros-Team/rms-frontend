@@ -1,43 +1,27 @@
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
 version: '3'
 
+env:
+  VERSION: ${VERSION:-0.1.0}
+
 tasks:
-  rebuild:
-    desc: Reconstruye imagen del frontend
-    cmds:
-      - docker compose build
-
   run:
-    desc: Ejecuta frontend en modo desarrollo (sin rebuild)
+    desc: Ejecuta frontend en modo desarrollo
     cmds:
-      - docker compose up
+      - npm run start
 
-  run:detached:
-    desc: Ejecuta frontend en segundo plano (sin rebuild)
+  test:
+    desc: Ejecuta todos los tests (unit, e2e)
     cmds:
-      - docker compose up -d
-
-  install:
-    desc: Instala dependencias npm dentro de contenedor
-    cmds:
-      - docker compose run --rm rms-frontend npm install
+      - npm run test
+      - npm run test:unit
+      - npm run test:e2e
 
   build:
-    desc: Compila frontend en contenedor
+    desc: Ejecuta tests, build y construye imagen Docker
     cmds:
-      - docker compose run --rm rms-frontend npm run build
-
-  logs:
-    desc: Muestra logs del frontend
-    cmds:
-      - docker compose logs -f rms-frontend
-
-  stop:
-    desc: Detiene frontend y red
-    cmds:
-      - docker compose down
-
-  clean:
-    desc: Detiene y limpia orfanos
-    cmds:
-      - docker compose down --remove-orphans
+      - npm run test
+      - npm run test:unit
+      - npm run test:e2e
+      - npm run build
+      - docker build -f .build/Dockerfile -t spalaxdev/rms-frontend:{{.VERSION}} .

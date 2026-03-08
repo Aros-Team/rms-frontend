@@ -1,0 +1,15 @@
+services:
+  rms-frontend:
+    build: .
+    ports:
+      - "4200:4200"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    # If you have the API running on host 8080, proxy will use host.docker.internal
+    # to reach the backend when running inside Docker.
+    networks:
+      - rms-net
+
+networks:
+  rms-net:
+    driver: bridge
