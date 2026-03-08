@@ -1,0 +1,75 @@
+<rms-page-header
+  [title]="'Nuevo Producto'"
+  [subtitle]="'Agrega un nuevo producto al catalogo'"
+  [showBackButton]="true"
+  (onBack)="router.navigateByUrl('/admin/products')"
+/>
+
+<form [formGroup]="form" (ngSubmit)="submit()" class="product-form">
+  <div class="form-row">
+    <rms-input
+      [label]="'Nombre del producto'"
+      [placeholder]="'Ej: Hamburguesa clasica'"
+      formControlName="name"
+    />
+
+    <rms-select
+      [label]="'Categoria'"
+      [optionsList]="categories"
+      [placeholder]="'Selecciona una categoria'"
+      formControlName="category"
+      (onChange)="onCategoryChange($event)"
+    />
+  </div>
+
+  <div class="form-row">
+    <rms-input
+      [label]="'Precio'"
+      [placeholder]="'0.00'"
+      [type]="'number'"
+      formControlName="price"
+    />
+
+    <rms-input
+      [label]="'Stock'"
+      [placeholder]="'0'"
+      [type]="'number'"
+      formControlName="stock"
+    />
+  </div>
+
+  <rms-textarea
+    [label]="'Descripcion'"
+    [placeholder]="'Describe el producto...'"
+    formControlName="description"
+  />
+
+  <rms-input
+    [label]="'URL de imagen (opcional)'"
+    [placeholder]="'https://ejemplo.com/imagen.jpg'"
+    [type]="'url'"
+    formControlName="imageUrl"
+  />
+
+  @if (errorMessage()) {
+    <p class="error-message">{{ errorMessage() }}</p>
+  }
+  @if (successMessage()) {
+    <p class="success-message">{{ successMessage() }}</p>
+  }
+
+  <div class="form-actions">
+    <rms-button
+      [label]="'Cancelar'"
+      [severity]="'secondary'"
+      [outlined]="true"
+      routerLink="/admin/products"
+    />
+    <rms-button
+      [label]="loading() ? 'Guardando...' : 'Guardar Producto'"
+      [severity]="'primary'"
+      [type]="'submit'"
+      [disabled]="form.invalid || loading()"
+    />
+  </div>
+</form>

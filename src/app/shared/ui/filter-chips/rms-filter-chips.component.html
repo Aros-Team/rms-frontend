@@ -1,0 +1,22 @@
+<div class="rms-filter-chips">
+  @if (config().allowClear) {
+    <button
+      type="button"
+      class="filter-chip"
+      [class.active]="!activeValue()"
+      (click)="select('')"
+    >
+      Todos
+    </button>
+  }
+  @for (chip of config().chips; track chip.value) {
+    <button
+      type="button"
+      class="filter-chip"
+      [class.active]="activeValue() === chip.value"
+      (click)="select(chip.value)"
+    >
+      {{ chip.label }}
+    </button>
+  }
+</div>

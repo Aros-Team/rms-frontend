@@ -2,7 +2,11 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { ButtonModule } from 'primeng/button';
+import { RmsPageHeaderComponent } from '../../../../shared/ui/page-header/rms-page-header.component';
+import { RmsInputComponent } from '../../../../shared/ui/input/rms-input.component';
+import { RmsSelectComponent } from '../../../../shared/ui/select/rms-select.component';
+import { RmsTextareaComponent } from '../../../../shared/ui/textarea/rms-textarea.component';
+import { RmsButtonComponent } from '../../../../shared/ui/button/rms-button.component';
 
 @Component({
   selector: 'app-product-create-page',
@@ -11,243 +15,18 @@ import { ButtonModule } from 'primeng/button';
     CommonModule,
     ReactiveFormsModule,
     RouterLink,
-    ButtonModule,
+    RmsPageHeaderComponent,
+    RmsInputComponent,
+    RmsSelectComponent,
+    RmsTextareaComponent,
+    RmsButtonComponent,
   ],
-  template: `
-    <main class="page-container">
-      <header class="page-header">
-        <div>
-          <h1>Nuevo Producto</h1>
-          <p>Agrega un nuevo producto al catalogo</p>
-        </div>
-      </header>
-
-      <form [formGroup]="form" (ngSubmit)="submit()" class="product-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="name">Nombre del producto</label>
-            <input
-              id="name"
-              type="text"
-              formControlName="name"
-              placeholder="Ej: Hamburguesa clasica"
-              class="input-field"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="category">Categoria</label>
-            <select id="category" formControlName="category" class="input-field select-field">
-              <option value="">Selecciona una categoria</option>
-              @for (cat of categories; track cat.value) {
-                <option [value]="cat.value">
-                  {{ cat.label }}
-                </option>
-              }
-            </select>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="price">Precio</label>
-            <input
-              id="price"
-              type="number"
-              formControlName="price"
-              placeholder="0.00"
-              step="0.01"
-              min="0"
-              class="input-field"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="stock">Stock</label>
-            <input
-              id="stock"
-              type="number"
-              formControlName="stock"
-              placeholder="0"
-              min="0"
-              class="input-field"
-            />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="description">Descripcion</label>
-          <textarea
-            id="description"
-            formControlName="description"
-            rows="3"
-            placeholder="Describe el producto..."
-            class="input-field textarea"
-          ></textarea>
-        </div>
-
-        <div class="form-group">
-          <label for="imageUrl">URL de imagen (opcional)</label>
-          <input
-            id="imageUrl"
-            type="url"
-            formControlName="imageUrl"
-            placeholder="https://ejemplo.com/imagen.jpg"
-            class="input-field"
-          />
-        </div>
-
-        @if (errorMessage()) {
-          <p class="error-message">{{ errorMessage() }}</p>
-        }
-        @if (successMessage()) {
-          <p class="success-message">{{ successMessage() }}</p>
-        }
-
-        <div class="form-actions">
-          <button pButton type="button" routerLink="/products" label="Cancelar" class="cancel-btn"></button>
-          <button pButton type="submit" [label]="loading() ? 'Guardando...' : 'Guardar Producto'" [disabled]="form.invalid || loading()"></button>
-        </div>
-      </form>
-    </main>
-  `,
-  styles: [
-    `
-      .page-container {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-        max-width: 800px;
-      }
-
-      .page-header h1 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--p-surface-100);
-        margin: 0;
-      }
-
-      .page-header p {
-        color: var(--p-surface-500);
-        font-size: 0.875rem;
-        margin: 0.25rem 0 0;
-      }
-
-      .product-form {
-        background: var(--p-surface-800);
-        border: 1px solid var(--p-surface-700);
-        border-radius: 1rem;
-        padding: 1.5rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1.25rem;
-      }
-
-      .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-      }
-
-      @media (max-width: 600px) {
-        .form-row {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-
-      .form-group label {
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: var(--p-surface-200);
-      }
-
-      .input-field {
-        width: 100%;
-        padding: 0.75rem 1rem;
-        border: 2px solid var(--p-surface-300);
-        border-radius: 0.65rem;
-        background: var(--p-surface-0);
-        font-size: 0.95rem;
-        color: var(--p-surface-900);
-        box-sizing: border-box;
-      }
-
-      .input-field:focus {
-        outline: none;
-        border-color: var(--p-primary-500);
-        box-shadow: 0 0 0 3px var(--p-primary-100);
-      }
-
-      .select-field {
-        cursor: pointer;
-      }
-
-      .textarea {
-        resize: vertical;
-        min-height: 80px;
-      }
-
-      .error-message {
-        color: var(--p-danger-500);
-        font-size: 0.875rem;
-        margin: 0;
-      }
-
-      .success-message {
-        color: var(--p-success-500);
-        font-size: 0.875rem;
-        margin: 0;
-      }
-
-      .form-actions {
-        display: flex;
-        gap: 1rem;
-        justify-content: flex-end;
-        padding-top: 0.5rem;
-      }
-
-      .form-actions button {
-        padding: 0.75rem 1.5rem;
-        border-radius: 0.65rem;
-        font-weight: 500;
-      }
-
-      .form-actions button[type="submit"] {
-        background: var(--p-surface-900);
-        border: none;
-      }
-
-      .form-actions button[type="submit"]:hover:not(:disabled) {
-        background: var(--p-surface-800);
-      }
-
-      .form-actions button[type="submit"]:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
-
-      .cancel-btn {
-        background: transparent !important;
-        border: 1px solid var(--p-surface-600) !important;
-        color: var(--p-surface-400) !important;
-      }
-
-      .cancel-btn:hover {
-        background: var(--p-surface-700) !important;
-        color: var(--p-surface-200) !important;
-      }
-    `,
-  ],
+  templateUrl: './product-create.page.html',
+  styleUrl: './product-create.page.css',
 })
 export class ProductCreatePageComponent {
   private readonly fb = inject(FormBuilder);
-  private readonly router = inject(Router);
+  readonly router = inject(Router);
 
   readonly loading = signal(false);
   readonly errorMessage = signal('');
@@ -269,6 +48,10 @@ export class ProductCreatePageComponent {
     imageUrl: [''],
   });
 
+  onCategoryChange(value: string | number | null): void {
+    this.form.patchValue({ category: value as string });
+  }
+
   submit(): void {
     if (this.form.invalid || this.loading()) {
       return;
@@ -282,7 +65,7 @@ export class ProductCreatePageComponent {
       this.loading.set(false);
       this.successMessage.set('Producto guardado exitosamente!');
       setTimeout(() => {
-        this.router.navigateByUrl('/products');
+        this.router.navigateByUrl('/admin/products');
       }, 1500);
     }, 1000);
   }

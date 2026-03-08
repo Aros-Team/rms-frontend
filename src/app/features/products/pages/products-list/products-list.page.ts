@@ -1,183 +1,44 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { ButtonModule } from 'primeng/button';
 import { ProductCardComponent } from '../../../../shared/ui/product-card/product-card.component';
 import { ProductCardSkeletonComponent } from '../../../../shared/ui/product-card/product-card-skeleton.component';
 import { ProductCardViewModel } from '../../../../shared/ui/product-card/product-card.model';
+import { RmsPageHeaderComponent } from '../../../../shared/ui/page-header/rms-page-header.component';
+import { RmsSearchBoxComponent } from '../../../../shared/ui/search-box/rms-search-box.component';
+import { RmsFilterChipsComponent } from '../../../../shared/ui/filter-chips/rms-filter-chips.component';
+import { RmsButtonComponent } from '../../../../shared/ui/button/rms-button.component';
+import { RmsEmptyStateComponent } from '../../../../shared/ui/empty-state/rms-empty-state.component';
 
 @Component({
   selector: 'app-products-list-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, ButtonModule, ProductCardComponent, ProductCardSkeletonComponent],
-  template: `
-    <main class="page-container">
-      <header class="page-header">
-        <div>
-          <h1>Productos</h1>
-          <p>Administra el catalogo de productos del restaurante</p>
-        </div>
-        <button pButton routerLink="new" label="Nuevo Producto" icon="pi pi-plus"></button>
-      </header>
-
-      <section class="filters">
-        <div class="search-box">
-          <i class="pi pi-search"></i>
-          <input type="text" placeholder="Buscar productos..." (input)="onSearch($event)" />
-        </div>
-        <div class="filter-tags">
-          @for (cat of categories; track cat) {
-            <button 
-              class="filter-tag"
-              [class.active]="activeCategory() === cat"
-              (click)="setCategory(cat)"
-            >
-              {{ cat }}
-            </button>
-          }
-        </div>
-      </section>
-
-      @if (loading()) {
-        <section class="products-grid">
-          <app-product-card-skeleton></app-product-card-skeleton>
-          <app-product-card-skeleton></app-product-card-skeleton>
-          <app-product-card-skeleton></app-product-card-skeleton>
-          <app-product-card-skeleton></app-product-card-skeleton>
-        </section>
-      } @else {
-        <section class="products-grid">
-          @for (product of filteredProducts(); track product.id) {
-            <app-product-card
-              [product]="product"
-            ></app-product-card>
-          } @empty {
-            <p class="empty-state">
-              No se encontraron productos
-            </p>
-          }
-        </section>
-      }
-    </main>
-  `,
-  styles: [
-    `
-      .page-container {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-      }
-
-      .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
-      }
-
-      .page-header h1 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--p-surface-100);
-        margin: 0;
-      }
-
-      .page-header p {
-        color: var(--p-surface-500);
-        font-size: 0.875rem;
-        margin: 0.25rem 0 0;
-      }
-
-      .page-header button {
-        background: var(--p-surface-900);
-        border: 1px solid var(--p-surface-700);
-      }
-
-      .page-header button:hover {
-        background: var(--p-surface-800);
-      }
-
-      .filters {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-      }
-
-      .search-box {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        background: var(--p-surface-800);
-        border: 1px solid var(--p-surface-700);
-        border-radius: 0.75rem;
-        padding: 0.75rem 1rem;
-      }
-
-      .search-box i {
-        color: var(--p-surface-500);
-      }
-
-      .search-box input {
-        flex: 1;
-        background: transparent;
-        border: none;
-        color: var(--p-surface-100);
-        font-size: 0.9rem;
-        outline: none;
-      }
-
-      .search-box input::placeholder {
-        color: var(--p-surface-500);
-      }
-
-      .filter-tags {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-      }
-
-      .filter-tag {
-        padding: 0.4rem 0.85rem;
-        border-radius: 1.5rem;
-        border: 1px solid var(--p-surface-700);
-        background: transparent;
-        color: var(--p-surface-400);
-        font-size: 0.8rem;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-
-      .filter-tag:hover {
-        background: var(--p-surface-800);
-        color: var(--p-surface-200);
-      }
-
-      .filter-tag.active {
-        background: var(--p-surface-100);
-        color: var(--p-surface-900);
-        border-color: var(--p-surface-100);
-      }
-
-      .products-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 1rem;
-      }
-
-      .empty-state {
-        text-align: center;
-        color: var(--p-surface-500);
-        padding: 3rem;
-      }
-    `,
+  imports: [
+    CommonModule,
+    RouterLink,
+    ProductCardComponent,
+    ProductCardSkeletonComponent,
+    RmsPageHeaderComponent,
+    RmsSearchBoxComponent,
+    RmsFilterChipsComponent,
+    RmsButtonComponent,
+    RmsEmptyStateComponent,
   ],
+  templateUrl: './products-list.page.html',
+  styleUrl: './products-list.page.css',
 })
 export class ProductsListPageComponent {
   readonly loading = signal(false);
   readonly activeCategory = signal<string>('Todos');
+  readonly searchQuery = signal<string>('');
 
-  readonly categories = ['Todos', 'Entradas', 'PlatosFuertes', 'Bebidas', 'Postres'];
+  readonly categories = [
+    { label: 'Todos', value: 'Todos' },
+    { label: 'Entradas', value: 'Entradas' },
+    { label: 'Platos Fuertes', value: 'PlatosFuertes' },
+    { label: 'Bebidas', value: 'Bebidas' },
+    { label: 'Postres', value: 'Postres' },
+  ];
 
   readonly products = signal<ProductCardViewModel[]>([
     {
@@ -243,18 +104,26 @@ export class ProductsListPageComponent {
   ]);
 
   readonly filteredProducts = () => {
+    let result = this.products();
     const cat = this.activeCategory();
-    if (cat === 'Todos') {
-      return this.products();
+    if (cat !== 'Todos') {
+      result = result.filter(p => p.tags && p.tags.includes(cat));
     }
-    return this.products().filter(p => p.tags && p.tags.includes(cat));
+    const query = this.searchQuery().toLowerCase();
+    if (query) {
+      result = result.filter(p => 
+        p.name.toLowerCase().includes(query) || 
+        p.description.toLowerCase().includes(query)
+      );
+    }
+    return result;
   };
 
   setCategory(category: string): void {
     this.activeCategory.set(category);
   }
 
-  onSearch(event: Event): void {
-    // Implementar búsqueda
+  onSearch(query: string): void {
+    this.searchQuery.set(query);
   }
 }

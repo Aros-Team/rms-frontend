@@ -1,0 +1,18 @@
+<p-dialog
+  [header]="config().header"
+  [(visible)]="isVisible"
+  [modal]="true"
+  [style]="{ width: config().width }"
+  [closable]="config().closable"
+  [dismissableMask]="config().dismissableMask"
+  [closeOnEscape]="config().closeOnEscape"
+  [styleClass]="config().styleClass"
+  (onHide)="onClose.emit()"
+>
+  <ng-content></ng-content>
+  @if (footerTemplate()) {
+    <ng-template pTemplate="footer">
+      <ng-container *ngTemplateOutlet="footerTemplate()" />
+    </ng-template>
+  }
+</p-dialog>

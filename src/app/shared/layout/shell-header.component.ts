@@ -40,8 +40,8 @@ import { ButtonModule } from 'primeng/button';
         display: flex;
         align-items: center;
         justify-content: space-between;
-        background: #1e293b;
-        border: 1px solid #334155;
+        background: var(--p-surface-900);
+        border: 1px solid var(--p-surface-700);
         border-radius: 1rem;
         padding: 1rem 1.25rem;
       }
@@ -50,14 +50,14 @@ import { ButtonModule } from 'primeng/button';
         font-size: 0.7rem;
         text-transform: uppercase;
         letter-spacing: 0.14em;
-        color: #64748b;
+        color: var(--p-surface-500);
         margin: 0;
       }
 
       .brand-title {
         font-size: 1.1rem;
         font-weight: 600;
-        color: #f1f5f9;
+        color: var(--p-surface-100);
         margin: 0.25rem 0 0;
       }
 
@@ -69,13 +69,13 @@ import { ButtonModule } from 'primeng/button';
       .action-btn {
         width: 40px;
         height: 40px;
-        border-color: #475569 !important;
-        color: #94a3b8 !important;
+        border-color: var(--p-surface-600) !important;
+        color: var(--p-surface-400) !important;
       }
 
       .action-btn:hover {
-        background: #334155 !important;
-        color: #f1f5f9 !important;
+        background: var(--p-surface-700) !important;
+        color: var(--p-surface-100) !important;
       }
     `,
   ],

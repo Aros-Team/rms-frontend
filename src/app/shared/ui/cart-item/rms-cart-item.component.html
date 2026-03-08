@@ -1,0 +1,21 @@
+<div class="rms-cart-item">
+  <div class="rms-cart-item-info">
+    <span class="rms-cart-item-name">{{ config().item.name }}</span>
+    <span class="rms-cart-item-price">{{ config().item.price | currency:config().currency }}</span>
+  </div>
+  
+  <div class="rms-cart-item-controls">
+    <button type="button" class="qty-btn" (click)="decrement.emit(config().item.id)">-</button>
+    <span class="qty">{{ config().item.quantity }}</span>
+    <button type="button" class="qty-btn" (click)="increment.emit(config().item.id)">+</button>
+    <button type="button" class="remove-btn" (click)="remove.emit(config().item.id)">×</button>
+  </div>
+  
+  <input
+    type="text"
+    class="rms-cart-item-instructions"
+    placeholder="Instrucciones (ej: sin cebolla)"
+    [value]="config().item.instructions || ''"
+    (input)="onUpdateInstructions($event, config().item.id)"
+  />
+</div>

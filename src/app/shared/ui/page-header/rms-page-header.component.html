@@ -1,0 +1,16 @@
+<header class="rms-page-header">
+  @if (config().showBackButton) {
+    <button pButton class="back-btn" (click)="onBack.emit()">
+      <i [class]="config().backIcon"></i>
+    </button>
+  }
+  <div class="rms-page-header-content">
+    <h1>{{ config().title }}</h1>
+    @if (config().subtitle) {
+      <p>{{ config().subtitle }}</p>
+    }
+  </div>
+  <div class="rms-page-header-actions">
+    <ng-content></ng-content>
+  </div>
+</header>

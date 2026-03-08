@@ -1,11 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { PasswordModule } from 'primeng/password';
 import { MessageModule } from 'primeng/message';
 import { AuthFacade } from '../../application/auth.facade';
+import { RmsInputComponent } from '../../../../shared/ui/input/rms-input.component';
+import { RmsButtonComponent } from '../../../../shared/ui/button/rms-button.component';
 
 @Component({
   selector: 'app-login-page',
@@ -13,10 +12,9 @@ import { AuthFacade } from '../../application/auth.facade';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    ButtonModule,
-    InputTextModule,
-    PasswordModule,
     MessageModule,
+    RmsInputComponent,
+    RmsButtonComponent,
   ],
   template: `
     <div class="login-container">
@@ -30,44 +28,34 @@ import { AuthFacade } from '../../application/auth.facade';
         </div>
 
         <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
-          <div class="form-group">
-            <label for="username">Correo</label>
-            <input
-              id="username"
-              type="email"
-              pInputText
-              formControlName="username"
-              autocomplete="email"
-              placeholder="correo@restaurante.com"
-              class="input-field"
-            />
-          </div>
+          <rms-input
+            [label]="'Correo'"
+            [placeholder]="'correo@restaurante.com'"
+            [type]="'email'"
+            formControlName="username"
+          />
 
-          <div class="form-group">
-            <label for="password">Contrasena</label>
-            <p-password
-              inputId="password"
+          <div class="password-field">
+            <label>Contrasena</label>
+            <input
+              type="password"
               formControlName="password"
-              [feedback]="false"
-              [toggleMask]="true"
-              [fluid]="true"
               placeholder="Ingresa tu contrasena"
-              styleClass="password-wrapper"
-              inputStyleClass="input-field"
-            ></p-password>
+              class="password-input"
+            />
           </div>
 
           @if (authFacade.error()) {
             <p-message severity="error" [text]="authFacade.error()!" styleClass="error-message"></p-message>
           }
 
-          <button
-            pButton
-            type="submit"
-            class="submit-btn"
-            [disabled]="form.invalid || authFacade.loading()"
+          <rms-button
             [label]="authFacade.loading() ? 'Ingresando...' : 'Iniciar Sesion'"
-          ></button>
+            [type]="'submit'"
+            [severity]="'primary'"
+            [disabled]="form.invalid || authFacade.loading()"
+            [styleClass]="'submit-btn'"
+          />
         </form>
 
         <div class="demo-credentials">
@@ -81,195 +69,139 @@ import { AuthFacade } from '../../application/auth.facade';
       </div>
     </div>
   `,
-  styles: [
-    `
-      .login-container {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, var(--p-surface-900) 0%, var(--p-surface-800) 50%, var(--p-surface-900) 100%);
-        padding: 1.5rem;
-      }
+  styles: [`
+    .login-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--p-surface-900) 0%, var(--p-surface-800) 50%, var(--p-surface-900) 100%);
+      padding: 1.5rem;
+    }
 
-      .login-card {
-        width: 100%;
-        max-width: 400px;
-        background: var(--p-surface-0);
-        border-radius: 1.25rem;
-        padding: 2rem;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-      }
+    .login-card {
+      width: 100%;
+      max-width: 400px;
+      background: var(--p-surface-0);
+      border-radius: 1.25rem;
+      padding: 2rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
 
-      .login-header {
-        text-align: center;
-        margin-bottom: 2rem;
-      }
+    .login-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
 
-      .logo {
-        width: 60px;
-        height: 60px;
-        background: var(--p-surface-900);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1rem;
-      }
+    .logo {
+      width: 60px;
+      height: 60px;
+      background: var(--p-surface-900);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+    }
 
-      .logo i {
-        font-size: 1.75rem;
-        color: var(--p-surface-0);
-      }
+    .logo i {
+      font-size: 1.75rem;
+      color: var(--p-surface-0);
+    }
 
-      h1 {
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: var(--p-surface-900);
-        margin: 0;
-        letter-spacing: 0.05em;
-      }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--p-surface-900);
+      margin: 0;
+      letter-spacing: 0.05em;
+    }
 
-      .subtitle {
-        color: var(--p-surface-500);
-        font-size: 0.85rem;
-        margin: 0.35rem 0 0;
-      }
+    .subtitle {
+      color: var(--p-surface-500);
+      font-size: 0.85rem;
+      margin: 0.35rem 0 0;
+    }
 
-      .login-form {
-        display: flex;
-        flex-direction: column;
-        gap: 1.25rem;
-      }
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
 
-      .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-      }
+    .password-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
 
-      .form-group label {
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: var(--p-surface-700);
-      }
+    .password-field label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--p-surface-700);
+    }
 
-      .input-field {
-        width: 100%;
-        padding: 0.875rem 1rem;
-        border: 2px solid var(--p-surface-300);
-        border-radius: 0.75rem;
-        font-size: 1rem;
-        background: var(--p-surface-0);
-        color: var(--p-surface-900);
-        box-sizing: border-box;
-        transition: border-color 0.2s, box-shadow 0.2s;
-      }
+    .password-input {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      border: 2px solid var(--p-surface-300);
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      background: var(--p-surface-0);
+      color: var(--p-surface-900);
+      box-sizing: border-box;
+    }
 
-      .input-field::placeholder {
-        color: var(--p-surface-400);
-      }
+    .password-input::placeholder {
+      color: var(--p-surface-400);
+    }
 
-      .input-field:focus {
-        outline: none;
-        border-color: var(--p-primary-500);
-        box-shadow: 0 0 0 4px var(--p-primary-100);
-      }
+    .password-input:focus {
+      outline: none;
+      border-color: var(--p-primary-500);
+      box-shadow: 0 0 0 4px var(--p-primary-100);
+    }
 
-      :host ::ng-deep .p-password {
-        width: 100%;
-      }
+    :host ::ng-deep .error-message {
+      width: 100%;
+    }
 
-      :host ::ng-deep .p-password-input {
-        width: 100%;
-        padding: 0.875rem 1rem;
-        border: 2px solid var(--p-surface-300);
-        border-radius: 0.75rem;
-        font-size: 1rem;
-        background: var(--p-surface-0);
-        color: var(--p-surface-900);
-        box-sizing: border-box;
-      }
+    :host ::ng-deep .submit-btn {
+      width: 100%;
+    }
 
-      :host ::ng-deep .p-password-input::placeholder {
-        color: var(--p-surface-400);
-      }
+    .demo-credentials {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--p-surface-200);
+    }
 
-      :host ::ng-deep .p-password-input:focus {
-        outline: none;
-        border-color: var(--p-primary-500);
-        box-shadow: 0 0 0 4px var(--p-primary-100);
-      }
+    .demo-title {
+      font-size: 0.75rem;
+      color: var(--p-surface-500);
+      margin: 0 0 0.5rem 0;
+      font-weight: 600;
+    }
 
-      :host ::ng-deep .p-password-toggle-mask-icon {
-        color: var(--p-surface-500);
-        cursor: pointer;
-      }
+    .demo-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      font-size: 0.75rem;
+      color: var(--p-surface-600);
+    }
 
-      :host ::ng-deep .error-message {
-        width: 100%;
-      }
+    .demo-list li {
+      padding: 0.25rem 0;
+    }
 
-      .submit-btn {
-        width: 100%;
-        padding: 1rem;
-        background: var(--p-surface-900);
-        border: none;
-        border-radius: 0.75rem;
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--p-surface-0);
-        cursor: pointer;
-        transition: background 0.2s, transform 0.1s;
-        margin-top: 0.5rem;
-      }
-
-      .submit-btn:hover:not(:disabled) {
-        background: var(--p-surface-800);
-      }
-
-      .submit-btn:active:not(:disabled) {
-        transform: scale(0.98);
-      }
-
-      .submit-btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
-
-      .demo-credentials {
-        margin-top: 1.5rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid var(--p-surface-200);
-      }
-
-      .demo-title {
-        font-size: 0.75rem;
-        color: var(--p-surface-500);
-        margin: 0 0 0.5rem 0;
-        font-weight: 600;
-      }
-
-      .demo-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        font-size: 0.75rem;
-        color: var(--p-surface-600);
-      }
-
-      .demo-list li {
-        padding: 0.25rem 0;
-      }
-
-      .demo-list code {
-        background: var(--p-surface-100);
-        padding: 0.15rem 0.3rem;
-        border-radius: 0.25rem;
-        font-size: 0.7rem;
-      }
-    `,
-  ],
+    .demo-list code {
+      background: var(--p-surface-100);
+      padding: 0.15rem 0.3rem;
+      border-radius: 0.25rem;
+      font-size: 0.7rem;
+    }
+  `],
 })
 export class LoginPageComponent {
   readonly authFacade = inject(AuthFacade);

@@ -1,0 +1,51 @@
+<rms-page-header [title]="'Cocina'">
+  <rms-badge
+    [label]="pendingOrders().length + ' pedidos pendientes'"
+    [severity]="'warning'"
+  />
+</rms-page-header>
+
+<section class="orders-grid">
+  @for (order of pendingOrders(); track order.id) {
+    <rms-card [styleClass]="'order-card ' + order.status">
+      <div class="order-header">
+        <rms-badge
+          [label]="'Mesa ' + order.tableNumber"
+          [severity]="'primary'"
+        />
+        <span class="order-time">{{ getTimeAgo(order.createdAt) }}</span>
+      </div>
+      
+      <ul class="order-items">
+        @for (item of order.items; track item.name) {
+          <li>
+            <span class="item-qty">{{ item.quantity }}x</span>
+            <span class="item-name">{{ item.name }}</span>
+          </li>
+        }
+      </ul>
+
+      <div class="order-actions">
+        @if (order.status === 'pending') {
+          <rms-button
+            [label]="'Iniciar'"
+            [severity]="'warning'"
+            (onClick)="startPreparing(order.id)"
+          />
+        }
+        @if (order.status === 'preparing') {
+          <rms-button
+            [label]="'Listo'"
+            [severity]="'success'"
+            (onClick)="markReady(order.id)"
+          />
+        }
+      </div>
+    </rms-card>
+  } @empty {
+    <rms-empty-state
+      [icon]="'pi pi-check-circle'"
+      [title]="'No hay pedidos pendientes'"
+    />
+  }
+</section>

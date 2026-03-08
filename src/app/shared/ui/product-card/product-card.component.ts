@@ -1,216 +1,163 @@
 import { CommonModule, CurrencyPipe, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { CardModule } from 'primeng/card';
+import { TagModule } from 'primeng/tag';
 import { ProductCardActionPayload, ProductCardViewModel } from './product-card.model';
+import { RmsButtonComponent } from '../button/rms-button.component';
 
 @Component({
   selector: 'app-product-card',
   standalone: true,
-  imports: [CommonModule, CurrencyPipe, NgOptimizedImage],
+  imports: [CommonModule, CurrencyPipe, NgOptimizedImage, CardModule, TagModule, RmsButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <article class="card" [class.card--disabled]="!product().isActive || product().stock <= 0">
-      <div class="image-wrap">
-        <img
-          [ngSrc]="product().imageUrl || fallbackImage"
-          [alt]="'Imagen de ' + product().name"
-          width="800"
-          height="450"
-          loading="lazy"
-        />
-        <span class="status" [class.status--off]="!product().isActive">
-          {{ product().isActive ? 'Activo' : 'Inactivo' }}
-        </span>
-      </div>
+    <p-card styleClass="product-card" [class.product-card--disabled]="!canAdd">
+      <ng-template pTemplate="header">
+        <div class="image-wrap">
+          <img
+            [ngSrc]="product().imageUrl || fallbackImage"
+            [alt]="'Imagen de ' + product().name"
+            width="800"
+            height="450"
+            loading="lazy"
+          />
+          <p-tag
+            [value]="product().isActive ? 'Activo' : 'Inactivo'"
+            [severity]="product().isActive ? 'success' : 'danger'"
+            class="status-tag"
+          />
+        </div>
+      </ng-template>
 
-      <div class="content">
-        <header>
+      <ng-template pTemplate="content">
+        <header class="card-header">
           <h3>{{ product().name }}</h3>
           <p>{{ product().description }}</p>
         </header>
 
         @if (product().tags?.length) {
-          <ul class="tags">
+          <div class="tags">
             @for (tag of product().tags; track tag) {
-              <li>{{ tag }}</li>
+              <p-tag [value]="tag" severity="info" [rounded]="true" />
             }
-          </ul>
+          </div>
         }
+      </ng-template>
 
-        <footer>
+      <ng-template pTemplate="footer">
+        <div class="card-footer">
           <div class="pricing">
             <strong>{{ product().price | currency: 'USD' : 'symbol' : '1.0-0' }}</strong>
-            <small [class.stock--warn]="product().stock <= 3">
+            <small [class.stock-warn]="product().stock <= 3">
               Stock: {{ product().stock }}
             </small>
           </div>
 
           <div class="actions">
-            <button
-              type="button"
-              class="btn btn--ghost"
-              (click)="details.emit({ productId: product().id })"
-              [attr.aria-label]="'Ver detalles de ' + product().name"
-            >
-              Detalle
-            </button>
-            <button
-              type="button"
-              class="btn"
-              (click)="add.emit({ productId: product().id })"
+            <rms-button
+              [label]="'Detalle'"
+              [severity]="'secondary'"
+              [outlined]="true"
               [disabled]="!canAdd"
-              [attr.aria-label]="'Agregar ' + product().name + ' a la orden'"
-            >
-              {{ canAdd ? 'Agregar' : 'No disponible' }}
-            </button>
+              (onClick)="details.emit({ productId: product().id })"
+            />
+            <rms-button
+              [label]="canAdd ? 'Agregar' : 'No disponible'"
+              [severity]="'primary'"
+              [disabled]="!canAdd"
+              (onClick)="add.emit({ productId: product().id })"
+            />
           </div>
-        </footer>
-      </div>
-    </article>
+        </div>
+      </ng-template>
+    </p-card>
   `,
-  styles: [
-    `
-      .card {
-        border: 1px solid #c6dced;
-        border-radius: 1rem;
-        background: linear-gradient(180deg, #ffffff, #f8fcff);
-        overflow: hidden;
-        box-shadow: 0 10px 22px rgba(8, 42, 68, 0.08);
-        transition: transform 180ms ease, box-shadow 180ms ease;
-      }
+  styles: [`
+    :host {
+      display: block;
+    }
 
-      .card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 14px 26px rgba(8, 42, 68, 0.14);
-      }
+    :host ::ng-deep .product-card {
+      overflow: hidden;
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
 
-      .card--disabled {
-        opacity: 0.82;
-      }
+    :host ::ng-deep .product-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 26px rgba(8, 42, 68, 0.14);
+    }
 
-      .image-wrap {
-        position: relative;
-        aspect-ratio: 16 / 9;
-        background: #e4edf4;
-      }
+    :host ::ng-deep .product-card--disabled {
+      opacity: 0.82;
+    }
 
-      .image-wrap img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
+    .image-wrap {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      background: var(--p-surface-100);
+    }
 
-      .status {
-        position: absolute;
-        top: 0.65rem;
-        right: 0.65rem;
-        background: #0a6f3f;
-        color: #f4fff8;
-        font-size: 0.72rem;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        border-radius: 999px;
-        padding: 0.2rem 0.55rem;
-      }
+    .image-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
 
-      .status--off {
-        background: #7c1d1d;
-        color: #fff2f2;
-      }
+    .status-tag {
+      position: absolute;
+      top: 0.65rem;
+      right: 0.65rem;
+    }
 
-      .content {
-        padding: 0.9rem;
-        display: grid;
-        gap: 0.75rem;
-      }
+    .card-header h3 {
+      margin: 0;
+      font-size: 1.05rem;
+      color: var(--p-surface-900);
+    }
 
-      h3 {
-        margin: 0;
-        font-size: 1.05rem;
-      }
+    .card-header p {
+      margin: 0.35rem 0 0;
+      color: var(--p-surface-600);
+      line-height: 1.35;
+    }
 
-      p {
-        margin: 0.35rem 0 0;
-        color: #3a556b;
-        line-height: 1.35;
-      }
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.75rem;
+    }
 
-      .tags {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.35rem;
-      }
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+    }
 
-      .tags li {
-        background: #e4f2ff;
-        color: #17456a;
-        border-radius: 0.45rem;
-        padding: 0.2rem 0.45rem;
-        font-size: 0.76rem;
-      }
+    .pricing {
+      display: grid;
+      gap: 0.15rem;
+    }
 
-      footer {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.8rem;
-      }
+    .pricing strong {
+      font-size: 1.15rem;
+      color: var(--p-surface-900);
+    }
 
-      .pricing {
-        display: grid;
-        gap: 0.15rem;
-      }
+    .pricing small {
+      color: var(--p-surface-600);
+    }
 
-      .pricing strong {
-        font-size: 1.15rem;
-        color: #073452;
-      }
+    .stock-warn {
+      color: var(--p-warning-600);
+    }
 
-      .pricing small {
-        color: #2b556f;
-      }
-
-      .stock--warn {
-        color: #8f4b05;
-      }
-
-      .actions {
-        display: flex;
-        gap: 0.45rem;
-      }
-
-      .btn {
-        border: 1px solid #0f4f78;
-        border-radius: 0.6rem;
-        background: #0f4f78;
-        color: #ffffff;
-        font-weight: 600;
-        padding: 0.45rem 0.7rem;
-        cursor: pointer;
-      }
-
-      .btn:hover:not(:disabled) {
-        background: #0c4468;
-      }
-
-      .btn:focus-visible {
-        outline: 2px solid #0f4f78;
-        outline-offset: 2px;
-      }
-
-      .btn--ghost {
-        background: transparent;
-        color: #0f4f78;
-      }
-
-      .btn:disabled {
-        cursor: not-allowed;
-        opacity: 0.65;
-      }
-    `,
-  ],
+    .actions {
+      display: flex;
+      gap: 0.45rem;
+    }
+  `],
 })
 export class ProductCardComponent {
   readonly fallbackImage =

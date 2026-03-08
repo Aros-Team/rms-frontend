@@ -1,6 +1,10 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ButtonModule } from 'primeng/button';
+import { RmsPageHeaderComponent } from '../../../../shared/ui/page-header/rms-page-header.component';
+import { RmsCardComponent } from '../../../../shared/ui/card/rms-card.component';
+import { RmsBadgeComponent } from '../../../../shared/ui/badge/rms-badge.component';
+import { RmsButtonComponent } from '../../../../shared/ui/button/rms-button.component';
+import { RmsEmptyStateComponent } from '../../../../shared/ui/empty-state/rms-empty-state.component';
 
 interface KitchenOrder {
   id: number;
@@ -13,182 +17,16 @@ interface KitchenOrder {
 @Component({
   selector: 'app-kitchen-dashboard-page',
   standalone: true,
-  imports: [CommonModule, ButtonModule],
-  template: `
-    <main class="kitchen-container">
-      <header class="kitchen-header">
-        <h1>Cocina</h1>
-        <span class="order-count">{{ pendingOrders().length }} pedidos pendientes</span>
-      </header>
-
-      <section class="orders-grid">
-        @for (order of pendingOrders(); track order.id) {
-          <div class="order-card" [class.preparing]="order.status === 'preparing'" [class.ready]="order.status === 'ready'">
-            <div class="order-header">
-              <span class="table-badge">Mesa {{ order.tableNumber }}</span>
-              <span class="order-time">{{ getTimeAgo(order.createdAt) }}</span>
-            </div>
-            
-            <ul class="order-items">
-              @for (item of order.items; track item.name) {
-                <li>
-                  <span class="item-qty">{{ item.quantity }}x</span>
-                  <span class="item-name">{{ item.name }}</span>
-                </li>
-              }
-            </ul>
-
-            <div class="order-actions">
-              @if (order.status === 'pending') {
-                <button pButton class="p-button-warning" (click)="startPreparing(order.id)">
-                  Iniciar
-                </button>
-              }
-              @if (order.status === 'preparing') {
-                <button pButton class="p-button-success" (click)="markReady(order.id)">
-                  Listo
-                </button>
-              }
-            </div>
-          </div>
-        } @empty {
-          <div class="empty-state">
-            <i class="pi pi-check-circle"></i>
-            <p>No hay pedidos pendientes</p>
-          </div>
-        }
-      </section>
-    </main>
-  `,
-  styles: [`
-    .kitchen-container {
-      min-height: 100dvh;
-      padding: 1rem;
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    .kitchen-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--p-surface-700);
-    }
-
-    .kitchen-header h1 {
-      margin: 0;
-      font-size: 1.5rem;
-      color: var(--p-surface-100);
-    }
-
-    .order-count {
-      background: var(--p-warning-500);
-      color: var(--p-warning-contrast-color);
-      padding: 0.35rem 0.75rem;
-      border-radius: 1rem;
-      font-size: 0.85rem;
-      font-weight: 600;
-    }
-
-    .orders-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .order-card {
-      background: var(--p-surface-800);
-      border: 1px solid var(--p-surface-700);
-      border-radius: 1rem;
-      padding: 1rem;
-    }
-
-    .order-card.preparing {
-      border-color: var(--p-warning-500);
-    }
-
-    .order-card.ready {
-      border-color: var(--p-success-500);
-      opacity: 0.7;
-    }
-
-    .order-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-    }
-
-    .table-badge {
-      background: var(--p-primary-500);
-      color: var(--p-primary-contrast-color);
-      padding: 0.35rem 0.75rem;
-      border-radius: 0.5rem;
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
-
-    .order-time {
-      color: var(--p-surface-400);
-      font-size: 0.85rem;
-    }
-
-    .order-items {
-      list-style: none;
-      padding: 0;
-      margin: 0 0 1rem 0;
-    }
-
-    .order-items li {
-      display: flex;
-      gap: 0.5rem;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid var(--p-surface-700);
-      color: var(--p-surface-200);
-    }
-
-    .order-items li:last-child {
-      border-bottom: none;
-    }
-
-    .item-qty {
-      font-weight: 700;
-      color: var(--p-primary-400);
-      min-width: 30px;
-    }
-
-    .item-name {
-      font-weight: 500;
-    }
-
-    .order-actions {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .order-actions button {
-      flex: 1;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 3rem;
-      color: var(--p-surface-400);
-    }
-
-    .empty-state i {
-      font-size: 4rem;
-      color: var(--p-success-500);
-      margin-bottom: 1rem;
-    }
-
-    .empty-state p {
-      font-size: 1.1rem;
-      margin: 0;
-    }
-  `]
+  imports: [
+    CommonModule,
+    RmsPageHeaderComponent,
+    RmsCardComponent,
+    RmsBadgeComponent,
+    RmsButtonComponent,
+    RmsEmptyStateComponent,
+  ],
+  templateUrl: './kitchen-dashboard.page.html',
+  styleUrl: './kitchen-dashboard.page.css',
 })
 export class KitchenDashboardPageComponent {
   readonly pendingOrders = signal<KitchenOrder[]>([
@@ -242,5 +80,14 @@ export class KitchenDashboardPageComponent {
     if (minutes < 1) return 'Ahora';
     if (minutes < 60) return `${minutes} min`;
     return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+  }
+
+  getStatusSeverity(status: string): 'warning' | 'success' | 'info' {
+    const map: Record<string, 'warning' | 'success' | 'info'> = {
+      pending: 'warning',
+      preparing: 'info',
+      ready: 'success',
+    };
+    return map[status] || 'info';
   }
 }

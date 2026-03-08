@@ -1,0 +1,85 @@
+<main class="layout">
+  <rms-page-header
+    [title]="'Nueva Orden'"
+    [subtitle]="'Selecciona una mesa y los productos para crear una nueva orden'"
+  />
+
+  <div class="content-grid">
+    <section class="catalog">
+      <h2>Productos</h2>
+      <p class="catalog-subtitle">Selecciona los productos para agregar a la orden</p>
+
+      @if (catalogLoading()) {
+        <div class="grid">
+          <app-product-card-skeleton></app-product-card-skeleton>
+          <app-product-card-skeleton></app-product-card-skeleton>
+          <app-product-card-skeleton></app-product-card-skeleton>
+        </div>
+      } @else {
+        <div class="grid">
+          @for (product of products(); track product.id) {
+            <app-product-card
+              [product]="product"
+              (add)="addToCart($event.productId)"
+            ></app-product-card>
+          }
+        </div>
+      }
+    </section>
+
+    <aside class="order-panel">
+      <h2>Orden</h2>
+      
+      <rms-select
+        [label]="'Mesa'"
+        [optionsList]="tableOptions()"
+        [placeholder]="'Selecciona una mesa'"
+        (onChange)="onTableChange($event)"
+      />
+
+      @if (cart().length > 0) {
+        <div class="cart-items">
+          @for (item of cart(); track item.productId) {
+            <rms-cart-item
+              [item]="{
+                id: item.productId,
+                name: item.productName,
+                price: item.price,
+                quantity: item.quantity,
+                instructions: item.instructions
+              }"
+              (increment)="incrementQty($event)"
+              (decrement)="decrementQty($event)"
+              (remove)="removeFromCart($event)"
+              (updateInstructions)="updateInstructions($event.id, $event.instructions)"
+            />
+          }
+        </div>
+      } @else {
+        <p class="empty-cart">No hay productos en la orden</p>
+      }
+
+      @if (cart().length > 0) {
+        <div class="order-total">
+          <span>Total:</span>
+          <span class="total-price">\${{ totalPrice() }}</span>
+        </div>
+      }
+
+      <rms-button
+        [label]="loading() ? 'Creando...' : 'Crear Orden'"
+        [severity]="'primary'"
+        [disabled]="!canSubmit() || loading()"
+        (onClick)="submit()"
+        [styleClass]="'submit-btn'"
+      />
+
+      @if (errorMessage()) {
+        <p class="message error">{{ errorMessage() }}</p>
+      }
+      @if (lastOrderId()) {
+        <p class="message ok">Orden creada: #{{ lastOrderId() }}</p>
+      }
+    </aside>
+  </div>
+</main>

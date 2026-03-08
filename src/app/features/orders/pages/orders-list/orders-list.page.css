@@ -1,0 +1,79 @@
+.filters {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.order-id {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--p-surface-900);
+}
+
+.order-info {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  color: var(--p-surface-600);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.order-info i {
+  margin-right: 0.5rem;
+}
+
+.order-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--p-surface-200);
+  border-bottom: 1px solid var(--p-surface-200);
+  margin-bottom: 1rem;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  color: var(--p-surface-700);
+  font-size: 0.9rem;
+}
+
+.item-price {
+  color: var(--p-success-600);
+  font-weight: 500;
+}
+
+.order-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--p-surface-500);
+  padding: 3rem;
+}
+
+.loading-state i {
+  font-size: 1.5rem;
+}

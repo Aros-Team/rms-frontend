@@ -1,0 +1,14 @@
+<div class="rms-search-box">
+  <i [class]="config().icon"></i>
+  <input
+    type="text"
+    [placeholder]="config().placeholder"
+    [value]="value()"
+    (input)="onInput($event)"
+  />
+  @if (value()) {
+    <button class="clear-btn" (click)="clear()">
+      <i class="pi pi-times"></i>
+    </button>
+  }
+</div>

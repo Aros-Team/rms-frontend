@@ -1,86 +1,56 @@
 import { Component } from '@angular/core';
+import { CardModule } from 'primeng/card';
+import { SkeletonModule } from 'primeng/skeleton';
 
 @Component({
   selector: 'app-product-card-skeleton',
   standalone: true,
+  imports: [CardModule, SkeletonModule],
   template: `
-    <article class="card-skeleton" aria-hidden="true">
-      <div class="s-line s-image"></div>
-      <div class="content">
-        <div class="s-line s-title"></div>
-        <div class="s-line s-text"></div>
-        <div class="s-line s-text short"></div>
-        <div class="s-footer">
-          <div class="s-line s-price"></div>
-          <div class="s-line s-button"></div>
+    <p-card styleClass="skeleton-card" aria-hidden="true">
+      <ng-template pTemplate="header">
+        <p-skeleton styleClass="skeleton-image" />
+      </ng-template>
+      <ng-template pTemplate="content">
+        <p-skeleton width="70%" height="1.2rem" styleClass="skeleton-title" />
+        <p-skeleton width="100%" height="0.8rem" styleClass="skeleton-text" />
+        <p-skeleton width="60%" height="0.8rem" styleClass="skeleton-text" />
+      </ng-template>
+      <ng-template pTemplate="footer">
+        <div class="skeleton-footer">
+          <p-skeleton width="30%" height="1rem" />
+          <p-skeleton width="25%" height="2rem" borderRadius="0.6rem" />
         </div>
-      </div>
-    </article>
+      </ng-template>
+    </p-card>
   `,
-  styles: [
-    `
-      .card-skeleton {
-        border: 1px solid #d3e3ef;
-        border-radius: 1rem;
-        overflow: hidden;
-        background: #ffffff;
-      }
+  styles: [`
+    :host {
+      display: block;
+    }
 
-      .content {
-        padding: 0.9rem;
-      }
+    :host ::ng-deep .skeleton-card {
+      overflow: hidden;
+    }
 
-      .s-line {
-        border-radius: 0.55rem;
-        background: linear-gradient(90deg, #e6eff7 25%, #f6fbff 37%, #e6eff7 63%);
-        background-size: 400% 100%;
-        animation: shine 1.2s ease infinite;
-      }
+    :host ::ng-deep .skeleton-image {
+      aspect-ratio: 16 / 9;
+      border-radius: 0;
+    }
 
-      .s-image {
-        aspect-ratio: 16 / 9;
-      }
+    :host ::ng-deep .skeleton-title {
+      margin-bottom: 0.6rem;
+    }
 
-      .s-title {
-        height: 1.15rem;
-        margin-top: 0.2rem;
-      }
+    :host ::ng-deep .skeleton-text {
+      margin-top: 0.5rem;
+    }
 
-      .s-text {
-        height: 0.75rem;
-        margin-top: 0.6rem;
-      }
-
-      .short {
-        width: 68%;
-      }
-
-      .s-footer {
-        margin-top: 0.9rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .s-price {
-        width: 35%;
-        height: 1rem;
-      }
-
-      .s-button {
-        width: 30%;
-        height: 1.85rem;
-      }
-
-      @keyframes shine {
-        0% {
-          background-position: 100% 0;
-        }
-        100% {
-          background-position: 0 0;
-        }
-      }
-    `,
-  ],
+    .skeleton-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  `],
 })
 export class ProductCardSkeletonComponent {}

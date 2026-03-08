@@ -27,7 +27,7 @@ import { ShellSidebarComponent } from './shell-sidebar.component';
         display: grid;
         grid-template-columns: 220px 1fr;
         gap: 1rem;
-        background: #0f172a;
+        background: var(--p-surface-950);
       }
 
       .shell-content {

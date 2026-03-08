@@ -1,0 +1,26 @@
+<div class="rms-card" [class]="config().styleClass">
+  @if (config().headerTemplate) {
+    <ng-container *ngTemplateOutlet="config().headerTemplate" />
+  } @else {
+    @if (config().title || config().subtitle) {
+      <div class="rms-card-header">
+        @if (config().title) {
+          <h3 class="rms-card-title">{{ config().title }}</h3>
+        }
+        @if (config().subtitle) {
+          <p class="rms-card-subtitle">{{ config().subtitle }}</p>
+        }
+      </div>
+    }
+  }
+
+  <div class="rms-card-content">
+    <ng-content></ng-content>
+  </div>
+
+  @if (config().footerTemplate) {
+    <div class="rms-card-footer">
+      <ng-container *ngTemplateOutlet="config().footerTemplate" />
+    </div>
+  }
+</div>

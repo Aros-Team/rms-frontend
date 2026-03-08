@@ -1,0 +1,34 @@
+<div class="rms-select-wrapper">
+  @if (config().label) {
+    <label [for]="config().id" class="rms-select-label">
+      {{ config().label }}
+      @if (config().required) {
+        <span class="rms-select-required">*</span>
+      }
+    </label>
+  }
+
+  <p-select
+    [id]="config().id"
+    [options]="config().options"
+    [placeholder]="config().placeholder"
+    [disabled]="config().disabled"
+    [readonly]="config().readonly"
+    [attr.aria-required]="config().required"
+    [showClear]="!config().required"
+    [emptyMessage]="config().emptyMessage"
+    [styleClass]="'rms-select-field'"
+    [(ngModel)]="selectedValue"
+    (onChange)="onSelectionChange($event)"
+    optionLabel="label"
+    optionValue="value"
+  />
+
+  @if (config().hint && !hasError()) {
+    <small class="rms-select-hint">{{ config().hint }}</small>
+  }
+
+  @if (hasError() && config().errorMessage) {
+    <small class="rms-select-error-msg">{{ config().errorMessage }}</small>
+  }
+</div>
