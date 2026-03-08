@@ -1,60 +1,53 @@
-# Restaurant Management System | Frontend
+# Restaurant Management System (RMS) - Frontend
 
-Frontend base del RMS orientada a escalar por modulos y alineada con una arquitectura hexagonal en backend.
+Version: 0.1.0
 
-## Stack
+Modern, scalable frontend for restaurant operations, built with Angular 21 and designed to work seamlessly with the RMS backend API.
 
-- Angular 21
-- Tailwind CSS
-- PrimeNG
+Context
+This is the frontend component of the Restaurant Management System (RMS). It provides a responsive web interface for managing orders, products, tables, and more. The frontend communicates with the RMS API to handle real-time restaurant operations.
 
-## Inicio rapido
+Technologies We're Using
+The RMS Frontend is built on a modern and scalable stack:
 
-- Copiar `.env.example` a `.env` y ajustar si es necesario
-- Instalar dependencias: `npm install`
-- Ejecutar en local: `npm run start`
-- Ejecutar en Docker: `docker-compose up --build`
+- **Framework**: Angular 21 with standalone components and signals
+- **UI Library**: PrimeNG 21 for component library
+- **Styling**: Tailwind CSS 3 + PrimeNG Tokens for consistent theming
+- **Language**: TypeScript 5.9
+- **Build**: Angular CLI
+- **Testing**: Karma + Jasmine (unit), Puppeteer (E2E)
+- **Containerization**: Docker
 
-La app queda disponible en `http://localhost:4200`.
+Requirements
+Before running this project, ensure you have installed:
 
-## Variables de entorno
+- **Node.js 20.x** - Required for local development
+- **Docker** - Required for building production images
+- **Taskfile** - To simplify command execution
+- **Chromium** - Required for E2E tests (install via your OS package manager)
 
-Para configurar el entorno, copiar `.env.example` a `.env`:
+First steps
+Install dependencies:
 
 ```bash
-cp .env.example .env
+npm install
 ```
 
-### Puppeteer (tests E2E)
+Run the project:
 
-| Variable | Descripcion | Valor por defecto |
-|----------|-------------|-------------------|
-| `PUPPETEER_SKIP_DOWNLOAD` | Omitir descarga automatica de Chrome | `true` |
-| `PUPPETEER_EXECUTABLE_PATH` | Ruta al ejecutable de Chrome/Chromium | `/usr/bin/chromium` |
-
-**Instalacion de Chrome/Chromium:**
-- Linux (Debian/Ubuntu): `sudo apt install -y chromium`
-- macOS: Instalar Google Chrome desde el sitio oficial
-- Windows: Instalar Google Chrome desde el sitio oficial
-
-**Ejecutar tests E2E:**
 ```bash
-npm run test:e2e
+task run
 ```
 
-## Integracion con API
+Build the project:
 
-- El frontend consume la API via proxy en `/api` (`proxy.conf.json`).
-- El `apiBaseUrl` de la app apunta a `/api/v1` para mapear con los endpoints versionados de la API.
-- Dentro de Docker, el proxy usa `http://host.docker.internal:8080`.
+```bash
+# This command runs tests and then generates a Docker image
+task build
+```
 
-## Arquitectura base frontend
+Run tests only:
 
-Se adopta una variante de arquitectura hexagonal/clean para frontend:
-
-- `core`: reglas de negocio, modelos, puertos y casos de uso
-- `infrastructure`: adaptadores externos (HTTP, storage, etc.)
-- `features`: pantallas y orquestacion UI (facades)
-- `shared`: componentes utilitarios reutilizables
-
-Ejemplo inicial implementado: flujo `orders` para agregar producto a una orden.
+```bash
+task test
+```

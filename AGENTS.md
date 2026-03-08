@@ -14,10 +14,8 @@ Objetivo tecnico principal:
 
 - Angular 21 (standalone bootstrap)
 - TypeScript 5.9
-- RxJS 7.8
 - Tailwind CSS 3
-- PrimeNG 21 y PrimeIcons 7
-- Docker + docker compose para ejecucion local
+- PrimeNG 21 
 - Taskfile para comandos estandar
 
 ## 3) Versiones verificadas
@@ -277,3 +275,314 @@ El proyecto usa un archivo `.env` para configuraciones locales. Copiar `.env.exa
 - Windows: Instalar Google Chrome desde el sitio oficial
 
 **Problema comun:** Si `npm install` falla por descarga de Chrome, verificar que las variables esten correctamente configuradas en `.env` y que Chrome/Chromium este instalado en el sistema.
+
+## 19) Actualizacion de dependencias Angular
+
+Si hay problemas de vulnerabilidades en paquetes de Angular (ej: `serialize-javascript`, `copy-webpack-plugin`), la forma recomendada es usar el CLI de Angular:
+
+```bash
+# 1. Actualizar CLI de Angular
+npm install @angular/cli@<version>
+
+# 2. Ejecutar ng update para actualizar todas las dependencias Angular automáticamente
+npx ng update @angular/core @angular/cli
+```
+
+`ng update`:
+- Analiza el package.json y las versiones instaladas
+- Actualiza todas las dependencias Angular de forma coordinada
+- Maneja automáticamente las peer dependencies
+- Ejecuta schematics de migración si es necesario
+
+**Ejemplo:** Para actualizar de 21.2.0 a 21.2.1:
+```bash
+npm install @angular/cli@21.2.1
+npx ng update @angular/core @angular/cli
+```
+
+## 20) Estilos con PrimeNG Tokens (OBLIGATORIO)
+
+### Revisar siempre documentacion PrimeNG
+
+buscar en https://primeng.org/llms/llms.txt
+
+### Reglas absolutas
+
+- **PROHIBIDO**: Usar colores hardcodeados en componentes (ej: `#0f172a`, `#1e293b`, `#4ade80`)
+- **PROHIBIDO**: Crear variables CSS propias para colores que ya existen en PrimeNG
+- **OBLIGATORIO**: Usar tokens de PrimeNG para todos los estilos de color, bordes y sombras
+- **OBLIGATORIO**: Usar componentes de PrimeNG cuando existan (Button, InputText, Card, Dialog, etc.)
+
+### Tokens disponibles
+
+El proyecto usa un tema personalizado definido en `src/app/shared/theme/rms-preset.ts`. Principales tokens:
+
+```css
+/* Superficie (dark mode) */
+--p-surface-900  /* Fondo principal oscuro */
+--p-surface-800  /* Cards, paneles */
+--p-surface-700  /* Bordes, separadores */
+--p-surface-400  /* Texto secundario */
+--p-surface-100  /* Texto principal claro */
+--p-surface-0    /* Fondo claro */
+
+/* Colores semánticos */
+--p-primary-500  /* Color principal (brand) */
+--p-success-500  /* Verde éxito */
+--p-danger-500   /* Rojo error/peligro */
+--p-warning-500   /* Amarillo advertencia */
+--p-info-500     /* Azul información */
+
+/* Contraste */
+--p-primary-contrast-color
+```
+
+### Cómo usar tokens
+
+```typescript
+// ✅ CORRECTO - Usar tokens
+styles: [`
+  .card {
+    background: var(--p-surface-900);
+    border: 1px solid var(--p-surface-700);
+    color: var(--p-surface-100);
+  }
+  .success {
+    color: var(--p-success-500);
+  }
+`]
+
+// ❌ INCORRECTO - Hardcoded
+styles: [`
+  .card {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #f1f5f9;
+  }
+`]
+```
+
+### Cuándo crear nuevos componentes
+
+1. **Primero**: Verificar si PrimeNG tiene el componente necesario
+2. **Segundo**: Si no existe, crear en `src/app/shared/ui/`
+3. **Tercero**: Usar tokens del tema, nunca hardcoded, 
+
+### Theme personalizado
+
+El archivo `src/app/shared/theme/rms-preset.ts` contiene la configuración del tema. Para modificar colores globales, editar ese archivo y rebuild.
+
+## 21) Estructura del Proyecto
+
+### Directorios principales
+
+```
+src/app/
+├── core/                    # Dominio y casos de uso (puro, sin dependencias externas)
+│   ├── auth/               # Dominio de autenticación
+│   │   ├── domain/models/  # Modelos: User, Token, AuthState
+│   │   └── application/
+│   │       ├── guards/     # Guards de autenticación
+│   │       ├── interceptors/# Interceptors (auth, error, loading)
+│   │       └── services/   # Servicios de dominio (AuthService)
+│   └── orders/             # Dominio de orders (ejemplo)
+│       ├── domain/models/
+│       └── application/
+│           ├── ports/      # Interfaces de entrada/salida
+│           ├── use-cases/  # Casos de uso
+│           └── tokens/     # Tokens DI
+│
+├── features/               # UI y orquestación
+│   ├── auth/
+│   │   ├── application/   # Facades, guards
+│   │   └── pages/         # Componentes de página
+│   ├── orders/
+│   └── products/
+│
+├── infrastructure/         # Adaptadores externos
+│   ├── http/              # Repositorios HTTP
+│   │   ├── auth/          # Adaptador de autenticación
+│   │   ├── orders/        # Adaptador de orders
+│   │   └── table/         # Adaptador de mesas
+│   └── providers/          # Providers DI
+│
+└── shared/                # Componentes reutilizables
+    ├── layout/            # Shell, header, sidebar
+    ├── legal/              # Consentimiento legal
+    ├── models/             # DTOs compartidos
+    ├── theme/             # Tema PrimeNG
+    └── ui/                # Componentes UI (cards, etc.)
+```
+
+## 22) Autenticación
+
+### Dónde va cada cosa
+
+| Elemento | Ubicación | Razón |
+|----------|-----------|-------|
+| **Modelo de Usuario** | `core/auth/domain/models/` | Dominio puro, sin dependencias |
+| **AuthService** | `core/auth/application/services/` | Lógica de negocio de auth |
+| **AuthGuard** | `core/auth/application/guards/` | Guard para rutas protegidas |
+| **AuthInterceptor** | `core/auth/application/interceptors/` | Agregar token a requests |
+| **ErrorInterceptor** | `core/auth/application/interceptors/` | Manejo global de errores |
+| **LoadingInterceptor** | `core/auth/application/interceptors/` | Estado global de carga |
+| **HTTP Repository** | `infrastructure/http/auth/` | Implementación HTTP real |
+| **AuthFacade** | `features/auth/application/` | Orquestación UI |
+
+### Flujo de autenticación
+
+```
+1. Usuario ingresa credenciales en LoginPageComponent
+2. LoginPageComponent llama a AuthFacade.login()
+3. AuthFacade llama a AuthService.login() (puerto de entrada)
+4. AuthService usa AuthRepositoryPort (puerto de salida)
+5. AuthHttpRepository implementa AuthRepositoryPort (infraestructura)
+6. Token se guarda en localStorage/sessionStorage
+7. AuthInterceptor agrega token a cada request
+8. AuthGuard protege rutas que requieren autenticación
+```
+
+### Ejemplo de estructura Auth
+
+```
+core/auth/
+├── domain/
+│   └── models/
+│       ├── user.model.ts          # Interface User
+│       └── auth-response.model.ts # Token, refreshToken, etc.
+└── application/
+    ├── services/
+    │   └── auth.service.ts        # Lógica de login, logout, isLoggedIn
+    ├── ports/
+    │   ├── input/
+    │   │   └── auth.port.ts       # Interface para el caso de uso
+    │   └── output/
+    │       └── auth.repository.port.ts # Interface para el adaptador
+    ├── guards/
+    │   └── auth.guard.ts          # CanActivate guard
+    └── interceptors/
+        ├── auth.interceptor.ts     # Agrega Bearer token
+        ├── error.interceptor.ts    # Maneja errores HTTP
+        └── loading.interceptor.ts  # Toggle loading state
+```
+
+## 23) Servicios - Dónde ponerlos
+
+### Regla general
+
+- **Servicios de dominio** (lógica de negocio): `core/.../application/services/`
+- **Servicios de infraestructura** (HTTP, storage): `infrastructure/.../`
+- **Servicios de UI** (shared): `shared/`
+
+### Ejemplos
+
+| Servicio | Ubicación correcta |
+|----------|-------------------|
+| AuthService (login, logout) | `core/auth/application/services/auth.service.ts` |
+| OrdersService (casos de uso) | `core/orders/application/use-cases/` (use-case) |
+| OrdersHttpRepository | `infrastructure/http/orders/orders-http.repository.ts` |
+| LegalConsentService | `shared/legal/legal-consent-state.service.ts` |
+| ThemeService | `shared/theme/` o `core/theme/` |
+
+## 24) Guards
+
+### Tipos de Guards
+
+- **CanActivate**: ¿Puede acceder a la ruta?
+- **CanActivateChild**: ¿Puede acceder a rutas hijos?
+- **CanDeactivate**: ¿Puede salir de la ruta?
+- **CanLoad**: ¿Puede cargar un módulo lazy?
+
+### Ejemplo de AuthGuard
+
+```typescript
+// core/auth/application/guards/auth.guard.ts
+@Injectable({ providedIn: 'root' })
+export class AuthGuard implements CanActivate {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  canActivate(): boolean {
+    if (this.authService.isLoggedIn()) {
+      return true;
+    }
+    this.router.navigate(['/auth/login']);
+    return false;
+  }
+}
+```
+
+### Uso en rutas
+
+```typescript
+// app.routes.ts
+{
+  path: 'orders',
+  component: OrdersListPageComponent,
+  canActivate: [AuthGuard],  // ✅ CORRECTO
+}
+```
+
+## 25) Interceptores
+
+### Interceptores disponibles
+
+| Interceptor | Propósito |
+|------------|-----------|
+| AuthInterceptor | Agregar `Authorization: Bearer <token>` a headers |
+| ErrorInterceptor | Manejar errores 401, 403, 500 globalmente |
+| LoadingInterceptor | Mostrar/ocultar spinner global |
+
+### Registro de interceptores
+
+En `app.config.ts`:
+
+```typescript
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { AuthInterceptor } from './core/auth/application/interceptors/auth.interceptor';
+import { ErrorInterceptor } from './core/auth/application/interceptors/error.interceptor';
+
+provideHttpClient(
+  withInterceptors([
+    AuthInterceptor,
+    ErrorInterceptor,
+  ])
+)
+```
+
+## 26) Providers de Infraestructura
+
+### Estructura recomendada
+
+Cada dominio debe tener un archivo de providers en `infrastructure/providers/`:
+
+```
+infrastructure/providers/
+├── auth.providers.ts      # Providers de auth
+└── orders.providers.ts   # Providers de orders
+```
+
+### Ejemplo
+
+```typescript
+// infrastructure/providers/orders.providers.ts
+import { Provider } from '@angular/core';
+import { ORDERS_REPOSITORY } from '../../core/orders/application/tokens/orders.tokens';
+import { OrdersHttpRepository } from '../http/orders/orders-http.repository';
+
+export const provideOrdersInfrastructure: Provider[] = [
+  { provide: ORDERS_REPOSITORY, useClass: OrdersHttpRepository },
+];
+```
+
+Luego importar en `app.config.ts`:
+
+```typescript
+import { provideOrdersInfrastructure } from './infrastructure/providers/orders.providers';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideOrdersInfrastructure(),
+  ],
+};
+```
