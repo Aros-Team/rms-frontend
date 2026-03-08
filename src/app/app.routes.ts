@@ -1,52 +1,51 @@
 import { Routes } from '@angular/router';
-import { OrdersHomePageComponent } from './features/orders/pages/orders-home/orders-home.page';
-import { OrdersListPageComponent } from './features/orders/pages/orders-list/orders-list.page';
-import { ProductsListPageComponent } from './features/products/pages/products-list/products-list.page';
-import { ProductCreatePageComponent } from './features/products/pages/product-create/product-create.page';
-import { AppShellLayoutComponent } from './shared/layout/app-shell-layout.component';
-import { AuthShellPageComponent } from './features/auth/pages/auth-shell/auth-shell.page';
-import { LoginPageComponent } from './features/auth/pages/login/login.page';
+import { authGuard, adminGuard, kitchenGuard } from './core/auth/application/guards/auth.guard';
 
 export const appRoutes: Routes = [
   {
     path: 'auth',
-    component: AuthShellPageComponent,
-    children: [
-      {
-        path: 'login',
-        component: LoginPageComponent,
-      },
-      {
-        path: '',
-        redirectTo: 'login',
-        pathMatch: 'full',
-      },
-    ],
+    loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES)
   },
   {
     path: '',
-    component: AppShellLayoutComponent,
+    canActivate: [authGuard],
     children: [
       {
         path: '',
-        component: OrdersHomePageComponent,
+        loadComponent: () => import('./features/orders/pages/orders-home/orders-home.page').then(m => m.OrdersHomePageComponent)
       },
       {
         path: 'orders',
-        component: OrdersListPageComponent,
-      },
+        loadComponent: () => import('./features/orders/pages/orders-list/orders-list.page').then(m => m.OrdersListPageComponent)
+      }
+    ]
+  },
+  {
+    path: 'kitchen',
+    canActivate: [kitchenGuard],
+    loadComponent: () => import('./features/kitchen/pages/kitchen-dashboard/kitchen-dashboard.page').then(m => m.KitchenDashboardPageComponent)
+  },
+  {
+    path: 'admin',
+    canActivate: [adminGuard],
+    children: [
       {
         path: 'products',
-        component: ProductsListPageComponent,
-      },
-      {
-        path: 'products/new',
-        component: ProductCreatePageComponent,
-      },
-    ],
+        children: [
+          {
+            path: '',
+            loadComponent: () => import('./features/products/pages/products-list/products-list.page').then(m => m.ProductsListPageComponent)
+          },
+          {
+            path: 'new',
+            loadComponent: () => import('./features/products/pages/product-create/product-create.page').then(m => m.ProductCreatePageComponent)
+          }
+        ]
+      }
+    ]
   },
   {
     path: '**',
-    redirectTo: '/auth/login',
-  },
+    redirectTo: 'auth/login'
+  }
 ];
