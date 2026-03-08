@@ -22,7 +22,7 @@ import { OrderResponse } from '../../../../shared/models/dto/orders/order-respon
         <div class="filter-group">
           <label>Estado</label>
           <select [(ngModel)]="selectedStatus" (change)="loadOrders()" class="filter-select">
-            @for (let opt of statusOptions; track opt.value) {
+            @for (opt of statusOptions; track opt.value) {
               <option [ngValue]="opt.value">
                 {{ opt.label }}
               </option>
@@ -41,7 +41,7 @@ import { OrderResponse } from '../../../../shared/models/dto/orders/order-respon
 
       @if (!loading()) {
         <section class="orders-list">
-          @for (let order of orders(); track order.id) {
+          @for (order of orders(); track order.id) {
             <div class="order-card">
               <div class="order-header">
                 <div class="order-id">Orden #{{ order.id }}</div>
@@ -62,7 +62,7 @@ import { OrderResponse } from '../../../../shared/models/dto/orders/order-respon
               </div>
 
               <div class="order-items">
-                @for (let item of order.details; track item.productName) {
+                @for (item of order.details; track item.productName) {
                   <div class="item">
                     <span class="item-name">{{ item.productName }}</span>
                     <span class="item-price">\${{ item.unitPrice }}</span>
@@ -125,12 +125,12 @@ import { OrderResponse } from '../../../../shared/models/dto/orders/order-respon
       .page-header h1 {
         font-size: 1.5rem;
         font-weight: 700;
-        color: #f1f5f9;
+        color: var(--p-surface-100);
         margin: 0;
       }
 
       .page-header p {
-        color: #64748b;
+        color: var(--p-surface-500);
         font-size: 0.875rem;
         margin: 0.25rem 0 0;
       }
@@ -150,48 +150,48 @@ import { OrderResponse } from '../../../../shared/models/dto/orders/order-respon
 
       .filter-group label {
         font-size: 0.8rem;
-        color: #94a3b8;
+        color: var(--p-surface-400);
       }
 
       .filter-select {
         min-width: 180px;
         padding: 0.5rem 0.75rem;
-        background: #1e293b;
-        border: 1px solid #334155;
+        background: var(--p-surface-800);
+        border: 1px solid var(--p-surface-700);
         border-radius: 0.65rem;
-        color: #f1f5f9;
+        color: var(--p-surface-100);
         font-size: 0.9rem;
         cursor: pointer;
       }
 
       .filter-select:focus {
         outline: none;
-        border-color: #475569;
+        border-color: var(--p-surface-600);
       }
 
       .filter-select option {
-        background: #1e293b;
-        color: #f1f5f9;
+        background: var(--p-surface-800);
+        color: var(--p-surface-100);
       }
 
       .refresh-btn {
-        background: #1e293b;
-        border: 1px solid #334155;
-        color: #f1f5f9;
+        background: var(--p-surface-800);
+        border: 1px solid var(--p-surface-700);
+        color: var(--p-surface-100);
       }
 
       .prepare-btn {
-        background: #1d4ed8;
+        background: var(--p-primary-500);
         border: none;
-        color: #fff;
+        color: var(--p-primary-contrast-color);
       }
 
       .prepare-btn:hover {
-        background: #1e40af;
+        background: var(--p-primary-600);
       }
 
       .refresh-btn:hover {
-        background: #334155;
+        background: var(--p-surface-700);
       }
 
       .orders-list {
@@ -201,8 +201,8 @@ import { OrderResponse } from '../../../../shared/models/dto/orders/order-respon
       }
 
       .order-card {
-        background: #1e293b;
-        border: 1px solid #334155;
+        background: var(--p-surface-800);
+        border: 1px solid var(--p-surface-700);
         border-radius: 1rem;
         padding: 1.25rem;
         display: flex;
@@ -219,7 +219,7 @@ import { OrderResponse } from '../../../../shared/models/dto/orders/order-respon
       .order-id {
         font-size: 1.1rem;
         font-weight: 600;
-        color: #f1f5f9;
+        color: var(--p-surface-100);
       }
 
       .status-badge {
@@ -231,28 +231,28 @@ import { OrderResponse } from '../../../../shared/models/dto/orders/order-respon
       }
 
       .status-badge.queue {
-        background: #fef3c7;
-        color: #92400e;
+        background: var(--p-warning-100);
+        color: var(--p-warning-700);
       }
 
       .status-badge.preparing {
-        background: #dbeafe;
-        color: #1e40af;
+        background: var(--p-info-100);
+        color: var(--p-info-700);
       }
 
       .status-badge.ready {
-        background: #d1fae5;
-        color: #065f46;
+        background: var(--p-success-100);
+        color: var(--p-success-700);
       }
 
       .status-badge.delivered {
-        background: #d1fae5;
-        color: #065f46;
+        background: var(--p-success-100);
+        color: var(--p-success-700);
       }
 
       .status-badge.cancelled {
-        background: #fee2e2;
-        color: #991b1b;
+        background: var(--p-danger-100);
+        color: var(--p-danger-700);
       }
 
       .order-info {
@@ -265,7 +265,7 @@ import { OrderResponse } from '../../../../shared/models/dto/orders/order-respon
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        color: #94a3b8;
+        color: var(--p-surface-400);
         font-size: 0.9rem;
       }
 
@@ -278,19 +278,19 @@ import { OrderResponse } from '../../../../shared/models/dto/orders/order-respon
         flex-direction: column;
         gap: 0.5rem;
         padding: 0.75rem 0;
-        border-top: 1px solid #334155;
-        border-bottom: 1px solid #334155;
+        border-top: 1px solid var(--p-surface-700);
+        border-bottom: 1px solid var(--p-surface-700);
       }
 
       .item {
         display: flex;
         justify-content: space-between;
-        color: #e2e8f0;
+        color: var(--p-surface-200);
         font-size: 0.9rem;
       }
 
       .item-price {
-        color: #4ade80;
+        color: var(--p-success-500);
         font-weight: 500;
       }
 
@@ -307,35 +307,35 @@ import { OrderResponse } from '../../../../shared/models/dto/orders/order-respon
       }
 
       .cancel-btn {
-        background: #dc2626;
+        background: var(--p-danger-500);
         border: none;
       }
 
       .cancel-btn:hover {
-        background: #b91c1c;
+        background: var(--p-danger-600);
       }
 
       .ready-btn {
-        background: #2563eb;
+        background: var(--p-primary-500);
         border: none;
       }
 
       .ready-btn:hover {
-        background: #1d4ed8;
+        background: var(--p-primary-600);
       }
 
       .deliver-btn {
-        background: #16a34a;
+        background: var(--p-success-500);
         border: none;
       }
 
       .deliver-btn:hover {
-        background: #15803d;
+        background: var(--p-success-600);
       }
 
       .empty-state {
         text-align: center;
-        color: #64748b;
+        color: var(--p-surface-500);
         padding: 3rem;
       }
 
@@ -344,7 +344,7 @@ import { OrderResponse } from '../../../../shared/models/dto/orders/order-respon
         align-items: center;
         justify-content: center;
         gap: 0.75rem;
-        color: #64748b;
+        color: var(--p-surface-500);
         padding: 3rem;
       }
 

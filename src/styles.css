@@ -3,10 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --rms-bg-start: #f2f7fb;
-  --rms-bg-end: #d9e9f6;
-  --rms-text: #102539;
+  --rms-bg-start: #f8fafc;
+  --rms-bg-end: #e2e8f0;
+  --rms-text: #0f172a;
   --rms-font: 'Manrope', 'DM Sans', 'Segoe UI', sans-serif;
+
+  --p-surface-900: #0f172a;
+  --p-surface-800: #1e293b;
+  --p-surface-700: #334155;
+  --p-surface-400: #94a3b8;
+  --p-surface-100: #f1f5f9;
 }
 
 html, body, app-root {

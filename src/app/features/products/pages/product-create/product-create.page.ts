@@ -39,7 +39,7 @@ import { ButtonModule } from 'primeng/button';
             <label for="category">Categoria</label>
             <select id="category" formControlName="category" class="input-field select-field">
               <option value="">Selecciona una categoria</option>
-              @for (let cat of categories; track cat.value) {
+              @for (cat of categories; track cat.value) {
                 <option [value]="cat.value">
                   {{ cat.label }}
                 </option>
@@ -123,19 +123,19 @@ import { ButtonModule } from 'primeng/button';
       .page-header h1 {
         font-size: 1.5rem;
         font-weight: 700;
-        color: #f1f5f9;
+        color: var(--p-surface-100);
         margin: 0;
       }
 
       .page-header p {
-        color: #64748b;
+        color: var(--p-surface-500);
         font-size: 0.875rem;
         margin: 0.25rem 0 0;
       }
 
       .product-form {
-        background: #1e293b;
-        border: 1px solid #334155;
+        background: var(--p-surface-800);
+        border: 1px solid var(--p-surface-700);
         border-radius: 1rem;
         padding: 1.5rem;
         display: flex;
@@ -164,24 +164,24 @@ import { ButtonModule } from 'primeng/button';
       .form-group label {
         font-size: 0.875rem;
         font-weight: 500;
-        color: #e2e8f0;
+        color: var(--p-surface-200);
       }
 
       .input-field {
         width: 100%;
         padding: 0.75rem 1rem;
-        border: 2px solid #000;
+        border: 2px solid var(--p-surface-300);
         border-radius: 0.65rem;
-        background: #fff;
+        background: var(--p-surface-0);
         font-size: 0.95rem;
-        color: #0f172a;
+        color: var(--p-surface-900);
         box-sizing: border-box;
       }
 
       .input-field:focus {
         outline: none;
-        border-color: #0f172a;
-        box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.15);
+        border-color: var(--p-primary-500);
+        box-shadow: 0 0 0 3px var(--p-primary-100);
       }
 
       .select-field {
@@ -194,13 +194,13 @@ import { ButtonModule } from 'primeng/button';
       }
 
       .error-message {
-        color: #f87171;
+        color: var(--p-danger-500);
         font-size: 0.875rem;
         margin: 0;
       }
 
       .success-message {
-        color: #4ade80;
+        color: var(--p-success-500);
         font-size: 0.875rem;
         margin: 0;
       }
@@ -219,12 +219,12 @@ import { ButtonModule } from 'primeng/button';
       }
 
       .form-actions button[type="submit"] {
-        background: #0f172a;
+        background: var(--p-surface-900);
         border: none;
       }
 
       .form-actions button[type="submit"]:hover:not(:disabled) {
-        background: #1e293b;
+        background: var(--p-surface-800);
       }
 
       .form-actions button[type="submit"]:disabled {
@@ -234,13 +234,13 @@ import { ButtonModule } from 'primeng/button';
 
       .cancel-btn {
         background: transparent !important;
-        border: 1px solid #475569 !important;
-        color: #94a3b8 !important;
+        border: 1px solid var(--p-surface-600) !important;
+        color: var(--p-surface-400) !important;
       }
 
       .cancel-btn:hover {
-        background: #334155 !important;
-        color: #e2e8f0 !important;
+        background: var(--p-surface-700) !important;
+        color: var(--p-surface-200) !important;
       }
     `,
   ],

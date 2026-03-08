@@ -43,7 +43,7 @@ interface CartItem {
             </div>
           } @else {
             <div class="grid">
-              @for (let product of products(); track product.id) {
+              @for (product of products(); track product.id) {
                 <app-product-card
                   [product]="product"
                   (add)="addToCart($event.productId)"
@@ -65,7 +65,7 @@ interface CartItem {
               (change)="onTableChange($event)"
             >
               <option value="" disabled>Selecciona una mesa</option>
-              @for (let table of availableTables(); track table.id) {
+              @for (table of availableTables(); track table.id) {
                 <option [value]="table.id">
                   Mesa {{ table.tableNumber }} ({{ table.capacity }} pers.) - {{ table.status }}
                 </option>
@@ -75,7 +75,7 @@ interface CartItem {
 
           @if (cart().length > 0) {
             <div class="cart-items">
-              @for (let item of cart(); track item.productId; let i = $index) {
+              @for (item of cart(); track item.productId; let i = $index) {
                 <div class="cart-item">
                   <div class="cart-item-info">
                     <span class="cart-item-name">{{ item.productName }}</span>
@@ -139,8 +139,8 @@ interface CartItem {
       }
 
       .hero {
-        background: linear-gradient(140deg, #0f172a 0%, #1e293b 100%);
-        color: #f1f5f9;
+        background: linear-gradient(140deg, var(--p-surface-900) 0%, var(--p-surface-800) 100%);
+        color: var(--p-surface-100);
         border-radius: 1rem;
         padding: 1.25rem 1.5rem;
       }
@@ -180,8 +180,8 @@ interface CartItem {
       }
 
       .card {
-        background: #0f172a;
-        border: 1px solid #334155;
+        background: var(--p-surface-900);
+        border: 1px solid var(--p-surface-700);
         border-radius: 1rem;
         padding: 1.25rem;
       }
@@ -192,7 +192,7 @@ interface CartItem {
 
       .catalog__header p {
         margin: 0.35rem 0 0;
-        color: #94a3b8;
+        color: var(--p-surface-400);
         font-size: 0.85rem;
       }
 
@@ -215,25 +215,25 @@ interface CartItem {
         display: block;
         font-size: 0.85rem;
         font-weight: 500;
-        color: #e2e8f0;
+        color: var(--p-surface-200);
         margin-bottom: 0.4rem;
       }
 
       .input-field {
         width: 100%;
         padding: 0.65rem 0.85rem;
-        border: 2px solid #000;
+        border: 2px solid var(--p-surface-300);
         border-radius: 0.65rem;
-        background: #fff;
+        background: var(--p-surface-0);
         font-size: 0.9rem;
-        color: #0f172a;
+        color: var(--p-surface-900);
         box-sizing: border-box;
       }
 
       .input-field:focus {
         outline: none;
-        border-color: #0f172a;
-        box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.15);
+        border-color: var(--p-primary-500);
+        box-shadow: 0 0 0 3px var(--p-primary-100);
       }
 
       select.input-field {
@@ -250,7 +250,7 @@ interface CartItem {
       }
 
       .cart-item {
-        background: #1e293b;
+        background: var(--p-surface-800);
         border-radius: 0.75rem;
         padding: 0.75rem;
       }
@@ -263,11 +263,11 @@ interface CartItem {
 
       .cart-item-name {
         font-weight: 500;
-        color: #f1f5f9;
+        color: var(--p-surface-100);
       }
 
       .cart-item-price {
-        color: #4ade80;
+        color: var(--p-success-500);
         font-weight: 600;
       }
 
@@ -281,10 +281,10 @@ interface CartItem {
       .qty-btn {
         width: 28px;
         height: 28px;
-        border: 1px solid #475569;
+        border: 1px solid var(--p-surface-600);
         border-radius: 0.4rem;
-        background: #334155;
-        color: #f1f5f9;
+        background: var(--p-surface-700);
+        color: var(--p-surface-100);
         cursor: pointer;
         font-size: 1rem;
         display: flex;
@@ -293,13 +293,13 @@ interface CartItem {
       }
 
       .qty-btn:hover {
-        background: #475569;
+        background: var(--p-surface-600);
       }
 
       .qty {
         min-width: 24px;
         text-align: center;
-        color: #f1f5f9;
+        color: var(--p-surface-100);
         font-weight: 500;
       }
 
@@ -309,8 +309,8 @@ interface CartItem {
         height: 28px;
         border: none;
         border-radius: 0.4rem;
-        background: #dc2626;
-        color: #fff;
+        background: var(--p-danger-500);
+        color: var(--p-danger-contrast-color);
         cursor: pointer;
         font-size: 1.1rem;
       }
@@ -322,7 +322,7 @@ interface CartItem {
 
       .empty-cart {
         text-align: center;
-        color: #64748b;
+        color: var(--p-surface-500);
         padding: 2rem 0;
       }
 
@@ -331,15 +331,15 @@ interface CartItem {
         justify-content: space-between;
         align-items: center;
         padding: 1rem 0;
-        border-top: 1px solid #334155;
+        border-top: 1px solid var(--p-surface-700);
         margin-bottom: 1rem;
         font-size: 1.1rem;
         font-weight: 600;
-        color: #f1f5f9;
+        color: var(--p-surface-100);
       }
 
       .total-price {
-        color: #4ade80;
+        color: var(--p-success-500);
         font-size: 1.25rem;
       }
 
@@ -348,8 +348,8 @@ interface CartItem {
         padding: 0.85rem;
         border: none;
         border-radius: 0.75rem;
-        background: #0f172a;
-        color: #fff;
+        background: var(--p-surface-900);
+        color: var(--p-surface-0);
         font-size: 1rem;
         font-weight: 600;
         cursor: pointer;
@@ -357,7 +357,7 @@ interface CartItem {
       }
 
       .submit-btn:hover:not(:disabled) {
-        background: #1e293b;
+        background: var(--p-surface-800);
       }
 
       .submit-btn:disabled {
@@ -371,8 +371,8 @@ interface CartItem {
         text-align: center;
       }
 
-      .ok { color: #4ade80; }
-      .error { color: #f87171; }
+      .ok { color: var(--p-success-500); }
+      .error { color: var(--p-danger-500); }
     `,
   ],
 })

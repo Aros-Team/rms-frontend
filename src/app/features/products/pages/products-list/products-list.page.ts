@@ -26,7 +26,7 @@ import { ProductCardViewModel } from '../../../../shared/ui/product-card/product
           <input type="text" placeholder="Buscar productos..." (input)="onSearch($event)" />
         </div>
         <div class="filter-tags">
-          @for (let cat of categories; track cat) {
+          @for (cat of categories; track cat) {
             <button 
               class="filter-tag"
               [class.active]="activeCategory() === cat"
@@ -47,7 +47,7 @@ import { ProductCardViewModel } from '../../../../shared/ui/product-card/product
         </section>
       } @else {
         <section class="products-grid">
-          @for (let product of filteredProducts(); track product.id) {
+          @for (product of filteredProducts(); track product.id) {
             <app-product-card
               [product]="product"
             ></app-product-card>
@@ -79,23 +79,23 @@ import { ProductCardViewModel } from '../../../../shared/ui/product-card/product
       .page-header h1 {
         font-size: 1.5rem;
         font-weight: 700;
-        color: #f1f5f9;
+        color: var(--p-surface-100);
         margin: 0;
       }
 
       .page-header p {
-        color: #64748b;
+        color: var(--p-surface-500);
         font-size: 0.875rem;
         margin: 0.25rem 0 0;
       }
 
       .page-header button {
-        background: #0f172a;
-        border: 1px solid #334155;
+        background: var(--p-surface-900);
+        border: 1px solid var(--p-surface-700);
       }
 
       .page-header button:hover {
-        background: #1e293b;
+        background: var(--p-surface-800);
       }
 
       .filters {
@@ -108,27 +108,27 @@ import { ProductCardViewModel } from '../../../../shared/ui/product-card/product
         display: flex;
         align-items: center;
         gap: 0.75rem;
-        background: #1e293b;
-        border: 1px solid #334155;
+        background: var(--p-surface-800);
+        border: 1px solid var(--p-surface-700);
         border-radius: 0.75rem;
         padding: 0.75rem 1rem;
       }
 
       .search-box i {
-        color: #64748b;
+        color: var(--p-surface-500);
       }
 
       .search-box input {
         flex: 1;
         background: transparent;
         border: none;
-        color: #f1f5f9;
+        color: var(--p-surface-100);
         font-size: 0.9rem;
         outline: none;
       }
 
       .search-box input::placeholder {
-        color: #64748b;
+        color: var(--p-surface-500);
       }
 
       .filter-tags {
@@ -140,23 +140,23 @@ import { ProductCardViewModel } from '../../../../shared/ui/product-card/product
       .filter-tag {
         padding: 0.4rem 0.85rem;
         border-radius: 1.5rem;
-        border: 1px solid #334155;
+        border: 1px solid var(--p-surface-700);
         background: transparent;
-        color: #94a3b8;
+        color: var(--p-surface-400);
         font-size: 0.8rem;
         cursor: pointer;
         transition: all 0.2s;
       }
 
       .filter-tag:hover {
-        background: #1e293b;
-        color: #e2e8f0;
+        background: var(--p-surface-800);
+        color: var(--p-surface-200);
       }
 
       .filter-tag.active {
-        background: #f1f5f9;
-        color: #0f172a;
-        border-color: #f1f5f9;
+        background: var(--p-surface-100);
+        color: var(--p-surface-900);
+        border-color: var(--p-surface-100);
       }
 
       .products-grid {
@@ -167,7 +167,7 @@ import { ProductCardViewModel } from '../../../../shared/ui/product-card/product
 
       .empty-state {
         text-align: center;
-        color: #64748b;
+        color: var(--p-surface-500);
         padding: 3rem;
       }
     `,

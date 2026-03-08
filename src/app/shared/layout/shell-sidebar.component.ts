@@ -17,7 +17,7 @@ interface NavItem {
       <p class="nav-title">Navegacion</p>
 
       <nav class="nav-grid">
-        @for (let item of navItems; track item.path) {
+        @for (item of navItems; track item.path) {
           <a
             [routerLink]="item.path"
             routerLinkActive="active"
@@ -34,8 +34,8 @@ interface NavItem {
   styles: [
     `
       .sidebar {
-        background: #0f172a;
-        border: 1px solid #334155;
+        background: var(--p-surface-900);
+        border: 1px solid var(--p-surface-700);
         border-radius: 1rem;
         padding: 1rem;
       }
@@ -45,7 +45,7 @@ interface NavItem {
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.12em;
-        color: #64748b;
+        color: var(--p-surface-500);
         margin: 0 0 0.75rem 0.5rem;
       }
 
@@ -63,19 +63,19 @@ interface NavItem {
         border-radius: 0.75rem;
         font-size: 0.875rem;
         font-weight: 500;
-        color: #94a3b8;
+        color: var(--p-surface-400);
         text-decoration: none;
         transition: all 0.15s;
       }
 
       .nav-link:hover {
-        background: #1e293b;
-        color: #e2e8f0;
+        background: var(--p-surface-800);
+        color: var(--p-surface-200);
       }
 
       .nav-link.active {
-        background: #f1f5f9;
-        color: #0f172a;
+        background: var(--p-surface-100);
+        color: var(--p-surface-900);
       }
 
       .nav-link i {

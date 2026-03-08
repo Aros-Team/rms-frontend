@@ -12,7 +12,8 @@ type LegalTab = 'terms' | 'privacy' | 'cookies';
   imports: [CommonModule],
   template: `
     @if (isVisible()) {
-      <div class="modal">
+      <div class="modal-overlay">
+        <div class="modal">
         <header class="modal__header">
           <h1>Bienvenido al Sistema RMS</h1>
           <p>Antes de continuar, por favor revise y acepte nuestros términos.</p>
@@ -64,8 +65,8 @@ type LegalTab = 'terms' | 'privacy' | 'cookies';
           </div>
         </footer>
       </div>
+      </div>
     }
-  </div>
   `,
   styles: [
     `
@@ -88,7 +89,7 @@ type LegalTab = 'terms' | 'privacy' | 'cookies';
       }
 
       .modal {
-        background: #ffffff;
+        background: var(--p-surface-0);
         border-radius: 1rem;
         width: 100%;
         max-width: 640px;
@@ -107,8 +108,8 @@ type LegalTab = 'terms' | 'privacy' | 'cookies';
 
       .modal__header {
         padding: 1.25rem 1.5rem;
-        background: linear-gradient(135deg, #06213a 0%, #154e75 100%);
-        color: #ecf7ff;
+        background: linear-gradient(135deg, var(--p-primary-800) 0%, var(--p-primary-600) 100%);
+        color: var(--p-primary-contrast-color);
       }
 
       .modal__header h1 {
@@ -125,8 +126,8 @@ type LegalTab = 'terms' | 'privacy' | 'cookies';
 
       .tabs {
         display: flex;
-        border-bottom: 1px solid #d4e5f1;
-        background: #f4fafc;
+        border-bottom: 1px solid var(--p-surface-200);
+        background: var(--p-surface-50);
       }
 
       .tab {
@@ -134,7 +135,7 @@ type LegalTab = 'terms' | 'privacy' | 'cookies';
         padding: 0.75rem;
         border: none;
         background: transparent;
-        color: #3a5a70;
+        color: var(--p-surface-600);
         font-weight: 500;
         cursor: pointer;
         transition: all 150ms ease;
@@ -142,37 +143,37 @@ type LegalTab = 'terms' | 'privacy' | 'cookies';
       }
 
       .tab:hover {
-        background: #e8f3fa;
+        background: var(--p-surface-100);
       }
 
       .tab--active {
-        color: #0f4f78;
-        border-bottom-color: #0f4f78;
-        background: #ffffff;
+        color: var(--p-primary-600);
+        border-bottom-color: var(--p-primary-600);
+        background: var(--p-surface-0);
       }
 
       .modal__content {
         padding: 1.25rem 1.5rem;
         overflow-y: auto;
-        background: #fafcfd;
+        background: var(--p-surface-0);
       }
 
       .legal-text h2 {
         margin: 0 0 0.25rem;
         font-size: 1.15rem;
-        color: #0a2e47;
+        color: var(--p-surface-800);
       }
 
       .last-updated {
         margin: 0 0 1rem;
         font-size: 0.8rem;
-        color: #6b8299;
+        color: var(--p-surface-500);
       }
 
       .legal-body {
         font-size: 0.9rem;
         line-height: 1.6;
-        color: #2a4a5e;
+        color: var(--p-surface-700);
         white-space: pre-wrap;
         max-height: 280px;
         overflow-y: auto;
@@ -180,13 +181,13 @@ type LegalTab = 'terms' | 'privacy' | 'cookies';
       }
 
       .legal-body strong {
-        color: #0a2e47;
+        color: var(--p-surface-800);
       }
 
       .modal__footer {
         padding: 1rem 1.5rem 1.25rem;
-        border-top: 1px solid #dbe8f0;
-        background: #ffffff;
+        border-top: 1px solid var(--p-surface-200);
+        background: var(--p-surface-0);
       }
 
       .actions {
@@ -206,22 +207,22 @@ type LegalTab = 'terms' | 'privacy' | 'cookies';
       }
 
       .btn--primary {
-        background: #0f4f78;
-        color: #ffffff;
+        background: var(--p-primary-500);
+        color: var(--p-primary-contrast-color);
       }
 
       .btn--primary:hover {
-        background: #0c4468;
+        background: var(--p-primary-600);
       }
 
       .btn--secondary {
         background: transparent;
-        color: #5a6b7a;
-        border: 1px solid #c5d3de;
+        color: var(--p-surface-500);
+        border: 1px solid var(--p-surface-300);
       }
 
       .btn--secondary:hover {
-        background: #f0f4f8;
+        background: var(--p-surface-100);
       }
 
       @media (max-width: 520px) {
