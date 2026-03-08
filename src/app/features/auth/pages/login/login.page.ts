@@ -1,11 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { MessageModule } from 'primeng/message';
+import { AuthFacade } from '../../application/auth.facade';
 
 @Component({
   selector: 'app-login-page',
@@ -13,7 +13,6 @@ import { MessageModule } from 'primeng/message';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    RouterLink,
     ButtonModule,
     InputTextModule,
     PasswordModule,
@@ -32,12 +31,12 @@ import { MessageModule } from 'primeng/message';
 
         <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
           <div class="form-group">
-            <label for="document">Correo</label>
+            <label for="username">Correo</label>
             <input
-              id="document"
+              id="username"
               type="email"
               pInputText
-              formControlName="document"
+              formControlName="username"
               autocomplete="email"
               placeholder="correo@restaurante.com"
               class="input-field"
@@ -58,22 +57,27 @@ import { MessageModule } from 'primeng/message';
             ></p-password>
           </div>
 
-          <a routerLink="/auth/forgot-password" class="forgot-link">
-            Olvidaste tu contrasena?
-          </a>
-
-          @if (error()) {
-            <p-message severity="error" [text]="error()" styleClass="error-message"></p-message>
+          @if (authFacade.error()) {
+            <p-message severity="error" [text]="authFacade.error()!" styleClass="error-message"></p-message>
           }
 
           <button
             pButton
             type="submit"
             class="submit-btn"
-            [disabled]="form.invalid || loading()"
-            [label]="loading() ? 'Ingresando...' : 'Iniciar Sesion'"
+            [disabled]="form.invalid || authFacade.loading()"
+            [label]="authFacade.loading() ? 'Ingresando...' : 'Iniciar Sesion'"
           ></button>
         </form>
+
+        <div class="demo-credentials">
+          <p class="demo-title">Credenciales de prueba:</p>
+          <ul class="demo-list">
+            <li><code>admin&#64;rms.com</code> / <code>admin123</code> - Admin</li>
+            <li><code>mesero&#64;rms.com</code> / <code>mesero123</code> - Mesero</li>
+            <li><code>cocina&#64;rms.com</code> / <code>cocina123</code> - Cocina</li>
+          </ul>
+        </div>
       </div>
     </div>
   `,
@@ -84,16 +88,16 @@ import { MessageModule } from 'primeng/message';
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+        background: linear-gradient(135deg, var(--p-surface-900) 0%, var(--p-surface-800) 50%, var(--p-surface-900) 100%);
         padding: 1.5rem;
       }
 
       .login-card {
         width: 100%;
         max-width: 400px;
-        background: #ffffff;
+        background: var(--p-surface-0);
         border-radius: 1.25rem;
-        padding: 2.5rem;
+        padding: 2rem;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
       }
 
@@ -105,7 +109,7 @@ import { MessageModule } from 'primeng/message';
       .logo {
         width: 60px;
         height: 60px;
-        background: #0f172a;
+        background: var(--p-surface-900);
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -115,19 +119,19 @@ import { MessageModule } from 'primeng/message';
 
       .logo i {
         font-size: 1.75rem;
-        color: #fff;
+        color: var(--p-surface-0);
       }
 
       h1 {
         font-size: 1.75rem;
         font-weight: 700;
-        color: #0f172a;
+        color: var(--p-surface-900);
         margin: 0;
         letter-spacing: 0.05em;
       }
 
       .subtitle {
-        color: #64748b;
+        color: var(--p-surface-500);
         font-size: 0.85rem;
         margin: 0.35rem 0 0;
       }
@@ -147,29 +151,29 @@ import { MessageModule } from 'primeng/message';
       .form-group label {
         font-size: 0.875rem;
         font-weight: 600;
-        color: #334155;
+        color: var(--p-surface-700);
       }
 
       .input-field {
         width: 100%;
         padding: 0.875rem 1rem;
-        border: 2px solid #000;
+        border: 2px solid var(--p-surface-300);
         border-radius: 0.75rem;
         font-size: 1rem;
-        background: #fff;
-        color: #0f172a;
+        background: var(--p-surface-0);
+        color: var(--p-surface-900);
         box-sizing: border-box;
         transition: border-color 0.2s, box-shadow 0.2s;
       }
 
       .input-field::placeholder {
-        color: #94a3b8;
+        color: var(--p-surface-400);
       }
 
       .input-field:focus {
         outline: none;
-        border-color: #0f172a;
-        box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.1);
+        border-color: var(--p-primary-500);
+        box-shadow: 0 0 0 4px var(--p-primary-100);
       }
 
       :host ::ng-deep .p-password {
@@ -179,40 +183,27 @@ import { MessageModule } from 'primeng/message';
       :host ::ng-deep .p-password-input {
         width: 100%;
         padding: 0.875rem 1rem;
-        border: 2px solid #000;
+        border: 2px solid var(--p-surface-300);
         border-radius: 0.75rem;
         font-size: 1rem;
-        background: #fff;
-        color: #0f172a;
+        background: var(--p-surface-0);
+        color: var(--p-surface-900);
         box-sizing: border-box;
       }
 
       :host ::ng-deep .p-password-input::placeholder {
-        color: #94a3b8;
+        color: var(--p-surface-400);
       }
 
       :host ::ng-deep .p-password-input:focus {
         outline: none;
-        border-color: #0f172a;
-        box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.1);
+        border-color: var(--p-primary-500);
+        box-shadow: 0 0 0 4px var(--p-primary-100);
       }
 
       :host ::ng-deep .p-password-toggle-mask-icon {
-        color: #64748b;
+        color: var(--p-surface-500);
         cursor: pointer;
-      }
-
-      .forgot-link {
-        font-size: 0.875rem;
-        color: #0f172a;
-        text-decoration: none;
-        text-align: right;
-        display: block;
-        font-weight: 500;
-      }
-
-      .forgot-link:hover {
-        text-decoration: underline;
       }
 
       :host ::ng-deep .error-message {
@@ -222,19 +213,19 @@ import { MessageModule } from 'primeng/message';
       .submit-btn {
         width: 100%;
         padding: 1rem;
-        background: #0f172a;
+        background: var(--p-surface-900);
         border: none;
         border-radius: 0.75rem;
         font-size: 1rem;
         font-weight: 600;
-        color: #fff;
+        color: var(--p-surface-0);
         cursor: pointer;
         transition: background 0.2s, transform 0.1s;
         margin-top: 0.5rem;
       }
 
       .submit-btn:hover:not(:disabled) {
-        background: #1e293b;
+        background: var(--p-surface-800);
       }
 
       .submit-btn:active:not(:disabled) {
@@ -245,32 +236,55 @@ import { MessageModule } from 'primeng/message';
         opacity: 0.6;
         cursor: not-allowed;
       }
+
+      .demo-credentials {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--p-surface-200);
+      }
+
+      .demo-title {
+        font-size: 0.75rem;
+        color: var(--p-surface-500);
+        margin: 0 0 0.5rem 0;
+        font-weight: 600;
+      }
+
+      .demo-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        font-size: 0.75rem;
+        color: var(--p-surface-600);
+      }
+
+      .demo-list li {
+        padding: 0.25rem 0;
+      }
+
+      .demo-list code {
+        background: var(--p-surface-100);
+        padding: 0.15rem 0.3rem;
+        border-radius: 0.25rem;
+        font-size: 0.7rem;
+      }
     `,
   ],
 })
 export class LoginPageComponent {
-  private readonly fb = inject(FormBuilder);
-  private readonly router = inject(Router);
+  readonly authFacade = inject(AuthFacade);
 
-  readonly loading = signal(false);
-  readonly error = signal('');
-
-  readonly form = this.fb.nonNullable.group({
-    document: ['', [Validators.required, Validators.email]],
+  readonly form = inject(FormBuilder).nonNullable.group({
+    username: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
   submit(): void {
-    if (this.form.invalid || this.loading()) {
+    if (this.form.invalid) {
       return;
     }
 
-    this.loading.set(true);
-    this.error.set('');
-
-    window.setTimeout(() => {
-      this.loading.set(false);
-      this.router.navigateByUrl('/');
-    }, 300);
+    const { username, password } = this.form.getRawValue();
+    this.authFacade.login({ username, password }).subscribe();
   }
 }
