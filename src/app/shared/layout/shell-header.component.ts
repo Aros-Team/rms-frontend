@@ -1,7 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
-import { AuthSessionService } from '../../core/auth/auth-session.service';
 
 @Component({
   selector: 'app-shell-header',
@@ -82,11 +81,9 @@ import { AuthSessionService } from '../../core/auth/auth-session.service';
   ],
 })
 export class ShellHeaderComponent {
-  private readonly authSession = inject(AuthSessionService);
   private readonly router = inject(Router);
 
   logout(): void {
-    this.authSession.clear();
     this.router.navigateByUrl('/auth/login');
   }
 }

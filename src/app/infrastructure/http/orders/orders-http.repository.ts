@@ -32,10 +32,6 @@ export class OrdersHttpRepository {
     return this.http.get<OrderResponse[]>(`${this.apiBaseUrl}/orders`, { params });
   }
 
-  getOrderById(id: number): Observable<OrderResponse> {
-    return this.http.get<OrderResponse>(`${this.apiBaseUrl}/orders/${id}`);
-  }
-
   cancelOrder(id: number): Observable<OrderResponse> {
     return this.http.put<OrderResponse>(`${this.apiBaseUrl}/orders/${id}/cancel`, {});
   }

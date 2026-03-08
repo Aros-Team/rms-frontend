@@ -22,12 +22,18 @@ import { OrderResponse } from '../../../../shared/models/dto/orders/order-respon
         <div class="filter-group">
           <label>Estado</label>
           <select [(ngModel)]="selectedStatus" (change)="loadOrders()" class="filter-select">
-            <option [ngValue]="null">Todos los estados</option>
-            <option *ngFor="let opt of statusOptions" [value]="opt.value">
+            <option *ngFor="let opt of statusOptions" [ngValue]="opt.value">
               {{ opt.label }}
             </option>
           </select>
         </div>
+        <button
+          pButton
+          label="Preparar Siguiente"
+          icon="pi pi-forward"
+          (click)="prepareNextOrder()"
+          class="prepare-btn"
+        ></button>
         <button pButton label="Actualizar" icon="pi pi-refresh" (click)="loadOrders()" class="refresh-btn"></button>
       </section>
 
@@ -163,6 +169,16 @@ import { OrderResponse } from '../../../../shared/models/dto/orders/order-respon
         background: #1e293b;
         border: 1px solid #334155;
         color: #f1f5f9;
+      }
+
+      .prepare-btn {
+        background: #1d4ed8;
+        border: none;
+        color: #fff;
+      }
+
+      .prepare-btn:hover {
+        background: #1e40af;
       }
 
       .refresh-btn:hover {
@@ -334,7 +350,7 @@ export class OrdersListPageComponent implements OnInit {
 
   readonly orders = signal<OrderResponse[]>([]);
   readonly loading = signal(false);
-  readonly selectedStatus = signal<string | null>(null);
+  selectedStatus: string | null = null;
 
   readonly statusOptions = [
     { label: 'Todos', value: null },
@@ -351,7 +367,7 @@ export class OrdersListPageComponent implements OnInit {
 
   loadOrders(): void {
     this.loading.set(true);
-    const status = this.selectedStatus();
+    const status = this.selectedStatus;
     
     this.ordersFacade.getOrders(status ? { status } : undefined).subscribe({
       next: (orders) => {
@@ -407,6 +423,13 @@ export class OrdersListPageComponent implements OnInit {
     this.ordersFacade.deliverOrder(id).subscribe({
       next: () => this.loadOrders(),
       error: () => alert('Error al entregar orden'),
+    });
+  }
+
+  prepareNextOrder(): void {
+    this.ordersFacade.prepareNextOrder().subscribe({
+      next: () => this.loadOrders(),
+      error: () => alert('No hay ordenes en cola para preparar'),
     });
   }
 }

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
 import { OrdersFacade } from '../../application/orders.facade';
 import { ProductCardComponent } from '../../../../shared/ui/product-card/product-card.component';
@@ -57,8 +57,13 @@ interface CartItem {
           
           <div class="form-group">
             <label for="table">Mesa</label>
-            <select id="table" formControlName="tableId" class="input-field">
-              <option [value]="null" disabled>Selecciona una mesa</option>
+            <select
+              id="table"
+              class="input-field"
+              [value]="selectedTableId() ?? ''"
+              (change)="onTableChange($event)"
+            >
+              <option value="" disabled>Selecciona una mesa</option>
               <option *ngFor="let table of availableTables()" [value]="table.id">
                 Mesa {{ table.tableNumber }} ({{ table.capacity }} pers.) - {{ table.status }}
               </option>
@@ -361,7 +366,6 @@ interface CartItem {
   ],
 })
 export class OrdersHomePageComponent {
-  private readonly fb = inject(FormBuilder);
   private readonly ordersFacade = inject(OrdersFacade);
 
   readonly products = signal<ProductCardViewModel[]>([
@@ -452,10 +456,6 @@ export class OrdersHomePageComponent {
     this.selectedTableId() !== null && this.cart().length > 0
   );
 
-  readonly form = this.fb.nonNullable.group({
-    tableId: [null as number | null, Validators.required],
-  });
-
   constructor() {
     window.setTimeout(() => this.catalogLoading.set(false), 650);
     this.loadTables();
@@ -531,6 +531,11 @@ export class OrdersHomePageComponent {
 
   trackByProductId(index: number, item: CartItem): number {
     return item.productId;
+  }
+
+  onTableChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    this.selectedTableId.set(value ? Number(value) : null);
   }
 
   submit(): void {

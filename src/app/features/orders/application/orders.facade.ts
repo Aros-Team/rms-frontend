@@ -23,10 +23,6 @@ export class OrdersFacade {
     return this.ordersRepository.getOrders(filters);
   }
 
-  getOrderById(id: number): Observable<OrderResponse> {
-    return this.ordersRepository.getOrderById(id);
-  }
-
   cancelOrder(id: number): Observable<OrderResponse> {
     return this.ordersRepository.cancelOrder(id);
   }

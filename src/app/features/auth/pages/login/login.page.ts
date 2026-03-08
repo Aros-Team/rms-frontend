@@ -2,12 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { finalize } from 'rxjs/operators';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { MessageModule } from 'primeng/message';
-import { AuthFacade } from '../../application/auth.facade';
 
 @Component({
   selector: 'app-login-page',
@@ -250,7 +248,6 @@ import { AuthFacade } from '../../application/auth.facade';
 })
 export class LoginPageComponent {
   private readonly fb = inject(FormBuilder);
-  private readonly authFacade = inject(AuthFacade);
   private readonly router = inject(Router);
 
   readonly loading = signal(false);
@@ -269,22 +266,9 @@ export class LoginPageComponent {
     this.loading.set(true);
     this.error.set('');
 
-    this.authFacade
-      .login(this.form.getRawValue())
-      .pipe(finalize(() => this.loading.set(false)))
-      .subscribe({
-        next: (result) => {
-          if (result.requiresTwoFactor) {
-            this.router.navigateByUrl('/auth/2fa');
-            return;
-          }
-
-          this.router.navigateByUrl('/');
-        },
-        error: (err) => {
-          const message = err?.error?.message || err?.message || 'No fue posible iniciar sesion.';
-          this.error.set(message);
-        },
-      });
+    window.setTimeout(() => {
+      this.loading.set(false);
+      this.router.navigateByUrl('/');
+    }, 300);
   }
 }
