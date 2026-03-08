@@ -4,6 +4,7 @@ import puppeteer from 'puppeteer';
 
 const PORT = 4300 + Math.floor(Math.random() * 200);
 const APP_URL = `http://127.0.0.1:${PORT}`;
+const PUPPETEER_EXECUTABLE_PATH = process.env.PUPPETEER_EXECUTABLE_PATH;
 
 function startDevServer() {
   return spawn('npx', ['ng', 'serve', '--host', '127.0.0.1', '--port', String(PORT)], {
@@ -68,11 +69,16 @@ async function run() {
   try {
     await waitForServer(APP_URL);
 
-    browser = await puppeteer.launch({
+    const launchOptions = {
       headless: true,
-      executablePath: puppeteer.executablePath(),
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    });
+    };
+
+    if (PUPPETEER_EXECUTABLE_PATH) {
+      launchOptions.executablePath = PUPPETEER_EXECUTABLE_PATH;
+    }
+
+    browser = await puppeteer.launch(launchOptions);
 
     const page = await browser.newPage();
     await page.goto(APP_URL, { waitUntil: 'networkidle0' });

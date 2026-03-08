@@ -39,9 +39,11 @@ import { ButtonModule } from 'primeng/button';
             <label for="category">Categoria</label>
             <select id="category" formControlName="category" class="input-field select-field">
               <option value="">Selecciona una categoria</option>
-              <option *ngFor="let cat of categories" [value]="cat.value">
-                {{ cat.label }}
-              </option>
+              @for (let cat of categories; track cat.value) {
+                <option [value]="cat.value">
+                  {{ cat.label }}
+                </option>
+              }
             </select>
           </div>
         </div>
@@ -95,8 +97,12 @@ import { ButtonModule } from 'primeng/button';
           />
         </div>
 
-        <p class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</p>
-        <p class="success-message" *ngIf="successMessage()">{{ successMessage() }}</p>
+        @if (errorMessage()) {
+          <p class="error-message">{{ errorMessage() }}</p>
+        }
+        @if (successMessage()) {
+          <p class="success-message">{{ successMessage() }}</p>
+        }
 
         <div class="form-actions">
           <button pButton type="button" routerLink="/products" label="Cancelar" class="cancel-btn"></button>

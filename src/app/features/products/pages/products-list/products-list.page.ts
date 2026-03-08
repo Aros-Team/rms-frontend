@@ -26,35 +26,38 @@ import { ProductCardViewModel } from '../../../../shared/ui/product-card/product
           <input type="text" placeholder="Buscar productos..." (input)="onSearch($event)" />
         </div>
         <div class="filter-tags">
-          <button 
-            *ngFor="let cat of categories" 
-            class="filter-tag"
-            [class.active]="activeCategory() === cat"
-            (click)="setCategory(cat)"
-          >
-            {{ cat }}
-          </button>
+          @for (let cat of categories; track cat) {
+            <button 
+              class="filter-tag"
+              [class.active]="activeCategory() === cat"
+              (click)="setCategory(cat)"
+            >
+              {{ cat }}
+            </button>
+          }
         </div>
       </section>
 
-      <section class="products-grid" *ngIf="loading(); else productsList">
-        <app-product-card-skeleton></app-product-card-skeleton>
-        <app-product-card-skeleton></app-product-card-skeleton>
-        <app-product-card-skeleton></app-product-card-skeleton>
-        <app-product-card-skeleton></app-product-card-skeleton>
-      </section>
-
-      <ng-template #productsList>
+      @if (loading()) {
         <section class="products-grid">
-          <app-product-card
-            *ngFor="let product of filteredProducts()"
-            [product]="product"
-          ></app-product-card>
+          <app-product-card-skeleton></app-product-card-skeleton>
+          <app-product-card-skeleton></app-product-card-skeleton>
+          <app-product-card-skeleton></app-product-card-skeleton>
+          <app-product-card-skeleton></app-product-card-skeleton>
         </section>
-        <p class="empty-state" *ngIf="filteredProducts().length === 0">
-          No se encontraron productos
-        </p>
-      </ng-template>
+      } @else {
+        <section class="products-grid">
+          @for (let product of filteredProducts(); track product.id) {
+            <app-product-card
+              [product]="product"
+            ></app-product-card>
+          } @empty {
+            <p class="empty-state">
+              No se encontraron productos
+            </p>
+          }
+        </section>
+      }
     </main>
   `,
   styles: [

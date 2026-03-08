@@ -62,7 +62,9 @@ import { MessageModule } from 'primeng/message';
             Olvidaste tu contrasena?
           </a>
 
-          <p-message *ngIf="error()" severity="error" [text]="error()" styleClass="error-message"></p-message>
+          @if (error()) {
+            <p-message severity="error" [text]="error()" styleClass="error-message"></p-message>
+          }
 
           <button
             pButton

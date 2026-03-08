@@ -11,7 +11,7 @@ type LegalTab = 'terms' | 'privacy' | 'cookies';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="modal-overlay" *ngIf="isVisible()">
+    @if (isVisible()) {
       <div class="modal">
         <header class="modal__header">
           <h1>Bienvenido al Sistema RMS</h1>
@@ -64,7 +64,8 @@ type LegalTab = 'terms' | 'privacy' | 'cookies';
           </div>
         </footer>
       </div>
-    </div>
+    }
+  </div>
   `,
   styles: [
     `

@@ -28,9 +28,13 @@ import { ProductCardActionPayload, ProductCardViewModel } from './product-card.m
           <p>{{ product().description }}</p>
         </header>
 
-        <ul class="tags" *ngIf="product().tags?.length">
-          <li *ngFor="let tag of product().tags">{{ tag }}</li>
-        </ul>
+        @if (product().tags?.length) {
+          <ul class="tags">
+            @for (tag of product().tags; track tag) {
+              <li>{{ tag }}</li>
+            }
+          </ul>
+        }
 
         <footer>
           <div class="pricing">

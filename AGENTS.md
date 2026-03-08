@@ -185,3 +185,95 @@ El modal se renderiza en `app.component.ts` y solo aparece si `consentService.ne
 - El modal aparece una sola vez por usuario/browser
 - Una vez aceptado, se guarda en localStorage y no vuelve a aparecer
 - Para probar nuevamente: ejecutar `consentService.resetConsent()` desde consola o limpiar localStorage
+
+## 15) Zoneless y Signals (OBLIGATORIO)
+
+### Zoneless
+
+- El proyecto debe funcionar SIN Zone.js
+- NO importar `zone.js` en `src/polyfills.ts`
+- NO importar `zone.js/testing` en `src/test.ts`
+- Usar ChangeDetectionStrategy.OnPush por defecto
+- Confiar en signals para reactividad automática
+
+### Signals
+
+- Usar `signal()` para estado mutable/computable
+- Usar `computed()` para valores derivados
+- Usar `effect()` para side effects (con cuidado)
+- Usar `input()` signals para @Input() (Angular 17+)
+- Preferir signals sobre BehaviorSubject/Subject
+- NO usar `.value` en templates (usar `signal()` como función)
+
+### RxJS
+
+- RxJS solo para operaciones asincronas complejas (streams)
+- Preferir signals para estado simple
+- Pipes asincronos solo cuando sea necesario
+
+## 16) Sintaxis de Control Flow (OBLIGATORIO)
+
+### NO usar directivas deprecated
+
+- **PROHIBIDO**: `*ngFor`, `*ngIf`, `*ngSwitch`, `ng-container`
+- **OBLIGATORIO**: Usar nueva sintaxis de control flow de Angular 17+:
+
+```typescript
+// *ngFor -> @for
+@for (item of items; track item.id) {
+  <li>{{ item.name }}</li>
+} @empty {
+  <li>No hay elementos</li>
+}
+
+// *ngIf -> @if
+@if (isLoading) {
+  <app-spinner />
+} @else if (hasError) {
+  <app-error />
+} @else {
+  <app-content />
+}
+
+// *ngSwitch -> @switch
+@switch (status) {
+  @case ('pending') { <app-pending /> }
+  @case ('ready') { <app-ready /> }
+  @default { <app-unknown /> }
+}
+```
+
+### trackBy
+
+- Usar `track` dentro de @for (es la nueva forma de trackBy)
+- Ejemplo: `@for (item of items; track item.id)`
+
+## 17) Dependencias
+
+Dependencias recomendadas:
+
+- Angular: ^21.2.1
+- PrimeNG: ^21.1.3
+- TypeScript: ^5.9.x
+- RxJS: ^7.8.x
+- Tailwind: ^3.4.x
+
+NO usar versiones anteriores a las especificadas.
+
+## 18) Variables de entorno
+
+El proyecto usa un archivo `.env` para configuraciones locales. Copiar `.env.example` a `.env` antes de ejecutar `npm install`.
+
+### Puppeteer (tests E2E)
+
+| Variable | Descripcion | Valor por defecto |
+|----------|-------------|-------------------|
+| `PUPPETEER_SKIP_DOWNLOAD` | Omitir descarga automatica de Chrome | `true` |
+| `PUPPETEER_EXECUTABLE_PATH` | Ruta al ejecutable de Chrome/Chromium | `/usr/bin/chromium` |
+
+**Instalacion de Chrome/Chromium:**
+- Linux (Debian/Ubuntu): `sudo apt install -y chromium`
+- macOS: Instalar Google Chrome desde el sitio oficial
+- Windows: Instalar Google Chrome desde el sitio oficial
+
+**Problema comun:** Si `npm install` falla por descarga de Chrome, verificar que las variables esten correctamente configuradas en `.env` y que Chrome/Chromium este instalado en el sistema.

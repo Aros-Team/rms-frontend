@@ -35,21 +35,22 @@ interface CartItem {
             <p>Selecciona los productos para agregar a la orden</p>
           </header>
 
-          <div class="grid" *ngIf="catalogLoading(); else productsList">
-            <app-product-card-skeleton></app-product-card-skeleton>
-            <app-product-card-skeleton></app-product-card-skeleton>
-            <app-product-card-skeleton></app-product-card-skeleton>
-          </div>
-
-          <ng-template #productsList>
+          @if (catalogLoading()) {
             <div class="grid">
-              <app-product-card
-                *ngFor="let product of products()"
-                [product]="product"
-                (add)="addToCart($event.productId)"
-              ></app-product-card>
+              <app-product-card-skeleton></app-product-card-skeleton>
+              <app-product-card-skeleton></app-product-card-skeleton>
+              <app-product-card-skeleton></app-product-card-skeleton>
             </div>
-          </ng-template>
+          } @else {
+            <div class="grid">
+              @for (let product of products(); track product.id) {
+                <app-product-card
+                  [product]="product"
+                  (add)="addToCart($event.productId)"
+                ></app-product-card>
+              }
+            </div>
+          }
         </section>
 
         <aside class="card order-panel">
@@ -64,42 +65,48 @@ interface CartItem {
               (change)="onTableChange($event)"
             >
               <option value="" disabled>Selecciona una mesa</option>
-              <option *ngFor="let table of availableTables()" [value]="table.id">
-                Mesa {{ table.tableNumber }} ({{ table.capacity }} pers.) - {{ table.status }}
-              </option>
+              @for (let table of availableTables(); track table.id) {
+                <option [value]="table.id">
+                  Mesa {{ table.tableNumber }} ({{ table.capacity }} pers.) - {{ table.status }}
+                </option>
+              }
             </select>
           </div>
 
-          <div class="cart-items" *ngIf="cart().length > 0; else emptyCart">
-            <div class="cart-item" *ngFor="let item of cart(); let i = index; trackBy: trackByProductId">
-              <div class="cart-item-info">
-                <span class="cart-item-name">{{ item.productName }}</span>
-                <span class="cart-item-price">\${{ item.price }}</span>
-              </div>
-              <div class="cart-item-controls">
-                <button class="qty-btn" (click)="decrementQty(i)">-</button>
-                <span class="qty">{{ item.quantity }}</span>
-                <button class="qty-btn" (click)="incrementQty(i)">+</button>
-                <button class="remove-btn" (click)="removeFromCart(i)">×</button>
-              </div>
-              <input
-                type="text"
-                class="input-field instructions"
-                placeholder="Instrucciones (ej: sin cebolla)"
-                [value]="item.instructions"
-                (input)="updateInstructions(i, $event)"
-              />
+          @if (cart().length > 0) {
+            <div class="cart-items">
+              @for (let item of cart(); track item.productId; let i = $index) {
+                <div class="cart-item">
+                  <div class="cart-item-info">
+                    <span class="cart-item-name">{{ item.productName }}</span>
+                    <span class="cart-item-price">\${{ item.price }}</span>
+                  </div>
+                  <div class="cart-item-controls">
+                    <button class="qty-btn" (click)="decrementQty(i)">-</button>
+                    <span class="qty">{{ item.quantity }}</span>
+                    <button class="qty-btn" (click)="incrementQty(i)">+</button>
+                    <button class="remove-btn" (click)="removeFromCart(i)">×</button>
+                  </div>
+                  <input
+                    type="text"
+                    class="input-field instructions"
+                    placeholder="Instrucciones (ej: sin cebolla)"
+                    [value]="item.instructions"
+                    (input)="updateInstructions(i, $event)"
+                  />
+                </div>
+              }
             </div>
-          </div>
-
-          <ng-template #emptyCart>
+          } @else {
             <p class="empty-cart">No hay productos en la orden</p>
-          </ng-template>
+          }
 
-          <div class="order-total" *ngIf="cart().length > 0">
-            <span>Total:</span>
-            <span class="total-price">\${{ totalPrice() }}</span>
-          </div>
+          @if (cart().length > 0) {
+            <div class="order-total">
+              <span>Total:</span>
+              <span class="total-price">\${{ totalPrice() }}</span>
+            </div>
+          }
 
           <button
             type="button"
@@ -110,8 +117,12 @@ interface CartItem {
             {{ loading() ? 'Creando...' : 'Crear Orden' }}
           </button>
 
-          <p class="message error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
-          <p class="message ok" *ngIf="lastOrderId()">Orden creada: #{{ lastOrderId() }}</p>
+          @if (errorMessage()) {
+            <p class="message error">{{ errorMessage() }}</p>
+          }
+          @if (lastOrderId()) {
+            <p class="message ok">Orden creada: #{{ lastOrderId() }}</p>
+          }
         </aside>
       </div>
     </main>

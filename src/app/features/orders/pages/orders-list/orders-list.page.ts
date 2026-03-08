@@ -22,9 +22,11 @@ import { OrderResponse } from '../../../../shared/models/dto/orders/order-respon
         <div class="filter-group">
           <label>Estado</label>
           <select [(ngModel)]="selectedStatus" (change)="loadOrders()" class="filter-select">
-            <option *ngFor="let opt of statusOptions" [ngValue]="opt.value">
-              {{ opt.label }}
-            </option>
+            @for (let opt of statusOptions; track opt.value) {
+              <option [ngValue]="opt.value">
+                {{ opt.label }}
+              </option>
+            }
           </select>
         </div>
         <button
@@ -37,72 +39,79 @@ import { OrderResponse } from '../../../../shared/models/dto/orders/order-respon
         <button pButton label="Actualizar" icon="pi pi-refresh" (click)="loadOrders()" class="refresh-btn"></button>
       </section>
 
-      <section class="orders-list" *ngIf="!loading(); else loadingTpl">
-        <div class="order-card" *ngFor="let order of orders()">
-          <div class="order-header">
-            <div class="order-id">Orden #{{ order.id }}</div>
-            <span class="status-badge" [class]="getStatusClass(order.status)">
-              {{ getStatusLabel(order.status) }}
-            </span>
-          </div>
-          
-          <div class="order-info">
-            <div class="info-row">
-              <i class="pi pi-calendar"></i>
-              <span>{{ order.date | date:'dd/MM/yyyy HH:mm' }}</span>
+      @if (!loading()) {
+        <section class="orders-list">
+          @for (let order of orders(); track order.id) {
+            <div class="order-card">
+              <div class="order-header">
+                <div class="order-id">Orden #{{ order.id }}</div>
+                <span class="status-badge" [class]="getStatusClass(order.status)">
+                  {{ getStatusLabel(order.status) }}
+                </span>
+              </div>
+              
+              <div class="order-info">
+                <div class="info-row">
+                  <i class="pi pi-calendar"></i>
+                  <span>{{ order.date | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                <div class="info-row">
+                  <i class="pi pi-th-large"></i>
+                  <span>Mesa {{ order.tableId }}</span>
+                </div>
+              </div>
+
+              <div class="order-items">
+                @for (let item of order.details; track item.productName) {
+                  <div class="item">
+                    <span class="item-name">{{ item.productName }}</span>
+                    <span class="item-price">\${{ item.unitPrice }}</span>
+                  </div>
+                }
+              </div>
+
+              <div class="order-actions">
+                @if (order.status === 'QUEUE') {
+                  <button 
+                    pButton 
+                    label="Cancelar" 
+                    icon="pi pi-times"
+                    class="cancel-btn"
+                    (click)="cancelOrder(order.id)"
+                  ></button>
+                }
+                @if (order.status === 'PREPARING') {
+                  <button 
+                    pButton 
+                    label="Marcar Lista" 
+                    icon="pi pi-check"
+                    class="ready-btn"
+                    (click)="markReady(order.id)"
+                  ></button>
+                }
+                @if (order.status === 'READY') {
+                  <button 
+                    pButton 
+                    label="Entregar" 
+                    icon="pi pi-check-circle"
+                    class="deliver-btn"
+                    (click)="deliverOrder(order.id)"
+                  ></button>
+                }
+              </div>
             </div>
-            <div class="info-row">
-              <i class="pi pi-th-large"></i>
-              <span>Mesa {{ order.tableId }}</span>
-            </div>
-          </div>
-
-          <div class="order-items">
-            <div class="item" *ngFor="let item of order.details">
-              <span class="item-name">{{ item.productName }}</span>
-              <span class="item-price">\${{ item.unitPrice }}</span>
-            </div>
-          </div>
-
-          <div class="order-actions">
-            <button 
-              pButton 
-              *ngIf="order.status === 'QUEUE'" 
-              label="Cancelar" 
-              icon="pi pi-times"
-              class="cancel-btn"
-              (click)="cancelOrder(order.id)"
-            ></button>
-            <button 
-              pButton 
-              *ngIf="order.status === 'PREPARING'" 
-              label="Marcar Lista" 
-              icon="pi pi-check"
-              class="ready-btn"
-              (click)="markReady(order.id)"
-            ></button>
-            <button 
-              pButton 
-              *ngIf="order.status === 'READY'" 
-              label="Entregar" 
-              icon="pi pi-check-circle"
-              class="deliver-btn"
-              (click)="deliverOrder(order.id)"
-            ></button>
-          </div>
-        </div>
-
-        <p class="empty-state" *ngIf="orders().length === 0">
-          No se encontraron pedidos
-        </p>
-      </section>
-
-      <ng-template #loadingTpl>
+          } @empty {
+            <p class="empty-state">
+              No se encontraron pedidos
+            </p>
+          }
+        </section>
+      } @else {
         <div class="loading-state">
           <i class="pi pi-spin pi-spinner"></i>
           <span>Cargando pedidos...</span>
         </div>
-      </ng-template>
+      }
     </main>
   `,
   styles: [

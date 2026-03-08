@@ -17,16 +17,17 @@ interface NavItem {
       <p class="nav-title">Navegacion</p>
 
       <nav class="nav-grid">
-        <a
-          *ngFor="let item of navItems"
-          [routerLink]="item.path"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: item.path === '' }"
-          class="nav-link"
-        >
-          <i [class]="item.icon"></i>
-          <span>{{ item.label }}</span>
-        </a>
+        @for (let item of navItems; track item.path) {
+          <a
+            [routerLink]="item.path"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: item.path === '' }"
+            class="nav-link"
+          >
+            <i [class]="item.icon"></i>
+            <span>{{ item.label }}</span>
+          </a>
+        }
       </nav>
     </aside>
   `,

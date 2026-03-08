@@ -1,1 +1,1 @@
-import 'zone.js';
+// Zoneless - no zone.js required

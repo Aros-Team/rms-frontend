@@ -10,11 +10,37 @@ Frontend base del RMS orientada a escalar por modulos y alineada con una arquite
 
 ## Inicio rapido
 
+- Copiar `.env.example` a `.env` y ajustar si es necesario
 - Instalar dependencias: `npm install`
 - Ejecutar en local: `npm run start`
 - Ejecutar en Docker: `docker-compose up --build`
 
 La app queda disponible en `http://localhost:4200`.
+
+## Variables de entorno
+
+Para configurar el entorno, copiar `.env.example` a `.env`:
+
+```bash
+cp .env.example .env
+```
+
+### Puppeteer (tests E2E)
+
+| Variable | Descripcion | Valor por defecto |
+|----------|-------------|-------------------|
+| `PUPPETEER_SKIP_DOWNLOAD` | Omitir descarga automatica de Chrome | `true` |
+| `PUPPETEER_EXECUTABLE_PATH` | Ruta al ejecutable de Chrome/Chromium | `/usr/bin/chromium` |
+
+**Instalacion de Chrome/Chromium:**
+- Linux (Debian/Ubuntu): `sudo apt install -y chromium`
+- macOS: Instalar Google Chrome desde el sitio oficial
+- Windows: Instalar Google Chrome desde el sitio oficial
+
+**Ejecutar tests E2E:**
+```bash
+npm run test:e2e
+```
 
 ## Integracion con API
 
