@@ -1,17 +1,32 @@
-import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { TableResponse } from '../../../shared/models/dto/table/table-response.model';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { Table } from '../../../core/tables/domain/models/table.model';
+import { TableRequest, ChangeStatusRequest } from '../../../core/tables/domain/models/table-request.model';
+import { TablesRepositoryPort } from '../../../core/tables/application/ports/output/tables.repository.port';
 
 @Injectable({ providedIn: 'root' })
-export class TablesHttpRepository {
-  getTables(): Observable<TableResponse[]> {
-    return of([
-      { id: 1, tableNumber: 1, capacity: 4, status: 'AVAILABLE' },
-      { id: 2, tableNumber: 2, capacity: 4, status: 'AVAILABLE' },
-      { id: 3, tableNumber: 3, capacity: 6, status: 'OCCUPIED' },
-      { id: 4, tableNumber: 4, capacity: 2, status: 'AVAILABLE' },
-      { id: 5, tableNumber: 5, capacity: 8, status: 'RESERVED' },
-      { id: 6, tableNumber: 6, capacity: 4, status: 'AVAILABLE' },
-    ]);
+export class TablesHttpRepository implements TablesRepositoryPort {
+  private http = inject(HttpClient);
+  private baseUrl = '/api/v1/tables';
+
+  getTables(): Observable<Table[]> {
+    return this.http.get<Table[]>(this.baseUrl);
+  }
+
+  getTableById(id: number): Observable<Table> {
+    return this.http.get<Table>(`${this.baseUrl}/${id}`);
+  }
+
+  createTable(payload: TableRequest): Observable<Table> {
+    return this.http.post<Table>(this.baseUrl, payload);
+  }
+
+  updateTable(id: number, payload: TableRequest): Observable<Table> {
+    return this.http.put<Table>(`${this.baseUrl}/${id}`, payload);
+  }
+
+  changeTableStatus(id: number, payload: ChangeStatusRequest): Observable<Table> {
+    return this.http.put<Table>(`${this.baseUrl}/${id}/status`, payload);
   }
 }

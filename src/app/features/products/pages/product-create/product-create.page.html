@@ -12,43 +12,48 @@
       [placeholder]="'Ej: Hamburguesa clasica'"
       formControlName="name"
     />
+  </div>
 
+  <div class="form-row">
     <rms-select
       [label]="'Categoria'"
-      [optionsList]="categories"
+      [optionsList]="categoryOptions()"
       [placeholder]="'Selecciona una categoria'"
-      formControlName="category"
+      formControlName="categoryId"
       (onChange)="onCategoryChange($event)"
+    />
+
+    <rms-select
+      [label]="'Area de preparacion'"
+      [optionsList]="areaOptions()"
+      [placeholder]="'Selecciona un area'"
+      formControlName="areaId"
+      (onChange)="onAreaChange($event)"
     />
   </div>
 
   <div class="form-row">
     <rms-input
-      [label]="'Precio'"
+      [label]="'Precio base'"
       [placeholder]="'0.00'"
       [type]="'number'"
-      formControlName="price"
+      formControlName="basePrice"
     />
 
-    <rms-input
-      [label]="'Stock'"
-      [placeholder]="'0'"
-      [type]="'number'"
-      formControlName="stock"
-    />
+    <div class="checkbox-field">
+      <p-checkbox
+        formControlName="hasOptions"
+        [binary]="true"
+        inputId="hasOptions"
+      />
+      <label for="hasOptions">Acepta personalizaciones</label>
+    </div>
   </div>
 
   <rms-textarea
     [label]="'Descripcion'"
     [placeholder]="'Describe el producto...'"
     formControlName="description"
-  />
-
-  <rms-input
-    [label]="'URL de imagen (opcional)'"
-    [placeholder]="'https://ejemplo.com/imagen.jpg'"
-    [type]="'url'"
-    formControlName="imageUrl"
   />
 
   @if (errorMessage()) {

@@ -5,6 +5,7 @@ export interface ProductCardViewModel {
   price: number;
   stock: number;
   isActive: boolean;
+  hasOptions: boolean;
   imageUrl?: string;
   tags?: string[];
 }

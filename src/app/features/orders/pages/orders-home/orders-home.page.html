@@ -4,6 +4,18 @@
     [subtitle]="'Selecciona una mesa y los productos para crear una nueva orden'"
   />
 
+  <!-- Product Options Selector Modal -->
+  <app-product-options-selector
+    [visible]="showOptionsSelector()"
+    [input]="{
+      productId: optionsSelectorProduct()?.id || 0,
+      productName: optionsSelectorProduct()?.name || '',
+      options: productOptions()
+    }"
+    (onClose)="closeOptionsSelector()"
+    (onConfirm)="onOptionsConfirm($event)"
+  />
+
   <div class="content-grid">
     <section class="catalog">
       <h2>Productos</h2>

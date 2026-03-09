@@ -38,3 +38,16 @@
   justify-content: flex-end;
   padding-top: 0.5rem;
 }
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 1.5rem;
+}
+
+.checkbox-field label {
+  font-size: 0.875rem;
+  color: var(--p-surface-100);
+  cursor: pointer;
+}

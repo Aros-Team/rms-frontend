@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
 import { OrdersFacade } from '../../application/orders.facade';
@@ -12,6 +12,12 @@ import { RmsSelectComponent } from '../../../../shared/ui/select/rms-select.comp
 import { RmsCartItemComponent } from '../../../../shared/ui/cart-item/rms-cart-item.component';
 import { RmsButtonComponent } from '../../../../shared/ui/button/rms-button.component';
 import { RmsBadgeComponent } from '../../../../shared/ui/badge/rms-badge.component';
+import { ProductOptionsSelectorComponent } from '../../../../shared/ui/product-options-selector/product-options-selector.component';
+import { GetProductsUseCase } from '../../../../core/products/application/use-cases/get-products.use-case';
+import { GetProductOptionsUseCase } from '../../../../core/products/application/use-cases/get-product-options.use-case';
+import { Product } from '../../../../core/products/domain/models/product.model';
+import { ProductOption } from '../../../../core/products/domain/models/product-option.model';
+import { CreateOrderUseCase, OrderValidationError } from '../../../../core/orders/application/use-cases/create-order.use-case';
 
 interface CartItem {
   productId: number;
@@ -19,6 +25,8 @@ interface CartItem {
   price: number;
   quantity: number;
   instructions: string;
+  selectedOptionIds: number[];
+  hasOptions: boolean;
 }
 
 @Component({
@@ -34,89 +42,41 @@ interface CartItem {
     RmsCartItemComponent,
     RmsButtonComponent,
     RmsBadgeComponent,
+    ProductOptionsSelectorComponent,
   ],
   templateUrl: './orders-home.page.html',
   styleUrl: './orders-home.page.css',
 })
-export class OrdersHomePageComponent {
+export class OrdersHomePageComponent implements OnInit {
   private readonly ordersFacade = inject(OrdersFacade);
+  private readonly getProductsUseCase = inject(GetProductsUseCase);
+  private readonly getProductOptionsUseCase = inject(GetProductOptionsUseCase);
+  private readonly createOrderUseCase = inject(CreateOrderUseCase);
 
-  readonly products = signal<ProductCardViewModel[]>([
-    {
-      id: 1,
-      name: 'Salmón al horno',
-      description: 'Salmón glaseado con vegetales estacionales y salsa citrica.',
-      price: 24,
-      stock: 8,
-      isActive: true,
-      imageUrl: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=1200&q=80',
-      tags: ['Chef choice', 'Proteina'],
-    },
-    {
-      id: 2,
-      name: 'Ravioli de ricotta',
-      description: 'Pasta fresca artesanal con mantequilla de salvia y nuez tostada.',
-      price: 18,
-      stock: 3,
-      isActive: true,
-      imageUrl: 'https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=1200&q=80',
-      tags: ['Pasta', 'Top ventas'],
-    },
-    {
-      id: 3,
-      name: 'Limonada de la casa',
-      description: 'Bebida fresca con menta, lima y toque de jengibre.',
-      price: 7,
-      stock: 0,
-      isActive: true,
-      imageUrl: 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=1200&q=80',
-      tags: ['Bebidas'],
-    },
-    {
-      id: 4,
-      name: 'Ensalada César',
-      description: 'Lechuga romana, crutones, parmesan y aderezo César.',
-      price: 12,
-      stock: 10,
-      isActive: true,
-      imageUrl: 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?auto=format&fit=crop&w=1200&q=80',
-      tags: ['Ensaladas'],
-    },
-    {
-      id: 5,
-      name: 'Ribeye steak',
-      description: 'Corte de res premium a la parrilla con hierbas.',
-      price: 32,
-      stock: 5,
-      isActive: true,
-      imageUrl: 'https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&fit=crop&w=1200&q=80',
-      tags: ['Carnes', 'Top ventas'],
-    },
-    {
-      id: 6,
-      name: 'Tiramisú',
-      description: 'Postre italiano clásico con café y mascarpone.',
-      price: 9,
-      stock: 4,
-      isActive: true,
-      imageUrl: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=1200&q=80',
-      tags: ['Postres'],
-    },
-  ]);
+  readonly products = signal<ProductCardViewModel[]>([]);
+  // Mapa de productos para validación rápida
+  private readonly productsMap = signal<Map<number, Product>>(new Map());
+  readonly catalogLoading = signal(true);
 
   readonly tables = signal<TableResponse[]>([]);
   readonly cart = signal<CartItem[]>([]);
   readonly loading = signal(false);
-  readonly catalogLoading = signal(true);
   readonly errorMessage = signal('');
   readonly lastOrderId = signal<number | null>(null);
 
   readonly selectedTableId = signal<number | null>(null);
 
+  // Options selector state
+  readonly showOptionsSelector = signal(false);
+  readonly optionsSelectorProduct = signal<{ id: number; name: string } | null>(null);
+  readonly productOptions = signal<ProductOption[]>([]);
+  readonly optionsLoading = signal(false);
+
   readonly availableTables = computed(() => this.tables().filter(t => t.status === 'AVAILABLE'));
 
-  readonly tableOptions = computed(() => 
-    this.availableTables().map(t => ({
+  // Mostrar todas las mesas, no solo las disponibles, para que el mesero pueda seleccionar
+  readonly tableOptions = computed(() =>
+    this.tables().map(t => ({
       label: `Mesa ${t.tableNumber} (${t.capacity} pers.) - ${t.status}`,
       value: t.id,
     }))
@@ -130,9 +90,52 @@ export class OrdersHomePageComponent {
     this.selectedTableId() !== null && this.cart().length > 0
   );
 
-  constructor() {
-    window.setTimeout(() => this.catalogLoading.set(false), 650);
+  ngOnInit(): void {
+    this.loadProducts();
     this.loadTables();
+    this.loadProductOptions();
+  }
+
+  loadProductOptions(): void {
+    this.optionsLoading.set(true);
+    this.getProductOptionsUseCase.execute().subscribe({
+      next: (options) => {
+        this.productOptions.set(options);
+        this.optionsLoading.set(false);
+      },
+      error: () => {
+        this.productOptions.set([]);
+        this.optionsLoading.set(false);
+      },
+    });
+  }
+
+  loadProducts(): void {
+    this.getProductsUseCase.execute().subscribe({
+      next: (products) => {
+        // Crear mapa de productos para validación
+        const map = new Map<number, Product>();
+        products.forEach(p => map.set(p.id, p));
+        this.productsMap.set(map);
+
+        this.products.set(products.map(p => ({
+          id: p.id,
+          name: p.name,
+          description: p.description || '',
+          price: p.basePrice,
+          stock: p.stock ?? 10,
+          isActive: p.active,
+          hasOptions: p.hasOptions,
+          categoryName: p.categoryName,
+          tags: [p.categoryName],
+        })));
+        this.catalogLoading.set(false);
+      },
+      error: () => {
+        this.products.set([]);
+        this.catalogLoading.set(false);
+      },
+    });
   }
 
   loadTables(): void {
@@ -146,12 +149,24 @@ export class OrdersHomePageComponent {
     const product = this.products().find(p => p.id === productId);
     if (!product) return;
 
+    // Si el producto tiene opciones, mostrar el selector de opciones
+    if (product.hasOptions) {
+      this.optionsSelectorProduct.set({ id: product.id, name: product.name });
+      this.showOptionsSelector.set(true);
+      return;
+    }
+
+    // Producto sin opciones - agregar directamente al carrito
+    this.addItemToCart(product.id, product.name, product.price, false, []);
+  }
+
+  addItemToCart(productId: number, productName: string, price: number, hasOptions: boolean, selectedOptionIds: number[]): void {
     const existing = this.cart().find(item => item.productId === productId);
     if (existing) {
       this.cart.update(items =>
         items.map(item =>
           item.productId === productId
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + 1, selectedOptionIds: [...selectedOptionIds] }
             : item
         )
       );
@@ -159,14 +174,32 @@ export class OrdersHomePageComponent {
       this.cart.update(items => [
         ...items,
         {
-          productId: product.id,
-          productName: product.name,
-          price: product.price,
+          productId,
+          productName,
+          price,
           quantity: 1,
           instructions: '',
+          selectedOptionIds,
+          hasOptions,
         },
       ]);
     }
+  }
+
+  onOptionsConfirm(event: { selectedOptionIds: number[] }): void {
+    const product = this.optionsSelectorProduct();
+    if (product) {
+      const productInfo = this.products().find(p => p.id === product.id);
+      if (productInfo) {
+        this.addItemToCart(product.id, product.name, productInfo.price, true, event.selectedOptionIds);
+      }
+    }
+    this.closeOptionsSelector();
+  }
+
+  closeOptionsSelector(): void {
+    this.showOptionsSelector.set(false);
+    this.optionsSelectorProduct.set(null);
   }
 
   incrementQty(productId: number): void {
@@ -223,27 +256,43 @@ export class OrdersHomePageComponent {
     this.loading.set(true);
     this.errorMessage.set('');
 
-    const payload = {
-      tableId,
-      details: this.cart().map(item => ({
+    // Validar opciones de productos antes de enviar según especificación técnica
+    // - Si hasOptions es true, selectedOptionIds debe tener al menos 1 valor
+    // - Si hasOptions es false, selectedOptionIds debe ser null o vacío
+    try {
+      const details = this.cart().map(item => ({
         productId: item.productId,
         instructions: item.instructions || undefined,
-      })),
-    };
+        selectedOptionIds: item.selectedOptionIds.length > 0 ? item.selectedOptionIds : undefined,
+      }));
 
-    this.ordersFacade
-      .createOrder(payload)
-      .pipe(finalize(() => this.loading.set(false)))
-      .subscribe({
-        next: (order) => {
-          this.lastOrderId.set(order.id);
-          this.cart.set([]);
-          this.selectedTableId.set(null);
-        },
-        error: (err) => {
-          const backendMessage = err?.error?.message || err?.message;
-          this.errorMessage.set(backendMessage || 'No se pudo crear la orden.');
-        },
-      });
+      // Validar opciones
+      this.createOrderUseCase.validateProductOptions(details, this.productsMap());
+
+      this.ordersFacade
+        .createOrder({
+          tableId,
+          details,
+        })
+        .pipe(finalize(() => this.loading.set(false)))
+        .subscribe({
+          next: (order) => {
+            this.lastOrderId.set(order.id);
+            this.cart.set([]);
+            this.selectedTableId.set(null);
+          },
+          error: (err) => {
+            const backendMessage = err?.error?.message || err?.message;
+            this.errorMessage.set(backendMessage || 'No se pudo crear la orden.');
+          },
+        });
+    } catch (validationError) {
+      this.loading.set(false);
+      if (validationError instanceof OrderValidationError) {
+        this.errorMessage.set(validationError.message);
+      } else {
+        this.errorMessage.set('Error de validación');
+      }
+    }
   }
 }

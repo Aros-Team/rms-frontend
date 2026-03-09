@@ -17,6 +17,10 @@ export const appRoutes: Routes = [
       {
         path: 'orders',
         loadComponent: () => import('./features/orders/pages/orders-list/orders-list.page').then(m => m.OrdersListPageComponent)
+      },
+      {
+        path: 'tables',
+        loadComponent: () => import('./features/tables/pages/tables-list/tables-list.page').then(m => m.TablesListPageComponent)
       }
     ]
   },

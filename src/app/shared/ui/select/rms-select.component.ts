@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, forwardRef, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, input, output, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/forms';
 import { SelectModule } from 'primeng/select';
 import { RmsSelectInputs, RmsSelectOption } from './rms-select.model';
@@ -97,8 +97,11 @@ export class RmsSelectComponent implements ControlValueAccessor {
   readonly hasError = input<boolean>(false);
 
   readonly selectedValue = signal<string | number | null>(null);
+  
+  // Output para que el componente padre pueda escuchar cambios
+  readonly onChange = output<string | number | null>();
 
-  private onChange: (value: string | number | null) => void = () => {};
+  private onChangeCallback: (value: string | number | null) => void = () => {};
   private onTouchedFn: () => void = () => {};
 
   readonly config = () => ({
@@ -119,7 +122,7 @@ export class RmsSelectComponent implements ControlValueAccessor {
   }
 
   registerOnChange(fn: (value: string | number | null) => void): void {
-    this.onChange = fn;
+    this.onChangeCallback = fn;
   }
 
   registerOnTouched(fn: () => void): void {
@@ -132,8 +135,10 @@ export class RmsSelectComponent implements ControlValueAccessor {
 
   onSelectionChange(event: { value: string | number | null }): void {
     this.selectedValue.set(event.value);
-    this.onChange(event.value);
+    this.onChangeCallback(event.value);
     this.onTouchedFn();
+    // Emitir evento para que el padre pueda escuchar
+    this.onChange.emit(event.value);
   }
 
   onBlur(): void {

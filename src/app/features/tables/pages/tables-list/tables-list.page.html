@@ -1,0 +1,82 @@
+<rms-page-header
+  [title]="'Mesas'"
+  [subtitle]="'Gestión de mesas del restaurante'"
+/>
+
+<section class="filters">
+  <rms-select
+    [label]="'Estado'"
+    [optionsList]="statusOptions"
+    [placeholder]="'Todas'"
+    (onChange)="onStatusChange($event)"
+  />
+  
+  <rms-button
+    [label]="'Actualizar'"
+    [icon]="'pi pi-refresh'"
+    [severity]="'secondary'"
+    [outlined]="true"
+    (onClick)="loadTables()"
+  />
+</section>
+
+@if (!loading()) {
+  <section class="tables-grid">
+    @for (table of filteredTables; track table.id) {
+      <rms-card>
+        <div class="table-header">
+          <span class="table-number">Mesa #{{ table.tableNumber }}</span>
+          <rms-badge
+            [label]="getStatusLabel(table.status)"
+            [severity]="getStatusSeverity(table.status)"
+          />
+        </div>
+        
+        <div class="table-info">
+          <span><i class="pi pi-users"></i> Capacidad: {{ table.capacity }} personas</span>
+        </div>
+
+        <div class="table-actions">
+          @if (table.status !== 'AVAILABLE') {
+            <rms-button
+              [label]="'Liberar'"
+              [icon]="'pi pi-unlock'"
+              [severity]="'success'"
+              [size]="'small'"
+              (onClick)="markAsAvailable(table.id)"
+            />
+          }
+          @if (table.status !== 'OCCUPIED') {
+            <rms-button
+              [label]="'Ocupar'"
+              [icon]="'pi pi-lock'"
+              [severity]="'warning'"
+              [size]="'small'"
+              (onClick)="markAsOccupied(table.id)"
+            />
+          }
+          @if (table.status !== 'RESERVED') {
+            <rms-button
+              [label]="'Reservar'"
+              [icon]="'pi pi-calendar'"
+              [severity]="'danger'"
+              [size]="'small'"
+              (onClick)="markAsReserved(table.id)"
+            />
+          }
+        </div>
+      </rms-card>
+    } @empty {
+      <rms-empty-state
+        [icon]="'pi pi-th-large'"
+        [title]="'No se encontraron mesas'"
+        [subtitle]="'No hay mesas con el filtro seleccionado'"
+      />
+    }
+  </section>
+} @else {
+  <div class="loading-state">
+    <i class="pi pi-spin pi-spinner"></i>
+    <span>Cargando mesas...</span>
+  </div>
+}
