@@ -18,6 +18,7 @@ import { GetProductOptionsUseCase } from '../../../../core/products/application/
 import { Product } from '../../../../core/products/domain/models/product.model';
 import { ProductOption } from '../../../../core/products/domain/models/product-option.model';
 import { CreateOrderUseCase, OrderValidationError } from '../../../../core/orders/application/use-cases/create-order.use-case';
+import { OrdersEventsService } from '../../../../shared/services/orders-events.service';
 
 interface CartItem {
   productId: number;
@@ -52,6 +53,7 @@ export class OrdersHomePageComponent implements OnInit {
   private readonly getProductsUseCase = inject(GetProductsUseCase);
   private readonly getProductOptionsUseCase = inject(GetProductOptionsUseCase);
   private readonly createOrderUseCase = inject(CreateOrderUseCase);
+  private readonly ordersEvents = inject(OrdersEventsService);
 
   readonly products = signal<ProductCardViewModel[]>([]);
   // Mapa de productos para validación rápida
@@ -277,6 +279,8 @@ export class OrdersHomePageComponent implements OnInit {
         .pipe(finalize(() => this.loading.set(false)))
         .subscribe({
           next: (order) => {
+            // Emitir evento para que Cocina actualice la cola inmediatamente
+            this.ordersEvents.emitOrderCreated(order);
             this.lastOrderId.set(order.id);
             this.cart.set([]);
             this.selectedTableId.set(null);

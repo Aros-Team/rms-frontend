@@ -1,51 +1,61 @@
 <rms-page-header [title]="'Cocina'">
-  <rms-badge
-    [label]="pendingOrders().length + ' pedidos pendientes'"
-    [severity]="'warning'"
-  />
+  <rms-badge [label]="queue().length + ' en cola'" [severity]="'warning'" />
+  <rms-badge [label]="preparing().length + ' en preparación'" [severity]="'info'" />
 </rms-page-header>
 
 <section class="orders-grid">
-  @for (order of pendingOrders(); track order.id) {
-    <rms-card [styleClass]="'order-card ' + order.status">
-      <div class="order-header">
-        <rms-badge
-          [label]="'Mesa ' + order.tableNumber"
-          [severity]="'primary'"
-        />
-        <span class="order-time">{{ getTimeAgo(order.createdAt) }}</span>
-      </div>
-      
-      <ul class="order-items">
-        @for (item of order.items; track item.name) {
-          <li>
-            <span class="item-qty">{{ item.quantity }}x</span>
-            <span class="item-name">{{ item.name }}</span>
-          </li>
-        }
-      </ul>
+  <rms-card>
+    <div class="order-header">
+      <h3>Cola de Cocina</h3>
+      <rms-button [label]="'Tomar siguiente'" [severity]="'warning'" (onClick)="prepareNext()" [disabled]="loading() || queue().length === 0" />
+    </div>
 
-      <div class="order-actions">
-        @if (order.status === 'pending') {
-          <rms-button
-            [label]="'Iniciar'"
-            [severity]="'warning'"
-            (onClick)="startPreparing(order.id)"
-          />
-        }
-        @if (order.status === 'preparing') {
-          <rms-button
-            [label]="'Listo'"
-            [severity]="'success'"
-            (onClick)="markReady(order.id)"
-          />
-        }
-      </div>
-    </rms-card>
-  } @empty {
-    <rms-empty-state
-      [icon]="'pi pi-check-circle'"
-      [title]="'No hay pedidos pendientes'"
-    />
-  }
+    @for (order of queue(); track order.id) {
+      <rms-card [styleClass]="'order-card QUEUE'">
+        <div class="order-header">
+          <rms-badge [label]="'Mesa ' + order.tableId" [severity]="'primary'" />
+          <rms-badge [label]="'En cola'" [severity]="getStatusSeverity(order.status)" />
+        </div>
+
+        <ul class="order-items">
+          @for (item of order.details; track item.id) {
+            <li>
+              <span class="item-name">{{ item.productName }}</span>
+            </li>
+          }
+        </ul>
+      </rms-card>
+    } @empty {
+      <rms-empty-state [icon]="'pi pi-clock'" [title]="'No hay órdenes en cola'" />
+    }
+  </rms-card>
+
+  <rms-card>
+    <div class="order-header">
+      <h3>En Preparación</h3>
+    </div>
+
+    @for (order of preparing(); track order.id) {
+      <rms-card [styleClass]="'order-card PREPARING'">
+        <div class="order-header">
+          <rms-badge [label]="'Mesa ' + order.tableId" [severity]="'primary'" />
+          <rms-badge [label]="'Preparando'" [severity]="getStatusSeverity(order.status)" />
+        </div>
+
+        <ul class="order-items">
+          @for (item of order.details; track item.id) {
+            <li>
+              <span class="item-name">{{ item.productName }}</span>
+            </li>
+          }
+        </ul>
+
+        <div class="order-actions">
+          <rms-button [label]="'Marcar lista'" [severity]="'success'" (onClick)="markReady(order.id)" />
+        </div>
+      </rms-card>
+    } @empty {
+      <rms-empty-state [icon]="'pi pi-check-circle'" [title]="'No hay órdenes en preparación'" />
+    }
+  </rms-card>
 </section>

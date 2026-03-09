@@ -99,23 +99,66 @@ export class OrdersListPageComponent implements OnInit {
   }
 
   markReady(id: number): void {
+    if (this.loading()) return;
+    this.loading.set(true);
     this.ordersFacade.markOrderReady(id).subscribe({
-      next: () => this.loadOrders(),
-      error: () => alert('Error al marcar orden'),
+      next: () => {
+        this.loading.set(false);
+        this.loadOrders();
+      },
+      error: (err) => {
+        this.loading.set(false);
+        this.loadOrders();
+        if (err?.status === 404) {
+          alert('Orden no encontrada (404). La lista se actualizó.');
+        } else if (err?.status === 409) {
+          alert('La orden no está en estado PREPARING (409). La lista se actualizó.');
+        } else {
+          alert('No se pudo marcar la orden como lista.');
+        }
+      },
     });
   }
 
   deliverOrder(id: number): void {
+    if (this.loading()) return;
+    this.loading.set(true);
     this.ordersFacade.deliverOrder(id).subscribe({
-      next: () => this.loadOrders(),
-      error: () => alert('Error al entregar orden'),
+      next: () => {
+        this.loading.set(false);
+        this.loadOrders();
+      },
+      error: (err) => {
+        this.loading.set(false);
+        this.loadOrders();
+        if (err?.status === 404) {
+          alert('Orden no encontrada (404). La lista se actualizó.');
+        } else if (err?.status === 409) {
+          alert('La orden no está en estado READY (409). La lista se actualizó.');
+        } else {
+          alert('No se pudo entregar la orden.');
+        }
+      },
     });
   }
 
   prepareNextOrder(): void {
+    if (this.loading()) return;
+    this.loading.set(true);
     this.ordersFacade.prepareNextOrder().subscribe({
-      next: () => this.loadOrders(),
-      error: () => alert('No hay ordenes en cola para preparar'),
+      next: () => {
+        this.loading.set(false);
+        this.loadOrders();
+      },
+      error: (err) => {
+        this.loading.set(false);
+        this.loadOrders();
+        if (err?.status === 409) {
+          alert('No hay órdenes en cola para preparar (409). La lista se actualizó.');
+        } else {
+          alert('No se pudo tomar la siguiente orden.');
+        }
+      },
     });
   }
 }

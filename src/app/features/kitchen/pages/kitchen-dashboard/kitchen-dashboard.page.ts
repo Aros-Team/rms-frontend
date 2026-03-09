@@ -1,18 +1,14 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RmsPageHeaderComponent } from '../../../../shared/ui/page-header/rms-page-header.component';
 import { RmsCardComponent } from '../../../../shared/ui/card/rms-card.component';
 import { RmsBadgeComponent } from '../../../../shared/ui/badge/rms-badge.component';
 import { RmsButtonComponent } from '../../../../shared/ui/button/rms-button.component';
 import { RmsEmptyStateComponent } from '../../../../shared/ui/empty-state/rms-empty-state.component';
-
-interface KitchenOrder {
-  id: number;
-  tableNumber: number;
-  items: { name: string; quantity: number }[];
-  status: 'pending' | 'preparing' | 'ready';
-  createdAt: Date;
-}
+import { OrdersFacade } from '../../../orders/application/orders.facade';
+import { OrderResponse } from '../../../../shared/models/dto/orders/order-response.model';
+import { OrdersEventsService } from '../../../../shared/services/orders-events.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-kitchen-dashboard-page',
@@ -28,65 +24,104 @@ interface KitchenOrder {
   templateUrl: './kitchen-dashboard.page.html',
   styleUrl: './kitchen-dashboard.page.css',
 })
-export class KitchenDashboardPageComponent {
-  readonly pendingOrders = signal<KitchenOrder[]>([
-    {
-      id: 1,
-      tableNumber: 3,
-      items: [
-        { name: 'Hamburguesa Clásica', quantity: 2 },
-        { name: 'Papas Fritas', quantity: 1 },
-        { name: 'Refresco', quantity: 2 }
-      ],
-      status: 'pending',
-      createdAt: new Date(Date.now() - 5 * 60000)
-    },
-    {
-      id: 2,
-      tableNumber: 5,
-      items: [
-        { name: 'Ensalada César', quantity: 1 },
-        { name: 'Sopa del día', quantity: 1 }
-      ],
-      status: 'preparing',
-      createdAt: new Date(Date.now() - 12 * 60000)
-    },
-    {
-      id: 3,
-      tableNumber: 1,
-      items: [
-        { name: 'Ribeye Steak', quantity: 1 },
-        { name: 'Vino Tinto', quantity: 1 }
-      ],
-      status: 'pending',
-      createdAt: new Date(Date.now() - 3 * 60000)
-    }
-  ]);
+export class KitchenDashboardPageComponent implements OnInit, OnDestroy {
+  private readonly ordersFacade = inject(OrdersFacade);
+  private readonly ordersEvents = inject(OrdersEventsService);
 
-  startPreparing(orderId: number): void {
-    this.pendingOrders.update(orders =>
-      orders.map(o => o.id === orderId ? { ...o, status: 'preparing' as const } : o)
+  readonly queue = signal<OrderResponse[]>([]);
+  readonly preparing = signal<OrderResponse[]>([]);
+  readonly loading = signal(false);
+  private subs = new Subscription();
+
+  ngOnInit(): void {
+    this.refreshLists();
+    this.subs.add(
+      this.ordersEvents.orderCreated$.subscribe(() => {
+        // Al crear una orden, refrescar la cola inmediatamente
+        this.loadQueue();
+      })
     );
+  }
+
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
+  }
+
+  refreshLists(): void {
+    this.loadQueue();
+    this.loadPreparing();
+  }
+
+  loadQueue(): void {
+    this.ordersFacade.getOrders({ status: 'QUEUE' }).subscribe({
+      next: (orders) => this.queue.set(orders),
+      error: () => this.queue.set([]),
+    });
+  }
+
+  loadPreparing(): void {
+    this.ordersFacade.getOrders({ status: 'PREPARING' }).subscribe({
+      next: (orders) => this.preparing.set(orders),
+      error: () => this.preparing.set([]),
+    });
+  }
+
+  prepareNext(): void {
+    if (this.loading() || this.queue().length === 0) {
+      // Si la UI cree que no hay cola, sincronizamos con backend
+      if (this.queue().length === 0) this.loadQueue();
+      return;
+    }
+
+    this.loading.set(true);
+    this.ordersFacade.prepareNextOrder().subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.refreshLists();
+      },
+      error: (err) => {
+        this.loading.set(false);
+        // Refrescar desde backend para evitar estados desfasados
+        this.loadQueue();
+        if (err?.status === 409) {
+          alert('No hay órdenes en cola para preparar (409). Se actualizó la cola.');
+        } else {
+          alert('No se pudo tomar la siguiente orden. Intenta nuevamente.');
+        }
+      },
+    });
   }
 
   markReady(orderId: number): void {
-    this.pendingOrders.update(orders =>
-      orders.map(o => o.id === orderId ? { ...o, status: 'ready' as const } : o)
-    );
+    if (this.loading()) return;
+    this.loading.set(true);
+    this.ordersFacade.markOrderReady(orderId).subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.refreshLists();
+      },
+      error: (err) => {
+        this.loading.set(false);
+        // Refrescar la sección de "En Preparación" para evitar inconsistencias
+        this.loadPreparing();
+        if (err?.status === 409) {
+          alert('La orden no está en estado PREPARING (409). Se actualizó la lista.');
+        } else if (err?.status === 404) {
+          alert('Orden no encontrada (404). Se actualizó la lista.');
+        } else {
+          alert('No se pudo marcar la orden como lista.');
+        }
+      },
+    });
   }
 
-  getTimeAgo(date: Date): string {
-    const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
-    if (minutes < 1) return 'Ahora';
-    if (minutes < 60) return `${minutes} min`;
-    return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
-  }
-
-  getStatusSeverity(status: string): 'warning' | 'success' | 'info' {
-    const map: Record<string, 'warning' | 'success' | 'info'> = {
-      pending: 'warning',
-      preparing: 'info',
-      ready: 'success',
+  getStatusSeverity(status: string): 'success' | 'info' | 'warning' | 'danger' {
+    const map: Record<string, 'success' | 'info' | 'warning' | 'danger'> = {
+      QUEUE: 'warning',
+      PREPARING: 'info',
+      READY: 'success',
+      DELIVERED: 'success',
+      CANCELLED: 'danger',
     };
     return map[status] || 'info';
   }
