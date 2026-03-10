@@ -1,0 +1,69 @@
+import { Component, OnInit, OnDestroy, Output, EventEmitter, inject, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import { DarkModeButton } from '../dark-mode-button/dark-mode-button';
+import { MenuItem, MenuService } from '../../../core/services/menu/menu-service';
+import { AuthService } from '../../../core/services/authentication/auth-service';
+import { Subscription } from 'rxjs';
+import { Logo } from "../logo/logo";
+import { environment } from '@environments/environment';
+
+export interface HorizontalMenuOption {
+  id: string;
+  label: string;
+  description: string;
+  icon?: string;
+  isActive?: boolean;
+  command?: () => void;
+  routerLink?: string;
+}
+
+@Component({
+  selector: 'app-header',
+  imports: [CommonModule, DarkModeButton, Logo],
+  templateUrl: './header.html',
+  styles: ``
+})
+export class Header implements OnInit, OnDestroy {
+  @Output() toggleMenu = new EventEmitter<void>();
+  @Input() horizontalMenuOptions: HorizontalMenuOption[] = [];
+  @Input() isMobile = false;
+  customer = environment.customer;
+
+  selectedMenuItem: MenuItem | null = null;
+  private menuSubscription!: Subscription;
+
+  private menuService = inject(MenuService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  ngOnInit(): void {
+    this.menuSubscription = this.menuService.selectedMenuItem$.subscribe(item => {
+      this.selectedMenuItem = item;
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.menuSubscription) {
+      this.menuSubscription.unsubscribe();
+    }
+  }
+
+  onLogout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+
+  onHorizontalOptionClick(option: HorizontalMenuOption): void {
+    // Execute command if provided
+    if (option.command) {
+      option.command();
+    }
+
+    // Update active state for visual feedback
+    this.horizontalMenuOptions = this.horizontalMenuOptions.map(opt => ({
+      ...opt,
+      isActive: opt.id === option.id
+    }));
+  }
+}
