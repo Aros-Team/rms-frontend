@@ -1,4 +1,5 @@
 export interface AuthRequest {
-  document: string,
-  password: string
+  username: string;
+  password: string;
+  deviceHash?: string;
 }

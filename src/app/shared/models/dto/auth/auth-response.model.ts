@@ -1,4 +1,6 @@
 export interface AuthResponse {
-    access: string,
-    refresh: string
+  type: 'SUCCESS' | 'TFA_REQUIRED';
+  username: string;
+  accessToken: string;
+  refreshToken: string | null;
 }

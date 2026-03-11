@@ -3,16 +3,16 @@
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-8 mt-8">
 
       <div>
-        <label for="document" class="text-sm">Cedula</label>
+        <label for="username" class="text-sm">Correo electrónico</label>
           <input
             pInputText
-            [invalid]="isInvalid('document')"
-            id="document"
-            type="text"
-            formControlName="document"
+            [invalid]="isInvalid('username')"
+            id="username"
+            type="email"
+            formControlName="username"
             fluid
           />
-        @if (form.get('document')?.invalid && form.get('document')?.touched) {
+        @if (form.get('username')?.invalid && form.get('username')?.touched) {
           <div class="text-red-500 text-sm">
             Campo requerido*
           </div>

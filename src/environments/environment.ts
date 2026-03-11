@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://35.196.102.47:8080/api',
+  apiUrl: 'http://localhost:8080/api',
   customer: 'Food Sparks',
   primary: {
     50: '#fbf4f5',

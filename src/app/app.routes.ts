@@ -15,6 +15,7 @@ import { Login } from '@areas/login/login-area';
 import { AdminArea } from '@areas/admin/admin-area';
 import { WorkerArea } from '@areas/worker/worker-area';
 import { Users } from './features/admin/manage/users/users';
+import { TwoFactorVerifyComponent } from './features/auth/two-factor-verify/two-factor-verify.component';
 
 
 export const routes: Routes = [
@@ -23,6 +24,10 @@ export const routes: Routes = [
     path: 'login',
     component: Login,
     canActivate: [RedirectGuard],
+  },
+  {
+    path: 'login/verify',
+    component: TwoFactorVerifyComponent,
   },
   {
     path: 'admin',
