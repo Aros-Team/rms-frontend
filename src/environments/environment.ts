@@ -1,7 +1,7 @@
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:8080/api',
-  customer: 'Food Sparks',
+  customer: 'RMS',
   primary: {
     50: '#fbf4f5',
     100: '#f6e4e8',

@@ -7,6 +7,7 @@ import { AuthService } from '../../../core/services/authentication/auth-service'
 import { Subscription } from 'rxjs';
 import { Logo } from "../logo/logo";
 import { environment } from '@environments/environment';
+import { ButtonModule } from 'primeng/button';
 
 export interface HorizontalMenuOption {
   id: string;
@@ -20,7 +21,7 @@ export interface HorizontalMenuOption {
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule, DarkModeButton, Logo],
+  imports: [CommonModule, DarkModeButton, Logo, ButtonModule],
   templateUrl: './header.html',
   styles: ``
 })
