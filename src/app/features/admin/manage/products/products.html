@@ -71,15 +71,15 @@
           <th>Nombre</th>
           <th>Precio</th>
           <th>Estado</th>
-          <th>Area</th>
-          <th>Tiempo de preparacion</th>
+          <th>Área</th>
+          <th>Categorías</th>
           <th>Acciones</th>
         </tr>
       </ng-template>
       <ng-template #body let-product>
         <tr>
           <td>{{ product.name }}</td>
-          <td>{{ currencyFormat.format(product.price) }}</td>
+          <td>{{ currencyFormat.format(product.basePrice) }}</td>
           <td>
             <div>
               <span class="{{ product.active ? 'text-green-600' : 'text-red-600' }}">
@@ -87,18 +87,13 @@
               </span>
             </div>
           </td>
-          <td>{{ product.preparationArea ?? 'N/A' }}</td>
-          <td>{{ product.preparationTime }}</td>
+          <td>{{ product.areaId }}</td>
+          <td>{{ product.categoryName }}</td>
           <td>
             <div class="flex gap-2">
               <button pButton size="small" (click)="showModificationModal(product.id)">
                 <i class="pi pi-pencil"></i> <span>Editar</span>
               </button>
-              <!--
-                <button pButton size="small" severity="danger">
-                  <i class="pi pi-trash"></i> <span>Eliminar</span>
-                </button>
-              -->
             </div>
           </td>
         </tr>
@@ -142,94 +137,63 @@
 
       <p-iftalabel class="mb-4">
         <p-inputnumber
-          formControlName="price"
-          [invalid]="isInvalidField('price')"
+          formControlName="basePrice"
+          [invalid]="isInvalidField('basePrice')"
           placeholder="precio del producto"
           mode="currency"
-          inputId="price"
+          inputId="basePrice"
           currency="COP"
           locale="es-CO"
           class="w-full"
         />
-        <label for="price">precio</label>
-        <form-validation field="price" />
+        <label for="basePrice">precio base</label>
+        <form-validation field="basePrice" />
       </p-iftalabel>
 
-      @if (modalMode === 'edit') {
       <p-iftalabel class="mb-4">
         <p-select
           [options]="[
-            { label: 'Activo', value: true },
-            { label: 'Inactivo', value: false }
+            { label: 'Sí', value: true },
+            { label: 'No', value: false }
           ]"
-          inputId="active"
-          placeholder="Seleccionar estado"
+          inputId="hasOptions"
+          placeholder="Tiene opciones"
           class="w-full"
-          formControlName="active"
-          [invalid]="isInvalidField('active')"
+          formControlName="hasOptions"
+          [invalid]="isInvalidField('hasOptions')"
         />
-        <label for="active">estado</label>
-        <form-validation field="active" />
+        <label for="hasOptions">¿Tiene opciones de personalización?</label>
+        <form-validation field="hasOptions" />
       </p-iftalabel>
-      }
+
+      <p-iftalabel class="mb-4">
+        <p-select
+          [options]="availableCategories"
+          inputId="categoryId"
+          placeholder="Seleccionar categoría"
+          class="w-full"
+          optionValue="id"
+          optionLabel="name"
+          formControlName="categoryId"
+          [invalid]="isInvalidField('categoryId')"
+        />
+        <label for="categoryId">categoría</label>
+        <form-validation field="categoryId" />
+      </p-iftalabel>
 
       <p-iftalabel class="mb-4">
         <p-select
           [options]="availablePreparationAreas"
-          inputId="area"
-          placeholder="Seleccionar area de preparacion"
+          inputId="areaId"
+          placeholder="Seleccionar área de preparación"
           class="w-full"
           optionValue="id"
           optionLabel="name"
-          formControlName="preparationArea"
-          [invalid]="isInvalidField('area')"
+          formControlName="areaId"
+          [invalid]="isInvalidField('areaId')"
         />
-        <label for="area">area</label>
-        <form-validation field="area" />
-      </p-iftalabel>
-
-      <p-iftalabel class="mb-4">
-        <p-inputnumber
-          inputId="time"
-          class="w-full"
-          localde="es-CO"
-          placeholder="Tiempo de preparacion del producto"
-          formControlName="preparationTime"
-          [invalid]="isInvalidField('preparationTime')"
-        />
-        <label for="time">tiempo de preparacion (minutos)</label>
-        <form-validation field="preparationTime" />
-      </p-iftalabel>
-
-      <p-iftalabel class="mb-4">
-        <p-multiselect
-          [options]="availableCategories"
-          formControlName="categories"
-          placeholder="Seleccionar categorias"
-          optionLabel="name"
-          optionValue="id"
-          inputId="categories"
-          filter="true"
-          class="w-full"
-          [invalid]="isInvalidField('categories')"
-        />
-        <label for="categories">Categorias</label>
-        <form-validation field="categories" />
-      </p-iftalabel>
-
-      <p-iftalabel class="mb-4">
-        <textarea
-          pTextarea
-          [autoResize]="true"
-          name="description"
-          rows="3"
-          class="w-full"
-          placeholder="Descripcion del producto"
-          formControlName="description"
-          [invalid]="isInvalidField('description')"
-        ></textarea>
-        <label for="description">Descripcion</label>
-        <form-validation field="description" />
+        <label for="areaId">área de preparación</label>
+        <form-validation field="areaId" />
       </p-iftalabel>
     </div>
   </form>

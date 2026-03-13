@@ -11,14 +11,14 @@ export class CategoryService {
   private http = inject(HttpClient);
 
   public getCategories(): Observable<CategorySimpleResponse[]> {
-    return this.http.get<CategorySimpleResponse[]>('categories');
+    return this.http.get<CategorySimpleResponse[]>('v1/categories');
   }
 
   public createCategory(data: CategoryCreateRequest): Observable<object> {
-    return this.http.post('categories', data);
+    return this.http.post('v1/categories', data);
   }
 
-  public deleteCategory(id: number): Observable<Object> {
-    return this.http.delete(`categories/${id}`);
+  public toggleCategory(id: number): Observable<object> {
+    return this.http.put(`v1/categories/${id}/toggle`, {});
   }
 }

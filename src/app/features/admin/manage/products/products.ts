@@ -14,7 +14,7 @@ import { ProductService } from '@app/core/services/products/product-service';
 import { FormValidation } from '@app/shared/components/form/form-validation';
 import { AreaSimpleResponse } from '@app/shared/models/dto/areas/area-simple-response';
 import { CategorySimpleResponse } from '@app/shared/models/dto/category/category-simple-response';
-import { ProductReponse } from '@app/shared/models/dto/products/product-response';
+import { ProductResponse } from '@app/shared/models/dto/products/product-response';
 import { ProductSimpleResponse } from '@app/shared/models/dto/products/product-simple-response';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -61,7 +61,7 @@ export class Products implements OnInit {
     currency: 'COP',
   });
 
-  products?: ProductSimpleResponse[];
+  products?: ProductResponse[];
   availablePreparationAreas: AreaSimpleResponse[] = [];
   availableCategories?: CategorySimpleResponse[] = undefined;
 
@@ -73,12 +73,10 @@ export class Products implements OnInit {
   form: FormGroup = this.formBuilder.group({
     id: [null],
     name: ['', Validators.required],
-    price: ['', [Validators.required, Validators.min(0)]],
-    active: [true, [Validators.required]],
-    preparationTime: [false, [Validators.required, Validators.min(0)]],
-    preparationArea: [null, [Validators.required]],
-    description: [''],
-    categories: [[]],
+    basePrice: ['', [Validators.required, Validators.min(0)]],
+    hasOptions: [false, [Validators.required]],
+    categoryId: [null, [Validators.required]],
+    areaId: [null, [Validators.required]],
   });
 
   filterCategories = new FormControl<number[]>([], []);
@@ -104,10 +102,10 @@ export class Products implements OnInit {
     this.productService
       .createProduct({
         name: this.form.get('name')?.value,
-        description: this.form.get('description')?.value,
-        price: this.form.get('price')?.value,
-        preparationTime: this.form.get('preparationTime')?.value,
-        preparationArea: this.form.get('preparationArea')?.value,
+        basePrice: this.form.get('basePrice')?.value,
+        hasOptions: this.form.get('hasOptions')?.value,
+        categoryId: this.form.get('categoryId')?.value,
+        areaId: this.form.get('areaId')?.value,
       })
       .subscribe(() => {
         this.refreshProducts();
@@ -116,16 +114,15 @@ export class Products implements OnInit {
   }
 
   updateProduct(): void {
+    const id = this.form.get('id')?.value;
     this.productService
-      .updateProduct({
-        id: this.form.get('id')?.value,
+      .updateProduct(id, {
+        id: id,
         name: this.form.get('name')?.value,
-        description: this.form.get('description')?.value,
-        price: this.form.get('price')?.value,
-        preparationTime: this.form.get('preparationTime')?.value,
-        preparationArea: this.form.get('preparationArea')?.value,
-        active: this.form.get('active')?.value,
-        categories: this.form.get('categories')?.value,
+        basePrice: this.form.get('basePrice')?.value,
+        hasOptions: this.form.get('hasOptions')?.value,
+        categoryId: this.form.get('categoryId')?.value,
+        areaId: this.form.get('areaId')?.value,
       })
       .subscribe(() => {
         this.refreshProducts();
@@ -189,21 +186,19 @@ export class Products implements OnInit {
     });
   }
 
-  private fillFormWithProductData(data: ProductReponse): void {
+  private fillFormWithProductData(data: ProductResponse): void {
     this.form.get('id')?.setValue(data.id);
     this.form.get('name')?.setValue(data.name);
-    this.form.get('price')?.setValue(data.price);
-    this.form.get('description')?.setValue(data.description);
-    this.form.get('active')?.setValue(data.active);
-    this.form.get('preparationTime')?.setValue(data.preparationTime);
-    this.form.get('preparationArea')?.setValue(data.preparationArea.id);
-    this.form.get('categories')?.setValue(data.categories.map((c) => c.id));
+    this.form.get('basePrice')?.setValue(data.basePrice);
+    this.form.get('hasOptions')?.setValue(data.hasOptions);
+    this.form.get('categoryId')?.setValue(data.categoryId);
+    this.form.get('areaId')?.setValue(data.areaId);
   }
 
   private checkForCategories() {
     if (this.availableCategories == undefined) {
       this.categoryService.getCategories().subscribe((res) => {
-        this.availableCategories = res;
+        this.availableCategories = res.filter(c => c.enabled);
       });
     }
   }

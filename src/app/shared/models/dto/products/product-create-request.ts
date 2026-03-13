@@ -1,7 +1,7 @@
 export interface ProductCreateRequest {
-  name: string,
-  description: string,
-  price: number,
-  preparationTime: number,
-  preparationArea: number
+  name: string;
+  basePrice: number;
+  hasOptions: boolean;
+  categoryId: number;
+  areaId: number;
 }

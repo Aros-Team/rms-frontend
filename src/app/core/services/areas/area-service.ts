@@ -12,6 +12,6 @@ export class AreaService {
 
 
   public getAreas(): Observable<AreaSimpleResponse[]> {
-    return this.http.get<AreaSimpleResponse[]>('areas');
+    return this.http.get<AreaSimpleResponse[]>('v1/areas');
   }
 }

@@ -118,7 +118,7 @@ export class Menu {
   private loadAvailableCategories() {
     this.categoryService.getCategories().subscribe({
       next: (categories) => {
-        this.availableCategories.set(categories);
+        this.availableCategories.set(categories.filter(c => c.enabled));
       },
       error: (error) => {
         console.error('Error loading categories:', error);

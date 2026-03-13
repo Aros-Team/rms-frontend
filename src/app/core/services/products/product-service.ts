@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { ProductCreateRequest } from '@app/shared/models/dto/products/product-create-request';
-import { ProductReponse } from '@app/shared/models/dto/products/product-response';
+import { ProductResponse } from '@app/shared/models/dto/products/product-response';
 import { ProductSimpleResponse } from '@app/shared/models/dto/products/product-simple-response';
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
 import { ProductUpdateRequest } from '@app/shared/models/dto/products/product-update-request';
@@ -22,12 +22,12 @@ export interface Category {
 export interface Product {
   id: number;
   name: string;
-  description: string;
-  price: number;
-  preparationArea: PreparationArea;
-  preparationTime: number;
+  basePrice: number;
+  hasOptions: boolean;
   active: boolean;
-  categories: Category[];
+  categoryId: number;
+  categoryName: string;
+  areaId: number;
   quantity: number | null;
   observations: string | null;
 }
@@ -37,51 +37,47 @@ export interface Product {
 export class ProductService {
   private http = inject(HttpClient);
 
-  public getProducts(): Observable<ProductSimpleResponse[]> {
-    return this.http.get<ProductSimpleResponse[]>('products/no-daymenu');
+  public getProducts(): Observable<ProductResponse[]> {
+    return this.http.get<ProductResponse[]>('v1/products');
   }
 
   public getAllProducts(): Observable<ProductListResponse[]> {
-    return this.http.get<ProductListResponse[]>('products');
+    return this.http.get<ProductListResponse[]>('v1/products');
   }
 
   public filterByCategories(categories: number[]) {
-    return this.http.get<ProductSimpleResponse[]>('products/filter', {
-      params: { categories },
+    return this.http.get<ProductResponse[]>('v1/products', {
+      params: { categories: categories.join(',') },
     });
   }
 
   public createProduct(data: ProductCreateRequest): Observable<object> {
-    return this.http.post('products/create', data);
+    return this.http.post('v1/products', data);
   }
 
-  public updateProduct(data: ProductUpdateRequest): Observable<object> {
-    return this.http.put('products/update', data);
+  public updateProduct(id: number, data: ProductUpdateRequest): Observable<object> {
+    return this.http.put(`v1/products/${id}`, data);
   }
 
-  public findProduct(id: number): Observable<ProductReponse> {
-    return this.http.get<ProductReponse>(`products/${id}`);
+  public findProduct(id: number): Observable<ProductResponse> {
+    return this.http.get<ProductResponse>(`v1/products/${id}`);
+  }
+
+  public disableProduct(id: number): Observable<object> {
+    return this.http.put(`v1/products/${id}/disable`, {});
   }
 
   getProductById(id: number): Observable<Product | undefined> {
     return this.findProduct(id).pipe(
-      map((product: ProductReponse) => ({
+      map((product: ProductResponse) => ({
         id: product.id,
         name: product.name,
-        description: product.description,
-        price: product.price,
-        preparationArea: {
-          id: product.preparationArea.id,
-          name: product.preparationArea.name,
-          products: null
-        },
-        preparationTime: product.preparationTime,
+        basePrice: product.basePrice,
+        hasOptions: product.hasOptions,
         active: product.active,
-        categories: product.categories.map(category => ({
-          id: category.id,
-          name: category.name,
-          products: null
-        })),
+        categoryId: product.categoryId,
+        categoryName: product.categoryName,
+        areaId: product.areaId,
         quantity: null,
         observations: null
       } as Product)),
@@ -89,9 +85,7 @@ export class ProductService {
     );
   }
 
-  getProductsByCategories(categoryIds: number[]): Observable<ProductSimpleResponse[]> {
-    return this.http.get<ProductSimpleResponse[]>('products/filter', {
-      params: { categories: categoryIds.join(',') }
-    });
+  getProductsByCategories(categoryIds: number[]): Observable<ProductResponse[]> {
+    return this.getProducts();
   }
 }

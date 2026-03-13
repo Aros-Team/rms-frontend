@@ -19,7 +19,7 @@ export class OrderService {
 
   getOrders(): Observable<OrderResponse[]> {
     this.loggingService.debug('OrderService: getOrders called');
-    return this.http.get<OrderResponse[]>('orders/all').pipe(
+    return this.http.get<OrderResponse[]>('v1/orders').pipe(
       map(orders => {
         this.loggingService.debug('OrderService: Raw orders from API:', orders);
         const todayOrders = this.filterTodayOrders(orders);
@@ -29,25 +29,20 @@ export class OrderService {
     );
   }
 
-  // PATCH http://localhost:8080/api/orders/{id}/mark-order-as-completed
   public markOrderAsCompleted(id: number): Observable<void> {
-    return this.http.patch<void>(`orders/${id}/mark-order-as-completed`, {});
+    return this.http.patch<void>(`v1/orders/${id}/deliver`, {});
   }
 
-  // PUT http://localhost:8080/api/orders/update
   public updateOrder(request: UpdateOrderRequest): Observable<void> {
-    return this.http.put<void>('orders/update', request);
+    return this.http.put<void>(`v1/orders/${request.id}`, request);
   }
 
-  // POST http://localhost:8080/api/orders/create
   public createOrder(request: CreateOrderRequest): Observable<void> {
-    return this.http.post<void>('orders/create', request);
+    return this.http.post<void>('v1/orders', request);
   }
 
-  // GET http://localhost:8080/api/orders/status/{status}
-  // Backend returns all orders if status is invalid or not provided.
   public getOrdersByStatus(status: string): Observable<OrderResponse[]> {
-    return this.http.get<OrderResponse[]>(`orders/status/${status}`);
+    return this.http.get<OrderResponse[]>(`v1/orders?status=${status}`);
   }
 
   public getOrdersByStatusOrAll(status?: string): Observable<OrderResponse[]> {
@@ -57,44 +52,40 @@ export class OrderService {
     return this.getOrdersByStatus(status);
   }
 
-
-
   getOrderById(id: number): Observable<OrderResponse | undefined> {
-    return this.http.get<OrderResponse[]>('orders/all').pipe(
+    return this.getOrders().pipe(
       map(orders => {
-        const todayOrders = this.filterTodayOrders(orders);
-        return todayOrders.find(o => o.id === id);
+        return orders.find(o => o.id === id);
       })
     );
   }
 
   getOrderDetail(orderId: number): Observable<OrderDetailsResponse[]> {
-    // This endpoint might need to be adjusted based on actual API
-    // For now, returning empty array as the API structure for details is not specified
-    return this.http.get<OrderDetailsResponse[]>(`orders/${orderId}/details`);
+    return this.http.get<OrderDetailsResponse[]>(`v1/orders/${orderId}/details`);
   }
 
   getOrderDetails(): Observable<OrderDetailsResponse[]> {
-    // This endpoint might need to be adjusted based on actual API
-    // For now, returning empty array as the API structure for details is not specified
-    return this.http.get<OrderDetailsResponse[]>('orders/details');
+    return this.http.get<OrderDetailsResponse[]>('v1/orders/details');
   }
 
-
   getTodayOrders(): Observable<OrderResponse[]> {
-    return this.http.get<OrderResponse[]>('orders/current').pipe(
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59).toISOString();
+    
+    return this.http.get<OrderResponse[]>(`v1/orders?startDate=${startOfDay}&endDate=${endOfDay}`).pipe(
       map(orders => this.filterTodayOrders(orders))
     );
   }
 
   getCompletedOrdersCount(): Observable<number> {
-    return this.getOrdersByStatus('COMPLETED').pipe(
+    return this.getOrdersByStatus('DELIVERED').pipe(
       map(orders => orders.length)
     );
   }
 
   getPreparingOrdersCount(): Observable<number> {
-    return this.getOrdersByStatus('PENDING').pipe(
+    return this.getOrdersByStatus('PREPARING').pipe(
       map(orders => orders.length)
     );
   }
@@ -103,17 +94,20 @@ export class OrderService {
     return this.getTodayOrders().pipe(
       map(orders =>
         orders
-          .filter(order => order.status === 'COMPLETED')
+          .filter(order => order.status === 'DELIVERED')
           .reduce((sum, order) => sum + order.totalPrice, 0)
       )
     );
   }
 
   private filterTodayOrders(orders: OrderResponse[]): OrderResponse[] {
-    // Temporarily return all orders to debug the issue
-    this.loggingService.debug('OrderService: Bypassing date filter, returning all orders:', orders.length);
-    return orders;
-
-    /* TODO: Restore date filtering once the issue is resolved */
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
+    
+    return orders.filter(order => {
+      const orderDate = new Date(order.date).toISOString().split('T')[0];
+      return orderDate === todayStr;
+    });
   }
 }

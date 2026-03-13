@@ -1,9 +1,10 @@
 export interface ProductListResponse {
   id: number;
   name: string;
-  description: string;
-  price: number;
+  basePrice: number;
+  hasOptions: boolean;
   active: boolean;
-  preparationTime: number;
-  preparationArea: string;
+  categoryId: number;
+  categoryName: string;
+  areaId: number;
 }

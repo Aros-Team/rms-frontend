@@ -46,7 +46,8 @@ export class Categories implements OnInit {
 
   saved = false;
   errorMsg: string | null = null;
-  categories: CategorySimpleResponse[] = [];
+  activeCategories: CategorySimpleResponse[] = [];
+  inactiveCategories: CategorySimpleResponse[] = [];
 
   ngOnInit(): void {
     this.refresh();
@@ -73,27 +74,27 @@ export class Categories implements OnInit {
     });
   }
 
-  public confirmCategoryDelete(id: number) {
+  public confirmCategoryToggle(id: number) {
     this.confirm.confirm({
       message:
-        '<b>¿Estás seguro de querer eliminar esta categoria?</b>, Se perderan tambien los registros relacionados como los menu del dia y categorias en los productos',
+        '<b>¿Estás seguro de cambiar el estado de esta categoria?</b>',
       header: 'Confirmacion',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        this.deleteCategory(id);
+        this.toggleCategory(id);
       },
       acceptLabel: "Confirmar",
       rejectLabel: "Cancelar"
     });
   }
 
-  public deleteCategory(id: number): void {
-    this.categoryService.deleteCategory(id).subscribe({
+  public toggleCategory(id: number): void {
+    this.categoryService.toggleCategory(id).subscribe({
       next: () => {
         this.messageService.add({
           severity: 'success',
           summary: 'Operacion exitosa.',
-          detail: 'Se elimino la categoria satisfactoriamente',
+          detail: 'Se actualizo el estado de la categoria',
           life: 3000,
         });
         this.refresh();
@@ -102,7 +103,7 @@ export class Categories implements OnInit {
         this.messageService.add({
           severity: 'error',
           summary: 'Error en la operacion.',
-          detail: 'No se pudó eliminar la categoría.',
+          detail: 'No se pudo actualizar la categoría.',
           life: 3000,
         });
       },
@@ -110,6 +111,9 @@ export class Categories implements OnInit {
   }
 
   private refresh(): void {
-    this.categoryService.getCategories().subscribe((res) => (this.categories = res));
+    this.categoryService.getCategories().subscribe((res) => {
+      this.activeCategories = res.filter(c => c.enabled);
+      this.inactiveCategories = res.filter(c => !c.enabled);
+    });
   }
 }

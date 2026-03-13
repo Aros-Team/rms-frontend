@@ -1,10 +1,8 @@
 export interface ProductUpdateRequest {
-  id: number,
-  name: string,
-  description: string,
-  price: number,
-  active: boolean,
-  preparationTime: number,
-  preparationArea: number,
-  categories: number[]
+  id: number;
+  name: string;
+  basePrice: number;
+  hasOptions: boolean;
+  categoryId: number;
+  areaId: number;
 }
