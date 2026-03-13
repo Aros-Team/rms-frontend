@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, tap, throwError, BehaviorSubject } from 'rxjs';
+import { Observable, tap, throwError, BehaviorSubject, catchError } from 'rxjs';
 import { UserInfo } from '@models/domain/user/user-info.model';
 import { AuthRequest } from '@models/dto/auth/auth-request.model';
 import { AuthResponse } from '@models/dto/auth/auth-response.model';
@@ -110,6 +110,11 @@ export class AuthService {
         this.loggingService.auth('Tokens saved, calling getUserInfo');
         this.getUserInfo();
       }),
+      catchError((err) => {
+        this.loggingService.auth('Refresh failed, clearing tokens');
+        this.logout();
+        return throwError(() => err);
+      })
     );
   }
 
@@ -153,6 +158,11 @@ export class AuthService {
       },
       error: (err: unknown) => {
         this.loggingService.error('Error getting user info:', err);
+        const httpErr = err as { status?: number };
+        if (httpErr.status === 401) {
+          this.loggingService.auth('Token expired or invalid, clearing tokens');
+          this.logout();
+        }
       }
     });
   }
