@@ -114,6 +114,7 @@
             autocomplete="off"
             formControlName="document"
             placeholder="Numero de documento del usuario"
+            (blur)="userForm.get('document')?.markAsTouched()"
           />
           <label for="create.document" class="font-semibold w-50">Documento</label>
           <form-validation field="document"></form-validation>
@@ -128,6 +129,7 @@
             autocomplete="off"
             formControlName="name"
             placeholder="Nombre completo del usuario"
+            (blur)="userForm.get('name')?.markAsTouched()"
           />
           <label for="create.name" class="font-semibold w-50">Nombre</label>
           <form-validation field="name"></form-validation>
@@ -143,6 +145,7 @@
             autocomplete="off"
             formControlName="email"
             placeholder="correo electronico del usuario"
+            (blur)="userForm.get('email')?.markAsTouched()"
           />
           <label for="create.email" class="font-semibold w-50">Correo electronico</label>
           <form-validation field="email"></form-validation>
@@ -157,6 +160,7 @@
             autocomplete="off"
             formControlName="address"
             placeholder="direccion de residencia del usuario"
+            (blur)="userForm.get('address')?.markAsTouched()"
           />
           <label for="create.address" class="font-semibold w-50">Direccion</label>
           <form-validation field="address"></form-validation>
@@ -171,40 +175,10 @@
             autocomplete="off"
             formControlName="phone"
             placeholder="numero de contacto del usuario"
+            (blur)="userForm.get('phone')?.markAsTouched()"
           />
           <label for="create.phone" class="font-semibold w-50">N# Celular</label>
           <form-validation field="phone"></form-validation>
-        </p-iftalabel>
-      </div>
-      <div class="flex items-center gap-4 mb-4">
-        <p-iftalabel class="flex-auto w-full">
-          <input
-            pInputText
-            type="password"
-            id="create.password"
-            class="flex-auto w-full"
-            autocomplete="off"
-            formControlName="password"
-            placeholder="clave de accesso para el usuario"
-          />
-          <label for="create.password" class="font-semibold w-50">Clave de acceso</label>
-          <form-validation field="password"></form-validation>
-        </p-iftalabel>
-      </div>
-      <div class="flex items-center gap-4 mb-4">
-        <p-iftalabel class="flex-auto w-full">
-          <p-multiselect
-            [options]="availableAreas"
-            formControlName="areas"
-            placeholder="Seleccionar areas"
-            optionLabel="name"
-            inputId="create_areas"
-            optionValue="id"
-            filter="false"
-            class="w-full"
-          />
-          <label for="create_areas" class="font-semibold w-50">Areas de trabajo</label>
-          <form-validation field="areas"></form-validation>
         </p-iftalabel>
       </div>
     </form>

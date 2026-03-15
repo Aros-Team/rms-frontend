@@ -1,7 +1,24 @@
-@if (form.get(field)?.invalid && form.get(field)?.touched && form.get(field)?.dirty) {
+@if (form.get(field)?.invalid && form.get(field)?.touched) {
   <div class="shrink flex-grow ml-1 mt-1">
-    <small class="text-red-500 text-xs"
-      ><i class="pi pi-exclamation-triangle"></i> <span>Campo requerido</span>
+    <small class="text-red-500 text-xs">
+      <i class="pi pi-exclamation-triangle"></i>
+      @if (form.get(field)?.hasError('required')) {
+        <span>Campo requerido</span>
+      }
+      @if (form.get(field)?.hasError('pattern')) {
+        @if (field === 'document') {
+          <span>El documento debe contener solo números</span>
+        }
+        @if (field === 'phone') {
+          <span>El teléfono debe tener entre 7 y 10 dígitos</span>
+        }
+        @if (field !== 'document' && field !== 'phone') {
+          <span>Formato inválido</span>
+        }
+      }
+      @if (form.get(field)?.hasError('email')) {
+        <span>Ingrese un correo electrónico válido</span>
+      }
     </small>
   </div>
 }

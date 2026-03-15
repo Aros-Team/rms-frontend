@@ -37,9 +37,8 @@
             <i class="pi pi-hashtag"></i>
             <span>Pedido #{{ order.id }}</span>
           </div>
-          <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0">Mesa {{ order.tableName }}</h3>
-          <div class="text-sm text-surface-600 dark:text-surface-400">Responsable: {{ order.responsibleName }} · Tomado:
-            {{ order.takedAt }}</div>
+          <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0">Mesa {{ order.tableId }}</h3>
+          <div class="text-sm text-surface-600 dark:text-surface-400">Fecha: {{ order.date | date:'dd/MM HH:mm' }}</div>
         </div>
         <div class="flex items-center gap-2">
           <button (click)="completeOrder(order.id)" [disabled]="processing.has(order.id)"
@@ -50,21 +49,16 @@
       </div>
 
       <div class="mt-4">
-        @for (co of order.clientOrders; track co.id) {
+        @for (detail of order.details; track detail.id) {
         <div class="mb-3">
-          <div class="text-sm font-medium text-surface-700 dark:text-surface-300">Orden del cliente #{{ co.id }} <span
-              class="text-xs text-surface-500">({{ co.status }})</span></div>
+          <div class="text-sm font-medium text-surface-700 dark:text-surface-300">{{ detail.productName }}</div>
           <ul class="mt-2 space-y-1">
-            @for (d of co.details; track d.id) {
-
             <li class="flex items-start justify-between">
-              <div class="font-medium text-surface-900 dark:text-surface-100">{{ d.name }} <span
-                  class="text-surface-500">x{{ d.quantity }}</span>
-                @if (d.observations) {<div class="text-xs text-surface-500">Obs: {{ d.observations }}</div>}
+              <div class="font-medium text-surface-900 dark:text-surface-100">
+                @if (detail.instructions) {<div class="text-xs text-surface-500">Obs: {{ detail.instructions }}</div>}
               </div>
-              <div class="text-surface-700 dark:text-surface-300">{{ d.price | currency:'USD':'symbol':'1.2-2' }}</div>
+              <div class="text-surface-700 dark:text-surface-300">{{ detail.unitPrice | currency:'USD':'symbol':'1.2-2' }}</div>
             </li>
-            }
           </ul>
         </div>
         }
@@ -72,7 +66,7 @@
 
       <div class="mt-2 flex justify-end text-surface-800 dark:text-surface-200">
         <span class="text-sm">Total: </span>
-        <span class="ml-2 font-semibold">{{ order.total | currency:'USD':'symbol':'1.2-2' }}</span>
+        <span class="ml-2 font-semibold">{{ getOrderTotal(order) | currency:'USD':'symbol':'1.2-2' }}</span>
       </div>
       }
     </div>

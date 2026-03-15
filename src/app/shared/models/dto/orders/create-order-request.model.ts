@@ -1,12 +1,10 @@
 export interface CreateOrderRequest {
-  table: number;
-  responsible: string;  // User document ID
-  clientOrders: {
-    details: {
-      product: number;
-      quantity: number;
-      observations: string;
-      subProducts: number[];
-    }[];
-  }[];
+  tableId: number;
+  details: OrderDetailRequest[];
+}
+
+export interface OrderDetailRequest {
+  productId: number;
+  instructions?: string;
+  selectedOptionIds?: number[];
 }

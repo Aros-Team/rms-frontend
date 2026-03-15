@@ -10,6 +10,7 @@ import { Products } from '@features/admin/manage/products/products';
 import { Menu } from '@features/admin/manage/menu/menu';
 import { Categories } from '@features/admin/manage/categories/categories';
 import { Tables } from '@features/admin/manage/tables/tables';
+import { Areas } from '@features/admin/manage/areas/areas';
 import { Analytics } from '@features/admin/analytics/analytics';
 import { Login } from '@areas/login/login-area';
 import { AdminArea } from '@areas/admin/admin-area';
@@ -57,6 +58,10 @@ export const routes: Routes = [
           {
             path: 'tables',
             component: Tables,
+          },
+          {
+            path: 'areas',
+            component: Areas,
           },
           {
             path: 'menu',

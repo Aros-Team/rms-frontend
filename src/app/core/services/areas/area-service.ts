@@ -1,8 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable, inject } from "@angular/core";
-import { AreaSimpleResponse } from "@app/shared/models/dto/areas/area-simple-response";
 import { Observable } from "rxjs";
-
+import { AreaRequest, AreaResponse } from "@app/shared/models/dto/areas/area.model";
 
 @Injectable({
   providedIn: 'root',
@@ -10,8 +9,23 @@ import { Observable } from "rxjs";
 export class AreaService {
   private http = inject(HttpClient);
 
+  public getAreas(): Observable<AreaResponse[]> {
+    return this.http.get<AreaResponse[]>('v1/areas');
+  }
 
-  public getAreas(): Observable<AreaSimpleResponse[]> {
-    return this.http.get<AreaSimpleResponse[]>('v1/areas');
+  public getArea(id: number): Observable<AreaResponse> {
+    return this.http.get<AreaResponse>(`v1/areas/${id}`);
+  }
+
+  public createArea(data: AreaRequest): Observable<AreaResponse> {
+    return this.http.post<AreaResponse>('v1/areas', data);
+  }
+
+  public updateArea(id: number, data: AreaRequest): Observable<AreaResponse> {
+    return this.http.put<AreaResponse>(`v1/areas/${id}`, data);
+  }
+
+  public toggleArea(id: number): Observable<AreaResponse> {
+    return this.http.put<AreaResponse>(`v1/areas/${id}/toggle`, {});
   }
 }

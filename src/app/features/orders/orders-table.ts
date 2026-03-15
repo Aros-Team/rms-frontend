@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { OrderService } from '@app/core/services/orders/order-service';
+import { OrderService, OrderStatus } from '@app/core/services/orders/order-service';
 import { OrderResponse } from '@models/dto/orders/order-response.model';
 import { SharedDatepickerComponent } from '@app/shared/components/datepicker/datepicker.component';
 import { forkJoin, of } from 'rxjs';
@@ -29,39 +29,25 @@ import { catchError } from 'rxjs/operators';
 export class OrdersTable implements OnInit {
 
   orders: OrderResponse[] = [];
-
   private allOrders: OrderResponse[] = [];
-
   loading = false;
   saving = false;
   error: string | null = null;
 
-  // Options combox
-  comboOptions: string[] = ['ALL', 'PENDING', 'COMPLETED', 'CANCELLED'];
-  comboOption: string[] = ['ALL', 'PENDING', 'COMPLETED', 'CANCELLED'];
-
   comboStatusOptions = [
-    { label: 'Categoria', value: 'ALL' },
-    { label: 'Pendientes', value: 'PENDING' },
-    { label: 'Completadas', value: 'COMPLETED' },
-    { label: 'Canceladas', value: 'CANCELLED' }
+    { label: 'Todos', value: 'ALL' },
+    { label: 'En Cola', value: 'QUEUE' },
+    { label: 'En Preparación', value: 'PREPARING' },
+    { label: 'Listo', value: 'READY' },
+    { label: 'Entregado', value: 'DELIVERED' },
+    { label: 'Cancelado', value: 'CANCELLED' }
   ];
 
-  selectedOption = 'ALL';
+  selectedStatus = 'ALL';
+  selectedDate: Date | null = null;
 
-  // Status options for the dropdown
-  statusOptions = [
-    { label: 'Pendiente', value: 'PENDING' },
-    { label: 'Completada', value: 'COMPLETED' },
-    { label: 'Cancelada', value: 'CANCELLED' }
-  ];
-
-  // Track modified orders: Map<orderId, modifiedOrder>
   private modifiedOrders = new Map<number, Partial<OrderResponse>>();
-
-  // Original orders: Map<orderId, originalOrder>
-  private originalOrders = new Map<number, OrderResponse>();  // Filtro de fecha (una sola fecha o null)
-  private selectedDate: Date | null = null;
+  private originalOrders = new Map<number, OrderResponse>();
 
   private orderService = inject(OrderService);
   private messageService = inject(MessageService);
@@ -70,34 +56,32 @@ export class OrdersTable implements OnInit {
     this.fetchOrders();
   }
 
-  onOptionChange(value: string): void {
-    this.selectedOption = value;
-
-
-    this.fetchOrders(this.selectedOption);
+  onStatusChange(value: string): void {
+    this.selectedStatus = value;
+    this.fetchOrders();
   }
-
 
   onDateChange(date: Date | null): void {
     this.selectedDate = date;
     this.applyFilters();
   }
 
-  private fetchOrders(status?: string): void {
+  private fetchOrders(): void {
     this.loading = true;
     this.error = null;
 
-    const normalizedStatus = !status || status.toUpperCase() === 'ALL' ? undefined : status;
+    let status: OrderStatus | undefined;
+    if (this.selectedStatus && this.selectedStatus !== 'ALL') {
+      status = this.selectedStatus as OrderStatus;
+    }
 
-    this.orderService.getOrdersByStatusOrAll(normalizedStatus).subscribe({
+    this.orderService.getOrders({ status }).subscribe({
       next: (res: OrderResponse[]) => {
         this.allOrders = res;
-        // Store original orders for each order
         this.originalOrders.clear();
         res.forEach(order => {
           this.originalOrders.set(order.id, { ...order });
         });
-        // Clear modifications when fetching fresh data
         this.modifiedOrders.clear();
         this.applyFilters();
         this.loading = false;
@@ -112,9 +96,7 @@ export class OrdersTable implements OnInit {
 
   formatDate(date: string | Date): string {
     if (!date) return '-';
-
     const dateObj = typeof date === 'string' ? new Date(date) : date;
-
     return new Intl.DateTimeFormat('es-ES', {
       year: 'numeric',
       month: '2-digit',
@@ -125,13 +107,27 @@ export class OrdersTable implements OnInit {
     }).format(dateObj);
   }
 
+  getStatusLabel(status: string): string {
+    const option = this.comboStatusOptions.find(o => o.value === status);
+    return option ? option.label : status;
+  }
+
+  getStatusClass(status: string): string {
+    switch (status) {
+      case 'QUEUE': return 'bg-blue-100 text-blue-800';
+      case 'PREPARING': return 'bg-yellow-100 text-yellow-800';
+      case 'READY': return 'bg-green-100 text-green-800';
+      case 'DELIVERED': return 'bg-gray-100 text-gray-800';
+      case 'CANCELLED': return 'bg-red-100 text-red-800';
+      default: return '';
+    }
+  }
 
   private applyFilters(): void {
     if (!this.allOrders) {
       this.orders = [];
       return;
     }
-
 
     const date = this.selectedDate;
     if (!date) {
@@ -160,36 +156,20 @@ export class OrdersTable implements OnInit {
     return x;
   }
 
-  onStatusChange(order: OrderResponse, newStatus: string): void {
-    if (!newStatus) {
-      return;
-    }
-    order.status = newStatus;
+  onStatusFieldChange(order: OrderResponse, newStatus: string): void {
+    order.status = newStatus as OrderStatus;
     this.trackOrderChange(order);
   }
 
-  onFieldChange(order: OrderResponse, field: 'table', value: string): void {
-    order.table = value;
-    this.trackOrderChange(order);
-  } private trackOrderChange(order: OrderResponse): void {
+  private trackOrderChange(order: OrderResponse): void {
     const original = this.originalOrders.get(order.id);
     if (!original) return;
 
-    // Check if editable fields have changed (only status and table)
-    const hasChanges =
-      original.status !== order.status ||
-      original.table !== order.table;
+    const hasChanges = original.status !== order.status;
 
     if (hasChanges) {
-      // Store only the changed fields (only status and table are editable)
-      const changes: Partial<OrderResponse> = { id: order.id };
-
-      if (original.status !== order.status) changes.status = order.status;
-      if (original.table !== order.table) changes.table = order.table;
-
-      this.modifiedOrders.set(order.id, changes);
+      this.modifiedOrders.set(order.id, { id: order.id, status: order.status });
     } else {
-      // No changes, remove from modified list
       this.modifiedOrders.delete(order.id);
     }
   }
@@ -215,28 +195,32 @@ export class OrdersTable implements OnInit {
 
     this.saving = true;
     const updates = Array.from(this.modifiedOrders.values()).map(orderChanges => {
-      // Ensure id is always present
-      const updatePayload: { id: number; status?: string; table?: number } = { id: orderChanges.id! };
-
-      // Add status if changed
-      if (orderChanges.status) {
-        updatePayload.status = orderChanges.status;
+      const status = orderChanges.status;
+      
+      if (status === 'READY') {
+        return this.orderService.markOrderAsReady(orderChanges.id!).pipe(
+          catchError(error => {
+            console.error(`Error updating order ${orderChanges.id}:`, error);
+            return of({ error: true, orderId: orderChanges.id });
+          })
+        );
+      } else if (status === 'DELIVERED') {
+        return this.orderService.deliverOrder(orderChanges.id!).pipe(
+          catchError(error => {
+            console.error(`Error delivering order ${orderChanges.id}:`, error);
+            return of({ error: true, orderId: orderChanges.id });
+          })
+        );
+      } else if (status === 'CANCELLED') {
+        return this.orderService.cancelOrder(orderChanges.id!).pipe(
+          catchError(error => {
+            console.error(`Error cancelling order ${orderChanges.id}:`, error);
+            return of({ error: true, orderId: orderChanges.id });
+          })
+        );
+      } else {
+        return of({ error: true, orderId: orderChanges.id });
       }
-
-      // Extract table ID from table name if changed (e.g., "Mesa 1" -> 1)
-      if (orderChanges.table) {
-        const tableMatch = orderChanges.table.match(/\d+/);
-        if (tableMatch) {
-          updatePayload.table = parseInt(tableMatch[0], 10);
-        }
-      }
-
-      return this.orderService.updateOrder(updatePayload).pipe(
-        catchError(error => {
-          console.error(`Error updating order ${orderChanges.id}:`, error);
-          return of({ error: true, orderId: orderChanges.id });
-        })
-      );
     });
 
     forkJoin(updates).subscribe({
@@ -252,7 +236,6 @@ export class OrdersTable implements OnInit {
             life: 3000,
           });
 
-          // Update original orders with the new values
           this.modifiedOrders.forEach((changes, orderId) => {
             const original = this.originalOrders.get(orderId);
             if (original) {
@@ -267,21 +250,10 @@ export class OrdersTable implements OnInit {
             detail: `Se actualizaron ${successCount} pedido(s), pero ${errors.length} fallaron.`,
             life: 5000,
           });
-
-          // Remove successful updates from modified list
-          this.modifiedOrders.forEach((changes, orderId) => {
-            const failed = errors.find((e: unknown) => (e as { orderId?: number }).orderId === orderId);
-            if (!failed) {
-              const original = this.originalOrders.get(orderId);
-              if (original) {
-                Object.assign(original, changes);
-              }
-              this.modifiedOrders.delete(orderId);
-            }
-          });
         }
 
         this.saving = false;
+        this.fetchOrders();
       },
       error: (err) => {
         console.error('Error saving changes:', err);

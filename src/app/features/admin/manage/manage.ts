@@ -14,7 +14,7 @@ export class Manage {
   sections = [
     { id: 'staff', label: 'Trabajadores', icon: 'pi pi-users' },
     { id: 'tables', label: 'Mesas', icon: 'pi pi-table' },
-    { id: 'categories', label: 'Categorías', icon: 'pi pi-folder' },
-    { id: 'areas', label: 'Áreas', icon: 'pi pi-tag' }
+    { id: 'areas', label: 'Áreas de trabajo', icon: 'pi pi-th-large' },
+    { id: 'categories', label: 'Categorías', icon: 'pi pi-folder' }
   ];
 }

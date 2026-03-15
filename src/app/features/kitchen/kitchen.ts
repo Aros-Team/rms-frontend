@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { OrderService } from '@app/core/services/orders/order-service';
-import { OrderDetailsResponse } from '@app/shared/models/dto/orders/order-details-response.model';
+import { OrderService, OrderStatus } from '@app/core/services/orders/order-service';
+import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
 
 @Component({
   selector: 'app-kitchen',
@@ -17,7 +17,7 @@ export class Kitchen implements OnInit {
 
   loading = false;
   error: string | null = null;
-  pendingOrders: OrderDetailsResponse[] = [];
+  pendingOrders: OrderResponse[] = [];
   processing = new Set<number>();
 
   ngOnInit(): void {
@@ -28,9 +28,9 @@ export class Kitchen implements OnInit {
     this.loading = true;
     this.error = null;
 
-    this.orderService.getOrderDetails().subscribe({
-      next: (orders) => {
-        this.pendingOrders = (orders || []).filter(o => (o.status || '').toUpperCase() === 'PENDING');
+    this.orderService.getOrdersByStatus('QUEUE').subscribe({
+      next: (orders: OrderResponse[]) => {
+        this.pendingOrders = orders || [];
         this.loading = false;
       },
       error: () => {
@@ -44,10 +44,9 @@ export class Kitchen implements OnInit {
     if (!orderId || this.processing.has(orderId)) return;
     this.error = null;
     this.processing.add(orderId);
-    this.orderService.markOrderAsCompleted(orderId).subscribe({
+    this.orderService.markOrderAsPreparing().subscribe({
       next: () => {
-        // Remove order from list locally upon success
-        this.pendingOrders = this.pendingOrders.filter(o => o.id !== orderId);
+        this.pendingOrders = this.pendingOrders.filter((o: OrderResponse) => o.id !== orderId);
       },
       error: () => {
         this.error = 'No se pudo marcar el pedido como completado.';
@@ -56,5 +55,10 @@ export class Kitchen implements OnInit {
         this.processing.delete(orderId);
       }
     });
+  }
+
+  getOrderTotal(order: OrderResponse): number {
+    if (!order.details) return 0;
+    return order.details.reduce((sum, d) => sum + (d.unitPrice || 0), 0);
   }
 }

@@ -13,8 +13,6 @@ import { UserResponse } from '@app/shared/models/dto/users/user-response.model';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserService } from '@app/core/services/users/user-service';
 import { CreateUserRequest } from '@app/shared/models/dto/users/create-user-request.model';
-import { AreaService } from '@app/core/services/areas/area-service';
-import { AreaSimpleResponse } from '@app/shared/models/dto/areas/area-simple-response';
 import { MessageService } from 'primeng/api';
 import { FormValidation } from '@app/shared/components/form/form-validation';
 
@@ -42,20 +40,17 @@ export class Users implements OnInit {
   description = 'Gestión completa de todos los usuarios/empleados del restaurante';
 
   users: UserResponse[] = [];
-  availableAreas: AreaSimpleResponse[] = [];
   /**
    * the form is on editing mode?
    */
   editing = false;
 
   userForm: FormGroup = new FormGroup({
-    document: new FormControl('', [Validators.required]),
+    document: new FormControl('', [Validators.required, Validators.pattern('^\\d+$')]),
     name: new FormControl('', [Validators.required]),
-    email: new FormControl('', [Validators.required]),
-    phone: new FormControl('', [Validators.required]),
-    password: new FormControl('', [Validators.required]),
-    address: new FormControl('', [Validators.required]),
-    areas: new FormControl([], []),
+    email: new FormControl('', [Validators.required, Validators.email]),
+    phone: new FormControl('', [Validators.pattern('^\\d{7,10}$')]),
+    address: new FormControl('', []),
   });
 
   creationModalVisible = false;
@@ -63,7 +58,6 @@ export class Users implements OnInit {
 
   constructor(
     private userService: UserService,
-    private areaService: AreaService,
     private messageService: MessageService
   ) {
     //
@@ -71,7 +65,6 @@ export class Users implements OnInit {
 
   ngOnInit(): void {
     this.searchForUsers();
-    this.searchForAreas();
   }
 
   closeModals() {
@@ -95,15 +88,45 @@ export class Users implements OnInit {
   }
 
   createUser() {
-    this.userService.createUser(this.formToRequest()).subscribe(() => {
-      this.closeModals();
-      this.searchForUsers();
+    if (this.userForm.invalid) {
+      this.userForm.markAllAsTouched();
       this.messageService.add({
-        severity: 'success',
-        summary: 'Operacion exitosa.',
-        detail: 'El usuario ha sido creado exitosamente.',
+        severity: 'warn',
+        summary: 'Formulario inválido',
+        detail: 'Por favor complete todos los campos requeridos.',
         life: 3000,
       });
+      return;
+    }
+
+    this.userService.createUser(this.formToRequest()).subscribe({
+      next: () => {
+        this.closeModals();
+        this.searchForUsers();
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Operación exitosa',
+          detail: 'El usuario ha sido creado. Se enviará una contraseña al correo.',
+          life: 5000,
+        });
+      },
+      error: (err) => {
+        console.error('Error creating user:', err);
+        let errorMessage = 'Error al crear el usuario';
+        
+        if (err.status === 409) {
+          errorMessage = 'Ya existe un usuario con ese documento o correo';
+        } else if (err.status === 0 || (err.status && err.status >= 500)) {
+          errorMessage = 'Error del servidor. Intente más tarde.';
+        }
+        
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: errorMessage,
+          life: 5000,
+        });
+      }
     });
   }
   
@@ -149,8 +172,6 @@ export class Users implements OnInit {
       email: this.userForm.get('email')?.value,
       phone: this.userForm.get('phone')?.value,
       address: this.userForm.get('address')?.value,
-      password: this.userForm.get('password')?.value,
-      areas: this.userForm.get('areas')?.value,
     };
   }
 
@@ -158,13 +179,6 @@ export class Users implements OnInit {
     this.userService.getUsers().subscribe((res) => {
       this.users = res;
       console.log(this.users);
-    });
-  }
-
-  private searchForAreas(): void {
-    this.areaService.getAreas().subscribe((res) => {
-      this.availableAreas = res;
-      console.log(this.availableAreas);
     });
   }
 

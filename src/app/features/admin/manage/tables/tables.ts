@@ -1,13 +1,16 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { TableModule } from 'primeng/table';
 import { IftaLabelModule } from 'primeng/iftalabel';
+import { DialogModule } from 'primeng/dialog';
 import { TableService } from '@app/core/services/tables/table-service';
 import { MessageService } from 'primeng/api';
-import { FormValidation } from '@app/shared/components/form/form-validation';
+import { TableResponse } from '@app/shared/models/dto/tables/table.model';
 
 @Component({
   selector: 'app-tables',
@@ -17,87 +20,173 @@ import { FormValidation } from '@app/shared/components/form/form-validation';
     ReactiveFormsModule,
     ButtonModule,
     InputTextModule,
+    InputNumberModule,
+    TableModule,
     IftaLabelModule,
-    FormValidation,
+    DialogModule,
   ],
   templateUrl: './tables.html',
   styles: ``
 })
-export class Tables {
+export class Tables implements OnInit {
   private tableService = inject(TableService);
   private messageService = inject(MessageService);
 
   title = 'Gestión de Mesas';
-  description = 'Configura el número total de mesas del restaurante';
+  description = 'Configura las mesas del restaurante';
 
-  currentTableAmount = 0;
+  tables: TableResponse[] = [];
+  loading = false;
 
-  tableForm: FormGroup = new FormGroup({
-    total: new FormControl(0, [Validators.required, Validators.min(1)]),
+  modalIsOpen = false;
+  modalMode: 'edit' | 'create' = 'create';
+
+  tableForm = new FormGroup({
+    id: new FormControl<number | null>(null),
+    tableNumber: new FormControl<number | null>(null, { nonNullable: false, validators: [Validators.required, Validators.min(1)] }),
+    capacity: new FormControl<number | null>(null, { nonNullable: false, validators: [Validators.required, Validators.min(1)] }),
   });
 
-  constructor() {
-    this.loadCurrentTableAmount();
+  ngOnInit(): void {
+    this.loadTables();
   }
 
-  loadCurrentTableAmount(): void {
-    this.tableService.getTableAmount().subscribe({
-      next: (response) => {
-        this.currentTableAmount = response.amount;
+  loadTables(): void {
+    this.loading = true;
+    this.tableService.getTables().subscribe({
+      next: (tables) => {
+        this.tables = tables;
+        this.loading = false;
       },
       error: (err) => {
-        console.error('Error al obtener la cantidad de mesas:', err);
-        this.currentTableAmount = 0;
+        console.error('Error loading tables:', err);
+        this.loading = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudieron cargar las mesas',
+          life: 3000,
+        });
       }
     });
   }
 
-  saveTableCount(): void {
+  showCreationModal(): void {
+    this.tableForm.reset();
+    this.modalMode = 'create';
+    this.modalIsOpen = true;
+  }
+
+  showEditModal(table: TableResponse): void {
+    this.tableForm.patchValue({
+      id: table.id,
+      tableNumber: table.tableNumber,
+      capacity: table.capacity
+    });
+    this.modalMode = 'edit';
+    this.modalIsOpen = true;
+  }
+
+  closeModal(): void {
+    this.modalIsOpen = false;
+  }
+
+  saveTable(): void {
     if (this.tableForm.valid) {
-      const total = this.tableForm.get('total')?.value;
-      console.log('Enviando petición con total:', total);
-      console.log('JSON que se enviará:', { total });
-
-      this.tableService.createMultipleTables(total).subscribe({
-        next: (response) => {
-          console.log('Respuesta exitosa del servidor:', response);
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Operación exitosa',
-            detail: `Se han agregado ${total} mesas exitosamente.`,
-            life: 3000,
-          });
-          // Recargar la cantidad actual de mesas
-          this.loadCurrentTableAmount();
-        },
-        error: (err) => {
-          console.error('Error completo:', err);
-          console.error('Status:', err.status);
-          console.error('Mensaje:', err.message);
-          console.error('Error del servidor:', err.error);
-
-          let errorMessage = 'No se pudo guardar la cantidad de mesas.';
-          if (err.status === 0) {
-            errorMessage = 'No se puede conectar con el servidor. Verifica que la API esté corriendo en el puerto 8080.';
-          } else if (err.error?.message) {
-            errorMessage = err.error.message;
+      const formData = this.tableForm.value;
+      const tableNumber = formData.tableNumber ?? 0;
+      const capacity = formData.capacity ?? 0;
+      
+      if (this.modalMode === 'create') {
+        this.tableService.createTable({
+          tableNumber,
+          capacity
+        }).subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Éxito',
+              detail: 'Mesa creada exitosamente',
+              life: 3000,
+            });
+            this.loadTables();
+            this.closeModal();
+          },
+          error: (err) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'No se pudo crear la mesa',
+              life: 3000,
+            });
           }
-
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: errorMessage,
-            life: 5000,
-          });
-        }
-      });
-    } else {
-      console.log('Formulario inválido:', this.tableForm.value);
+        });
+      } else {
+        const id = formData.id ?? 0;
+        this.tableService.updateTable(id, {
+          tableNumber,
+          capacity
+        }).subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Éxito',
+              detail: 'Mesa actualizada exitosamente',
+              life: 3000,
+            });
+            this.loadTables();
+            this.closeModal();
+          },
+          error: (err) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'No se pudo actualizar la mesa',
+              life: 3000,
+            });
+          }
+        });
+      }
     }
   }
 
-  public isValidField(field: string): boolean {
-    const fieldControl = this.tableForm.get(field);
-    return !!(fieldControl?.invalid && fieldControl?.touched);
+  changeTableStatus(table: TableResponse, newStatus: 'AVAILABLE' | 'OCCUPIED' | 'RESERVED'): void {
+    this.tableService.changeStatus(table.id, newStatus).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Estado de mesa actualizado',
+          life: 3000,
+        });
+        this.loadTables();
+      },
+      error: (err) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo cambiar el estado',
+          life: 3000,
+        });
+      }
+    });
+  }
+
+  getStatusClass(status: string): string {
+    switch (status) {
+      case 'AVAILABLE': return 'bg-green-100 text-green-800';
+      case 'OCCUPIED': return 'bg-red-100 text-red-800';
+      case 'RESERVED': return 'bg-yellow-100 text-yellow-800';
+      default: return '';
+    }
+  }
+
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'AVAILABLE': return 'Disponible';
+      case 'OCCUPIED': return 'Ocupada';
+      case 'RESERVED': return 'Reservada';
+      default: return status;
+    }
   }
 }

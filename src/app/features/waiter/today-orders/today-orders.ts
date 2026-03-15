@@ -31,10 +31,10 @@ export class TodayOrders implements OnInit {
         this.loggingService.debug('TodayOrders: Received orders data:', orders);
         this.todayOrders = orders.map(order => ({
           id: `ORD-${order.id}`,
-          table: order.table || 'Mesa no asignada',
+          table: order.tableId ? `Mesa ${order.tableId}` : 'Mesa no asignada',
           customer: 'Cliente',
           status: this.mapOrderStatus(order.status),
-          total: order.totalPrice || 0,
+          total: (order.details?.reduce((sum, d) => sum + (d.unitPrice || 0), 0)) || 0,
           items: [],
           timestamp: order.date || new Date().toISOString()
         }));
@@ -50,9 +50,10 @@ export class TodayOrders implements OnInit {
 
   private mapOrderStatus(status: string): string {
     const statusMap: Record<string, string> = {
-      'PENDING': 'Pendiente',
-      'COMPLETED': 'Completado',
-      'IN_PROGRESS': 'En Proceso',
+      'QUEUE': 'Pendiente',
+      'PREPARING': 'En Proceso',
+      'READY': 'Listo',
+      'DELIVERED': 'Completado',
       'CANCELLED': 'Cancelado'
     };
     return statusMap[status] || status;
@@ -62,6 +63,8 @@ export class TodayOrders implements OnInit {
     switch (status) {
       case 'Completado':
         return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case 'Listo':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
       case 'En Proceso':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
       case 'Pendiente':
@@ -77,6 +80,8 @@ export class TodayOrders implements OnInit {
     switch (status) {
       case 'Completado':
         return 'pi pi-check-circle';
+      case 'Listo':
+        return 'pi pi-check';
       case 'En Proceso':
         return 'pi pi-clock';
       case 'Pendiente':
