@@ -7,6 +7,8 @@ import { OrderResponse } from '@app/shared/models/dto/orders/order-response.mode
 import { UpdateOrderRequest } from '@app/shared/models/dto/orders/update-order-status.model';
 import { CreateOrderRequest } from '@app/shared/models/dto/orders/create-order-request.model';
 
+export type OrderStatus = 'QUEUE' | 'PREPARING' | 'READY' | 'DELIVERED' | 'CANCELLED';
+
 @Injectable({ providedIn: 'root' })
 export class OrderService {
   private http = inject(HttpClient);

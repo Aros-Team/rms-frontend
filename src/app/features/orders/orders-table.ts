@@ -75,7 +75,7 @@ export class OrdersTable implements OnInit {
       status = this.selectedStatus as OrderStatus;
     }
 
-    this.orderService.getOrders({ status }).subscribe({
+    this.orderService.getOrdersByStatusOrAll(status).subscribe({
       next: (res: OrderResponse[]) => {
         this.allOrders = res;
         this.originalOrders.clear();
@@ -198,7 +198,7 @@ export class OrdersTable implements OnInit {
       const status = orderChanges.status;
       
       if (status === 'READY') {
-        return this.orderService.markOrderAsReady(orderChanges.id!).pipe(
+        return this.orderService.markAsReady(orderChanges.id!).pipe(
           catchError(error => {
             console.error(`Error updating order ${orderChanges.id}:`, error);
             return of({ error: true, orderId: orderChanges.id });
