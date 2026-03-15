@@ -1,102 +1,115 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+
 import { OrderService } from '@app/core/services/orders/order-service';
 import { LoggingService } from '@app/core/services/logging/logging-service';
-
+import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
+import { OptionNamesPipe } from '@app/shared/pipes/option-names.pipe';
 
 @Component({
   selector: 'app-today-orders',
   templateUrl: './today-orders.html',
-  imports: [CommonModule],
-  styles: ``
+  imports: [CommonModule, RouterModule, OptionNamesPipe],
 })
 export class TodayOrders implements OnInit {
   private orderService = inject(OrderService);
-  private loggingService = inject(LoggingService);
+  private log = inject(LoggingService);
 
-  loading = false;
-  error: string | null = null;
-  todayOrders: { id: string; table: string; customer: string; status: string; total: number; items: { name: string; quantity: number; price: number }[]; timestamp: string }[] = [];
+  loading = signal(false);
+  error = signal<string | null>(null);
+  orders = signal<OrderResponse[]>([]);
+  processing = new Set<number>();
 
   ngOnInit(): void {
-    this.fetchTodayOrders();
+    this.fetchOrders();
   }
 
-  fetchTodayOrders(): void {
-    this.loading = true;
-    this.error = null;
+  fetchOrders(): void {
+    this.loading.set(true);
+    this.error.set(null);
 
     this.orderService.getTodayOrders().subscribe({
-      next: (orders) => {
-        this.loggingService.debug('TodayOrders: Received orders data:', orders);
-        this.todayOrders = orders.map(order => ({
-          id: `ORD-${order.id}`,
-          table: order.table || 'Mesa no asignada',
-          customer: 'Cliente',
-          status: this.mapOrderStatus(order.status),
-          total: order.totalPrice || 0,
-          items: [],
-          timestamp: order.date || new Date().toISOString()
-        }));
-        this.loading = false;
+      next: (data) => {
+        this.log.debug('TodayOrders: loaded', data);
+        this.orders.set(data);
+        this.loading.set(false);
       },
-      error: (error) => {
-        this.loggingService.error('TodayOrders: Error fetching orders:', error);
-        this.error = 'No se pudieron cargar las órdenes del día';
-        this.loading = false;
+      error: (err) => {
+        this.log.error('TodayOrders: error', err);
+        this.error.set('No se pudieron cargar las órdenes del día.');
+        this.loading.set(false);
       }
     });
   }
 
-  private mapOrderStatus(status: string): string {
-    const statusMap: Record<string, string> = {
-      'PENDING': 'Pendiente',
-      'COMPLETED': 'Completado',
-      'IN_PROGRESS': 'En Proceso',
-      'CANCELLED': 'Cancelado'
+  cancelOrder(order: OrderResponse): void {
+    if (this.processing.has(order.id)) return;
+    this.processing.add(order.id);
+
+    this.orderService.cancelOrder(order.id).subscribe({
+      next: (updated) => {
+        this.orders.update(list => list.map(o => o.id === updated.id ? updated : o));
+        this.processing.delete(order.id);
+      },
+      error: (err) => {
+        this.error.set(err?.error?.message || 'No se pudo cancelar la orden.');
+        this.processing.delete(order.id);
+      }
+    });
+  }
+
+  deliverOrder(order: OrderResponse): void {
+    if (this.processing.has(order.id)) return;
+    this.processing.add(order.id);
+
+    this.orderService.deliverOrder(order.id).subscribe({
+      next: (updated) => {
+        this.orders.update(list => list.map(o => o.id === updated.id ? updated : o));
+        this.processing.delete(order.id);
+      },
+      error: (err) => {
+        this.error.set(err?.error?.message || 'No se pudo entregar la orden.');
+        this.processing.delete(order.id);
+      }
+    });
+  }
+
+  isProcessing(id: number): boolean {
+    return this.processing.has(id);
+  }
+
+  statusLabel(status: string): string {
+    const map: Record<string, string> = {
+      QUEUE: 'En Cola',
+      PREPARING: 'Preparando',
+      READY: 'Lista',
+      DELIVERED: 'Entregada',
+      CANCELLED: 'Cancelada',
     };
-    return statusMap[status] || status;
+    return map[status] ?? status;
   }
 
-  getStatusColor(status: string): string {
-    switch (status) {
-      case 'Completado':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'En Proceso':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'Pendiente':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
-      case 'Cancelado':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-      default:
-        return 'bg-surface-100 text-surface-800 dark:bg-surface-700 dark:text-surface-300';
-    }
+  statusClass(status: string): string {
+    const map: Record<string, string> = {
+      QUEUE:     'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
+      PREPARING: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
+      READY:     'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300',
+      DELIVERED: 'bg-surface-100 text-surface-600 dark:bg-surface-700 dark:text-surface-400',
+      CANCELLED: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
+    };
+    return map[status] ?? 'bg-surface-100 text-surface-600';
   }
 
-  getStatusIcon(status: string): string {
-    switch (status) {
-      case 'Completado':
-        return 'pi pi-check-circle';
-      case 'En Proceso':
-        return 'pi pi-clock';
-      case 'Pendiente':
-        return 'pi pi-exclamation-circle';
-      case 'Cancelado':
-        return 'pi pi-times-circle';
-      default:
-        return 'pi pi-question-circle';
-    }
+  orderTime(date: string): string {
+    return new Date(date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
   }
 
-  get totalOrders(): number {
-    return this.todayOrders.length;
+  get activeCount(): number {
+    return this.orders().filter(o => !['DELIVERED','CANCELLED'].includes(o.status)).length;
   }
 
-  get totalRevenue(): number {
-    return this.todayOrders.reduce((sum, order) => sum + order.total, 0);
-  }
-
-  get completedOrders(): number {
-    return this.todayOrders.filter(order => order.status === 'Completado').length;
+  get deliveredCount(): number {
+    return this.orders().filter(o => o.status === 'DELIVERED').length;
   }
 }
