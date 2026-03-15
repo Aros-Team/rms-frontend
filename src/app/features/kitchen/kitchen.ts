@@ -1,64 +1,133 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { OrderService, OrderStatus } from '@app/core/services/orders/order-service';
+import { interval, Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
+
+import { OrderService } from '@app/core/services/orders/order-service';
 import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
+import { OptionNamesPipe } from '@app/shared/pipes/option-names.pipe';
 
 @Component({
   selector: 'app-kitchen',
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, OptionNamesPipe],
   templateUrl: './kitchen.html',
-  styles: ``
 })
-export class Kitchen implements OnInit {
-  private orderService: OrderService = inject(OrderService);
-  title = 'Cocina';
-  description = 'Gestión de las operaciones de cocina y preparación de pedidos';
+export class Kitchen implements OnInit, OnDestroy {
+  private orderService = inject(OrderService);
 
-  loading = false;
-  error: string | null = null;
-  pendingOrders: OrderResponse[] = [];
+  loading = signal(true);
+  error = signal<string | null>(null);
+
+  queueOrders    = signal<OrderResponse[]>([]);
+  preparingOrders = signal<OrderResponse[]>([]);
+  readyOrders    = signal<OrderResponse[]>([]);
+
   processing = new Set<number>();
+  preparingNext = signal(false);
+
+  private refreshSub?: Subscription;
+  private readonly REFRESH_MS = 30_000;
 
   ngOnInit(): void {
-    this.fetchOrders();
+    this.fetchAll();
+    this.refreshSub = interval(this.REFRESH_MS).pipe(
+      switchMap(() => this.orderService.getOrdersByStatus('QUEUE'))
+    ).subscribe({
+      next: () => this.fetchAll()
+    });
   }
 
-  fetchOrders(): void {
-    this.loading = true;
-    this.error = null;
+  ngOnDestroy(): void {
+    this.refreshSub?.unsubscribe();
+  }
+
+  fetchAll(): void {
+    this.loading.set(true);
+    this.error.set(null);
+
+    let done = 0;
+    const check = () => { if (++done === 3) this.loading.set(false); };
 
     this.orderService.getOrdersByStatus('QUEUE').subscribe({
-      next: (orders: OrderResponse[]) => {
-        this.pendingOrders = orders || [];
-        this.loading = false;
+      next: v => { this.queueOrders.set(v); check(); },
+      error: () => { this.error.set('Error cargando cola.'); check(); }
+    });
+
+    this.orderService.getOrdersByStatus('PREPARING').subscribe({
+      next: v => { this.preparingOrders.set(v); check(); },
+      error: () => { this.error.set('Error cargando preparación.'); check(); }
+    });
+
+    this.orderService.getOrdersByStatus('READY').subscribe({
+      next: v => { this.readyOrders.set(v); check(); },
+      error: () => { this.error.set('Error cargando listas.'); check(); }
+    });
+  }
+
+  prepareNext(): void {
+    if (this.preparingNext()) return;
+    this.preparingNext.set(true);
+    this.error.set(null);
+
+    this.orderService.prepareNext().subscribe({
+      next: (order) => {
+        this.queueOrders.update(list => list.filter(o => o.id !== order.id));
+        this.preparingOrders.update(list => [...list, order]);
+        this.preparingNext.set(false);
       },
-      error: () => {
-        this.error = 'No se pudieron cargar los pedidos de cocina.';
-        this.loading = false;
+      error: (err) => {
+        const msg = err?.error?.message || 'No hay órdenes en cola.';
+        this.error.set(msg);
+        this.preparingNext.set(false);
       }
     });
   }
 
-  completeOrder(orderId: number): void {
-    if (!orderId || this.processing.has(orderId)) return;
-    this.error = null;
-    this.processing.add(orderId);
-    this.orderService.markOrderAsPreparing().subscribe({
-      next: () => {
-        this.pendingOrders = this.pendingOrders.filter((o: OrderResponse) => o.id !== orderId);
+  markReady(order: OrderResponse): void {
+    if (this.processing.has(order.id)) return;
+    this.processing.add(order.id);
+    this.error.set(null);
+
+    this.orderService.markAsReady(order.id).subscribe({
+      next: (updated) => {
+        this.preparingOrders.update(list => list.filter(o => o.id !== updated.id));
+        this.readyOrders.update(list => [...list, updated]);
+        this.processing.delete(order.id);
       },
-      error: () => {
-        this.error = 'No se pudo marcar el pedido como completado.';
-      },
-      complete: () => {
-        this.processing.delete(orderId);
+      error: (err) => {
+        this.error.set(err?.error?.message || 'No se pudo marcar como lista.');
+        this.processing.delete(order.id);
       }
     });
   }
 
-  getOrderTotal(order: OrderResponse): number {
-    if (!order.details) return 0;
-    return order.details.reduce((sum, d) => sum + (d.unitPrice || 0), 0);
+  deliver(order: OrderResponse): void {
+    if (this.processing.has(order.id)) return;
+    this.processing.add(order.id);
+    this.error.set(null);
+
+    this.orderService.deliverOrder(order.id).subscribe({
+      next: (updated) => {
+        this.readyOrders.update(list => list.filter(o => o.id !== updated.id));
+        this.processing.delete(order.id);
+      },
+      error: (err) => {
+        this.error.set(err?.error?.message || 'No se pudo entregar la orden.');
+        this.processing.delete(order.id);
+      }
+    });
+  }
+
+  isProcessing(id: number): boolean {
+    return this.processing.has(id);
+  }
+
+  orderTime(date: string): string {
+    return new Date(date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  totalItems(order: OrderResponse): number {
+    return order.details?.length ?? 0;
   }
 }

@@ -17,6 +17,11 @@ import { AdminArea } from '@areas/admin/admin-area';
 import { WorkerArea } from '@areas/worker/worker-area';
 import { Users } from './features/admin/manage/users/users';
 import { TwoFactorVerifyComponent } from './features/auth/two-factor-verify/two-factor-verify.component';
+import { WaiterArea } from '@features/waiter/waiter-area';
+import { DayMenu } from '@features/waiter/day-menu/day-menu';
+import { TodayOrders } from '@features/waiter/today-orders/today-orders';
+import { TakeOrder } from '@features/waiter/take-order/take-order';
+import { Kitchen } from '@features/kitchen/kitchen';
 
 
 export const routes: Routes = [
@@ -92,6 +97,13 @@ export const routes: Routes = [
     path: 'worker',
     component: WorkerArea,
     canActivate: [AuthGuard, RoleGuard],
+    children: [
+      { path: '', component: WaiterArea },
+      { path: 'day-menu', component: DayMenu },
+      { path: 'take-order', component: TakeOrder },
+      { path: 'orders', component: TodayOrders },
+      { path: 'kitchen', component: Kitchen },
+    ]
   },
   {
     path: '**',

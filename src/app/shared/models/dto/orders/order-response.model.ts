@@ -1,23 +1,25 @@
-export interface OrderResponse {
+export interface OrderSelectedOption {
   id: number;
-  date: string;
-  status: 'QUEUE' | 'PREPARING' | 'READY' | 'DELIVERED' | 'CANCELLED';
-  tableId: number;
-  details?: OrderDetailResponse[];
-  totalPrice?: number;
+  name: string;
+  categoryName: string;
 }
 
-export interface OrderDetailResponse {
+export interface OrderDetailItem {
   id: number;
   productId: number;
   productName: string;
   unitPrice: number;
-  instructions?: string;
-  selectedOptions?: ProductOptionResponse[];
+  instructions: string;
+  selectedOptions?: OrderSelectedOption[];
 }
 
-export interface ProductOptionResponse {
+export interface OrderResponse {
   id: number;
-  name: string;
-  categoryName: string;
+  date: string;
+  status: string;   // QUEUE | PREPARING | READY | DELIVERED | CANCELLED
+  tableId: number;
+  details: OrderDetailItem[];
+  // legacy — solo para compatibilidad con admin
+  table?: string;
+  totalPrice?: number;
 }

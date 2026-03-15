@@ -1,6 +1,6 @@
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 import { OrderService } from '@core/services/orders/order-service';
@@ -108,19 +108,15 @@ export class OrderCreationForm implements OnInit {
       details: raw.clientOrders.flatMap((co) =>
         co.details.map((d) => {
           const parsedSubProducts = (d.subProducts)
-            ? (d.subProducts)
-              .split(',')
-              .map(s => s.trim())
-              .filter(s => s.length > 0 && !isNaN(Number(s)))
-              .map(n => Number(n))
+            ? d.subProducts.split(',')
+                .map(s => s.trim())
+                .filter(s => s.length > 0 && !isNaN(Number(s)))
+                .map(n => Number(n))
             : [];
-
-          const trimmedObservations = d.observations?.trim();
 
           return {
             productId: Number(d.product),
-            quantity: Number(d.quantity) || 1,
-            instructions: trimmedObservations ?? '',
+            instructions: d.observations?.trim() ?? '',
             selectedOptionIds: parsedSubProducts,
           };
         })

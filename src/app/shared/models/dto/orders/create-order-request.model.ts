@@ -1,10 +1,10 @@
-export interface CreateOrderRequest {
-  tableId: number;
-  details: OrderDetailRequest[];
+export interface CreateOrderDetail {
+  productId: number;
+  instructions: string;
+  selectedOptionIds: number[];
 }
 
-export interface OrderDetailRequest {
-  productId: number;
-  instructions?: string;
-  selectedOptionIds?: number[];
+export interface CreateOrderRequest {
+  tableId: number;
+  details: CreateOrderDetail[];
 }
