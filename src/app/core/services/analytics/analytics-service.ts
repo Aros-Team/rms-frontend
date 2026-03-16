@@ -10,6 +10,6 @@ export class AnalyticsService {
   private http = inject(HttpClient);
 
   public getTopSellingProducts(): Observable<TopSellingProduct[]> {
-    return this.http.get<TopSellingProduct[]>('products/top-selling');
+    return this.http.get<TopSellingProduct[]>('v1/products/top-selling');
   }
 }

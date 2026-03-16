@@ -29,28 +29,29 @@ export class OrderService {
   }
 
   getTodayOrders(): Observable<OrderResponse[]> {
-    const today = new Date();
-    const formatLocal = (d: Date): string => {
-      const pad = (n: number) => n.toString().padStart(2, '0');
-      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-    };
-    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
-    return this.http.get<OrderResponse[]>(`v1/orders?startDate=${formatLocal(start)}&endDate=${formatLocal(end)}`);
+    return this.http.get<OrderResponse[]>('v1/orders').pipe(
+      map(orders => {
+        const todayStr = new Date().toISOString().split('T')[0];
+        return orders.filter(o => new Date(o.date).toISOString().split('T')[0] === todayStr);
+      })
+    );
   }
 
   getOrdersByDateRange(startDate: Date, endDate: Date, status?: string): Observable<OrderResponse[]> {
-    const formatLocal = (d: Date): string => {
-      const pad = (n: number) => n.toString().padStart(2, '0');
-      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-    };
-    const start = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-    const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 23, 59, 59);
-    let url = `v1/orders?startDate=${formatLocal(start)}&endDate=${formatLocal(end)}`;
-    if (status) {
-      url += `&status=${status}`;
-    }
-    return this.http.get<OrderResponse[]>(url);
+    return this.http.get<OrderResponse[]>('v1/orders').pipe(
+      map(orders => {
+        const startStr = startDate.toISOString().split('T')[0];
+        const endStr = endDate.toISOString().split('T')[0];
+        let filtered = orders.filter(o => {
+          const orderDate = new Date(o.date).toISOString().split('T')[0];
+          return orderDate >= startStr && orderDate <= endStr;
+        });
+        if (status) {
+          filtered = filtered.filter(o => o.status === status);
+        }
+        return filtered;
+      })
+    );
   }
 
   // ── Crear ──────────────────────────────────────────────────

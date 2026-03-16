@@ -5,7 +5,7 @@ import { BadgeModule } from 'primeng/badge';
 import { CardModule } from 'primeng/card';
 import { CommonModule } from '@angular/common';
 import { OrderService } from '@app/core/services/orders/order-service';
-import { TableService } from '@app/core/services/tables/table.service';
+import { TableService } from '@app/core/services/tables/table-service';
 import { DayMenuService, DayMenu } from '@app/core/services/daymenu/daymenu-service';
 import { ProductService, Product } from '@app/core/services/products/product-service';
 import { OrderDetailDialogComponent } from '@shared/components/order-detail-dialog/order-detail-dialog.component';
