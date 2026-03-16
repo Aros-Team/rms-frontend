@@ -1,6 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+
 import { Layout } from '@app/shared/layout/layout';
+import { MenuService, MenuItem } from '@app/core/services/menu/menu-service';
 import { AuthService } from '@app/core/services/authentication/auth-service';
 import { LoggingService } from '@app/core/services/logging/logging-service';
 
@@ -10,24 +12,23 @@ import { LoggingService } from '@app/core/services/logging/logging-service';
   imports: [Layout, RouterOutlet]
 })
 export class WorkerArea implements OnInit {
+  private menuService = inject(MenuService);
   private authService = inject(AuthService);
   private loggingService = inject(LoggingService);
 
-  workerType = 'waiter'; // Default value
-  hideSidebar = true; // Default value - sidebar visible by default
+  workerType = 'waiter';
+  hideSidebar = false;
 
   ngOnInit(): void {
-    console.log('WorkerArea ngOnInit called');
     this.determineWorkerType();
+    this.configureWorkerMenu();
   }
 
   private determineWorkerType(): void {
     const userData = this.authService.getData();
-    console.log('WorkerArea: User data from auth service:', userData);
     this.loggingService.debug('WorkerArea: Determining worker type from user data:', userData);
 
     if (userData && userData.areas) {
-      // Find the first area that matches our worker types
       const workerAreas = ['WAITER', 'KITCHEN', 'BAR', 'CASHIER'];
 
       for (const area of userData.areas) {
@@ -39,7 +40,6 @@ export class WorkerArea implements OnInit {
         }
       }
 
-      // If no specific area found, check for ADMINISTRATION to handle edge cases
       if (userData.areas.some(area => area.name === 'ADMINISTRATION')) {
         this.loggingService.warn('WorkerArea: Admin user in worker area, defaulting to waiter');
         this.workerType = 'waiter';
@@ -51,6 +51,40 @@ export class WorkerArea implements OnInit {
       this.loggingService.warn('WorkerArea: No user data available, defaulting to waiter');
       this.workerType = 'waiter';
     }
-    console.log('WorkerArea: Final workerType determined:', this.workerType);
+  }
+
+  private configureWorkerMenu(): void {
+    const workerMenuItems: MenuItem[] = [
+      {
+        id: 'take-order',
+        label: 'Tomar Orden',
+        description: 'Crear nueva orden',
+        icon: 'pi pi-plus-circle',
+        routerLink: '/worker/take-order'
+      },
+      {
+        id: 'orders',
+        label: 'Órdenes del Día',
+        description: 'Ver pedidos del día',
+        icon: 'pi pi-list',
+        routerLink: '/worker/orders'
+      },
+      {
+        id: 'kitchen',
+        label: 'Cocina',
+        description: 'Pedidos en preparación',
+        icon: 'pi pi-box',
+        routerLink: '/worker/kitchen'
+      },
+      {
+        id: 'day-menu',
+        label: 'Menú del Día',
+        description: 'Ver menú del día',
+        icon: 'pi pi-calendar',
+        routerLink: '/worker/day-menu'
+      }
+    ];
+
+    this.menuService.setMenuItems(workerMenuItems);
   }
 }

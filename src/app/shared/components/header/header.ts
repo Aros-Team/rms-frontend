@@ -56,6 +56,11 @@ export class Header implements OnInit, OnDestroy {
   }
 
   onHorizontalOptionClick(option: HorizontalMenuOption): void {
+    // Navigate if routerLink is provided
+    if (option.routerLink) {
+      this.router.navigate([option.routerLink]);
+    }
+
     // Execute command if provided
     if (option.command) {
       option.command();

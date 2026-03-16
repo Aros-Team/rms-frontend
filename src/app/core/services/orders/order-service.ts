@@ -17,9 +17,7 @@ export class OrderService {
   // ── Consultas ──────────────────────────────────────────────
 
   getOrders(): Observable<OrderResponse[]> {
-    return this.http.get<OrderResponse[]>('v1/orders').pipe(
-      map(orders => this.filterToday(orders))
-    );
+    return this.http.get<OrderResponse[]>('v1/orders');
   }
 
   getOrdersByStatus(status: string): Observable<OrderResponse[]> {
@@ -34,9 +32,7 @@ export class OrderService {
     const today = new Date();
     const start = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
     const end   = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59).toISOString();
-    return this.http.get<OrderResponse[]>(`v1/orders?startDate=${start}&endDate=${end}`).pipe(
-      map(orders => this.filterToday(orders))
-    );
+    return this.http.get<OrderResponse[]>(`v1/orders?startDate=${start}&endDate=${end}`);
   }
 
   // ── Crear ──────────────────────────────────────────────────
@@ -90,12 +86,5 @@ export class OrderService {
               .reduce((sum, o) => sum + (o.totalPrice ?? 0), 0)
       )
     );
-  }
-
-  // ── Helpers ────────────────────────────────────────────────
-
-  private filterToday(orders: OrderResponse[]): OrderResponse[] {
-    const todayStr = new Date().toISOString().split('T')[0];
-    return orders.filter(o => new Date(o.date).toISOString().split('T')[0] === todayStr);
   }
 }

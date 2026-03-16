@@ -24,11 +24,7 @@
       <!-- Content Container -->
       <div class="w-full h-full p-4 lg:p-6">
         <article class="h-full w-full overflow-auto">
-          @if (currentComponent) {
-            <ng-container *ngComponentOutlet="currentComponent"></ng-container>
-          } @else {
-            <ng-content></ng-content>
-          }
+          <ng-content></ng-content>
         </article>
       </div>
     </main>

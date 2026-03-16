@@ -137,7 +137,7 @@ export class WaiterArea implements OnInit {
         this.activeOrders.set(orders.filter(o =>
           o.status !== 'DELIVERED' && o.status !== 'CANCELLED'
         ).length);
-        this.pendingOrders.set(orders.filter(o => o.status === 'QUEUE' || o.status === 'PENDING').length);
+        this.pendingOrders.set(orders.filter(o => o.status === 'QUEUE').length);
         this.statsLoading.set(false);
       },
       error: () => {
