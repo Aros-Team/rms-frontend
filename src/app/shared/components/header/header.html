@@ -7,7 +7,7 @@
   <section class="flex items-center gap-4">
     <!-- Logo -->
     <h1 class="flex items-center text-primary-500 font-black text-[1.5rem]">
-      <app-logo [size]="45"></app-logo><span class="max-md:hidden">RMS</span>
+      <app-logo [size]="45"></app-logo><span class="max-md:hidden">AROS</span>
     </h1>
     <span class="font-bold bg-primary-500 py-1 px-2.5 rounded-md text-primary-contrast">{{customer}}</span>
 
@@ -22,23 +22,6 @@
         {{ selectedMenuItem.description }}
       </span>
     </div>
-    }
-  </section>
-
-  <!-- Center Section: Horizontal Menu Options for Workers -->
-  <section class="hidden lg:flex items-center gap-2">
-    <!-- Horizontal menu options will be dynamically added here -->
-    @for (option of horizontalMenuOptions; track option.id) {
-    <button class="px-3 py-2 rounded-lg text-sm font-medium transition-colors" [class]="
-        option.isActive
-          ? 'bg-primary-500 text-surface-0'
-          : 'text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-800'
-      " (click)="onHorizontalOptionClick(option)" [title]="option.description">
-      @if (option.icon) {
-      <i [class]="option.icon + ' mr-2'"></i>
-      }
-      {{ option.label }}
-    </button>
     }
   </section>
 

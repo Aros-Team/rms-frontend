@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
 import { OrderService } from '@app/core/services/orders/order-service';
@@ -10,7 +11,7 @@ import { OptionNamesPipe } from '@app/shared/pipes/option-names.pipe';
 @Component({
   selector: 'app-today-orders',
   templateUrl: './today-orders.html',
-  imports: [CommonModule, RouterModule, OptionNamesPipe],
+  imports: [CommonModule, RouterModule, FormsModule, OptionNamesPipe],
 })
 export class TodayOrders implements OnInit {
   private orderService = inject(OrderService);
@@ -21,6 +22,18 @@ export class TodayOrders implements OnInit {
   orders = signal<OrderResponse[]>([]);
   processing = new Set<number>();
 
+  selectedStatus = '';
+  selectedDate: Date = new Date();
+
+  statusOptions = [
+    { label: 'Todos', value: '' },
+    { label: 'En Cola', value: 'QUEUE' },
+    { label: 'Preparando', value: 'PREPARING' },
+    { label: 'Lista', value: 'READY' },
+    { label: 'Entregada', value: 'DELIVERED' },
+    { label: 'Cancelada', value: 'CANCELLED' }
+  ];
+
   ngOnInit(): void {
     this.fetchOrders();
   }
@@ -29,7 +42,10 @@ export class TodayOrders implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    this.orderService.getTodayOrders().subscribe({
+    const date = this.selectedDate || new Date();
+    const status = this.selectedStatus || undefined;
+
+    this.orderService.getOrdersByDateRange(date, date, status).subscribe({
       next: (data) => {
         this.log.debug('TodayOrders: loaded', data);
         this.orders.set(data);
@@ -37,10 +53,14 @@ export class TodayOrders implements OnInit {
       },
       error: (err) => {
         this.log.error('TodayOrders: error', err);
-        this.error.set('No se pudieron cargar las órdenes del día.');
+        this.error.set('No se pudieron cargar las órdenes.');
         this.loading.set(false);
       }
     });
+  }
+
+  onFilterChange(): void {
+    this.fetchOrders();
   }
 
   cancelOrder(order: OrderResponse): void {
