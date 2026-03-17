@@ -3,58 +3,12 @@
 const fs = require('fs');
 const path = require('path');
 
-// Cargar variables de entorno desde .env
-function loadEnvFile() {
-    const envPath = path.join(process.cwd(), '.env');
+const args = process.argv.slice(2);
+const env = args[0] || 'production';
 
-    if (!fs.existsSync(envPath)) {
-        console.log('No se encontró archivo .env, usando valores por defecto');
-        return;
-    }
-
-    try {
-        const envContent = fs.readFileSync(envPath, 'utf8');
-        const lines = envContent.split('\n');
-
-        let loadedCount = 0;
-
-        lines.forEach(line => {
-            // Ignorar líneas vacías y comentarios
-            line = line.trim();
-            if (!line || line.startsWith('#')) {
-                return;
-            }
-
-            // Buscar el primer signo igual
-            const equalsIndex = line.indexOf('=');
-            if (equalsIndex === -1) {
-                return;
-            }
-
-            const key = line.substring(0, equalsIndex).trim();
-            let value = line.substring(equalsIndex + 1).trim();
-
-            // Remover comillas si existen
-            if ((value.startsWith('"') && value.endsWith('"')) ||
-                (value.startsWith("'") && value.endsWith("'"))) {
-                value = value.substring(1, value.length - 1);
-            }
-
-            // Solo establecer si no existe ya en process.env
-            if (key && value && !process.env[key]) {
-                process.env[key] = value;
-                loadedCount++;
-            }
-        });
-
-        if (loadedCount > 0) {
-            console.log(`Cargadas ${loadedCount} variables desde .env`);
-        }
-
-    } catch (error) {
-        console.error('Error cargando archivo .env:', error.message);
-    }
-}
+const isDev = env === 'development';
+const envFile = isDev ? 'environment.development.ts' : 'environment.ts';
+const themeFile = isDev ? 'theme.development.ts' : 'theme.ts';
 
 function generateOptimalPalette(baseColor) {
     function hexToHsl(hex) {
@@ -121,23 +75,19 @@ function generateOptimalPalette(baseColor) {
 
     const [h, s, l] = hexToHsl(baseColor);
 
-    // Optimizar el color 500 para que funcione bien en ambos modos
     let optimalS = s;
     let optimalL = l;
 
-    // Ajustar para que el 500 sea visible en ambos modos
     if (l < 25) optimalL = 45;
     else if (l > 75) optimalL = 55;
     else optimalL = l;
 
-    // Ajustar saturación para mejor apariencia
     if (s < 30) optimalS = 50;
     else if (s > 85) optimalS = 75;
     else optimalS = s;
 
     const optimal500 = hslToHex(h, optimalS, optimalL);
 
-    // Generar paleta con mejor gradación
     return {
         50: mix('#ffffff', optimal500, 0.05),
         100: mix('#ffffff', optimal500, 0.12),
@@ -153,18 +103,28 @@ function generateOptimalPalette(baseColor) {
     };
 }
 
-function updateEnvironmentFile(apiUrl, customer, palette, production = false) {
-    const envPath = path.join(process.cwd(), 'src', 'environments', 'environment.ts');
+function readBaseColor(envName) {
+    const envPath = path.join(process.cwd(), 'src', 'environments', envName);
 
     if (!fs.existsSync(envPath)) {
-        console.error('Error: No se encontró environment.ts');
-        process.exit(1);
+        throw new Error(`No se encontró ${envPath}`);
     }
 
-    const newConfig = `export const environment = {
-  production: ${production},
-  apiUrl: '${apiUrl}',
-  customer: '${customer.replace(/'/g, "\\'")}',
+    const content = fs.readFileSync(envPath, 'utf8');
+    const match = content.match(/baseColor:\s*['"](#[a-fA-F0-9]{6})['"]/);
+
+    if (!match) {
+        throw new Error(`No se encontró baseColor en ${envName}`);
+    }
+
+    return match[1];
+}
+
+function generateThemeFile(baseColor, isDevelopment) {
+    const palette = generateOptimalPalette(baseColor);
+
+    const content = `export const theme = {
+  ${isDevelopment ? 'development: true,' : 'development: false,'}
   primary: {
     50: '${palette[50]}',
     100: '${palette[100]}',
@@ -178,51 +138,36 @@ function updateEnvironmentFile(apiUrl, customer, palette, production = false) {
     900: '${palette[900]}',
     950: '${palette[950]}'
   }
-};`;
+};
+`;
 
-    fs.writeFileSync(envPath, newConfig, 'utf8');
-    return envPath;
+    return content;
 }
 
 function main() {
-    console.log('Pre-build: Generando configuración desde variables de entorno\n');
-
-    // Cargar variables de entorno desde .env
-    loadEnvFile();
-    console.log('');
+    console.log(`Generate Colors [${env.toUpperCase()}]: Generando paleta de colores\n`);
 
     try {
-        // Obtener variables de entorno
-        const baseColor = process.env.BASE_COLOR || '#af8223';
-        const apiUrl = process.env.API_URL || 'http://localhost:8080/api';
-        const customer = process.env.CUSTOMER || 'Pruebas';
-        const production = process.env.NODE_ENV === 'production' || false;
+        const baseColor = readBaseColor(envFile);
+        console.log(`Base color leído de ${envFile}: ${baseColor}`);
 
-        console.log('Configuración completada!');
-        console.log('  - BASE_COLOR:', baseColor);
-        console.log('  - API_URL:', apiUrl);
-        console.log('  - CUSTOMER:', customer);
-        console.log('  - PRODUCTION:', production);
-        console.log('');
+        const themeContent = generateThemeFile(baseColor, isDev);
 
-        console.log('Generando paleta de colores...');
+        const themePath = path.join(process.cwd(), 'src', 'environments', themeFile);
+        fs.writeFileSync(themePath, themeContent, 'utf8');
+
         const palette = generateOptimalPalette(baseColor);
-
-        const envPath = updateEnvironmentFile(apiUrl, customer, palette, production);
-
-        console.log('✅ Configuración completada!');
-        console.log('Archivo actualizado:', envPath);
-        console.log('Customer:', customer);
-        console.log('Color principal:', palette[500]);
-        console.log('');
+        console.log(`\nPaleta generada para ${isDev ? 'DESARROLLO' : 'PRODUCCIÓN'}:`);
+        console.log(`  Color principal: ${palette[500]}`);
+        console.log(`\nArchivo creado: src/environments/${themeFile}`);
+        console.log(`\n[>] Colores actualizados!`);
 
     } catch (error) {
-        console.error('Error en pre-build:', error.message);
+        console.error(`Error: ${error.message}`);
         process.exit(1);
     }
 }
 
-// Verificar que es un proyecto Angular
 const angularJsonPath = path.join(process.cwd(), 'angular.json');
 if (!fs.existsSync(angularJsonPath)) {
     console.error('Error: No es un proyecto Angular');

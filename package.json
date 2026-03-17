@@ -2,11 +2,14 @@
   "name": "client",
   "version": "0.0.0",
   "scripts": {
-    "prebuild": "node scripts/pre-build.js",
+    "prebuild": "node scripts/generate-colors.js production",
+    "prestart": "node scripts/generate-colors.js development",
     "ng": "ng",
-    "start": "npm run prebuild && ng serve",
-    "build": "npm run prebuild && ng build",
-    "watch": "npm run prebuild && ng build --watch --configuration development",
+    "start": "ng serve --configuration development",
+    "build": "ng build",
+    "build:dev": "node scripts/generate-colors.js development && ng build --configuration development",
+    "colors": "node scripts/generate-colors.js production && node scripts/generate-colors.js development",
+    "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint --fix"
   },

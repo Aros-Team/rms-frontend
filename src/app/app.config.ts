@@ -21,9 +21,9 @@ import { routes } from './app.routes';
 import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
-import { environment } from '@environments/environment';
+import { theme } from '@environments/theme';
 
-const Primary = environment.primary;
+const Primary = theme.primary;
 
 const arosPreset = definePreset(Aura, {
   semantic: {

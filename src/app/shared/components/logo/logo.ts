@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { environment } from '@environments/environment';
+import { theme } from '@environments/theme';
 
 @Component({
   selector: 'app-logo',
@@ -8,7 +8,7 @@ import { environment } from '@environments/environment';
   styles: ``,
 })
 export class Logo {
-  @Input() color: string = environment.primary[500];
+  @Input() color: string = theme.primary[500];
   @Input() size: number = 150;
 
 }
