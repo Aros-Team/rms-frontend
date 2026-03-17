@@ -48,3 +48,171 @@ body &:where(.dark, .dark *) {
 .header {
   @apply bg-surface-100 dark:bg-surface-800 flex items-center justify-between gap-2 rounded-2xl rounded-b-none p-2 px-4;
 }
+
+/* ========================================
+   High Contrast Mode Styles
+   ======================================== */
+body.high-contrast {
+  background-color: #000000 !important;
+}
+
+body.high-contrast,
+body.high-contrast * {
+  /* Override all background colors */
+  --surface-0: #000000 !important;
+  --surface-50: #0a0a0a !important;
+  --surface-100: #1a1a1a !important;
+  --surface-200: #2a2a2a !important;
+  --surface-300: #3a3a3a !important;
+  --surface-400: #4a4a4a !important;
+  --surface-500: #5a5a5a !important;
+  --surface-600: #6a6a6a !important;
+  --surface-700: #7a7a7a !important;
+  --surface-800: #8a8a8a !important;
+  --surface-900: #fafafa !important;
+  color: #ffffff !important;
+}
+
+body.high-contrast .bg-surface-0,
+body.high-contrast .bg-surface-50,
+body.high-contrast .bg-surface-100,
+body.high-contrast .bg-surface-200,
+body.high-contrast .bg-surface-300,
+body.high-contrast .bg-surface-400,
+body.high-contrast .bg-surface-500,
+body.high-contrast .bg-surface-600,
+body.high-contrast .bg-surface-700,
+body.high-contrast .bg-surface-800,
+body.high-contrast .bg-surface-900,
+body.high-contrast [class*="bg-surface-"],
+body.high-contrast [class*="bg-white"],
+body.high-contrast [class*="bg-gray"],
+body.high-contrast [class*="dark:bg-"] {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+body.high-contrast .text-surface-50,
+body.high-contrast .text-surface-100,
+body.high-contrast .text-surface-200,
+body.high-contrast .text-surface-300,
+body.high-contrast .text-surface-400,
+body.high-contrast .text-surface-500,
+body.high-contrast .text-surface-600,
+body.high-contrast .text-surface-700,
+body.high-contrast .text-surface-800,
+body.high-contrast .text-surface-900,
+body.high-contrast .text-gray-50,
+body.high-contrast .text-gray-100,
+body.high-contrast .text-gray-200,
+body.high-contrast .text-gray-300,
+body.high-contrast .text-gray-400,
+body.high-contrast .text-gray-500,
+body.high-contrast .text-gray-600,
+body.high-contrast .text-gray-700,
+body.high-contrast .text-gray-800,
+body.high-contrast .text-gray-900,
+body.high-contrast [class*="text-surface-"],
+body.high-contrast [class*="dark:text-"] {
+  color: #ffffff !important;
+}
+
+body.high-contrast .border-surface-50,
+body.high-contrast .border-surface-100,
+body.high-contrast .border-surface-200,
+body.high-contrast .border-surface-300,
+body.high-contrast .border-surface-400,
+body.high-contrast .border-surface-500,
+body.high-contrast .border-surface-600,
+body.high-contrast .border-surface-700,
+body.high-contrast .border-surface-800,
+body.high-contrast .border-surface-900,
+body.high-contrast [class*="border-surface-"],
+body.high-contrast [class*="dark:border-"] {
+  border-color: #ffffff !important;
+}
+
+body.high-contrast .text-primary-500,
+body.high-contrast .text-primary-600,
+body.high-contrast .text-primary-700 {
+  color: #ffff00 !important;
+}
+
+body.high-contrast .bg-primary-500,
+body.high-contrast .bg-primary-600,
+body.high-contrast .bg-primary-700 {
+  background-color: #000000 !important;
+  color: #ffff00 !important;
+  border: 2px solid #ffff00 !important;
+}
+
+body.high-contrast a,
+body.high-contrast .text-blue-500,
+body.high-contrast .text-blue-600 {
+  color: #00ffff !important;
+}
+
+body.high-contrast input,
+body.high-contrast textarea,
+body.high-contrast select {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+  border: 2px solid #ffffff !important;
+}
+
+body.high-contrast input::placeholder,
+body.high-contrast textarea::placeholder {
+  color: #aaaaaa !important;
+}
+
+body.high-contrast button,
+body.high-contrast .p-button {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+  border: 2px solid #ffffff !important;
+}
+
+body.high-contrast button:hover,
+body.high-contrast .p-button:hover {
+  background-color: #ffff00 !important;
+  color: #000000 !important;
+}
+
+body.high-contrast .card,
+body.high-contrast .p-card,
+body.high-contrast .rounded-xl,
+body.high-contrast .rounded-lg {
+  background-color: #000000 !important;
+  border: 2px solid #ffffff !important;
+}
+
+body.high-contrast .p-dialog,
+body.high-contrast .p-dialog-content {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+body.high-contrast table,
+body.high-contrast .p-datatable {
+  background-color: #000000 !important;
+}
+
+body.high-contrast th,
+body.high-contrast td {
+  border-color: #ffffff !important;
+  color: #ffffff !important;
+}
+
+body.high-contrast .p-dropdown,
+body.high-contrast .p-multiselect,
+body.high-contrast .p-select {
+  background-color: #1a1a1a !important;
+  border: 2px solid #ffffff !important;
+}
+
+body.high-contrast .p-dropdown-panel,
+body.high-contrast .p-multiselect-panel,
+body.high-contrast .p-select-panel {
+  background-color: #1a1a1a !important;
+  border: 2px solid #ffffff !important;
+}

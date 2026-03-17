@@ -20,61 +20,90 @@ import { LoggingService } from '@app/core/services/logging/logging-service';
     MessageModule,
   ],
   template: `
-    <div class="min-w-[300px] mx-auto my-8">
-      <h1 class="text-xl font-bold mb-6 text-center text-surface">Verificación de dos factores</h1>
-      <p class="text-center text-gray-600 mb-6">
-        Se ha enviado un código de verificación a tu correo electrónico
-      </p>
-      
-      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-8 mt-8">
-        <div>
-          <label for="code" class="text-sm">Código de verificación</label>
-          <input
-            pInputText
-            [invalid]="isInvalid('code')"
-            id="code"
-            type="text"
-            formControlName="code"
-            maxlength="6"
-            placeholder="Ingresa el código de 6 dígitos"
-            fluid
-            class="text-center text-lg tracking-widest"
-          />
-          @if (form.get('code')?.invalid && form.get('code')?.touched) {
-            <div class="text-red-500 text-sm">
-              Campo requerido*
-            </div>
-          }
+    <main class="min-h-screen w-full flex items-center justify-center p-4 bg-surface-50 dark:bg-surface-900">
+      <div class="w-full max-w-md">
+        
+        <!-- Logo/Brand -->
+        <div class="text-center mb-8">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-500 mb-4">
+            <i class="pi pi-shield text-white text-2xl"></i>
+          </div>
+          <h1 class="text-2xl md:text-3xl font-bold text-surface-900 dark:text-surface-100 mb-2">
+            Verificación en Dos Pasos
+          </h1>
+          <p class="text-surface-600 dark:text-surface-400 text-sm md:text-base">
+            Ingresa el código de 6 dígitos enviado a tu correo electrónico
+          </p>
         </div>
 
-        @if (errorMessage) {
-          <p-message severity="error" [text]="errorMessage"></p-message>
-        }
-
-        <p-button
-          type="submit"
-          class="mt-4 m-auto"
-          [disabled]="formStatus === 'Occuped' || form.invalid"
-        >
-          @if (formStatus === 'Free') {
-            <span>Verificar</span>
+        <!-- Card -->
+        <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-lg border border-surface-200 dark:border-surface-700 p-6 md:p-8">
+          
+          @if (errorMessage) {
+            <div class="mb-6 p-4 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-xl">
+              <div class="flex items-center gap-3">
+                <i class="pi pi-exclamation-circle text-red-500 text-xl"></i>
+                <span class="text-red-700 dark:text-red-300 text-sm">{{ errorMessage }}</span>
+              </div>
+            </div>
           }
-          @if (formStatus === 'Occuped') {
-            <span>Verificando...</span>
-          }
-        </p-button>
-      </form>
 
-      <div class="mt-6 text-center">
-        <p-button 
-          [text]="true" 
-          (onClick)="goBack()" 
-          severity="secondary"
-        >
-          Volver al login
-        </p-button>
+          <form [formGroup]="form" (ngSubmit)="onSubmit()">
+            <div class="mb-6">
+              <label for="code" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+                Código de Verificación
+              </label>
+              <input
+                pInputText
+                [invalid]="isInvalid('code')"
+                id="code"
+                type="text"
+                formControlName="code"
+                maxlength="6"
+                placeholder="------"
+                class="w-full text-center text-2xl md:text-3xl tracking-[0.5em] font-mono py-4"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+              />
+              @if (form.get('code')?.invalid && form.get('code')?.touched) {
+                <small class="text-red-500 block mt-2">
+                  Ingresa el código de 6 dígitos
+                </small>
+              }
+            </div>
+
+            <button
+              pButton
+              type="submit"
+              label="Verificar Código"
+              class="w-full"
+              [loading]="formStatus === 'Occuped'"
+              [disabled]="formStatus === 'Occuped' || form.invalid"
+            ></button>
+          </form>
+
+          <div class="mt-6 pt-6 border-t border-surface-200 dark:border-surface-700">
+            <div class="text-center">
+              <p class="text-surface-500 dark:text-surface-400 text-sm mb-3">
+                ¿No recibiste el código?
+              </p>
+              <button
+                pButton
+                type="button"
+                label="Volver al Login"
+                class="p-button-text p-button-sm"
+                (click)="goBack()"
+              ></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Help Text -->
+        <p class="text-center text-surface-400 text-xs mt-6">
+          El código expira en 5 minutos
+        </p>
       </div>
-    </div>
+    </main>
   `,
 })
 export class TwoFactorVerifyComponent {
