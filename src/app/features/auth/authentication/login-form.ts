@@ -122,4 +122,8 @@ export class LoginForm {
       setTimeout(() => this.redirectBasedOnUserRole(), 100);
     }
   }
+
+  goToForgotPassword(): void {
+    this.router.navigate(['/login/forgot-password']);
+  }
 }

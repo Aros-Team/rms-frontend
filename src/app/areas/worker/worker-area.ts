@@ -82,6 +82,13 @@ export class WorkerArea implements OnInit {
         description: 'Ver menú del día',
         icon: 'pi pi-calendar',
         routerLink: '/worker/day-menu'
+      },
+      {
+        id: 'profile',
+        label: 'Mi Perfil',
+        description: 'Cambiar contraseña',
+        icon: 'pi pi-user',
+        routerLink: '/worker/profile'
       }
     ];
 

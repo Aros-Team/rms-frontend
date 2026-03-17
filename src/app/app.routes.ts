@@ -17,6 +17,8 @@ import { AdminArea } from '@areas/admin/admin-area';
 import { WorkerArea } from '@areas/worker/worker-area';
 import { Users } from './features/admin/manage/users/users';
 import { TwoFactorVerifyComponent } from './features/auth/two-factor-verify/two-factor-verify.component';
+import { ForgotPasswordComponent } from './features/auth/authentication/forgot-password.component';
+import { ProfileComponent } from './features/profile/profile.component';
 import { WaiterArea } from '@features/waiter/waiter-area';
 import { DayMenu } from '@features/waiter/day-menu/day-menu';
 import { TodayOrders } from '@features/waiter/today-orders/today-orders';
@@ -30,6 +32,10 @@ export const routes: Routes = [
     path: 'login',
     component: Login,
     canActivate: [RedirectGuard],
+  },
+  {
+    path: 'login/forgot-password',
+    component: ForgotPasswordComponent,
   },
   {
     path: 'login/verify',
@@ -90,6 +96,10 @@ export const routes: Routes = [
         path: 'create-product',
         component: ProductCreationForm,
       },
+      {
+        path: 'profile',
+        component: ProfileComponent,
+      },
     ],
   },
 
@@ -103,6 +113,7 @@ export const routes: Routes = [
       { path: 'take-order', component: TakeOrder },
       { path: 'orders', component: TodayOrders },
       { path: 'kitchen', component: Kitchen },
+      { path: 'profile', component: ProfileComponent },
     ]
   },
   {

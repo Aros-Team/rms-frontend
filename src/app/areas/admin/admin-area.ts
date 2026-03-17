@@ -46,6 +46,13 @@ export class AdminArea implements OnInit {
         icon: 'pi pi-chart-bar',
         routerLink: '/admin/analytics'
       },
+      {
+        id: 'profile',
+        label: 'Mi Perfil',
+        description: 'Cambiar contraseña',
+        icon: 'pi pi-user',
+        routerLink: '/admin/profile'
+      },
     ];
 
     this.menuService.setMenuItems(adminMenuItems);
