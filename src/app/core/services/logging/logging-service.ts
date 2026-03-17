@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { environment } from '@environments/environment';
 
 export enum LogLevel {
   DEBUG = 0,
@@ -13,14 +14,10 @@ export enum LogLevel {
 })
 export class LoggingService {
   private logLevel: LogLevel = LogLevel.DEBUG;
-  private readonly isProduction: boolean = false;
 
   constructor() {
     // In production, default to WARN level to reduce noise
-    this.isProduction = window.location.hostname !== 'localhost' &&
-                       window.location.hostname !== '127.0.0.1';
-
-    if (this.isProduction) {
+    if (environment.production) {
       this.logLevel = LogLevel.WARN;
     }
   }

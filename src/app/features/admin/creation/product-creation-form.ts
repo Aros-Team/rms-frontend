@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 
 import { Component, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { LoggingService } from '@app/core/services/logging/logging-service';
 
 @Component({
   selector: 'app-product-creation-form',
@@ -10,6 +11,7 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 })
 export class ProductCreationForm {
   private http = inject(HttpClient);
+  private loggingService = inject(LoggingService);
 
 
   form = new FormGroup({
@@ -38,8 +40,8 @@ export class ProductCreationForm {
       estimateTime: this.form.get('estimateTime')?.value,
       areaId: this.form.get('preparationArea')?.value,
     }).subscribe({
-      next: (r) => console.log(r),
-      error: (er) => console.log(er)
+      next: (r) => this.loggingService.debug('Product created:', r),
+      error: (er) => this.loggingService.error('Error creating product:', er)
     });
   }
 

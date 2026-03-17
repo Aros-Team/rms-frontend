@@ -17,6 +17,7 @@ import { ProductSimpleResponse } from '@app/shared/models/dto/products/product-s
 import { CategorySimpleResponse } from '@app/shared/models/dto/category/category-simple-response';
 import { DayMenuCreateRequest } from '@app/shared/models/dto/daymenu/daymenu-create-request';
 import { SelectModule } from 'primeng/select';
+import { LoggingService } from '@app/core/services/logging/logging-service';
 
 @Component({
   selector: 'app-menu',
@@ -45,6 +46,7 @@ export class Menu {
   private productService = inject(ProductService);
   private categoryService = inject(CategoryService);
   private messageService = inject(MessageService);
+  private loggingService = inject(LoggingService);
 
   dayMenuForm: FormGroup;
   availableProducts = signal<Map<number, ProductSimpleResponse[]>>(new Map()); // Cambio aquí
@@ -197,7 +199,7 @@ export class Menu {
         }))
       };
 
-      console.log('Submitting day menu request:', dayMenuRequest);
+      this.loggingService.debug('Submitting day menu request:', dayMenuRequest);
 
       this.dayMenuService.createDayMenu(dayMenuRequest).subscribe({
         next: (response) => {
@@ -214,8 +216,8 @@ export class Menu {
           this.isSubmitting.set(false);
         },
         error: (error) => {
-          console.error('Error creating day menu:', error);
-          console.error('API error payload:', error?.error);
+          this.loggingService.error('Error creating day menu:', error);
+          this.loggingService.error('API error payload:', error?.error);
           const errorMessage = this.extractApiErrorMessage(error);
           this.messageService.add({
             severity: 'error',

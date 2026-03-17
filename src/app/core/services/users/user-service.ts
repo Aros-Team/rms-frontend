@@ -3,6 +3,7 @@ import { Injectable, inject } from "@angular/core";
 import { CreateUserRequest } from "@app/shared/models/dto/users/create-user-request.model";
 import { UserResponse } from "@app/shared/models/dto/users/user-response.model";
 import { Observable } from "rxjs";
+import { LoggingService } from '@app/core/services/logging/logging-service';
 
 
 @Injectable({
@@ -10,14 +11,15 @@ import { Observable } from "rxjs";
 })
 export class UserService {
   private http = inject(HttpClient);
+  private loggingService = inject(LoggingService);
 
   public getUsers(): Observable<UserResponse[]> {
-    console.log('UserService: Calling GET users');
+    this.loggingService.debug('UserService: Calling GET users');
     return this.http.get<UserResponse[]>('users');
   }
 
   public createUser(data: CreateUserRequest): Observable<object> {
-    console.log('UserService: Calling POST users with data:', data);
+    this.loggingService.debug('UserService: Calling POST users with data:', data);
     return this.http.post('users', data);
   }
 

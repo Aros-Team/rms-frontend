@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TableModule } from 'primeng/table';
@@ -15,6 +15,7 @@ import { UserService } from '@app/core/services/users/user-service';
 import { CreateUserRequest } from '@app/shared/models/dto/users/create-user-request.model';
 import { MessageService } from 'primeng/api';
 import { FormValidation } from '@app/shared/components/form/form-validation';
+import { LoggingService } from '@app/core/services/logging/logging-service';
 
 @Component({
   selector: 'app-users',
@@ -58,7 +59,8 @@ export class Users implements OnInit {
 
   constructor(
     private userService: UserService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private loggingService: LoggingService
   ) {
     //
   }
@@ -157,8 +159,8 @@ export class Users implements OnInit {
 
   private fillFormWithData(data: UserResponse): void {
     this.userForm.setValue({ ...data, areas: data.areas.map(a => a.id), password: '' });
-    console.log("areas => ");
-    console.log(this.userForm.get('areas')?.value);
+    this.loggingService.debug("areas => ");
+    this.loggingService.debug(this.userForm.get('areas')?.value);
   }
 
   private clearForm(): void {
@@ -178,7 +180,7 @@ export class Users implements OnInit {
   private searchForUsers(): void {
     this.userService.getUsers().subscribe((res) => {
       this.users = res;
-      console.log(this.users);
+      this.loggingService.debug('Users loaded:', this.users);
     });
   }
 
