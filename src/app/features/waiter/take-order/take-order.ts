@@ -45,6 +45,7 @@ export class TakeOrder implements OnInit {
 
   // UI state
   activeCategory = signal<string>('');
+  searchQuery = signal<string>('');
   showOptionsModal = signal(false);
   pendingProduct = signal<ProductListResponse | null>(null);
   pendingOptions = signal<number[]>([]);
@@ -60,6 +61,18 @@ export class TakeOrder implements OnInit {
   modalOptionsByCategory = computed(() =>
     this.masterData.groupOptionsByCategory(this.modalOptions())
   );
+  
+  filteredProducts = computed(() => {
+    const query = this.searchQuery().toLowerCase().trim();
+    const category = this.activeCategory();
+    const products = this.productsByCategory()[category] || [];
+    
+    if (!query) return products;
+    
+    return products.filter(p => 
+      p.name.toLowerCase().includes(query)
+    );
+  });
 
   ngOnInit(): void {
     this.masterData.load().subscribe({
