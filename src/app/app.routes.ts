@@ -59,6 +59,11 @@ export const routes: Routes = [
         component: Manage,
         children: [
           {
+            path: '',
+            redirectTo: 'products',
+            pathMatch: 'full'
+          },
+          {
             path: 'products',
             component: Products,
           },

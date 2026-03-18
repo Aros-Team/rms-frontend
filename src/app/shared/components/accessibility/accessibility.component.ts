@@ -18,11 +18,11 @@ interface FontSizeOption {
   imports: [CommonModule, ButtonModule, DialogModule, SelectButtonModule, FormsModule],
   template: `
     <p-button 
-      label="Accesibilidad"
-      icon="pi pi-cog"
+      icon="pi pi-wrench"
       (onClick)="showDialog()" 
-      severity="secondary"
+      severity="primary"
       class="accessibility-btn"
+      [title]="'Accesibilidad'"
     ></p-button>
 
     <p-dialog 
@@ -107,11 +107,14 @@ interface FontSizeOption {
     </p-dialog>
   `,
   styles: [`
-    :host ::ng-deep .accessibility-btn {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      z-index: 1000;
+    :host ::ng-deep .accessibility-btn .p-button {
+      padding: 0.25rem;
+      width: 2rem;
+      height: 2rem;
+    }
+
+    :host ::ng-deep .accessibility-btn .p-button-icon {
+      font-size: 1rem;
     }
 
     :host ::ng-deep .font-size-btn {
@@ -155,10 +158,9 @@ export class AccessibilityComponent {
   private readonly HIGH_CONTRAST_KEY = 'accessibility_high_contrast';
 
   fontSizeOptions: FontSizeOption[] = [
-    { label: 'A-', value: 12, icon: 'pi pi-minus' },
-    { label: 'A', value: 16, icon: 'pi pi-align-left' },
-    { label: 'A+', value: 20, icon: 'pi pi-plus' },
-    { label: 'A++', value: 24, icon: 'pi pi-angle-double-up' }
+    { label: 'Normal', value: 14, icon: 'pi pi-minus' },
+    { label: 'Grande', value: 16, icon: 'pi pi-plus' },
+    { label: 'Extra', value: 18, icon: 'pi pi-angle-double-up' }
   ];
 
   constructor() {

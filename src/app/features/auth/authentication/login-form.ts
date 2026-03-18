@@ -58,12 +58,17 @@ export class LoginForm {
             this.formStatus = 'Free';
           }
         },
-        error: (err: { status?: number }) => {
+        error: (err: any) => {
           this.loggingService.error('Login failed:', err);
           this.authService.logout();
           this.formStatus = 'Free';
 
-          if (err.status === 401) {
+          const errorMessage = err?.error?.message || err?.error?.error || '';
+          const isInvalidCredentials = err.status === 401 || 
+            errorMessage.toLowerCase().includes('invalid credentials') ||
+            errorMessage.toLowerCase().includes('incorrectos');
+
+          if (isInvalidCredentials) {
             this.loggingService.auth('Login failed: Invalid credentials');
             this.messageService.add({
               severity: 'error',

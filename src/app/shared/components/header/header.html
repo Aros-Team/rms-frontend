@@ -25,7 +25,7 @@
     }
   </section>
 
-  <!-- Right Section: Menu Toggle and Dark Mode -->
+  <!-- Right Section: Menu Toggle, Accessibility and Logout -->
   <section class="flex items-center gap-4">
     <!-- Menu Toggle Button (Mobile) -->
     <button class="lg:hidden p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
@@ -33,13 +33,13 @@
       <i class="pi pi-bars text-surface-600 dark:text-surface-400"></i>
     </button>
 
+    <!-- Accessibility Button -->
+    <app-accessibility></app-accessibility>
+
     <!-- Logout Button -->
     <button class="p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
       (click)="onLogout()" aria-label="Cerrar sesión" title="Cerrar sesión">
       <i class="pi pi-sign-out text-surface-600 dark:text-surface-400"></i>
     </button>
-
-    <!-- Dark Mode Button -->
-    <app-dark-mode-button></app-dark-mode-button>
   </section>
 </header>

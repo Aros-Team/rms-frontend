@@ -1,11 +1,11 @@
 import { Component, OnInit, OnDestroy, Output, EventEmitter, inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { DarkModeButton } from '../dark-mode-button/dark-mode-button';
 import { MenuItem, MenuService } from '../../../core/services/menu/menu-service';
 import { AuthService } from '../../../core/services/authentication/auth-service';
 import { Subscription } from 'rxjs';
 import { Logo } from "../logo/logo";
+import { AccessibilityComponent } from '../accessibility/accessibility.component';
 import { environment } from '@environments/environment';
 import { ButtonModule } from 'primeng/button';
 
@@ -21,7 +21,7 @@ export interface HorizontalMenuOption {
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule, DarkModeButton, Logo, ButtonModule],
+  imports: [CommonModule, Logo, ButtonModule, AccessibilityComponent],
   templateUrl: './header.html',
   styles: ``
 })

@@ -6,8 +6,8 @@ import { CardModule } from 'primeng/card';
 import { CommonModule } from '@angular/common';
 import { OrderService } from '@app/core/services/orders/order-service';
 import { TableService } from '@app/core/services/tables/table-service';
-import { DayMenuService, DayMenu } from '@app/core/services/daymenu/daymenu-service';
 import { ProductService, Product } from '@app/core/services/products/product-service';
+import { DayMenu } from '@app/core/services/daymenu/daymenu-service';
 import { OrderDetailDialogComponent } from '@shared/components/order-detail-dialog/order-detail-dialog.component';
 import { LoggingService } from '@app/core/services/logging/logging-service';
 import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
@@ -32,7 +32,6 @@ import { Message } from "primeng/message";
 export class Dashboard implements OnInit {
   private orderService = inject(OrderService);
   private tableService = inject(TableService);
-  private dayMenuService = inject(DayMenuService);
   private productService = inject(ProductService);
   private loggingService = inject(LoggingService);
 
@@ -171,16 +170,49 @@ export class Dashboard implements OnInit {
   }
 
   private loadDayMenu() {
-    this.dayMenuService.getActiveDayMenu().subscribe({
-      next: (menu: DayMenu) => {
-        this.dayMenu.set(menu);
-        this.existDayMenu = true
-      },
-      error: (error: unknown) => {
-        this.loggingService.error('Error loading day menu:', error);
+    const dayMenuTest = {
+      id: 1,
+      name: 'Menú del Día',
+      description: 'Menú de prueba',
+      price: 15000,
+      preparationTime: 15,
+      active: true,
+      creation: new Date().toISOString(),
+      categories: [
+        {
+          id: 1,
+          name: 'Sopa',
+          position: 1,
+          products: [
+            { id: 1, name: 'Sopa de verduras', description: 'Sopa casera de verduras', price: 5000, preparationTime: 10 },
+            { id: 2, name: 'Sopa de pollo', description: 'Sopa de pollo con arroz', price: 6000, preparationTime: 10 }
+          ]
+        },
+        {
+          id: 2,
+          name: 'Principio',
+          position: 2,
+          products: [
+            { id: 3, name: 'Arroz blanco', description: 'Arroz blanco graneado', price: 3000, preparationTime: 5 },
+            { id: 4, name: 'Pasta', description: 'Pasta en salsa roja', price: 3500, preparationTime: 8 },
+            { id: 5, name: 'Puré de papa', description: 'Puré cremoso de papa', price: 3000, preparationTime: 5 }
+          ]
+        },
+        {
+          id: 3,
+          name: 'Proteína',
+          position: 3,
+          products: [
+            { id: 6, name: 'Pollo asado', description: 'Pollo a la plancha', price: 8000, preparationTime: 15 },
+            { id: 7, name: 'Carne molida', description: 'Carne molida guisada', price: 9000, preparationTime: 15 },
+            { id: 8, name: 'Pescado', description: 'Pescado frito', price: 10000, preparationTime: 12 }
+          ]
+        }
+      ]
+    };
 
-      }
-    });
+    this.dayMenu.set(dayMenuTest as DayMenu);
+    this.existDayMenu = true;
   }
 
   getStatusBadgeClass(status: string): string {
