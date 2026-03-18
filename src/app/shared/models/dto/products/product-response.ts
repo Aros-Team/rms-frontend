@@ -9,4 +9,5 @@ export interface ProductResponse {
   categoryId: number;
   categoryName: string;
   areaId: number;
+  areaName: string;
 }

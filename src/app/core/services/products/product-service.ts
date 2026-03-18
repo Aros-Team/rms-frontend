@@ -86,6 +86,11 @@ export class ProductService {
   }
 
   getProductsByCategories(categoryIds: number[]): Observable<ProductResponse[]> {
-    return this.getProducts();
+    if (!categoryIds || categoryIds.length === 0) {
+      return this.getProducts();
+    }
+    return this.http.get<ProductResponse[]>('v1/products', {
+      params: { categories: categoryIds.join(',') }
+    });
   }
 }
