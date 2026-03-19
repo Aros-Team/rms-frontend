@@ -245,7 +245,7 @@ export class Menu {
 
     // Angular HTTP error
     if (err instanceof HttpErrorResponse) {
-      let payload = JSON.parse(err.error);
+      const payload = JSON.parse(err.error);
 
       // Text payload
       if (typeof payload === 'string') {
