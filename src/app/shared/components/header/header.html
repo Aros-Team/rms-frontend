@@ -37,9 +37,42 @@
     <app-accessibility></app-accessibility>
 
     <!-- Logout Button -->
-    <button class="p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
+    <button class="p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer"
       (click)="onLogout()" aria-label="Cerrar sesión" title="Cerrar sesión">
       <i class="pi pi-sign-out text-surface-600 dark:text-surface-400"></i>
     </button>
   </section>
 </header>
+
+<!-- Logout Confirmation Dialog -->
+<p-dialog 
+  [(visible)]="showLogoutDialog" 
+  [modal]="true" 
+  [closable]="true"
+  [closeOnEscape]="true"
+  [draggable]="false"
+  [resizable]="false"
+  header="Cerrar Sesión"
+  [style]="{width: '90vw', maxWidth: '400px'}"
+>
+  <div class="py-4">
+    <div class="flex items-center gap-3">
+      <i class="pi pi-exclamation-triangle text-yellow-500 text-2xl"></i>
+      <p class="text-surface-700 dark:text-surface-300">
+        ¿Estás seguro de que deseas cerrar sesión?
+      </p>
+    </div>
+  </div>
+
+  <div class="flex justify-end gap-2 mt-4">
+    <p-button 
+      label="Cancelar" 
+      severity="secondary" 
+      (onClick)="cancelLogout()"
+    ></p-button>
+    <p-button 
+      label="Cerrar Sesión" 
+      (onClick)="confirmLogout()"
+    ></p-button>
+  </div>
+</p-dialog>

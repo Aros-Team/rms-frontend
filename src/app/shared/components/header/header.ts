@@ -8,6 +8,7 @@ import { Logo } from "../logo/logo";
 import { AccessibilityComponent } from '../accessibility/accessibility.component';
 import { environment } from '@environments/environment';
 import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
 
 export interface HorizontalMenuOption {
   id: string;
@@ -21,7 +22,7 @@ export interface HorizontalMenuOption {
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule, Logo, ButtonModule, AccessibilityComponent],
+  imports: [CommonModule, Logo, ButtonModule, AccessibilityComponent, DialogModule],
   templateUrl: './header.html',
   styles: ``
 })
@@ -33,6 +34,7 @@ export class Header implements OnInit, OnDestroy {
 
   selectedMenuItem: MenuItem | null = null;
   private menuSubscription!: Subscription;
+  showLogoutDialog = false;
 
   private menuService = inject(MenuService);
   private authService = inject(AuthService);
@@ -51,8 +53,17 @@ export class Header implements OnInit, OnDestroy {
   }
 
   onLogout(): void {
+    this.showLogoutDialog = true;
+  }
+
+  confirmLogout(): void {
+    this.showLogoutDialog = false;
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  cancelLogout(): void {
+    this.showLogoutDialog = false;
   }
 
   onHorizontalOptionClick(option: HorizontalMenuOption): void {
