@@ -4,12 +4,11 @@ import { AuthService } from '@services/authentication/auth-service';
 import { Theme } from '@services/theme/theme';
 import { ToastModule } from 'primeng/toast';
 import { HabeasDataComponent } from '@features/habeas-data/habeas-data.component';
-import { AccessibilityComponent } from '@app/shared/components/accessibility/accessibility.component';
 
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ToastModule, HabeasDataComponent, AccessibilityComponent],
+  imports: [RouterOutlet, ToastModule, HabeasDataComponent],
   templateUrl: './app.html',
 })
 export class App {

@@ -116,7 +116,14 @@ export class HabeasDataComponent implements OnInit {
   }
 
   accept(): void {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('es-CO', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
     localStorage.setItem('habeas_data_accepted', 'true');
+    localStorage.setItem('habeas_data_date', dateStr);
     this.visible = false;
   }
 

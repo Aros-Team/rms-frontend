@@ -85,9 +85,9 @@ export class WorkerArea implements OnInit {
       },
       {
         id: 'profile',
-        label: 'Mi Perfil',
-        description: 'Cambiar contraseña',
-        icon: 'pi pi-user',
+        label: 'Configuración',
+        description: 'Ajustes de cuenta',
+        icon: 'pi pi-cog',
         routerLink: '/worker/profile'
       }
     ];

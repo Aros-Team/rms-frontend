@@ -9,6 +9,6 @@ import { theme } from '@environments/theme';
 })
 export class Logo {
   @Input() color: string = theme.primary[500];
-  @Input() size: number = 150;
+  @Input() size = 150;
 
 }
