@@ -6,11 +6,24 @@ import { LoggingService } from '@app/core/services/logging/logging-service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
+  private readonly publicPaths = [
+    '/auth/login',
+    '/auth/forgot-password',
+    '/auth/reset-password',
+    '/auth/refresh',
+    '/auth/register',
+  ];
+
   intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     const loggingService = inject(LoggingService);
     const authService = inject(AuthService);
 
     loggingService.http(`Intercepting ${req.method} request to ${req.url}`);
+
+    if (this.isPublicPath(req.url)) {
+      loggingService.http('Public endpoint detected, skipping Authorization header. URL:', req.url);
+      return next.handle(req);
+    }
 
     const newHeaders: Record<string, string> = {};
 
@@ -26,5 +39,9 @@ export class AuthInterceptor implements HttpInterceptor {
     });
 
     return next.handle(newReq);
+  }
+
+  private isPublicPath(url: string): boolean {
+    return this.publicPaths.some(path => url.includes(path));
   }
 }

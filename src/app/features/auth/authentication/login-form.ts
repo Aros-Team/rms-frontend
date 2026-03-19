@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { PasswordModule } from 'primeng/password';
 import { MessageModule } from 'primeng/message'
 import { AuthService } from '@services/authentication/auth-service';
@@ -22,9 +22,10 @@ import { LoggingService } from '@app/core/services/logging/logging-service';
     InputTextModule,
     ButtonModule],
 })
-export class LoginForm {
+export class LoginForm implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private messageService = inject(MessageService);
   private loggingService = inject(LoggingService);
 
@@ -34,6 +35,20 @@ export class LoginForm {
   });
 
   formStatus: 'Free' | 'Occuped' = 'Free';
+
+  ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      if (params['passwordResetSent']) {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Correo enviado',
+          detail: 'Se ha enviado un correo para restablecer tu contraseña.',
+          life: 5000
+        });
+        this.router.navigate([], { queryParams: { passwordResetSent: null }, queryParamsHandling: 'merge' });
+      }
+    });
+  }
 
   onSubmit() {
     this.loggingService.auth('Login form submitted');
@@ -129,6 +144,6 @@ export class LoginForm {
   }
 
   goToForgotPassword(): void {
-    this.router.navigate(['/login/forgot-password']);
+    this.router.navigate(['/forgot-password']);
   }
 }

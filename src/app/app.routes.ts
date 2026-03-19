@@ -18,7 +18,8 @@ import { WorkerArea } from '@areas/worker/worker-area';
 import { Users } from './features/admin/manage/users/users';
 import { TwoFactorVerifyComponent } from './features/auth/two-factor-verify/two-factor-verify.component';
 import { ForgotPasswordComponent } from './features/auth/authentication/forgot-password.component';
-import { ProfileComponent } from './features/profile/profile.component';
+import { ResetPasswordComponent } from './features/auth/authentication/reset-password.component';
+import { SettingsComponent } from './features/settings/settings.component';
 import { WaiterArea } from '@features/waiter/waiter-area';
 import { DayMenu } from '@features/waiter/day-menu/day-menu';
 import { TodayOrders } from '@features/waiter/today-orders/today-orders';
@@ -34,8 +35,12 @@ export const routes: Routes = [
     canActivate: [RedirectGuard],
   },
   {
-    path: 'login/forgot-password',
+    path: 'forgot-password',
     component: ForgotPasswordComponent,
+  },
+  {
+    path: 'reset-password',
+    component: ResetPasswordComponent,
   },
   {
     path: 'login/verify',
@@ -103,7 +108,7 @@ export const routes: Routes = [
       },
       {
         path: 'profile',
-        component: ProfileComponent,
+        component: SettingsComponent,
       },
     ],
   },
@@ -118,7 +123,7 @@ export const routes: Routes = [
       { path: 'take-order', component: TakeOrder },
       { path: 'orders', component: TodayOrders },
       { path: 'kitchen', component: Kitchen },
-      { path: 'profile', component: ProfileComponent },
+      { path: 'profile', component: SettingsComponent },
     ]
   },
   {

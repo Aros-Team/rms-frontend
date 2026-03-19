@@ -124,7 +124,7 @@ export class ForgotPasswordComponent {
     this.passwordService.forgotPassword(email).subscribe({
       next: () => {
         this.loading.set(false);
-        this.success.set(true);
+        this.router.navigate(['/login'], { queryParams: { passwordResetSent: true } });
       },
       error: (err) => {
         this.loading.set(false);
