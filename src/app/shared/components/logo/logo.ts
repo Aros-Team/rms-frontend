@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { theme } from '@environments/theme';
+import { theme } from '../../../environments/theme';
 
 @Component({
   selector: 'app-logo',

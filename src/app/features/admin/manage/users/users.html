@@ -65,14 +65,18 @@
                 icon="pi pi-pencil"
                 label="Editar"
                 size="small"
-                (click)="showModificationModal(user)"
+                [disabled]="true"
+                pTooltip="Próximamente"
+                tooltipPosition="top"
               ></p-button>
               <p-button
-                (click)="deleteUser(user.document)"
                 severity="danger"
                 icon="pi pi-trash"
                 label="Eliminar"
                 size="small"
+                [disabled]="true"
+                pTooltip="Próximamente"
+                tooltipPosition="top"
               ></p-button>
             </div>
           </td>
@@ -92,7 +96,11 @@
 >
   <div class="p-4">
     @if (editing) {
-    <span class="p-text-secondary block mb-8">Modifica un usuario</span>
+    <div class="text-center py-8">
+      <i class="pi pi-clock text-5xl text-color-secondary mb-4 block"></i>
+      <p class="text-lg font-semibold text-color">Funcionalidad próximamente disponible</p>
+      <p class="text-sm text-color-secondary mt-2">La edición de usuarios estará disponible pronto</p>
+    </div>
     } @else {
     <span class="p-text-secondary block mb-8">Crea un nuevo usuario</span>
     }
@@ -177,12 +185,10 @@
     </form>
 
     <div class="flex justify-start gap-2 mt-8">
-      @if (editing) {
-      <p-button icon="pi pi-save" label="Modificar" (click)="updateUser()" />
-      } @else {
+      @if (!editing) {
       <p-button icon="pi pi-save" label="Crear" (click)="createUser()" />
       }
-      <p-button icon="pi pi-ban" label="Cancelar" severity="secondary" (click)="closeModals()" />
+      <p-button icon="pi pi-ban" label="Cerrar" severity="secondary" (click)="closeModals()" />
     </div>
   </div>
 </p-dialog>

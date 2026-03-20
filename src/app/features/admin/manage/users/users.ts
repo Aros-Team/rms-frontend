@@ -75,11 +75,13 @@ export class Users implements OnInit {
   }
 
   showModificationModal(data: UserResponse) {
-    this.closeModals();
-    this.fillFormWithData(data);
-    this.editing = true;
-    // this.modificationModalVisible = true;
-    this.creationModalVisible = true;
+    this.loggingService.debug('Edición de usuarios aún no disponible');
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Próximamente',
+      detail: 'La funcionalidad de edición estará disponible pronto.',
+      life: 3000,
+    });
   }
 
   showCreationModal() {
@@ -133,27 +135,22 @@ export class Users implements OnInit {
   }
   
   updateUser() {
-    this.userService.updateUser(this.formToRequest()).subscribe(() => {
-      this.closeModals();
-      this.searchForUsers();
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Operacion exitosa.',
-        detail: 'El usuario ha sido actualizado exitosamente.',
-        life: 3000,
-      });
+    this.loggingService.debug('Actualización de usuarios aún no disponible');
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Próximamente',
+      detail: 'La funcionalidad de edición estará disponible pronto.',
+      life: 3000,
     });
   }
-  
+
   deleteUser(document: string) {
-    this.userService.deleteUser(document).subscribe(() => {
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Operacion exitosa.',
-        detail: 'El usuario ha sido eliminado exitosamente.',
-        life: 3000,
-      });
-      this.searchForUsers();
+    this.loggingService.debug('Eliminación de usuarios aún no disponible');
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Próximamente',
+      detail: 'La funcionalidad de eliminación estará disponible pronto.',
+      life: 3000,
     });
   }
 
