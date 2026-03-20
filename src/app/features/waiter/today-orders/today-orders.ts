@@ -23,7 +23,7 @@ export class TodayOrders implements OnInit {
   processing = new Set<number>();
 
   selectedStatus = '';
-  selectedDate: Date = new Date();
+  selectedDate: string = new Date().toISOString().split('T')[0];
 
   statusOptions = [
     { label: 'Todos', value: '' },
@@ -42,10 +42,11 @@ export class TodayOrders implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    const date = this.selectedDate || new Date();
+    const startDate = new Date(this.selectedDate + 'T00:00:00');
+    const endDate = new Date(this.selectedDate + 'T23:59:59');
     const status = this.selectedStatus || undefined;
 
-    this.orderService.getOrdersByDateRange(date, date, status).subscribe({
+    this.orderService.getOrdersByDateRange(startDate, endDate, status).subscribe({
       next: (data) => {
         this.log.debug('TodayOrders: loaded', data);
         this.orders.set(data);

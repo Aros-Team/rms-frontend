@@ -14,12 +14,8 @@ export class OrderService {
   private http = inject(HttpClient);
   private log = inject(LoggingService);
 
-  private toLocalDateString(date: Date): string {
-    const d = new Date(date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+  private toLocalDateString(dateStr: string): string {
+    return dateStr.split('T')[0];
   }
 
   private filterOrdersByDateRange(
@@ -27,11 +23,11 @@ export class OrderService {
     startDate: Date,
     endDate: Date
   ): OrderResponse[] {
-    const startStr = this.toLocalDateString(startDate);
-    const endStr = this.toLocalDateString(endDate);
+    const startStr = this.toLocalDateString(startDate.toISOString());
+    const endStr = this.toLocalDateString(endDate.toISOString());
 
     return orders.filter(o => {
-      const orderDateStr = this.toLocalDateString(new Date(o.date));
+      const orderDateStr = this.toLocalDateString(o.date);
       return orderDateStr >= startStr && orderDateStr <= endStr;
     });
   }
