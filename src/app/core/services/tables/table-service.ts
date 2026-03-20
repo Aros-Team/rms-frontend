@@ -18,14 +18,6 @@ export class TableService {
     return this.http.get<TableResponse>(`v1/tables/${id}`);
   }
 
-  public createMultipleTables(total: number): Observable<object> {
-    return this.http.post('v1/tables/create-multiple', { count: total });
-  }
-
-  public getTable(id: number): Observable<TableResponse> {
-    return this.http.get<TableResponse>(`v1/tables/${id}`);
-  }
-
   public createTable(data: TableRequest): Observable<TableResponse> {
     return this.http.post<TableResponse>('v1/tables', data);
   }

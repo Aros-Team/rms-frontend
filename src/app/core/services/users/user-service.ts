@@ -22,12 +22,4 @@ export class UserService {
     this.loggingService.debug('UserService: Calling POST users with data:', data);
     return this.http.post('v1/users', data);
   }
-
-  public updateUser(data: CreateUserRequest): Observable<object> {
-    return this.http.put(`v1/users/${data.document}`, data);
-  }
-
-  public deleteUser(document: string): Observable<object> {
-    return this.http.delete(`v1/users/${document}`);
-  }
 }

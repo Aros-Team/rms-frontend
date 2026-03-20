@@ -158,7 +158,7 @@ export class Users implements OnInit {
   }
 
   private fillFormWithData(data: UserResponse): void {
-    this.userForm.setValue({ ...data, areas: data.areas.map(a => a.id), password: '' });
+    this.userForm.setValue({ ...data, areas: data.assignedAreas || [], password: '' });
     this.loggingService.debug("areas => ");
     this.loggingService.debug(this.userForm.get('areas')?.value);
   }

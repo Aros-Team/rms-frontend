@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 
 import { LoggingService } from '@app/core/services/logging/logging-service';
-import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
+import { OrderResponse, calculateTotalPrice } from '@app/shared/models/dto/orders/order-response.model';
 import { UpdateOrderRequest } from '@app/shared/models/dto/orders/update-order-status.model';
 import { CreateOrderRequest } from '@app/shared/models/dto/orders/create-order-request.model';
 
@@ -102,7 +102,7 @@ export class OrderService {
     return this.getTodayOrders().pipe(
       map(orders =>
         orders.filter(o => o.status === 'DELIVERED')
-              .reduce((sum, o) => sum + (o.totalPrice ?? 0), 0)
+              .reduce((sum, o) => sum + calculateTotalPrice(o), 0)
       )
     );
   }
