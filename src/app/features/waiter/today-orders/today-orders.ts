@@ -39,6 +39,10 @@ export class TodayOrders implements OnInit {
   }
 
   fetchOrders(): void {
+    if (!this.selectedDate || this.selectedDate.trim() === '') {
+      this.selectedDate = new Date().toISOString().split('T')[0];
+    }
+
     this.loading.set(true);
     this.error.set(null);
 
