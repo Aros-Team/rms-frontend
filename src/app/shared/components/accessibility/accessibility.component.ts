@@ -129,18 +129,18 @@ interface FontSizeOption {
       padding: 0.25rem;
       border: none;
       border-radius: 50%;
-      background: #e0af24;
+      background: #4c86e5;
       color: white;
       cursor: pointer;
       transition: background-color 0.2s;
     }
 
     .accessibility-btn:hover {
-      background: #c49a1f;
+      background: #3a6fd1;
     }
 
     .accessibility-btn:focus {
-      outline: 2px solid #e0af24;
+      outline: 2px solid #4c86e5;
       outline-offset: 2px;
     }
 
