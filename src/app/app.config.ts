@@ -21,7 +21,7 @@ import { routes } from './app.routes';
 import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
-import { theme } from '@environments/theme';
+import { theme } from '../environments/theme';
 
 const Primary = theme.primary;
 
