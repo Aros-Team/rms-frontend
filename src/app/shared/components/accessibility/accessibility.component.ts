@@ -17,13 +17,22 @@ interface FontSizeOption {
   standalone: true,
   imports: [CommonModule, ButtonModule, DialogModule, SelectButtonModule, FormsModule],
   template: `
-    <p-button 
-      icon="pi pi-wrench"
-      (onClick)="showDialog()" 
-      severity="primary"
+    <button 
+      type="button"
       class="accessibility-btn"
-      [title]="'Accesibilidad'"
-    ></p-button>
+      (click)="showDialog()" 
+      title="Accesibilidad"
+      aria-label="Abrir configuración de accesibilidad"
+    >
+      <svg width="24" height="24" viewBox="0 0 100 100" fill="currentColor">
+        <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" stroke-width="4"/>
+        <circle cx="50" cy="22" r="10"/>
+        <line x1="50" y1="32" x2="50" y2="58" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+        <line x1="15" y1="45" x2="85" y2="45" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+        <line x1="50" y1="58" x2="30" y2="88" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+        <line x1="50" y1="58" x2="70" y2="88" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+    </button>
 
     <p-dialog 
       header="Configuración de Accesibilidad" 
@@ -107,14 +116,37 @@ interface FontSizeOption {
     </p-dialog>
   `,
   styles: [`
-    :host ::ng-deep .accessibility-btn .p-button {
-      padding: 0.25rem;
-      width: 2rem;
-      height: 2rem;
+    :host {
+      display: inline-block;
     }
 
-    :host ::ng-deep .accessibility-btn .p-button-icon {
-      font-size: 1rem;
+    .accessibility-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      padding: 0.25rem;
+      border: none;
+      border-radius: 50%;
+      background: var(--primary-color, #3c8c36);
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .accessibility-btn:hover {
+      background: var(--primary-color-dark, #2d6b29);
+    }
+
+    .accessibility-btn:focus {
+      outline: 2px solid var(--primary-color, #3c8c36);
+      outline-offset: 2px;
+    }
+
+    .accessibility-btn svg {
+      width: 1.25rem;
+      height: 1.25rem;
     }
 
     :host ::ng-deep .font-size-btn {

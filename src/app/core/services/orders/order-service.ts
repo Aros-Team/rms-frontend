@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 
 import { LoggingService } from '@app/core/services/logging/logging-service';
@@ -29,29 +29,42 @@ export class OrderService {
   }
 
   getTodayOrders(): Observable<OrderResponse[]> {
-    return this.http.get<OrderResponse[]>('v1/orders').pipe(
-      map(orders => {
-        const todayStr = new Date().toISOString().split('T')[0];
-        return orders.filter(o => new Date(o.date).toISOString().split('T')[0] === todayStr);
-      })
-    );
+    const today = new Date();
+    const startOfDay = new Date(today);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(today);
+    endOfDay.setHours(23, 59, 59, 999);
+    
+    const params = new HttpParams()
+      .set('startDate', startOfDay.toISOString().replace('Z', ''))
+      .set('endDate', endOfDay.toISOString().replace('Z', ''));
+    
+    return this.http.get<OrderResponse[]>('v1/orders', { params });
   }
 
   getOrdersByDateRange(startDate: Date, endDate: Date, status?: string): Observable<OrderResponse[]> {
-    return this.http.get<OrderResponse[]>('v1/orders').pipe(
-      map(orders => {
-        const startStr = startDate.toISOString().split('T')[0];
-        const endStr = endDate.toISOString().split('T')[0];
-        let filtered = orders.filter(o => {
-          const orderDate = new Date(o.date).toISOString().split('T')[0];
-          return orderDate >= startStr && orderDate <= endStr;
-        });
-        if (status) {
-          filtered = filtered.filter(o => o.status === status);
-        }
-        return filtered;
-      })
-    );
+    let params = new HttpParams();
+    
+    if (status) {
+      params = params.set('status', status);
+    }
+    
+    const startISO = this.toLocalDateTimeString(startDate, 'start');
+    const endISO = this.toLocalDateTimeString(endDate, 'end');
+    params = params.set('startDate', startISO);
+    params = params.set('endDate', endISO);
+    
+    return this.http.get<OrderResponse[]>('v1/orders', { params });
+  }
+  
+  private toLocalDateTimeString(date: Date, type: 'start' | 'end'): string {
+    const d = new Date(date);
+    if (type === 'start') {
+      d.setHours(0, 0, 0, 0);
+    } else {
+      d.setHours(23, 59, 59, 999);
+    }
+    return d.toISOString().replace('Z', '');
   }
 
   // ── Crear ──────────────────────────────────────────────────
