@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, inject, Input, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
@@ -10,7 +10,7 @@ import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-layout',
-  imports: [CommonModule, Header, Sidebar],
+  imports: [Header, Sidebar],
   templateUrl: './layout.html',
   styles: ``
 })

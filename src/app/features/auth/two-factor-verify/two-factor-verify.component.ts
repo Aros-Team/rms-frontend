@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { InputTextModule } from 'primeng/inputtext';
@@ -13,12 +13,11 @@ import { LoggingService } from '@app/core/services/logging/logging-service';
   selector: 'app-two-factor-verify',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     InputTextModule,
     ButtonModule,
-    MessageModule,
-  ],
+    MessageModule
+],
   template: `
     <main class="min-h-screen w-full flex items-center justify-center p-4 bg-surface-50 dark:bg-surface-900">
       <div class="w-full max-w-md">

@@ -1,5 +1,5 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PasswordModule } from 'primeng/password';
@@ -20,13 +20,12 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
   selector: 'app-reset-password',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     PasswordModule,
     InputTextModule,
     ButtonModule,
     MessageModule
-  ],
+],
   template: `
     <div class="w-full max-w-md mx-auto p-6">
       <div class="text-center mb-6">

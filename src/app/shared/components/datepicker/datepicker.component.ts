@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { DatePickerModule } from 'primeng/datepicker';
 import { FloatLabelModule } from 'primeng/floatlabel';
@@ -7,7 +7,7 @@ import { FloatLabelModule } from 'primeng/floatlabel';
 @Component({
   selector: 'app-shared-datepicker',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePickerModule, FloatLabelModule],
+  imports: [FormsModule, DatePickerModule, FloatLabelModule],
   templateUrl: './datepicker.component.html',
 })
 export class SharedDatepickerComponent {

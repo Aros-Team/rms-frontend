@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
@@ -11,7 +11,7 @@ import { OptionNamesPipe } from '@app/shared/pipes/option-names.pipe';
 @Component({
   selector: 'app-today-orders',
   templateUrl: './today-orders.html',
-  imports: [CommonModule, RouterModule, FormsModule, OptionNamesPipe],
+  imports: [RouterModule, FormsModule, OptionNamesPipe],
 })
 export class TodayOrders implements OnInit {
   private orderService = inject(OrderService);

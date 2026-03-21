@@ -1,12 +1,12 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ChartModule } from 'primeng/chart';
 import { AnalyticsService } from '@app/core/services/analytics/analytics-service';
 
 @Component({
   selector: 'app-top-selling-chart',
   standalone: true,
-  imports: [CommonModule, ChartModule],
+  imports: [ChartModule],
   templateUrl: './top-selling-chart.component.html',
 })
 export class TopSellingChartComponent implements OnInit {

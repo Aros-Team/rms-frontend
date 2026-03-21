@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -22,7 +22,6 @@ import { LoggingService } from '@app/core/services/logging/logging-service';
 @Component({
   selector: 'app-menu',
   imports: [
-    CommonModule,
     RouterModule,
     ReactiveFormsModule,
     ButtonModule,
@@ -32,7 +31,7 @@ import { LoggingService } from '@app/core/services/logging/logging-service';
     CardModule,
     ToastModule,
     SelectModule
-  ],
+],
   templateUrl: './menu.html',
   styles: ``,
   providers: [MessageService]

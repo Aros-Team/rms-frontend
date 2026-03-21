@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -11,7 +11,7 @@ import { OrderService } from '@app/core/services/orders/order-service';
 @Component({
   selector: 'app-waiter-area',
   standalone: true,
-  imports: [CommonModule, RouterModule, ButtonModule, CardModule, DividerModule],
+  imports: [RouterModule, ButtonModule, CardModule, DividerModule],
   template: `
     <div class="min-h-screen bg-surface-50 dark:bg-surface-900">
       <div class="mb-6">

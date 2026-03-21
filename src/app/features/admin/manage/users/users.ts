@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -20,7 +20,6 @@ import { LoggingService } from '@app/core/services/logging/logging-service';
 @Component({
   selector: 'app-users',
   imports: [
-    CommonModule,
     RouterModule,
     TableModule,
     ButtonModule,
@@ -31,8 +30,8 @@ import { LoggingService } from '@app/core/services/logging/logging-service';
     InputIconModule,
     IconFieldModule,
     MultiSelectModule,
-    FormValidation,
-  ],
+    FormValidation
+],
   templateUrl: './users.html',
   styles: ``,
 })

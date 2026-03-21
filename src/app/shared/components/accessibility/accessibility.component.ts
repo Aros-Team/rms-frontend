@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { SelectButtonModule } from 'primeng/selectbutton';
@@ -15,7 +15,7 @@ interface FontSizeOption {
 @Component({
   selector: 'app-accessibility',
   standalone: true,
-  imports: [CommonModule, ButtonModule, DialogModule, SelectButtonModule, FormsModule],
+  imports: [ButtonModule, DialogModule, SelectButtonModule, FormsModule],
   template: `
     <button 
       type="button"

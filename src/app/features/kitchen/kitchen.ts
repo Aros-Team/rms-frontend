@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { interval, Subscription } from 'rxjs';
@@ -10,7 +10,7 @@ import { OptionNamesPipe } from '@app/shared/pipes/option-names.pipe';
 
 @Component({
   selector: 'app-kitchen',
-  imports: [CommonModule, RouterModule, OptionNamesPipe],
+  imports: [RouterModule, OptionNamesPipe],
   templateUrl: './kitchen.html',
 })
 export class Kitchen implements OnInit, OnDestroy {

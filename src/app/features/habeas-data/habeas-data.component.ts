@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { Router } from '@angular/router';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
@@ -9,7 +9,7 @@ import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-habeas-data',
   standalone: true,
-  imports: [CommonModule, DialogModule, ButtonModule, CheckboxModule, FormsModule],
+  imports: [DialogModule, ButtonModule, CheckboxModule, FormsModule],
   template: `
     <p-dialog 
       [(visible)]="visible" 

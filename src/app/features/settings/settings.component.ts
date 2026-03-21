@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ChangePasswordComponent } from '@features/auth/authentication/change-password.component';
 import { AuthService } from '@app/core/services/authentication/auth-service';
 import { DialogModule } from 'primeng/dialog';
@@ -8,7 +8,7 @@ import { ButtonModule } from 'primeng/button';
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, ChangePasswordComponent, DialogModule, ButtonModule],
+  imports: [ChangePasswordComponent, DialogModule, ButtonModule],
   template: `
     <div class="p-6 max-w-3xl mx-auto">
       <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-100 mb-6">

@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PasswordModule } from 'primeng/password';
@@ -15,13 +15,12 @@ import { MessageService } from 'primeng/api';
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    CommonModule,
     PasswordModule,
     MessageModule,
     FloatLabelModule,
     InputTextModule,
     ButtonModule
-  ],
+],
   template: `
     <div class="w-full max-w-md mx-auto p-6">
       <div class="text-center mb-6">

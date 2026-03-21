@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, inject, OnInit } from '@angular/core';
 import {
   FormBuilder,
@@ -32,7 +32,6 @@ import { TextareaModule } from 'primeng/textarea';
 @Component({
   selector: 'app-products',
   imports: [
-    CommonModule,
     RouterModule,
     TableModule,
     ProgressSpinnerModule,
@@ -47,8 +46,8 @@ import { TextareaModule } from 'primeng/textarea';
     DialogModule,
     ReactiveFormsModule,
     FormValidation,
-    InputNumberModule,
-  ],
+    InputNumberModule
+],
   templateUrl: './products.html',
   styles: ``,
 })

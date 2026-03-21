@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -14,13 +14,7 @@ import { LoggingService } from '@app/core/services/logging/logging-service';
 @Component({
   selector: 'app-login-form',
   templateUrl: './login-form.html',
-  imports: [ReactiveFormsModule,
-    CommonModule,
-    PasswordModule,
-    MessageModule,
-    FloatLabelModule,
-    InputTextModule,
-    ButtonModule],
+  imports: [ReactiveFormsModule, PasswordModule, MessageModule, FloatLabelModule, InputTextModule, ButtonModule],
 })
 export class LoginForm implements OnInit {
   private authService = inject(AuthService);

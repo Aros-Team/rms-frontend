@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { IftaLabelModule } from 'primeng/iftalabel';
@@ -17,7 +17,6 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 @Component({
   selector: 'app-categories',
   imports: [
-    CommonModule,
     RouterModule,
     ReactiveFormsModule,
     IftaLabelModule,
@@ -26,8 +25,8 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
     FormValidation,
     ChipModule,
     DialogModule,
-    ConfirmDialogModule,
-  ],
+    ConfirmDialogModule
+],
   templateUrl: './categories.html',
   styles: ``,
 })

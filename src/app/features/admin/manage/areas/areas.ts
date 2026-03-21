@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AreaService } from '@app/core/services/areas/area-service';
@@ -15,7 +15,6 @@ import { FormValidation } from '@app/shared/components/form/form-validation';
   selector: 'app-areas',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     TableModule,
     ButtonModule,
@@ -23,8 +22,8 @@ import { FormValidation } from '@app/shared/components/form/form-validation';
     IftaLabelModule,
     InputTextModule,
     SelectModule,
-    FormValidation,
-  ],
+    FormValidation
+],
   template: `
     <div class="p-4">
       <div class="flex justify-between items-center mb-4">

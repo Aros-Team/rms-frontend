@@ -1,12 +1,12 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ButtonModule } from 'primeng/button';
 import { AccessibilityService, FontSize, ContrastMode } from '@app/core/services/accessibility/accessibility.service';
 
 @Component({
   selector: 'app-accessibility-settings',
   standalone: true,
-  imports: [CommonModule, ButtonModule],
+  imports: [ButtonModule],
   template: `
     <div class="flex flex-col gap-4 p-4">
       <div>

@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -15,7 +15,6 @@ import { TableResponse } from '@app/shared/models/dto/tables/table.model';
 @Component({
   selector: 'app-tables',
   imports: [
-    CommonModule,
     RouterModule,
     ReactiveFormsModule,
     ButtonModule,
@@ -23,8 +22,8 @@ import { TableResponse } from '@app/shared/models/dto/tables/table.model';
     InputNumberModule,
     TableModule,
     IftaLabelModule,
-    DialogModule,
-  ],
+    DialogModule
+],
   templateUrl: './tables.html',
   styles: ``
 })
