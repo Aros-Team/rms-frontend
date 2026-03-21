@@ -3,6 +3,7 @@
 deploy.sh
 .env
 src/environments/theme*.ts
+.plan-build*.md
 
 # Compiled output
 **/dist
