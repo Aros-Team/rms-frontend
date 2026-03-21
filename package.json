@@ -11,7 +11,8 @@
     "colors": "node scripts/generate-colors.js production && node scripts/generate-colors.js development",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint --fix"
+    "lint": "ng lint --fix",
+    "lint:check": "ng lint"
   },
   "prettier": {
     "printWidth": 100,

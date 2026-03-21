@@ -1,0 +1,40 @@
+version: '3'
+
+vars:
+  DOCKER_IMAGE: spalaxdev/rms-frontend
+  VERSION:
+    sh: "node -e \"console.log(require('./package.json').version)\""
+
+tasks:
+  test:
+    desc: Run tests
+    cmds:
+      - npm test
+
+  format:
+    desc: Fix code formatting
+    cmds:
+      - npm run lint
+
+  format:check:
+    desc: Check code formatting without fixing
+    cmds:
+      - npm run lint:check
+
+  build:
+    desc: Run tests, check format, then build and create Docker image
+    cmds:
+      - task: test
+      - task: format:check
+      - npm run build
+      - docker build -t {{.DOCKER_IMAGE}}:{{.VERSION}} build/
+
+  build:dev:
+    desc: Development build
+    cmds:
+      - npm run build:dev
+
+  build:prod:
+    desc: Production build without Docker
+    cmds:
+      - npm run build
