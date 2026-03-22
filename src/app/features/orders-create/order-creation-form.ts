@@ -131,20 +131,34 @@ export class OrderCreationForm implements OnInit {
       },
       error: (err) => {
         this.loggingService.error('CreateOrder failed', err);
-        let backendMsg = (err && err.error && (err.error.message || err.error.error || err.message)) || 'No se pudo crear el pedido.';
-        // Try to surface validation errors if present
-        const validation = err?.error?.errors;
-        if (validation) {
-          if (Array.isArray(validation)) {
-            backendMsg += ' - ' + validation.join(', ');
-          } else if (typeof validation === 'object') {
-            const parts = Object.entries(validation).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`);
-            backendMsg += ' - ' + parts.join('; ');
-          }
-        }
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: backendMsg });
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.resolveCreateOrderError(err) });
       }
     });
+  }
+
+  private resolveCreateOrderError(err: { status?: number; error?: { message?: string } }): string {
+    const status = err?.status;
+    const message = err?.error?.message ?? '';
+
+    if (status === 409) {
+      if (message.startsWith('Table not available')) return 'La mesa no está disponible.';
+      if (message.startsWith('Insufficient stock')) return 'Stock insuficiente para completar la orden.';
+      return message || 'Conflicto al procesar la orden.';
+    }
+
+    if (status === 404) {
+      if (message.startsWith('Table not found')) return 'Mesa no encontrada.';
+      if (message.startsWith('Product not found')) return 'Producto no encontrado.';
+      return message || 'Recurso no encontrado.';
+    }
+
+    if (status === 400) {
+      if (message.startsWith('Option') && message.includes('is not valid for product')) return 'Opción no válida para este producto.';
+      if (message) return `Datos inválidos: ${message}`;
+      return 'Datos inválidos, revisa el formulario.';
+    }
+
+    return message || 'No se pudo crear el pedido.';
   }
 
   private loadProducts(): void {
