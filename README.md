@@ -30,31 +30,32 @@ Before running this project, ensure you have installed:
 
 - [Node.js](https://nodejs.org/) – required for running the application
 - [npm](https://www.npmjs.com/) – package manager (comes with Node.js)
+- [Taskfile](https://taskfile.dev/) – for running common commands
+- [Docker](https://www.docker.com/) – required for build
 - [Angular CLI](https://angular.io/cli) – to simplify command execution
 
 
 ## First steps
 
+This project uses [Taskfile](https://taskfile.dev/) for running common commands.
+
 - **Run the project:**
-  ```
-  npm start
+  ```bash
+  task run
   ```
 
 - **Build the project:**
-  ```
-  # Development build
-  npm run build:dev
-
-  # Production build
-  npm run build
-  ```
-
-- **Lint the code:**
-  ```
-  npm run lint
+  ```bash
+  task build
   ```
 
 - **Run tests:**
+  ```bash
+  task test
   ```
-  ng test
+
+- **Lint and format:**
+  ```bash
+  task format        # Check and fix formatting
+  task format:check  # Check without fixing
   ```

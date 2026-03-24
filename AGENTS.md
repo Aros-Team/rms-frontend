@@ -4,8 +4,13 @@ This file contains guidelines and conventions for AI agents working on this code
 
 ## 1. Build, Lint, and Test Commands
 
+This project uses [Taskfile](https://taskfile.dev/) for running common commands.
+
 ### Build Commands
 ```bash
+# Start development server
+task run
+
 # Development build (with color generation)
 npm run build:dev
 
@@ -14,25 +19,21 @@ npm run build
 
 # Watch mode for development
 npm run watch
-
-# Start development server
-npm start
-# or: ng serve --configuration development
 ```
 
 ### Linting
 ```bash
 # Run lint with auto-fix
-npm run lint
+task format
 
 # Or via Angular CLI
-ng lint --fix
+npm run lint
 ```
 
 ### Testing
 ```bash
 # Run all tests
-ng test
+task test
 
 # Run tests in watch mode (interactive)
 ng test --watch

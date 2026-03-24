@@ -6,6 +6,12 @@ vars:
     sh: "node -e \"console.log(require('./package.json').version)\""
 
 tasks:
+
+  run:
+    desc: Run app
+    cmds:
+      - npm run start
+
   test:
     desc: Run tests
     cmds:
@@ -28,13 +34,3 @@ tasks:
       - task: format:check
       - npm run build
       - docker build -t {{.DOCKER_IMAGE}}:{{.VERSION}} build/
-
-  build:dev:
-    desc: Development build
-    cmds:
-      - npm run build:dev
-
-  build:prod:
-    desc: Production build without Docker
-    cmds:
-      - npm run build
