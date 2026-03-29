@@ -395,3 +395,61 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Design services around a single responsibility
 - Use the `providedIn: 'root'` option for singleton services
 - Use the `inject()` function instead of constructor injection
+
+## 17. Docker Best Practices
+
+This project uses Docker for containerization. The Dockerfile is located in `build/Dockerfile`.
+
+### Documentation References
+- **Docker:** Before creating or modifying Docker configurations, consult https://docs.docker.com/llms.txt
+- Focus on: Building images, Writing Dockerfiles, Multi-stage builds, Image layers, Build cache
+
+### Building Images
+
+```bash
+# Build Docker image (using version from package.json)
+task build
+
+# Or manually
+docker build -t spalaxdev/rms-frontend:0.1.0 build/
+```
+
+### Dockerfile Best Practices
+
+- **Use multi-stage builds** for optimized image size
+- **Leverage build cache** by ordering instructions from least to most frequently changing
+- **Use specific base image versions** (e.g., `nginx:stable-alpine` not `nginx:latest`)
+- **Minimize layers** by combining related instructions
+- **Use .dockerignore** to exclude unnecessary files
+
+Example structure:
+```dockerfile
+# Build stage (if needed for Angular)
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+# Production stage
+FROM nginx:stable-alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+### Image Tagging
+
+- Use semantic versioning: `spalaxdev/rms-frontend:0.2.0`
+- Tag latest for current stable: `spalaxdev/rms-frontend:latest`
+- Always tag before pushing to registry
+
+### Build Process
+
+The project's build process (via `task build`):
+1. Run tests (`npm test`)
+2. Check code format (`npm run lint:check`)
+3. Build Angular app (`npm run build`)
+4. Build Docker image (`docker build -t spalaxdev/rms-frontend:VERSION build/`)
