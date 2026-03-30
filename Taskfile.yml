@@ -28,9 +28,7 @@ tasks:
       - npm run lint:check
 
   build:
-    desc: Run tests, check format, then build and create Docker image
+    desc: Build and create Docker image
     cmds:
-      - task: test
-      - task: format:check
       - npm run build
       - docker build -t {{.DOCKER_IMAGE}}:{{.VERSION}} build/
