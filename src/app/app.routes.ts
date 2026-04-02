@@ -96,6 +96,10 @@ export const routes: Routes = [
             path: 'users',
             component: Users,
           },
+          {
+            path: 'inventory',
+            loadComponent: () => import('./features/admin/manage/inventory/inventory').then(m => m.Inventory),
+          },
         ]
       },
       {
