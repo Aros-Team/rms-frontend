@@ -1,34 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { DayMenuCreateRequest, DayMenuUpdateRequest } from '@app/shared/models/dto/daymenu/daymenu-create-request';
-
-
-export interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  preparationTime: number;
-}
-
-export interface Category {
-  id: number;
-  name: string;
-  products: Product[];
-  position: number;
-}
-
-export interface DayMenu {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  preparationTime: number;
-  active: boolean;
-  creation: string;
-  categories: Category[];
-}
+import { DayMenuResponse, DayMenuHistoryPage } from '@app/shared/models/dto/daymenu/daymenu-response';
 
 @Injectable({
   providedIn: 'root'
@@ -36,28 +9,17 @@ export interface DayMenu {
 export class DayMenuService {
   private http = inject(HttpClient);
 
-
-  getDayMenu(): Observable<DayMenu> {
-    return this.http.get<DayMenu>('daymenu/current');
+  getCurrentDayMenu(): Observable<DayMenuResponse> {
+    return this.http.get<DayMenuResponse>('v1/day-menu/current');
   }
 
-  getActiveDayMenu(): Observable<DayMenu> {
-    return this.getDayMenu();
+  updateDayMenu(productId: number): Observable<DayMenuResponse> {
+    return this.http.put<DayMenuResponse>('v1/day-menu', { productId });
   }
 
-  createDayMenu(dayMenu: DayMenuCreateRequest): Observable<string> {
-    return this.http.post<string>('daymenu', dayMenu, { responseType: 'text' as 'json' });
-  }
-
-  updateDayMenu(dayMenu: DayMenuUpdateRequest): Observable<DayMenu> {
-    return this.http.put<DayMenu>('daymenu/update', dayMenu);
-  }
-
-  getAllDayMenus(): Observable<DayMenu[]> {
-    return this.http.get<DayMenu[]>('daymenu/all');
-  }
-
-  deleteDayMenu(id: number): Observable<void> {
-    return this.http.delete<void>(`daymenu/delete/${id}`);
+  getHistory(page = 0, size = 10): Observable<DayMenuHistoryPage> {
+    return this.http.get<DayMenuHistoryPage>('v1/day-menu/history', {
+      params: { page, size }
+    });
   }
 }

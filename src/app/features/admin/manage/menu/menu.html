@@ -1,155 +1,114 @@
-<div class="h-full flex flex-col p-6">
-    <!-- Header -->
-    <div class="flex items-center gap-4 mb-4">
-        <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-0">{{ title }}</h1>
+<div class="h-full flex flex-col p-6 gap-6">
+
+  <!-- Header -->
+  <div>
+    <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-0">Menú del Día</h1>
+    <p class="text-surface-500 mt-1">Asigna el producto que será el menú del día activo</p>
+  </div>
+
+  <!-- Menú activo actual -->
+  <p-card header="Menú Activo">
+    @if (loadingCurrent()) {
+      <p-skeleton height="3rem" />
+    } @else if (currentMenu()) {
+      <div class="flex flex-col gap-1">
+        <span class="text-lg font-semibold text-surface-900 dark:text-surface-0">{{ currentMenu()!.productName }}</span>
+        <span class="text-surface-500 text-sm">Precio base: {{ currentMenu()!.productBasePrice | currency:'COP':'symbol':'1.0-0':'es-CO' }}</span>
+        <span class="text-surface-400 text-xs">Vigente desde: {{ currentMenu()!.validFrom | date:'dd/MM/yyyy HH:mm' }}</span>
+        <span class="text-surface-400 text-xs">Creado por: {{ currentMenu()!.createdBy }}</span>
+      </div>
+    } @else {
+      <div class="flex items-center gap-2 text-surface-400">
+        <i class="pi pi-info-circle"></i>
+        <span>Sin menú del día configurado</span>
+      </div>
+    }
+  </p-card>
+
+  <!-- Selector de producto -->
+  <p-card header="Cambiar Menú del Día">
+    <div class="flex flex-col gap-4">
+      <p class="text-surface-500 text-sm">
+        Solo se muestran productos activos con opciones (<code>hasOptions: true</code>).
+      </p>
+
+      <div class="flex gap-3 items-end flex-wrap">
+        <div class="flex flex-col gap-1 flex-1 min-w-60">
+          <label for="product-select" class="text-sm font-medium text-surface-700 dark:text-surface-300">
+            Producto *
+          </label>
+          <p-select
+            inputId="product-select"
+            [options]="products()"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="Selecciona un producto"
+            [loading]="loadingProducts()"
+            [disabled]="loadingProducts() || isSubmitting()"
+            [(ngModel)]="selectedProductIdValue"
+            class="w-full"
+          />
+        </div>
+
+        <p-button
+          label="Asignar como Menú del Día"
+          icon="pi pi-check"
+          [loading]="isSubmitting()"
+          [disabled]="selectedProductId() === null || isSubmitting()"
+          (onClick)="assign()"
+        />
+      </div>
+
+      @if (selectedProduct()) {
+        <div class="border border-surface-200 dark:border-surface-700 rounded-lg p-3 text-sm text-surface-600 dark:text-surface-400">
+          <span class="font-medium">{{ selectedProduct()!.name }}</span>
+          &nbsp;·&nbsp;Precio base: {{ selectedProduct()!.basePrice | currency:'COP':'symbol':'1.0-0':'es-CO' }}
+          &nbsp;·&nbsp;Categoría: {{ selectedProduct()!.categoryName }}
+        </div>
+      }
     </div>
+  </p-card>
 
-    <p class="text-surface-600 dark:text-surface-400 mb-4">{{ description }}</p>
+  <!-- Historial -->
+  <p-card header="Historial de Menús del Día">
+    <p-table
+      [value]="history()"
+      [loading]="loadingHistory()"
+      [paginator]="true"
+      [rows]="pageSize"
+      [totalRecords]="totalRecords()"
+      [lazy]="true"
+      (onPage)="onPageChange($event)"
+      [rowsPerPageOptions]="[10, 20, 50]"
+      styleClass="p-datatable-sm"
+      [tableStyle]="{'min-width': '40rem'}"
+    >
+      <ng-template #header>
+        <tr>
+          <th>Producto</th>
+          <th>Precio base</th>
+          <th>Vigente desde</th>
+          <th>Vigente hasta</th>
+          <th>Creado por</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-item>
+        <tr>
+          <td>{{ item.productName }}</td>
+          <td>{{ item.productBasePrice | currency:'COP':'symbol':'1.0-0':'es-CO' }}</td>
+          <td>{{ item.validFrom | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ item.validUntil | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ item.createdBy }}</td>
+        </tr>
+      </ng-template>
+      <ng-template #empty>
+        <tr>
+          <td colspan="5" class="text-center text-surface-400 py-4">Sin historial disponible</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
 
-    <!-- Day Menu Creation Form -->
-    <p-card header="Crear Nuevo Menú del Día" class="mb-6">
-        <form [formGroup]="dayMenuForm" (ngSubmit)="onSubmit()" class="space-y-6">
-            <!-- Name Field -->
-            <div class="field">
-                <label for="name" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
-                    Nombre del Menú *
-                </label>
-                <input
-                    id="name"
-                    type="text"
-                    pInputText
-                    formControlName="name"
-                    placeholder="Ej: Menú Ejecutivo del Día - 2024-01-15"
-                    class="w-full"
-                    [class.ng-invalid]="dayMenuForm.get('name')?.invalid && dayMenuForm.get('name')?.touched"
-                />
-                @if (getFieldError('name')) {
-                  <small class="text-red-500">{{ getFieldError('name') }}</small>
-                }
-            </div>
-
-            <!-- Price Field -->
-            <div class="field">
-                <label for="price" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
-                    Precio (COP) *
-                </label>
-                <p-inputNumber
-                    id="price"
-                    formControlName="price"
-                    mode="currency"
-                    currency="COP"
-                    locale="es-CO"
-                    [min]="0"
-                    [class.ng-invalid]="dayMenuForm.get('price')?.invalid && dayMenuForm.get('price')?.touched"
-                ></p-inputNumber>
-                @if (getFieldError('price')) {
-                  <small class="text-red-500">{{ getFieldError('price') }}</small>
-                }
-            </div>
-
-            <!-- Categories and Products Section -->
-            <div class="field">
-                <div class="flex justify-between items-center mb-4">
-                    <label class="block text-sm font-medium text-surface-700 dark:text-surface-300">
-                        Categorías y Productos *
-                    </label>
-                    <p-button
-                        type="button"
-                        label="Agregar Categoría"
-                        icon="pi pi-plus"
-                        size="small"
-                        (onClick)="addCategory()"
-                    ></p-button>
-                </div>
-
-                <div formArrayName="products" class="space-y-4">
-                    @for (categoryControl of productsFormArray.controls; track i; let i = $index) {
-                      <div
-                          [formGroupName]="i"
-                          class="border border-surface-200 dark:border-surface-700 rounded-lg p-4"
-                      >
-                        <div class="flex justify-between items-center mb-3">
-                            <h4 class="text-sm font-medium text-surface-700 dark:text-surface-300">
-                                Categoría {{ i + 1 }}
-                            </h4>
-                            <p-button
-                                type="button"
-                                icon="pi pi-trash"
-                                size="small"
-                                severity="danger"
-                                [text]="true"
-                                (onClick)="removeCategory(i)"
-                            ></p-button>
-                        </div>
-
-                        <!-- Category Selection -->
-                        <div class="field mb-3">
-                            <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">
-                                Categoría *
-                            </label>
-                            <p-select
-                                formControlName="categoryId"
-                                [options]="availableCategories()"
-                                optionLabel="name"
-                                optionValue="id"
-                                placeholder="Selecciona una categoría"
-                                [class.ng-invalid]="categoryControl.get('categoryId')?.invalid && categoryControl.get('categoryId')?.touched"
-                                (onChange)="onCategoryChange(i)"
-                                class="w-full"
-                            ></p-select>
-                        </div>
-
-                        <!-- Products Selection -->
-                        <div class="field">
-                            <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">
-                                Productos *
-                            </label>
-                            @if (loadingProducts()) {
-                              <div class="flex items-center gap-2 text-surface-500">
-                                  <i class="pi pi-spin pi-spinner"></i>
-                                  <span>Cargando productos...</span>
-                              </div>
-                            }
-                            <p-multiSelect
-                                formControlName="productIds"
-                                [options]="getFilteredProducts(categoryControl.get('categoryId')?.value)"
-                                optionLabel="name"
-                                optionValue="id"
-                                placeholder="{{ categoryControl.get('categoryId')?.value ? 'Selecciona los productos' : 'Primero selecciona una categoría' }}"
-                                display="chip"
-                                [disabled]="!categoryControl.get('categoryId')?.value || loadingProducts()"
-                                [class.ng-invalid]="categoryControl.get('productIds')?.invalid && categoryControl.get('productIds')?.touched"
-                                class="w-full"
-                            ></p-multiSelect>
-                            @if (categoryControl.get('categoryId')?.value && getFilteredProducts(categoryControl.get('categoryId')?.value).length === 0 && !loadingProducts()) {
-                              <small class="text-surface-500 mt-1 block">
-                                  No hay productos disponibles en esta categoría
-                              </small>
-                            }
-                        </div>
-                      </div>
-                    }
-                </div>
-
-                @if (productsFormArray.length === 0) {
-                  <small class="text-surface-500 dark:text-surface-400 mt-2 block">
-                      Agrega al menos una categoría con productos
-                  </small>
-                }
-            </div>
-
-            <!-- Submit Button -->
-            <div class="flex justify-end">
-                <p-button
-                    type="submit"
-                    label="Crear Menú del Día"
-                    icon="pi pi-plus"
-                    [loading]="isSubmitting()"
-                    [disabled]="dayMenuForm.invalid"
-                ></p-button>
-            </div>
-        </form>
-    </p-card>
 </div>
 
-<p-toast></p-toast>
+<p-toast />

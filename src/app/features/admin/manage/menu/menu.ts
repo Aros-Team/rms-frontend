@@ -1,331 +1,159 @@
-import { Component, inject, signal } from '@angular/core';
-
-import { RouterModule } from '@angular/router';
+import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { MultiSelectModule } from 'primeng/multiselect';
-import { CardModule } from 'primeng/card';
-import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
+import { catchError, EMPTY } from 'rxjs';
+
 import { DayMenuService } from '@app/core/services/daymenu/daymenu-service';
 import { ProductService } from '@app/core/services/products/product-service';
-import { CategoryService } from '@app/core/services/category/category-service';
-import { ProductSimpleResponse } from '@app/shared/models/dto/products/product-simple-response';
-import { CategorySimpleResponse } from '@app/shared/models/dto/category/category-simple-response';
-import { DayMenuCreateRequest } from '@app/shared/models/dto/daymenu/daymenu-create-request';
-import { SelectModule } from 'primeng/select';
 import { LoggingService } from '@app/core/services/logging/logging-service';
+import { DayMenuResponse, DayMenuHistoryResponse, DayMenuHistoryPage } from '@app/shared/models/dto/daymenu/daymenu-response';
+import { ProductSimpleResponse } from '@app/shared/models/dto/products/product-simple-response';
+
+import { CurrencyPipe, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { ToastModule } from 'primeng/toast';
+import { SelectModule } from 'primeng/select';
+import { TableModule } from 'primeng/table';
+import { SkeletonModule } from 'primeng/skeleton';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-menu',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    RouterModule,
-    ReactiveFormsModule,
+    FormsModule,
+    CurrencyPipe,
+    DatePipe,
     ButtonModule,
-    InputTextModule,
-    InputNumberModule,
-    MultiSelectModule,
     CardModule,
     ToastModule,
-    SelectModule
-],
+    SelectModule,
+    TableModule,
+    SkeletonModule,
+  ],
   templateUrl: './menu.html',
-  styles: ``,
-  providers: [MessageService]
+  providers: [MessageService],
 })
 export class Menu {
-  title = 'Menús del Día';
-  description = 'Creador de menu del dia';
-
-  private fb = inject(FormBuilder);
   private dayMenuService = inject(DayMenuService);
   private productService = inject(ProductService);
-  private categoryService = inject(CategoryService);
+  private logger = inject(LoggingService);
   private messageService = inject(MessageService);
-  private loggingService = inject(LoggingService);
 
-  dayMenuForm: FormGroup;
-  availableProducts = signal<Map<number, ProductSimpleResponse[]>>(new Map()); // Cambio aquí
-  availableCategories = signal<CategorySimpleResponse[]>([]);
+  currentMenu = signal<DayMenuResponse | null>(null);
+  loadingCurrent = signal(true);
+
+  products = signal<ProductSimpleResponse[]>([]);
+  loadingProducts = signal(true);
+  selectedProductId = signal<number | null>(null);
+
+  get selectedProductIdValue(): number | null {
+    return this.selectedProductId();
+  }
+  set selectedProductIdValue(val: number | null) {
+    this.selectedProductId.set(val);
+  }
   isSubmitting = signal(false);
-  loadingProducts = signal<boolean>(false); // Nuevo signal para loading
+
+  history = signal<DayMenuHistoryResponse[]>([]);
+  loadingHistory = signal(true);
+  totalRecords = signal(0);
+  pageSize = 10;
+
+  selectedProduct = computed(() =>
+    this.products().find(p => p.id === this.selectedProductId()) ?? null
+  );
 
   constructor() {
-    this.dayMenuForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(3)]],
-      price: [0, [Validators.required, Validators.min(0)]],
-      products: this.fb.array([], [Validators.required, Validators.minLength(1)])
-    });
-
-    this.loadAvailableCategories();
-    // Removemos loadAvailableProducts ya que cargaremos por categoría
+    this.loadCurrentMenu();
+    this.loadProducts();
+    this.loadHistory(0);
   }
 
-  // Método para cargar productos por categoría
-  loadProductsForCategory(categoryId: number): void {
-    // Si ya tenemos los productos para esta categoría, no cargamos de nuevo
-    if (this.availableProducts().has(categoryId)) {
-      return;
-    }
-
-    this.loadingProducts.set(true);
-    this.productService.getProductsByCategories([categoryId]).subscribe({
-      next: (products) => {
-        const currentMap = this.availableProducts();
-        currentMap.set(categoryId, products);
-        this.availableProducts.set(new Map(currentMap));
-        this.loadingProducts.set(false);
-      },
-      error: (error) => {
-        console.error('Error loading products for category:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudieron cargar los productos de esta categoría'
-        });
-        this.loadingProducts.set(false);
-      }
-    });
-  }
-
-  // Método para obtener productos filtrados por categoría
-  getFilteredProducts(categoryId: number | null): ProductSimpleResponse[] {
-    if (!categoryId) {
-      return [];
-    }
-    return this.availableProducts().get(categoryId) || [];
-  }
-
-  // Método que se ejecuta cuando cambia la categoría
-  onCategoryChange(categoryIndex: number) {
-    const categoryControl = this.productsFormArray.at(categoryIndex);
-    const categoryId = categoryControl.get('categoryId')?.value;
-    const productIdsControl = categoryControl.get('productIds');
-
-    // Resetear los productos seleccionados cuando cambia la categoría
-    if (productIdsControl) {
-      productIdsControl.setValue([]);
-    }
-
-    // Cargar productos para la categoría seleccionada
-    if (categoryId) {
-      this.loadProductsForCategory(categoryId);
-    }
-  }
-
-  private loadAvailableCategories() {
-    this.categoryService.getCategories().subscribe({
-      next: (categories) => {
-        this.availableCategories.set(categories.filter(c => c.enabled));
-      },
-      error: (error) => {
-        console.error('Error loading categories:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudieron cargar las categorías disponibles'
-        });
-      }
-    });
-  }
-
-  onSubmit() {
-    if (this.dayMenuForm.valid) {
-      // Validate that selected categories and products exist
-      const formValue = this.dayMenuForm.value;
-      const validationErrors: string[] = [];
-
-      formValue.products.forEach((category: { categoryId: number; productIds: number[] }, index: number) => {
-        // Check if category exists
-        const categoryExists = this.availableCategories().some(cat => cat.id === category.categoryId);
-        if (!categoryExists) {
-          validationErrors.push(`Categoría en posición ${index + 1} no existe`);
-        }
-
-        // Check if products exist
-        category.productIds.forEach(productId => {
-          const categoryProducts = this.availableProducts().get(category.categoryId) || [];
-          const productExists = categoryProducts.some(prod => prod.id === productId);
-          if (!productExists) {
-            validationErrors.push(`Producto con ID ${productId} no existe en la categoría seleccionada`);
-          }
-        });
-      });
-
-      // Validación: evitar productos repetidos en todo el menú (únicos por daymenu)
-      const allSelectedIds = formValue.products
-        .flatMap((c: { productIds: number[] }) => c.productIds)
-        .map((id: number | string) => Number(id));
-      const seen = new Set<number>();
-      const duplicates: number[] = [];
-      for (const id of allSelectedIds) {
-        if (seen.has(id)) {
-          if (!duplicates.includes(id)) duplicates.push(id);
+  private loadCurrentMenu(): void {
+    this.loadingCurrent.set(true);
+    this.dayMenuService.getCurrentDayMenu().pipe(
+      catchError((err: HttpErrorResponse) => {
+        if (err.status === 204 || err.status === 404) {
+          this.currentMenu.set(null);
         } else {
-          seen.add(id);
+          this.logger.error('Error loading current day menu', err);
         }
-      }
-      if (duplicates.length > 0) {
-        const dupNames = duplicates.map(id => this.getProductDisplayName(id));
-        validationErrors.push(`Hay productos repetidos en el menú: ${dupNames.join(', ')}`);
-      }
-
-      if (validationErrors.length > 0) {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error de validación',
-          detail: validationErrors.join(', ')
-        });
-        return;
-      }
-
-      this.isSubmitting.set(true);
-
-      const today = new Date();
-      const dateString = today.toISOString().split('T')[0]; // YYYY-MM-DD format
-
-      const dayMenuRequest: DayMenuCreateRequest = {
-        name: formValue.name,
-        price: Number(formValue.price),
-        date: dateString,
-        products: formValue.products.map((category: { categoryId: number; productIds: number[] }, index: number) => ({
-          category: category.categoryId,
-          position: index + 1,
-          products: category.productIds.map((id: number | string) => Number(id))
-        }))
-      };
-
-      this.loggingService.debug('Submitting day menu request:', dayMenuRequest);
-
-      this.dayMenuService.createDayMenu(dayMenuRequest).subscribe({
-        next: (response) => {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Éxito',
-            detail: typeof response === 'string' ? response : (response as { message?: string })?.message || 'Menú del día creado exitosamente'
-          });
-          this.dayMenuForm.reset({
-            name: '',
-            price: 0,
-            products: []
-          });
-          this.isSubmitting.set(false);
-        },
-        error: (error) => {
-          this.loggingService.error('Error creating day menu:', error);
-          this.loggingService.error('API error payload:', error?.error);
-          const errorMessage = this.extractApiErrorMessage(error);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: errorMessage
-          });
-          this.isSubmitting.set(false);
-        }
-      });
-    } else {
-      this.markFormGroupTouched();
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Validación',
-        detail: 'Por favor complete todos los campos requeridos'
-      });
-    }
-  }
-
-  private extractApiErrorMessage(err: unknown): string {
-    const defaultMsg = 'No se pudo crear el menú del día';
-
-    // Direct string
-    if (typeof err === 'string') return err;
-
-    // Angular HTTP error
-    if (err instanceof HttpErrorResponse) {
-      const payload = JSON.parse(err.error);
-
-      // Text payload
-      if (typeof payload === 'string') {
-        return payload;
-      }
-
-      // JSON payload
-      if (payload && typeof payload === 'object') {
-        const message = (payload as { message?: unknown }).message;
-        if (typeof message === 'string') return message;
-
-        const errorsField = (payload as { errors?: unknown }).errors;
-        if (Array.isArray(errorsField)) {
-          return errorsField
-            .map((e: unknown) => (typeof e === 'string' ? e : JSON.stringify(e)))
-            .join(', ');
-        }
-        if (errorsField && typeof errorsField === 'object') {
-          const values = Object.values(errorsField as Record<string, unknown[]>).flat();
-          return values.map((v: unknown) => (typeof v === 'string' ? v : JSON.stringify(v))).join(', ');
-        }
-      }
-
-      if (typeof err.message === 'string' && err.message) return err.message;
-      if (err.status === 400) return 'Solicitud inválida (400). Verifique los datos enviados.';
-    }
-
-    // Generic error-like object with message
-    if (this.hasMessage(err)) return err.message;
-
-    return defaultMsg;
-  }
-
-  private hasMessage(x: unknown): x is { message: string } {
-    return !!x && typeof x === 'object' && typeof (x as { message?: unknown }).message === 'string';
-  }
-
-  private getProductDisplayName(productId: number): string {
-    for (const products of this.availableProducts().values()) {
-      const found = products.find(p => p.id === productId);
-      if (found) return `${found.name} (#${found.id})`;
-    }
-    return `ID ${productId}`;
-  }
-
-  private markFormGroupTouched() {
-    Object.keys(this.dayMenuForm.controls).forEach(key => {
-      const control = this.dayMenuForm.get(key);
-      control?.markAsTouched();
+        this.loadingCurrent.set(false);
+        return EMPTY;
+      })
+    ).subscribe(menu => {
+      this.currentMenu.set(menu);
+      this.loadingCurrent.set(false);
     });
   }
 
-  getFieldError(fieldName: string): string {
-    const control = this.dayMenuForm.get(fieldName);
-    if (control?.errors && control.touched) {
-      if (control.errors['required']) {
-        return 'Este campo es requerido';
-      }
-      if (control.errors['minlength']) {
-        return `Mínimo ${control.errors['minlength'].requiredLength} caracteres`;
-      }
-      if (control.errors['min']) {
-        return `El valor mínimo es ${control.errors['min'].min}`;
-      }
-    }
-    return '';
-  }
-
-  get productsFormArray(): FormArray {
-    return this.dayMenuForm.get('products') as FormArray;
-  }
-
-  addCategory() {
-    const categoryForm = this.fb.group({
-      categoryId: [null, Validators.required],
-      productIds: [[], [Validators.required, Validators.minLength(1)]]
+  private loadProducts(): void {
+    this.loadingProducts.set(true);
+    this.productService.getProducts().pipe(
+      catchError(err => {
+        this.logger.error('Error loading products', err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los productos' });
+        this.loadingProducts.set(false);
+        return EMPTY;
+      })
+    ).subscribe(all => {
+      this.products.set(all.filter(p => p.hasOptions && p.active));
+      this.loadingProducts.set(false);
     });
-    this.productsFormArray.push(categoryForm);
   }
 
-  removeCategory(index: number) {
-    this.productsFormArray.removeAt(index);
+  loadHistory(page: number): void {
+    this.loadingHistory.set(true);
+    this.dayMenuService.getHistory(page, this.pageSize).pipe(
+      catchError(err => {
+        this.logger.error('Error loading history', err);
+        this.loadingHistory.set(false);
+        return EMPTY;
+      })
+    ).subscribe((data: DayMenuHistoryPage) => {
+      this.history.set(data.content);
+      this.totalRecords.set(data.totalElements);
+      this.loadingHistory.set(false);
+    });
+  }
+
+  onPageChange(event: { first: number; rows: number }): void {
+    const page = Math.floor(event.first / event.rows);
+    this.loadHistory(page);
+  }
+
+  assign(): void {
+    const productId = this.selectedProductId();
+    if (productId === null) return;
+
+    this.isSubmitting.set(true);
+    this.dayMenuService.updateDayMenu(productId).pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.logger.error('Error updating day menu', err);
+        const detail = this.extractError(err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail });
+        this.isSubmitting.set(false);
+        return EMPTY;
+      })
+    ).subscribe(updated => {
+      this.currentMenu.set(updated);
+      this.selectedProductId.set(null);
+      this.isSubmitting.set(false);
+      this.messageService.add({ severity: 'success', summary: 'Éxito', detail: `Menú del día actualizado: ${updated.productName}` });
+      this.loadHistory(0);
+    });
+  }
+
+  private extractError(err: HttpErrorResponse): string {
+    if (err.status === 400) return 'El producto seleccionado no es válido para menú del día';
+    if (err.status === 404) return 'El producto no existe o está inactivo';
+    try {
+      const body = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+      if (body?.message) return body.message;
+    } catch { /* ignore */ }
+    return 'No se pudo actualizar el menú del día';
   }
 }
