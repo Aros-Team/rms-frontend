@@ -9,7 +9,25 @@
         Consulta el stock actual de insumos y registra nuevas compras.
       </p>
     </div>
-    <p-button icon="pi pi-shopping-cart" label="Nueva compra" (click)="openPurchaseModal()" />
+    <div class="flex gap-2">
+      <p-button icon="pi pi-plus" label="Nuevo insumo" severity="secondary" (click)="openVariantModal()" />
+      <p-button icon="pi pi-shopping-cart" label="Nueva compra" (click)="openPurchaseModal()" />
+    </div>
+  </div>
+
+  <!-- Category filter -->
+  <div class="flex justify-end gap-2 mb-3">
+    <p-select
+      [options]="categories()"
+      optionLabel="name"
+      optionValue="id"
+      placeholder="Filtrar por categoría"
+      [showClear]="true"
+      class="w-64"
+      [ngModel]="selectedCategoryId()"
+      (ngModelChange)="filterByCategory($event)"
+    />
+    <p-button icon="pi pi-filter" label="Filtrar" (click)="filterByCategory(selectedCategoryId())" />
   </div>
 
   <!-- Supplies table -->
@@ -25,20 +43,13 @@
       [rows]="10"
       stripedRows
       showGridlines
-      [globalFilterFields]="['name', 'unit']"
+      [globalFilterFields]="['supplyName', 'categoryName', 'unitAbbreviation']"
     >
       <ng-template #caption>
         <div class="flex">
-          <p-button
-            label="Limpiar"
-            [outlined]="true"
-            icon="pi pi-filter-slash"
-            (click)="dt.clear()"
-          />
+          <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="dt.clear()" />
           <p-iconfield iconPosition="left" class="ml-auto">
-            <p-inputicon>
-              <i class="pi pi-search"></i>
-            </p-inputicon>
+            <p-inputicon><i class="pi pi-search"></i></p-inputicon>
             <input
               pInputText
               type="text"
@@ -51,19 +62,27 @@
 
       <ng-template #header>
         <tr>
-          <th pSortableColumn="name">Nombre <p-sortIcon field="name" /></th>
-          <th pSortableColumn="unit">Unidad <p-sortIcon field="unit" /></th>
-          <th pSortableColumn="currentStock">Stock actual <p-sortIcon field="currentStock" /></th>
+          <th pSortableColumn="supplyName">Insumo <p-sortIcon field="supplyName" /></th>
+          <th pSortableColumn="categoryName">Categoría <p-sortIcon field="categoryName" /></th>
+          <th pSortableColumn="unitAbbreviation">Unidad <p-sortIcon field="unitAbbreviation" /></th>
+          <th pSortableColumn="stockBodega">Stock Bodega <p-sortIcon field="stockBodega" /></th>
+          <th pSortableColumn="stockCocina">Stock Cocina <p-sortIcon field="stockCocina" /></th>
         </tr>
       </ng-template>
 
       <ng-template #body let-supply>
         <tr>
-          <td>{{ supply.name }}</td>
-          <td>{{ supply.unit }}</td>
+          <td>{{ supply.supplyName }}</td>
+          <td>{{ supply.categoryName }}</td>
+          <td>{{ supply.unitAbbreviation }}</td>
           <td>
-            <span [class]="supply.currentStock <= 0 ? 'text-red-500' : 'text-green-600'">
-              {{ supply.currentStock }}
+            <span [class]="supply.stockBodega <= 0 ? 'text-red-500' : 'text-green-600'">
+              {{ supply.stockBodega }} {{ supply.unitAbbreviation }}
+            </span>
+          </td>
+          <td>
+            <span [class]="supply.stockCocina <= 0 ? 'text-red-500' : 'text-green-600'">
+              {{ supply.stockCocina }} {{ supply.unitAbbreviation }}
             </span>
           </td>
         </tr>
@@ -71,16 +90,172 @@
 
       <ng-template #emptymessage>
         <tr>
-          <td colspan="3" class="text-center text-surface-500 py-6">
-            No hay insumos registrados.
-          </td>
+          <td colspan="5" class="text-center text-surface-500 py-6">No hay insumos registrados.</td>
         </tr>
       </ng-template>
     </p-table>
   }
 </div>
 
-<!-- Purchase modal -->
+<!-- ===== New supply variant wizard ===== -->
+<p-dialog
+  [modal]="true"
+  [(visible)]="variantModalIsOpen"
+  header="Registrar nuevo insumo"
+  draggable="false"
+  [style]="{ width: '38vw' }"
+  appendTo="body"
+>
+  <!-- Step indicators -->
+  <div class="flex items-center gap-2 mb-6">
+    @for (step of wizardSteps; track step.key; let i = $index) {
+      <div class="flex items-center gap-2">
+        <div
+          class="flex items-center justify-center w-7 h-7 rounded-full text-sm font-semibold"
+          [class]="variantStep() === step.key
+            ? 'bg-primary-500 text-primary-contrast'
+            : 'bg-surface-200 dark:bg-surface-700 text-surface-600 dark:text-surface-300'"
+        >{{ i + 1 }}</div>
+        <span class="text-sm" [class.font-semibold]="variantStep() === step.key">{{ step.label }}</span>
+        @if (i < 2) {
+          <i class="pi pi-chevron-right text-surface-400 text-xs"></i>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Step 1: Category -->
+  @if (variantStep() === 'category') {
+    <form [formGroup]="categoryForm" class="flex flex-col gap-4">
+      <div class="flex gap-4 mb-1">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="radio" formControlName="mode" value="existing" /> Usar existente
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="radio" formControlName="mode" value="new" /> Crear nueva
+        </label>
+      </div>
+
+      @if (categoryForm.get('mode')?.value === 'existing') {
+        <p-iftalabel>
+          <p-select
+            inputId="catId"
+            [options]="categories()"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="Seleccionar categoría"
+            class="w-full"
+            appendTo="body"
+            formControlName="categoryId"
+            [invalid]="!!categoryForm.get('categoryId')?.invalid && !!categoryForm.get('categoryId')?.touched"
+          />
+          <label for="catId">Categoría</label>
+        </p-iftalabel>
+      } @else {
+        <p-iftalabel>
+          <input
+            pInputText
+            id="catName"
+            formControlName="categoryName"
+            class="w-full"
+            placeholder="Nombre de la nueva categoría"
+          />
+          <label for="catName">Nombre de categoría</label>
+        </p-iftalabel>
+      }
+    </form>
+    <div class="flex justify-between mt-6">
+      <p-button label="Cancelar" severity="secondary" icon="pi pi-ban" (click)="closeVariantModal()" />
+      <p-button label="Siguiente" icon="pi pi-arrow-right" iconPos="right" [loading]="variantSubmitting" (click)="confirmCategory()" />
+    </div>
+  }
+
+  <!-- Step 2: Supply base -->
+  @if (variantStep() === 'supply') {
+    <form [formGroup]="supplyForm" class="flex flex-col gap-4">
+      <div class="flex gap-4 mb-1">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="radio" formControlName="mode" value="existing" /> Usar existente
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="radio" formControlName="mode" value="new" /> Crear nuevo
+        </label>
+      </div>
+
+      @if (supplyForm.get('mode')?.value === 'existing') {
+        <p-iftalabel>
+          <p-select
+            inputId="supId"
+            [options]="suppliesForCategory()"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="Seleccionar insumo"
+            class="w-full"
+            appendTo="body"
+            formControlName="supplyId"
+            [invalid]="!!supplyForm.get('supplyId')?.invalid && !!supplyForm.get('supplyId')?.touched"
+          />
+          <label for="supId">Insumo</label>
+        </p-iftalabel>
+      } @else {
+        <p-iftalabel>
+          <input
+            pInputText
+            id="supName"
+            formControlName="supplyName"
+            class="w-full"
+            placeholder="Nombre del nuevo insumo"
+          />
+          <label for="supName">Nombre del insumo</label>
+        </p-iftalabel>
+      }
+    </form>
+    <div class="flex justify-between mt-6">
+      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="variantStep.set('category')" />
+      <p-button label="Siguiente" icon="pi pi-arrow-right" iconPos="right" [loading]="variantSubmitting" (click)="confirmSupply()" />
+    </div>
+  }
+
+  <!-- Step 3: Unit + quantity -->
+  @if (variantStep() === 'variant') {
+    <form [formGroup]="variantForm" class="flex flex-col gap-4">
+      <p-iftalabel>
+        <p-select
+          inputId="unitId"
+          [options]="units()"
+          optionValue="id"
+          placeholder="Seleccionar unidad"
+          class="w-full"
+          appendTo="body"
+          formControlName="unitId"
+          [invalid]="!!variantForm.get('unitId')?.invalid && !!variantForm.get('unitId')?.touched"
+        >
+          <ng-template #item let-u>{{ u.name }} ({{ u.abbreviation }})</ng-template>
+          <ng-template #selectedItem let-u>{{ u.name }} ({{ u.abbreviation }})</ng-template>
+        </p-select>
+        <label for="unitId">Unidad de medida</label>
+      </p-iftalabel>
+
+      <p-iftalabel>
+        <p-inputnumber
+          inputId="variantQty"
+          formControlName="quantity"
+          [minFractionDigits]="0"
+          [maxFractionDigits]="3"
+          class="w-full"
+          [invalid]="!!variantForm.get('quantity')?.invalid && !!variantForm.get('quantity')?.touched"
+        />
+        <label for="variantQty">Cantidad de referencia</label>
+      </p-iftalabel>
+    </form>
+    <div class="flex justify-between mt-6">
+      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="variantStep.set('supply')" />
+      <p-button label="Registrar" icon="pi pi-save" [loading]="variantSubmitting" (click)="submitVariant()" />
+    </div>
+  }
+</p-dialog>
+
+<!-- ===== Purchase modal ===== -->
 <p-dialog
   [modal]="true"
   [(visible)]="modalIsOpen"
@@ -90,8 +265,6 @@
   appendTo="body"
 >
   <form [formGroup]="purchaseForm" class="flex flex-col gap-4">
-
-    <!-- Supplier + date row -->
     <div class="grid grid-cols-2 gap-4">
       <p-iftalabel>
         <p-select
@@ -121,7 +294,6 @@
       </p-iftalabel>
     </div>
 
-    <!-- Total + notes row -->
     <div class="grid grid-cols-2 gap-4">
       <p-iftalabel>
         <p-inputnumber
@@ -149,85 +321,87 @@
       </p-iftalabel>
     </div>
 
-    <!-- Items -->
     <div>
       <div class="flex items-center justify-between mb-2">
         <span class="font-semibold text-surface-700 dark:text-surface-300">Ítems de la compra</span>
-        <p-button
-          icon="pi pi-plus"
-          label="Agregar ítem"
-          size="small"
-          [outlined]="true"
-          (click)="addItem()"
-        />
+        <p-button icon="pi pi-plus" label="Agregar ítem" size="small" [outlined]="true" (click)="addItem()" />
       </div>
 
       <div formArrayName="items" class="flex flex-col gap-3">
         @for (item of items.controls; track $index) {
           <div
             [formGroupName]="$index"
-            class="grid grid-cols-[1fr_1fr_1fr_1fr_auto] gap-2 items-end p-3 rounded-lg border border-surface-200 dark:border-surface-700"
+            class="flex flex-col gap-2 p-3 rounded-lg border border-surface-200 dark:border-surface-700"
           >
-            <p-iftalabel>
-              <p-select
-                [inputId]="'supply-' + $index"
-                [options]="supplies() ?? []"
-                optionLabel="name"
-                optionValue="id"
-                placeholder="Insumo"
-                class="w-full"
-                formControlName="supplyVariantId"
-                [invalid]="isInvalid($any(item), 'supplyVariantId')"
-              />
-              <label [for]="'supply-' + $index">Insumo</label>
-            </p-iftalabel>
+            <!-- Row 1: insumo + delete -->
+            <div class="flex gap-2 items-end">
+              <p-iftalabel class="flex-1">
+                <p-select
+                  [inputId]="'supply-' + $index"
+                  [options]="supplies() ?? []"
+                  optionValue="id"
+                  placeholder="Insumo"
+                  class="w-full"
+                  appendTo="body"
+                  formControlName="supplyVariantId"
+                  [invalid]="isInvalid($any(item), 'supplyVariantId')"
+                >
+                  <ng-template #item let-s>{{ s.supplyName }} — {{ s.quantity }} {{ s.unitAbbreviation }}</ng-template>
+                  <ng-template #selectedItem let-s>{{ s.supplyName }} — {{ s.quantity }} {{ s.unitAbbreviation }}</ng-template>
+                </p-select>
+                <label [for]="'supply-' + $index">Insumo</label>
+              </p-iftalabel>
 
-            <p-iftalabel>
-              <p-inputnumber
-                [inputId]="'ordered-' + $index"
-                formControlName="quantityOrdered"
-                [minFractionDigits]="0"
-                [maxFractionDigits]="3"
-                class="w-full"
-                [invalid]="isInvalid($any(item), 'quantityOrdered')"
+              <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                [outlined]="true"
+                size="small"
+                [disabled]="items.length === 1"
+                (click)="removeItem($index)"
+                aria-label="Eliminar ítem"
               />
-              <label [for]="'ordered-' + $index">Cant. ordenada</label>
-            </p-iftalabel>
+            </div>
 
-            <p-iftalabel>
-              <p-inputnumber
-                [inputId]="'received-' + $index"
-                formControlName="quantityReceived"
-                [minFractionDigits]="0"
-                [maxFractionDigits]="3"
-                class="w-full"
-                [invalid]="isInvalid($any(item), 'quantityReceived')"
-              />
-              <label [for]="'received-' + $index">Cant. recibida</label>
-            </p-iftalabel>
+            <!-- Row 2: quantities + price -->
+            <div class="grid grid-cols-3 gap-2">
+              <p-iftalabel>
+                <p-inputnumber
+                  [inputId]="'ordered-' + $index"
+                  formControlName="quantityOrdered"
+                  [minFractionDigits]="0"
+                  [maxFractionDigits]="3"
+                  class="w-full"
+                  [invalid]="isInvalid($any(item), 'quantityOrdered')"
+                />
+                <label [for]="'ordered-' + $index">Cant. ordenada</label>
+              </p-iftalabel>
 
-            <p-iftalabel>
-              <p-inputnumber
-                [inputId]="'price-' + $index"
-                formControlName="unitPrice"
-                mode="currency"
-                currency="COP"
-                locale="es-CO"
-                class="w-full"
-                [invalid]="isInvalid($any(item), 'unitPrice')"
-              />
-              <label [for]="'price-' + $index">Precio unitario</label>
-            </p-iftalabel>
+              <p-iftalabel>
+                <p-inputnumber
+                  [inputId]="'received-' + $index"
+                  formControlName="quantityReceived"
+                  [minFractionDigits]="0"
+                  [maxFractionDigits]="3"
+                  class="w-full"
+                  [invalid]="isInvalid($any(item), 'quantityReceived')"
+                />
+                <label [for]="'received-' + $index">Cant. recibida</label>
+              </p-iftalabel>
 
-            <p-button
-              icon="pi pi-trash"
-              severity="danger"
-              [outlined]="true"
-              size="small"
-              [disabled]="items.length === 1"
-              (click)="removeItem($index)"
-              aria-label="Eliminar ítem"
-            />
+              <p-iftalabel>
+                <p-inputnumber
+                  [inputId]="'price-' + $index"
+                  formControlName="unitPrice"
+                  mode="currency"
+                  currency="COP"
+                  locale="es-CO"
+                  class="w-full"
+                  [invalid]="isInvalid($any(item), 'unitPrice')"
+                />
+                <label [for]="'price-' + $index">Precio unitario</label>
+              </p-iftalabel>
+            </div>
           </div>
         }
       </div>
@@ -235,12 +409,7 @@
   </form>
 
   <div class="flex justify-start gap-2 mt-6">
-    <p-button
-      icon="pi pi-save"
-      label="Registrar compra"
-      [loading]="submitting"
-      (click)="submitPurchase()"
-    />
+    <p-button icon="pi pi-save" label="Registrar compra" [loading]="submitting" (click)="submitPurchase()" />
     <p-button icon="pi pi-ban" label="Cancelar" severity="secondary" (click)="closeModal()" />
   </div>
 </p-dialog>
