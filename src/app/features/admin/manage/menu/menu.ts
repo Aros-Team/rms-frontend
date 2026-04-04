@@ -1,12 +1,13 @@
 import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-import { catchError, EMPTY } from 'rxjs';
+import { catchError, EMPTY, of, switchMap } from 'rxjs';
 
 import { DayMenuService } from '@app/core/services/daymenu/daymenu-service';
 import { ProductService } from '@app/core/services/products/product-service';
 import { LoggingService } from '@app/core/services/logging/logging-service';
 import { DayMenuResponse, DayMenuHistoryResponse, DayMenuHistoryPage } from '@app/shared/models/dto/daymenu/daymenu-response';
 import { ProductSimpleResponse } from '@app/shared/models/dto/products/product-simple-response';
+import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
 
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -17,6 +18,8 @@ import { ToastModule } from 'primeng/toast';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { SkeletonModule } from 'primeng/skeleton';
+import { DialogModule } from 'primeng/dialog';
+import { TagModule } from 'primeng/tag';
 import { MessageService } from 'primeng/api';
 
 @Component({
@@ -32,6 +35,8 @@ import { MessageService } from 'primeng/api';
     SelectModule,
     TableModule,
     SkeletonModule,
+    DialogModule,
+    TagModule,
   ],
   templateUrl: './menu.html',
   providers: [MessageService],
@@ -44,16 +49,33 @@ export class Menu {
 
   currentMenu = signal<DayMenuResponse | null>(null);
   loadingCurrent = signal(true);
+  currentMenuOptions = signal<ProductOption[]>([]);
+  loadingCurrentOptions = signal(false);
+
+  // Dialog detalles del menú activo
+  showDetailDialog = signal(false);
 
   products = signal<ProductSimpleResponse[]>([]);
   loadingProducts = signal(true);
   selectedProductId = signal<number | null>(null);
+  selectedProductOptions = signal<ProductOption[]>([]);
+  loadingSelectedOptions = signal(false);
 
   get selectedProductIdValue(): number | null {
     return this.selectedProductId();
   }
   set selectedProductIdValue(val: number | null) {
     this.selectedProductId.set(val);
+    this.selectedProductOptions.set([]);
+    if (val !== null) {
+      this.loadingSelectedOptions.set(true);
+      this.productService.getOptions(val).pipe(
+        catchError(() => of([] as ProductOption[]))
+      ).subscribe(opts => {
+        this.selectedProductOptions.set(opts);
+        this.loadingSelectedOptions.set(false);
+      });
+    }
   }
   isSubmitting = signal(false);
 
@@ -83,10 +105,18 @@ export class Menu {
         }
         this.loadingCurrent.set(false);
         return EMPTY;
+      }),
+      switchMap(menu => {
+        this.currentMenu.set(menu);
+        this.loadingCurrent.set(false);
+        this.loadingCurrentOptions.set(true);
+        return this.productService.getOptions(menu.productId).pipe(
+          catchError(() => of([] as ProductOption[]))
+        );
       })
-    ).subscribe(menu => {
-      this.currentMenu.set(menu);
-      this.loadingCurrent.set(false);
+    ).subscribe(opts => {
+      this.currentMenuOptions.set(opts);
+      this.loadingCurrentOptions.set(false);
     });
   }
 
@@ -137,13 +167,22 @@ export class Menu {
         this.messageService.add({ severity: 'error', summary: 'Error', detail });
         this.isSubmitting.set(false);
         return EMPTY;
+      }),
+      switchMap(updated => {
+        this.currentMenu.set(updated);
+        this.selectedProductId.set(null);
+        this.selectedProductOptions.set([]);
+        this.isSubmitting.set(false);
+        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: `Menú del día actualizado: ${updated.productName}` });
+        this.loadHistory(0);
+        this.loadingCurrentOptions.set(true);
+        return this.productService.getOptions(updated.productId).pipe(
+          catchError(() => of([] as ProductOption[]))
+        );
       })
-    ).subscribe(updated => {
-      this.currentMenu.set(updated);
-      this.selectedProductId.set(null);
-      this.isSubmitting.set(false);
-      this.messageService.add({ severity: 'success', summary: 'Éxito', detail: `Menú del día actualizado: ${updated.productName}` });
-      this.loadHistory(0);
+    ).subscribe(opts => {
+      this.currentMenuOptions.set(opts);
+      this.loadingCurrentOptions.set(false);
     });
   }
 
@@ -155,5 +194,15 @@ export class Menu {
       if (body?.message) return body.message;
     } catch { /* ignore */ }
     return 'No se pudo actualizar el menú del día';
+  }
+
+  groupByCategory(options: ProductOption[]): { category: string; items: ProductOption[] }[] {
+    const map = new Map<string, ProductOption[]>();
+    for (const o of options) {
+      const arr = map.get(o.optionCategoryName) ?? [];
+      arr.push(o);
+      map.set(o.optionCategoryName, arr);
+    }
+    return Array.from(map.entries()).map(([category, items]) => ({ category, items }));
   }
 }

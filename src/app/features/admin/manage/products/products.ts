@@ -8,6 +8,7 @@ import { AreaService } from '@app/core/services/areas/area-service';
 import { CategoryService } from '@app/core/services/category/category-service';
 import { ProductService } from '@app/core/services/products/product-service';
 import { OptionCategoryService } from '@app/core/services/option-category/option-category.service';
+import { ProductOptionService } from '@app/core/services/product-option/product-option.service';
 import { SupplyService } from '@app/core/services/supplies/supply-service';
 import { MasterDataService } from '@app/core/services/master-data/master-data.service';
 import { LoggingService } from '@app/core/services/logging/logging-service';
@@ -17,7 +18,7 @@ import { CategorySimpleResponse } from '@app/shared/models/dto/category/category
 import { OptionCategoryResponse } from '@app/shared/models/dto/category/option-category.model';
 import { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
 import { ProductResponse } from '@app/shared/models/dto/products/product-response';
-import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
+import { ProductOption, ProductOptionResponse } from '@app/shared/models/dto/products/product-option.model';
 import { ProductOptionCreateRequest } from '@app/shared/models/dto/products/product-create-request';
 
 import { ButtonModule } from 'primeng/button';
@@ -35,6 +36,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
+import { SkeletonModule } from 'primeng/skeleton';
 import { MessageService } from 'primeng/api';
 import { CurrencyPipe } from '@angular/common';
 
@@ -63,6 +65,7 @@ type WizardStep = 1 | 2 | 3;
     ToastModule,
     TagModule,
     DividerModule,
+    SkeletonModule,
   ],
   templateUrl: './products.html',
   providers: [MessageService],
@@ -73,6 +76,7 @@ export class Products implements OnInit {
   private areaService = inject(AreaService);
   private categoryService = inject(CategoryService);
   private optionCategoryService = inject(OptionCategoryService);
+  private productOptionService = inject(ProductOptionService);
   private supplyService = inject(SupplyService);
   private masterDataService = inject(MasterDataService);
   private messageService = inject(MessageService);
@@ -91,6 +95,7 @@ export class Products implements OnInit {
   categories = signal<CategorySimpleResponse[]>([]);
   optionCategories = signal<OptionCategoryResponse[]>([]);
   supplyVariantOptions = signal<(SupplyVariantResponse & { displayName: string })[]>([]);
+  allProductOptions = signal<ProductOptionResponse[]>([]);
 
   // Modal state
   modalIsOpen = signal(false);
@@ -99,6 +104,12 @@ export class Products implements OnInit {
   isSubmitting = signal(false);
   createdProduct = signal<ProductResponse | null>(null);
   existingOptions = signal<ProductOption[]>([]);
+
+  // Detail dialog
+  detailDialogOpen = signal(false);
+  detailProduct = signal<ProductResponse | null>(null);
+  detailOptions = signal<ProductOption[]>([]);
+  detailOptionsLoading = signal(false);
 
   // ── Step 1: product base + base recipe ──────────────────────────
   baseForm: FormGroup = this.fb.group({
@@ -124,14 +135,16 @@ export class Products implements OnInit {
       categories: this.categoryService.getCategories(),
       optionCategories: this.optionCategoryService.getOptionCategories(),
       variants: this.supplyService.getSupplyVariants(),
+      productOptions: this.productOptionService.getOptions(),
     }).subscribe({
-      next: ({ areas, categories, optionCategories, variants }) => {
+      next: ({ areas, categories, optionCategories, variants, productOptions }) => {
         this.areas.set(areas);
         this.categories.set(categories.filter(c => c.enabled));
         this.optionCategories.set(optionCategories);
         this.supplyVariantOptions.set(
           variants.map(v => ({ ...v, displayName: `${v.supplyName} (${v.unitAbbreviation})` }))
         );
+        this.allProductOptions.set(productOptions);
       },
       error: err => this.logger.error('Error loading reference data', err),
     });
@@ -224,6 +237,44 @@ export class Products implements OnInit {
     this.getOptionRecipe(optionIndex).removeAt(recipeIndex);
   }
 
+  // ── Helpers de opciones ──────────────────────────────────────────
+
+  /** Opciones disponibles filtradas por categoría para el combobox de nombre */
+  optionsByCategory(categoryId: number | null): ProductOptionResponse[] {
+    if (!categoryId) return [];
+    return this.allProductOptions().filter(o => o.optionCategoryId === categoryId);
+  }
+
+  // ── Validación: una sola opción por categoría ────────────────────
+
+  /** Devuelve true si hay categorías duplicadas en optionsArray */
+  hasDuplicateCategories(): boolean {
+    const ids = (this.optionsArray.value as { optionCategoryId: number | null }[])
+      .map(o => o.optionCategoryId)
+      .filter(id => id !== null);
+    return ids.length !== new Set(ids).size;
+  }
+
+  /** Devuelve los ids de categorías que están duplicadas */
+  duplicateCategoryIds(): Set<number> {
+    const ids = (this.optionsArray.value as { optionCategoryId: number | null }[])
+      .map(o => o.optionCategoryId)
+      .filter((id): id is number => id !== null);
+    const seen = new Set<number>();
+    const dupes = new Set<number>();
+    for (const id of ids) {
+      if (seen.has(id)) dupes.add(id);
+      seen.add(id);
+    }
+    return dupes;
+  }
+
+  isCategoryDuplicated(optionIndex: number): boolean {
+    const id = this.optionsArray.at(optionIndex).get('optionCategoryId')?.value as number | null;
+    if (!id) return false;
+    return this.duplicateCategoryIds().has(id);
+  }
+
   // ── Wizard navigation ────────────────────────────────────────────
 
   submitStep1(): void {
@@ -250,7 +301,14 @@ export class Products implements OnInit {
       ).subscribe(product => {
         this.createdProduct.set(product);
         this.isSubmitting.set(false);
-        this.currentStep.set(v.hasOptions ? 2 : 3);
+        if (v.hasOptions) {
+          // Producto creado, ahora el usuario define las opciones
+          this.currentStep.set(2);
+        } else {
+          // Sin opciones: flujo terminado
+          this.refreshProducts();
+          this.currentStep.set(3);
+        }
       });
     } else {
       const id = v.id;
@@ -276,12 +334,22 @@ export class Products implements OnInit {
   submitStep2(): void {
     if (this.optionsArray.length === 0) { this.currentStep.set(3); return; }
     if (this.optionsArray.invalid) { this.optionsArray.markAllAsTouched(); return; }
+    if (this.hasDuplicateCategories()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Categorías duplicadas',
+        detail: 'Solo puedes agregar una opción por categoría',
+      });
+      return;
+    }
 
     const productId = this.createdProduct()?.id;
     if (!productId) return;
 
     this.isSubmitting.set(true);
-    const requests = (this.optionsArray.value as { name: string; optionCategoryId: number; recipe: { supplyVariantId: number; requiredQuantity: number }[] }[])
+
+    // Crear todas las opciones en paralelo
+    const optionPayloads = (this.optionsArray.value as { name: string; optionCategoryId: number; recipe: { supplyVariantId: number; requiredQuantity: number }[] }[])
       .map(opt => {
         const payload: ProductOptionCreateRequest = {
           name: opt.name,
@@ -292,24 +360,29 @@ export class Products implements OnInit {
         return this.productService.createProductOption(payload);
       });
 
-    forkJoin(requests).pipe(
+    forkJoin(optionPayloads).pipe(
+      // Después de crear todas, consultar las opciones guardadas del producto
+      switchMap(() => this.masterDataService.getProductOptions(productId)),
       catchError(err => {
         this.logger.error('Error saving options', err);
         this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron guardar algunas opciones' });
         this.isSubmitting.set(false);
         return EMPTY;
       })
-    ).subscribe(() => {
+    ).subscribe(savedOptions => {
+      this.existingOptions.set(savedOptions);
       this.isSubmitting.set(false);
+      this.refreshProducts();
       this.currentStep.set(3);
     });
   }
 
-  skipOptions(): void { this.currentStep.set(3); }
+  skipOptions(): void {
+    this.refreshProducts();
+    this.currentStep.set(3);
+  }
 
   finish(): void {
-    this.refreshProducts();
-    this.messageService.add({ severity: 'success', summary: 'Listo', detail: 'Producto guardado correctamente' });
     this.closeModal();
   }
 
@@ -322,5 +395,36 @@ export class Products implements OnInit {
 
   private refreshProducts(): void {
     this.productService.getProducts().subscribe(res => this.products.set(res));
+  }
+
+  showDetailDialog(product: ProductResponse): void {
+    this.detailProduct.set(product);
+    this.detailOptions.set([]);
+    this.detailDialogOpen.set(true);
+    if (product.hasOptions) {
+      this.detailOptionsLoading.set(true);
+      this.productService.getOptions(product.id).pipe(
+        catchError(() => of([] as ProductOption[]))
+      ).subscribe(opts => {
+        this.detailOptions.set(opts);
+        this.detailOptionsLoading.set(false);
+      });
+    }
+  }
+
+  closeDetailDialog(): void {
+    this.detailDialogOpen.set(false);
+    this.detailProduct.set(null);
+    this.detailOptions.set([]);
+  }
+
+  groupByCategory(options: ProductOption[]): { category: string; items: ProductOption[] }[] {
+    const map = new Map<string, ProductOption[]>();
+    for (const o of options) {
+      const arr = map.get(o.optionCategoryName) ?? [];
+      arr.push(o);
+      map.set(o.optionCategoryName, arr);
+    }
+    return Array.from(map.entries()).map(([category, items]) => ({ category, items }));
   }
 }

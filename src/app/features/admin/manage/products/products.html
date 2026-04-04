@@ -44,7 +44,12 @@
           <td>{{ product.areaName }}</td>
           <td>{{ product.categoryName }}</td>
           <td><p-tag [value]="product.hasOptions ? 'Personalizable' : 'Simple'" [severity]="product.hasOptions ? 'info' : 'secondary'" /></td>
-          <td><p-button size="small" icon="pi pi-pencil" label="Editar" (click)="showModificationModal(product.id)" /></td>
+          <td class="flex gap-1">
+            <p-button size="small" icon="pi pi-eye" label="Detalles" severity="secondary"
+              (click)="showDetailDialog(product)" />
+            <p-button size="small" icon="pi pi-pencil" label="Editar"
+              (click)="showModificationModal(product.id)" />
+          </td>
         </tr>
       </ng-template>
     </p-table>
@@ -204,18 +209,38 @@
             </div>
 
             <div class="grid grid-cols-2 gap-3">
-              <p-iftalabel>
-                <input pInputText [id]="'opt-name-' + i" class="w-full" formControlName="name"
-                  placeholder="Ej: Carne de Res" />
-                <label [for]="'opt-name-' + i">Nombre *</label>
-              </p-iftalabel>
+              <div class="flex flex-col gap-1">
+                <p-iftalabel>
+                  <p-select [options]="optionCategories()" [inputId]="'opt-cat-' + i"
+                    optionLabel="name" optionValue="id" formControlName="optionCategoryId"
+                    placeholder="Seleccionar" class="w-full"
+                    [invalid]="isCategoryDuplicated(i)"
+                    (onChange)="$any(opt).get('name').setValue(null)" />
+                  <label [for]="'opt-cat-' + i">Categoría de opción *</label>
+                </p-iftalabel>
+                @if (isCategoryDuplicated(i)) {
+                  <small class="text-red-500 text-xs">Solo una opción por categoría</small>
+                }
+              </div>
 
-              <p-iftalabel>
-                <p-select [options]="optionCategories()" [inputId]="'opt-cat-' + i"
-                  optionLabel="name" optionValue="id" formControlName="optionCategoryId"
-                  placeholder="Seleccionar" class="w-full" />
-                <label [for]="'opt-cat-' + i">Categoría de opción *</label>
-              </p-iftalabel>
+              <div class="flex flex-col gap-1">
+                <p-iftalabel>
+                  <p-select
+                    [options]="optionsByCategory($any(opt).get('optionCategoryId')?.value)"
+                    [inputId]="'opt-name-' + i"
+                    optionLabel="name" optionValue="name"
+                    formControlName="name"
+                    placeholder="Seleccionar opción"
+                    class="w-full"
+                    [disabled]="!$any(opt).get('optionCategoryId')?.value"
+                    [invalid]="$any(opt).get('name')?.invalid && $any(opt).get('name')?.touched"
+                    [filter]="true" filterBy="name" />
+                  <label [for]="'opt-name-' + i">Opción *</label>
+                </p-iftalabel>
+                @if (!$any(opt).get('optionCategoryId')?.value) {
+                  <small class="text-surface-400 text-xs">Primero selecciona una categoría</small>
+                }
+              </div>
             </div>
 
             <!-- Receta de esta opción -->
@@ -260,7 +285,8 @@
       <div class="flex gap-2">
         <p-button label="Omitir" severity="secondary" (click)="skipOptions()" />
         <p-button label="Guardar opciones" icon="pi pi-arrow-right" iconPos="right"
-          [loading]="isSubmitting()" [disabled]="optionsArray.length === 0"
+          [loading]="isSubmitting()"
+          [disabled]="optionsArray.length === 0 || hasDuplicateCategories()"
           (click)="submitStep2()" />
       </div>
     </div>
@@ -306,13 +332,20 @@
               <span>{{ baseRecipe.length }}</span>
             </div>
           }
-          @if (hasOptions() && optionsArray.length > 0) {
-            <div class="flex justify-between">
-              <span class="text-surface-500">Opciones creadas</span>
-              <span>{{ optionsArray.length }}</span>
-            </div>
-          }
         </div>
+
+        <!-- Opciones guardadas (confirmadas desde la API) -->
+        @if (existingOptions().length > 0) {
+          <div class="flex flex-col gap-2">
+            <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Opciones registradas</span>
+            @for (opt of existingOptions(); track opt.id) {
+              <div class="flex items-center justify-between px-3 py-2 bg-surface-50 dark:bg-surface-800 rounded-lg text-sm border border-surface-200 dark:border-surface-700">
+                <span class="font-medium">{{ opt.name }}</span>
+                <span class="text-surface-400 text-xs px-2 py-0.5 bg-surface-200 dark:bg-surface-700 rounded">{{ opt.optionCategoryName }}</span>
+              </div>
+            }
+          </div>
+        }
       }
     </div>
 
@@ -324,3 +357,82 @@
 </p-dialog>
 
 <p-toast />
+
+<!-- ════════════════════════════════════════════════
+     DIALOG DETALLES DE PRODUCTO
+════════════════════════════════════════════════ -->
+<p-dialog [modal]="true" [(visible)]="detailDialogOpen"
+  header="Detalles del producto"
+  draggable="false" [style]="{ width: '36vw', minWidth: '320px' }" appendTo="body"
+  (onHide)="closeDetailDialog()">
+
+  @if (detailProduct()) {
+    <div class="flex flex-col gap-4 text-sm">
+
+      <!-- Info principal -->
+      <div class="flex flex-col gap-2 border border-surface-200 dark:border-surface-700 rounded-lg p-4">
+        <div class="flex justify-between items-start">
+          <span class="text-lg font-semibold text-surface-900 dark:text-surface-0">{{ detailProduct()!.name }}</span>
+          <p-tag [value]="detailProduct()!.hasOptions ? 'Personalizable' : 'Simple'"
+            [severity]="detailProduct()!.hasOptions ? 'info' : 'secondary'" />
+        </div>
+        <div class="flex justify-between">
+          <span class="text-surface-500">Precio base</span>
+          <span class="font-medium">{{ currencyFormat.format(detailProduct()!.basePrice) }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-surface-500">Categoría</span>
+          <span>{{ detailProduct()!.categoryName }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-surface-500">Área</span>
+          <span>{{ detailProduct()!.areaName }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-surface-500">Estado</span>
+          <span [class]="detailProduct()!.active ? 'text-green-600 font-medium' : 'text-red-500 font-medium'">
+            {{ detailProduct()!.active ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Opciones -->
+      @if (detailProduct()!.hasOptions) {
+        <div class="flex flex-col gap-2">
+          <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Opciones disponibles</span>
+          @if (detailOptionsLoading()) {
+            <div class="flex flex-col gap-2">
+              <p-skeleton height="1.5rem" />
+              <p-skeleton height="1.5rem" width="75%" />
+            </div>
+          } @else if (detailOptions().length === 0) {
+            <p class="text-surface-400 italic text-xs">Sin opciones registradas aún</p>
+          } @else {
+            <div class="flex flex-col gap-3">
+              @for (group of groupByCategory(detailOptions()); track group.category) {
+                <div class="flex flex-col gap-1">
+                  <span class="text-xs font-medium text-surface-600 dark:text-surface-400">{{ group.category }}</span>
+                  <div class="flex flex-wrap gap-1">
+                    @for (opt of group.items; track opt.id) {
+                      <span class="text-xs px-2 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-700">
+                        {{ opt.name }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+    </div>
+  }
+
+  <ng-template #footer>
+    <p-button label="Cerrar" severity="secondary" icon="pi pi-times" (click)="closeDetailDialog()" />
+    <p-button label="Editar" icon="pi pi-pencil"
+      (click)="closeDetailDialog(); showModificationModal(detailProduct()!.id)" />
+  </ng-template>
+
+</p-dialog>

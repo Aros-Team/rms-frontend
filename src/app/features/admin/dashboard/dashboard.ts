@@ -3,17 +3,20 @@ import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { BadgeModule } from 'primeng/badge';
 import { CardModule } from 'primeng/card';
+import { SkeletonModule } from 'primeng/skeleton';
 import { CommonModule } from '@angular/common';
 import { OrderService } from '@app/core/services/orders/order-service';
 import { TableService } from '@app/core/services/tables/table-service';
 import { ProductService, Product } from '@app/core/services/products/product-service';
 import { DayMenuService } from '@app/core/services/daymenu/daymenu-service';
 import { DayMenuResponse } from '@app/shared/models/dto/daymenu/daymenu-response';
+import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
 import { OrderDetailDialogComponent } from '@shared/components/order-detail-dialog/order-detail-dialog.component';
 import { LoggingService } from '@app/core/services/logging/logging-service';
 import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
 import { OrderDetailsResponse } from '@app/shared/models/dto/orders/order-details-response.model';
-import { count } from 'rxjs';
+import { of } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
 import { Message } from "primeng/message";
 
 @Component({
@@ -25,6 +28,7 @@ import { Message } from "primeng/message";
     TableModule,
     BadgeModule,
     CardModule,
+    SkeletonModule,
     OrderDetailDialogComponent,
     Message
   ],
@@ -40,7 +44,9 @@ export class Dashboard implements OnInit {
   orders = signal<OrderResponse[]>([]);
   orderDetails = signal<OrderDetailsResponse[]>([]);
   dayMenu = signal<DayMenuResponse | null>(null);
-  existDayMenu = false
+  dayMenuOptions = signal<ProductOption[]>([]);
+  loadingDayMenuOptions = signal(false);
+  existDayMenu = false;
   completedOrdersCount = signal(0);
   preparingOrdersCount = signal(0);
   occupiedTablesCount = signal(0);
@@ -172,16 +178,34 @@ export class Dashboard implements OnInit {
   }
 
   private loadDayMenu() {
-    this.dayMenuService.getCurrentDayMenu().subscribe({
-      next: menu => {
+    this.dayMenuService.getCurrentDayMenu().pipe(
+      switchMap(menu => {
         this.dayMenu.set(menu);
         this.existDayMenu = true;
-      },
-      error: () => {
+        this.loadingDayMenuOptions.set(true);
+        return this.productService.getOptions(menu.productId).pipe(
+          catchError(() => of([] as ProductOption[]))
+        );
+      }),
+      catchError(() => {
         this.dayMenu.set(null);
         this.existDayMenu = false;
-      }
+        return of([] as ProductOption[]);
+      })
+    ).subscribe(opts => {
+      this.dayMenuOptions.set(opts);
+      this.loadingDayMenuOptions.set(false);
     });
+  }
+
+  groupByCategory(options: ProductOption[]): { category: string; items: ProductOption[] }[] {
+    const map = new Map<string, ProductOption[]>();
+    for (const o of options) {
+      const arr = map.get(o.optionCategoryName) ?? [];
+      arr.push(o);
+      map.set(o.optionCategoryName, arr);
+    }
+    return Array.from(map.entries()).map(([category, items]) => ({ category, items }));
   }
 
   getStatusBadgeClass(status: string): string {

@@ -5,6 +5,7 @@ import { ProductResponse } from '@app/shared/models/dto/products/product-respons
 import { ProductSimpleResponse } from '@app/shared/models/dto/products/product-simple-response';
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
 import { ProductUpdateRequest } from '@app/shared/models/dto/products/product-update-request';
+import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
 import { catchError, map, Observable, of } from 'rxjs';
 
 export interface PreparationArea {
@@ -96,5 +97,9 @@ export class ProductService {
     return this.http.get<ProductResponse[]>('v1/products', {
       params: { categories: categoryIds.join(',') }
     });
+  }
+
+  public getOptions(productId: number): Observable<ProductOption[]> {
+    return this.http.get<ProductOption[]>(`v1/products/${productId}/options`);
   }
 }
