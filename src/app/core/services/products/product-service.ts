@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { ProductCreateRequest } from '@app/shared/models/dto/products/product-create-request';
+import { ProductCreateRequest, ProductOptionCreateRequest } from '@app/shared/models/dto/products/product-create-request';
 import { ProductResponse } from '@app/shared/models/dto/products/product-response';
 import { ProductSimpleResponse } from '@app/shared/models/dto/products/product-simple-response';
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
@@ -51,8 +51,12 @@ export class ProductService {
     });
   }
 
-  public createProduct(data: ProductCreateRequest): Observable<object> {
-    return this.http.post('v1/products', data);
+  public createProduct(data: ProductCreateRequest): Observable<ProductResponse> {
+    return this.http.post<ProductResponse>('v1/products', data);
+  }
+
+  public createProductOption(data: ProductOptionCreateRequest): Observable<object> {
+    return this.http.post('v1/product-options', data);
   }
 
   public updateProduct(id: number, data: ProductUpdateRequest): Observable<object> {
