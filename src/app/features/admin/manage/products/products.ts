@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, FormArray, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, EMPTY, switchMap } from 'rxjs';
@@ -49,6 +49,7 @@ type WizardStep = 1 | 2 | 3;
   imports: [
     RouterModule,
     ReactiveFormsModule,
+    FormsModule,
     CurrencyPipe,
     TableModule,
     ProgressSpinnerModule,
@@ -97,6 +98,45 @@ export class Products implements OnInit {
   supplyVariantOptions = signal<(SupplyVariantResponse & { displayName: string })[]>([]);
   allProductOptions = signal<ProductOptionResponse[]>([]);
 
+  // Supply category filter maps (per recipe row)
+  private baseRecipeCategoryMap = new Map<number, number | null>();
+  private optionRecipeCategoryMap = new Map<string, number | null>();
+
+  supplyCategories = computed(() => {
+    const seen = new Set<number>();
+    return this.supplyVariantOptions()
+      .filter(v => { if (seen.has(v.categoryId)) return false; seen.add(v.categoryId); return true; })
+      .map(v => ({ id: v.categoryId, name: v.categoryName }));
+  });
+
+  getBaseRecipeCategory(i: number): number | null {
+    return this.baseRecipeCategoryMap.get(i) ?? null;
+  }
+
+  setBaseRecipeCategory(i: number, catId: number | null): void {
+    this.baseRecipeCategoryMap.set(i, catId);
+    this.baseRecipe.at(i).get('supplyVariantId')?.setValue(null);
+  }
+
+  filteredVariantsForBaseRecipe(i: number): (SupplyVariantResponse & { displayName: string })[] {
+    const catId = this.baseRecipeCategoryMap.get(i) ?? null;
+    return catId ? this.supplyVariantOptions().filter(v => v.categoryId === catId) : this.supplyVariantOptions();
+  }
+
+  getOptionRecipeCategory(optIdx: number, riIdx: number): number | null {
+    return this.optionRecipeCategoryMap.get(`${optIdx}-${riIdx}`) ?? null;
+  }
+
+  setOptionRecipeCategory(optIdx: number, riIdx: number, catId: number | null): void {
+    this.optionRecipeCategoryMap.set(`${optIdx}-${riIdx}`, catId);
+    this.getOptionRecipe(optIdx).at(riIdx).get('supplyVariantId')?.setValue(null);
+  }
+
+  filteredVariantsForOptionRecipe(optIdx: number, riIdx: number): (SupplyVariantResponse & { displayName: string })[] {
+    const catId = this.optionRecipeCategoryMap.get(`${optIdx}-${riIdx}`) ?? null;
+    return catId ? this.supplyVariantOptions().filter(v => v.categoryId === catId) : this.supplyVariantOptions();
+  }
+
   // Modal state
   modalIsOpen = signal(false);
   modalMode = signal<'create' | 'edit'>('create');
@@ -142,7 +182,7 @@ export class Products implements OnInit {
         this.categories.set(categories.filter(c => c.enabled));
         this.optionCategories.set(optionCategories);
         this.supplyVariantOptions.set(
-          variants.map(v => ({ ...v, displayName: `${v.supplyName} (${v.unitAbbreviation})` }))
+          variants.map(v => ({ ...v, displayName: `${v.supplyName} — ${v.quantity} ${v.unitAbbreviation}` }))
         );
         this.allProductOptions.set(productOptions);
       },
@@ -169,6 +209,8 @@ export class Products implements OnInit {
     this.optionsArray.clear();
     this.createdProduct.set(null);
     this.existingOptions.set([]);
+    this.baseRecipeCategoryMap.clear();
+    this.optionRecipeCategoryMap.clear();
     this.currentStep.set(1);
     this.modalMode.set('create');
     this.modalIsOpen.set(true);
@@ -180,6 +222,8 @@ export class Products implements OnInit {
     this.optionsArray.clear();
     this.createdProduct.set(null);
     this.existingOptions.set([]);
+    this.baseRecipeCategoryMap.clear();
+    this.optionRecipeCategoryMap.clear();
     this.currentStep.set(1);
     this.modalMode.set('edit');
     this.productService.findProduct(id).pipe(

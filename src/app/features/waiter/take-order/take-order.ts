@@ -180,6 +180,10 @@ export class TakeOrder implements OnInit {
     return !!this.selectedTableId() && this.cart().length > 0 && !this.submitting();
   }
 
+  private resolveOrderError(err: { status?: number; error?: { message?: string } }): string {
+    return err?.error?.message || 'No se pudo crear la orden. Intenta de nuevo.';
+  }
+
   submitOrder(): void {
     const tableId = this.selectedTableId();
     if (!tableId || this.cart().length === 0) return;
@@ -207,7 +211,7 @@ export class TakeOrder implements OnInit {
       },
       error: (err) => {
         this.logger.error('TakeOrder: create order failed', err);
-        const msg = err?.error?.message || 'No se pudo crear la orden.';
+        const msg = this.resolveOrderError(err);
         this.error.set(msg);
         this.submitting.set(false);
       }

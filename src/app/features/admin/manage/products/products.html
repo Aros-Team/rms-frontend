@@ -150,11 +150,19 @@
       <div class="flex flex-col gap-2">
         @for (item of baseRecipe.controls; track i; let i = $index) {
           <div [formGroup]="$any(item)" class="flex gap-2 items-end bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-3">
+            <div class="w-44">
+              <label class="text-xs text-surface-500 mb-1 block">Categoría</label>
+              <p-select [options]="supplyCategories()" optionLabel="name" optionValue="id"
+                [ngModel]="getBaseRecipeCategory(i)" [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="setBaseRecipeCategory(i, $event)"
+                placeholder="Todas" [showClear]="true"
+                class="w-full" appendTo="body" />
+            </div>
             <div class="flex-1">
               <label class="text-xs text-surface-500 mb-1 block">Insumo *</label>
-              <p-select [options]="supplyVariantOptions()" optionLabel="displayName" optionValue="id"
+              <p-select [options]="filteredVariantsForBaseRecipe(i)" optionLabel="displayName" optionValue="id"
                 formControlName="supplyVariantId" placeholder="Seleccionar insumo"
-                class="w-full" [filter]="true" filterBy="displayName" />
+                class="w-full" [filter]="true" filterBy="displayName" appendTo="body" />
             </div>
             <div class="w-36">
               <label class="text-xs text-surface-500 mb-1 block">Cantidad *</label>
@@ -258,10 +266,17 @@
               @for (ri of getOptionRecipe(i).controls; track ri; let ri_i = $index) {
                 <div [formGroupName]="ri_i"
                   class="flex gap-2 items-end bg-surface-50 dark:bg-surface-900 border border-surface-100 dark:border-surface-700 rounded-lg p-2">
+                  <div class="w-40">
+                    <p-select [options]="supplyCategories()" optionLabel="name" optionValue="id"
+                      [ngModel]="getOptionRecipeCategory(i, ri_i)" [ngModelOptions]="{ standalone: true }"
+                      (ngModelChange)="setOptionRecipeCategory(i, ri_i, $event)"
+                      placeholder="Categoría" [showClear]="true"
+                      class="w-full" appendTo="body" />
+                  </div>
                   <div class="flex-1">
-                    <p-select [options]="supplyVariantOptions()" optionLabel="displayName" optionValue="id"
+                    <p-select [options]="filteredVariantsForOptionRecipe(i, ri_i)" optionLabel="displayName" optionValue="id"
                       formControlName="supplyVariantId" placeholder="Insumo"
-                      class="w-full" [filter]="true" filterBy="displayName" />
+                      class="w-full" [filter]="true" filterBy="displayName" appendTo="body" />
                   </div>
                   <div class="w-32">
                     <p-inputnumber formControlName="requiredQuantity" [min]="0.001"

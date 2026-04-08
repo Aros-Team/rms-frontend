@@ -29,6 +29,7 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { DatePickerModule } from 'primeng/datepicker';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { TooltipModule } from 'primeng/tooltip';
 
 // Wizard step type
 type VariantStep = 'category' | 'supply' | 'variant';
@@ -53,6 +54,7 @@ type VariantStep = 'category' | 'supply' | 'variant';
     ToastModule,
     DatePickerModule,
     MultiSelectModule,
+    TooltipModule,
   ],
   providers: [MessageService],
   templateUrl: './inventory.html',
@@ -133,6 +135,33 @@ export class Inventory implements OnInit {
     return this.purchaseForm.get('items') as FormArray;
   }
 
+  // --- purchase item category filter (local, per-row) ---
+  private itemCategoryMap = new Map<number, number | null>();
+
+  getItemCategory(index: number): number | null {
+    return this.itemCategoryMap.get(index) ?? null;
+  }
+
+  setItemCategory(index: number, categoryId: number | null): void {
+    this.itemCategoryMap.set(index, categoryId);
+    // clear selected variant when category changes
+    this.items.at(index).get('supplyVariantId')?.setValue(null);
+  }
+
+  filteredVariantsForItem(index: number): SupplyVariantResponse[] {
+    const all = this.supplies() ?? [];
+    const catId = this.itemCategoryMap.get(index) ?? null;
+    return catId ? all.filter(v => v.categoryId === catId) : all;
+  }
+
+  // --- new supplier dialog ---
+  newSupplierDialogOpen = false;
+  newSupplierSubmitting = signal(false);
+  newSupplierForm: FormGroup = this.fb.group({
+    name: ['', [Validators.required, Validators.maxLength(255)]],
+    contact: ['', Validators.maxLength(255)],
+  });
+
   ngOnInit(): void {
     this.loadSupplies();
     this.loadSuppliers();
@@ -158,6 +187,7 @@ export class Inventory implements OnInit {
   openPurchaseModal(): void {
     this.purchaseForm.reset();
     this.items.clear();
+    this.itemCategoryMap.clear();
     this.addItem();
     this.modalIsOpen = true;
   }
@@ -271,6 +301,39 @@ export class Inventory implements OnInit {
       });
   }
 
+  openNewSupplierDialog(): void {
+    this.newSupplierForm.reset();
+    this.newSupplierDialogOpen = true;
+  }
+
+  closeNewSupplierDialog(): void {
+    this.newSupplierDialogOpen = false;
+  }
+
+  submitNewSupplier(): void {
+    if (this.newSupplierForm.invalid) {
+      this.newSupplierForm.markAllAsTouched();
+      return;
+    }
+    this.newSupplierSubmitting.set(true);
+    const { name, contact } = this.newSupplierForm.value as { name: string; contact: string };
+    this.supplierService.createSupplier({ name: name.trim(), contact: contact?.trim() || undefined }).subscribe({
+      next: (created) => {
+        this.newSupplierSubmitting.set(false);
+        this.suppliers.update(list => [...list, created]);
+        this.purchaseForm.get('supplierId')?.setValue(created.id);
+        this.closeNewSupplierDialog();
+        this.messageService.add({ severity: 'success', summary: 'Distribuidor creado', detail: created.name });
+      },
+      error: (err: { status?: number }) => {
+        this.newSupplierSubmitting.set(false);
+        const detail = err.status === 400 ? 'El nombre es requerido y no puede superar 255 caracteres.' : 'No se pudo crear el distribuidor.';
+        this.messageService.add({ severity: 'error', summary: 'Error', detail });
+        this.logger.error('Error creating supplier', err);
+      },
+    });
+  }
+
   closeModal(): void {
     this.modalIsOpen = false;
   }
@@ -288,6 +351,7 @@ export class Inventory implements OnInit {
 
   removeItem(index: number): void {
     this.items.removeAt(index);
+    this.itemCategoryMap.delete(index);
   }
 
   submitPurchase(): void {

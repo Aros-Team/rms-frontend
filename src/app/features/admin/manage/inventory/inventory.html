@@ -266,19 +266,31 @@
 >
   <form [formGroup]="purchaseForm" class="flex flex-col gap-4">
     <div class="grid grid-cols-2 gap-4">
-      <p-iftalabel>
-        <p-select
-          inputId="supplierId"
-          [options]="activeSuppliers()"
-          optionLabel="name"
-          optionValue="id"
-          placeholder="Seleccionar distribuidor"
-          class="w-full"
-          formControlName="supplierId"
-          [invalid]="!!purchaseForm.get('supplierId')?.invalid && !!purchaseForm.get('supplierId')?.touched"
+      <div class="flex gap-2 items-end">
+        <p-iftalabel class="flex-1">
+          <p-select
+            inputId="supplierId"
+            [options]="activeSuppliers()"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="Seleccionar distribuidor"
+            class="w-full"
+            appendTo="body"
+            formControlName="supplierId"
+            [invalid]="!!purchaseForm.get('supplierId')?.invalid && !!purchaseForm.get('supplierId')?.touched"
+          />
+          <label for="supplierId">Distribuidor</label>
+        </p-iftalabel>
+        <p-button
+          icon="pi pi-plus"
+          [outlined]="true"
+          size="small"
+          pTooltip="Crear nuevo distribuidor"
+          tooltipPosition="top"
+          (click)="openNewSupplierDialog()"
+          aria-label="Crear nuevo distribuidor"
         />
-        <label for="supplierId">Distribuidor</label>
-      </p-iftalabel>
+      </div>
 
       <p-iftalabel>
         <p-datepicker
@@ -335,10 +347,27 @@
           >
             <!-- Row 1: insumo + delete -->
             <div class="flex gap-2 items-end">
+              <p-iftalabel class="w-44">
+                <p-select
+                  [inputId]="'cat-' + $index"
+                  [options]="categories()"
+                  optionLabel="name"
+                  optionValue="id"
+                  placeholder="Categoría"
+                  class="w-full"
+                  appendTo="body"
+                  [showClear]="true"
+                  [ngModel]="getItemCategory($index)"
+                  [ngModelOptions]="{ standalone: true }"
+                  (ngModelChange)="setItemCategory($index, $event)"
+                />
+                <label [for]="'cat-' + $index">Categoría</label>
+              </p-iftalabel>
+
               <p-iftalabel class="flex-1">
                 <p-select
                   [inputId]="'supply-' + $index"
-                  [options]="supplies() ?? []"
+                  [options]="filteredVariantsForItem($index)"
                   optionValue="id"
                   placeholder="Insumo"
                   class="w-full"
@@ -411,5 +440,47 @@
   <div class="flex justify-start gap-2 mt-6">
     <p-button icon="pi pi-save" label="Registrar compra" [loading]="submitting" (click)="submitPurchase()" />
     <p-button icon="pi pi-ban" label="Cancelar" severity="secondary" (click)="closeModal()" />
+  </div>
+</p-dialog>
+
+<!-- ===== New supplier dialog ===== -->
+<p-dialog
+  [modal]="true"
+  [(visible)]="newSupplierDialogOpen"
+  header="Nuevo distribuidor"
+  draggable="false"
+  [style]="{ width: '28vw', minWidth: '320px' }"
+  appendTo="body"
+>
+  <form [formGroup]="newSupplierForm" class="flex flex-col gap-4 pt-2">
+    <p-iftalabel>
+      <input
+        pInputText
+        id="supplierName"
+        formControlName="name"
+        class="w-full"
+        [class.ng-invalid]="isInvalid(newSupplierForm, 'name')"
+        [class.ng-dirty]="isInvalid(newSupplierForm, 'name')"
+      />
+      <label for="supplierName">Nombre *</label>
+    </p-iftalabel>
+    @if (isInvalid(newSupplierForm, 'name')) {
+      <small class="text-red-500 -mt-3">El nombre es requerido</small>
+    }
+
+    <p-iftalabel>
+      <input
+        pInputText
+        id="supplierContact"
+        formControlName="contact"
+        class="w-full"
+      />
+      <label for="supplierContact">Contacto</label>
+    </p-iftalabel>
+  </form>
+
+  <div class="flex justify-end gap-2 mt-6">
+    <p-button label="Cancelar" severity="secondary" icon="pi pi-times" (click)="closeNewSupplierDialog()" />
+    <p-button label="Crear" icon="pi pi-check" [loading]="newSupplierSubmitting()" (click)="submitNewSupplier()" />
   </div>
 </p-dialog>
