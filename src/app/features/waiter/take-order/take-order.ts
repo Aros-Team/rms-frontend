@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { MasterDataService } from '@app/core/services/master-data/master-data.service';
 import { OrderService } from '@app/core/services/orders/order-service';
 import { LoggingService } from '@app/core/services/logging/logging-service';
+import { CartService } from '@app/core/services/cart/cart.service';
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
 import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
 import { TableResponse } from '@app/shared/models/dto/tables/table-response.model';
@@ -28,6 +29,7 @@ export class TakeOrder implements OnInit {
   private masterData = inject(MasterDataService);
   private orderService = inject(OrderService);
   private logger = inject(LoggingService);
+  private cartService = inject(CartService);
 
   // Estado de carga
   loading = signal(true);
@@ -81,6 +83,9 @@ export class TakeOrder implements OnInit {
         this.productsByCategory.set(this.masterData.getProductsByCategory());
         const cats = Object.keys(this.masterData.getProductsByCategory());
         if (cats.length) this.activeCategory.set(cats[0]);
+        // Consume items pre-cargados desde el menú del día
+        const pending = this.cartService.flush();
+        if (pending.length) this.cart.set(pending);
         this.loading.set(false);
       },
       error: (err) => {
