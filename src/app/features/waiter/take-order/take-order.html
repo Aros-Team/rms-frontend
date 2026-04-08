@@ -222,7 +222,7 @@
                     [class]="isOptionSelected(opt.id)
                       ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
                       : 'border-surface-200 dark:border-surface-600 text-surface-700 dark:text-surface-300'"
-                    (click)="toggleOption(opt.id)">
+                    (click)="toggleOption(opt.id, opt.optionCategoryId)">
                     {{ opt.name }}
                   </button>
                 }

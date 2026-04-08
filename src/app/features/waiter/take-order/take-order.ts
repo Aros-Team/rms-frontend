@@ -129,10 +129,16 @@ export class TakeOrder implements OnInit {
     });
   }
 
-  toggleOption(optionId: number): void {
-    this.pendingOptions.update(ids =>
-      ids.includes(optionId) ? ids.filter(id => id !== optionId) : [...ids, optionId]
-    );
+  toggleOption(optionId: number, categoryId: number): void {
+    const sameCategory = this.modalOptions()
+      .filter(o => o.optionCategoryId === categoryId)
+      .map(o => o.id);
+
+    this.pendingOptions.update(ids => {
+      // quitar todas las de la misma categoría, luego agregar la nueva (o deseleccionar si ya estaba)
+      const withoutCategory = ids.filter(id => !sameCategory.includes(id));
+      return ids.includes(optionId) ? withoutCategory : [...withoutCategory, optionId];
+    });
   }
 
   isOptionSelected(optionId: number): boolean {

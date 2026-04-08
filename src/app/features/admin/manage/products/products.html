@@ -114,6 +114,7 @@
             <p-select
               [options]="[{ label: 'Sí — permite personalización', value: true }, { label: 'No — precio fijo', value: false }]"
               inputId="hasOptions" class="w-full" formControlName="hasOptions"
+              appendTo="body"
               [invalid]="isInvalid(baseForm, 'hasOptions')" />
             <label for="hasOptions">¿Tiene opciones? *</label>
           </p-iftalabel>
@@ -121,6 +122,7 @@
           <p-iftalabel>
             <p-select [options]="categories()" inputId="categoryId" class="w-full"
               optionValue="id" optionLabel="name" formControlName="categoryId"
+              appendTo="body"
               [invalid]="isInvalid(baseForm, 'categoryId')" />
             <label for="categoryId">Categoría *</label>
           </p-iftalabel>
@@ -128,6 +130,7 @@
           <p-iftalabel>
             <p-select [options]="areas()" inputId="areaId" class="w-full"
               optionValue="id" optionLabel="name" formControlName="areaId"
+              appendTo="body"
               [invalid]="isInvalid(baseForm, 'areaId')" />
             <label for="areaId">Área de preparación *</label>
           </p-iftalabel>
@@ -149,7 +152,7 @@
       }
 
       <div class="flex flex-col gap-2">
-        @for (item of baseRecipe.controls; track i; let i = $index) {
+        @for (item of baseRecipe.controls; track $index; let i = $index) {
           <div [formGroup]="$any(item)" class="flex gap-2 items-end bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-3">
             <div class="w-44">
               <label class="text-xs text-surface-500 mb-1 block">Categoría</label>
@@ -208,7 +211,7 @@
 
       <!-- Nuevas opciones -->
       <div class="flex flex-col gap-4">
-        @for (opt of optionsArray.controls; track i; let i = $index) {
+        @for (opt of optionsArray.controls; track $index; let i = $index) {
           <div [formGroup]="$any(opt)"
             class="border border-surface-200 dark:border-surface-700 rounded-xl p-4 flex flex-col gap-3">
 
@@ -222,14 +225,10 @@
                 <p-iftalabel>
                   <p-select [options]="optionCategories()" [inputId]="'opt-cat-' + i"
                     optionLabel="name" optionValue="id" formControlName="optionCategoryId"
-                    placeholder="Seleccionar" class="w-full"
-                    [invalid]="isCategoryDuplicated(i)"
+                    placeholder="Seleccionar" class="w-full" appendTo="body"
                     (onChange)="$any(opt).get('name').setValue(null)" />
                   <label [for]="'opt-cat-' + i">Categoría de opción *</label>
                 </p-iftalabel>
-                @if (isCategoryDuplicated(i)) {
-                  <small class="text-red-500 text-xs">Solo una opción por categoría</small>
-                }
               </div>
 
               <div class="flex flex-col gap-1">
@@ -240,7 +239,7 @@
                     optionLabel="name" optionValue="name"
                     formControlName="name"
                     placeholder="Seleccionar opción"
-                    class="w-full"
+                    class="w-full" appendTo="body"
                     [disabled]="!$any(opt).get('optionCategoryId')?.value"
                     [invalid]="$any(opt).get('name')?.invalid && $any(opt).get('name')?.touched"
                     [filter]="true" filterBy="name" />
@@ -252,43 +251,6 @@
               </div>
             </div>
 
-            <!-- Receta de esta opción -->
-            <div class="flex items-center justify-between mt-1">
-              <span class="text-xs text-surface-500">Insumos de esta opción</span>
-              <p-button icon="pi pi-plus" label="Agregar insumo" [text]="true" size="small"
-                (click)="addOptionRecipeItem(i)" />
-            </div>
-
-            @if (getOptionRecipe(i).length === 0) {
-              <p class="text-xs text-surface-400 italic">Sin insumos adicionales</p>
-            }
-
-            <div class="flex flex-col gap-2" formArrayName="recipe">
-              @for (ri of getOptionRecipe(i).controls; track ri; let ri_i = $index) {
-                <div [formGroupName]="ri_i"
-                  class="flex gap-2 items-end bg-surface-50 dark:bg-surface-900 border border-surface-100 dark:border-surface-700 rounded-lg p-2">
-                  <div class="w-40">
-                    <p-select [options]="supplyCategories()" optionLabel="name" optionValue="id"
-                      [ngModel]="getOptionRecipeCategory(i, ri_i)" [ngModelOptions]="{ standalone: true }"
-                      (ngModelChange)="setOptionRecipeCategory(i, ri_i, $event)"
-                      placeholder="Categoría" [showClear]="true"
-                      class="w-full" appendTo="body" />
-                  </div>
-                  <div class="flex-1">
-                    <p-select [options]="filteredVariantsForOptionRecipe(i, ri_i)" optionLabel="displayName" optionValue="id"
-                      formControlName="supplyVariantId" placeholder="Insumo"
-                      class="w-full" [filter]="true" filterBy="displayName" appendTo="body" />
-                  </div>
-                  <div class="w-32">
-                    <p-inputnumber formControlName="requiredQuantity" [min]="0.001"
-                      [minFractionDigits]="0" [maxFractionDigits]="3"
-                      placeholder="Cantidad" class="w-full" />
-                  </div>
-                  <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small"
-                    (click)="removeOptionRecipeItem(i, ri_i)" />
-                </div>
-              }
-            </div>
           </div>
         }
       </div>
@@ -302,7 +264,7 @@
         <p-button label="Omitir" severity="secondary" (click)="skipOptions()" />
         <p-button label="Guardar opciones" icon="pi pi-arrow-right" iconPos="right"
           [loading]="isSubmitting()"
-          [disabled]="optionsArray.length === 0 || hasDuplicateCategories()"
+          [disabled]="optionsArray.length === 0"
           (click)="submitStep2()" />
       </div>
     </div>
@@ -384,7 +346,7 @@
     <p-iftalabel>
       <p-select [options]="optionCategories()" inputId="opt-category"
         optionValue="id" optionLabel="name" formControlName="optionCategoryId"
-        placeholder="Seleccionar" class="w-full"
+        placeholder="Seleccionar" class="w-full" appendTo="body"
         [invalid]="newOptionForm.get('optionCategoryId')?.invalid && !!newOptionForm.get('optionCategoryId')?.touched" />
       <label for="opt-category">Categoría de opción *</label>
     </p-iftalabel>
@@ -413,7 +375,7 @@
   }
 
   <div class="flex flex-col gap-2">
-    @for (item of newOptionRecipe.controls; track i; let i = $index) {
+    @for (item of newOptionRecipe.controls; track $index; let i = $index) {
       <div [formGroup]="$any(item)" class="flex gap-2 items-end bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-3">
         <div class="w-44">
           <label class="text-xs text-surface-500 mb-1 block">Categoría</label>

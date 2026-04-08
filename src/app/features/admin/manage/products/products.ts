@@ -378,14 +378,6 @@ export class Products implements OnInit {
   submitStep2(): void {
     if (this.optionsArray.length === 0) { this.currentStep.set(3); return; }
     if (this.optionsArray.invalid) { this.optionsArray.markAllAsTouched(); return; }
-    if (this.hasDuplicateCategories()) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Categorías duplicadas',
-        detail: 'Solo puedes agregar una opción por categoría',
-      });
-      return;
-    }
 
     const productId = this.createdProduct()?.id;
     if (!productId) return;
