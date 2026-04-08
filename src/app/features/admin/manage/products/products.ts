@@ -471,4 +471,73 @@ export class Products implements OnInit {
     }
     return Array.from(map.entries()).map(([category, items]) => ({ category, items }));
   }
+
+  // ── Nueva opción de producto (dialog independiente) ──────────────
+
+  newOptionDialogOpen = signal(false);
+  newOptionSubmitting = signal(false);
+
+  // productos con hasOptions: true para el selector
+  productsWithOptions = computed(() => (this.products() ?? []).filter(p => p.hasOptions));
+
+  newOptionForm: FormGroup = this.fb.group({
+    optionCategoryId: [null, Validators.required],
+    name: ['', Validators.required],
+  });
+
+  // recipe rows para el dialog de nueva opción
+  newOptionRecipe: FormArray = this.fb.array([]);
+
+  newOptionRecipeCategoryMap = new Map<number, number | null>();
+
+  getNewOptionRecipeCategory(i: number): number | null {
+    return this.newOptionRecipeCategoryMap.get(i) ?? null;
+  }
+
+  setNewOptionRecipeCategory(i: number, catId: number | null): void {
+    this.newOptionRecipeCategoryMap.set(i, catId);
+    this.newOptionRecipe.at(i).get('supplyVariantId')?.setValue(null);
+  }
+
+  filteredVariantsForNewOptionRecipe(i: number): (SupplyVariantResponse & { displayName: string })[] {
+    const catId = this.newOptionRecipeCategoryMap.get(i) ?? null;
+    return catId ? this.supplyVariantOptions().filter(v => v.categoryId === catId) : this.supplyVariantOptions();
+  }
+
+  openNewOptionDialog(): void {
+    this.newOptionForm.reset();
+    this.newOptionRecipe.clear();
+    this.newOptionRecipeCategoryMap.clear();
+    this.newOptionDialogOpen.set(true);
+  }
+
+  addNewOptionRecipeItem(): void {
+    this.newOptionRecipe.push(this.fb.group({
+      supplyVariantId: [null, Validators.required],
+      requiredQuantity: [null, [Validators.required, Validators.min(0.001)]],
+    }));
+  }
+
+  removeNewOptionRecipeItem(i: number): void { this.newOptionRecipe.removeAt(i); }
+
+  submitNewOption(): void {
+    if (this.newOptionForm.invalid) { this.newOptionForm.markAllAsTouched(); return; }
+    const { optionCategoryId, name } = this.newOptionForm.value;
+    this.newOptionSubmitting.set(true);
+    this.productService.createProductOption({
+      name, optionCategoryId,
+      recipe: this.newOptionRecipe.value,
+    }).pipe(
+      catchError(err => {
+        this.logger.error('Error creating product option', err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo crear la opción' });
+        this.newOptionSubmitting.set(false);
+        return EMPTY;
+      })
+    ).subscribe(() => {
+      this.newOptionSubmitting.set(false);
+      this.newOptionDialogOpen.set(false);
+      this.messageService.add({ severity: 'success', summary: 'Opción creada', detail: `"${name}" agregada correctamente` });
+    });
+  }
 }
