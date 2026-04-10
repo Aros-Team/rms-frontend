@@ -8,4 +8,5 @@ export interface ProductUpdateRequest {
   categoryId: number;
   areaId: number;
   recipe?: RecipeItemRequest[];
+  optionIds?: number[];
 }

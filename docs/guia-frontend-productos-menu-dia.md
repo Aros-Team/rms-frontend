@@ -131,13 +131,17 @@ Authorization: Bearer {token}
 
 ### 3.2 Agregar opciones al producto
 
-Una vez creado el producto, agrega sus opciones. Primero necesitas las categorías de opciones:
+**IMPORTANTE:** Las opciones son entidades globales independientes de los productos. Primero debes crear las opciones (si no existen), y luego asociarlas al producto.
+
+#### Paso 1: Crear opciones globales (si no existen)
+
+Primero necesitas las categorías de opciones:
 
 ```
 GET /api/v1/option-categories   → lista de categorías de opciones (ej: Tamaño, Extras)
 ```
 
-Luego crea cada opción:
+Luego crea cada opción como entidad global (sin `productId`):
 
 ```
 POST /api/v1/product-options
@@ -149,12 +153,47 @@ Authorization: Bearer {token}
 {
   "name": "Tamaño Grande",
   "optionCategoryId": 1,
-  "productId": 5,
   "recipe": [
     { "supplyVariantId": 3, "requiredQuantity": 350.0 }
   ]
 }
 ```
+
+**Response `201 Created`:**
+```json
+{
+  "id": 10,
+  "name": "Tamaño Grande",
+  "optionCategoryId": 1,
+  "optionCategoryName": "Tamaño"
+}
+```
+
+#### Paso 2: Asociar opciones al producto
+
+Al crear o actualizar un producto con `hasOptions: true`, incluye el array `optionIds` con los IDs de las opciones que quieres asociar:
+
+```
+POST /api/v1/products
+Content-Type: application/json
+Authorization: Bearer {token}
+```
+
+```json
+{
+  "name": "Hamburguesa Clásica",
+  "basePrice": 12.50,
+  "hasOptions": true,
+  "categoryId": 1,
+  "areaId": 1,
+  "recipe": [
+    { "supplyVariantId": 3, "requiredQuantity": 200.0 }
+  ],
+  "optionIds": [10, 11, 12]
+}
+```
+
+**Nota:** Las opciones en `optionIds` deben existir previamente en la tabla `product_options`. El backend crea las asociaciones en la tabla `product_product_options`.
 
 ### 3.3 Consultar opciones de un producto
 
@@ -325,9 +364,13 @@ El historial siempre viene ordenado por `validUntil` descendente (el más recien
 ### Pantalla "Gestión de Productos"
 1. `GET /api/v1/categories` → cargar selector de categorías
 2. `GET /api/v1/areas` → cargar selector de áreas
-3. `GET /api/v1/products` → listar productos existentes
-4. Al crear: `POST /api/v1/products`
-5. Si `hasOptions: true`: mostrar sección para agregar opciones con `POST /api/v1/product-options`
+3. `GET /api/v1/option-categories` → cargar categorías de opciones
+4. `GET /api/v1/product-options` → cargar opciones globales existentes
+5. `GET /api/v1/products` → listar productos existentes
+6. Al crear producto con opciones:
+   - Si el usuario selecciona opciones existentes: usar sus IDs directamente
+   - Si el usuario crea nuevas opciones: `POST /api/v1/product-options` (sin `productId`)
+   - Luego: `POST /api/v1/products` con array `optionIds`
 
 ### Pantalla "Menú del Día"
 1. `GET /api/v1/day-menu/current` → mostrar el menú activo (o mensaje si `204`)

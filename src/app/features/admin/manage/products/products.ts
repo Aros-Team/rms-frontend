@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy } 
 import { FormBuilder, FormControl, FormGroup, FormArray, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
-import { catchError, EMPTY, switchMap } from 'rxjs';
+import { catchError, EMPTY, switchMap, map } from 'rxjs';
 
 import { AreaService } from '@app/core/services/areas/area-service';
 import { CategoryService } from '@app/core/services/category/category-service';
@@ -168,6 +168,9 @@ export class Products implements OnInit {
 
   hasOptions = computed(() => this.baseForm.get('hasOptions')?.value === true);
 
+  // Track selected option IDs (existing options)
+  selectedOptionIds = signal<number[]>([]);
+
   ngOnInit(): void {
     this.refreshProducts();
     forkJoin({
@@ -209,6 +212,7 @@ export class Products implements OnInit {
     this.optionsArray.clear();
     this.createdProduct.set(null);
     this.existingOptions.set([]);
+    this.selectedOptionIds.set([]);
     this.baseRecipeCategoryMap.clear();
     this.optionRecipeCategoryMap.clear();
     this.currentStep.set(1);
@@ -222,6 +226,7 @@ export class Products implements OnInit {
     this.optionsArray.clear();
     this.createdProduct.set(null);
     this.existingOptions.set([]);
+    this.selectedOptionIds.set([]);
     this.baseRecipeCategoryMap.clear();
     this.optionRecipeCategoryMap.clear();
     this.currentStep.set(1);
@@ -237,7 +242,11 @@ export class Products implements OnInit {
           ? this.masterDataService.getProductOptions(p.id)
           : of([]);
       })
-    ).subscribe(opts => this.existingOptions.set(opts));
+    ).subscribe(opts => {
+      this.existingOptions.set(opts);
+      // Pre-populate selectedOptionIds with existing option IDs
+      this.selectedOptionIds.set(opts.map(o => o.id));
+    });
     this.modalIsOpen.set(true);
   }
 
@@ -258,13 +267,22 @@ export class Products implements OnInit {
 
   addOption(): void {
     this.optionsArray.push(this.fb.group({
+      id: [null], // ID if selecting existing option
       name: ['', Validators.required],
       optionCategoryId: [null, Validators.required],
       recipe: this.fb.array([]),
+      isExisting: [false], // Flag to track if this is an existing option
     }));
   }
 
-  removeOption(i: number): void { this.optionsArray.removeAt(i); }
+  removeOption(i: number): void { 
+    const opt = this.optionsArray.at(i).value;
+    // If it was an existing option, remove from selectedOptionIds
+    if (opt.isExisting && opt.id) {
+      this.selectedOptionIds.update(ids => ids.filter(id => id !== opt.id));
+    }
+    this.optionsArray.removeAt(i); 
+  }
 
   getOptionRecipe(i: number): FormArray {
     return this.optionsArray.at(i).get('recipe') as FormArray;
@@ -289,34 +307,110 @@ export class Products implements OnInit {
     return this.allProductOptions().filter(o => o.optionCategoryId === categoryId);
   }
 
-  // ── Validación: una sola opción por categoría ────────────────────
-
-  /** Devuelve true si hay categorías duplicadas en optionsArray */
-  hasDuplicateCategories(): boolean {
-    const ids = (this.optionsArray.value as { optionCategoryId: number | null }[])
-      .map(o => o.optionCategoryId)
-      .filter(id => id !== null);
-    return ids.length !== new Set(ids).size;
-  }
-
-  /** Devuelve los ids de categorías que están duplicadas */
-  duplicateCategoryIds(): Set<number> {
-    const ids = (this.optionsArray.value as { optionCategoryId: number | null }[])
-      .map(o => o.optionCategoryId)
-      .filter((id): id is number => id !== null);
-    const seen = new Set<number>();
-    const dupes = new Set<number>();
-    for (const id of ids) {
-      if (seen.has(id)) dupes.add(id);
-      seen.add(id);
+  /** Handler when user selects an existing option from dropdown */
+  onExistingOptionSelected(optionIndex: number, selectedOption: ProductOptionResponse | null): void {
+    const optGroup = this.optionsArray.at(optionIndex) as FormGroup;
+    
+    if (selectedOption) {
+      // User selected an existing option
+      optGroup.patchValue({
+        id: selectedOption.id,
+        name: selectedOption.name,
+        isExisting: true,
+      });
+      // Clear recipe since existing options already have their recipe
+      this.getOptionRecipe(optionIndex).clear();
+      // Add to selected IDs
+      if (!this.selectedOptionIds().includes(selectedOption.id)) {
+        this.selectedOptionIds.update(ids => [...ids, selectedOption.id]);
+      }
+    } else {
+      // User cleared selection - reset to new option mode
+      optGroup.patchValue({
+        id: null,
+        name: '',
+        isExisting: false,
+      });
     }
-    return dupes;
   }
 
-  isCategoryDuplicated(optionIndex: number): boolean {
-    const id = this.optionsArray.at(optionIndex).get('optionCategoryId')?.value as number | null;
-    if (!id) return false;
-    return this.duplicateCategoryIds().has(id);
+  /** Check if option at index is an existing option */
+  isExistingOption(optionIndex: number): boolean {
+    return this.optionsArray.at(optionIndex).get('isExisting')?.value === true;
+  }
+
+  // ── Validación: opciones duplicadas por ID o nombre ──────────────
+
+  /** Devuelve true si hay opciones duplicadas (mismo ID o mismo nombre+categoría) */
+  hasDuplicateOptions(): boolean {
+    const options = this.optionsArray.value as { id: number | null; name: string; optionCategoryId: number | null; isExisting: boolean }[];
+    
+    // Check for duplicate IDs (existing options)
+    const existingIds = options
+      .filter(o => o.isExisting && o.id !== null)
+      .map(o => o.id);
+    if (existingIds.length !== new Set(existingIds).size) {
+      return true;
+    }
+
+    // Check for duplicate name+category combinations (new options)
+    const newOptionKeys = options
+      .filter(o => !o.isExisting && o.name && o.optionCategoryId)
+      .map(o => `${o.optionCategoryId}-${o.name.trim().toLowerCase()}`);
+    if (newOptionKeys.length !== new Set(newOptionKeys).size) {
+      return true;
+    }
+
+    // Check if trying to add an existing option that's already selected
+    for (const opt of options) {
+      if (opt.isExisting && opt.id) {
+        const count = options.filter(o => o.isExisting && o.id === opt.id).length;
+        if (count > 1) return true;
+      }
+    }
+
+    return false;
+  }
+
+  /** Devuelve los índices de las opciones que están duplicadas */
+  duplicatedOptionIndices(): Set<number> {
+    const options = this.optionsArray.value as { id: number | null; name: string; optionCategoryId: number | null; isExisting: boolean }[];
+    const duplicates = new Set<number>();
+
+    // Check existing options by ID
+    const idMap = new Map<number, number[]>();
+    options.forEach((opt, idx) => {
+      if (opt.isExisting && opt.id) {
+        if (!idMap.has(opt.id)) idMap.set(opt.id, []);
+        idMap.get(opt.id)!.push(idx);
+      }
+    });
+    idMap.forEach(indices => {
+      if (indices.length > 1) {
+        indices.forEach(idx => duplicates.add(idx));
+      }
+    });
+
+    // Check new options by name+category
+    const nameMap = new Map<string, number[]>();
+    options.forEach((opt, idx) => {
+      if (!opt.isExisting && opt.name && opt.optionCategoryId) {
+        const key = `${opt.optionCategoryId}-${opt.name.trim().toLowerCase()}`;
+        if (!nameMap.has(key)) nameMap.set(key, []);
+        nameMap.get(key)!.push(idx);
+      }
+    });
+    nameMap.forEach(indices => {
+      if (indices.length > 1) {
+        indices.forEach(idx => duplicates.add(idx));
+      }
+    });
+
+    return duplicates;
+  }
+
+  isOptionDuplicated(optionIndex: number): boolean {
+    return this.duplicatedOptionIndices().has(optionIndex);
   }
 
   // ── Wizard navigation ────────────────────────────────────────────
@@ -324,14 +418,22 @@ export class Products implements OnInit {
   submitStep1(): void {
     if (this.baseForm.invalid) { this.baseForm.markAllAsTouched(); return; }
 
-    this.isSubmitting.set(true);
     const v = this.baseForm.value;
+
+    // If hasOptions is true, go to step 2 to select/create options
+    if (v.hasOptions) {
+      this.currentStep.set(2);
+      return;
+    }
+
+    // If hasOptions is false, create product immediately
+    this.isSubmitting.set(true);
 
     if (this.modalMode() === 'create') {
       this.productService.createProduct({
         name: v.name,
         basePrice: v.basePrice,
-        hasOptions: v.hasOptions,
+        hasOptions: false,
         categoryId: v.categoryId,
         areaId: v.areaId,
         recipe: this.baseRecipe.value,
@@ -345,20 +447,14 @@ export class Products implements OnInit {
       ).subscribe(product => {
         this.createdProduct.set(product);
         this.isSubmitting.set(false);
-        if (v.hasOptions) {
-          // Producto creado, ahora el usuario define las opciones
-          this.currentStep.set(2);
-        } else {
-          // Sin opciones: flujo terminado
-          this.refreshProducts();
-          this.currentStep.set(3);
-        }
+        this.refreshProducts();
+        this.currentStep.set(3);
       });
     } else {
       const id = v.id;
       this.productService.updateProduct(id, {
         id, name: v.name, basePrice: v.basePrice,
-        hasOptions: v.hasOptions, categoryId: v.categoryId, areaId: v.areaId,
+        hasOptions: false, categoryId: v.categoryId, areaId: v.areaId,
         recipe: this.baseRecipe.value,
       }).pipe(
         catchError(err => {
@@ -370,38 +466,115 @@ export class Products implements OnInit {
       ).subscribe(() => {
         this.isSubmitting.set(false);
         this.refreshProducts();
-        this.currentStep.set(v.hasOptions ? 2 : 3);
+        this.currentStep.set(3);
       });
     }
   }
 
   submitStep2(): void {
-    if (this.optionsArray.length === 0) { this.currentStep.set(3); return; }
+    if (this.optionsArray.length === 0) { 
+      this.messageService.add({ 
+        severity: 'warn', 
+        summary: 'Advertencia', 
+        detail: 'Debes agregar al menos una opción o cambiar "¿Tiene opciones?" a No' 
+      });
+      return; 
+    }
     if (this.optionsArray.invalid) { this.optionsArray.markAllAsTouched(); return; }
-
-    const productId = this.createdProduct()?.id;
-    if (!productId) return;
+    if (this.hasDuplicateOptions()) {
+      this.messageService.add({ 
+        severity: 'error', 
+        summary: 'Error', 
+        detail: 'No puedes agregar la misma opción más de una vez' 
+      });
+      return;
+    }
 
     this.isSubmitting.set(true);
 
-    // Crear todas las opciones en paralelo
-    const optionPayloads = (this.optionsArray.value as { name: string; optionCategoryId: number; recipe: { supplyVariantId: number; requiredQuantity: number }[] }[])
-      .map(opt => {
-        const payload: ProductOptionCreateRequest = {
+    // Separate existing options from new ones
+    const existingOptionIds: number[] = [];
+    const newOptions: { name: string; optionCategoryId: number; recipe: any[] }[] = [];
+
+    for (const opt of this.optionsArray.value) {
+      if (opt.isExisting && opt.id) {
+        // Existing option - just use its ID
+        existingOptionIds.push(opt.id);
+      } else {
+        // New option - needs to be created
+        newOptions.push({
           name: opt.name,
           optionCategoryId: opt.optionCategoryId,
-          productId,
-          recipe: opt.recipe,
-        };
-        return this.productService.createProductOption(payload);
-      });
+          recipe: opt.recipe || [],
+        });
+      }
+    }
 
-    forkJoin(optionPayloads).pipe(
-      // Después de crear todas, consultar las opciones guardadas del producto
-      switchMap(() => this.masterDataService.getProductOptions(productId)),
+    // Create new options first (if any)
+    const createNewOptions$ = newOptions.length > 0
+      ? forkJoin(newOptions.map(opt => this.productService.createProductOption(opt)))
+      : of([]);
+
+    createNewOptions$.pipe(
+      switchMap((createdOptions: any[]) => {
+        // Collect all option IDs (existing + newly created)
+        const allOptionIds = [
+          ...existingOptionIds,
+          ...createdOptions.map(opt => opt.id)
+        ];
+
+        // Refresh allProductOptions to include newly created options
+        if (createdOptions.length > 0) {
+          return this.productOptionService.getOptions().pipe(
+            switchMap(allOpts => {
+              this.allProductOptions.set(allOpts);
+              return of(allOptionIds);
+            })
+          );
+        }
+        return of(allOptionIds);
+      }),
+      switchMap((allOptionIds: number[]) => {
+        // Now create or update the product with all option IDs
+        const v = this.baseForm.value;
+        
+        if (this.modalMode() === 'create') {
+          return this.productService.createProduct({
+            name: v.name,
+            basePrice: v.basePrice,
+            hasOptions: true,
+            categoryId: v.categoryId,
+            areaId: v.areaId,
+            recipe: this.baseRecipe.value,
+            optionIds: allOptionIds,
+          });
+        } else {
+          return this.productService.updateProduct(v.id, {
+            id: v.id,
+            name: v.name,
+            basePrice: v.basePrice,
+            hasOptions: true,
+            categoryId: v.categoryId,
+            areaId: v.areaId,
+            recipe: this.baseRecipe.value,
+            optionIds: allOptionIds,
+          }).pipe(
+            switchMap(() => this.productService.findProduct(v.id))
+          );
+        }
+      }),
+      switchMap((product: ProductResponse) => {
+        this.createdProduct.set(product);
+        // Load the associated options for display in step 3
+        return this.masterDataService.getProductOptions(product.id);
+      }),
       catchError(err => {
-        this.logger.error('Error saving options', err);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron guardar algunas opciones' });
+        this.logger.error('Error saving product with options', err);
+        this.messageService.add({ 
+          severity: 'error', 
+          summary: 'Error', 
+          detail: 'No se pudo guardar el producto con sus opciones' 
+        });
         this.isSubmitting.set(false);
         return EMPTY;
       })
@@ -414,8 +587,11 @@ export class Products implements OnInit {
   }
 
   skipOptions(): void {
-    this.refreshProducts();
-    this.currentStep.set(3);
+    this.messageService.add({ 
+      severity: 'warn', 
+      summary: 'Advertencia', 
+      detail: 'Debes agregar opciones o cambiar "¿Tiene opciones?" a No en el paso 1' 
+    });
   }
 
   finish(): void {
@@ -520,13 +696,15 @@ export class Products implements OnInit {
       name, optionCategoryId,
       recipe: this.newOptionRecipe.value,
     }).pipe(
+      switchMap(() => this.productOptionService.getOptions()),
       catchError(err => {
         this.logger.error('Error creating product option', err);
         this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo crear la opción' });
         this.newOptionSubmitting.set(false);
         return EMPTY;
       })
-    ).subscribe(() => {
+    ).subscribe(allOpts => {
+      this.allProductOptions.set(allOpts);
       this.newOptionSubmitting.set(false);
       this.newOptionDialogOpen.set(false);
       this.messageService.add({ severity: 'success', summary: 'Opción creada', detail: `"${name}" agregada correctamente` });

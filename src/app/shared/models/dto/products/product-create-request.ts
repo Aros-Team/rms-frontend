@@ -6,7 +6,6 @@ export interface RecipeItemRequest {
 export interface ProductOptionCreateRequest {
   name: string;
   optionCategoryId: number;
-  productId?: number;
   recipe: RecipeItemRequest[];
 }
 
@@ -17,4 +16,5 @@ export interface ProductCreateRequest {
   categoryId: number;
   areaId: number;
   recipe: RecipeItemRequest[];
+  optionIds?: number[];
 }
