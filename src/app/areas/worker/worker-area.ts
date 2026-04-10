@@ -1,20 +1,27 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { RouterOutlet, Router } from '@angular/router';
 
 import { Layout } from '@app/shared/layout/layout';
 import { MenuService, MenuItem } from '@app/core/services/menu/menu-service';
 import { AuthService } from '@app/core/services/authentication/auth-service';
 import { LoggingService } from '@app/core/services/logging/logging-service';
+import { NotificationService } from '@app/core/services/notifications/notification.service';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'app-worker-area',
   templateUrl: './worker-area.html',
-  imports: [Layout, RouterOutlet]
+  imports: [Layout, RouterOutlet, ToastModule],
+  providers: [MessageService]
 })
-export class WorkerArea implements OnInit {
+export class WorkerArea implements OnInit, OnDestroy {
   private menuService = inject(MenuService);
   private authService = inject(AuthService);
   private loggingService = inject(LoggingService);
+  private notificationService = inject(NotificationService);
+  private messageService = inject(MessageService);
+  private router = inject(Router);
 
   workerType = 'waiter';
   hideSidebar = false;
@@ -22,6 +29,35 @@ export class WorkerArea implements OnInit {
   ngOnInit(): void {
     this.determineWorkerType();
     this.configureWorkerMenu();
+    this.startNotifications();
+  }
+
+  ngOnDestroy(): void {
+    this.notificationService.stopPolling();
+  }
+
+  private startNotifications(): void {
+    if (this.workerType === 'waiter') {
+      this.notificationService.startPolling();
+
+      setInterval(() => {
+        const orders = this.notificationService.unseenReadyOrders();
+        orders.forEach(order => {
+          const tableName = order.table || `Mesa ${order.tableId}`;
+          this.messageService.add({
+            severity: 'info',
+            summary: 'Orden lista para entregar',
+            detail: `${tableName} - Orden #${order.id}`,
+            life: 10000,
+            sticky: true
+          });
+        });
+
+        if (orders.length > 0) {
+          this.notificationService.markAllAsSeen();
+        }
+      }, 1000);
+    }
   }
 
   private determineWorkerType(): void {
