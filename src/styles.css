@@ -52,25 +52,38 @@ body &:where(.dark, .dark *) {
 /* ========================================
    High Contrast Mode Styles
    ======================================== */
+/* Universal high contrast - force white text on ALL elements */
+body.high-contrast > *,
+body.high-contrast * {
+   color: #ffffff !important;
+}
+
 body.high-contrast {
-  background-color: #000000 !important;
+   background-color: #000000 !important;
 }
 
 body.high-contrast,
 body.high-contrast * {
-  /* Override all background colors */
-  --surface-0: #000000 !important;
-  --surface-50: #0a0a0a !important;
-  --surface-100: #1a1a1a !important;
-  --surface-200: #2a2a2a !important;
-  --surface-300: #3a3a3a !important;
-  --surface-400: #4a4a4a !important;
-  --surface-500: #5a5a5a !important;
-  --surface-600: #6a6a6a !important;
-  --surface-700: #7a7a7a !important;
-  --surface-800: #8a8a8a !important;
-  --surface-900: #fafafa !important;
-  color: #ffffff !important;
+   /* Override all background colors */
+   --surface-0: #000000 !important;
+   --surface-50: #0a0a0a !important;
+   --surface-100: #1a1a1a !important;
+   --surface-200: #2a2a2a !important;
+   --surface-300: #3a3a3a !important;
+   --surface-400: #4a4a4a !important;
+   --surface-500: #5a5a5a !important;
+   --surface-600: #6a6a6a !important;
+   --surface-700: #7a7a7a !important;
+   --surface-800: #8a8a8a !important;
+   --surface-900: #fafafa !important;
+   /* Override PrimeNG CSS variables */
+   --p-text-color: #ffffff !important;
+   --text-color: #ffffff !important;
+   --text-color-secondary: #cccccc !important;
+   --p-content-text-color: #ffffff !important;
+   --p-form-field-text-color: #ffffff !important;
+   color: #ffffff !important;
+   background-color: #000000 !important;
 }
 
 body.high-contrast .bg-surface-0,
@@ -195,6 +208,20 @@ body.high-contrast .p-dialog-content {
 body.high-contrast table,
 body.high-contrast .p-datatable {
   background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+body.high-contrast .p-datatable .p-datatable-thead > tr > th,
+body.high-contrast .p-datatable .p-datatable-tbody > tr > td,
+body.high-contrast .p-datatable .p-datatable-tfoot > tr > td {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border-color: #333333 !important;
+}
+
+body.high-contrast .p-datatable .p-datatable-thead > tr > th {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
 }
 
 body.high-contrast th,

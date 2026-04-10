@@ -1,40 +1,59 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject, APP_INITIALIZER } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
 })
 export class Theme {
 
-  setDefault() {
+  setDefault(): void {
     const theme = localStorage.getItem('theme');
 
-     if (!theme) {
-       const isdark = window.matchMedia('(prefers-color-scheme: dark)').matches
-       if (isdark) {
-         this.set('dark');
-       } else {
-         this.set('light');
-       }
-     } else {
-       this.set(theme); }
-   }
-
-  get(): string {
-    return localStorage.getItem('theme')!;
+    if (!theme) {
+      const isdark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      if (isdark) {
+        this.set('dark');
+      } else {
+        this.set('light');
+      }
+    } else {
+      this.set(theme);
+    }
   }
 
-   set(theme: string) {
-     const element = document.querySelector('html');
-     if (!element) return;
+  // Get current theme (default: light)
+  get(): string {
+    return localStorage.getItem('theme') || 'light';
+  }
 
-     if (theme == 'dark'){
-       localStorage.setItem('theme', theme);
-       element.classList.add(theme);
-     } else {
-       element.classList.remove('dark');
-       localStorage.setItem('theme', theme);
-     }
+  // Set theme and handle light/dark classes
+  set(theme: string): void {
+    const element = document.querySelector('html');
+    if (!element) return;
 
-   }
+    // Remove both light and dark classes first
+    element.classList.remove('light', 'dark');
 
+    // Add the new theme class and save to localStorage
+    if (theme === 'dark') {
+      element.classList.add('dark');
+    }
+    // For light, we just don't add the dark class (default)
+
+    localStorage.setItem('theme', theme);
+
+    // Also update body class for better CSS selectors
+    document.body.classList.remove('light-theme', 'dark-theme');
+    document.body.classList.add(theme === 'dark' ? 'dark-theme' : 'light-theme');
+  }
+
+  // Toggle between light and dark
+  toggle(): void {
+    const current = this.get();
+    this.set(current === 'light' ? 'dark' : 'light');
+  }
+
+  // Check if dark mode is active
+  isDark(): boolean {
+    return this.get() === 'dark';
+  }
 }
