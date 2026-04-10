@@ -162,6 +162,13 @@ export class Inventory implements OnInit {
     contact: ['', Validators.maxLength(255)],
   });
 
+  // --- new category dialog ---
+  newCategoryDialogOpen = false;
+  newCategorySubmitting = signal(false);
+  newCategoryForm: FormGroup = this.fb.group({
+    name: ['', [Validators.required, Validators.maxLength(255)]],
+  });
+
   ngOnInit(): void {
     this.loadSupplies();
     this.loadSuppliers();
@@ -308,6 +315,42 @@ export class Inventory implements OnInit {
 
   closeNewSupplierDialog(): void {
     this.newSupplierDialogOpen = false;
+  }
+
+  openCategoryDialog(): void {
+    this.newCategoryForm.reset();
+    this.newCategoryDialogOpen = true;
+  }
+
+  closeCategoryDialog(): void {
+    this.newCategoryDialogOpen = false;
+  }
+
+  submitNewCategory(): void {
+    if (this.newCategoryForm.invalid) {
+      this.newCategoryForm.markAllAsTouched();
+      return;
+    }
+    this.newCategorySubmitting.set(true);
+    const { name } = this.newCategoryForm.value as { name: string };
+    this.supplyService.createCategory({ name: name.trim() }).subscribe({
+      next: (created) => {
+        this.newCategorySubmitting.set(false);
+        this.categories.update((list) => [...list, created]);
+        this.closeCategoryDialog();
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Categoría creada',
+          detail: created.name,
+        });
+      },
+      error: (err: { status?: number }) => {
+        this.newCategorySubmitting.set(false);
+        const detail = err.status === 409 ? 'Ya existe una categoría con ese nombre.' : 'No se pudo crear la categoría.';
+        this.messageService.add({ severity: 'error', summary: 'Error', detail });
+        this.logger.error('Error creating supply category', err);
+      },
+    });
   }
 
   submitNewSupplier(): void {

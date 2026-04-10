@@ -257,7 +257,7 @@
                     [disabled]="!$any(opt).get('optionCategoryId')?.value"
                     [invalid]="$any(opt).get('name')?.invalid && $any(opt).get('name')?.touched"
                     [filter]="true" filterBy="name" [editable]="true"
-                    (onChange)="onExistingOptionSelected(i, $event.value ? optionsByCategory($any(opt).get('optionCategoryId')?.value).find(o => o.name === $event.value) || null : null)" />
+                    (onChange)="onExistingOptionSelected(i, findOptionByName($any(opt).get('optionCategoryId')?.value, $event.value))" />
                   <label [for]="'opt-name-' + i">Nombre de la opción *</label>
                 </p-iftalabel>
                 @if (!$any(opt).get('optionCategoryId')?.value) {

@@ -307,6 +307,11 @@ export class Products implements OnInit {
     return this.allProductOptions().filter(o => o.optionCategoryId === categoryId);
   }
 
+  findOptionByName(categoryId: number | null, name: string): ProductOptionResponse | null {
+    if (!categoryId || !name) return null;
+    return this.optionsByCategory(categoryId).find(o => o.name === name) ?? null;
+  }
+
   /** Handler when user selects an existing option from dropdown */
   onExistingOptionSelected(optionIndex: number, selectedOption: ProductOptionResponse | null): void {
     const optGroup = this.optionsArray.at(optionIndex) as FormGroup;
