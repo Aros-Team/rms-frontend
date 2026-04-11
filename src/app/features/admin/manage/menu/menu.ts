@@ -130,7 +130,7 @@ export class Menu {
         return EMPTY;
       })
     ).subscribe(all => {
-      this.products.set(all.filter(p => p.hasOptions && p.active));
+      this.products.set(all.filter(p => p.active));
       this.loadingProducts.set(false);
     });
   }
