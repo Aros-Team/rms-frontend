@@ -159,8 +159,8 @@ export class AuthService {
       error: (err: unknown) => {
         this.loggingService.error('Error getting user info:', err);
         const httpErr = err as { status?: number };
-        if (httpErr.status === 401) {
-          this.loggingService.auth('Token expired or invalid, clearing tokens');
+        if (httpErr.status === 401 || httpErr.status === 404) {
+          this.loggingService.auth('Token expired, user deleted, or invalid, clearing tokens');
           this.logout();
         }
       }
