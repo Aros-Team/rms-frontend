@@ -17,6 +17,7 @@
     </div>
   } @else {
     <p-table #dt1 [value]="products()!" [paginator]="true" [rows]="10"
+      [scrollable]="true" scrollWidth="flex" responsiveLayout="scroll"
       stripedRows showGridlines [globalFilterFields]="['name']">
       <ng-template #caption>
         <div class="flex">
@@ -62,7 +63,7 @@
 ════════════════════════════════════════════════ -->
 <p-dialog [modal]="true" [(visible)]="modalIsOpen"
   [header]="modalMode() === 'edit' ? 'Editar producto' : 'Crear producto'"
-  draggable="false" [style]="{ width: '56vw' }" appendTo="body">
+  draggable="false" [style]="{ width: '90vw', maxWidth: '700px' }" appendTo="body">
 
   <!-- Indicador de pasos -->
   <div class="flex items-center mb-6">
@@ -96,8 +97,8 @@
 
       <!-- Datos base -->
       <form [formGroup]="baseForm" class="flex flex-col gap-4">
-        <div class="grid grid-cols-2 gap-4">
-          <p-iftalabel class="col-span-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <p-iftalabel class="md:col-span-2">
             <input pInputText id="name" class="w-full" formControlName="name"
               [invalid]="isInvalid(baseForm, 'name')" />
             <label for="name">Nombre del producto *</label>
@@ -234,7 +235,7 @@
               </div>
             }
 
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div class="flex flex-col gap-1">
                 <p-iftalabel>
                   <p-select [options]="optionCategories()" [inputId]="'opt-cat-' + i"

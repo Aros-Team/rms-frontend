@@ -13,6 +13,9 @@
       [tableStyle]="{ 'background-color': 'unset' }"
       [paginator]="true"
       [globalFilterFields]="['document', 'name', 'email']"
+      [scrollable]="true"
+      scrollWidth="flex"
+      responsiveLayout="scroll"
       stripedRows
       showGridlines
     >
@@ -91,7 +94,7 @@
   [modal]="true"
   [(visible)]="creationModalVisible"
   draggable="false"
-  [style]="{ width: '45vw', padding: '2', 'z-index': '400000' }"
+  [style]="{ width: '90vw', maxWidth: '500px', padding: '2', 'z-index': '400000' }"
   appendTo="body"
 >
   <div class="p-4">

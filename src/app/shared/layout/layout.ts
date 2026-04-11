@@ -20,6 +20,7 @@ export class Layout implements OnInit, OnDestroy {
 
   sidebarVisible = false;
   isMobile = false;
+  isTablet = false;
   horizontalMenuOptions: HorizontalMenuOption[] = [];
 
   private resizeSubscription!: Subscription;
@@ -49,7 +50,9 @@ export class Layout implements OnInit, OnDestroy {
   }
 
   private checkScreenSize(): void {
-    this.isMobile = window.innerWidth < 1024;
+    const width = window.innerWidth;
+    this.isMobile = width < 768;
+    this.isTablet = width >= 768 && width < 1024;
     this.sidebarVisible = !this.isMobile && !this.hideSidebar;
   }
 

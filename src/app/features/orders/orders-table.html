@@ -28,7 +28,8 @@
   }
 </div>
 
-<p-table [value]="orders" [scrollable]="true" scrollHeight="80vh" [paginator]="true" [rows]="20">
+<p-table [value]="orders" [scrollable]="true" scrollHeight="80vh" [paginator]="true" [rows]="20"
+  scrollWidth="flex" responsiveLayout="scroll">
   <ng-template pTemplate="header">
     <tr>
       <th>ID</th>

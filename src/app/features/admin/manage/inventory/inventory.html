@@ -17,14 +17,14 @@
   </div>
 
   <!-- Category filter -->
-  <div class="flex justify-end gap-2 mb-3">
+  <div class="flex flex-wrap md:flex-nowrap justify-end gap-2 mb-3">
     <p-select
       [options]="categories()"
       optionLabel="name"
       optionValue="id"
       placeholder="Filtrar por categoría"
       [showClear]="true"
-      class="w-64"
+      class="w-full md:w-48 lg:w-64"
       [ngModel]="selectedCategoryId()"
       (ngModelChange)="filterByCategory($event)"
     />
@@ -42,6 +42,10 @@
       [value]="supplies()!"
       [paginator]="true"
       [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      [scrollable]="true"
+      scrollWidth="flex"
+      responsiveLayout="scroll"
       stripedRows
       showGridlines
       [globalFilterFields]="['supplyName', 'categoryName', 'unitAbbreviation']"
@@ -104,7 +108,7 @@
   [(visible)]="variantModalIsOpen"
   header="Registrar nuevo insumo"
   draggable="false"
-  [style]="{ width: '38vw' }"
+  [style]="{ width: '90vw', maxWidth: '500px' }"
   appendTo="body"
 >
   <!-- Step indicators -->
@@ -262,7 +266,7 @@
   [(visible)]="modalIsOpen"
   header="Registrar nueva compra"
   draggable="false"
-  [style]="{ width: '60vw' }"
+  [style]="{ width: '90vw', maxWidth: '900px' }"
   appendTo="body"
 >
   <form [formGroup]="purchaseForm" class="flex flex-col gap-4">
@@ -450,7 +454,7 @@
   [(visible)]="newCategoryDialogOpen"
   header="Nueva categoría de insumo"
   draggable="false"
-  [style]="{ width: '28vw', minWidth: '320px' }"
+  [style]="{ width: '90vw', maxWidth: '400px' }"
   appendTo="body"
 >
   <form [formGroup]="newCategoryForm" class="flex flex-col gap-4 pt-2">
@@ -483,7 +487,7 @@
   [(visible)]="newSupplierDialogOpen"
   header="Nuevo distribuidor"
   draggable="false"
-  [style]="{ width: '28vw', minWidth: '320px' }"
+  [style]="{ width: '90vw', maxWidth: '400px' }"
   appendTo="body"
 >
   <form [formGroup]="newSupplierForm" class="flex flex-col gap-4 pt-2">

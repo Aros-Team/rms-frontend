@@ -108,6 +108,9 @@
       (onPage)="onPageChange($event)"
       [rowsPerPageOptions]="[10, 20, 50]"
       styleClass="p-datatable-sm"
+      [scrollable]="true"
+      scrollWidth="flex"
+      responsiveLayout="scroll"
       [tableStyle]="{'min-width': '40rem'}"
     >
       <ng-template #header>
