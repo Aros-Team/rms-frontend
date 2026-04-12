@@ -11,7 +11,6 @@ import { LoggingService } from '@app/core/services/logging/logging-service';
 
 @Component({
   selector: 'app-two-factor-verify',
-  standalone: true,
   imports: [
     ReactiveFormsModule,
     InputTextModule,
@@ -131,15 +130,16 @@ export class TwoFactorVerifyComponent {
         this.redirectBasedOnUserRole();
         this.formStatus = 'Free';
       },
-      error: (err: { status?: number }) => {
+      error: (err: { status?: number; error?: { message?: string } }) => {
         this.loggingService.error('2FA verification failed:', err);
         this.formStatus = 'Free';
-        this.errorMessage = 'Código inválido o expirado. Por favor, intenta nuevamente.';
+        const backendMessage = err.error?.message;
+        this.errorMessage = backendMessage || 'Código inválido o expirado. Por favor, intenta nuevamente.';
 
         if (err.status === 400) {
-          this.errorMessage = 'Código inválido. Verifica el código enviado a tu correo.';
+          this.errorMessage = backendMessage || 'Código inválido. Verifica el código enviado a tu correo.';
         } else if (err.status === 401) {
-          this.errorMessage = 'Código expirado. Por favor, inicia sesión nuevamente.';
+          this.errorMessage = backendMessage || 'Código expirado. Por favor, inicia sesión nuevamente.';
         }
       },
     });

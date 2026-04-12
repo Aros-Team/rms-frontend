@@ -232,9 +232,12 @@ export class Inventory implements OnInit {
           this.resolvedCategoryId.set(cat.id);
           this.variantStep.set('supply');
         },
-        error: (err: { status?: number }) => {
+        error: (err: { status?: number; error?: { message?: string } }) => {
           this.variantSubmitting = false;
-          const detail = err.status === 409 ? 'Esa categoría ya existe.' : 'No se pudo crear la categoría.';
+          const errorMessage = err.error?.message;
+          const detail = err.status === 409
+            ? errorMessage || 'Esa categoría ya existe.'
+            : errorMessage || 'No se pudo crear la categoría.';
           this.messageService.add({ severity: 'error', summary: 'Error', detail });
           this.logger.error('Error creating category', err);
         },
@@ -262,9 +265,12 @@ export class Inventory implements OnInit {
           this.resolvedSupplyId.set(supply.id);
           this.variantStep.set('variant');
         },
-        error: (err: { status?: number }) => {
+        error: (err: { status?: number; error?: { message?: string } }) => {
           this.variantSubmitting = false;
-          const detail = err.status === 409 ? 'Ese insumo ya existe.' : 'No se pudo crear el insumo.';
+          const errorMessage = err.error?.message;
+          const detail = err.status === 409
+            ? errorMessage || 'Ese insumo ya existe.'
+            : errorMessage || 'No se pudo crear el insumo.';
           this.messageService.add({ severity: 'error', summary: 'Error', detail });
           this.logger.error('Error creating supply', err);
         },
@@ -296,12 +302,13 @@ export class Inventory implements OnInit {
             detail: `${created.supplyName} (${created.unitAbbreviation}) agregado al inventario.`,
           });
         },
-        error: (err: { status?: number }) => {
+        error: (err: { status?: number; error?: { message?: string } }) => {
           this.variantSubmitting = false;
+          const errorMessage = err.error?.message;
           const detail =
             err.status === 409
-              ? 'Ya existe esa combinación de insumo y unidad.'
-              : 'No se pudo registrar la variante. Verifica los datos.';
+              ? errorMessage || 'Ya existe esa combinación de insumo y unidad.'
+              : errorMessage || 'No se pudo registrar la variante. Verifica los datos.';
           this.messageService.add({ severity: 'error', summary: 'Error', detail });
           this.logger.error('Error creating supply variant', err);
         },
@@ -344,9 +351,12 @@ export class Inventory implements OnInit {
           detail: created.name,
         });
       },
-      error: (err: { status?: number }) => {
+      error: (err: { status?: number; error?: { message?: string } }) => {
         this.newCategorySubmitting.set(false);
-        const detail = err.status === 409 ? 'Ya existe una categoría con ese nombre.' : 'No se pudo crear la categoría.';
+        const errorMessage = err.error?.message;
+        const detail = err.status === 409
+          ? errorMessage || 'Ya existe una categoría con ese nombre.'
+          : errorMessage || 'No se pudo crear la categoría.';
         this.messageService.add({ severity: 'error', summary: 'Error', detail });
         this.logger.error('Error creating supply category', err);
       },
@@ -368,9 +378,12 @@ export class Inventory implements OnInit {
         this.closeNewSupplierDialog();
         this.messageService.add({ severity: 'success', summary: 'Distribuidor creado', detail: created.name });
       },
-      error: (err: { status?: number }) => {
+      error: (err: { status?: number; error?: { message?: string } }) => {
         this.newSupplierSubmitting.set(false);
-        const detail = err.status === 400 ? 'El nombre es requerido y no puede superar 255 caracteres.' : 'No se pudo crear el distribuidor.';
+        const errorMessage = err.error?.message;
+        const detail = err.status === 400
+          ? errorMessage || 'El nombre es requerido y no puede superar 255 caracteres.'
+          : errorMessage || 'No se pudo crear el distribuidor.';
         this.messageService.add({ severity: 'error', summary: 'Error', detail });
         this.logger.error('Error creating supplier', err);
       },
@@ -450,19 +463,26 @@ export class Inventory implements OnInit {
             detail: 'El stock fue actualizado automáticamente.',
           });
         },
-        error: (err: { status?: number }) => {
+        error: (err: { status?: number; error?: { message?: string } }) => {
           this.submitting = false;
+          const errorMessage = err.error?.message;
           if (err.status === 409) {
             this.messageService.add({
               severity: 'error',
               summary: 'Distribuidor inactivo',
-              detail: 'El distribuidor seleccionado está inactivo.',
+              detail: errorMessage || 'El distribuidor seleccionado está inactivo.',
+            });
+          } else if (err.status === 400) {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error de validación',
+              detail: errorMessage || 'Verifica los datos del formulario.',
             });
           } else {
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: 'No se pudo registrar la compra. Verifica los datos.',
+              detail: errorMessage || 'No se pudo registrar la compra. Verifique los datos.',
             });
           }
           this.logger.error('Error creating purchase', err);

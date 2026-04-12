@@ -30,19 +30,21 @@ import { LoggingService } from '@app/core/services/logging/logging-service';
     InputIconModule,
     IconFieldModule,
     MultiSelectModule,
-    FormValidation
-],
+    FormValidation,
+  ],
   templateUrl: './users.html',
   styles: ``,
 })
 export class Users implements OnInit {
+  private userService = inject(UserService);
+  private messageService = inject(MessageService);
+  private loggingService = inject(LoggingService);
+
   title = 'Administracion de usuarios';
   description = 'Gestión completa de todos los usuarios/empleados del restaurante';
 
   users: UserResponse[] = [];
-  /**
-   * the form is on editing mode?
-   */
+  /** Is the form in editing mode? */
   editing = false;
 
   userForm: FormGroup = new FormGroup({
@@ -56,24 +58,16 @@ export class Users implements OnInit {
   creationModalVisible = false;
   modificationModalVisible = false;
 
-  constructor(
-    private userService: UserService,
-    private messageService: MessageService,
-    private loggingService: LoggingService
-  ) {
-    //
-  }
-
   ngOnInit(): void {
     this.searchForUsers();
   }
 
-  closeModals() {
+  closeModals(): void {
     this.modificationModalVisible = false;
     this.creationModalVisible = false;
   }
 
-  showModificationModal(data: UserResponse) {
+  showModificationModal(_data: UserResponse): void {
     this.loggingService.debug('Edición de usuarios aún no disponible');
     this.messageService.add({
       severity: 'info',
@@ -83,14 +77,14 @@ export class Users implements OnInit {
     });
   }
 
-  showCreationModal() {
+  showCreationModal(): void {
     this.closeModals();
     this.clearForm();
     this.editing = false;
     this.creationModalVisible = true;
   }
 
-  createUser() {
+  createUser(): void {
     if (this.userForm.invalid) {
       this.userForm.markAllAsTouched();
       this.messageService.add({
@@ -113,27 +107,28 @@ export class Users implements OnInit {
           life: 5000,
         });
       },
-      error: (err) => {
-        console.error('Error creating user:', err);
-        let errorMessage = 'Error al crear el usuario';
-        
+      error: (err: { status?: number; error?: { message?: string } }) => {
+        this.loggingService.error('Error creating user:', err);
+        const backendMessage = err.error?.message;
+        let errorMessage = backendMessage || 'Error al crear el usuario';
+
         if (err.status === 409) {
-          errorMessage = 'Ya existe un usuario con ese documento o correo';
+          errorMessage = backendMessage || 'Ya existe un usuario con ese documento o correo';
         } else if (err.status === 0 || (err.status && err.status >= 500)) {
-          errorMessage = 'Error del servidor. Intente más tarde.';
+          errorMessage = backendMessage || 'Error del servidor. Intente más tarde.';
         }
-        
+
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: errorMessage,
           life: 5000,
         });
-      }
+      },
     });
   }
-  
-  updateUser() {
+
+  updateUser(): void {
     this.loggingService.debug('Actualización de usuarios aún no disponible');
     this.messageService.add({
       severity: 'info',
@@ -143,7 +138,7 @@ export class Users implements OnInit {
     });
   }
 
-  deleteUser(document: string) {
+  deleteUser(_document: string): void {
     this.loggingService.debug('Eliminación de usuarios aún no disponible');
     this.messageService.add({
       severity: 'info',
@@ -154,9 +149,13 @@ export class Users implements OnInit {
   }
 
   private fillFormWithData(data: UserResponse): void {
-    this.userForm.setValue({ ...data, areas: data.assignedAreas || [], password: '' });
-    this.loggingService.debug("areas => ");
-    this.loggingService.debug(this.userForm.get('areas')?.value);
+    this.userForm.patchValue({
+      document: data.document,
+      name: data.name,
+      email: data.email,
+      phone: data.phone ?? '',
+      address: data.address ?? '',
+    });
   }
 
   private clearForm(): void {
@@ -180,7 +179,7 @@ export class Users implements OnInit {
     });
   }
 
-  public isValidField(field: string) {
-    return this.userForm.get(field)?.valid && this.userForm.get(field)?.touched;
+  public isValidField(field: string): boolean {
+    return !!(this.userForm.get(field)?.valid && this.userForm.get(field)?.touched);
   }
 }
