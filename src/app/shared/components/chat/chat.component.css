@@ -1,0 +1,197 @@
+:host {
+  display: contents;
+}
+
+.chat-panel {
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+}
+
+.message-content {
+  white-space: pre-wrap;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+.message-content h1,
+.message-content h2,
+.message-content h3 {
+  font-weight: 600;
+  margin: 0.5rem 0;
+}
+
+.message-content h1 {
+  font-size: 1.1rem;
+}
+
+.message-content h2 {
+  font-size: 1rem;
+}
+
+.message-content h3 {
+  font-size: 0.9rem;
+}
+
+.message-content p {
+  margin: 0.25rem 0;
+}
+
+.message-content ul,
+.message-content ol {
+  padding-left: 1.25rem;
+  margin: 0.25rem 0;
+}
+
+.message-content li {
+  margin: 0.125rem 0;
+}
+
+.message-content code {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.85em;
+}
+
+.message-content pre {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 0.5rem 0;
+}
+
+.message-content pre code {
+  background: none;
+  padding: 0;
+}
+
+.message-content strong {
+  font-weight: 600;
+}
+
+.message-content a {
+  color: var(--primary-500);
+  text-decoration: underline;
+}
+
+.message-content blockquote {
+  border-left: 3px solid var(--primary-500);
+  margin: 0.5rem 0;
+  padding-left: 1rem;
+  color: var(--surface-500);
+}
+
+::ng-deep .message-content table {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+  margin: 0.75rem 0;
+  font-size: 0.8rem;
+  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-collapse: collapse;
+}
+
+::ng-deep .message-content table th {
+  color: #1f2937;
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid #d1d5db;
+}
+
+::ng-deep .dark .message-content table th {
+  color: #f9fafb;
+}
+
+::ng-deep .message-content table td {
+  padding: 0.6rem 1rem;
+  border-top: 1px solid #e5e7eb;
+  white-space: nowrap;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+::ng-deep .dark .message-content table td {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+::ng-deep .message-content table tr:hover td {
+  background: #fef3c7;
+}
+
+::ng-deep .dark .message-content table tr:hover td {
+  background: #451a03;
+}
+
+::ng-deep .message-content table td:first-child {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+::ng-deep .dark .message-content table td:first-child {
+  color: #f9fafb;
+}
+
+.typing-indicator span {
+  animation: typing 1.4s infinite;
+  animation-fill-mode: both;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-4px);
+  }
+}
+
+.messages-container {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-300) transparent;
+}
+
+.messages-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+  background-color: var(--primary-300);
+  border-radius: 3px;
+}
+
+textarea {
+  field-sizing: content;
+  min-height: 40px;
+  max-height: 120px;
+  resize: none;
+}
+
+.glow-effect {
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 5px var(--primary-400), 0 0 10px var(--primary-300);
+  }
+  to {
+    box-shadow: 0 0 10px var(--primary-500), 0 0 20px var(--primary-400);
+  }
+}

@@ -51,9 +51,10 @@ export class ChatService {
           for (const line of lines) {
             if (line.startsWith('data: ')) {
               const data = line.slice(6);
-              if (data === '[DONE]') {
-                this.logger.info('Chat stream completed');
-                callbacks.onDone();
+              if (data.startsWith('[DONE]')) {
+                const sessionId = data.slice(7).trim() || undefined;
+                this.logger.info('Chat stream completed', { sessionId });
+                callbacks.onDone(sessionId);
                 return;
               }
               callbacks.onChunk(data);
@@ -66,7 +67,7 @@ export class ChatService {
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
         this.logger.info('Chat stream cancelled by user');
-        callbacks.onDone();
+        callbacks.onDone(undefined);
         return;
       }
       this.logger.error('Chat stream error', error as Error);

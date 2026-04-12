@@ -17,6 +17,6 @@ export interface ChatMessage {
 
 export interface ChatStreamCallbacks {
   onChunk: (chunk: string) => void;
-  onDone: () => void;
+  onDone: (sessionId?: string) => void;
   onError: (error: Error) => void;
 }

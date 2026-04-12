@@ -64,7 +64,7 @@
       <div class="flex w-full"
            [class.flex-row-reverse]="message.role === 'user'">
 
-<!-- Message Bubble -->
+        <!-- Message Bubble -->
         <div class="max-w-[80%] rounded-2xl px-4 py-3 break-words overflow-hidden"
              [class.bg-surface-600]="message.role === 'user'"
              [class.dark:bg-surface-500]="message.role === 'user'"
@@ -105,10 +105,19 @@
     @if (loading()) {
       <div class="flex w-full">
         <div class="bg-surface-100 dark:bg-surface-800 rounded-2xl px-4 py-3">
-          <div class="typing-indicator flex gap-1">
-            <span class="w-2 h-2 rounded-full bg-surface-400"></span>
-            <span class="w-2 h-2 rounded-full bg-surface-400"></span>
-            <span class="w-2 h-2 rounded-full bg-surface-400"></span>
+          <div class="flex items-center gap-2">
+            <div class="typing-indicator flex gap-1">
+              <span class="w-2 h-2 rounded-full bg-surface-400"></span>
+              <span class="w-2 h-2 rounded-full bg-surface-400"></span>
+              <span class="w-2 h-2 rounded-full bg-surface-400"></span>
+            </div>
+            @if (processMessage()) {
+              <span class="text-xs text-surface-500 dark:text-surface-400 italic">{{ processMessage() }}</span>
+            } @else if (pendingMessage()) {
+              <span class="text-xs text-surface-500 dark:text-surface-400 italic">{{ pendingMessage() }}</span>
+            } @else if (isToolCallActive()) {
+              <span class="text-xs text-surface-500 dark:text-surface-400 italic">Consultando negocio...</span>
+            }
           </div>
         </div>
       </div>
