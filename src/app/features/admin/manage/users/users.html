@@ -1,4 +1,4 @@
-<div class="flex flex-col p-4 md:p-6 h-full">
+<div class="flex flex-col p-4 md:p-6 min-h-0">
   <!-- Header -->
   <div class="flex items-center gap-4 mb-4 flex-shrink-0">
   </div>
@@ -35,39 +35,32 @@
           </p-iconfield>
           <div class="flex gap-2">
             <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" />
-            <p-button icon="pi pi-plus" class="btn-icon-only-sm" pTooltip="Crear usuario" tooltipPosition="bottom" (click)="showCreationModal()" />
+            <p-button icon="pi pi-plus" class="btn-icon-text-sm" pTooltip="Crear usuario" tooltipPosition="bottom" (click)="showCreationModal()" />
           </div>
         </div>
       </ng-template>
       <ng-template #header>
         <tr>
-          <th>
-            <div class="flex items-center justify-between">Documento</div>
-          </th>
-          <th>
-            <div class="flex items-center justify-between">Nombre</div>
-          </th>
-          <th>
-            <div class="flex items-center justify-between">Correo</div>
-          </th>
-          <th>Celular</th>
-          <th>Direccion</th>
-          <th>Opciones</th>
+          <th class="text-xs md:text-sm">Doc.</th>
+          <th class="text-xs md:text-sm">Nombre</th>
+          <th class="text-xs md:text-sm hidden lg:table-cell">Correo</th>
+          <th class="text-xs md:text-sm hidden md:table-cell">Tel.</th>
+          <th class="text-xs md:text-sm hidden xl:table-cell">Dirección</th>
+          <th class="text-center text-xs md:text-sm">Acc.</th>
         </tr>
       </ng-template>
       <ng-template #body let-user>
         <tr>
-          <td>{{ user.document }}</td>
-          <td>{{ user.name }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.phone }}</td>
-          <td>{{ user.address }}</td>
+          <td class="font-mono text-xs">{{ user.document }}</td>
+          <td class="font-medium">{{ user.name }}</td>
+          <td class="hidden lg:table-cell text-sm truncate max-w-[150px]">{{ user.email }}</td>
+          <td class="hidden md:table-cell">{{ user.phone }}</td>
+          <td class="hidden xl:table-cell text-sm truncate max-w-[120px]">{{ user.address }}</td>
           <td>
-            <div class="flex gap-1 items-center">
+            <div class="flex gap-1 items-center justify-center">
               <p-button
                 severity="warn"
                 icon="pi pi-pencil"
-                label="Editar"
                 size="small"
                 [text]="true"
                 class="btn-icon-only-sm"
@@ -78,7 +71,6 @@
               <p-button
                 severity="danger"
                 icon="pi pi-trash"
-                label="Eliminar"
                 size="small"
                 [text]="true"
                 class="btn-icon-only-sm"

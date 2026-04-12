@@ -1,10 +1,10 @@
-<div class="flex flex-col p-4 md:p-6 min-w-0 h-full">
+<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0">
   <!-- Header -->
   <div class="flex items-center justify-between gap-4 mb-2 md:mb-4 min-w-0 flex-shrink-0">
     <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0 break-words min-w-0">{{ title }}</h1>
     <p-button
       icon="pi pi-plus"
-      class="btn-icon-only-sm"
+      class="btn-icon-text-sm"
       pTooltip="Crear mesa"
       tooltipPosition="bottom"
       (onClick)="showCreationModal()"
@@ -18,26 +18,33 @@
       [scrollable]="true" scrollHeight="flex" responsiveLayout="scroll" styleClass="h-full">
     <ng-template pTemplate="header">
       <tr>
-        <th>Número</th>
-        <th>Capacidad</th>
-        <th>Estado</th>
-        <th>Acciones</th>
+        <th class="text-xs md:text-sm">#</th>
+        <th class="text-xs md:text-sm">Cap.</th>
+        <th class="text-xs md:text-sm hidden sm:table-cell">Estado</th>
+        <th class="text-center text-xs md:text-sm">Acc.</th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-table>
       <tr>
-        <td>Mesa {{ table.tableNumber }}</td>
-        <td>{{ table.capacity }} personas</td>
+        <td class="font-medium">{{ table.tableNumber }}</td>
         <td>
+          <div class="flex items-center gap-1">
+            <i class="pi pi-users text-xs text-surface-500"></i>
+            <span>{{ table.capacity }}</span>
+          </div>
+        </td>
+        <td class="hidden sm:table-cell">
           <span [class]="getStatusClass(table.status) + ' px-2 py-1 rounded text-xs font-medium'">
             {{ getStatusLabel(table.status) }}
           </span>
         </td>
         <td>
-          <div class="flex flex-wrap gap-2 items-center">
+          <div class="flex items-center justify-center">
             <p-button 
               icon="pi pi-pencil" 
               [text]="true"
+              severity="warn"
+              size="small"
               (onClick)="showEditModal(table)"
             ></p-button>
           </div>

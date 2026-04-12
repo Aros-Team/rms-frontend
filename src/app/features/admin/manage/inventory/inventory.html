@@ -1,6 +1,6 @@
 <p-toast />
 
-<div class="flex flex-col p-4 md:p-6 min-w-0 h-full">
+<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0">
   <!-- Header -->
   <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 min-w-0 flex-shrink-0">
     <div class="min-w-0">
@@ -70,27 +70,27 @@
 
       <ng-template #header>
         <tr>
-          <th pSortableColumn="supplyName">Insumo <p-sortIcon field="supplyName" /></th>
-          <th pSortableColumn="categoryName">Categoría <p-sortIcon field="categoryName" /></th>
-          <th pSortableColumn="unitAbbreviation">Unidad <p-sortIcon field="unitAbbreviation" /></th>
-          <th pSortableColumn="stockBodega">Stock Bodega <p-sortIcon field="stockBodega" /></th>
-          <th pSortableColumn="stockCocina">Stock Cocina <p-sortIcon field="stockCocina" /></th>
+          <th pSortableColumn="supplyName" class="text-xs md:text-sm">Insumo <p-sortIcon field="supplyName" /></th>
+          <th pSortableColumn="categoryName" class="text-xs md:text-sm hidden sm:table-cell">Categoría <p-sortIcon field="categoryName" /></th>
+          <th pSortableColumn="unitAbbreviation" class="text-xs md:text-sm">Und. <p-sortIcon field="unitAbbreviation" /></th>
+          <th pSortableColumn="stockBodega" class="text-xs md:text-sm">Bod. <p-sortIcon field="stockBodega" /></th>
+          <th pSortableColumn="stockCocina" class="text-xs md:text-sm">Coc. <p-sortIcon field="stockCocina" /></th>
         </tr>
       </ng-template>
 
       <ng-template #body let-supply>
         <tr>
-          <td>{{ supply.supplyName }}</td>
-          <td>{{ supply.categoryName }}</td>
-          <td>{{ supply.unitAbbreviation }}</td>
+          <td class="font-medium text-sm">{{ supply.supplyName }}</td>
+          <td class="hidden sm:table-cell text-sm">{{ supply.categoryName }}</td>
+          <td class="text-xs">{{ supply.unitAbbreviation }}</td>
           <td>
-            <span [class]="supply.stockBodega <= 0 ? 'text-red-500' : 'text-green-600'">
-              {{ supply.stockBodega }} {{ supply.unitAbbreviation }}
+            <span [class]="supply.stockBodega <= 0 ? 'text-red-500 font-semibold' : 'text-green-600'" class="text-sm">
+              {{ supply.stockBodega }}
             </span>
           </td>
           <td>
-            <span [class]="supply.stockCocina <= 0 ? 'text-red-500' : 'text-green-600'">
-              {{ supply.stockCocina }} {{ supply.unitAbbreviation }}
+            <span [class]="supply.stockCocina <= 0 ? 'text-red-500 font-semibold' : 'text-green-600'" class="text-sm">
+              {{ supply.stockCocina }}
             </span>
           </td>
         </tr>

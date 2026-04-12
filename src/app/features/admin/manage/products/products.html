@@ -1,4 +1,4 @@
-<div class="flex flex-col p-4 md:p-6 min-w-0 h-full">
+<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0">
   <div class="flex items-center gap-4 mb-2 md:mb-4 min-w-0 flex-shrink-0">
     <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0 break-words min-w-0">{{ title }}</h1>
   </div>
@@ -34,7 +34,7 @@
         </div>
         <div class="flex gap-2 justify-end">
           <p-button icon="pi pi-plus" label="Crear" class="btn-icon-text-sm" pTooltip="Crear nuevo producto" tooltipPosition="bottom" (click)="showCreationModal()" />
-          <p-button icon="pi pi-sliders" label="Opción" class="btn-icon-text-sm" pTooltip="Nueva opción de producto" tooltipPosition="bottom" (click)="openNewOptionDialog()" />
+          <p-button icon="pi pi-plus" label="Opción" class="btn-icon-text-sm" pTooltip="Nueva opción de producto" tooltipPosition="bottom" (click)="openNewOptionDialog()" />
         </div>
       </ng-template>
       <ng-template #header>
