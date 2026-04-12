@@ -1,4 +1,4 @@
-<div class="h-screen bg-surface-50 dark:bg-surface-900 overflow-clip flex flex-col">
+<div class="h-screen bg-surface-50 dark:bg-surface-900 flex flex-col">
   <!-- Header -->
   <app-header
     [horizontalMenuOptions]="horizontalMenuOptions"
@@ -7,7 +7,7 @@
   </app-header>
 
   <!-- Main Layout Container -->
-  <div class="flex flex-1 min-h-0">
+  <div class="flex flex-1 min-h-0 overflow-hidden">
     <!-- Sidebar -->
     @if (!hideSidebar) {
     <app-sidebar [visible]="sidebarVisible" [isMobile]="isMobile" (visibleChange)="onSidebarVisibleChange($event)">
@@ -16,12 +16,12 @@
 
     <!-- Main Content Area -->
     <main
-      class="flex-1 ml-2 md:ml-4 mb-2 md:mb-3 mr-2 md:mr-4 mt-2 md:mt-3 w-full min-w-0 transition-all duration-300 ease-in-out border rounded-xl md:rounded-2xl border-surface-300 dark:border-surface-700 flex flex-col overflow-hidden"
+      class="flex-1 ml-2 md:ml-4 mb-2 md:mb-3 mr-2 md:mr-4 mt-2 md:mt-3 w-full min-w-0 transition-all duration-300 ease-in-out border rounded-xl md:rounded-2xl border-surface-300 dark:border-surface-700 flex flex-col"
       [class]="{
         'md:mr-80': !isMobile && !hideSidebar
       }">
 
-      <!-- Content Container - Permite scroll -->
+      <!-- Content Container - Scroll aquí -->
       <div class="flex-1 min-h-0 overflow-y-auto p-4 lg:p-6">
         <ng-content></ng-content>
       </div>

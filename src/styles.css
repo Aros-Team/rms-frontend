@@ -385,7 +385,26 @@ body {
   }
 }
 
-/* ══ Responsive Icon-Text Navigation - Ocultar texto en móvil ══ */
+/* ══ Responsive Icon + Short Text Button - Icono + texto corto en móvil ══ */
+@media (max-width: 639px) {
+  .p-button.btn-icon-text-sm .p-button-label {
+    display: inline !important;
+    font-size: 0.75rem !important;
+    margin-left: 0.25rem !important;
+  }
+  
+  .p-button.btn-icon-text-sm.p-button {
+    padding: 0.5rem 0.75rem !important;
+    min-width: auto !important;
+    white-space: nowrap !important;
+  }
+  
+  .p-button.btn-icon-text-sm .p-button-icon {
+    margin: 0 !important;
+  }
+}
+
+/* ══ Responsive Icon-Text Navigation - Scroll with content ══ */
 .icon-text-nav {
   display: flex;
   flex-wrap: nowrap;
@@ -413,6 +432,25 @@ body {
   
   .icon-text-nav .nav-item i {
     margin: 0 !important;
+  }
+}
+
+/* ══ Button with Icon + Short Text on Mobile ══ */
+@media (max-width: 639px) {
+  .btn-icon-text-sm .p-button-label {
+    display: inline !important;
+    font-size: 0.7rem !important;
+    margin-left: 0.25rem !important;
+  }
+  
+  .btn-icon-text-sm.p-button {
+    padding: 0.5rem 0.6rem !important;
+    min-width: auto !important;
+  }
+  
+  .btn-icon-text-sm .p-button-icon {
+    margin: 0 !important;
+    font-size: 0.9rem !important;
   }
 }
 
