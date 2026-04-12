@@ -4,13 +4,6 @@
   </div>
   <p class="text-surface-600 dark:text-surface-400 mb-2 md:mb-4 text-sm">{{ description }}</p>
 
-  <div class="flex flex-col sm:flex-row justify-end gap-2 mb-3 flex-shrink-0">
-    <p-multiselect [options]="categories()" display="chip" [maxSelectedLabels]="3"
-      class="w-full sm:w-6/12" optionLabel="name" optionValue="id"
-      placeholder="Filtro de categorías" [formControl]="filterCategories" />
-    <p-button icon="pi pi-filter" label="Filtrar" (click)="filterProducts()" />
-  </div>
-
   @if (products() === undefined) {
     <div class="flex justify-center items-center my-8">
       <p-progress-spinner aria-label="Cargando productos" />
@@ -21,20 +14,23 @@
       [scrollable]="true" scrollHeight="flex" responsiveLayout="scroll"
       stripedRows showGridlines [globalFilterFields]="['name']" styleClass="h-full">
       <ng-template #caption>
-        <div class="flex flex-col sm:flex-row gap-2 mb-2">
-          <p-iconfield iconPosition="left" class="w-full">
+        <div class="flex flex-col lg:flex-row gap-2 items-start lg:items-end">
+          <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto flex-wrap">
+            <p-multiselect [options]="categories()" display="chip" [maxSelectedLabels]="2"
+              class="w-full sm:w-48" optionLabel="name" optionValue="id"
+              placeholder="Categoría" [formControl]="filterCategories" appendTo="body" />
+            <p-button icon="pi pi-filter" label="Filtrar" (click)="filterProducts()" />
+          </div>
+          <p-iconfield iconPosition="left" class="w-full lg:w-64">
             <p-inputicon><i class="pi pi-search"></i></p-inputicon>
             <input pInputText type="text" class="w-full"
               (input)="dt1.filterGlobal($any($event.target).value, 'contains')"
-              placeholder="Buscar por nombre" />
+              placeholder="Buscar..." />
           </p-iconfield>
-          <div class="flex gap-2">
-            <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="dt1.clear()" />
+          <div class="flex gap-2 ml-auto">
+            <p-button icon="pi pi-plus" label="Crear" class="btn-icon-text-sm" pTooltip="Crear nuevo producto" tooltipPosition="bottom" (click)="showCreationModal()" />
+            <p-button icon="pi pi-plus" label="Opción" class="btn-icon-text-sm" pTooltip="Nueva opción de producto" tooltipPosition="bottom" (click)="openNewOptionDialog()" />
           </div>
-        </div>
-        <div class="flex gap-2 justify-end">
-          <p-button icon="pi pi-plus" label="Crear" class="btn-icon-text-sm" pTooltip="Crear nuevo producto" tooltipPosition="bottom" (click)="showCreationModal()" />
-          <p-button icon="pi pi-plus" label="Opción" class="btn-icon-text-sm" pTooltip="Nueva opción de producto" tooltipPosition="bottom" (click)="openNewOptionDialog()" />
         </div>
       </ng-template>
       <ng-template #header>

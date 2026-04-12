@@ -62,8 +62,18 @@
         Solo se muestran productos activos.
       </p>
 
-      <div class="flex flex-col sm:flex-row gap-3 items-end">
-        <div class="flex flex-col gap-1 flex-1 w-full sm:min-w-60">
+      <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+        <p-button
+          label="Asignar"
+          icon="pi pi-check"
+          class="btn-icon-text-sm flex-shrink-0"
+          pTooltip="Asignar como Menú del Día"
+          tooltipPosition="right"
+          [loading]="isSubmitting()"
+          [disabled]="selectedProductId() === null || isSubmitting()"
+          (onClick)="assign()"
+        />
+        <div class="flex flex-col gap-1 flex-1 w-full">
           <label for="product-select" class="text-sm font-medium text-surface-700 dark:text-surface-300">
             Producto *
           </label>
@@ -77,19 +87,9 @@
             [disabled]="loadingProducts() || isSubmitting()"
             [(ngModel)]="selectedProductIdValue"
             class="w-full"
+            appendTo="body"
           />
         </div>
-
-        <p-button
-          label="Asignar"
-          icon="pi pi-check"
-          class="btn-icon-only-sm"
-          pTooltip="Asignar como Menú del Día"
-          tooltipPosition="bottom"
-          [loading]="isSubmitting()"
-          [disabled]="selectedProductId() === null || isSubmitting()"
-          (onClick)="assign()"
-        />
       </div>
 
       @if (selectedProduct()) {
