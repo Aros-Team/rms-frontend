@@ -334,12 +334,27 @@ body {
 }
 
 .p-button {
-  white-space: nowrap;
+  white-space: normal !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word !important;
 }
 
-.p-button.p-button-label {
+.p-button .p-button-label {
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: normal !important;
+  min-width: 0 !important;
+  display: inline-flex !important;
+}
+
+.p-button {
+  gap: 0.5rem;
+}
+
+.p-button.p-button-icon-only {
+  flex-shrink: 0;
 }
 
 button,
