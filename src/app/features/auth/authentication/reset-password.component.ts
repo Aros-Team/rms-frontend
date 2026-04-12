@@ -17,15 +17,14 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
 }
 
 @Component({
-  selector: 'app-reset-password',
-  standalone: true,
+  selector: 'app-reset-password-form',
   imports: [
     ReactiveFormsModule,
     PasswordModule,
     InputTextModule,
     ButtonModule,
     MessageModule
-],
+  ],
   template: `
     <div class="w-full max-w-md mx-auto p-6">
       <div class="text-center mb-6">

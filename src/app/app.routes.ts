@@ -17,8 +17,8 @@ import { AdminArea } from '@areas/admin/admin-area';
 import { WorkerArea } from '@areas/worker/worker-area';
 import { Users } from './features/admin/manage/users/users';
 import { TwoFactorVerifyComponent } from './features/auth/two-factor-verify/two-factor-verify.component';
-import { ForgotPasswordComponent } from './features/auth/authentication/forgot-password.component';
-import { ResetPasswordComponent } from './features/auth/authentication/reset-password.component';
+import { ForgotPasswordPage } from './features/auth/authentication/forgot-password-page';
+import { ResetPasswordPage } from './features/auth/authentication/reset-password-page';
 import { SettingsComponent } from './features/settings/settings.component';
 import { WaiterArea } from '@features/waiter/waiter-area';
 import { DayMenu } from '@features/waiter/day-menu/day-menu';
@@ -36,11 +36,11 @@ export const routes: Routes = [
   },
   {
     path: 'forgot-password',
-    component: ForgotPasswordComponent,
+    component: ForgotPasswordPage,
   },
   {
     path: 'reset-password',
-    component: ResetPasswordComponent,
+    component: ResetPasswordPage,
   },
   {
     path: 'login/verify',

@@ -11,8 +11,7 @@ import { ButtonModule } from 'primeng/button';
 import { MessageService } from 'primeng/api';
 
 @Component({
-  selector: 'app-forgot-password',
-  standalone: true,
+  selector: 'app-forgot-password-form',
   imports: [
     ReactiveFormsModule,
     PasswordModule,
@@ -20,7 +19,7 @@ import { MessageService } from 'primeng/api';
     FloatLabelModule,
     InputTextModule,
     ButtonModule
-],
+  ],
   template: `
     <div class="w-full max-w-md mx-auto p-6">
       <div class="text-center mb-6">
