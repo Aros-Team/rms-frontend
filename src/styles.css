@@ -285,3 +285,70 @@ body.high-contrast .p-select-panel {
 .p-datatable-scrollable .p-datatable-tbody > tr > td {
   white-space: normal !important;
 }
+
+/* ========================================
+   Overflow Prevention for Large Text / Accessibility
+   ======================================== */
+html, body {
+  overflow-x: hidden;
+  min-width: 320px;
+}
+
+body {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+
+* {
+  max-width: 100vw;
+}
+
+.flex > * {
+  min-width: 0;
+}
+
+.grid > * {
+  min-width: 0;
+}
+
+.inline-block {
+  max-width: 100%;
+}
+
+.font-bold {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.text-xl,
+.text-2xl,
+.text-3xl {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.p-chip {
+  max-width: fit-content;
+}
+
+.p-button {
+  white-space: nowrap;
+}
+
+.p-button.p-button-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+button,
+a {
+  max-width: 100%;
+}
+
+img,
+video,
+canvas {
+  max-width: 100%;
+}
