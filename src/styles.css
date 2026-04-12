@@ -243,3 +243,45 @@ body.high-contrast .p-select-panel {
   background-color: #1a1a1a !important;
   border: 2px solid #ffffff !important;
 }
+
+/* ========================================
+   PrimeNG Dropdown Positioning Fix
+   ======================================== */
+.p-select-overlay,
+.p-multiselect-overlay,
+.p-dropdown-overlay,
+.p-autocomplete-panel,
+.p-calendar .p-datepicker-panel {
+  position: fixed !important;
+  z-index: 10000 !important;
+}
+
+/* Ensure overlay doesn't get clipped in scrollable containers */
+.p-select,
+.p-multiselect,
+.p-dropdown {
+  contain: layout style;
+}
+
+/* Table action buttons - flex wrap for responsive behavior */
+.table-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.25rem !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.table-actions .p-button {
+  flex-shrink: 0 !important;
+}
+
+/* Scrollable table container fixes */
+.p-datatable-scrollable .p-datatable-wrapper {
+  overflow-x: auto !important;
+}
+
+.p-datatable-scrollable .p-datatable-thead > tr > th,
+.p-datatable-scrollable .p-datatable-tbody > tr > td {
+  white-space: normal !important;
+}

@@ -7,6 +7,7 @@
       placeholder="Estado" 
       class="w-[220px]"
       (onChange)="onStatusChange($event.value)" 
+      appendTo="body"
     />
     <app-shared-datepicker (dateChange)="onDateChange($event)"></app-shared-datepicker>
   </div>
@@ -55,6 +56,7 @@
           optionValue="value" 
           [style]="{'width': '150px'}" 
           class="ml-2"
+          appendTo="body"
         />
       </td>
       <td>{{ formatDate(order.date) }}</td>

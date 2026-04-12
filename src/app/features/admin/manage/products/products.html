@@ -46,11 +46,13 @@
           <td>{{ product.areaName }}</td>
           <td>{{ product.categoryName }}</td>
           <td><p-tag [value]="product.hasOptions ? 'Personalizable' : 'Simple'" [severity]="product.hasOptions ? 'info' : 'secondary'" /></td>
-          <td class="flex gap-1">
-            <p-button size="small" icon="pi pi-eye" label="Detalles" severity="secondary"
-              (click)="showDetailDialog(product)" />
-            <p-button size="small" icon="pi pi-pencil" label="Editar"
-              (click)="showModificationModal(product.id)" />
+          <td>
+            <div class="flex flex-wrap gap-2 items-center">
+              <p-button size="small" icon="pi pi-eye" label="Detalles" severity="secondary"
+                [text]="true" (click)="showDetailDialog(product)" />
+              <p-button size="small" icon="pi pi-pencil" label="Editar"
+                [text]="true" (click)="showModificationModal(product.id)" />
+            </div>
           </td>
         </tr>
       </ng-template>
