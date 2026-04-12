@@ -33,11 +33,30 @@
       <i class="pi pi-bars text-surface-600 dark:text-surface-400"></i>
     </button>
 
+    <!-- Chat Button -->
+    <button
+      class="relative p-2 rounded-xl cursor-pointer group transition-all duration-300 hover:scale-110 w-10 h-10 flex items-center justify-center"
+      [class.bg-primary-100]="!isMobile"
+      [class.dark:bg-primary-900/30]="!isMobile"
+      [class.bg-surface-100]="isMobile"
+      [class.dark:bg-surface-800]="isMobile"
+      (click)="toggleChat.emit()"
+      aria-label="Abrir chat con asistente IA"
+      title="Asistente IA">
+      <i class="pi pi-comment text-lg transition-colors duration-300"
+         [class.text-primary-500]="!isMobile"
+         [class.text-surface-600]="isMobile"
+         [class.dark:text-primary-400]="!isMobile"
+         [class.dark:text-surface-400]="isMobile"></i>
+      <span class="absolute top-1 right-1 w-2 h-2 bg-primary-500 rounded-full animate-ping"></span>
+      <span class="absolute top-1 right-1 w-2 h-2 bg-primary-500 rounded-full"></span>
+    </button>
+
     <!-- Accessibility Button -->
     <app-accessibility></app-accessibility>
 
     <!-- Logout Button -->
-    <button class="p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer"
+    <button class="p-2 rounded-xl hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer w-10 h-10 flex items-center justify-center"
       (click)="onLogout()" aria-label="Cerrar sesión" title="Cerrar sesión">
       <i class="pi pi-sign-out text-surface-600 dark:text-surface-400"></i>
     </button>
