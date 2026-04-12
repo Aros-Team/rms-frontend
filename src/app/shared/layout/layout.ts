@@ -1,22 +1,24 @@
-import { Component, OnInit, OnDestroy, inject, Input, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, Input, ChangeDetectorRef, ViewChild } from '@angular/core';
 
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
 import { Header, HorizontalMenuOption } from '../components/header/header';
 import { Sidebar } from '../components/sidebar/sidebar';
+import { ChatComponent } from '../components/chat/chat.component';
 import { MenuService } from '../../core/services/menu/menu-service';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-layout',
-  imports: [Header, Sidebar],
+  imports: [Header, Sidebar, ChatComponent],
   templateUrl: './layout.html',
   styles: ``
 })
 export class Layout implements OnInit, OnDestroy {
   @Input() workerType?: string;
   @Input() hideSidebar = false;
+  @ViewChild(ChatComponent) chatComponent!: ChatComponent;
 
   sidebarVisible = false;
   isMobile = false;
@@ -91,5 +93,13 @@ export class Layout implements OnInit, OnDestroy {
 
   onSidebarVisibleChange(visible: boolean): void {
     this.sidebarVisible = visible;
+  }
+
+  chatVisible = false;
+
+  toggleChat(): void {
+    if (this.chatComponent) {
+      this.chatComponent.toggleChat();
+    }
   }
 }

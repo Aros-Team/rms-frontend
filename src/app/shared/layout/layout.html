@@ -3,7 +3,8 @@
   <app-header
     [horizontalMenuOptions]="horizontalMenuOptions"
     [isMobile]="isMobile"
-    (toggleMenu)="toggleSidebar()">
+    (toggleMenu)="toggleSidebar()"
+    (toggleChat)="toggleChat()">
   </app-header>
 
   <!-- Main Layout Container -->
@@ -29,4 +30,7 @@
       </div>
     </main>
   </div>
+
+  <!-- Chat Component -->
+  <app-chat></app-chat>
 </div>
