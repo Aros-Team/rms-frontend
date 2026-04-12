@@ -4,9 +4,9 @@
   </div>
   <p class="text-surface-600 dark:text-surface-400 mb-4">{{ description }}</p>
 
-  <div class="flex justify-end gap-2 mb-3">
+  <div class="flex flex-col sm:flex-row justify-end gap-2 mb-3">
     <p-multiselect [options]="categories()" display="chip" [maxSelectedLabels]="3"
-      class="w-6/12" optionLabel="name" optionValue="id"
+      class="w-full sm:w-6/12" optionLabel="name" optionValue="id"
       placeholder="Filtro de categorías" [formControl]="filterCategories" />
     <p-button icon="pi pi-filter" label="Filtrar" (click)="filterProducts()" />
   </div>
@@ -20,16 +20,16 @@
       [scrollable]="true" scrollWidth="flex" responsiveLayout="scroll"
       stripedRows showGridlines [globalFilterFields]="['name']">
       <ng-template #caption>
-        <div class="flex">
+        <div class="flex flex-wrap gap-2">
           <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="dt1.clear()" />
-          <p-iconfield iconPosition="left" class="ml-auto">
+          <p-iconfield iconPosition="left" class="flex-1 min-w-[200px]">
             <p-inputicon><i class="pi pi-search"></i></p-inputicon>
             <input pInputText type="text"
               (input)="dt1.filterGlobal($any($event.target).value, 'contains')"
               placeholder="Buscar por nombre" />
           </p-iconfield>
-          <p-button icon="pi pi-plus" label="Crear nuevo producto" class="ml-2" (click)="showCreationModal()" />
-          <p-button icon="pi pi-plus" label="Nueva opción de producto" class="ml-2" (click)="openNewOptionDialog()" />
+          <p-button icon="pi pi-plus" label="Crear nuevo" class="btn-icon-only-sm" pTooltip="Crear nuevo producto" tooltipPosition="bottom" (click)="showCreationModal()" />
+          <p-button icon="pi pi-plus" label="Nueva opción" class="btn-icon-only-sm" pTooltip="Nueva opción de producto" tooltipPosition="bottom" (click)="openNewOptionDialog()" />
         </div>
       </ng-template>
       <ng-template #header>
@@ -47,11 +47,11 @@
           <td>{{ product.categoryName }}</td>
           <td><p-tag [value]="product.hasOptions ? 'Personalizable' : 'Simple'" [severity]="product.hasOptions ? 'info' : 'secondary'" /></td>
           <td>
-            <div class="flex flex-wrap gap-2 items-center">
-              <p-button size="small" icon="pi pi-eye" label="Detalles" severity="secondary"
-                [text]="true" (click)="showDetailDialog(product)" />
+            <div class="flex gap-1 items-center">
+              <p-button size="small" icon="pi pi-eye" label="Ver" severity="secondary"
+                [text]="true" class="btn-icon-only-sm" pTooltip="Ver detalles" tooltipPosition="top" (click)="showDetailDialog(product)" />
               <p-button size="small" icon="pi pi-pencil" label="Editar"
-                [text]="true" (click)="showModificationModal(product.id)" />
+                [text]="true" class="btn-icon-only-sm" pTooltip="Editar" tooltipPosition="top" (click)="showModificationModal(product.id)" />
             </div>
           </td>
         </tr>

@@ -78,8 +78,11 @@
         </div>
 
         <p-button
-          label="Asignar como Menú del Día"
+          label="Asignar menú"
           icon="pi pi-check"
+          class="btn-icon-only-sm"
+          pTooltip="Asignar como Menú del Día"
+          tooltipPosition="bottom"
           [loading]="isSubmitting()"
           [disabled]="selectedProductId() === null || isSubmitting()"
           (onClick)="assign()"

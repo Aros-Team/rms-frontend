@@ -20,9 +20,9 @@
       showGridlines
     >
       <ng-template #caption>
-        <div class="flex">
-          <p-button label="Clear" [outlined]="true" icon="pi pi-filter-slash" />
-          <p-iconfield iconPosition="left" class="ml-auto">
+        <div class="flex flex-wrap gap-2">
+          <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" />
+          <p-iconfield iconPosition="left" class="flex-1 min-w-[200px]">
             <p-inputicon>
               <i class="pi pi-search"></i>
             </p-inputicon>
@@ -33,9 +33,7 @@
               placeholder="Buscar"
             />
           </p-iconfield>
-          <button pButton icon="pi pi-plus" class="ml-2" (click)="showCreationModal()">
-            Crear nuevo
-          </button>
+          <p-button icon="pi pi-plus" class="btn-icon-only-sm" pTooltip="Crear usuario" tooltipPosition="bottom" (click)="showCreationModal()" />
         </div>
       </ng-template>
       <ng-template #header>
@@ -62,12 +60,14 @@
           <td>{{ user.phone }}</td>
           <td>{{ user.address }}</td>
           <td>
-            <div class="flex flex-wrap gap-2 items-center justify-start">
+            <div class="flex gap-1 items-center">
               <p-button
                 severity="warn"
                 icon="pi pi-pencil"
                 label="Editar"
                 size="small"
+                [text]="true"
+                class="btn-icon-only-sm"
                 [disabled]="true"
                 pTooltip="Próximamente"
                 tooltipPosition="top"
@@ -77,6 +77,8 @@
                 icon="pi pi-trash"
                 label="Eliminar"
                 size="small"
+                [text]="true"
+                class="btn-icon-only-sm"
                 [disabled]="true"
                 pTooltip="Próximamente"
                 tooltipPosition="top"

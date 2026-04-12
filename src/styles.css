@@ -357,6 +357,34 @@ body {
   flex-shrink: 0;
 }
 
+@media (max-width: 639px) {
+  .p-button.btn-icon-only-sm .p-button-label {
+    display: none !important;
+  }
+  
+  .p-button.btn-icon-only-sm .p-button-icon {
+    margin: 0 !important;
+  }
+  
+  .p-button.btn-icon-only-sm.p-button {
+    padding: 0.5rem !important;
+    min-width: 2.5rem !important;
+    width: 2.5rem !important;
+  }
+  
+  .p-button.btn-icon-only-sm .p-button-icon {
+    font-size: 1rem !important;
+  }
+}
+
+@media (max-width: 639px) {
+  .p-button.btn-icon-only-sm {
+    min-width: 2.5rem !important;
+    width: 2.5rem !important;
+    padding: 0.5rem !important;
+  }
+}
+
 button,
 a {
   max-width: 100%;
