@@ -1,80 +1,26 @@
-<div class="pr-4 min-h-[calc(100vh-101rem)] lg:max-w-[80vw] overflow-hidden min-w-0">
+<div class="p-4 lg:pr-4 lg:pt-4 min-w-0 overflow-y-auto h-full">
   <!-- Main Dashboard Container -->
-  <div class="flex flex-col lg:grid lg:grid-cols-7 lg:grid-rows-[auto_1fr] gap-6 h-full min-w-0">
-
-    <!-- Day Menu - Mobile: Full width, Desktop: Left column -->
-    <aside
-      class="h-auto border border-surface-200 dark:border-surface-700 rounded-2xl bg-primary-contrast lg:col-span-2 lg:row-span-2 order-2 lg:order-1 flex flex-col min-w-0 overflow-hidden">
-      <header class="flex justify-between items-center p-4">
-        <h2 class="font-bold text-md break-words">Menú del Día</h2>
-      </header>
-      <div class="p-4 flex-1 overflow-y-auto max-h-fit">
-        @if (dayMenu()) {
-        <div
-          class="bg-surface-50 dark:bg-surface-800 border-surface-200 dark:border-surface-700 rounded-2xl border flex flex-col h-full">
-          <div class="p-4 space-y-2 bg-surface-50 dark:bg-surface-800 rounded-2xl flex-1 overflow-y-auto">
-            <div class="flex items-center gap-2">
-              <i class="pi pi-thumbtack text-sm text-primary-500"></i>
-              <span class="font-medium text-surface-800 dark:text-surface-200">{{ dayMenu()!.productName }}</span>
-            </div>
-            <p class="text-xs text-surface-400">Vigente desde: {{ dayMenu()!.validFrom | date:'dd/MM/yyyy HH:mm' }}</p>
-
-            <!-- Opciones a simple vista -->
-            @if (loadingDayMenuOptions()) {
-              <p-skeleton height="1rem" width="8rem" styleClass="mt-2" />
-            } @else if (dayMenuOptions().length > 0) {
-              <div class="pt-2 flex flex-col gap-2 border-t border-surface-200 dark:border-surface-700 mt-2">
-                @for (group of groupByCategory(dayMenuOptions()); track group.category) {
-                  <div class="flex flex-col gap-1">
-                    <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">{{ group.category }}</span>
-                    <div class="flex flex-wrap gap-1">
-                      @for (opt of group.items; track opt.id) {
-                        <span class="text-xs px-2 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-700">
-                          {{ opt.name }}
-                        </span>
-                      }
-                    </div>
-                  </div>
-                }
-              </div>
-            }
-          </div>
-          <div
-            class="p-4 border-t border-surface-200 dark:border-surface-700 bg-surface-100 dark:bg-surface-700 rounded-b-2xl">
-            <div class="flex justify-between items-center rounded-2xl">
-              <span class="text-sm text-surface-600 dark:text-surface-400">Precio base:</span>
-              <span class="text-surface-900 dark:text-surface-100 font-semibold">$ {{ dayMenu()!.productBasePrice | number:'1.0-0' }}</span>
-            </div>
-          </div>
-        </div>
-        } @else {
-        <p-message severity="warn">
-          El menu del dia aún no ha sido creado.
-        </p-message>
-        }
-      </div>
-    </aside>
+  <div class="flex flex-col gap-4 lg:gap-6 min-w-0">
 
     <!-- Statistics Header - Mobile: Top, Desktop: Top right -->
     <header
-      class="border border-surface-200 dark:border-surface-700 rounded-2xl bg-surface-100 dark:bg-surface-800 lg:col-span-5 order-1 lg:order-2 min-w-0 overflow-hidden">
-      <div class="flex justify-between items-center p-4 min-w-0">
+      class="border border-surface-200 dark:border-surface-700 rounded-xl lg:rounded-2xl bg-surface-100 dark:bg-surface-800 min-w-0 overflow-hidden">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 gap-2 min-w-0">
         <div class="min-w-0">
-          <h2 class="text-md font-bold text-surface-900 dark:text-surface-100 break-words">{{ currentDate() }}</h2>
+          <h2 class="text-lg lg:text-md font-bold text-surface-900 dark:text-surface-100 break-words">{{ currentDate() }}</h2>
           <p class="text-surface-600 dark:text-surface-400 text-sm">{{ currentTime() }}</p>
         </div>
-        <span class="bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300 text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1">
+        <span class="bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300 text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1 flex-shrink-0">
           <i class="pi pi-spin pi-spinner text-xs"></i>
           En desarrollo
         </span>
       </div>
 
-      <section class="flex flex-col md:flex-row p-4 gap-4 border-t border-surface-200 dark:border-surface-700">
+      <section class="flex flex-col sm:flex-row p-4 pt-0 sm:pt-4 gap-4 border-t border-surface-200 dark:border-surface-700 sm:border-0">
         <!-- Ventas del día -->
-        <div
-          class="flex-1 text-center p-4 border-b md:border-b-0 md:border-r border-surface-200 dark:border-surface-600">
-          <div class="flex justify-center items-center gap-2 mb-2">
-            <div class="text-3xl font-bold text-surface-900 dark:text-surface-100">
+        <div class="flex-1 text-center p-3 sm:p-4 border-b sm:border-b-0 sm:border-r border-surface-200 dark:border-surface-700">
+          <div class="flex justify-center items-center gap-2 mb-1 sm:mb-2">
+            <div class="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-surface-100">
               @if (showSales()) {
               $ {{ totalSales() | number:'1.0-0' }}
               } @else {
@@ -95,12 +41,11 @@
         </div>
 
         <!-- Mesas ocupadas -->
-        <div
-          class="flex-1 text-center p-4 border-b md:border-b-0 md:border-r border-surface-200 dark:border-surface-600">
-          <div class="text-3xl font-bold text-surface-900 dark:text-surface-100">
+        <div class="flex-1 text-center p-3 sm:p-4 border-b sm:border-b-0 sm:border-r border-surface-200 dark:border-surface-700">
+          <div class="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-surface-100">
             {{ occupiedTablesCount() }}
           </div>
-          <div class="text-sm text-surface-600 dark:text-surface-400 mt-2">
+          <div class="text-sm text-surface-600 dark:text-surface-400 mt-1 sm:mt-2">
             Mesas Ocupadas
           </div>
           <p class="text-xs text-surface-500 dark:text-surface-500 mt-1">
@@ -109,34 +54,32 @@
         </div>
 
         <!-- Pedidos en preparación -->
-        <div class="flex-1 text-center p-4">
-          <div class="text-3xl font-bold text-surface-900 dark:text-surface-100">
+        <div class="flex-1 text-center p-3 sm:p-4">
+          <div class="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-surface-100">
             {{ preparingOrdersCount() }}
           </div>
-          <div class="text-sm text-surface-600 dark:text-surface-400 mt-2">
+          <div class="text-sm text-surface-600 dark:text-surface-400 mt-1 sm:mt-2">
             Pedidos en Preparación
           </div>
           <p class="text-xs text-surface-500 dark:text-surface-500 mt-1">
-            En proceso de cocina
+            En proceso
           </p>
         </div>
       </section>
     </header>
 
-
-    <!-- Orders Table - Mobile: Bottom, Desktop: Bottom right -->
-    <section
-      class="border border-surface-200 dark:border-surface-700 rounded-2xl bg-primary-contrast lg:col-span-5 order-3 lg:order-3 flex flex-col lg:min-h-[410px] min-w-0 overflow-hidden">
-      <header class="flex justify-between items-center p-4">
-        <h2 class="text-md font-bold text-surface-900 dark:text-surface-100 break-words">
+    <!-- Orders Table - Full width on all screens -->
+    <section class="border border-surface-200 dark:border-surface-700 rounded-xl lg:rounded-2xl bg-primary-contrast flex flex-col min-h-[300px] lg:min-h-[410px] min-w-0 overflow-hidden">
+      <header class="flex justify-between items-center p-4 flex-shrink-0">
+        <h2 class="text-lg lg:text-md font-bold text-surface-900 dark:text-surface-100 break-words">
           Pedidos del Día
         </h2>
         <span class="rounded-full bg-primary-500 py-1 px-2.5 text-primary-contrast text-sm">{{orders().length}}</span>
       </header>
 
-      <div class=" p-4 pt-0 flex-1 h-fit">
-        <p-table [value]="orders()" size="small" selectionMode="single" [scrollable]="true" scrollHeight="360px"
-          scrollWidth="flex" responsiveLayout="scroll"
+      <div class="p-4 pt-0 flex-1 min-h-0 overflow-hidden">
+        <p-table [value]="orders()" size="small" selectionMode="single" [scrollable]="true" scrollHeight="flex"
+          scrollWidth="flex" responsiveLayout="scroll" styleClass="h-full"
           [tableStyle]="{'min-width': '20rem'}">
           <ng-template pTemplate="header">
             <tr>
@@ -185,6 +128,31 @@
       </div>
 
     </section>
+
+    <!-- Day Menu - Below orders -->
+    <aside class="border border-surface-200 dark:border-surface-700 rounded-xl lg:rounded-2xl bg-primary-contrast min-w-0 overflow-hidden">
+      <header class="flex justify-between items-center p-4">
+        <h2 class="font-bold text-md break-words">Menú del Día</h2>
+      </header>
+      <div class="p-4 pt-0 flex-1 overflow-y-auto max-h-48 lg:max-h-none">
+        @if (dayMenu()) {
+        <div class="bg-surface-50 dark:bg-surface-800 rounded-xl lg:rounded-2xl border border-surface-200 dark:border-surface-700 p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <i class="pi pi-thumbtack text-sm text-primary-500"></i>
+            <span class="font-medium text-surface-800 dark:text-surface-200">{{ dayMenu()!.productName }}</span>
+          </div>
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-surface-500">Precio:</span>
+            <span class="font-semibold text-surface-900 dark:text-surface-100">$ {{ dayMenu()!.productBasePrice | number:'1.0-0' }}</span>
+          </div>
+        </div>
+        } @else {
+        <p-message severity="warn">
+          El menu del dia aún no ha sido creado.
+        </p-message>
+        }
+      </div>
+    </aside>
   </div>
 </div>
 

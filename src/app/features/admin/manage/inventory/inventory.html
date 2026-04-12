@@ -1,23 +1,23 @@
 <p-toast />
 
-<div class="h-full flex flex-col p-6 min-w-0">
+<div class="h-full flex flex-col p-4 md:p-6 min-w-0 overflow-hidden">
   <!-- Header -->
-  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 min-w-0">
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 min-w-0 flex-shrink-0">
     <div class="min-w-0">
-      <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-0 break-words">Inventario e Insumos</h1>
-      <p class="text-surface-600 dark:text-surface-400 mt-1">
+      <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0 break-words">Inventario e Insumos</h1>
+      <p class="text-surface-600 dark:text-surface-400 mt-1 text-sm">
         Consulta el stock actual de insumos y registra nuevas compras.
       </p>
     </div>
     <div class="flex gap-2 flex-wrap">
-      <p-button icon="pi pi-plus" label="Insumo" severity="secondary" class="btn-icon-only-sm" pTooltip="Nuevo insumo" tooltipPosition="bottom" (click)="openVariantModal()" />
-      <p-button icon="pi pi-tag" label="Categoría" severity="secondary" class="btn-icon-only-sm" pTooltip="Nueva categoría" tooltipPosition="bottom" (click)="openCategoryDialog()" />
-      <p-button icon="pi pi-shopping-cart" label="Compra" class="btn-icon-only-sm" pTooltip="Nueva compra" tooltipPosition="bottom" (click)="openPurchaseModal()" />
+      <p-button icon="pi pi-plus" severity="secondary" class="btn-icon-only-sm" pTooltip="Nuevo insumo" tooltipPosition="bottom" (click)="openVariantModal()" />
+      <p-button icon="pi pi-tag" severity="secondary" class="btn-icon-only-sm" pTooltip="Nueva categoría" tooltipPosition="bottom" (click)="openCategoryDialog()" />
+      <p-button icon="pi pi-shopping-cart" class="btn-icon-only-sm" pTooltip="Nueva compra" tooltipPosition="bottom" (click)="openPurchaseModal()" />
     </div>
   </div>
 
   <!-- Category filter -->
-  <div class="flex flex-col sm:flex-row justify-end gap-2 mb-3">
+  <div class="flex flex-col sm:flex-row justify-end gap-2 mb-3 flex-shrink-0">
     <p-select
       [options]="categories()"
       optionLabel="name"
@@ -37,6 +37,7 @@
       <p-progress-spinner aria-label="Cargando insumos" />
     </div>
   } @else {
+    <div class="flex-1 min-h-0 overflow-hidden">
     <p-table
       #dt
       [value]="supplies()!"
@@ -44,24 +45,26 @@
       [rows]="10"
       [rowsPerPageOptions]="[10, 25, 50]"
       [scrollable]="true"
-      scrollWidth="flex"
+      scrollHeight="flex"
       responsiveLayout="scroll"
       stripedRows
       showGridlines
+      styleClass="h-full"
       [globalFilterFields]="['supplyName', 'categoryName', 'unitAbbreviation']"
     >
       <ng-template #caption>
-        <div class="flex flex-wrap gap-2">
-          <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="dt.clear()" />
-          <p-iconfield iconPosition="left" class="flex-1 min-w-[200px]">
+        <div class="flex flex-col sm:flex-row gap-2">
+          <p-iconfield iconPosition="left" class="w-full">
             <p-inputicon><i class="pi pi-search"></i></p-inputicon>
             <input
               pInputText
               type="text"
+              class="w-full"
               (input)="dt.filterGlobal($any($event.target).value, 'contains')"
               placeholder="Buscar por nombre"
             />
           </p-iconfield>
+          <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="dt.clear()" />
         </div>
       </ng-template>
 
@@ -99,6 +102,7 @@
         </tr>
       </ng-template>
     </p-table>
+    </div>
   }
 </div>
 

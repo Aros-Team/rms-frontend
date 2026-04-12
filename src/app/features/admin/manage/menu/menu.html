@@ -1,10 +1,13 @@
-<div class="h-full flex flex-col p-6 gap-6 min-w-0">
+<div class="h-full flex flex-col p-4 md:p-6 gap-4 md:gap-6 min-w-0 overflow-hidden">
 
   <!-- Header -->
-  <div class="min-w-0">
-    <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-0 break-words">Menú del Día</h1>
-    <p class="text-surface-500 mt-1">Asigna el producto que será el menú del día activo</p>
+  <div class="min-w-0 flex-shrink-0">
+    <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0 break-words">Menú del Día</h1>
+    <p class="text-surface-500 mt-1 text-sm">Asigna el producto que será el menú del día activo</p>
   </div>
+
+  <!-- Scrollable content -->
+  <div class="flex-1 min-h-0 overflow-y-auto flex flex-col gap-4 md:gap-6">
 
   <!-- Menú activo actual -->
   <p-card header="Menú Activo">
@@ -59,8 +62,8 @@
         Solo se muestran productos activos.
       </p>
 
-      <div class="flex gap-3 items-end flex-wrap">
-        <div class="flex flex-col gap-1 flex-1 min-w-60">
+      <div class="flex flex-col sm:flex-row gap-3 items-end">
+        <div class="flex flex-col gap-1 flex-1 w-full sm:min-w-60">
           <label for="product-select" class="text-sm font-medium text-surface-700 dark:text-surface-300">
             Producto *
           </label>
@@ -78,7 +81,7 @@
         </div>
 
         <p-button
-          label="Asignar menú"
+          label="Asignar"
           icon="pi pi-check"
           class="btn-icon-only-sm"
           pTooltip="Asignar como Menú del Día"
@@ -141,6 +144,8 @@
       </ng-template>
     </p-table>
   </p-card>
+
+  </div> <!-- end scrollable content -->
 
 </div>
 

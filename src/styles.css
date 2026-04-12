@@ -385,6 +385,58 @@ body {
   }
 }
 
+/* ══ Responsive Icon-Text Navigation - Ocultar texto en móvil ══ */
+.icon-text-nav {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.icon-text-nav::-webkit-scrollbar {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  .icon-text-nav .nav-label {
+    display: none !important;
+  }
+  
+  .icon-text-nav .nav-item {
+    flex-shrink: 0 !important;
+    padding: 0.5rem !important;
+    min-width: 2.5rem !important;
+    justify-content: center !important;
+  }
+  
+  .icon-text-nav .nav-item i {
+    margin: 0 !important;
+  }
+}
+
+/* ══ Scroll Container Fix - Permitir scroll en contenido ══ */
+.content-scroll-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.content-scroll-container > .scrollable-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ══ Fix para PrimeNG Table en scroll containers ══ */
+.p-datatable-wrapper {
+  overflow: auto !important;
+}
+
 button,
 a {
   max-width: 100%;

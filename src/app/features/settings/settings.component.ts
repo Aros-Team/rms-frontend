@@ -10,54 +10,54 @@ import { ButtonModule } from 'primeng/button';
   standalone: true,
   imports: [ChangePasswordComponent, DialogModule, ButtonModule],
   template: `
-    <div class="p-6 max-w-3xl mx-auto">
-      <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-100 mb-6">
+    <div class="p-4 md:p-6 max-w-3xl mx-auto">
+      <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-100 mb-4 md:mb-6">
         Configuración
       </h1>
 
-      <nav class="flex space-x-1 overflow-x-auto mb-6">
+      <nav class="icon-text-nav gap-1 md:gap-2 mb-4 md:mb-6">
         <button 
           (click)="activeTab.set('user')"
-          class="flex items-center gap-2 px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 whitespace-nowrap"
+          class="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 nav-item flex-shrink-0"
           [class.bg-primary-500]="activeTab() === 'user'"
           [class.text-primary-contrast]="activeTab() === 'user'"
           [class.border-primary-500]="activeTab() === 'user'"
         >
           <i class="pi pi-user"></i>
-          <span>Usuario</span>
+          <span class="nav-label">Usuario</span>
         </button>
 
         <button 
           (click)="activeTab.set('privacy')"
-          class="flex items-center gap-2 px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 whitespace-nowrap"
+          class="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 nav-item flex-shrink-0"
           [class.bg-primary-500]="activeTab() === 'privacy'"
           [class.text-primary-contrast]="activeTab() === 'privacy'"
           [class.border-primary-500]="activeTab() === 'privacy'"
         >
           <i class="pi pi-eye"></i>
-          <span>Privacidad</span>
+          <span class="nav-label">Privacidad</span>
         </button>
 
         <button 
           (click)="activeTab.set('password')"
-          class="flex items-center gap-2 px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 whitespace-nowrap"
+          class="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 nav-item flex-shrink-0"
           [class.bg-primary-500]="activeTab() === 'password'"
           [class.text-primary-contrast]="activeTab() === 'password'"
           [class.border-primary-500]="activeTab() === 'password'"
         >
           <i class="pi pi-lock"></i>
-          <span>Contraseña</span>
+          <span class="nav-label">Contraseña</span>
         </button>
 
         <button 
           (click)="activeTab.set('settings')"
-          class="flex items-center gap-2 px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 whitespace-nowrap"
+          class="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 nav-item flex-shrink-0"
           [class.bg-primary-500]="activeTab() === 'settings'"
           [class.text-primary-contrast]="activeTab() === 'settings'"
           [class.border-primary-500]="activeTab() === 'settings'"
         >
           <i class="pi pi-cog"></i>
-          <span>Otros</span>
+          <span class="nav-label">Otros</span>
         </button>
       </nav>
 

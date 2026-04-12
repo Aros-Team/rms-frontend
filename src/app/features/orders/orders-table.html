@@ -1,11 +1,11 @@
-<div class="mb-3 pb-4 flex justify-between gap-3 flex-wrap">
-  <div class="flex gap-3 flex-wrap">
-    <label for="statusFilter" class="mr-2 text-surface-700 dark:text-surface-200">Filtrar por:</label>
+<div class="mb-3 pb-4 flex flex-col sm:flex-row justify-between gap-3 flex-wrap">
+  <div class="flex gap-2 flex-wrap items-center">
+    <label for="statusFilter" class="text-surface-700 dark:text-surface-200">Filtrar:</label>
     <p-select 
       [options]="comboStatusOptions" 
       [(ngModel)]="selectedStatus" 
       placeholder="Estado" 
-      class="w-[220px]"
+      class="w-full sm:w-40"
       (onChange)="onStatusChange($event.value)" 
       appendTo="body"
     />
@@ -13,20 +13,19 @@
   </div>
 
   <div class="flex items-center gap-2">
+    @if (hasUnsavedChanges) {
+      <span class="text-sm text-red-400">
+        {{ unsavedChangesCount }} sin guardar
+      </span>
+    }
     <p-button 
       icon="pi pi-save" 
-      label="Guardar cambios" 
+      label="Guardar" 
       (onClick)="saveChanges()"
       [disabled]="!hasUnsavedChanges || saving" 
       [loading]="saving" 
     />
   </div>
-  
-  @if (hasUnsavedChanges) {
-    <span class="text-sm text-red-400">
-      {{ unsavedChangesCount }} cambio(s) sin guardar
-    </span>
-  }
 </div>
 
 <p-table [value]="orders" [scrollable]="true" scrollHeight="80vh" [paginator]="true" [rows]="20"

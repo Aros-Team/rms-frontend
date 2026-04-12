@@ -7,7 +7,7 @@
   </app-header>
 
   <!-- Main Layout Container -->
-  <div class="flex pt-16 h-[100vh] min-w-0">
+  <div class="flex pt-16 h-[calc(100vh-4rem)] min-w-0">
     <!-- Sidebar -->
     @if (!hideSidebar) {
     <app-sidebar [visible]="sidebarVisible" [isMobile]="isMobile" (visibleChange)="onSidebarVisibleChange($event)">
@@ -16,16 +16,14 @@
 
     <!-- Main Content Area -->
     <main
-      class="flex-1 ml-2 md:ml-4 mb-2 md:mb-3 w-full min-w-0 transition-all duration-300 ease-in-out border rounded-xl md:rounded-2xl border-surface-300 dark:border-surface-700 mr-2 md:mr-4 overflow-hidden"
+      class="flex-1 ml-2 md:ml-4 mb-2 md:mb-3 w-full min-w-0 transition-all duration-300 ease-in-out border rounded-xl md:rounded-2xl border-surface-300 dark:border-surface-700 mr-2 md:mr-4 flex flex-col overflow-hidden"
       [class]="{
         'md:mr-80': !isMobile && !hideSidebar
       }">
 
-      <!-- Content Container -->
-      <div class="w-full h-full p-4 lg:p-6 min-w-0">
-        <article class="h-full w-full overflow-auto min-w-0">
+      <!-- Content Container - Permite scroll -->
+      <div class="flex-1 min-h-0 p-4 lg:p-6 min-w-0 overflow-y-auto">
           <ng-content></ng-content>
-        </article>
       </div>
     </main>
   </div>

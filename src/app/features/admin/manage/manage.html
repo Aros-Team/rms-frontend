@@ -1,50 +1,50 @@
 <!-- Header with horizontal navigation -->
 <div
-    class="h-full overflow-hidden bg-surface-50 dark:bg-surface-900 border-b border-surface-200 dark:border-surface-700">
-    <div class="px-6 py-4">
+    class="h-full overflow-hidden bg-surface-50 dark:bg-surface-900 border-b border-surface-200 dark:border-surface-700 flex-shrink-0">
+    <div class="px-4 md:px-6 py-3 md:py-4">
         <!-- Horizontal Navigation -->
-        <nav class="flex space-x-1 overflow-x-auto sticky top-0 z-10">
+        <nav class="icon-text-nav gap-1 md:gap-2">
             <!-- Individual page sections -->
             <a [routerLink]="['/admin/manage/products']" routerLinkActive="bg-primary-500 text-primary-contrast border-primary-500"
-                class="flex items-center gap-2 px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 whitespace-nowrap">
+                class="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 nav-item flex-shrink-0">
                 <i class="pi pi-file"></i>
-                <span>Carta</span>
+                <span class="nav-label">Carta</span>
             </a>
 
             <a [routerLink]="['/admin/manage/categories']" routerLinkActive="bg-primary-500 text-primary-contrast border-primary-500"
-                class="flex items-center gap-2 px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 whitespace-nowrap">
+                class="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 nav-item flex-shrink-0">
                 <i class="pi pi-tags"></i>
-                <span>Categorías</span>
+                <span class="nav-label">Categorías</span>
             </a>
 
             <a [routerLink]="['/admin/manage/tables']" routerLinkActive="bg-primary-500 text-primary-contrast border-primary-500"
-                class="flex items-center gap-2 px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 whitespace-nowrap">
+                class="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 nav-item flex-shrink-0">
                 <i class="pi pi-table"></i>
-                <span>Mesas</span>
+                <span class="nav-label">Mesas</span>
             </a>
 
             <a [routerLink]="['/admin/manage/areas']" routerLinkActive="bg-primary-500 text-primary-contrast border-primary-500"
-                class="flex items-center gap-2 px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 whitespace-nowrap">
+                class="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 nav-item flex-shrink-0">
                 <i class="pi pi-th-large"></i>
-                <span>Áreas de trabajo</span>
+                <span class="nav-label">Áreas</span>
             </a>
 
             <a [routerLink]="['/admin/manage/menu']" routerLinkActive="bg-primary-500 text-primary-contrast border-primary-500"
-                class="flex items-center gap-2 px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 whitespace-nowrap">
+                class="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 nav-item flex-shrink-0">
                 <i class="pi pi-calendar"></i>
-                <span>Menús del día</span>
+                <span class="nav-label">Menú del día</span>
             </a>
 
             <a [routerLink]="['/admin/manage/users']" routerLinkActive="bg-primary-500 text-primary-contrast border-primary-500"
-                class="flex items-center gap-2 px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 whitespace-nowrap">
+                class="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 nav-item flex-shrink-0">
                 <i class="pi pi-users"></i>
-                <span>Empleados</span>
+                <span class="nav-label">Empleados</span>
             </a>
 
             <a [routerLink]="['/admin/manage/inventory']" routerLinkActive="bg-primary-500 text-primary-contrast border-primary-500"
-                class="flex items-center gap-2 px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 whitespace-nowrap">
+                class="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 nav-item flex-shrink-0">
                 <i class="pi pi-box"></i>
-                <span>Inventario</span>
+                <span class="nav-label">Inventario</span>
             </a>
         </nav>
     </div>
