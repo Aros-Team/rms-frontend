@@ -58,12 +58,20 @@ export class DayMenu implements OnInit {
   ngOnInit(): void {
     this.dayMenuService.getCurrentDayMenu().subscribe({
       next: (menu) => {
+        // El backend retorna 204 No Content cuando no hay menú del día.
+        // Angular HttpClient lo trata como éxito con body null.
+        if (!menu) {
+          this.dayMenu.set(null);
+          this.loading.set(false);
+          return;
+        }
         this.dayMenu.set(menu);
         this.loading.set(false);
         this.loadProductOptions(menu.productId);
       },
       error: (err) => {
-        if (err.status === 404 || err.status === 204) {
+        // 404 también puede indicar que no hay menú configurado
+        if (err.status === 404) {
           this.dayMenu.set(null);
         } else {
           this.error.set('No se pudo cargar el menú del día.');

@@ -21,7 +21,7 @@
     >
       <ng-template #caption>
         <div class="flex flex-col sm:flex-row gap-2">
-          <p-iconfield iconPosition="left" class="w-full">
+          <p-iconfield iconPosition="left" class="w-full lg:w-80">
             <p-inputicon>
               <i class="pi pi-search"></i>
             </p-inputicon>
@@ -30,7 +30,7 @@
               type="text"
               class="w-full"
               (input)="dt1.filterGlobal($event.target.value, 'contains')"
-              placeholder="Buscar"
+              placeholder="Buscar por documento, nombre o correo..."
             />
           </p-iconfield>
           <div class="flex gap-2">
@@ -105,90 +105,75 @@
     <span class="p-text-secondary block mb-8">Crea un nuevo usuario</span>
     }
 
-    <form action="" [formGroup]="userForm">
-      <div class="flex items-center gap-4 mb-4">
-        <p-iftalabel class="flex-auto w-full">
-          <input
-            pInputText
-            id="create.document"
-            class="flex-auto w-full"
-            autocomplete="off"
-            formControlName="document"
-            placeholder="Numero de documento del usuario"
-            (blur)="userForm.get('document')?.markAsTouched()"
-          />
-          <label for="create.document" class="font-semibold w-50">Documento</label>
-          <form-validation field="document"></form-validation>
-        </p-iftalabel>
-      </div>
-      <div class="flex items-center gap-4 mb-4">
-        <p-iftalabel class="flex-auto w-full">
-          <input
-            pInputText
-            id="create.name"
-            class="flex-auto w-full"
-            autocomplete="off"
-            formControlName="name"
-            placeholder="Nombre completo del usuario"
-            (blur)="userForm.get('name')?.markAsTouched()"
-          />
-          <label for="create.name" class="font-semibold w-50">Nombre</label>
-          <form-validation field="name"></form-validation>
-        </p-iftalabel>
-      </div>
-      <div class="flex items-center gap-4 mb-4">
-        <p-iftalabel class="flex-auto w-full">
-          <input
-            pInputText
-            type="email"
-            id="create.email"
-            class="flex-auto w-full"
-            autocomplete="off"
-            formControlName="email"
-            placeholder="correo electronico del usuario"
-            (blur)="userForm.get('email')?.markAsTouched()"
-          />
-          <label for="create.email" class="font-semibold w-50">Correo electronico</label>
-          <form-validation field="email"></form-validation>
-        </p-iftalabel>
-      </div>
-      <div class="flex items-center gap-4 mb-4">
-        <p-iftalabel class="flex-auto w-full">
-          <input
-            pInputText
-            id="create.address"
-            class="flex-auto w-full"
-            autocomplete="off"
-            formControlName="address"
-            placeholder="direccion de residencia del usuario"
-            (blur)="userForm.get('address')?.markAsTouched()"
-          />
-          <label for="create.address" class="font-semibold w-50">Direccion</label>
-          <form-validation field="address"></form-validation>
-        </p-iftalabel>
-      </div>
-      <div class="flex items-center gap-4 mb-4">
-        <p-iftalabel class="flex-auto w-full">
-          <input
-            pInputText
-            id="create.phone"
-            class="flex-auto w-full"
-            autocomplete="off"
-            formControlName="phone"
-            placeholder="numero de contacto del usuario"
-            (blur)="userForm.get('phone')?.markAsTouched()"
-          />
-          <label for="create.phone" class="font-semibold w-50">N# Celular</label>
-          <form-validation field="phone"></form-validation>
-        </p-iftalabel>
-      </div>
+    <form action="" [formGroup]="userForm" class="flex flex-col gap-4">
+      <p-iftalabel class="w-full">
+        <input
+          pInputText
+          id="create.document"
+          class="w-full"
+          autocomplete="off"
+          formControlName="document"
+          placeholder="Numero de documento del usuario"
+        />
+        <label for="create.document">Documento *</label>
+        <form-validation field="document"></form-validation>
+      </p-iftalabel>
+      <p-iftalabel class="w-full">
+        <input
+          pInputText
+          id="create.name"
+          class="w-full"
+          autocomplete="off"
+          formControlName="name"
+          placeholder="Nombre completo del usuario"
+        />
+        <label for="create.name">Nombre *</label>
+        <form-validation field="name"></form-validation>
+      </p-iftalabel>
+      <p-iftalabel class="w-full">
+        <input
+          pInputText
+          type="email"
+          id="create.email"
+          class="w-full"
+          autocomplete="off"
+          formControlName="email"
+          placeholder="correo electronico del usuario"
+        />
+        <label for="create.email">Correo electrónico *</label>
+        <form-validation field="email"></form-validation>
+      </p-iftalabel>
+      <p-iftalabel class="w-full">
+        <input
+          pInputText
+          id="create.address"
+          class="w-full"
+          autocomplete="off"
+          formControlName="address"
+          placeholder="direccion de residencia del usuario"
+        />
+        <label for="create.address">Dirección</label>
+        <form-validation field="address"></form-validation>
+      </p-iftalabel>
+      <p-iftalabel class="w-full">
+        <input
+          pInputText
+          id="create.phone"
+          class="w-full"
+          autocomplete="off"
+          formControlName="phone"
+          placeholder="numero de contacto del usuario"
+        />
+        <label for="create.phone">N# Celular</label>
+        <form-validation field="phone"></form-validation>
+      </p-iftalabel>
     </form>
 
     <div class="flex justify-start gap-2 mt-8">
       @if (!editing) {
       <p-button icon="pi pi-save" label="Crear" (click)="createUser()" />
       }
-      <p-button icon="pi pi-ban" label="Cerrar" severity="secondary" (click)="closeModals()" />
+      <p-button icon="pi pi-ban" label="Cancelar" severity="secondary" (click)="closeModals()" />
     </div>
   </div>
 </p-dialog>

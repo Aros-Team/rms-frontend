@@ -13,7 +13,6 @@ import { FormValidation } from '@app/shared/components/form/form-validation';
 
 @Component({
   selector: 'app-areas',
-  standalone: true,
   imports: [
     ReactiveFormsModule,
     TableModule,
@@ -31,7 +30,7 @@ import { FormValidation } from '@app/shared/components/form/form-validation';
           <h2 class="text-xl md:text-2xl font-bold">Áreas de Trabajo</h2>
           <p class="text-surface-600 dark:text-surface-400 text-sm">Gestiona las áreas donde trabajan los empleados</p>
         </div>
-        <p-button label="Nueva" icon="pi pi-plus" class="btn-icon-text-sm" (onClick)="showCreateModal()"></p-button>
+        <p-button label="Nueva área" icon="pi pi-plus" class="btn-icon-text-sm" pTooltip="Crear nueva área" tooltipPosition="bottom" (onClick)="showCreateModal()"></p-button>
       </div>
 
       <div class="flex-1 min-h-0">

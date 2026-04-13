@@ -14,7 +14,7 @@
   <p class="text-surface-600 dark:text-surface-400 mb-2 md:mb-4 text-sm">{{ description }}</p>
 
   <div class="flex-1 min-h-0">
-    <p-table [value]="tables" [loading]="loading" [paginator]="true" [rows]="10"
+    <p-table [value]="tables()" [loading]="loading()" [paginator]="true" [rows]="10"
       [scrollable]="true" scrollHeight="flex" responsiveLayout="scroll" styleClass="h-full">
     <ng-template pTemplate="header">
       <tr>
@@ -61,8 +61,9 @@
 
 <p-dialog
   [modal]="true"
-  [(visible)]="modalIsOpen"
-  [header]="modalMode === 'edit' ? 'Editar Mesa' : 'Crear Mesa'"
+  [visible]="modalIsOpen()"
+  (visibleChange)="modalIsOpen.set($event)"
+  [header]="modalMode() === 'edit' ? 'Editar Mesa' : 'Crear Mesa'"
   [style]="{width: '90vw', maxWidth: '400px'}"
 >
   <form [formGroup]="tableForm" (ngSubmit)="saveTable()">

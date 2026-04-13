@@ -17,6 +17,7 @@ import { OrderResponse } from '@app/shared/models/dto/orders/order-response.mode
 import { OrderDetailsResponse } from '@app/shared/models/dto/orders/order-details-response.model';
 import { of } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
+import { calculateTotalPrice } from '@app/shared/models/dto/orders/order-response.model';
 import { Message } from "primeng/message";
 
 @Component({
@@ -180,6 +181,12 @@ export class Dashboard implements OnInit {
   private loadDayMenu() {
     this.dayMenuService.getCurrentDayMenu().pipe(
       switchMap(menu => {
+        // 204 No Content llega como null
+        if (!menu) {
+          this.dayMenu.set(null);
+          this.existDayMenu = false;
+          return of([] as ProductOption[]);
+        }
         this.dayMenu.set(menu);
         this.existDayMenu = true;
         this.loadingDayMenuOptions.set(true);
@@ -208,12 +215,20 @@ export class Dashboard implements OnInit {
     return Array.from(map.entries()).map(([category, items]) => ({ category, items }));
   }
 
+  calcTotal(order: OrderResponse): number {
+    return calculateTotalPrice(order);
+  }
+
   getStatusBadgeClass(status: string): string {
     switch (status) {
-      case 'COMPLETED':
+      case 'DELIVERED':
         return 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-300';
-      case 'PENDING':
+      case 'PREPARING':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-300';
+      case 'READY':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-300';
+      case 'QUEUE':
+        return 'bg-orange-100 text-orange-800 dark:bg-orange-800 dark:text-orange-300';
       case 'CANCELLED':
         return 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-300';
       default:
@@ -223,10 +238,14 @@ export class Dashboard implements OnInit {
 
   getStatusText(status: string): string {
     switch (status) {
-      case 'COMPLETED':
-        return 'Completado';
-      case 'PENDING':
+      case 'DELIVERED':
+        return 'Entregado';
+      case 'PREPARING':
         return 'En preparación';
+      case 'READY':
+        return 'Listo';
+      case 'QUEUE':
+        return 'En cola';
       case 'CANCELLED':
         return 'Cancelado';
       default:

@@ -21,15 +21,15 @@
               placeholder="Categoría" [formControl]="filterCategories" appendTo="body" />
             <p-button icon="pi pi-filter" label="Filtrar" (click)="filterProducts()" />
           </div>
-          <p-iconfield iconPosition="left" class="w-full lg:w-64">
+          <p-iconfield iconPosition="left" class="w-full lg:w-80">
             <p-inputicon><i class="pi pi-search"></i></p-inputicon>
             <input pInputText type="text" class="w-full"
               (input)="dt1.filterGlobal($any($event.target).value, 'contains')"
-              placeholder="Buscar..." />
+              placeholder="Buscar por nombre..." />
           </p-iconfield>
           <div class="flex gap-2 ml-auto">
             <p-button icon="pi pi-plus" label="Crear" class="btn-icon-text-sm" pTooltip="Crear nuevo producto" tooltipPosition="bottom" (click)="showCreationModal()" />
-            <p-button icon="pi pi-plus" label="Opción" class="btn-icon-text-sm" pTooltip="Nueva opción de producto" tooltipPosition="bottom" (click)="openNewOptionDialog()" />
+            <p-button icon="pi pi-plus" label="Nueva opción" class="btn-icon-text-sm" pTooltip="Nueva opción de producto" tooltipPosition="bottom" (click)="openNewOptionDialog()" />
           </div>
         </div>
       </ng-template>

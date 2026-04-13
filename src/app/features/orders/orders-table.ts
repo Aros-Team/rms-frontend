@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { SelectModule } from 'primeng/select';
@@ -14,7 +14,7 @@ import { catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-orders-table',
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     TableModule,
@@ -51,6 +51,7 @@ export class OrdersTable implements OnInit {
 
   private orderService = inject(OrderService);
   private messageService = inject(MessageService);
+  private cdr = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
     this.fetchOrders();
@@ -85,11 +86,13 @@ export class OrdersTable implements OnInit {
         this.modifiedOrders.clear();
         this.applyFilters();
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: (err: unknown) => {
         console.error(err);
         this.error = 'No se pudieron cargar los pedidos.';
         this.loading = false;
+        this.cdr.markForCheck();
       },
     });
   }
@@ -196,8 +199,17 @@ export class OrdersTable implements OnInit {
     this.saving = true;
     const updates = Array.from(this.modifiedOrders.values()).map(orderChanges => {
       const status = orderChanges.status;
-      
-      if (status === 'READY') {
+
+      if (status === 'PREPARING') {
+        // PREPARING se activa con el endpoint "prepare next" que toma la siguiente de la cola.
+        // Desde la tabla de admin usamos prepareNext() ya que no hay endpoint directo por ID.
+        return this.orderService.prepareNext().pipe(
+          catchError(error => {
+            console.error(`Error preparing order ${orderChanges.id}:`, error);
+            return of({ error: true, orderId: orderChanges.id });
+          })
+        );
+      } else if (status === 'READY') {
         return this.orderService.markAsReady(orderChanges.id!).pipe(
           catchError(error => {
             console.error(`Error updating order ${orderChanges.id}:`, error);
@@ -219,6 +231,13 @@ export class OrdersTable implements OnInit {
           })
         );
       } else {
+        // Estado no soportado para cambio manual
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Acción no disponible',
+          detail: `El estado "${status}" no puede asignarse manualmente desde esta vista.`,
+          life: 4000,
+        });
         return of({ error: true, orderId: orderChanges.id });
       }
     });
@@ -254,6 +273,7 @@ export class OrdersTable implements OnInit {
 
         this.saving = false;
         this.fetchOrders();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error('Error saving changes:', err);
@@ -264,6 +284,7 @@ export class OrdersTable implements OnInit {
           life: 5000,
         });
         this.saving = false;
+        this.cdr.markForCheck();
       }
     });
   }

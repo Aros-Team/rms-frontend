@@ -55,14 +55,14 @@
     >
       <ng-template #caption>
         <div class="flex flex-col sm:flex-row gap-2">
-          <p-iconfield iconPosition="left" class="w-full">
+          <p-iconfield iconPosition="left" class="w-full lg:w-80">
             <p-inputicon><i class="pi pi-search"></i></p-inputicon>
             <input
               pInputText
               type="text"
               class="w-full"
               (input)="dt.filterGlobal($any($event.target).value, 'contains')"
-              placeholder="Buscar por nombre"
+              placeholder="Buscar por nombre..."
             />
           </p-iconfield>
           <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="dt.clear()" />

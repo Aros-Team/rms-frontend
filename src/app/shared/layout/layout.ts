@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, Input, ChangeDetectorRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, Input, ChangeDetectorRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -10,7 +10,7 @@ import { MenuService } from '../../core/services/menu/menu-service';
 import { Subscription } from 'rxjs';
 
 @Component({
-  selector: 'app-layout',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [Header, Sidebar, ChatComponent],
   templateUrl: './layout.html',
   styles: ``
@@ -27,6 +27,7 @@ export class Layout implements OnInit, OnDestroy {
 
   private resizeSubscription!: Subscription;
   private routerSubscription!: Subscription;
+  private resizeHandler!: () => void;
   private menuService = inject(MenuService);
   private cdr = inject(ChangeDetectorRef);
   private router = inject(Router);
@@ -49,6 +50,9 @@ export class Layout implements OnInit, OnDestroy {
     if (this.routerSubscription) {
       this.routerSubscription.unsubscribe();
     }
+    if (this.resizeHandler) {
+      window.removeEventListener('resize', this.resizeHandler);
+    }
   }
 
   private checkScreenSize(): void {
@@ -59,9 +63,8 @@ export class Layout implements OnInit, OnDestroy {
   }
 
   private setupResizeListener(): void {
-    window.addEventListener('resize', () => {
-      this.checkScreenSize();
-    });
+    this.resizeHandler = () => { this.checkScreenSize(); };
+    window.addEventListener('resize', this.resizeHandler);
   }
 
   private configureHorizontalMenu(): void {

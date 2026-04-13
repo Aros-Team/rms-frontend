@@ -1,5 +1,5 @@
 
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { PasswordModule } from 'primeng/password';
@@ -14,6 +14,7 @@ import { LoggingService } from '@app/core/services/logging/logging-service';
 @Component({
   selector: 'app-login-form',
   templateUrl: './login-form.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, PasswordModule, MessageModule, FloatLabelModule, InputTextModule, ButtonModule],
 })
 export class LoginForm implements OnInit {

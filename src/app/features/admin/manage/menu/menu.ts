@@ -107,6 +107,12 @@ export class Menu {
         return EMPTY;
       }),
       switchMap(menu => {
+        // 204 No Content llega como null en el next handler
+        if (!menu) {
+          this.currentMenu.set(null);
+          this.loadingCurrent.set(false);
+          return EMPTY;
+        }
         this.currentMenu.set(menu);
         this.loadingCurrent.set(false);
         this.loadingCurrentOptions.set(true);

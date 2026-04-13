@@ -9,8 +9,8 @@ import { DayMenuResponse, DayMenuHistoryPage } from '@app/shared/models/dto/daym
 export class DayMenuService {
   private http = inject(HttpClient);
 
-  getCurrentDayMenu(): Observable<DayMenuResponse> {
-    return this.http.get<DayMenuResponse>('v1/day-menu/current');
+  getCurrentDayMenu(): Observable<DayMenuResponse | null> {
+    return this.http.get<DayMenuResponse | null>('v1/day-menu/current');
   }
 
   updateDayMenu(productId: number): Observable<DayMenuResponse> {
