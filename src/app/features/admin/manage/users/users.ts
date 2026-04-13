@@ -67,6 +67,7 @@ export class Users implements OnInit {
     this.creationModalVisible = false;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   showModificationModal(_data: UserResponse): void {
     this.loggingService.debug('Edición de usuarios aún no disponible');
     this.messageService.add({
@@ -138,6 +139,7 @@ export class Users implements OnInit {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   deleteUser(_document: string): void {
     this.loggingService.debug('Eliminación de usuarios aún no disponible');
     this.messageService.add({

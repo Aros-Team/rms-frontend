@@ -80,7 +80,8 @@ export class WebSocketService implements OnDestroy {
     };
 
     this.client.onWebSocketClose = (event) => {
-      this.logger.warn('WebSocket closed:', event.code, event.reason);
+      const closeEvent = event as { code?: number; reason?: string };
+      this.logger.warn('WebSocket closed:', closeEvent.code, closeEvent.reason);
       console.warn('WebSocket closed:', event);
       this.connected = false;
       this.connectionSubject.next(false);

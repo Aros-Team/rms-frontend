@@ -160,22 +160,22 @@
         @for (item of baseRecipe.controls; track $index; let i = $index) {
           <div [formGroup]="$any(item)" class="flex gap-2 items-end bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-3">
             <div class="w-44">
-              <label class="text-xs text-surface-500 mb-1 block">Categoría</label>
-              <p-select [options]="supplyCategories()" optionLabel="name" optionValue="id"
+              <label class="text-xs text-surface-500 mb-1 block" for="base-recipe-category">Categoría</label>
+              <p-select id="base-recipe-category" [options]="supplyCategories()" optionLabel="name" optionValue="id"
                 [ngModel]="getBaseRecipeCategory(i)" [ngModelOptions]="{ standalone: true }"
                 (ngModelChange)="setBaseRecipeCategory(i, $event)"
                 placeholder="Todas" [showClear]="true"
                 class="w-full" appendTo="body" />
             </div>
             <div class="flex-1">
-              <label class="text-xs text-surface-500 mb-1 block">Insumo *</label>
-              <p-select [options]="filteredVariantsForBaseRecipe(i)" optionLabel="displayName" optionValue="id"
+              <label class="text-xs text-surface-500 mb-1 block" for="base-recipe-supply">Insumo *</label>
+              <p-select id="base-recipe-supply" [options]="filteredVariantsForBaseRecipe(i)" optionLabel="displayName" optionValue="id"
                 formControlName="supplyVariantId" placeholder="Seleccionar insumo"
                 class="w-full" [filter]="true" filterBy="displayName" appendTo="body" />
             </div>
             <div class="w-36">
-              <label class="text-xs text-surface-500 mb-1 block">Cantidad *</label>
-              <p-inputnumber formControlName="requiredQuantity" [min]="0.001"
+              <label class="text-xs text-surface-500 mb-1 block" for="base-recipe-quantity">Cantidad *</label>
+              <p-inputnumber id="base-recipe-quantity" formControlName="requiredQuantity" [min]="0.001"
                 [minFractionDigits]="0" [maxFractionDigits]="3" class="w-full" />
             </div>
             <p-button icon="pi pi-trash" severity="danger" [text]="true" (click)="removeBaseRecipeItem(i)" />
@@ -300,22 +300,22 @@
                 @for (recipeItem of getOptionRecipe(i).controls; track $index; let ri = $index) {
                   <div [formGroup]="$any(recipeItem)" class="flex gap-2 items-end bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-3">
                     <div class="w-44">
-                      <label class="text-xs text-surface-500 mb-1 block">Categoría</label>
-                      <p-select [options]="supplyCategories()" optionLabel="name" optionValue="id"
+                      <label class="text-xs text-surface-500 mb-1 block" for="option-recipe-category-{{i}}-{{ri}}">Categoría</label>
+                      <p-select id="option-recipe-category-{{i}}-{{ri}}" [options]="supplyCategories()" optionLabel="name" optionValue="id"
                         [ngModel]="getOptionRecipeCategory(i, ri)" [ngModelOptions]="{ standalone: true }"
                         (ngModelChange)="setOptionRecipeCategory(i, ri, $event)"
                         placeholder="Todas" [showClear]="true"
                         class="w-full" appendTo="body" />
                     </div>
                     <div class="flex-1">
-                      <label class="text-xs text-surface-500 mb-1 block">Insumo *</label>
-                      <p-select [options]="filteredVariantsForOptionRecipe(i, ri)" optionLabel="displayName" optionValue="id"
+                      <label class="text-xs text-surface-500 mb-1 block" for="option-recipe-supply-{{i}}-{{ri}}">Insumo *</label>
+                      <p-select id="option-recipe-supply-{{i}}-{{ri}}" [options]="filteredVariantsForOptionRecipe(i, ri)" optionLabel="displayName" optionValue="id"
                         formControlName="supplyVariantId" placeholder="Seleccionar insumo"
                         class="w-full" [filter]="true" filterBy="displayName" appendTo="body" />
                     </div>
                     <div class="w-36">
-                      <label class="text-xs text-surface-500 mb-1 block">Cantidad *</label>
-                      <p-inputnumber formControlName="requiredQuantity" [min]="0.001"
+                      <label class="text-xs text-surface-500 mb-1 block" for="option-recipe-quantity-{{i}}-{{ri}}">Cantidad *</label>
+                      <p-inputnumber id="option-recipe-quantity-{{i}}-{{ri}}" formControlName="requiredQuantity" [min]="0.001"
                         [minFractionDigits]="0" [maxFractionDigits]="3" class="w-full" />
                     </div>
                     <p-button icon="pi pi-trash" severity="danger" [text]="true" (click)="removeOptionRecipeItem(i, ri)" />
@@ -452,21 +452,21 @@
     @for (item of newOptionRecipe.controls; track $index; let i = $index) {
       <div [formGroup]="$any(item)" class="flex gap-2 items-end bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-3">
         <div class="w-44">
-          <label class="text-xs text-surface-500 mb-1 block">Categoría</label>
-          <p-select [options]="supplyCategories()" optionLabel="name" optionValue="id"
+          <label class="text-xs text-surface-500 mb-1 block" for="new-option-recipe-category-{{i}}">Categoría</label>
+          <p-select id="new-option-recipe-category-{{i}}" [options]="supplyCategories()" optionLabel="name" optionValue="id"
             [ngModel]="getNewOptionRecipeCategory(i)" [ngModelOptions]="{ standalone: true }"
             (ngModelChange)="setNewOptionRecipeCategory(i, $event)"
             placeholder="Todas" [showClear]="true" class="w-full" appendTo="body" />
         </div>
         <div class="flex-1">
-          <label class="text-xs text-surface-500 mb-1 block">Insumo *</label>
-          <p-select [options]="filteredVariantsForNewOptionRecipe(i)" optionLabel="displayName" optionValue="id"
+          <label class="text-xs text-surface-500 mb-1 block" for="new-option-recipe-supply-{{i}}">Insumo *</label>
+          <p-select id="new-option-recipe-supply-{{i}}" [options]="filteredVariantsForNewOptionRecipe(i)" optionLabel="displayName" optionValue="id"
             formControlName="supplyVariantId" placeholder="Seleccionar insumo"
             class="w-full" [filter]="true" filterBy="displayName" appendTo="body" />
         </div>
         <div class="w-36">
-          <label class="text-xs text-surface-500 mb-1 block">Cantidad *</label>
-          <p-inputnumber formControlName="requiredQuantity" [min]="0.001"
+          <label class="text-xs text-surface-500 mb-1 block" for="new-option-recipe-quantity-{{i}}">Cantidad *</label>
+          <p-inputnumber id="new-option-recipe-quantity-{{i}}" formControlName="requiredQuantity" [min]="0.001"
             [minFractionDigits]="0" [maxFractionDigits]="3" class="w-full" />
         </div>
         <p-button icon="pi pi-trash" severity="danger" [text]="true" (click)="removeNewOptionRecipeItem(i)" />

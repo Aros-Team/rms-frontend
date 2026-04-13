@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy } 
 import { FormBuilder, FormControl, FormGroup, FormArray, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
-import { catchError, EMPTY, switchMap, map } from 'rxjs';
+import { catchError, EMPTY, switchMap } from 'rxjs';
 
 import { AreaService } from '@app/core/services/areas/area-service';
 import { CategoryService } from '@app/core/services/category/category-service';
@@ -19,7 +19,6 @@ import { OptionCategoryResponse } from '@app/shared/models/dto/category/option-c
 import { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
 import { ProductResponse } from '@app/shared/models/dto/products/product-response';
 import { ProductOption, ProductOptionResponse } from '@app/shared/models/dto/products/product-option.model';
-import { ProductOptionCreateRequest } from '@app/shared/models/dto/products/product-create-request';
 
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -499,7 +498,7 @@ export class Products implements OnInit {
 
     // Separate existing options from new ones
     const existingOptionIds: number[] = [];
-    const newOptions: { name: string; optionCategoryId: number; recipe: any[] }[] = [];
+    const newOptions: { name: string; optionCategoryId: number; recipe: { supplyVariantId: number; requiredQuantity: number }[] }[] = [];
 
     for (const opt of this.optionsArray.value) {
       if (opt.isExisting && opt.id) {
@@ -521,11 +520,11 @@ export class Products implements OnInit {
       : of([]);
 
     createNewOptions$.pipe(
-      switchMap((createdOptions: any[]) => {
+      switchMap((createdOptions: object[]) => {
         // Collect all option IDs (existing + newly created)
         const allOptionIds = [
           ...existingOptionIds,
-          ...createdOptions.map(opt => opt.id)
+          ...createdOptions.map(opt => (opt as { id: number }).id)
         ];
 
         // Refresh allProductOptions to include newly created options

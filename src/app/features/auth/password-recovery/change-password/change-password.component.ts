@@ -25,7 +25,7 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
     InputTextModule,
     ButtonModule,
     MessageModule
-],
+  ],
 })
 export class ChangePasswordComponent {
   private passwordService = inject(PasswordService);

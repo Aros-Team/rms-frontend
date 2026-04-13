@@ -1,5 +1,6 @@
 export interface SupplierUpdateRequest {
-  name?: string;
+  id: number;
+  name: string;
   contact?: string;
   active?: boolean;
 }

@@ -56,7 +56,8 @@ export class NotificationService implements OnDestroy {
     }
   }
 
-  private playNotification(order: OrderResponse): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private playNotification(_order: OrderResponse): void {
     this.playSound();
     if ('vibrate' in navigator) {
       navigator.vibrate([200, 100, 200]);
@@ -65,7 +66,7 @@ export class NotificationService implements OnDestroy {
 
   private playSound(): void {
     try {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (!this.audioContext) {
         this.audioContext = new AudioContextClass();
       }
