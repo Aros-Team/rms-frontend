@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 
-import { ChangePasswordComponent } from '@features/auth/authentication/change-password.component';
+import { ChangePasswordComponent } from '@features/auth/password-recovery/change-password/change-password.component';
 import { AuthService } from '@app/core/services/authentication/auth-service';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';

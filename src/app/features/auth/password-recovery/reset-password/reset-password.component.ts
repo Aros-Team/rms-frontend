@@ -17,7 +17,8 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
 }
 
 @Component({
-  selector: 'app-reset-password-form',
+  selector: 'app-reset-password',
+  templateUrl: './reset-password.component.html',
   imports: [
     ReactiveFormsModule,
     PasswordModule,
@@ -25,92 +26,6 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
     ButtonModule,
     MessageModule
   ],
-  template: `
-    <div class="w-full max-w-md mx-auto p-6">
-      <div class="text-center mb-6">
-        <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-100 mb-2">
-          Restablecer Contraseña
-        </h1>
-        <p class="text-surface-600 dark:text-surface-400 text-sm">
-          Ingresa tu nueva contraseña.
-        </p>
-      </div>
-
-      @if (success()) {
-        <div class="mb-4">
-          <p-message severity="success" text="Tu contraseña ha sido restablecida correctamente."></p-message>
-        </div>
-        
-        <button 
-          pButton 
-          label="Ir al Login" 
-          class="w-full"
-          (click)="goToLogin()">
-        </button>
-      } @else {
-        @if (error()) {
-          <div class="mb-4">
-            <p-message severity="error" [text]="error()!"></p-message>
-          </div>
-        }
-
-        <form [formGroup]="form" (ngSubmit)="onSubmit()">
-          <div class="mb-4">
-            <label for="newPassword" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
-              Nueva Contraseña
-            </label>
-            <p-password 
-              id="newPassword" 
-              formControlName="newPassword"
-              [toggleMask]="true"
-              styleClass="w-full"
-              inputStyleClass="w-full"
-              placeholder="Ingresa la nueva contraseña"
-            ></p-password>
-            @if (form.get('newPassword')?.errors?.['minlength']) {
-              <small class="text-red-500">La contraseña debe tener al menos 6 caracteres</small>
-            }
-          </div>
-
-          <div class="mb-4">
-            <label for="confirmPassword" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
-              Confirmar Nueva Contraseña
-            </label>
-            <p-password 
-              id="confirmPassword" 
-              formControlName="confirmPassword"
-              [toggleMask]="true" 
-              [feedback]="false"
-              styleClass="w-full"
-              inputStyleClass="w-full"
-              placeholder="Confirma la nueva contraseña"
-            ></p-password>
-            @if (form.errors?.['mismatch'] && form.get('confirmPassword')?.touched) {
-              <small class="text-red-500">Las contraseñas no coinciden</small>
-            }
-          </div>
-
-          <div class="flex gap-3">
-            <button 
-              pButton 
-              type="button"
-              label="Cancelar" 
-              class="p-button-outlined flex-1"
-              (click)="goToLogin()">
-            </button>
-            <button 
-              pButton 
-              type="submit"
-              label="Cambiar Contraseña" 
-              class="flex-1"
-              [loading]="loading()"
-              [disabled]="form.invalid">
-            </button>
-          </div>
-        </form>
-      }
-    </div>
-  `
 })
 export class ResetPasswordComponent implements OnInit {
   private passwordService = inject(PasswordService);
