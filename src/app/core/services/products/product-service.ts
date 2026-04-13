@@ -2,7 +2,6 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { ProductCreateRequest, ProductOptionCreateRequest } from '@app/shared/models/dto/products/product-create-request';
 import { ProductResponse } from '@app/shared/models/dto/products/product-response';
-import { ProductSimpleResponse } from '@app/shared/models/dto/products/product-simple-response';
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
 import { ProductUpdateRequest } from '@app/shared/models/dto/products/product-update-request';
 import { ProductOption } from '@app/shared/models/dto/products/product-option.model';

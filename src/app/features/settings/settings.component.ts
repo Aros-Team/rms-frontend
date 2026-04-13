@@ -97,6 +97,7 @@ import { ButtonModule } from 'primeng/button';
                 type="button" 
                 label="Ver aviso" 
                 icon="pi pi-eye"
+                aria-label="Ver aviso de habeas data"
                 (click)="showHabeasDialog = true"
                 class="p-button-outlined"
               ></button>

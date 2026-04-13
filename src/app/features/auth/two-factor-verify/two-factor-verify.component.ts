@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -74,6 +74,7 @@ import { LoggingService } from '@app/core/services/logging/logging-service';
               pButton
               type="submit"
               label="Verificar Código"
+              aria-label="Verificar Código"
               class="w-full"
               [loading]="formStatus === 'Occuped'"
               [disabled]="formStatus === 'Occuped' || form.invalid"
@@ -89,6 +90,7 @@ import { LoggingService } from '@app/core/services/logging/logging-service';
                 pButton
                 type="button"
                 label="Volver al Login"
+                aria-label="Volver al Login"
                 class="p-button-text p-button-sm"
                 (click)="goBack()"
               ></button>

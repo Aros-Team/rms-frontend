@@ -48,11 +48,11 @@ interface FontSizeOption {
     >
       <div class="flex flex-col gap-6">
         <!-- Tamaño de letra -->
-        <div>
-          <label class="block text-sm font-medium mb-3">
+        <div role="group" aria-labelledby="font-size-label-access">
+          <span id="font-size-label-access" class="block text-sm font-medium mb-3">
             <i class="pi pi-text-height mr-2"></i>Tamaño de letra
-          </label>
-          <div class="flex gap-2">
+          </span>
+          <div class="flex gap-2" role="radiogroup" aria-label="Tamaño de letra">
             @for (option of fontSizeOptions; track option.value) {
               <p-button 
                 [label]="option.label"
@@ -66,11 +66,11 @@ interface FontSizeOption {
         </div>
 
         <!-- Modo tema -->
-        <div>
-          <label class="block text-sm font-medium mb-3">
+        <div role="group" aria-labelledby="theme-label-access">
+          <span id="theme-label-access" class="block text-sm font-medium mb-3">
             <i class="pi pi-sun mr-2"></i>Modo
-          </label>
-          <div class="flex gap-2">
+          </span>
+          <div class="flex gap-2" role="radiogroup" aria-label="Modo de tema">
             <p-button 
               label="Diurno"
               icon="pi pi-sun"
@@ -89,10 +89,10 @@ interface FontSizeOption {
         </div>
 
         <!-- Alto contraste -->
-        <div>
-          <label class="block text-sm font-medium mb-3">
+        <div role="group" aria-labelledby="contrast-label-access">
+          <span id="contrast-label-access" class="block text-sm font-medium mb-3">
             <i class="pi pi-eye mr-2"></i>Alto contraste
-          </label>
+          </span>
           <div class="flex gap-2">
             <p-button 
               label="Desactivado"

@@ -64,6 +64,10 @@
 <!-- Mobile Overlay -->
 @if (visible && isMobile) {
     <div class="fixed inset-0 bg-black/80 bg-opacity-50 z-30 lg:hidden"
-        (click)="closeSidebar()">
+        (click)="closeSidebar()"
+        (keydown.escape)="closeSidebar()"
+        role="button"
+        tabindex="0"
+        aria-label="Cerrar menú lateral">
     </div>
 }

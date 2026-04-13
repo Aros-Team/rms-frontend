@@ -2,8 +2,8 @@ declare module '@stomp/stompjs' {
   export type debugFnType = (msg: string) => void;
   export type messageCallbackType = (message: IMessage) => void;
   export type frameCallbackType = ((frame: IFrame) => void) | (() => void);
-  export type closeEventCallbackType<T = any> = (evt: T) => void;
-  export type wsErrorCallbackType<T = any> = (evt: T) => void;
+  export type closeEventCallbackType<T = unknown> = (evt: T) => void;
+  export type wsErrorCallbackType<T = unknown> = (evt: T) => void;
   export type emptyCallbackType = () => void;
 
   export interface IMessage {
@@ -29,7 +29,7 @@ declare module '@stomp/stompjs' {
     onWebSocketError?: wsErrorCallbackType;
     onWebSocketClose?: closeEventCallbackType;
     onDisconnect?: frameCallbackType;
-    [key: string]: any;
+    [key: string]: unknown;
   }
 
   export class Client {

@@ -65,13 +65,13 @@ import { FormsModule } from '@angular/forms';
       </div>
 
       <div class="mt-4 p-4 bg-surface-100 dark:bg-surface-800 rounded">
-        <label class="flex items-center gap-3 cursor-pointer">
+        <label for="acceptTerms" class="flex items-center gap-3 cursor-pointer">
           <p-checkbox 
             [(ngModel)]="accepted" 
             [binary]="true"
             inputId="acceptTerms"
           ></p-checkbox>
-          <span for="acceptTerms" class="text-sm">
+          <span class="text-sm">
             He leído y acepto el tratamiento de mis datos personales
           </span>
         </label>
@@ -100,8 +100,7 @@ export class HabeasDataComponent implements OnInit {
   fontSize = 16;
 
   private readonly FONT_SIZE_KEY = 'accessibility_font_size';
-
-  constructor(private router: Router) {}
+  private router = inject(Router);
 
   ngOnInit(): void {
     const accepted = localStorage.getItem('habeas_data_accepted');

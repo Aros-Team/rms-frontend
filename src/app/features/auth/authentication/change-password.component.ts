@@ -96,6 +96,7 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
             pButton 
             type="submit"
             label="Cambiar Contraseña"
+            aria-label="Cambiar Contraseña"
             [loading]="loading()"
             [disabled]="form.invalid || loading()"
           ></button>

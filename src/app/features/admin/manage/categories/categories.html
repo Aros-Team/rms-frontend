@@ -30,7 +30,8 @@
                   <i class="pi pi-tag"></i>
                   <span class="mx-1">{{ c.name }}</span>
                   <i class="pi pi-times-circle cursor-pointer text-red-500"
-                    (click)="confirmCategoryToggle(c.id)" title="Desactivar"></i>
+                    (click)="confirmCategoryToggle(c.id)" (keydown.enter)="confirmCategoryToggle(c.id)"
+                    role="button" tabindex="0" title="Desactivar" aria-label="Desactivar categoría"></i>
                 </div>
               </p-chip>
             }
@@ -50,7 +51,8 @@
                   <i class="pi pi-tag"></i>
                   <span class="mx-1 line-through">{{ c.name }}</span>
                   <i class="pi pi-check-circle cursor-pointer text-green-500"
-                    (click)="confirmCategoryToggle(c.id)" title="Activar"></i>
+                    (click)="confirmCategoryToggle(c.id)" (keydown.enter)="confirmCategoryToggle(c.id)"
+                    role="button" tabindex="0" title="Activar" aria-label="Activar categoría"></i>
                 </div>
               </p-chip>
             }
@@ -104,7 +106,7 @@
         [invalid]="productCategoryForm.get('name')?.invalid && !!productCategoryForm.get('name')?.touched"
         autocomplete="off" />
       <label for="prod-cat-name">Nombre *</label>
-      <form-validation field="name" />
+      <app-form-validation field="name" />
     </p-iftalabel>
 
     @if (productCategoryError()) {
@@ -130,7 +132,7 @@
         [invalid]="optionCategoryForm.get('name')?.invalid && !!optionCategoryForm.get('name')?.touched"
         autocomplete="off" />
       <label for="opt-cat-name">Nombre *</label>
-      <form-validation field="name" />
+      <app-form-validation field="name" />
     </p-iftalabel>
 
     <p-iftalabel>

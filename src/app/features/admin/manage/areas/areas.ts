@@ -79,7 +79,7 @@ import { FormValidation } from '@app/shared/components/form/form-validation';
         <p-iftalabel>
           <input pInputText id="name" formControlName="name" class="w-full" />
           <label for="name">Nombre</label>
-          <form-validation field="name"></form-validation>
+          <app-form-validation field="name"></app-form-validation>
         </p-iftalabel>
 
         <p-iftalabel>
@@ -92,7 +92,7 @@ import { FormValidation } from '@app/shared/components/form/form-validation';
             optionValue="value"
           />
           <label for="type">Tipo de área</label>
-          <form-validation field="type"></form-validation>
+          <app-form-validation field="type"></app-form-validation>
         </p-iftalabel>
       </form>
 

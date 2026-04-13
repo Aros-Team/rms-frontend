@@ -10,6 +10,7 @@ import { MenuService } from '../../core/services/menu/menu-service';
 import { Subscription } from 'rxjs';
 
 @Component({
+  selector: 'app-layout',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [Header, Sidebar, ChatComponent],
   templateUrl: './layout.html',

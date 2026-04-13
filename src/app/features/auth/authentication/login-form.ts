@@ -1,6 +1,7 @@
 
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router, ActivatedRoute } from '@angular/router';
 import { PasswordModule } from 'primeng/password';
 import { MessageModule } from 'primeng/message'
@@ -68,7 +69,7 @@ export class LoginForm implements OnInit {
             this.formStatus = 'Free';
           }
         },
-        error: (err: any) => {
+        error: (err: HttpErrorResponse) => {
           this.loggingService.error('Login failed:', err);
           this.authService.logout();
           this.formStatus = 'Free';

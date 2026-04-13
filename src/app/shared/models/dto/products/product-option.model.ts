@@ -10,7 +10,7 @@ export interface ProductOptionRequest {
   optionCategoryId: number;
 }
 
-export interface ProductOptionResponse extends ProductOption {}
+export type ProductOptionResponse = ProductOption;
 
 export interface OptionCategory {
   id: number;
