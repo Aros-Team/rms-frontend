@@ -47,7 +47,10 @@ export class AuthService {
         this.loggingService.info('Session restored successfully');
         
         if (this._userData === undefined) {
-          this.getUserInfo();
+          // Defer getUserInfo to avoid circular dependency with interceptor
+          setTimeout(() => {
+            this.getUserInfo();
+          }, 0);
         }
       } else {
         this.loggingService.info('Token expired, clearing session');
