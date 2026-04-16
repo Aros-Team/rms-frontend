@@ -52,9 +52,9 @@ export class ChatService {
             if (line.startsWith('data: ')) {
               const data = line.slice(6);
               if (data.startsWith('[DONE]')) {
-                const sessionId = data.slice(7).trim() || undefined;
-                this.logger.info('Chat stream completed', { sessionId });
-                callbacks.onDone(sessionId);
+                const requestId = response.headers.get('X-Request-ID') || undefined;
+                this.logger.info('Chat stream completed', { requestId });
+                callbacks.onDone(requestId, requestId);
                 return;
               }
               callbacks.onChunk(data);

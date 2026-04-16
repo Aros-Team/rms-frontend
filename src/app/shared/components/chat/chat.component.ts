@@ -1,8 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 import { ChatService } from '@app/core/services/chat/chat-service';
 import { ChatMessage, ChatRequest } from '@app/core/services/chat/chat.models';
 
@@ -12,8 +13,9 @@ import { ChatMessage, ChatRequest } from '@app/core/services/chat/chat.models';
   imports: [CommonModule, FormsModule],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ChatComponent {
+export class ChatComponent implements OnDestroy {
   private chatService = inject(ChatService);
   private sanitizer = inject(DomSanitizer);
 
@@ -39,10 +41,24 @@ export class ChatComponent {
 
   openChat(): void {
     this.isOpen.set(true);
+    const panel = document.querySelector('.chat-panel') as HTMLElement;
+    if (panel) {
+      panel.addEventListener('transitionend', () => {
+        const input = panel.querySelector('textarea') as HTMLTextAreaElement;
+        input?.focus();
+      }, { once: true });
+    }
   }
 
   closeChat(): void {
     this.isOpen.set(false);
+  }
+
+  ngOnDestroy(): void {
+    if (this.abortController) {
+      this.abortController.abort();
+      this.abortController = null;
+    }
   }
 
   toggleChat(): void {
@@ -126,7 +142,8 @@ export class ChatComponent {
           ];
         });
       },
-      onDone: (sessionId?: string) => {
+      onDone: (sessionId?: string, requestId?: string) => {
+        void requestId; // intentionally unused - kept for interface compliance
         this.loading.set(false);
         this.isToolCallActive.set(false);
         this.pendingMessage.set('');
@@ -178,7 +195,8 @@ export class ChatComponent {
   parseMarkdown(content: string): SafeHtml {
     const processed = this.preprocessMarkdown(content);
     const html = marked.parse(processed) as string;
-    return this.sanitizer.bypassSecurityTrustHtml(html);
+    const clean = DOMPurify.sanitize(html);
+    return this.sanitizer.bypassSecurityTrustHtml(clean);
   }
 
   private preprocessMarkdown(text: string): string {
