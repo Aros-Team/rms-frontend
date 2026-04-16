@@ -89,6 +89,7 @@ export class Products implements OnInit {
   // Table
   products = signal<ProductResponse[] | undefined>(undefined);
   filterCategories = new FormControl<number[]>([], []);
+  tableSearch = signal('');
 
   // Reference data
   areas = signal<AreaSimpleResponse[]>([]);
@@ -96,6 +97,14 @@ export class Products implements OnInit {
   optionCategories = signal<OptionCategoryResponse[]>([]);
   supplyVariantOptions = signal<(SupplyVariantResponse & { displayName: string })[]>([]);
   allProductOptions = signal<ProductOptionResponse[]>([]);
+
+  filteredProducts = computed(() => {
+    const all = this.products();
+    if (all === undefined) return undefined;
+    const search = this.tableSearch().toLowerCase().trim();
+    if (!search) return all;
+    return all.filter((p) => p.name.toLowerCase().includes(search));
+  });
 
   // Supply category filter maps (per recipe row)
   private baseRecipeCategoryMap = new Map<number, number | null>();

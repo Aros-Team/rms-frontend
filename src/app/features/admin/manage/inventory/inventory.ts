@@ -2,6 +2,7 @@ import { Component, OnInit, inject, ChangeDetectionStrategy, signal, computed } 
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 
 import { AuthService } from '@services/authentication/auth-service';
+import { InventoryService } from '@services/inventory/inventory-service';
 import { PurchaseService } from '@services/purchases/purchase-service';
 import { SupplierService } from '@services/suppliers/supplier-service';
 import { SupplyService } from '@services/supplies/supply-service';
@@ -13,6 +14,7 @@ import { SupplierResponse } from '@models/dto/suppliers/supplier-response';
 import { PurchaseResponse } from '@models/dto/purchases/purchase-response';
 import { SupplyUnitResponse } from '@models/dto/supplies/supply-unit-response';
 import { SupplyResponse } from '@models/dto/supplies/supply-response';
+import { TransferItem } from '@models/dto/inventory/transfer-request';
 
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -30,6 +32,7 @@ import { MessageService } from 'primeng/api';
 import { DatePickerModule } from 'primeng/datepicker';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TooltipModule } from 'primeng/tooltip';
+import { CheckboxModule } from 'primeng/checkbox';
 
 // Wizard step type
 type VariantStep = 'category' | 'supply' | 'variant';
@@ -55,12 +58,14 @@ type VariantStep = 'category' | 'supply' | 'variant';
     DatePickerModule,
     MultiSelectModule,
     TooltipModule,
+    CheckboxModule,
   ],
   providers: [MessageService],
   templateUrl: './inventory.html',
 })
 export class Inventory implements OnInit {
   private authService = inject(AuthService);
+  private inventoryService = inject(InventoryService);
   private purchaseService = inject(PurchaseService);
   private supplierService = inject(SupplierService);
   private supplyService = inject(SupplyService);
@@ -79,6 +84,13 @@ export class Inventory implements OnInit {
   purchases = signal<PurchaseResponse[] | undefined>(undefined);
   categories = signal<SupplyCategoryResponse[]>([]);
   selectedCategoryId = signal<number | null>(null);
+
+  filteredSupplies = computed(() => {
+    const all = this.supplies();
+    if (all === undefined) return undefined;
+    const catId = this.selectedCategoryId();
+    return catId === null ? all : all.filter((s) => s.categoryId === catId);
+  });
 
   // --- new variant wizard ---
   units = signal<SupplyUnitResponse[]>([]);
@@ -169,6 +181,28 @@ export class Inventory implements OnInit {
     name: ['', [Validators.required, Validators.maxLength(255)]],
   });
 
+  // --- transfer to kitchen dialog ---
+  transferDialogOpen = false;
+  transferSubmitting = signal(false);
+  transferQuantities = signal<Map<number, number>>(new Map());
+  transferSelected = signal<Set<number>>(new Set());
+  transferSearch = signal('');
+  transferCategoryId = signal<number | null>(null);
+
+  transferableSupplies = computed(() =>
+    (this.supplies() ?? []).filter((s) => s.stockBodega > 0),
+  );
+
+  filteredTransferSupplies = computed(() => {
+    const search = this.transferSearch().toLowerCase().trim();
+    const catId = this.transferCategoryId();
+    return this.transferableSupplies().filter((s) => {
+      const matchesSearch = !search || s.supplyName.toLowerCase().includes(search);
+      const matchesCat = catId === null || s.categoryId === catId;
+      return matchesSearch && matchesCat;
+    });
+  });
+
   ngOnInit(): void {
     this.loadSupplies();
     this.loadSuppliers();
@@ -180,15 +214,6 @@ export class Inventory implements OnInit {
 
   filterByCategory(categoryId: number | null): void {
     this.selectedCategoryId.set(categoryId);
-    this.supplies.set(undefined);
-    if (categoryId === null) {
-      this.loadSupplies();
-    } else {
-      this.supplyService.getVariantsByCategory(categoryId).subscribe({
-        next: (res) => this.supplies.set(res),
-        error: (err) => this.logger.error('Error filtering supplies', err),
-      });
-    }
   }
 
   openPurchaseModal(): void {
@@ -497,6 +522,99 @@ export class Inventory implements OnInit {
 
   getSupplyName(id: number): string {
     return this.supplies()?.find((s) => s.id === id)?.supplyName ?? String(id);
+  }
+
+  openTransferDialog(): void {
+    this.transferQuantities.set(new Map());
+    this.transferSelected.set(new Set());
+    this.transferSearch.set('');
+    this.transferCategoryId.set(null);
+    this.transferDialogOpen = true;
+  }
+
+  closeTransferDialog(): void {
+    this.transferDialogOpen = false;
+  }
+
+  isTransferSelected(variantId: number): boolean {
+    return this.transferSelected().has(variantId);
+  }
+
+  toggleTransferSelection(variantId: number, checked: boolean): void {
+    const next = new Set(this.transferSelected());
+    if (checked) {
+      next.add(variantId);
+    } else {
+      next.delete(variantId);
+    }
+    this.transferSelected.set(next);
+  }
+
+  getTransferQty(variantId: number): number {
+    return this.transferQuantities().get(variantId) ?? 0;
+  }
+
+  setTransferQty(variantId: number, qty: number): void {
+    const next = new Map(this.transferQuantities());
+    next.set(variantId, qty);
+    this.transferQuantities.set(next);
+  }
+
+  submitTransfer(): void {
+    const selected = this.transferSelected();
+    const quantities = this.transferQuantities();
+
+    const items: TransferItem[] = [];
+    for (const variantId of selected) {
+      const qty = quantities.get(variantId) ?? 0;
+      const variant = (this.supplies() ?? []).find((s) => s.id === variantId);
+      if (qty <= 0) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Cantidad inválida',
+          detail: `La cantidad para "${variant?.supplyName ?? variantId}" debe ser mayor a 0.`,
+        });
+        return;
+      }
+      if (variant && qty > variant.stockBodega) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Stock insuficiente',
+          detail: `"${variant.supplyName}" solo tiene ${variant.stockBodega} ${variant.unitAbbreviation} en bodega.`,
+        });
+        return;
+      }
+      items.push({ supplyVariantId: variantId, quantity: qty });
+    }
+
+    if (items.length === 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Sin selección',
+        detail: 'Selecciona al menos un insumo para transferir.',
+      });
+      return;
+    }
+
+    this.transferSubmitting.set(true);
+    this.inventoryService.transferToKitchen({ items }).subscribe({
+      next: () => {
+        this.transferSubmitting.set(false);
+        this.closeTransferDialog();
+        this.loadSupplies();
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Transferencia exitosa',
+          detail: `${items.length} insumo(s) transferido(s) a cocina.`,
+        });
+      },
+      error: (err: { status?: number; error?: { message?: string } }) => {
+        this.transferSubmitting.set(false);
+        const detail = err.error?.message ?? 'No se pudo completar la transferencia.';
+        this.messageService.add({ severity: 'error', summary: 'Error', detail });
+        this.logger.error('Error transferring to kitchen', err);
+      },
+    });
   }
 
   private loadCategories(): void {

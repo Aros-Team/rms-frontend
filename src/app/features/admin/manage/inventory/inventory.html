@@ -12,13 +12,13 @@
     <div class="flex gap-2 flex-wrap">
       <p-button icon="pi pi-plus" severity="secondary" class="btn-icon-text-sm" pTooltip="Nuevo insumo" tooltipPosition="bottom" (click)="openVariantModal()" />
       <p-button icon="pi pi-tag" severity="secondary" class="btn-icon-text-sm" pTooltip="Nueva categoría" tooltipPosition="bottom" (click)="openCategoryDialog()" />
+      <p-button icon="pi pi-arrow-right-arrow-left" severity="secondary" class="btn-icon-text-sm" pTooltip="Transferir a cocina" tooltipPosition="bottom" (click)="openTransferDialog()" />
       <p-button icon="pi pi-shopping-cart" class="btn-icon-text-sm" pTooltip="Nueva compra" tooltipPosition="bottom" (click)="openPurchaseModal()" />
     </div>
   </div>
 
   <!-- Category filter -->
   <div class="flex flex-col sm:flex-row gap-2 mb-3 flex-shrink-0">
-    <p-button icon="pi pi-filter" label="Filtrar" class="btn-icon-text-sm" (click)="filterByCategory(selectedCategoryId())" />
     <p-select
       [options]="categories()"
       optionLabel="name"
@@ -27,13 +27,14 @@
       [showClear]="true"
       class="w-full sm:w-48 md:w-64"
       [ngModel]="selectedCategoryId()"
-      (ngModelChange)="filterByCategory($event)"
+      (onChange)="filterByCategory($event.value)"
+      (onClear)="filterByCategory(null)"
       appendTo="body"
     />
   </div>
 
   <!-- Supplies table -->
-  @if (supplies() === undefined) {
+  @if (filteredSupplies() === undefined) {
     <div class="flex justify-center items-center my-8">
       <p-progress-spinner aria-label="Cargando insumos" />
     </div>
@@ -41,7 +42,7 @@
     <div class="flex-1 min-h-0">
     <p-table
       #dt
-      [value]="supplies()!"
+      [value]="filteredSupplies()!"
       [paginator]="true"
       [rows]="10"
       [rowsPerPageOptions]="[10, 25, 50]"
@@ -73,7 +74,7 @@
         <tr>
           <th pSortableColumn="supplyName" class="text-xs md:text-sm">Insumo <p-sortIcon field="supplyName" /></th>
           <th pSortableColumn="categoryName" class="text-xs md:text-sm hidden sm:table-cell">Categoría <p-sortIcon field="categoryName" /></th>
-          <th pSortableColumn="unitAbbreviation" class="text-xs md:text-sm">Und. <p-sortIcon field="unitAbbreviation" /></th>
+          <th pSortableColumn="quantity" class="text-xs md:text-sm">Presentación <p-sortIcon field="quantity" /></th>
           <th pSortableColumn="stockBodega" class="text-xs md:text-sm">Bod. <p-sortIcon field="stockBodega" /></th>
           <th pSortableColumn="stockCocina" class="text-xs md:text-sm">Coc. <p-sortIcon field="stockCocina" /></th>
         </tr>
@@ -83,7 +84,7 @@
         <tr>
           <td class="font-medium text-sm">{{ supply.supplyName }}</td>
           <td class="hidden sm:table-cell text-sm">{{ supply.categoryName }}</td>
-          <td class="text-xs">{{ supply.unitAbbreviation }}</td>
+          <td class="text-xs text-surface-600 dark:text-surface-400">{{ supply.quantity }} {{ supply.unitAbbreviation }}</td>
           <td>
             <span [class]="supply.stockBodega <= 0 ? 'text-red-500 font-semibold' : 'text-green-600'" class="text-sm">
               {{ supply.stockBodega }}
@@ -525,5 +526,131 @@
   <div class="flex justify-end gap-2 mt-6">
     <p-button label="Cancelar" severity="secondary" icon="pi pi-times" (click)="closeNewSupplierDialog()" />
     <p-button label="Crear" icon="pi pi-check" [loading]="newSupplierSubmitting()" (click)="submitNewSupplier()" />
+  </div>
+</p-dialog>
+
+<!-- ===== Transfer to kitchen dialog ===== -->
+<p-dialog
+  [modal]="true"
+  [(visible)]="transferDialogOpen"
+  header="Transferir insumos a cocina"
+  draggable="false"
+  [style]="{ width: '90vw', maxWidth: '680px' }"
+  appendTo="body"
+>
+  <p class="text-surface-600 dark:text-surface-400 text-sm mb-4">
+    Selecciona los insumos y la cantidad a mover desde <strong>Bodega</strong> a <strong>Cocina</strong>.
+    La operación es atómica: si algún ítem falla, ninguno se aplica.
+  </p>
+
+  <!-- Search + category filter -->
+  <div class="flex flex-col sm:flex-row gap-2 mb-3">
+    <p-iconfield iconPosition="left" class="flex-1">
+      <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+      <input
+        pInputText
+        type="text"
+        class="w-full"
+        placeholder="Buscar por nombre..."
+        [ngModel]="transferSearch()"
+        (ngModelChange)="transferSearch.set($event)"
+        aria-label="Buscar insumo"
+      />
+    </p-iconfield>
+    <p-select
+      [options]="categories()"
+      optionLabel="name"
+      optionValue="id"
+      placeholder="Todas las categorías"
+      [showClear]="true"
+      class="w-full sm:w-52"
+      appendTo="body"
+      [ngModel]="transferCategoryId()"
+      (ngModelChange)="transferCategoryId.set($event)"
+      aria-label="Filtrar por categoría"
+    />
+  </div>
+
+  @if (transferableSupplies().length === 0) {
+    <p class="text-center text-surface-500 py-6">No hay insumos con stock en bodega disponibles para transferir.</p>
+  } @else if (filteredTransferSupplies().length === 0) {
+    <p class="text-center text-surface-500 py-6">No hay resultados para la búsqueda.</p>
+  } @else {
+    <div class="flex flex-col gap-2 max-h-80 overflow-y-auto pr-1" role="list" aria-label="Insumos disponibles para transferir">
+      @for (supply of filteredTransferSupplies(); track supply.id) {
+        <div
+          class="flex items-center gap-3 p-3 rounded-lg border transition-colors"
+          [class]="isTransferSelected(supply.id)
+            ? 'border-primary-400 bg-primary-50 dark:bg-primary-950'
+            : 'border-surface-200 dark:border-surface-700'"
+          role="listitem"
+        >
+          <p-checkbox
+            [binary]="true"
+            [ngModel]="isTransferSelected(supply.id)"
+            (ngModelChange)="toggleTransferSelection(supply.id, $event)"
+            [inputId]="'chk-' + supply.id"
+            [attr.aria-label]="'Seleccionar ' + supply.supplyName"
+          />
+          <label [for]="'chk-' + supply.id" class="flex-1 cursor-pointer min-w-0">
+            <span class="font-medium text-sm block truncate">{{ supply.supplyName }}</span>
+            <span class="text-xs text-surface-500">
+              {{ supply.categoryName }} · {{ supply.quantity }} {{ supply.unitAbbreviation }} · Bodega: <strong>{{ supply.stockBodega }}</strong>
+            </span>
+          </label>
+          @if (isTransferSelected(supply.id)) {
+            <div class="flex items-center gap-1 shrink-0">
+              <p-button
+                icon="pi pi-minus"
+                [rounded]="true"
+                [text]="true"
+                size="small"
+                severity="secondary"
+                (click)="setTransferQty(supply.id, +(getTransferQty(supply.id) - 1).toFixed(3))"
+                [disabled]="getTransferQty(supply.id) <= 1"
+                [attr.aria-label]="'Reducir cantidad de ' + supply.supplyName"
+              />
+              <input
+                type="number"
+                class="w-20 text-center border border-surface-300 dark:border-surface-600 rounded-md px-2 py-1 text-sm bg-surface-0 dark:bg-surface-900"
+                [ngModel]="getTransferQty(supply.id)"
+                (ngModelChange)="setTransferQty(supply.id, +$event)"
+                [min]="0.001"
+                [max]="supply.stockBodega"
+                step="1"
+                [attr.aria-label]="'Cantidad a transferir de ' + supply.supplyName"
+              />
+              <p-button
+                icon="pi pi-plus"
+                [rounded]="true"
+                [text]="true"
+                size="small"
+                severity="secondary"
+                (click)="setTransferQty(supply.id, +(getTransferQty(supply.id) + 1).toFixed(3))"
+                [disabled]="getTransferQty(supply.id) >= supply.stockBodega"
+                [attr.aria-label]="'Aumentar cantidad de ' + supply.supplyName"
+              />
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <div class="flex justify-between items-center mt-6">
+    <span class="text-sm text-surface-500">
+      {{ transferSelected().size }} insumo(s) seleccionado(s)
+    </span>
+    <div class="flex gap-2">
+      <p-button label="Cancelar" severity="secondary" icon="pi pi-times" (click)="closeTransferDialog()" />
+      <p-button
+        label="Transferir a cocina"
+        icon="pi pi-arrow-right"
+        iconPos="right"
+        [loading]="transferSubmitting()"
+        [disabled]="transferSelected().size === 0"
+        (click)="submitTransfer()"
+      />
+    </div>
   </div>
 </p-dialog>
