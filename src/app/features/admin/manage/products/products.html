@@ -27,7 +27,7 @@
             placeholder="Filtrar por categoría" [formControl]="filterCategories" appendTo="body" />
           <p-button icon="pi pi-filter" label="Filtrar" (click)="filterProducts()" />
           <div class="flex gap-2 lg:ml-auto">
-            <p-button icon="pi pi-plus" label="Crear" class="btn-icon-text-sm" pTooltip="Crear nuevo producto" tooltipPosition="bottom" (click)="showCreationModal()" />
+            <p-button icon="pi pi-plus" label="Nuevo producto" class="btn-icon-text-sm" pTooltip="Crear nuevo producto" tooltipPosition="bottom" (click)="showCreationModal()" />
             <p-button icon="pi pi-plus" label="Nueva opción" class="btn-icon-text-sm" pTooltip="Nueva opción de producto" tooltipPosition="bottom" (click)="openNewOptionDialog()" />
           </div>
         </div>
@@ -116,7 +116,7 @@
 
           <p-iftalabel>
             <p-select
-              [options]="[{ label: 'Sí — permite personalización', value: true }, { label: 'No — precio fijo', value: false }]"
+              [options]="[{ label: 'Sí — tiene opciones', value: true }, { label: 'No — no tiene opciones', value: false }]"
               inputId="hasOptions" class="w-full" formControlName="hasOptions"
               appendTo="body"
               [invalid]="isInvalid(baseForm, 'hasOptions')" />

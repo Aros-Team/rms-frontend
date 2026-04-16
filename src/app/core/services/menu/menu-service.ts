@@ -7,6 +7,7 @@ export interface MenuItem {
   description: string;
   icon?: string;
   routerLink?: string;
+  exact?: boolean;
   command?: () => void;
   items?: MenuItem[];
 }

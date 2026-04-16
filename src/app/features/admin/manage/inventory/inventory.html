@@ -9,12 +9,7 @@
         Consulta el stock actual de insumos y registra nuevas compras.
       </p>
     </div>
-    <div class="flex gap-2 flex-wrap">
-      <p-button icon="pi pi-plus" severity="secondary" class="btn-icon-text-sm" pTooltip="Nuevo insumo" tooltipPosition="bottom" (click)="openVariantModal()" />
-      <p-button icon="pi pi-tag" severity="secondary" class="btn-icon-text-sm" pTooltip="Nueva categoría" tooltipPosition="bottom" (click)="openCategoryDialog()" />
-      <p-button icon="pi pi-arrow-right-arrow-left" severity="secondary" class="btn-icon-text-sm" pTooltip="Transferir a cocina" tooltipPosition="bottom" (click)="openTransferDialog()" />
-      <p-button icon="pi pi-shopping-cart" class="btn-icon-text-sm" pTooltip="Nueva compra" tooltipPosition="bottom" (click)="openPurchaseModal()" />
-    </div>
+    <p-button icon="pi pi-shopping-cart" label="Registrar compra" pTooltip="Registrar nueva compra de insumos" tooltipPosition="bottom" (click)="openPurchaseModal()" />
   </div>
 
   <!-- Category filter -->
@@ -55,7 +50,7 @@
       [globalFilterFields]="['supplyName', 'categoryName', 'unitAbbreviation']"
     >
       <ng-template #caption>
-        <div class="flex flex-col sm:flex-row gap-2">
+        <div class="flex flex-col sm:flex-row gap-2 flex-wrap">
           <p-iconfield iconPosition="left" class="w-full lg:w-80">
             <p-inputicon><i class="pi pi-search"></i></p-inputicon>
             <input
@@ -67,6 +62,11 @@
             />
           </p-iconfield>
           <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="dt.clear()" />
+          <div class="flex gap-2 sm:ml-auto flex-wrap">
+            <p-button icon="pi pi-plus" label="Nuevo insumo" severity="secondary" size="small" pTooltip="Registrar nuevo insumo" tooltipPosition="bottom" (click)="openVariantModal()" />
+            <p-button icon="pi pi-tag" label="Nueva categoría" severity="secondary" size="small" pTooltip="Crear categoría de insumo" tooltipPosition="bottom" (click)="openCategoryDialog()" />
+            <p-button icon="pi pi-arrow-right-arrow-left" label="Transferir a cocina" severity="secondary" size="small" pTooltip="Mover insumos de bodega a cocina" tooltipPosition="bottom" (click)="openTransferDialog()" />
+          </div>
         </div>
       </ng-template>
 
@@ -184,42 +184,16 @@
   <!-- Step 2: Supply base -->
   @if (variantStep() === 'supply') {
     <form [formGroup]="supplyForm" class="flex flex-col gap-4">
-      <div class="flex gap-4 mb-1">
-        <label class="flex items-center gap-2 cursor-pointer">
-          <input type="radio" formControlName="mode" value="existing" /> Usar existente
-        </label>
-        <label class="flex items-center gap-2 cursor-pointer">
-          <input type="radio" formControlName="mode" value="new" /> Crear nuevo
-        </label>
-      </div>
-
-      @if (supplyForm.get('mode')?.value === 'existing') {
-        <p-iftalabel>
-          <p-select
-            inputId="supId"
-            [options]="suppliesForCategory()"
-            optionLabel="name"
-            optionValue="id"
-            placeholder="Seleccionar insumo"
-            class="w-full"
-            appendTo="body"
-            formControlName="supplyId"
-            [invalid]="!!supplyForm.get('supplyId')?.invalid && !!supplyForm.get('supplyId')?.touched"
-          />
-          <label for="supId">Insumo</label>
-        </p-iftalabel>
-      } @else {
-        <p-iftalabel>
-          <input
-            pInputText
-            id="supName"
-            formControlName="supplyName"
-            class="w-full"
-            placeholder="Nombre del nuevo insumo"
-          />
-          <label for="supName">Nombre del insumo</label>
-        </p-iftalabel>
-      }
+      <p-iftalabel>
+        <input
+          pInputText
+          id="supName"
+          formControlName="supplyName"
+          class="w-full"
+          placeholder="Nombre del nuevo insumo"
+        />
+        <label for="supName">Nombre del insumo</label>
+      </p-iftalabel>
     </form>
     <div class="flex justify-between mt-6">
       <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="variantStep.set('category')" />
