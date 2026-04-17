@@ -12,8 +12,12 @@ export class ChatService {
   async streamMessage(request: ChatRequest, callbacks: ChatStreamCallbacks): Promise<void> {
     const controller = new AbortController();
 
+    const chatUrl = environment.agentHost
+      ? `${environment.agentHost}/chat/stream`
+      : `${environment.apiUrl}/chat/stream`;
+
     try {
-      const response = await fetch(`${environment.agentHost}/chat/stream`, {
+      const response = await fetch(chatUrl, {
         method: 'POST',
         body: JSON.stringify(request),
         headers: { 'Content-Type': 'application/json' },
@@ -26,6 +30,10 @@ export class ChatService {
 
       const requestId = response.headers.get('X-Request-ID');
       this.logger.info(`Chat stream started`, { requestId });
+      this.logger.info(`Chat stream request`, {
+        url: `${environment.agentHost}/chat/stream`,
+        session_id: request.session_id,
+      });
 
       const reader = response.body?.getReader();
       if (!reader) {
@@ -45,18 +53,19 @@ export class ChatService {
         buffer += decoder.decode(value, { stream: true });
         const events = buffer.split('\n\n');
         buffer = events.pop() || '';
-
         for (const event of events) {
           const lines = event.split('\n');
           for (const line of lines) {
+            // Check for [DONE] WITHOUT "data: " prefix first
+            if (line.startsWith('[DONE]')) {
+              const sessionId = line.slice(6).trim() || undefined;
+              this.logger.info('Chat stream completed', { sessionId });
+              callbacks.onDone(sessionId, sessionId);
+              return;
+            }
+            // Then handle data: lines
             if (line.startsWith('data: ')) {
               const data = line.slice(6);
-              if (data.startsWith('[DONE]')) {
-                const requestId = response.headers.get('X-Request-ID') || undefined;
-                this.logger.info('Chat stream completed', { requestId });
-                callbacks.onDone(requestId, requestId);
-                return;
-              }
               callbacks.onChunk(data);
             }
           }

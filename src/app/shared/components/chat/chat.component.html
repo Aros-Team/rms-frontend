@@ -135,32 +135,32 @@
 
   <!-- Input Area -->
   <div class="p-4 border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900">
-    @if (loading()) {
+    <div class="flex gap-3 items-center">
+        <textarea
+          [(ngModel)]="currentMessage"
+          placeholder="Escribe tu mensaje..."
+          class="w-full px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-surface-0 dark:bg-surface-800 text-surface-700 dark:text-surface-200 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          [rows]="1"
+          (keydown.enter)="handleKeydown($event)"
+          [disabled]="loading()">
+        </textarea>
       <button
-        class="w-full py-3 px-4 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
-        (click)="cancelStream()">
-        <i class="pi pi-times"></i>
-        Cancelar
-      </button>
-    } @else {
-      <div class="flex gap-3 items-center">
-        <div class="flex-1">
-          <textarea
-            [(ngModel)]="currentMessage"
-            placeholder="Escribe tu mensaje..."
-            class="w-full px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-surface-0 dark:bg-surface-800 text-surface-700 dark:text-surface-200 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            [rows]="1"
-            (keydown.enter)="handleKeydown($event)"
-            [disabled]="loading()">
-          </textarea>
-        </div>
-        <button
-          class="p-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
-          (click)="sendMessage()"
-          [disabled]="!currentMessage().trim() || loading()">
+        class="p-2.5 rounded-xl transition-colors flex-shrink-0"
+        [class.bg-red-500]="loading()"
+        [class.hover:bg-red-600]="loading()"
+        [class.bg-primary-500]="!loading()"
+        [class.hover:bg-primary-600]="!loading()"
+        [class.text-white]="true"
+        [class.disabled:opacity-50]="true"
+        [class.disabled:cursor-not-allowed]="true"
+        [disabled]="!loading() && (!currentMessage().trim() || loading())"
+        (click)="loading() ? cancelStream() : sendMessage()">
+        @if (loading()) {
+          <i class="pi pi-stop"></i>
+        } @else {
           <i class="pi pi-send"></i>
-        </button>
-      </div>
-    }
+        }
+      </button>
+    </div>
   </div>
 </aside>
