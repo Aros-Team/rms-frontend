@@ -20,8 +20,9 @@
         <ul class="p-2 space-y-1">
             @for (item of menuItems; track trackByMenuItem($index, item)) {
                 <li>
-                    <a [routerLink]="item.routerLink" [routerLinkActive]="'!text-primary-500'"
-                        [routerLinkActiveOptions]="{ exact: true }"
+                    <a [routerLink]="item.routerLink"
+                        routerLinkActive="!bg-primary-600 !text-white font-semibold"
+                        [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
                         class="flex items-center gap-3 p-3 rounded-lg text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer"
                         (click)="onMenuItemClick(item)">
                         @if (item.icon) {

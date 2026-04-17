@@ -18,9 +18,10 @@ import { ButtonModule } from 'primeng/button';
         <button 
           (click)="activeTab.set('user')"
           class="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 nav-item flex-shrink-0"
-          [class.bg-primary-500]="activeTab() === 'user'"
-          [class.text-primary-contrast]="activeTab() === 'user'"
-          [class.border-primary-500]="activeTab() === 'user'"
+          [class.!bg-primary-600]="activeTab() === 'user'"
+          [class.!text-white]="activeTab() === 'user'"
+          [class.!border-primary-700]="activeTab() === 'user'"
+          [class.font-semibold]="activeTab() === 'user'"
         >
           <i class="pi pi-user"></i>
           <span class="nav-label">Usuario</span>
@@ -29,9 +30,10 @@ import { ButtonModule } from 'primeng/button';
         <button 
           (click)="activeTab.set('privacy')"
           class="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 nav-item flex-shrink-0"
-          [class.bg-primary-500]="activeTab() === 'privacy'"
-          [class.text-primary-contrast]="activeTab() === 'privacy'"
-          [class.border-primary-500]="activeTab() === 'privacy'"
+          [class.!bg-primary-600]="activeTab() === 'privacy'"
+          [class.!text-white]="activeTab() === 'privacy'"
+          [class.!border-primary-700]="activeTab() === 'privacy'"
+          [class.font-semibold]="activeTab() === 'privacy'"
         >
           <i class="pi pi-eye"></i>
           <span class="nav-label">Privacidad</span>
@@ -40,9 +42,10 @@ import { ButtonModule } from 'primeng/button';
         <button 
           (click)="activeTab.set('password')"
           class="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 nav-item flex-shrink-0"
-          [class.bg-primary-500]="activeTab() === 'password'"
-          [class.text-primary-contrast]="activeTab() === 'password'"
-          [class.border-primary-500]="activeTab() === 'password'"
+          [class.!bg-primary-600]="activeTab() === 'password'"
+          [class.!text-white]="activeTab() === 'password'"
+          [class.!border-primary-700]="activeTab() === 'password'"
+          [class.font-semibold]="activeTab() === 'password'"
         >
           <i class="pi pi-lock"></i>
           <span class="nav-label">Contraseña</span>
@@ -51,9 +54,10 @@ import { ButtonModule } from 'primeng/button';
         <button 
           (click)="activeTab.set('settings')"
           class="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 nav-item flex-shrink-0"
-          [class.bg-primary-500]="activeTab() === 'settings'"
-          [class.text-primary-contrast]="activeTab() === 'settings'"
-          [class.border-primary-500]="activeTab() === 'settings'"
+          [class.!bg-primary-600]="activeTab() === 'settings'"
+          [class.!text-white]="activeTab() === 'settings'"
+          [class.!border-primary-700]="activeTab() === 'settings'"
+          [class.font-semibold]="activeTab() === 'settings'"
         >
           <i class="pi pi-cog"></i>
           <span class="nav-label">Otros</span>

@@ -226,7 +226,7 @@ export class Inventory implements OnInit {
 
   openVariantModal(): void {
     this.categoryForm.reset({ mode: 'existing', categoryId: null, categoryName: '' });
-    this.supplyForm.reset({ mode: 'existing', supplyId: null, supplyName: '' });
+    this.supplyForm.reset({ mode: 'new', supplyId: null, supplyName: '' });
     this.variantForm.reset();
     this.resolvedCategoryId.set(null);
     this.resolvedSupplyId.set(null);
