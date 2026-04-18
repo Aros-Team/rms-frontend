@@ -103,7 +103,7 @@
     aria-modal="true"
     [attr.aria-label]="'Opciones para ' + dayMenu()!.productName"
   >
-    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" (click)="closeModal()"></div>
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" (click)="closeModal()" (keydown.escape)="closeModal()" role="button" tabindex="0" aria-label="Cerrar modal"></div>
 
     <div
       class="relative z-10 w-full sm:w-auto sm:min-w-[420px] sm:max-w-[460px] flex flex-col rounded-t-[28px] sm:rounded-[28px] overflow-hidden shadow-2xl max-h-[92dvh] sm:max-h-[88vh] bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-700"

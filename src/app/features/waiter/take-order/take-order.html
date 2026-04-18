@@ -199,7 +199,7 @@
     [attr.aria-label]="'Opciones para ' + pendingProduct()!.name"
   >
     <!-- Overlay -->
-    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" (click)="closeModal()"></div>
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" (click)="closeModal()" (keydown.escape)="closeModal()" role="button" tabindex="0" aria-label="Cerrar modal"></div>
 
     <!-- Sheet / Card -->
     <div
