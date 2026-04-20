@@ -221,11 +221,10 @@ export class Inventory implements OnInit {
   }
 
   openPurchaseModal(): void {
-    this.purchaseForm.reset();
-    this.items.clear();
-    this.itemCategoryMap.clear();
+    this.closeModal();
     this.addItem();
     this.modalIsOpen = true;
+    this.cdr.markForCheck();
   }
 
   openVariantModal(): void {
@@ -421,6 +420,12 @@ export class Inventory implements OnInit {
 
   closeModal(): void {
     this.modalIsOpen = false;
+    this.items.clear();
+    this.purchaseForm.reset();
+    this.purchaseForm.markAsUntouched();
+    this.purchaseForm.markAsPristine();
+    this.itemCategoryMap.clear();
+    this.cdr.markForCheck();
   }
 
   addItem(): void {
