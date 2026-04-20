@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef, signal, computed } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 
 import { AuthService } from '@services/authentication/auth-service';
@@ -64,6 +64,7 @@ type VariantStep = 'category' | 'supply' | 'variant';
   templateUrl: './inventory.html',
 })
 export class Inventory implements OnInit {
+  private cdr = inject(ChangeDetectorRef);
   private authService = inject(AuthService);
   private inventoryService = inject(InventoryService);
   private purchaseService = inject(PurchaseService);
@@ -210,6 +211,9 @@ export class Inventory implements OnInit {
     this.loadCategories();
     this.loadUnits();
     this.loadAllSupplies();
+    // With OnPush, form status changes don't trigger CD automatically.
+    // Subscribe so the template re-evaluates [invalid] bindings when fields become valid.
+    this.purchaseForm.statusChanges.subscribe(() => this.cdr.markForCheck());
   }
 
   filterByCategory(categoryId: number | null): void {
@@ -438,6 +442,7 @@ export class Inventory implements OnInit {
   submitPurchase(): void {
     if (this.purchaseForm.invalid || this.items.length === 0) {
       this.purchaseForm.markAllAsTouched();
+      this.cdr.markForCheck();
       return;
     }
 

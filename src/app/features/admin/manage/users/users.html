@@ -46,6 +46,7 @@
           <th class="text-xs md:text-sm hidden lg:table-cell">Correo</th>
           <th class="text-xs md:text-sm hidden md:table-cell">Tel.</th>
           <th class="text-xs md:text-sm hidden xl:table-cell">Dirección</th>
+          <th class="text-center text-xs md:text-sm">Status</th>
           <th class="text-center text-xs md:text-sm">Acc.</th>
         </tr>
       </ng-template>
@@ -56,6 +57,25 @@
           <td class="hidden lg:table-cell text-sm truncate max-w-[150px]">{{ user.email }}</td>
           <td class="hidden md:table-cell">{{ user.phone }}</td>
           <td class="hidden xl:table-cell text-sm truncate max-w-[120px]">{{ user.address }}</td>
+          <td class="text-center">
+            @switch (user.status) {
+              @case ('PENDING') {
+                <p-tag severity="warn" value="Pendiente" />
+              }
+              @case ('ERROR') {
+                <p-tag severity="danger" value="Error" />
+              }
+              @case ('ACTIVE') {
+                <p-tag severity="success" value="Activo" />
+              }
+              @case ('INACTIVE') {
+                <p-tag severity="secondary" value="Inactivo" />
+              }
+              @default {
+                <p-tag severity="secondary" [value]="user.status || 'Desconocido'" />
+              }
+            }
+          </td>
           <td>
             <div class="flex gap-1 items-center justify-center">
               <p-button
@@ -64,9 +84,9 @@
                 size="small"
                 [text]="true"
                 class="btn-icon-only-sm"
-                [disabled]="true"
-                pTooltip="Próximamente"
+                pTooltip="Editar usuario"
                 tooltipPosition="top"
+                (click)="showModificationModal(user)"
               ></p-button>
               <p-button
                 severity="danger"
@@ -74,10 +94,22 @@
                 size="small"
                 [text]="true"
                 class="btn-icon-only-sm"
-                [disabled]="true"
-                pTooltip="Próximamente"
+                pTooltip="Eliminar usuario"
                 tooltipPosition="top"
+                (click)="deleteUser(user)"
               ></p-button>
+              @if (user.status === 'ERROR') {
+                <p-button
+                  severity="info"
+                  icon="pi pi-envelope"
+                  size="small"
+                  [text]="true"
+                  class="btn-icon-only-sm"
+                  pTooltip="Reenviar email de registro"
+                  tooltipPosition="top"
+                  (click)="retryEmail(user)"
+                ></p-button>
+              }
             </div>
           </td>
         </tr>
@@ -96,11 +128,7 @@
 >
   <div class="p-4">
     @if (editing) {
-    <div class="text-center py-8">
-      <i class="pi pi-clock text-5xl text-color-secondary mb-4 block"></i>
-      <p class="text-lg font-semibold text-color">Funcionalidad próximamente disponible</p>
-      <p class="text-sm text-color-secondary mt-2">La edición de usuarios estará disponible pronto</p>
-    </div>
+    <span class="p-text-secondary block mb-8">Edita la información del usuario</span>
     } @else {
     <span class="p-text-secondary block mb-8">Crea un nuevo usuario</span>
     }
@@ -116,7 +144,7 @@
           placeholder="Numero de documento del usuario"
         />
         <label for="create.document">Documento *</label>
-        <app-form-validation field="document"></app-form-validation>
+        <app-form-validation field="document" [backendError]="getBackendError('document')"></app-form-validation>
       </p-iftalabel>
       <p-iftalabel class="w-full">
         <input
@@ -128,7 +156,7 @@
           placeholder="Nombre completo del usuario"
         />
         <label for="create.name">Nombre *</label>
-        <app-form-validation field="name"></app-form-validation>
+        <app-form-validation field="name" [backendError]="getBackendError('name')"></app-form-validation>
       </p-iftalabel>
       <p-iftalabel class="w-full">
         <input
@@ -141,7 +169,7 @@
           placeholder="correo electronico del usuario"
         />
         <label for="create.email">Correo electrónico *</label>
-        <app-form-validation field="email"></app-form-validation>
+        <app-form-validation field="email" [backendError]="getBackendError('email')"></app-form-validation>
       </p-iftalabel>
       <p-iftalabel class="w-full">
         <input
@@ -153,7 +181,7 @@
           placeholder="direccion de residencia del usuario"
         />
         <label for="create.address">Dirección</label>
-        <app-form-validation field="address"></app-form-validation>
+        <app-form-validation field="address" [backendError]="getBackendError('address')"></app-form-validation>
       </p-iftalabel>
       <p-iftalabel class="w-full">
         <input
@@ -165,12 +193,14 @@
           placeholder="numero de contacto del usuario"
         />
         <label for="create.phone">N# Celular</label>
-        <app-form-validation field="phone"></app-form-validation>
+        <app-form-validation field="phone" [backendError]="getBackendError('phone')"></app-form-validation>
       </p-iftalabel>
     </form>
 
     <div class="flex justify-start gap-2 mt-8">
-      @if (!editing) {
+      @if (editing) {
+      <p-button icon="pi pi-save" label="Actualizar" (click)="updateUser()" />
+      } @else {
       <p-button icon="pi pi-save" label="Crear" (click)="createUser()" />
       }
       <p-button icon="pi pi-ban" label="Cancelar" severity="secondary" (click)="closeModals()" />

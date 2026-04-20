@@ -9,6 +9,7 @@ import { ControlContainer, FormGroup, FormGroupDirective } from "@angular/forms"
 export class FormValidation implements OnInit {
   form!: FormGroup;
   @Input({ required: true }) field!: string;
+  @Input() backendError?: string;
 
   private parentFormGroup = inject(FormGroupDirective);
   

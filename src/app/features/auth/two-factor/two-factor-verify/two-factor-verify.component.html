@@ -51,11 +51,11 @@
         <button
           pButton
           type="submit"
-          label="Verificar Código"
+          aria-label="Verificar Código"
           class="w-full"
           [loading]="formStatus === 'Occuped'"
           [disabled]="formStatus === 'Occuped' || form.invalid"
-        ></button>
+        >Verificar Código</button>
       </form>
 
       <div class="mt-6 pt-6 border-t border-surface-200 dark:border-surface-700">
@@ -66,10 +66,10 @@
           <button
             pButton
             type="button"
-            label="Volver al Login"
+            aria-label="Volver al Login"
             class="p-button-text p-button-sm"
             (click)="goBack()"
-          ></button>
+          >Volver al Login</button>
         </div>
       </div>
     </div>
