@@ -5,6 +5,15 @@ export interface UserResponse {
   email: string;
   phone?: string;
   address?: string;
-  role?: string;
+  role?: 'ADMIN' | 'WORKER';
+  status?: 'PENDING' | 'ERROR' | 'ACTIVE' | 'INACTIVE';
   assignedAreas?: number[];
+}
+
+export interface UpdateUserRequest {
+  document: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
 }
