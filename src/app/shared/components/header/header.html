@@ -34,6 +34,7 @@
     </button>
 
     <!-- Chat Button -->
+    @if (role === 'ADMIN') {
     <button
       class="relative p-2 rounded-xl cursor-pointer group transition-all duration-300 hover:scale-110 w-10 h-10 flex items-center justify-center"
       [class.bg-primary-100]="!isMobile"
@@ -51,6 +52,7 @@
       <span class="absolute top-1 right-1 w-2 h-2 bg-primary-500 rounded-full animate-ping"></span>
       <span class="absolute top-1 right-1 w-2 h-2 bg-primary-500 rounded-full"></span>
     </button>
+    }
 
     <!-- Accessibility Button -->
     <app-accessibility></app-accessibility>

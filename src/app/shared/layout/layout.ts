@@ -19,6 +19,7 @@ import { Subscription } from 'rxjs';
 export class Layout implements OnInit, OnDestroy {
   @Input() workerType?: string;
   @Input() hideSidebar = false;
+  @Input() role?: string;
   @ViewChild(ChatComponent) chatComponent!: ChatComponent;
 
   sidebarVisible = false;

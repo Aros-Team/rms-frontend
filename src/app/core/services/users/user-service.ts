@@ -34,7 +34,7 @@ export class UserService {
   }
 
   public retryEmail(id: number): Observable<void> {
-    this.loggingService.debug('UserService: Calling POST retry-email with id:', id);
-    return this.http.post<void>(`v1/users/${id}/retry-email`, {});
+    this.loggingService.debug('UserService: Calling POST retry-setup-email with id:', id);
+    return this.http.post<void>(`v1/users/${id}/retry-setup-email`, {});
   }
 }

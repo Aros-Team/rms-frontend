@@ -19,6 +19,7 @@ import { Users } from './features/admin/manage/users/users';
 import { ForgotPasswordComponent } from './features/auth/password-recovery/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './features/auth/password-recovery/reset-password/reset-password.component';
 import { TwoFactorVerifyComponent } from './features/auth/two-factor/two-factor-verify/two-factor-verify.component';
+import { SetupAccountComponent } from './features/auth/setup-account/setup-account.component';
 import { SettingsComponent } from './features/settings/settings.component';
 import { WaiterArea } from '@features/waiter/waiter-area';
 import { DayMenu } from '@features/waiter/day-menu/day-menu';
@@ -45,6 +46,10 @@ export const routes: Routes = [
   {
     path: 'login/verify',
     component: TwoFactorVerifyComponent,
+  },
+  {
+    path: 'setup-account',
+    component: SetupAccountComponent,
   },
   {
     path: 'admin',

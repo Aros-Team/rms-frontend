@@ -3,6 +3,7 @@
   <app-header
     [horizontalMenuOptions]="horizontalMenuOptions"
     [isMobile]="isMobile"
+    [role]="role"
     (toggleMenu)="toggleSidebar()"
     (toggleChat)="toggleChat()">
   </app-header>
@@ -30,5 +31,7 @@
   </div>
 
   <!-- Chat Component -->
+  @if (role === 'ADMIN') {
   <app-chat></app-chat>
+  }
 </div>

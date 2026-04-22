@@ -98,14 +98,14 @@
                 tooltipPosition="top"
                 (click)="deleteUser(user)"
               ></p-button>
-              @if (user.status === 'ERROR') {
+              @if (user.status === 'PENDING') {
                 <p-button
                   severity="info"
                   icon="pi pi-envelope"
                   size="small"
                   [text]="true"
                   class="btn-icon-only-sm"
-                  pTooltip="Reenviar email de registro"
+                  pTooltip="Reenviar invitación"
                   tooltipPosition="top"
                   (click)="retryEmail(user)"
                 ></p-button>

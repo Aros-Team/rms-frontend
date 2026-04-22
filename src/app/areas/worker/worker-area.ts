@@ -25,8 +25,10 @@ export class WorkerArea implements OnInit, OnDestroy {
 
   workerType = 'waiter';
   hideSidebar = false;
+  role = 'WORKER';
 
   ngOnInit(): void {
+    this.determineRole();
     this.determineWorkerType();
     this.configureWorkerMenu();
     this.startNotifications();
@@ -58,6 +60,12 @@ export class WorkerArea implements OnInit, OnDestroy {
         }
       }, 1000);
     }
+  }
+
+  private determineRole(): void {
+    const userData = this.authService.getData();
+    this.role = userData?.role || 'WORKER';
+    this.loggingService.debug('WorkerArea: User role:', this.role);
   }
 
   private determineWorkerType(): void {

@@ -1,35 +1,64 @@
 <div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0">
-  <div class="flex items-center gap-4 mb-2 md:mb-4 min-w-0 flex-shrink-0">
-    <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0 break-words min-w-0">{{ title }}</h1>
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 min-w-0 flex-shrink-0">
+    <div class="min-w-0">
+      <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0 break-words">{{ title }}</h1>
+      <p class="text-surface-600 dark:text-surface-400 mt-1 text-sm">{{ description }}</p>
+    </div>
+    <div class="flex gap-2 shrink-0">
+      <p-button icon="pi pi-plus" label="Nuevo producto" pTooltip="Crear nuevo producto" tooltipPosition="bottom" (click)="showCreationModal()" />
+      <p-button icon="pi pi-plus" label="Nueva opción" pTooltip="Nueva opción de producto" tooltipPosition="bottom" (click)="openNewOptionDialog()" />
+    </div>
   </div>
-  <p class="text-surface-600 dark:text-surface-400 mb-2 md:mb-4 text-sm">{{ description }}</p>
 
+  <!-- Category filter -->
+  <div class="flex flex-col sm:flex-row gap-2 mb-3 flex-shrink-0">
+    <p-multiselect
+      [options]="categories()"
+      display="chip"
+      [maxSelectedLabels]="2"
+      class="w-full sm:w-56 md:w-64"
+      optionLabel="name"
+      optionValue="id"
+      placeholder="Filtrar por categoría"
+      [showClear]="true"
+      [formControl]="filterCategories"
+      appendTo="body"
+    />
+  </div>
+
+  <!-- Table -->
   @if (filteredProducts() === undefined) {
     <div class="flex justify-center items-center my-8">
       <p-progress-spinner aria-label="Cargando productos" />
     </div>
   } @else {
-    <div class="flex-1 min-h-0">
-    <p-table #dt1 [value]="filteredProducts()!" [paginator]="true" [rows]="10"
-      [scrollable]="true" scrollHeight="flex" responsiveLayout="scroll"
-      stripedRows showGridlines styleClass="h-full">
+    <p-table
+      #dt1
+      [value]="filteredProducts()!"
+      [paginator]="true"
+      [rows]="10"
+      [scrollable]="true"
+      scrollHeight="flex"
+      responsiveLayout="scroll"
+      stripedRows
+      showGridlines
+      styleClass="h-full"
+    >
       <ng-template #caption>
-        <div class="flex flex-col lg:flex-row gap-2 items-start lg:items-center">
+        <div class="flex flex-col sm:flex-row gap-2 flex-wrap">
           <p-iconfield iconPosition="left" class="w-full lg:w-80">
             <p-inputicon><i class="pi pi-search"></i></p-inputicon>
-            <input pInputText type="text" class="w-full"
+            <input
+              pInputText
+              type="text"
+              class="w-full"
               [ngModel]="tableSearch()"
               (ngModelChange)="tableSearch.set($event)"
-              placeholder="Buscar por nombre..." />
+              placeholder="Buscar por nombre..."
+            />
           </p-iconfield>
-          <p-multiselect [options]="categories()" display="chip" [maxSelectedLabels]="2"
-            class="w-full lg:w-56" optionLabel="name" optionValue="id"
-            placeholder="Filtrar por categoría" [formControl]="filterCategories" appendTo="body" />
-          <p-button icon="pi pi-filter" label="Filtrar" (click)="filterProducts()" />
-          <div class="flex gap-2 lg:ml-auto">
-            <p-button icon="pi pi-plus" label="Nuevo producto" class="btn-icon-text-sm" pTooltip="Crear nuevo producto" tooltipPosition="bottom" (click)="showCreationModal()" />
-            <p-button icon="pi pi-plus" label="Nueva opción" class="btn-icon-text-sm" pTooltip="Nueva opción de producto" tooltipPosition="bottom" (click)="openNewOptionDialog()" />
-          </div>
+          <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="dt1.clear()" />
         </div>
       </ng-template>
       <ng-template #header>
@@ -57,7 +86,6 @@
         </tr>
       </ng-template>
     </p-table>
-  </div>
   }
 </div>
 
@@ -186,7 +214,7 @@
     <div class="flex justify-end gap-2 mt-6">
       <p-button label="Cancelar" severity="secondary" icon="pi pi-times" (click)="closeModal()" />
       <p-button [label]="hasOptions() ? 'Siguiente' : (modalMode() === 'create' ? 'Crear producto' : 'Guardar cambios')"
-        [icon]="hasOptions() ? 'pi pi-arrow-right' : 'pi pi-check'" 
+        [icon]="hasOptions() ? 'pi pi-arrow-right' : 'pi pi-check'"
         [iconPos]="hasOptions() ? 'right' : 'left'"
         [loading]="isSubmitting()" (click)="submitStep1()" />
     </div>
@@ -334,7 +362,7 @@
       <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="currentStep.set(1)" />
       <div class="flex gap-2">
         <p-button label="Cancelar" severity="secondary" (click)="closeModal()" />
-        <p-button [label]="modalMode() === 'create' ? 'Crear producto' : 'Guardar cambios'" 
+        <p-button [label]="modalMode() === 'create' ? 'Crear producto' : 'Guardar cambios'"
           icon="pi pi-check"
           [loading]="isSubmitting()"
           [disabled]="optionsArray.length === 0 || hasDuplicateOptions()"

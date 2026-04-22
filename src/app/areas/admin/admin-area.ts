@@ -12,6 +12,8 @@ import { MenuService, MenuItem } from '@app/core/services/menu/menu-service';
 export class AdminArea implements OnInit {
   private menuService = inject(MenuService);
 
+  role = 'ADMIN';
+
   ngOnInit(): void {
     this.configureAdminMenu();
   }

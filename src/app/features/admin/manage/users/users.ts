@@ -315,7 +315,7 @@ export class Users implements OnInit {
         this.messageService.add({
           severity: 'success',
           summary: 'Email enviado',
-          detail: 'Se ha reenviado el correo de registro correctamente.',
+          detail: 'Se ha reenviado la invitación correctamente.',
           life: 5000,
         });
       },

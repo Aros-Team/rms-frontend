@@ -11,13 +11,15 @@ import { LoggingService } from '@app/core/services/logging/logging-service';
 
 @Component({
   selector: 'app-two-factor-verify',
-  templateUrl: './two-factor-verify.component.html',
+  standalone: true,
   imports: [
     ReactiveFormsModule,
     InputTextModule,
     ButtonModule,
     MessageModule
-],
+  ],
+  templateUrl: './two-factor-verify.component.html',
+  styleUrl: './two-factor-verify.component.css',
 })
 export class TwoFactorVerifyComponent {
   private authService = inject(AuthService);

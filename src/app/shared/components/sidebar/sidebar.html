@@ -1,5 +1,5 @@
 <aside
-    class="fixed top-0 right-0 h-full bg-surface-50 dark:bg-surface-900 transition-transform duration-300 ease-in-out w-full sm:w-96 lg:w-80 lg:border-none md:border-l border-surface-300 dark:border-surface-700 max-md:z-100 overflow-hidden"
+    class="fixed top-1 right-0 h-full bg-surface-50 dark:bg-surface-900 transition-transform duration-300 ease-in-out w-full sm:w-96 lg:w-80 lg:border-none md:border-l border-surface-300 dark:border-surface-700 max-md:z-100 overflow-hidden"
     [ngClass]="{
         'translate-x-0': visible,
         'translate-x-full': !visible,
@@ -21,7 +21,7 @@
             @for (item of menuItems; track trackByMenuItem($index, item)) {
                 <li>
                     <a [routerLink]="item.routerLink"
-                        routerLinkActive="!bg-primary-600 !text-white font-semibold"
+                        routerLinkActive="!text-primary-500 font-semibold"
                         [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
                         class="flex items-center gap-3 p-3 rounded-lg text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer"
                         (click)="onMenuItemClick(item)">
