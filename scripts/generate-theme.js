@@ -144,6 +144,28 @@ function generateThemeFile(baseColor, isDevelopment) {
     return content;
 }
 
+function updateManifest(baseColor) {
+    const manifestPath = path.join(process.cwd(), 'public', 'manifest.webmanifest');
+
+    if (!fs.existsSync(manifestPath)) {
+        console.log('  manifest.webmanifest no encontrado, omitiendo');
+        return;
+    }
+
+    const manifestContent = fs.readFileSync(manifestPath, 'utf8');
+
+    try {
+        const manifest = JSON.parse(manifestContent);
+        manifest.theme_color = baseColor;
+
+        const updatedManifest = JSON.stringify(manifest, null, 2);
+        fs.writeFileSync(manifestPath, updatedManifest, 'utf8');
+        console.log(`  theme_color actualizado: ${baseColor}`);
+    } catch (e) {
+        console.log('  Error al parsear manifest, omitiendo');
+    }
+}
+
 function main() {
     console.log(`Generate Colors [${env.toUpperCase()}]: Generando paleta de colores y preconnects\n`);
 
@@ -162,6 +184,7 @@ function main() {
         console.log(`\nArchivo creado: src/environments/${themeFile}`);
 
         generatePreconnects(isDev);
+        updateManifest(baseColor);
         console.log(`\n[>] Colores actualizados!`);
 
     } catch (error) {

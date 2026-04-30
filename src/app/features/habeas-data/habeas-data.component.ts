@@ -99,6 +99,8 @@ export class HabeasDataComponent implements OnInit {
   fontSize = 16;
 
   private readonly FONT_SIZE_KEY = 'accessibility_font_size';
+  private readonly ACCESS_KEY = 'rms_access';
+  private readonly REFRESH_KEY = 'rms_refresh';
   private router = inject(Router);
 
   ngOnInit(): void {
@@ -111,6 +113,10 @@ export class HabeasDataComponent implements OnInit {
     if (savedFontSize) {
       this.fontSize = parseInt(savedFontSize, 10);
     }
+  }
+
+  private deleteCookie(name: string): void {
+    document.cookie = `${name}=; path=/; max-age=0; samesite=Strict; secure`;
   }
 
   accept(): void {
@@ -127,8 +133,8 @@ export class HabeasDataComponent implements OnInit {
 
   reject(): void {
     localStorage.removeItem('habeas_data_accepted');
-    localStorage.removeItem('access');
-    localStorage.removeItem('refresh');
+    this.deleteCookie(this.ACCESS_KEY);
+    this.deleteCookie(this.REFRESH_KEY);
     window.location.href = '/login';
   }
 }

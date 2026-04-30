@@ -15,7 +15,25 @@ export class RoleGuard implements CanActivate {
     const userData = this.authService.getData();
 
     if (!userData) {
-      this.loggingService.error("RoleGuard: User data is undefined");
+      this.loggingService.info("RoleGuard: User data not loaded yet, waiting...");
+      return new Promise<GuardResult>((resolve) => {
+        const checkUserData = () => {
+          const currentUserData = this.authService.getData();
+          if (currentUserData) {
+            resolve(this.checkRole(currentUserData, route));
+          } else {
+            setTimeout(checkUserData, 100);
+          }
+        };
+        setTimeout(checkUserData, 100);
+      });
+    }
+
+    return this.checkRole(userData, route);
+  }
+
+  private checkRole(userData: ReturnType<typeof this.authService.getData>, route: ActivatedRouteSnapshot): GuardResult {
+    if (!userData) {
       return new RedirectCommand(this.router.parseUrl('/login'));
     }
 

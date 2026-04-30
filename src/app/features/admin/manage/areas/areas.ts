@@ -1,8 +1,10 @@
 
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AreaService } from '@app/core/services/areas/area-service';
 import { AreaSimpleResponse } from '@app/shared/models/dto/areas/area-simple-response';
+import { AuthService } from '@app/core/services/authentication/auth-service';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { IftaLabelModule } from 'primeng/iftalabel';
@@ -33,8 +35,8 @@ import { FormValidation } from '@app/shared/components/form/form-validation';
         <p-button label="Nueva área" icon="pi pi-plus" class="btn-icon-text-sm" pTooltip="Crear nueva área" tooltipPosition="bottom" (onClick)="showCreateModal()"></p-button>
       </div>
 
-      <div class="flex-1 min-h-0">
-      <p-table [value]="areas" [tableStyle]="{'min-width': '50rem'}" [scrollable]="true" scrollHeight="flex" responsiveLayout="scroll" stripedRows styleClass="h-full">
+      <div class="flex-1 min-h-0 overflow-auto">
+      <p-table [value]="areas()" [tableStyle]="{'min-width': '50rem'}" [scrollable]="true" scrollHeight="400px" responsiveLayout="scroll" stripedRows styleClass="h-full">
         <ng-template #header>
           <tr>
             <th class="text-xs md:text-sm">Nombre</th>
@@ -103,11 +105,13 @@ import { FormValidation } from '@app/shared/components/form/form-validation';
     </p-dialog>
   `
 })
-export class Areas implements OnInit {
+export class Areas implements OnInit, OnDestroy {
   private areaService = inject(AreaService);
   private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private areasSubscription: Subscription | null = null;
 
-  areas: AreaSimpleResponse[] = [];
+  areas = signal<AreaSimpleResponse[]>([]);
   modalVisible = false;
   editMode = false;
   selectedArea?: AreaSimpleResponse;
@@ -127,10 +131,16 @@ export class Areas implements OnInit {
   }
 
   loadAreas(): void {
-    this.areaService.getAreas().subscribe({
-      next: (areas) => this.areas = areas,
+    this.areasSubscription = this.areaService.getAreas().subscribe({
+      next: (areas) => this.areas.set(areas),
       error: (err) => console.error('Error loading areas:', err),
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.areasSubscription) {
+      this.areasSubscription.unsubscribe();
+    }
   }
 
   showCreateModal(): void {
