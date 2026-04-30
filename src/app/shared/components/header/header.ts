@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy, Output, EventEmitter, inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { MenuItem, MenuService } from '../../../core/services/menu/menu-service';
-import { AuthService } from '../../../core/services/authentication/auth-service';
+import { MenuItem, MenuService } from '@core/services/menu/menu-service';
+import { AuthService } from '@core/services/authentication/auth-service';
 import { Subscription } from 'rxjs';
 import { Logo } from "../logo/logo";
 import { AccessibilityComponent } from '../accessibility/accessibility.component';

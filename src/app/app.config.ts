@@ -1,7 +1,7 @@
 import {
   ApplicationConfig,
   provideBrowserGlobalErrorListeners,
-  provideZoneChangeDetection,
+  provideZonelessChangeDetection,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -10,12 +10,11 @@ import { LOCALE_ID } from '@angular/core';
 
 
 import {
-  HTTP_INTERCEPTORS,
   provideHttpClient,
-  withInterceptorsFromDi,
+  withInterceptors,
 } from '@angular/common/http';
-import { AuthInterceptor } from '@core/interceptors/auth-interceptor';
-import { UrlInterceptor } from '@core/interceptors/url-interceptor';
+import { authInterceptor } from '@core/interceptors/auth-interceptor';
+import { urlInterceptor } from '@core/interceptors/url-interceptor';
 import { routes } from './app.routes';
 
 import { definePreset } from '@primeuix/themes';
@@ -50,19 +49,11 @@ const arosPreset = definePreset(Aura, {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideZonelessChangeDetection(),
     provideRouter(routes),
-    provideHttpClient(withInterceptorsFromDi()),
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: UrlInterceptor,
-      multi: true,
-    },
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: AuthInterceptor,
-      multi: true,
-    },
+    provideHttpClient(
+      withInterceptors([urlInterceptor, authInterceptor])
+    ),
     {
       provide: LOCALE_ID,
       useValue: 'es-ES'

@@ -5,7 +5,6 @@ import { OrderResponse } from '@app/shared/models/dto/orders/order-response.mode
 
 @Component({
   selector: 'app-order-detail-dialog',
-  standalone: true,
   imports: [CommonModule, DialogModule],
   template: `
     <p-dialog

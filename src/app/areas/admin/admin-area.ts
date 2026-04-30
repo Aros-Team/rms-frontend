@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { Layout } from '@app/shared/layout/layout';
@@ -7,7 +7,8 @@ import { MenuService, MenuItem } from '@app/core/services/menu/menu-service';
 @Component({
   selector: 'app-admin-area',
   templateUrl: './admin-area.html',
-  imports: [Layout, RouterOutlet]
+  imports: [Layout, RouterOutlet],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminArea implements OnInit {
   private menuService = inject(MenuService);

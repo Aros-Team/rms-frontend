@@ -1,7 +1,7 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { TableResponse } from '@app/shared/models/dto/tables/table-response.model';
 
-@Pipe({ name: 'tableNumber', standalone: true })
+@Pipe({ name: 'tableNumber' })
 export class TableNumberPipe implements PipeTransform {
   transform(tables: TableResponse[], tableId: number | null): string {
     if (!tableId) return '';

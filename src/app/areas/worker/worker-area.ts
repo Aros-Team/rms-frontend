@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { effect } from '@angular/core';
 import { RouterOutlet, Router } from '@angular/router';
 
 import { Layout } from '@app/shared/layout/layout';
@@ -13,7 +14,8 @@ import { ToastModule } from 'primeng/toast';
   selector: 'app-worker-area',
   templateUrl: './worker-area.html',
   imports: [Layout, RouterOutlet, ToastModule],
-  providers: [MessageService]
+  providers: [MessageService],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WorkerArea implements OnInit, OnDestroy {
   private menuService = inject(MenuService);
@@ -22,6 +24,7 @@ export class WorkerArea implements OnInit, OnDestroy {
   private notificationService = inject(NotificationService);
   private messageService = inject(MessageService);
   private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
   workerType = 'waiter';
   hideSidebar = false;
@@ -34,7 +37,7 @@ export class WorkerArea implements OnInit, OnDestroy {
     this.startNotifications();
   }
 
-  ngOnDestroy(): void {
+ngOnDestroy(): void {
     this.notificationService.stopPolling();
   }
 
@@ -42,23 +45,27 @@ export class WorkerArea implements OnInit, OnDestroy {
     if (this.workerType === 'waiter') {
       this.notificationService.startPolling();
 
-      setInterval(() => {
-        const orders = this.notificationService.unseenReadyOrders();
-        orders.forEach(order => {
-          const tableName = order.table || `Mesa ${order.tableId}`;
-          this.messageService.add({
-            severity: 'info',
-            summary: 'Orden lista para entregar',
-            detail: `${tableName} - Orden #${order.id}`,
-            life: 10000,
-            sticky: true
+      effect(() => {
+        const intervalId = setInterval(() => {
+          const orders = this.notificationService.unseenReadyOrders();
+          orders.forEach(order => {
+            const tableName = order.table || `Mesa ${order.tableId}`;
+            this.messageService.add({
+              severity: 'info',
+              summary: 'Orden lista para entregar',
+              detail: `${tableName} - Orden #${order.id}`,
+              life: 10000,
+              sticky: true
+            });
           });
-        });
 
-        if (orders.length > 0) {
-          this.notificationService.markAllAsSeen();
-        }
-      }, 1000);
+          if (orders.length > 0) {
+            this.notificationService.markAllAsSeen();
+          }
+        }, 1000);
+
+        this.destroyRef.onDestroy(() => clearInterval(intervalId));
+      });
     }
   }
 

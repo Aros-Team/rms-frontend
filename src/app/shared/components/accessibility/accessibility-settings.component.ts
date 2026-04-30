@@ -5,7 +5,6 @@ import { AccessibilityService, FontSize, ContrastMode } from '@app/core/services
 
 @Component({
   selector: 'app-accessibility-settings',
-  standalone: true,
   imports: [ButtonModule],
   template: `
     <div class="flex flex-col gap-4 p-4">

@@ -8,7 +8,6 @@ import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-habeas-data',
-  standalone: true,
   imports: [DialogModule, ButtonModule, CheckboxModule, FormsModule],
   template: `
     <p-dialog 

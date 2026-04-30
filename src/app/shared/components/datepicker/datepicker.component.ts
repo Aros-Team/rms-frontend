@@ -6,7 +6,6 @@ import { FloatLabelModule } from 'primeng/floatlabel';
 
 @Component({
   selector: 'app-shared-datepicker',
-  standalone: true,
   imports: [FormsModule, DatePickerModule, FloatLabelModule],
   templateUrl: './datepicker.component.html',
 })

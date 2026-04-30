@@ -10,7 +10,6 @@ import { OrderService } from '@app/core/services/orders/order-service';
 
 @Component({
   selector: 'app-waiter-area',
-  standalone: true,
   imports: [RouterModule, ButtonModule, CardModule, DividerModule],
   template: `
     <div class="min-h-screen bg-surface-50 dark:bg-surface-900">
