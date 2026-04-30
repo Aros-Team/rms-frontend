@@ -23,5 +23,4 @@ jobs:
       - name: releaser-pleaser
         uses: apricote/releaser-pleaser@v0.8.0
         with:
-          extra-files: |
-            package.json
+          updaters: packagejson
