@@ -1,3 +1,5 @@
+import { RecipeItemRequest } from './product-create-request';
+
 export interface ProductUpdateRequest {
   id: number;
   name: string;
@@ -5,4 +7,6 @@ export interface ProductUpdateRequest {
   hasOptions: boolean;
   categoryId: number;
   areaId: number;
+  recipe?: RecipeItemRequest[];
+  optionIds?: number[];
 }

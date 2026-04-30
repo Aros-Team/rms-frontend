@@ -3,6 +3,23 @@ import { Component, inject, OnInit } from '@angular/core';
 import { ChartModule } from 'primeng/chart';
 import { AnalyticsService } from '@app/core/services/analytics/analytics-service';
 
+interface ChartData {
+  labels?: string[];
+  datasets?: { data: number[]; backgroundColor?: string[]; borderWidth?: number }[];
+}
+
+interface ChartOptions {
+  cutout?: string;
+  plugins?: {
+    legend?: { position?: string };
+    tooltip?: {
+      callbacks?: {
+        label?: (context: { label?: string; parsed: number }) => string;
+      };
+    };
+  };
+}
+
 @Component({
   selector: 'app-top-selling-chart',
   standalone: true,
@@ -12,8 +29,8 @@ import { AnalyticsService } from '@app/core/services/analytics/analytics-service
 export class TopSellingChartComponent implements OnInit {
   private analytics = inject(AnalyticsService);
 
-  data: any = null;
-  options: any = {
+  data: ChartData | null = null;
+  options: ChartOptions = {
     cutout: '60%',
     plugins: {
       legend: {
@@ -21,7 +38,7 @@ export class TopSellingChartComponent implements OnInit {
       },
       tooltip: {
         callbacks: {
-          label: (context: any) => {
+          label: (context: { label?: string; parsed: number }) => {
             const label = context.label || '';
             const value = context.parsed;
             return `${label}: ${value}`;

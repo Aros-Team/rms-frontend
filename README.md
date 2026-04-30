@@ -23,6 +23,19 @@ The Aros system frontend is built on a modern and scalable stack, optimized for 
 
 - **Styling:** Tailwind CSS for utility-first styling, ensuring consistency and maintainability.
 
+- **Real-time Communication:** WebSocket with STOMP protocol for live order updates in the kitchen.
+
+
+## Features
+
+- **Real-time Kitchen Updates:** WebSocket integration provides instant notifications when orders are created, prepared, or ready for delivery—no page refresh needed.
+
+- **Multi-client Synchronization:** Multiple kitchen displays stay synchronized automatically, ensuring all staff see the same order status.
+
+- **Accessible Interface:** Built with WCAG AA compliance in mind, ensuring usability for all users.
+
+- **Responsive Design:** Optimized for desktop, tablet, and mobile devices.
+
 
 ## Requirements
 
@@ -59,3 +72,17 @@ This project uses [Taskfile](https://taskfile.dev/) for running common commands.
   task format        # Check and fix formatting
   task format:check  # Check without fixing
   ```
+
+
+## WebSocket Integration
+
+The kitchen module uses WebSocket for real-time order updates. See the documentation for details:
+
+- [WebSocket Implementation Guide](docs/websocket-implementation.md) - Technical details and architecture
+- [WebSocket Usage Examples](docs/websocket-ejemplo-uso.md) - How to use WebSocket in other components
+- [WebSocket Summary](docs/websocket-resumen.md) - Quick overview in Spanish
+
+The WebSocket connection is established automatically when accessing the kitchen view, providing instant updates for:
+- New orders (QUEUE)
+- Orders in preparation (PREPARING)
+- Orders ready for delivery (READY)

@@ -1,12 +1,14 @@
 
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { interval, Subscription } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 
 import { OrderService } from '@app/core/services/orders/order-service';
 import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
 import { OptionNamesPipe } from '@app/shared/pipes/option-names.pipe';
+import { WebSocketService } from '@app/core/services/websocket/websocket.service';
+import { AuthService } from '@app/core/services/authentication/auth-service';
+import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-kitchen',
@@ -15,9 +17,13 @@ import { OptionNamesPipe } from '@app/shared/pipes/option-names.pipe';
 })
 export class Kitchen implements OnInit, OnDestroy {
   private orderService = inject(OrderService);
+  private wsService = inject(WebSocketService);
+  private authService = inject(AuthService);
 
-  loading = signal(true);
+  loading = signal(true);       // solo para carga inicial
+  refreshing = signal(false);   // para actualizaciones silenciosas
   error = signal<string | null>(null);
+  wsConnected = signal(false);
 
   queueOrders    = signal<OrderResponse[]>([]);
   preparingOrders = signal<OrderResponse[]>([]);
@@ -26,28 +32,146 @@ export class Kitchen implements OnInit, OnDestroy {
   processing = new Set<number>();
   preparingNext = signal(false);
 
-  private refreshSub?: Subscription;
-  private readonly REFRESH_MS = 30_000;
+  private wsSubs: Subscription[] = [];
+  private pollingInterval?: ReturnType<typeof setInterval>;
 
   ngOnInit(): void {
     this.fetchAll();
-    this.refreshSub = interval(this.REFRESH_MS).pipe(
-      switchMap(() => this.orderService.getOrdersByStatus('QUEUE'))
-    ).subscribe({
-      next: () => this.fetchAll()
-    });
+    this.connectWebSocket();
   }
 
   ngOnDestroy(): void {
-    this.refreshSub?.unsubscribe();
+    // Solo desuscribir los observables locales, NO desconectar el WebSocket
+    // El servicio es singleton y puede ser usado por otros componentes
+    this.wsSubs.forEach(sub => sub.unsubscribe());
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+    }
   }
 
-  fetchAll(): void {
-    this.loading.set(true);
+  private startPolling(): void {
+    if (this.pollingInterval) {
+      console.log('Kitchen: Polling already active');
+      return;
+    }
+    console.log('Kitchen: Starting polling fallback (every 5 seconds)');
+    // Polling cada 5 segundos como fallback
+    this.pollingInterval = setInterval(() => {
+      console.log('Kitchen: Polling for updates...');
+      this.fetchAll(true); // silent refresh, sin parpadeo
+    }, 5000);
+  }
+
+  private connectWebSocket(): void {
+    const token = this.authService.getToken();
+    if (!token) {
+      console.error('Kitchen: No token available, falling back to polling');
+      this.startPolling();
+      return;
+    }
+
+    const baseUrl = environment.apiUrl.replace('/api', '');
+    const wsUrl = baseUrl.replace('https://', 'wss://').replace('http://', 'ws://') + '/ws';
+    
+    console.log('Kitchen: Attempting WebSocket connection to:', wsUrl);
+    
+    // Conectar (si ya está conectado, connect() lo ignora internamente)
+    this.wsService.connect(wsUrl, token);
+
+    // Suscribirse al estado de conexión — BehaviorSubject emite el estado actual inmediatamente
+    const connectionSub = this.wsService.connection$.subscribe({
+      next: (connected) => {
+        console.log('Kitchen: WebSocket connection status:', connected);
+        this.wsConnected.set(connected);
+        
+        if (!connected) {
+          if (!this.pollingInterval) {
+            console.warn('Kitchen: WebSocket disconnected, activating polling fallback');
+            this.startPolling();
+          }
+        } else {
+          if (this.pollingInterval) {
+            console.log('Kitchen: WebSocket connected, stopping polling');
+            clearInterval(this.pollingInterval);
+            this.pollingInterval = undefined;
+          }
+          if (this.error()?.includes('WebSocket')) {
+            this.error.set(null);
+          }
+        }
+      }
+    });
+    this.wsSubs.push(connectionSub);
+
+    // Suscribirse a nuevas órdenes (QUEUE)
+    const createdSub = this.wsService.orderCreated$.subscribe({
+      next: (order) => {
+        console.log('Kitchen: Received orderCreated event:', order.id);
+        this.queueOrders.update(list => {
+          // Evitar duplicados
+          if (list.some(o => o.id === order.id)) {
+            console.log('Kitchen: Order', order.id, 'already in queue, skipping');
+            return list;
+          }
+          console.log('Kitchen: Adding order', order.id, 'to queue');
+          return [...list, order];
+        });
+      }
+    });
+    this.wsSubs.push(createdSub);
+
+    // Suscribirse a órdenes en preparación (PREPARING)
+    const preparingSub = this.wsService.orderPreparing$.subscribe({
+      next: (order) => {
+        console.log('Kitchen: Received orderPreparing event:', order.id);
+        // Remover de cola y agregar a preparación
+        this.queueOrders.update(list => list.filter(o => o.id !== order.id));
+        this.preparingOrders.update(list => {
+          if (list.some(o => o.id === order.id)) {
+            console.log('Kitchen: Order', order.id, 'already in preparing, skipping');
+            return list;
+          }
+          console.log('Kitchen: Moving order', order.id, 'to preparing');
+          return [...list, order];
+        });
+      }
+    });
+    this.wsSubs.push(preparingSub);
+
+    // Suscribirse a órdenes listas (READY)
+    const readySub = this.wsService.orderReady$.subscribe({
+      next: (order) => {
+        console.log('Kitchen: Received orderReady event:', order.id);
+        // Remover de preparación y agregar a listas
+        this.preparingOrders.update(list => list.filter(o => o.id !== order.id));
+        this.readyOrders.update(list => {
+          if (list.some(o => o.id === order.id)) {
+            console.log('Kitchen: Order', order.id, 'already in ready, skipping');
+            return list;
+          }
+          console.log('Kitchen: Moving order', order.id, 'to ready');
+          return [...list, order];
+        });
+      }
+    });
+    this.wsSubs.push(readySub);
+  }
+
+  fetchAll(silent = false): void {
+    if (silent) {
+      this.refreshing.set(true);
+    } else {
+      this.loading.set(true);
+    }
     this.error.set(null);
 
     let done = 0;
-    const check = () => { if (++done === 3) this.loading.set(false); };
+    const check = () => {
+      if (++done === 3) {
+        this.loading.set(false);
+        this.refreshing.set(false);
+      }
+    };
 
     this.orderService.getOrdersByStatus('QUEUE').subscribe({
       next: v => { this.queueOrders.set(v); check(); },

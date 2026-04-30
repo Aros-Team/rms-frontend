@@ -14,7 +14,6 @@ import { LoggingService } from '@app/core/services/logging/logging-service';
 @Component({
   selector: 'app-order-creation-form',
   templateUrl: './order-creation-form.html',
-  standalone: true,
   imports: [CommonModule, ReactiveFormsModule]
 })
 export class OrderCreationForm implements OnInit {

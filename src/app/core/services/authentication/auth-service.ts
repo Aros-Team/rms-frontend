@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Observable, tap, throwError, BehaviorSubject, catchError } from 'rxjs';
 import { UserInfo } from '@models/domain/user/user-info.model';
 import { AuthRequest } from '@models/dto/auth/auth-request.model';
@@ -15,31 +16,52 @@ export class AuthService {
   private http = inject(HttpClient);
   private loggingService = inject(LoggingService);
   private fingerprintService = inject(FingerprintService);
+  private platformId = inject(PLATFORM_ID);
 
-  private token: string | undefined = localStorage.getItem('access') || undefined;
-  private data?: UserInfo;
+  private _token: string | undefined;
+  private _userData?: UserInfo;
   
   private tfaTokenSubject = new BehaviorSubject<string | null>(null);
   tfaToken$ = this.tfaTokenSubject.asObservable();
   
   private pendingUsername: string | null = null;
 
-  constructor() {
-    this.loggingService.auth('AuthService initialized - token exists:', !!this.token);
-    this.loggingService.auth('AuthService initialized - access token:', this.token);
-    this.loggingService.auth('AuthService initialized - refresh token:', localStorage.getItem('refresh'));
+  private static readonly ACCESS_KEY = 'rms_access';
+  private static readonly REFRESH_KEY = 'rms_refresh';
+  private static readonly EXPIRY_KEY = 'rms_token_expiry';
 
-    if (this.token && !this.data) {
-      this.loggingService.auth('Token exists but no user data, will load user info after initialization');
-      setTimeout(() => {
-        this.getUserInfo();
-      }, 0);
+  constructor() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.loadStoredToken();
+    }
+  }
+
+  private loadStoredToken(): void {
+    const expiry = localStorage.getItem(AuthService.EXPIRY_KEY);
+    const storedToken = localStorage.getItem(AuthService.ACCESS_KEY);
+    
+    if (storedToken && expiry) {
+      const expiryTime = parseInt(expiry, 10);
+      if (Date.now() < expiryTime) {
+        this._token = storedToken;
+        this.loggingService.info('Session restored successfully');
+        
+        if (this._userData === undefined) {
+          // Defer getUserInfo to avoid circular dependency with interceptor
+          setTimeout(() => {
+            this.getUserInfo();
+          }, 0);
+        }
+      } else {
+        this.loggingService.info('Token expired, clearing session');
+        this.clearStorage();
+      }
     }
   }
 
   login(credentials: AuthRequest): Observable<AuthResponse> {
     const deviceHash = this.fingerprintService.getDeviceHash();
-    this.loggingService.auth('Login called with username:', credentials.username, 'deviceHash:', deviceHash);
+    this.loggingService.info('Login attempt initiated');
 
     return this.http
       .post<AuthResponse>('auth/login', {
@@ -49,14 +71,14 @@ export class AuthService {
       })
       .pipe(
         tap((response: AuthResponse) => {
-          this.loggingService.auth('Login response received - type:', response.type);
+          this.loggingService.info('Login response received');
           
           if (response.type === 'TFA_REQUIRED') {
-            this.loggingService.auth('TFA required - saving TFA token');
+            this.loggingService.info('TFA required');
             this.tfaTokenSubject.next(response.accessToken);
             this.pendingUsername = response.username;
           } else {
-            this.loggingService.auth('Login successful - saving tokens');
+            this.loggingService.info('Login successful, saving session');
             this.saveTokens(response.accessToken, response.refreshToken);
             this.getUserInfo();
           }
@@ -73,7 +95,7 @@ export class AuthService {
       return throwError(() => new Error('TFA token not found'));
     }
 
-    this.loggingService.auth('Verifying 2FA code for user:', this.pendingUsername);
+    this.loggingService.info('Verifying 2FA code');
 
     return this.http
       .post<AuthResponse>('auth/verify', {
@@ -86,7 +108,7 @@ export class AuthService {
       })
       .pipe(
         tap((response: AuthResponse) => {
-          this.loggingService.auth('2FA verification successful - saving tokens');
+          this.loggingService.info('2FA verification successful');
           this.tfaTokenSubject.next(null);
           this.pendingUsername = null;
           this.saveTokens(response.accessToken, response.refreshToken);
@@ -96,8 +118,8 @@ export class AuthService {
   }
 
   refresh(): Observable<AuthResponse> {
-    const refreshToken = localStorage.getItem('refresh');
-    this.loggingService.auth('Refresh called - refresh token exists:', !!refreshToken);
+    const refreshToken = this.getRefreshToken();
+    this.loggingService.info('Token refresh attempted');
 
     return this.http.post<AuthResponse>('auth/refresh', {}, {
       headers: {
@@ -105,13 +127,12 @@ export class AuthService {
       }
     }).pipe(
       tap((response: AuthResponse) => {
-        this.loggingService.auth('Refresh successful - new tokens received');
+        this.loggingService.info('Token refresh successful');
         this.saveTokens(response.accessToken, response.refreshToken);
-        this.loggingService.auth('Tokens saved, calling getUserInfo');
         this.getUserInfo();
       }),
       catchError((err) => {
-        this.loggingService.auth('Refresh failed, clearing tokens');
+        this.loggingService.error('Token refresh failed', err);
         this.logout();
         return throwError(() => err);
       })
@@ -119,48 +140,68 @@ export class AuthService {
   }
 
   logout(): void {
-    this.token = undefined;
-    this.data = undefined;
+    this._token = undefined;
+    this._userData = undefined;
     this.tfaTokenSubject.next(null);
     this.pendingUsername = null;
-    localStorage.removeItem('refresh');
-    localStorage.removeItem('access');
+    this.clearStorage();
+    this.loggingService.info('User logged out');
   }
 
   isAuthenticated(): boolean {
-    return this.token != undefined;
+    return this._token !== undefined;
   }
 
   getToken(): string | undefined {
-    return this.token;
+    return this._token;
   }
 
   getData(): UserInfo | undefined {
-    this.loggingService.debug('getData called - current data:', this.data);
-    return this.data;
+    return this._userData;
+  }
+
+  private getRefreshToken(): string | null {
+    if (isPlatformBrowser(this.platformId)) {
+      return localStorage.getItem(AuthService.REFRESH_KEY);
+    }
+    return null;
   }
 
   private saveTokens(accessToken: string, refreshToken: string | null): void {
-    this.token = accessToken;
-    localStorage.setItem('access', accessToken);
-    if (refreshToken) {
-      localStorage.setItem('refresh', refreshToken);
+    this._token = accessToken;
+    
+    if (isPlatformBrowser(this.platformId)) {
+      const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+      const expiry = Date.now() + sevenDaysMs;
+      
+      localStorage.setItem(AuthService.ACCESS_KEY, accessToken);
+      localStorage.setItem(AuthService.EXPIRY_KEY, expiry.toString());
+      
+      if (refreshToken) {
+        localStorage.setItem(AuthService.REFRESH_KEY, refreshToken);
+      }
+    }
+  }
+
+  private clearStorage(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem(AuthService.ACCESS_KEY);
+      localStorage.removeItem(AuthService.REFRESH_KEY);
+      localStorage.removeItem(AuthService.EXPIRY_KEY);
     }
   }
 
   private getUserInfo(): void {
-    this.loggingService.auth('getUserInfo called - current token exists:', !!this.token);
     this.http.get<UserInfo>('auth').subscribe({
       next: (userInfo: UserInfo) => {
-        this.loggingService.auth('getUserInfo successful - user data received');
-        this.data = userInfo;
-        this.loggingService.auth('User data set successfully - role:', userInfo.role);
+        this._userData = userInfo;
+        this.loggingService.info('User info loaded successfully');
       },
       error: (err: unknown) => {
-        this.loggingService.error('Error getting user info:', err);
+        this.loggingService.error('Failed to load user info', err);
         const httpErr = err as { status?: number };
-        if (httpErr.status === 401) {
-          this.loggingService.auth('Token expired or invalid, clearing tokens');
+        if (httpErr.status === 401 || httpErr.status === 404) {
+          this.loggingService.info('Session invalid, clearing');
           this.logout();
         }
       }

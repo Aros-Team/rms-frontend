@@ -1,29 +1,35 @@
-import { Component, OnInit, OnDestroy, inject, Input, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, Input, ChangeDetectorRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
 import { Header, HorizontalMenuOption } from '../components/header/header';
 import { Sidebar } from '../components/sidebar/sidebar';
+import { ChatComponent } from '../components/chat/chat.component';
 import { MenuService } from '../../core/services/menu/menu-service';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-layout',
-  imports: [Header, Sidebar],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [Header, Sidebar, ChatComponent],
   templateUrl: './layout.html',
   styles: ``
 })
 export class Layout implements OnInit, OnDestroy {
   @Input() workerType?: string;
   @Input() hideSidebar = false;
+  @Input() role?: string;
+  @ViewChild(ChatComponent) chatComponent!: ChatComponent;
 
   sidebarVisible = false;
   isMobile = false;
+  isTablet = false;
   horizontalMenuOptions: HorizontalMenuOption[] = [];
 
   private resizeSubscription!: Subscription;
   private routerSubscription!: Subscription;
+  private resizeHandler!: () => void;
   private menuService = inject(MenuService);
   private cdr = inject(ChangeDetectorRef);
   private router = inject(Router);
@@ -46,17 +52,21 @@ export class Layout implements OnInit, OnDestroy {
     if (this.routerSubscription) {
       this.routerSubscription.unsubscribe();
     }
+    if (this.resizeHandler) {
+      window.removeEventListener('resize', this.resizeHandler);
+    }
   }
 
   private checkScreenSize(): void {
-    this.isMobile = window.innerWidth < 1024;
+    const width = window.innerWidth;
+    this.isMobile = width < 768;
+    this.isTablet = width >= 768 && width < 1024;
     this.sidebarVisible = !this.isMobile && !this.hideSidebar;
   }
 
   private setupResizeListener(): void {
-    window.addEventListener('resize', () => {
-      this.checkScreenSize();
-    });
+    this.resizeHandler = () => { this.checkScreenSize(); };
+    window.addEventListener('resize', this.resizeHandler);
   }
 
   private configureHorizontalMenu(): void {
@@ -88,5 +98,13 @@ export class Layout implements OnInit, OnDestroy {
 
   onSidebarVisibleChange(visible: boolean): void {
     this.sidebarVisible = visible;
+  }
+
+  chatVisible = false;
+
+  toggleChat(): void {
+    if (this.chatComponent) {
+      this.chatComponent.toggleChat();
+    }
   }
 }

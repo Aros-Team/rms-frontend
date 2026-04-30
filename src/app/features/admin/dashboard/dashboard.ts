@@ -3,16 +3,21 @@ import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { BadgeModule } from 'primeng/badge';
 import { CardModule } from 'primeng/card';
+import { SkeletonModule } from 'primeng/skeleton';
 import { CommonModule } from '@angular/common';
 import { OrderService } from '@app/core/services/orders/order-service';
 import { TableService } from '@app/core/services/tables/table-service';
 import { ProductService, Product } from '@app/core/services/products/product-service';
-import { DayMenu } from '@app/core/services/daymenu/daymenu-service';
+import { DayMenuService } from '@app/core/services/daymenu/daymenu-service';
+import { DayMenuResponse } from '@app/shared/models/dto/daymenu/daymenu-response';
+import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
 import { OrderDetailDialogComponent } from '@shared/components/order-detail-dialog/order-detail-dialog.component';
 import { LoggingService } from '@app/core/services/logging/logging-service';
 import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
 import { OrderDetailsResponse } from '@app/shared/models/dto/orders/order-details-response.model';
-import { count } from 'rxjs';
+import { of } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
+import { calculateTotalPrice } from '@app/shared/models/dto/orders/order-response.model';
 import { Message } from "primeng/message";
 
 @Component({
@@ -24,6 +29,7 @@ import { Message } from "primeng/message";
     TableModule,
     BadgeModule,
     CardModule,
+    SkeletonModule,
     OrderDetailDialogComponent,
     Message
   ],
@@ -33,12 +39,15 @@ export class Dashboard implements OnInit {
   private orderService = inject(OrderService);
   private tableService = inject(TableService);
   private productService = inject(ProductService);
+  private dayMenuService = inject(DayMenuService);
   private loggingService = inject(LoggingService);
 
   orders = signal<OrderResponse[]>([]);
   orderDetails = signal<OrderDetailsResponse[]>([]);
-  dayMenu = signal<DayMenu | null>(null);
-  existDayMenu = false
+  dayMenu = signal<DayMenuResponse | null>(null);
+  dayMenuOptions = signal<ProductOption[]>([]);
+  loadingDayMenuOptions = signal(false);
+  existDayMenu = false;
   completedOrdersCount = signal(0);
   preparingOrdersCount = signal(0);
   occupiedTablesCount = signal(0);
@@ -170,57 +179,56 @@ export class Dashboard implements OnInit {
   }
 
   private loadDayMenu() {
-    const dayMenuTest = {
-      id: 1,
-      name: 'Menú del Día',
-      description: 'Menú de prueba',
-      price: 15000,
-      preparationTime: 15,
-      active: true,
-      creation: new Date().toISOString(),
-      categories: [
-        {
-          id: 1,
-          name: 'Sopa',
-          position: 1,
-          products: [
-            { id: 1, name: 'Sopa de verduras', description: 'Sopa casera de verduras', price: 5000, preparationTime: 10 },
-            { id: 2, name: 'Sopa de pollo', description: 'Sopa de pollo con arroz', price: 6000, preparationTime: 10 }
-          ]
-        },
-        {
-          id: 2,
-          name: 'Principio',
-          position: 2,
-          products: [
-            { id: 3, name: 'Arroz blanco', description: 'Arroz blanco graneado', price: 3000, preparationTime: 5 },
-            { id: 4, name: 'Pasta', description: 'Pasta en salsa roja', price: 3500, preparationTime: 8 },
-            { id: 5, name: 'Puré de papa', description: 'Puré cremoso de papa', price: 3000, preparationTime: 5 }
-          ]
-        },
-        {
-          id: 3,
-          name: 'Proteína',
-          position: 3,
-          products: [
-            { id: 6, name: 'Pollo asado', description: 'Pollo a la plancha', price: 8000, preparationTime: 15 },
-            { id: 7, name: 'Carne molida', description: 'Carne molida guisada', price: 9000, preparationTime: 15 },
-            { id: 8, name: 'Pescado', description: 'Pescado frito', price: 10000, preparationTime: 12 }
-          ]
+    this.dayMenuService.getCurrentDayMenu().pipe(
+      switchMap(menu => {
+        // 204 No Content llega como null
+        if (!menu) {
+          this.dayMenu.set(null);
+          this.existDayMenu = false;
+          return of([] as ProductOption[]);
         }
-      ]
-    };
+        this.dayMenu.set(menu);
+        this.existDayMenu = true;
+        this.loadingDayMenuOptions.set(true);
+        return this.productService.getOptions(menu.productId).pipe(
+          catchError(() => of([] as ProductOption[]))
+        );
+      }),
+      catchError(() => {
+        this.dayMenu.set(null);
+        this.existDayMenu = false;
+        return of([] as ProductOption[]);
+      })
+    ).subscribe(opts => {
+      this.dayMenuOptions.set(opts);
+      this.loadingDayMenuOptions.set(false);
+    });
+  }
 
-    this.dayMenu.set(dayMenuTest as DayMenu);
-    this.existDayMenu = true;
+  groupByCategory(options: ProductOption[]): { category: string; items: ProductOption[] }[] {
+    const map = new Map<string, ProductOption[]>();
+    for (const o of options) {
+      const arr = map.get(o.optionCategoryName) ?? [];
+      arr.push(o);
+      map.set(o.optionCategoryName, arr);
+    }
+    return Array.from(map.entries()).map(([category, items]) => ({ category, items }));
+  }
+
+  calcTotal(order: OrderResponse): number {
+    return calculateTotalPrice(order);
   }
 
   getStatusBadgeClass(status: string): string {
     switch (status) {
-      case 'COMPLETED':
+      case 'DELIVERED':
         return 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-300';
-      case 'PENDING':
+      case 'PREPARING':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-300';
+      case 'READY':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-300';
+      case 'QUEUE':
+        return 'bg-orange-100 text-orange-800 dark:bg-orange-800 dark:text-orange-300';
       case 'CANCELLED':
         return 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-300';
       default:
@@ -230,10 +238,14 @@ export class Dashboard implements OnInit {
 
   getStatusText(status: string): string {
     switch (status) {
-      case 'COMPLETED':
-        return 'Completado';
-      case 'PENDING':
+      case 'DELIVERED':
+        return 'Entregado';
+      case 'PREPARING':
         return 'En preparación';
+      case 'READY':
+        return 'Listo';
+      case 'QUEUE':
+        return 'En cola';
       case 'CANCELLED':
         return 'Cancelado';
       default:

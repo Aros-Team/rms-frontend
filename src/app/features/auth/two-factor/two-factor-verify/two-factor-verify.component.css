@@ -1,0 +1,127 @@
+.two-factor-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-ground);
+  padding: 1rem;
+}
+
+.two-factor-card {
+  background: var(--surface-card);
+  border-radius: 1rem;
+  padding: 2rem;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--surface-border);
+}
+
+.two-factor-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.two-factor-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: var(--p-primary-500);
+  margin-bottom: 1rem;
+}
+
+.two-factor-card h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.two-factor-subtitle {
+  margin: 0;
+  color: var(--text-color-secondary);
+  font-size: 0.875rem;
+}
+
+.two-factor-error {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--p-red-100);
+  border: 1px solid var(--p-red-300);
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.two-factor-error-icon {
+  color: var(--p-red-500);
+  font-size: 1.25rem;
+}
+
+.two-factor-error-text {
+  color: var(--p-red-700);
+  font-size: 0.875rem;
+}
+
+.two-factor-form-field {
+  margin-bottom: 1.5rem;
+}
+
+.two-factor-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+}
+
+.two-factor-code-input {
+  width: 100%;
+  text-align: center;
+  font-size: 1.5rem;
+  letter-spacing: 0.5em;
+  font-family: monospace;
+  padding: 1rem;
+}
+
+.two-factor-error-small {
+  color: var(--p-red-500);
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+  display: block;
+}
+
+.two-factor-footer {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--surface-border);
+  text-align: center;
+}
+
+.two-factor-footer-text {
+  color: var(--text-color-secondary);
+  font-size: 0.875rem;
+  margin: 0 0 0.75rem 0;
+}
+
+.two-factor-expire-note {
+  color: var(--text-color-secondary);
+  font-size: 0.75rem;
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 480px) {
+  .two-factor-card {
+    padding: 1.5rem;
+  }
+
+  .two-factor-code-input {
+    font-size: 1.25rem;
+    padding: 0.75rem;
+  }
+}

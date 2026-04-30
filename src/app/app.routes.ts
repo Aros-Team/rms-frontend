@@ -16,9 +16,10 @@ import { Login } from '@areas/login/login-area';
 import { AdminArea } from '@areas/admin/admin-area';
 import { WorkerArea } from '@areas/worker/worker-area';
 import { Users } from './features/admin/manage/users/users';
-import { TwoFactorVerifyComponent } from './features/auth/two-factor-verify/two-factor-verify.component';
-import { ForgotPasswordComponent } from './features/auth/authentication/forgot-password.component';
-import { ResetPasswordComponent } from './features/auth/authentication/reset-password.component';
+import { ForgotPasswordComponent } from './features/auth/password-recovery/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './features/auth/password-recovery/reset-password/reset-password.component';
+import { TwoFactorVerifyComponent } from './features/auth/two-factor/two-factor-verify/two-factor-verify.component';
+import { SetupAccountComponent } from './features/auth/setup-account/setup-account.component';
 import { SettingsComponent } from './features/settings/settings.component';
 import { WaiterArea } from '@features/waiter/waiter-area';
 import { DayMenu } from '@features/waiter/day-menu/day-menu';
@@ -45,6 +46,10 @@ export const routes: Routes = [
   {
     path: 'login/verify',
     component: TwoFactorVerifyComponent,
+  },
+  {
+    path: 'setup-account',
+    component: SetupAccountComponent,
   },
   {
     path: 'admin',
@@ -95,6 +100,10 @@ export const routes: Routes = [
           {
             path: 'users',
             component: Users,
+          },
+          {
+            path: 'inventory',
+            loadComponent: () => import('./features/admin/manage/inventory/inventory').then(m => m.Inventory),
           },
         ]
       },

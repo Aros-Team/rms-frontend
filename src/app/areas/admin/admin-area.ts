@@ -12,6 +12,8 @@ import { MenuService, MenuItem } from '@app/core/services/menu/menu-service';
 export class AdminArea implements OnInit {
   private menuService = inject(MenuService);
 
+  role = 'ADMIN';
+
   ngOnInit(): void {
     this.configureAdminMenu();
   }
@@ -23,35 +25,40 @@ export class AdminArea implements OnInit {
         label: 'Dashboard',
         description: 'Vista general del restaurante',
         icon: 'pi pi-home',
-        routerLink: '/admin'
+        routerLink: '/admin',
+        exact: true
       },
       {
         id: 'orders',
         label: 'Pedidos',
         description: 'Gestiona los pedidos del día',
         icon: 'pi pi-shopping-cart',
-        routerLink: '/admin/orders'
+        routerLink: '/admin/orders',
+        exact: false
       },
       {
         id: 'manage',
         label: 'Restaurante',
         description: 'Gestiona tu restaurante',
         icon: 'pi pi-shop',
-        routerLink: '/admin/manage'
+        routerLink: '/admin/manage',
+        exact: false
       },
       {
         id: 'analytics',
         label: 'Estadisticas',
         description: 'Analiza el rendimiento',
         icon: 'pi pi-chart-bar',
-        routerLink: '/admin/analytics'
+        routerLink: '/admin/analytics',
+        exact: false
       },
       {
         id: 'profile',
         label: 'Configuración',
         description: 'Ajustes de cuenta',
         icon: 'pi pi-cog',
-        routerLink: '/admin/profile'
+        routerLink: '/admin/profile',
+        exact: false
       },
     ];
 

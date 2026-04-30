@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { MasterDataService } from '@app/core/services/master-data/master-data.service';
 import { OrderService } from '@app/core/services/orders/order-service';
 import { LoggingService } from '@app/core/services/logging/logging-service';
+import { CartService } from '@app/core/services/cart/cart.service';
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
 import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
 import { TableResponse } from '@app/shared/models/dto/tables/table-response.model';
@@ -28,6 +29,7 @@ export class TakeOrder implements OnInit {
   private masterData = inject(MasterDataService);
   private orderService = inject(OrderService);
   private logger = inject(LoggingService);
+  private cartService = inject(CartService);
 
   // Estado de carga
   loading = signal(true);
@@ -81,6 +83,9 @@ export class TakeOrder implements OnInit {
         this.productsByCategory.set(this.masterData.getProductsByCategory());
         const cats = Object.keys(this.masterData.getProductsByCategory());
         if (cats.length) this.activeCategory.set(cats[0]);
+        // Consume items pre-cargados desde el menú del día
+        const pending = this.cartService.flush();
+        if (pending.length) this.cart.set(pending);
         this.loading.set(false);
       },
       error: (err) => {
@@ -129,10 +134,16 @@ export class TakeOrder implements OnInit {
     });
   }
 
-  toggleOption(optionId: number): void {
-    this.pendingOptions.update(ids =>
-      ids.includes(optionId) ? ids.filter(id => id !== optionId) : [...ids, optionId]
-    );
+  toggleOption(optionId: number, categoryId: number): void {
+    const sameCategory = this.modalOptions()
+      .filter(o => o.optionCategoryId === categoryId)
+      .map(o => o.id);
+
+    this.pendingOptions.update(ids => {
+      // quitar todas las de la misma categoría, luego agregar la nueva (o deseleccionar si ya estaba)
+      const withoutCategory = ids.filter(id => !sameCategory.includes(id));
+      return ids.includes(optionId) ? withoutCategory : [...withoutCategory, optionId];
+    });
   }
 
   isOptionSelected(optionId: number): boolean {
@@ -180,6 +191,10 @@ export class TakeOrder implements OnInit {
     return !!this.selectedTableId() && this.cart().length > 0 && !this.submitting();
   }
 
+  private resolveOrderError(err: { status?: number; error?: { message?: string } }): string {
+    return err?.error?.message || 'No se pudo crear la orden. Intenta de nuevo.';
+  }
+
   submitOrder(): void {
     const tableId = this.selectedTableId();
     if (!tableId || this.cart().length === 0) return;
@@ -207,7 +222,7 @@ export class TakeOrder implements OnInit {
       },
       error: (err) => {
         this.logger.error('TakeOrder: create order failed', err);
-        const msg = err?.error?.message || 'No se pudo crear la orden.';
+        const msg = this.resolveOrderError(err);
         this.error.set(msg);
         this.submitting.set(false);
       }

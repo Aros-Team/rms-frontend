@@ -15,17 +15,13 @@ tasks:
   test:
     desc: Run tests
     cmds:
-      - npm test
+      - npm run lint:check
+      - npm test -- --no-watch --browsers=ChromeHeadless
 
   format:
     desc: Fix code formatting
     cmds:
-      - npm run lint
-
-  format:check:
-    desc: Check code formatting without fixing
-    cmds:
-      - npm run lint:check
+      - npm run lint --fix
 
   build:
     desc: Build and create Docker image

@@ -28,8 +28,10 @@ export interface HorizontalMenuOption {
 })
 export class Header implements OnInit, OnDestroy {
   @Output() toggleMenu = new EventEmitter<void>();
+  @Output() toggleChat = new EventEmitter<void>();
   @Input() horizontalMenuOptions: HorizontalMenuOption[] = [];
   @Input() isMobile = false;
+  @Input() role?: string;
   customer = environment.customer;
 
   selectedMenuItem: MenuItem | null = null;
