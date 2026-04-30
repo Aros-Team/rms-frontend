@@ -26,6 +26,7 @@
             "allowedCommonJsDependencies": [
               "@stomp/stompjs"
             ],
+            "serviceWorker": "ngsw-config.json",
             "assets": [
               {
                 "glob": "**/*",

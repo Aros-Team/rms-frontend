@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 
 import { RouterModule } from '@angular/router';
 import { TableModule } from 'primeng/table';
@@ -49,7 +49,7 @@ export class Users implements OnInit {
   title = 'Administracion de usuarios';
   description = 'Gestión completa de todos los usuarios/empleados del restaurante';
 
-  users: UserResponse[] = [];
+  users = signal<UserResponse[]>([]);
   editing = false;
   selectedUser: UserResponse | null = null;
 
@@ -375,8 +375,8 @@ export class Users implements OnInit {
 
   private searchForUsers(): void {
     this.userService.getUsers().subscribe((res) => {
-      this.users = res;
-      this.loggingService.debug('Users loaded:', this.users);
+      this.users.set(res);
+      this.loggingService.debug('Users loaded:', this.users());
     });
   }
 
