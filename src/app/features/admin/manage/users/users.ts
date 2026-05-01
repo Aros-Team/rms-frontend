@@ -54,11 +54,11 @@ export class Users implements OnInit {
   selectedUser: UserResponse | null = null;
 
   userForm: FormGroup = new FormGroup({
-    document: new FormControl('', [Validators.required, Validators.pattern('^\\d+$')]),
-    name: new FormControl('', [Validators.required]),
-    email: new FormControl('', [Validators.required, Validators.email]),
+    document: new FormControl('', [Validators.required, Validators.pattern('^\\d+$'), Validators.maxLength(20)]),
+    name: new FormControl('', [Validators.required, Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$'), Validators.maxLength(100)]),
+    email: new FormControl('', [Validators.required, Validators.email, Validators.maxLength(100)]),
     phone: new FormControl('', [Validators.required, Validators.pattern('^\\d{10}$')]),
-    address: new FormControl('', []),
+    address: new FormControl('', [Validators.maxLength(200)]),
   });
 
   creationModalVisible = false;
@@ -402,6 +402,11 @@ export class Users implements OnInit {
       'Address is required': 'Campo requerido',
       'Invalid email format': 'Ingrese un correo electrónico válido',
       'Email is required': 'Campo requerido',
+      'El nombre solo puede contener letras y espacios': 'El nombre solo puede contener letras y espacios',
+      'El nombre debe tener máximo 100 caracteres': 'El nombre debe tener máximo 100 caracteres',
+      'El documento debe tener máximo 20 caracteres': 'El documento debe tener máximo 20 caracteres',
+      'El correo debe tener máximo 100 caracteres': 'El correo debe tener máximo 100 caracteres',
+      'La dirección debe tener máximo 200 caracteres': 'La dirección debe tener máximo 200 caracteres',
     };
 
     for (const marker of fieldMarkers) {
