@@ -1,5 +1,16 @@
 # Changelog
 
+## [v1.2.0](https://github.com/Aros-Team/rms-frontend/releases/tag/v1.2.0)
+
+### Features
+
+- implement PWA support and  cookies for sensitive tokens
+
+### Bug Fixes
+
+- remove theme generation script, use static theme
+- update release workflows
+
 ## [v1.1.0](https://github.com/Aros-Team/rms-frontend/releases/tag/v1.1.0)
 
 ### Features
