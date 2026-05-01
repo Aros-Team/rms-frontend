@@ -57,8 +57,5 @@ jobs:
       - name: Install dependencies
         run: npm i
 
-      - name: Generate theme files
-        run: npm run colors
-
       - name: Run unit tests
         run: npm test -- --no-watch
