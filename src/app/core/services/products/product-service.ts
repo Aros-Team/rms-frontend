@@ -23,7 +23,6 @@ export interface Product {
   id: number;
   name: string;
   basePrice: number;
-  hasOptions: boolean;
   active: boolean;
   categoryId: number;
   categoryName: string;
@@ -77,7 +76,6 @@ export class ProductService {
         id: product.id,
         name: product.name,
         basePrice: product.basePrice,
-        hasOptions: product.hasOptions,
         active: product.active,
         categoryId: product.categoryId,
         categoryName: product.categoryName,

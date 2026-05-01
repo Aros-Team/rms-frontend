@@ -2,7 +2,6 @@ export interface ProductListResponse {
   id: number;
   name: string;
   basePrice: number;
-  hasOptions: boolean;
   active: boolean;
   categoryId: number;
   categoryName: string;

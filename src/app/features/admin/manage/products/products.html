@@ -74,7 +74,7 @@
           <td><span [class]="product.active ? 'text-green-600' : 'text-red-600'">{{ product.active ? 'Activo' : 'Inactivo' }}</span></td>
           <td>{{ product.areaName }}</td>
           <td>{{ product.categoryName }}</td>
-          <td><p-tag [value]="product.hasOptions ? 'Personalizable' : 'Simple'" [severity]="product.hasOptions ? 'info' : 'secondary'" /></td>
+          <td><p-tag value="Producto" severity="secondary" /></td>
           <td>
             <div class="flex gap-1 items-center">
               <p-button size="small" icon="pi pi-eye" label="Ver" severity="secondary"
@@ -98,7 +98,7 @@
 
   <!-- Indicador de pasos -->
   <div class="flex items-center mb-6">
-    @for (step of (hasOptions() ? [1,2,3] : [1,3]); track step; let i = $index; let last = $last) {
+    @for (step of [1,2,3]; track step; let i = $index; let last = $last) {
       <div class="flex items-center flex-1">
         <div class="flex flex-col items-center gap-1">
           <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors"
@@ -140,15 +140,6 @@
               mode="currency" currency="COP" locale="es-CO" class="w-full"
               [invalid]="isInvalid(baseForm, 'basePrice')" />
             <label for="basePrice">Precio base *</label>
-          </p-iftalabel>
-
-          <p-iftalabel>
-            <p-select
-              [options]="[{ label: 'Sí — tiene opciones', value: true }, { label: 'No — no tiene opciones', value: false }]"
-              inputId="hasOptions" class="w-full" formControlName="hasOptions"
-              appendTo="body"
-              [invalid]="isInvalid(baseForm, 'hasOptions')" />
-            <label for="hasOptions">¿Tiene opciones? *</label>
           </p-iftalabel>
 
           <p-iftalabel>
@@ -213,14 +204,14 @@
 
     <div class="flex justify-end gap-2 mt-6">
       <p-button label="Cancelar" severity="secondary" icon="pi pi-times" (click)="closeModal()" />
-      <p-button [label]="hasOptions() ? 'Siguiente' : (modalMode() === 'create' ? 'Crear producto' : 'Guardar cambios')"
-        [icon]="hasOptions() ? 'pi pi-arrow-right' : 'pi pi-check'"
-        [iconPos]="hasOptions() ? 'right' : 'left'"
+      <p-button label="Siguiente"
+        icon="pi pi-arrow-right"
+        iconPos="right"
         [loading]="isSubmitting()" (click)="submitStep1()" />
     </div>
   }
 
-  <!-- ══ PASO 2: Opciones (solo si hasOptions: true) ══ -->
+  <!-- ══ PASO 2: Opciones del producto ══ -->
   @if (currentStep() === 2) {
     <div class="flex flex-col gap-4">
       <p class="text-surface-500 text-sm">
@@ -365,7 +356,7 @@
         <p-button [label]="modalMode() === 'create' ? 'Crear producto' : 'Guardar cambios'"
           icon="pi pi-check"
           [loading]="isSubmitting()"
-          [disabled]="optionsArray.length === 0 || hasDuplicateOptions()"
+          [disabled]="hasDuplicateOptions()"
           (click)="submitStep2()" />
       </div>
     </div>
@@ -394,8 +385,8 @@
           </div>
           <div class="flex justify-between">
             <span class="text-surface-500">Tipo</span>
-            <p-tag [value]="createdProduct()!.hasOptions ? 'Personalizable' : 'Simple'"
-              [severity]="createdProduct()!.hasOptions ? 'info' : 'secondary'" />
+            <p-tag [value]="existingOptions().length > 0 ? 'Personalizable' : 'Simple'"
+              [severity]="existingOptions().length > 0 ? 'info' : 'secondary'" />
           </div>
           <div class="flex justify-between">
             <span class="text-surface-500">Categoría</span>
@@ -526,8 +517,8 @@
       <div class="flex flex-col gap-2 border border-surface-200 dark:border-surface-700 rounded-lg p-4">
         <div class="flex justify-between items-start">
           <span class="text-lg font-semibold text-surface-900 dark:text-surface-0">{{ detailProduct()!.name }}</span>
-          <p-tag [value]="detailProduct()!.hasOptions ? 'Personalizable' : 'Simple'"
-            [severity]="detailProduct()!.hasOptions ? 'info' : 'secondary'" />
+          <p-tag [value]="detailOptions().length > 0 ? 'Personalizable' : 'Simple'"
+            [severity]="detailOptions().length > 0 ? 'info' : 'secondary'" />
         </div>
         <div class="flex justify-between">
           <span class="text-surface-500">Precio base</span>
@@ -550,9 +541,8 @@
       </div>
 
       <!-- Opciones -->
-      @if (detailProduct()!.hasOptions) {
-        <div class="flex flex-col gap-2">
-          <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Opciones disponibles</span>
+      <div class="flex flex-col gap-2">
+        <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Opciones disponibles</span>
           @if (detailOptionsLoading()) {
             <div class="flex flex-col gap-2">
               <p-skeleton height="1.5rem" />
@@ -577,8 +567,6 @@
             </div>
           }
         </div>
-      }
-
     </div>
   }
 

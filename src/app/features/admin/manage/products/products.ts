@@ -39,7 +39,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { MessageService } from 'primeng/api';
 import { CurrencyPipe } from '@angular/common';
 
-// Wizard steps: 1=base+recipe, 2=options (only if hasOptions), 3=summary
+// Wizard steps: 1=base+recipe, 2=options, 3=summary
 type WizardStep = 1 | 2 | 3;
 
 @Component({
@@ -164,7 +164,6 @@ export class Products implements OnInit {
     id: [null],
     name: ['', [Validators.required, Validators.minLength(2)]],
     basePrice: [null, [Validators.required, Validators.min(0)]],
-    hasOptions: [false, Validators.required],
     categoryId: [null, Validators.required],
     areaId: [null, Validators.required],
   });
@@ -173,8 +172,6 @@ export class Products implements OnInit {
 
   // ── Step 2: product options, each with its own recipe ───────────
   optionsArray: FormArray = this.fb.array([]);
-
-  hasOptions = computed(() => this.baseForm.get('hasOptions')?.value === true);
 
   // Track selected option IDs (existing options)
   selectedOptionIds = signal<number[]>([]);
@@ -215,7 +212,7 @@ export class Products implements OnInit {
   // ── Modal open ───────────────────────────────────────────────────
 
   showCreationModal(): void {
-    this.baseForm.reset({ hasOptions: false });
+    this.baseForm.reset();
     this.baseRecipe.clear();
     this.optionsArray.clear();
     this.createdProduct.set(null);
@@ -229,7 +226,7 @@ export class Products implements OnInit {
   }
 
   showModificationModal(id: number): void {
-    this.baseForm.reset({ hasOptions: false });
+    this.baseForm.reset();
     this.baseRecipe.clear();
     this.optionsArray.clear();
     this.createdProduct.set(null);
@@ -243,16 +240,15 @@ export class Products implements OnInit {
       switchMap(p => {
         this.baseForm.patchValue({
           id: p.id, name: p.name, basePrice: p.basePrice,
-          hasOptions: p.hasOptions, categoryId: p.categoryId, areaId: p.areaId,
+          categoryId: p.categoryId, areaId: p.areaId,
         });
         this.createdProduct.set(p);
-        return p.hasOptions
-          ? this.masterDataService.getProductOptions(p.id)
-          : of([]);
+        return this.masterDataService.getProductOptions(p.id).pipe(
+          catchError(() => of([]))
+        );
       })
     ).subscribe(opts => {
       this.existingOptions.set(opts);
-      // Pre-populate selectedOptionIds with existing option IDs
       this.selectedOptionIds.set(opts.map(o => o.id));
     });
     this.modalIsOpen.set(true);
@@ -430,69 +426,11 @@ export class Products implements OnInit {
 
   submitStep1(): void {
     if (this.baseForm.invalid) { this.baseForm.markAllAsTouched(); return; }
-
-    const v = this.baseForm.value;
-
-    // If hasOptions is true, go to step 2 to select/create options
-    if (v.hasOptions) {
-      this.currentStep.set(2);
-      return;
-    }
-
-    // If hasOptions is false, create product immediately
-    this.isSubmitting.set(true);
-
-    if (this.modalMode() === 'create') {
-      this.productService.createProduct({
-        name: v.name,
-        basePrice: v.basePrice,
-        hasOptions: false,
-        categoryId: v.categoryId,
-        areaId: v.areaId,
-        recipe: this.baseRecipe.value,
-      }).pipe(
-        catchError(err => {
-          this.logger.error('Error creating product', err);
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo crear el producto' });
-          this.isSubmitting.set(false);
-          return EMPTY;
-        })
-      ).subscribe(product => {
-        this.createdProduct.set(product);
-        this.isSubmitting.set(false);
-        this.refreshProducts();
-        this.currentStep.set(3);
-      });
-    } else {
-      const id = v.id;
-      this.productService.updateProduct(id, {
-        id, name: v.name, basePrice: v.basePrice,
-        hasOptions: false, categoryId: v.categoryId, areaId: v.areaId,
-        recipe: this.baseRecipe.value,
-      }).pipe(
-        catchError(err => {
-          this.logger.error('Error updating product', err);
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo actualizar el producto' });
-          this.isSubmitting.set(false);
-          return EMPTY;
-        })
-      ).subscribe(() => {
-        this.isSubmitting.set(false);
-        this.refreshProducts();
-        this.currentStep.set(3);
-      });
-    }
+    // Always go to step 2 to manage options
+    this.currentStep.set(2);
   }
 
   submitStep2(): void {
-    if (this.optionsArray.length === 0) { 
-      this.messageService.add({ 
-        severity: 'warn', 
-        summary: 'Advertencia', 
-        detail: 'Debes agregar al menos una opción o cambiar "¿Tiene opciones?" a No' 
-      });
-      return; 
-    }
     if (this.optionsArray.invalid) { this.optionsArray.markAllAsTouched(); return; }
     if (this.hasDuplicateOptions()) {
       this.messageService.add({ 
@@ -555,7 +493,6 @@ export class Products implements OnInit {
           return this.productService.createProduct({
             name: v.name,
             basePrice: v.basePrice,
-            hasOptions: true,
             categoryId: v.categoryId,
             areaId: v.areaId,
             recipe: this.baseRecipe.value,
@@ -566,7 +503,6 @@ export class Products implements OnInit {
             id: v.id,
             name: v.name,
             basePrice: v.basePrice,
-            hasOptions: true,
             categoryId: v.categoryId,
             areaId: v.areaId,
             recipe: this.baseRecipe.value,
@@ -600,11 +536,8 @@ export class Products implements OnInit {
   }
 
   skipOptions(): void {
-    this.messageService.add({ 
-      severity: 'warn', 
-      summary: 'Advertencia', 
-      detail: 'Debes agregar opciones o cambiar "¿Tiene opciones?" a No en el paso 1' 
-    });
+    // Submit step 2 with no options (product without options)
+    this.submitStep2();
   }
 
   finish(): void {
@@ -626,15 +559,13 @@ export class Products implements OnInit {
     this.detailProduct.set(product);
     this.detailOptions.set([]);
     this.detailDialogOpen.set(true);
-    if (product.hasOptions) {
-      this.detailOptionsLoading.set(true);
-      this.productService.getOptions(product.id).pipe(
-        catchError(() => of([] as ProductOption[]))
-      ).subscribe(opts => {
-        this.detailOptions.set(opts);
-        this.detailOptionsLoading.set(false);
-      });
-    }
+    this.detailOptionsLoading.set(true);
+    this.productService.getOptions(product.id).pipe(
+      catchError(() => of([] as ProductOption[]))
+    ).subscribe(opts => {
+      this.detailOptions.set(opts);
+      this.detailOptionsLoading.set(false);
+    });
   }
 
   closeDetailDialog(): void {
@@ -658,8 +589,8 @@ export class Products implements OnInit {
   newOptionDialogOpen = signal(false);
   newOptionSubmitting = signal(false);
 
-  // productos con hasOptions: true para el selector
-  productsWithOptions = computed(() => (this.products() ?? []).filter(p => p.hasOptions));
+  // todos los productos pueden tener opciones
+  productsWithOptions = computed(() => this.products() ?? []);
 
   newOptionForm: FormGroup = this.fb.group({
     optionCategoryId: [null, Validators.required],

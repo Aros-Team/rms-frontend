@@ -109,14 +109,16 @@ export class DayMenu implements OnInit {
   }
 
   private resolveProduct(menu: DayMenuResponse): void {
-    const product = this.masterData.snapshot?.products.find(p => p.id === menu.productId);
-    const hasOptions = product?.hasOptions ?? (this.productOptions().length > 0);
+    // Always show the options modal — the product may or may not have options.
+    // If no options are loaded, the user can confirm without selecting any.
+    const loadedOptions = this.productOptions();
 
-    if (!hasOptions) {
+    if (loadedOptions.length === 0) {
+      // No options available — add directly to cart without modal
       const item: CartItem = {
         product: {
           id: menu.productId, name: menu.productName,
-          basePrice: menu.productBasePrice, hasOptions: false,
+          basePrice: menu.productBasePrice,
           active: true, categoryId: 0, categoryName: '', areaId: 0,
         },
         instructions: '', selectedOptionIds: [], optionNames: [],
@@ -126,11 +128,11 @@ export class DayMenu implements OnInit {
       return;
     }
 
-    // Reusar opciones ya cargadas en la card
+    // Options available — open modal for selection
     this.pendingOptions.set([]);
     this.pendingInstructions.set('');
     this.optionsError.set(null);
-    this.modalOptions.set(this.productOptions());
+    this.modalOptions.set(loadedOptions);
     this.modalOptionsLoading.set(false);
     this.showOptionsModal.set(true);
   }
@@ -154,11 +156,6 @@ export class DayMenu implements OnInit {
     const menu = this.dayMenu();
     if (!menu) return;
 
-    if (this.pendingOptions().length === 0) {
-      this.optionsError.set('Debes seleccionar al menos una opción por categoría.');
-      return;
-    }
-
     const selectedIds = [...this.pendingOptions()];
     const optionNames = selectedIds
       .map(id => this.modalOptions().find(o => o.id === id)?.name ?? '')
@@ -169,7 +166,6 @@ export class DayMenu implements OnInit {
         id: menu.productId,
         name: menu.productName,
         basePrice: menu.productBasePrice,
-        hasOptions: true,
         active: true,
         categoryId: 0,
         categoryName: '',
