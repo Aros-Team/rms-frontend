@@ -402,7 +402,7 @@ export class Users implements OnInit {
       'Address is required': 'Campo requerido',
       'Invalid email format': 'Ingrese un correo electrónico válido',
       'Email is required': 'Campo requerido',
-      'El nombre solo puede contener letras y espacios': 'El nombre solo puede contener letras y espacios',
+      'El nombre solo permite letras y espacios': 'El nombre solo permite letras y espacios',
       'El nombre debe tener máximo 100 caracteres': 'El nombre debe tener máximo 100 caracteres',
       'El documento debe tener máximo 20 caracteres': 'El documento debe tener máximo 20 caracteres',
       'El correo debe tener máximo 100 caracteres': 'El correo debe tener máximo 100 caracteres',
