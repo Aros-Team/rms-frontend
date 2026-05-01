@@ -17,7 +17,7 @@ import { AreaSimpleResponse } from '@app/shared/models/dto/areas/area-simple-res
 import { CategorySimpleResponse } from '@app/shared/models/dto/category/category-simple-response';
 import { OptionCategoryResponse } from '@app/shared/models/dto/category/option-category.model';
 import { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
-import { ProductResponse } from '@app/shared/models/dto/products/product-response';
+import { ProductRecipeItem, ProductResponse } from '@app/shared/models/dto/products/product-response';
 import { ProductOption, ProductOptionResponse } from '@app/shared/models/dto/products/product-option.model';
 
 import { ButtonModule } from 'primeng/button';
@@ -152,6 +152,7 @@ export class Products implements OnInit {
   isSubmitting = signal(false);
   createdProduct = signal<ProductResponse | null>(null);
   existingOptions = signal<ProductOption[]>([]);
+  existingRecipe = signal<ProductRecipeItem[]>([]);
 
   // Detail dialog
   detailDialogOpen = signal(false);
@@ -217,6 +218,7 @@ export class Products implements OnInit {
     this.optionsArray.clear();
     this.createdProduct.set(null);
     this.existingOptions.set([]);
+    this.existingRecipe.set([]);
     this.selectedOptionIds.set([]);
     this.baseRecipeCategoryMap.clear();
     this.optionRecipeCategoryMap.clear();
@@ -231,6 +233,7 @@ export class Products implements OnInit {
     this.optionsArray.clear();
     this.createdProduct.set(null);
     this.existingOptions.set([]);
+    this.existingRecipe.set([]);
     this.selectedOptionIds.set([]);
     this.baseRecipeCategoryMap.clear();
     this.optionRecipeCategoryMap.clear();
@@ -242,6 +245,9 @@ export class Products implements OnInit {
           id: p.id, name: p.name, basePrice: p.basePrice,
           categoryId: p.categoryId, areaId: p.areaId,
         });
+        this.existingRecipe.set(p.recipe ?? []);
+        this.baseRecipe.clear();
+        this.baseRecipeCategoryMap.clear();
         this.createdProduct.set(p);
         return this.masterDataService.getProductOptions(p.id).pipe(
           catchError(() => of([]))
@@ -250,8 +256,8 @@ export class Products implements OnInit {
     ).subscribe(opts => {
       this.existingOptions.set(opts);
       this.selectedOptionIds.set(opts.map(o => o.id));
+      this.modalIsOpen.set(true);
     });
-    this.modalIsOpen.set(true);
   }
 
   closeModal(): void { this.modalIsOpen.set(false); }
@@ -266,6 +272,15 @@ export class Products implements OnInit {
   }
 
   removeBaseRecipeItem(i: number): void { this.baseRecipe.removeAt(i); }
+
+  removeExistingRecipeItem(variantId: number): void {
+    this.existingRecipe.update(items => items.filter(item => item.supplyVariantId !== variantId));
+  }
+
+  /** Nombre para mostrar de un insumo existente dado su supplyVariantId */
+  getVariantDisplayName(variantId: number): string {
+    return this.supplyVariantOptions().find(v => v.id === variantId)?.displayName ?? `Insumo #${variantId}`;
+  }
 
   // ── Option rows ──────────────────────────────────────────────────
 
@@ -286,6 +301,11 @@ export class Products implements OnInit {
       this.selectedOptionIds.update(ids => ids.filter(id => id !== opt.id));
     }
     this.optionsArray.removeAt(i); 
+  }
+
+  removeExistingOption(optionId: number): void {
+    this.existingOptions.update(opts => opts.filter(o => o.id !== optionId));
+    this.selectedOptionIds.update(ids => ids.filter(id => id !== optionId));
   }
 
   getOptionRecipe(i: number): FormArray {
@@ -443,14 +463,17 @@ export class Products implements OnInit {
 
     this.isSubmitting.set(true);
 
-    // Separate existing options from new ones
-    const existingOptionIds: number[] = [];
+    // IDs de opciones existentes que el usuario NO eliminó (siguen en existingOptions)
+    const keptExistingIds: number[] = this.existingOptions().map(o => o.id);
+
+    // Separate new options added via the form from existing ones
+    const addedExistingIds: number[] = [];
     const newOptions: { name: string; optionCategoryId: number; recipe: { supplyVariantId: number; requiredQuantity: number }[] }[] = [];
 
     for (const opt of this.optionsArray.value) {
       if (opt.isExisting && opt.id) {
-        // Existing option - just use its ID
-        existingOptionIds.push(opt.id);
+        // Existing option added via the "Modificar opciones" form
+        addedExistingIds.push(opt.id);
       } else {
         // New option - needs to be created
         newOptions.push({
@@ -460,6 +483,9 @@ export class Products implements OnInit {
         });
       }
     }
+
+    // Merge: kept existing + newly added existing (deduplicated)
+    const existingOptionIds = [...new Set([...keptExistingIds, ...addedExistingIds])];
 
     // Create new options first (if any)
     const createNewOptions$ = newOptions.length > 0
@@ -488,14 +514,16 @@ export class Products implements OnInit {
       switchMap((allOptionIds: number[]) => {
         // Now create or update the product with all option IDs
         const v = this.baseForm.value;
-        
+        // Combine kept existing recipe items + newly added ones
+        const fullRecipe = [...this.existingRecipe(), ...this.baseRecipe.value];
+
         if (this.modalMode() === 'create') {
           return this.productService.createProduct({
             name: v.name,
             basePrice: v.basePrice,
             categoryId: v.categoryId,
             areaId: v.areaId,
-            recipe: this.baseRecipe.value,
+            recipe: fullRecipe,
             optionIds: allOptionIds,
           });
         } else {
@@ -505,7 +533,7 @@ export class Products implements OnInit {
             basePrice: v.basePrice,
             categoryId: v.categoryId,
             areaId: v.areaId,
-            recipe: this.baseRecipe.value,
+            recipe: fullRecipe,
             optionIds: allOptionIds,
           }).pipe(
             switchMap(() => this.productService.findProduct(v.id))
