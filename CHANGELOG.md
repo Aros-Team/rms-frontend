@@ -1,5 +1,11 @@
 # Changelog
 
+## [v1.2.1](https://github.com/Aros-Team/rms-frontend/releases/tag/v1.2.1)
+
+### Bug Fixes
+
+- update workflows
+
 ## [v1.1.0](https://github.com/Aros-Team/rms-frontend/releases/tag/v1.1.0)
 
 ### Features
