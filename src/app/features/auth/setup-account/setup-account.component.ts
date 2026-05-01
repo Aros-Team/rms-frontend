@@ -15,7 +15,6 @@ import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-setup-account',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,

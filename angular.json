@@ -21,10 +21,12 @@
           "options": {
             "outputPath": "build/dist",
             "browser": "src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
+            "polyfills": [],
             "tsConfig": "tsconfig.app.json",
+            "allowedCommonJsDependencies": [
+              "@stomp/stompjs"
+            ],
+            "serviceWorker": "ngsw-config.json",
             "assets": [
               {
                 "glob": "**/*",
@@ -49,7 +51,13 @@
                   "maximumError": "32kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "optimization": {
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": true
+                }
+              }
             },
             "development": {
               "optimization": false,
@@ -88,10 +96,7 @@
           "builder": "@angular/build:karma",
           "options": {
             "karmaConfig": "karma.conf.js",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
+            "polyfills": [],
             "tsConfig": "tsconfig.spec.json",
             "assets": [
               {

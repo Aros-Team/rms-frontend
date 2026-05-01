@@ -47,7 +47,7 @@
                     <input [id]="'subproducts-' + i + '-' + j" type="text" formControlName="subProducts" class="w-full border  border-surface-300 dark:border-surface-700 rounded p-2 bg-transparent" placeholder="Ej. 1, 2, 3 " />
                   </div>
                   <div class="md:col-span-4 flex justify-end">
-                    <button type="button" (click)="removeDetail(i, j)" class="text-sm text-surface-600 pointer hover:underline" [disabled]="detailsAt(i).length === 1"><i class="pi pi-trash"></i></button>
+                    <button type="button" (click)="removeDetail(i, j)" class="text-sm text-surface-600 pointer hover:underline" [disabled]="detailsAt(i).length === 1" aria-label="Eliminar detalle"><i class="pi pi-trash"></i></button>
                   </div>
                 </div>
                 }

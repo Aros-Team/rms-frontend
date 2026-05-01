@@ -13,7 +13,6 @@ interface FontSizeOption {
 
 @Component({
   selector: 'app-accessibility',
-  standalone: true,
   imports: [ButtonModule, DialogModule, FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

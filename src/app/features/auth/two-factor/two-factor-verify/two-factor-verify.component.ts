@@ -11,7 +11,6 @@ import { LoggingService } from '@app/core/services/logging/logging-service';
 
 @Component({
   selector: 'app-two-factor-verify',
-  standalone: true,
   imports: [
     ReactiveFormsModule,
     InputTextModule,

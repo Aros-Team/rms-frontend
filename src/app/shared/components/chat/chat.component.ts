@@ -9,7 +9,6 @@ import { ChatMessage, ChatRequest } from '@app/core/services/chat/chat.models';
 
 @Component({
   selector: 'app-chat',
-  standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.css',

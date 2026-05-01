@@ -144,8 +144,30 @@ function generateThemeFile(baseColor, isDevelopment) {
     return content;
 }
 
+function updateManifest(baseColor) {
+    const manifestPath = path.join(process.cwd(), 'public', 'manifest.webmanifest');
+
+    if (!fs.existsSync(manifestPath)) {
+        console.log('  manifest.webmanifest no encontrado, omitiendo');
+        return;
+    }
+
+    const manifestContent = fs.readFileSync(manifestPath, 'utf8');
+
+    try {
+        const manifest = JSON.parse(manifestContent);
+        manifest.theme_color = baseColor;
+
+        const updatedManifest = JSON.stringify(manifest, null, 2);
+        fs.writeFileSync(manifestPath, updatedManifest, 'utf8');
+        console.log(`  theme_color actualizado: ${baseColor}`);
+    } catch (e) {
+        console.log('  Error al parsear manifest, omitiendo');
+    }
+}
+
 function main() {
-    console.log(`Generate Colors [${env.toUpperCase()}]: Generando paleta de colores\n`);
+    console.log(`Generate Colors [${env.toUpperCase()}]: Generando paleta de colores y preconnects\n`);
 
     try {
         const baseColor = readBaseColor(envFile);
@@ -160,12 +182,77 @@ function main() {
         console.log(`\nPaleta generada para ${isDev ? 'DESARROLLO' : 'PRODUCCIÓN'}:`);
         console.log(`  Color principal: ${palette[500]}`);
         console.log(`\nArchivo creado: src/environments/${themeFile}`);
+
+        generatePreconnects(isDev);
+        updateManifest(baseColor);
         console.log(`\n[>] Colores actualizados!`);
 
     } catch (error) {
         console.error(`Error: ${error.message}`);
         process.exit(1);
     }
+}
+
+function readEnvUrls() {
+    const envPath = path.join(process.cwd(), 'src', 'environments', envFile);
+    const content = fs.readFileSync(envPath, 'utf8');
+
+    const urls = [];
+
+    const apiUrlMatch = content.match(/apiUrl:\s*['"]([^'"]+)['"]/);
+    if (apiUrlMatch) {
+        const url = new URL(apiUrlMatch[1]);
+        urls.push(url.origin);
+    }
+
+    const agentHostMatch = content.match(/agentHost:\s*['"]([^'"]+)['"]/);
+    if (agentHostMatch) {
+        const url = new URL(agentHostMatch[1]);
+        if (!urls.includes(url.origin)) {
+            urls.push(url.origin);
+        }
+    }
+
+    return urls;
+}
+
+function generatePreconnects(isDev) {
+    const urls = readEnvUrls();
+
+    const fontsPreconnect = ``;
+
+    let preconnectsContent = '';
+    if (urls.length > 0) {
+        const apiPreconnects = urls.map(url => `  <link rel="preconnect" href="${url}">`).join('\n');
+        preconnectsContent = `\n\n  <!-- Preconnect for external APIs -->
+${apiPreconnects}`;
+    }
+
+    const preconnectBlock = `<!-- PRECONNECT_BLOCK -->${fontsPreconnect}${preconnectsContent}<!-- /PRECONNECT_BLOCK -->`;
+
+    const indexPath = path.join(process.cwd(), 'src', 'index.html');
+    let indexContent = fs.readFileSync(indexPath, 'utf8');
+
+    const preconnectRegex = /<!-- PRECONNECT_BLOCK -->[\s\S]*?<!-- \/PRECONNECT_BLOCK -->/;
+    if (preconnectRegex.test(indexContent)) {
+        indexContent = indexContent.replace(preconnectRegex, preconnectBlock);
+    } else {
+        const headMatch = indexContent.match(/<head>([\s\S]*?)<\/head>/);
+        if (headMatch) {
+            const newHead = headMatch[1].replace(
+                /<link rel="preconnect"[^>]*>/g,
+                ''
+            );
+            indexContent = indexContent.replace(
+                /<head>[\s\S]*?<\/head>/,
+                `<head>${newHead}${preconnectBlock}\n</head>`
+            );
+        }
+    }
+
+    fs.writeFileSync(indexPath, indexContent, 'utf8');
+    console.log(`Preconnects actualizados para ${isDev ? 'DESARROLLO' : 'PRODUCCIÓN'}:`);
+    urls.forEach(url => console.log(`  - ${url}`));
 }
 
 const angularJsonPath = path.join(process.cwd(), 'angular.json');

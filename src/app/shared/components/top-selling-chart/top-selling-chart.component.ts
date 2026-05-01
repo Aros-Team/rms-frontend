@@ -22,7 +22,6 @@ interface ChartOptions {
 
 @Component({
   selector: 'app-top-selling-chart',
-  standalone: true,
   imports: [ChartModule],
   templateUrl: './top-selling-chart.component.html',
 })

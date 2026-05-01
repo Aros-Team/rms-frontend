@@ -30,15 +30,38 @@ export class AuthService {
   private static readonly REFRESH_KEY = 'rms_refresh';
   private static readonly EXPIRY_KEY = 'rms_token_expiry';
 
+  private static readonly COOKIE_OPTIONS = {
+    path: '/',
+    sameSite: 'Strict' as const,
+    secure: true,
+  };
+
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       this.loadStoredToken();
     }
   }
 
+  private getCookie(name: string): string | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+    return match ? match[2] : null;
+  }
+
+  private setCookie(name: string, value: string, maxAgeSeconds: number): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const maxAge = maxAgeSeconds.toString();
+    document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; samesite=Strict; secure`;
+  }
+
+  private deleteCookie(name: string): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    document.cookie = `${name}=; path=/; max-age=0; samesite=Strict; secure`;
+  }
+
   private loadStoredToken(): void {
-    const expiry = localStorage.getItem(AuthService.EXPIRY_KEY);
-    const storedToken = localStorage.getItem(AuthService.ACCESS_KEY);
+    const expiry = this.getCookie(AuthService.EXPIRY_KEY);
+    const storedToken = this.getCookie(AuthService.ACCESS_KEY);
     
     if (storedToken && expiry) {
       const expiryTime = parseInt(expiry, 10);
@@ -47,7 +70,6 @@ export class AuthService {
         this.loggingService.info('Session restored successfully');
         
         if (this._userData === undefined) {
-          // Defer getUserInfo to avoid circular dependency with interceptor
           setTimeout(() => {
             this.getUserInfo();
           }, 0);
@@ -162,7 +184,7 @@ export class AuthService {
 
   private getRefreshToken(): string | null {
     if (isPlatformBrowser(this.platformId)) {
-      return localStorage.getItem(AuthService.REFRESH_KEY);
+      return this.getCookie(AuthService.REFRESH_KEY);
     }
     return null;
   }
@@ -171,23 +193,22 @@ export class AuthService {
     this._token = accessToken;
     
     if (isPlatformBrowser(this.platformId)) {
-      const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-      const expiry = Date.now() + sevenDaysMs;
+      const sevenDaysSeconds = 7 * 24 * 60 * 60;
       
-      localStorage.setItem(AuthService.ACCESS_KEY, accessToken);
-      localStorage.setItem(AuthService.EXPIRY_KEY, expiry.toString());
+      this.setCookie(AuthService.ACCESS_KEY, accessToken, sevenDaysSeconds);
+      this.setCookie(AuthService.EXPIRY_KEY, (Date.now() + sevenDaysSeconds * 1000).toString(), sevenDaysSeconds);
       
       if (refreshToken) {
-        localStorage.setItem(AuthService.REFRESH_KEY, refreshToken);
+        this.setCookie(AuthService.REFRESH_KEY, refreshToken, sevenDaysSeconds);
       }
     }
   }
 
   private clearStorage(): void {
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.removeItem(AuthService.ACCESS_KEY);
-      localStorage.removeItem(AuthService.REFRESH_KEY);
-      localStorage.removeItem(AuthService.EXPIRY_KEY);
+      this.deleteCookie(AuthService.ACCESS_KEY);
+      this.deleteCookie(AuthService.REFRESH_KEY);
+      this.deleteCookie(AuthService.EXPIRY_KEY);
     }
   }
 
