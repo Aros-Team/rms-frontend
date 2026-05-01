@@ -57,7 +57,7 @@ export class Users implements OnInit {
     document: new FormControl('', [Validators.required, Validators.pattern('^\\d+$')]),
     name: new FormControl('', [Validators.required]),
     email: new FormControl('', [Validators.required, Validators.email]),
-    phone: new FormControl('', [Validators.pattern('^\\d{7,10}$')]),
+    phone: new FormControl('', [Validators.required, Validators.pattern('^\\d{10}$')]),
     address: new FormControl('', []),
   });
 
@@ -392,13 +392,26 @@ export class Users implements OnInit {
     this.backendFieldErrors = {};
     const fieldMarkers = ['document:', 'email:', 'phone:', 'name:', 'address:'];
 
+    const errorTranslations: Record<string, string> = {
+      'Phone must be between 10 and 20 characters': 'El teléfono debe tener 10 dígitos',
+      'the phone must be a valid phone number': 'El teléfono debe tener 10 dígitos',
+      'the document must only have numbers': 'El documento debe contener solo números',
+      'Document is required': 'Campo requerido',
+      'Name is required': 'Campo requerido',
+      'Phone is required': 'Campo requerido',
+      'Address is required': 'Campo requerido',
+      'Invalid email format': 'Ingrese un correo electrónico válido',
+      'Email is required': 'Campo requerido',
+    };
+
     for (const marker of fieldMarkers) {
       if (backendMessage.includes(marker)) {
         const fieldName = marker.replace(':', '');
         const afterField = backendMessage.split(marker)[1] || '';
         const errorText = afterField.split(';')[0]?.trim() || '';
         if (errorText) {
-          this.backendFieldErrors[fieldName] = errorText;
+          const translatedError = errorTranslations[errorText] || errorText;
+          this.backendFieldErrors[fieldName] = translatedError;
         }
       }
     }
