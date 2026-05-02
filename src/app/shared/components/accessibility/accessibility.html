@@ -1,0 +1,101 @@
+<button
+  type="button"
+  class="accessibility-btn"
+  (click)="openDialog()"
+  title="Accesibilidad"
+  aria-label="Abrir configuración de accesibilidad"
+>
+  <svg width="24" height="24" viewBox="0 0 100 100" fill="currentColor">
+    <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" stroke-width="4"/>
+    <circle cx="50" cy="22" r="10"/>
+    <line x1="50" y1="32" x2="50" y2="58" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+    <line x1="15" y1="45" x2="85" y2="45" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+    <line x1="50" y1="58" x2="30" y2="88" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+    <line x1="50" y1="58" x2="70" y2="88" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+  </svg>
+</button>
+
+<p-dialog
+  header="Configuración de Accesibilidad"
+  [(visible)]="dialogVisible"
+  [modal]="false"
+  [closable]="true"
+  [closeOnEscape]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '400px' }"
+  [appendTo]="'body'"
+  styleClass="accessibility-dialog"
+>
+  <div class="flex flex-col gap-6">
+    <!-- Tamaño de letra -->
+    <div role="group" aria-labelledby="font-size-label-access">
+      <span id="font-size-label-access" class="block text-sm font-medium mb-3">
+        <i class="pi pi-text-height mr-2"></i>Tamaño de letra
+      </span>
+      <div class="flex gap-2" role="radiogroup" aria-label="Tamaño de letra">
+        @for (option of fontSizeOptions; track option.value) {
+          <p-button
+            [label]="option.label"
+            [icon]="option.icon"
+            [severity]="currentFontSize === option.value ? 'primary' : 'secondary'"
+            [outlined]="currentFontSize !== option.value"
+            (onClick)="setFontSize(option.value)"
+          ></p-button>
+        }
+      </div>
+    </div>
+
+    <!-- Modo tema -->
+    <div role="group" aria-labelledby="theme-label-access">
+      <span id="theme-label-access" class="block text-sm font-medium mb-3">
+        <i class="pi pi-sun mr-2"></i>Modo
+      </span>
+      <div class="flex gap-2" role="radiogroup" aria-label="Modo de tema">
+        <p-button
+          label="Diurno"
+          icon="pi pi-sun"
+          [severity]="currentTheme === 'light' ? 'primary' : 'secondary'"
+          [outlined]="currentTheme !== 'light'"
+          (onClick)="setTheme('light')"
+        ></p-button>
+        <p-button
+          label="Nocturno"
+          icon="pi pi-moon"
+          [severity]="currentTheme === 'dark' ? 'primary' : 'secondary'"
+          [outlined]="currentTheme !== 'dark'"
+          (onClick)="setTheme('dark')"
+        ></p-button>
+      </div>
+    </div>
+
+    <!-- Alto contraste -->
+    <div role="group" aria-labelledby="contrast-label-access">
+      <span id="contrast-label-access" class="block text-sm font-medium mb-3">
+        <i class="pi pi-eye mr-2"></i>Alto contraste
+      </span>
+      <div class="flex gap-2">
+        <p-button
+          label="Desactivado"
+          [severity]="!highContrast ? 'primary' : 'secondary'"
+          [outlined]="highContrast"
+          (onClick)="setHighContrast(false)"
+        ></p-button>
+        <p-button
+          label="Activar"
+          [severity]="highContrast ? 'primary' : 'secondary'"
+          [outlined]="!highContrast"
+          (onClick)="setHighContrast(true)"
+        ></p-button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Cerrar"
+      severity="secondary"
+      (onClick)="closeDialog()"
+    ></p-button>
+  </ng-template>
+</p-dialog>

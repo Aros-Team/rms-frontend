@@ -8,10 +8,14 @@
 
 1. Run `node scripts/harness.js` — verify end without errors. If fail, **STOP** — resolve env before touch code.
 2. If harness detects missing files (AGENTS.md, docs/, activities.json, etc.), run `node scripts/build_harness.js` to create them.
-3. Read `progress/current.md` — understand state from last session.
-4. Read `activities.json` — choose **one** activity status `pending`. Do NOT work >1 at time.
+3. **Read `.agents/leader.md` — YOU ARE THE LEADER.** Orchestrate only. Delegate all implementation to sub-agents. Never do the work yourself.
+4. Read `progress/current.md` — understand state from last session.
+5. Read `activities.json` — identify pending activities and their tasks.
+6. Assign ONE task from ONE pending activity to a sub-agent via delegation. **Never work directly — always delegate.**
 
 ## 2. Repo Map
+
+**Workspace root:** `/home/jorge/Projects/aros/rms/frontend`
 
 | File / folder | Contains | When read |
 |---|---|---|
@@ -28,10 +32,17 @@
 | `src/` | Application code | For implement |
 | `tests/` | Automated tests | For verify |
 
+## 2.1 Path Rules
+
+- **All paths relative to workspace root.** The workspace root is where `AGENTS.md` lives.
+- **NEVER use absolute paths.** All paths are relative to workspace root.
+- **NEVER construct paths** with `../` to go above workspace root.
+- **Correct workspace name:** `aros` (NOT `across`, `alos`, `cross`, `rms`, etc.)
+
 ## 3. Hard Rules (non-negotiable)
 
-- **One activity at time.** Do NOT mix changes from multiple activities same session.
-- **Do NOT declare task `done` without green tests.** Run `node scripts/harness.js` — ensure all blocks pass.
+- **One task at a time.** Do NOT mix tasks from different activities. Tasks can run in parallel if from same activity but different agents.
+- **Do NOT declare task done without green tests.** Run `node scripts/harness.js` — ensure all blocks pass.
 - **Document what do** in `progress/current.md` while work, NOT at end.
 - **Leave repo clean** before close session (see §5).
 - **If no know something, search `docs/`** before make up.
@@ -42,25 +53,30 @@
 - `feat` — New feature
 - `chore` — Maintenance task (refactor, deps, config)
 
-## 5. How Choose Activity
+## 5. How Assign Tasks
 
 ```
 1. Open activities.json
-2. Filter status == "pending"
-3. Take lowest "id"
-4. Change status to "in_progress" + save
-5. Annotate progress/current.md: activity, start time, brief plan
+2. Filter activities with status == "pending" or "in_progress"
+3. For each pending activity, check its tasks array
+4. Pick ONE task with status "pending"
+5. Delegate to appropriate agent (implementer/reviewer)
+6. Update task status to "in_progress" in activities.json
+7. Annotate progress/current.md: activity, task, start time
 ```
+
+Note: An activity can have multiple pending tasks that can be delegated in parallel to different agents.
 
 ## 6. Session Close (lifecycle)
 
 Before end:
 
 1. Run `node scripts/harness.js` — all green.
-2. If task done: mark `status: "done"` in `activities.json`.
-3. Move summary from `progress/current.md` to end `progress/history.md`.
-4. Empty `progress/current.md` leaving only template.
-5. Do NOT leave temp files, `print()` debug, TODOs without context.
+2. If task done: mark task status `done` in activities.json.
+3. If all tasks in activity are `done`: mark activity status `done` in activities.json.
+4. Move summary from `progress/current.md` to end `progress/history.md`.
+5. Empty `progress/current.md` leaving only template.
+6. Do NOT leave temp files, `print()` debug, TODOs without context.
 
 ## 7. If Blocked
 

@@ -1,11 +1,11 @@
 import { Component, OnInit, OnDestroy, Output, EventEmitter, inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { MenuItem, MenuService } from '@core/services/menu/menu-service';
-import { AuthService } from '@core/services/authentication/auth-service';
+import { MenuItem, Menu } from '@core/services/menu/menu';
+import { Auth } from '@core/services/auth/auth';
 import { Subscription } from 'rxjs';
 import { Logo } from "../logo/logo";
-import { AccessibilityComponent } from '../accessibility/accessibility.component';
+import { Accessibility } from '../accessibility/accessibility';
 import { environment } from '@environments/environment';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -22,7 +22,7 @@ export interface HorizontalMenuOption {
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule, Logo, ButtonModule, AccessibilityComponent, DialogModule],
+  imports: [CommonModule, Logo, ButtonModule, Accessibility, DialogModule],
   templateUrl: './header.html',
   styles: ``
 })
@@ -38,8 +38,8 @@ export class Header implements OnInit, OnDestroy {
   private menuSubscription!: Subscription;
   showLogoutDialog = false;
 
-  private menuService = inject(MenuService);
-  private authService = inject(AuthService);
+  private menuService = inject(Menu);
+  private authService = inject(Auth);
   private router = inject(Router);
 
   ngOnInit(): void {

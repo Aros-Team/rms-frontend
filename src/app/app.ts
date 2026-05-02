@@ -1,20 +1,20 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { AuthService } from '@services/authentication/auth-service';
+import { Auth } from '@services/auth/auth';
 import { Theme } from '@services/theme/theme';
 import { ToastModule } from 'primeng/toast';
-import { HabeasDataComponent } from '@features/habeas-data/habeas-data.component';
+import { HabeasData } from '@shared/features/habeas-data/habeas-data';
 
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ToastModule, HabeasDataComponent],
+  imports: [RouterOutlet, ToastModule, HabeasData],
   templateUrl: './app.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App {
   private theme = inject(Theme);
-  private authService = inject(AuthService);
+  private authService = inject(Auth);
 
   constructor() {
     this.theme.setDefault()

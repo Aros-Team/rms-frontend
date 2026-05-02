@@ -1,16 +1,19 @@
 #!/usr/bin/env node
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PROJECT_ROOT = path.join(__dirname, '..');
+
+let exitCode = 0;
 
 const RED = '\x1b[0;31m';
 const GREEN = '\x1b[0;32m';
 const YELLOW = '\x1b[0;33m';
 const NC = '\x1b[0m';
-
-const PROJECT_ROOT = path.join(__dirname, '..');
-
-let exitCode = 0;
 
 const ok = (msg) => console.log(`${GREEN}[OK]${NC}    ${msg}`);
 const warn = (msg) => console.log(`${YELLOW}[WARN]${NC}  ${msg}`);
@@ -65,6 +68,18 @@ try {
     exitCode = 1;
   }
 
+  for (const a of data.activities) {
+    if (a.status === 'done' && a.tasks && a.tasks.some(t => t.status !== 'done')) {
+      warn(`Activity ${a.id} is done but has tasks not done`);
+    }
+  }
+
+  for (const a of inProgress) {
+    if (!a.tasks || !a.tasks.some(t => t.status === 'in_progress')) {
+      warn(`Activity ${a.id} is in_progress but no task is in_progress`);
+    }
+  }
+
   let hasInvalid = false;
   for (const a of data.activities) {
     if (!validStatuses.has(a.status)) {
@@ -74,6 +89,24 @@ try {
     if (a.type && !validTypes.has(a.type)) {
       fail(`Invalid type in activity ${a.id}: ${a.type} (must be fix, feat, or chore)`);
       hasInvalid = true;
+    }
+    if (a.tasks && Array.isArray(a.tasks)) {
+      const validTaskStatuses = new Set(['pending', 'in_progress', 'done', 'blocked']);
+      const validAgents = new Set(['implementer', 'reviewer']);
+      for (const t of a.tasks) {
+        if (!t.id || !t.description) {
+          fail(`Task missing id or description in activity ${a.id}`);
+          hasInvalid = true;
+        }
+        if (t.status && !validTaskStatuses.has(t.status)) {
+          fail(`Invalid task status in activity ${a.id}: ${t.status}`);
+          hasInvalid = true;
+        }
+        if (t.agent && !validAgents.has(t.agent)) {
+          fail(`Invalid task agent in activity ${a.id}: ${t.agent} (must be implementer or reviewer)`);
+          hasInvalid = true;
+        }
+      }
     }
   }
 

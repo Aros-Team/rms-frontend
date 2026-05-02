@@ -1,20 +1,20 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { environment } from '@environments/environment';
-import { LoggingService } from '@app/core/services/logging/logging-service';
+import { Logging } from '@app/core/services/logging/logging';
 
 export const urlInterceptor: HttpInterceptorFn = (req, next) => {
-  const loggingService = inject(LoggingService);
+  const logger = inject(Logging);
 
   // Skip if the URL is already absolute (contains http:// or https://)
   if (req.url.startsWith('http://') || req.url.startsWith('https://')) {
-    loggingService.http(`Skipping URL transformation for absolute URL: ${req.url}`);
+    logger.http(`Skipping URL transformation for absolute URL: ${req.url}`);
     return next(req);
   }
 
   // Transform relative URLs to absolute URLs using environment API URL
   const absoluteUrl = transformUrl(req.url);
-  loggingService.http(`Transforming URL: ${req.url} -> ${absoluteUrl}`);
+  logger.http(`Transforming URL: ${req.url} -> ${absoluteUrl}`);
 
   const newReq = req.clone({
     url: absoluteUrl

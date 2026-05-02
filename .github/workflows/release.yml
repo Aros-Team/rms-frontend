@@ -9,6 +9,9 @@ jobs:
   build-docker:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     env:
       APP_ENV: development
     steps:
@@ -38,7 +41,7 @@ jobs:
 
       - name: Get latest tag
         run: |
-          tag=$(git describe --tags --abbrev=0)
+          tag=$(gh release view --json tagName --jq '.tagName' | sed 's/^v//')
           echo "TAG=$tag" >> $GITHUB_ENV
 
       - name: Build and push Docker image

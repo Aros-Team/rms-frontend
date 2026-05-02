@@ -3,10 +3,10 @@ import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
 import { Layout } from '@app/shared/layout/layout';
-import { MenuService, MenuItem } from '@app/core/services/menu/menu-service';
-import { AuthService } from '@app/core/services/authentication/auth-service';
-import { LoggingService } from '@app/core/services/logging/logging-service';
-import { NotificationService } from '@app/core/services/notifications/notification.service';
+import { Menu, MenuItem } from '@app/core/services/menu/menu';
+import { Auth } from '@app/core/services/auth/auth';
+import { Logging } from '@app/core/services/logging/logging';
+import { Notification } from '@app/core/services/notifications/notification';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 
@@ -18,10 +18,10 @@ import { ToastModule } from 'primeng/toast';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WorkerArea implements OnInit, OnDestroy {
-  private menuService = inject(MenuService);
-  private authService = inject(AuthService);
-  private loggingService = inject(LoggingService);
-  private notificationService = inject(NotificationService);
+  private menuService = inject(Menu);
+  private authService = inject(Auth);
+  private logger = inject(Logging);
+  private notificationService = inject(Notification);
   private messageService = inject(MessageService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
@@ -81,12 +81,12 @@ ngOnDestroy(): void {
   private determineRole(): void {
     const userData = this.authService.getData();
     this.role = userData?.role || 'WORKER';
-    this.loggingService.debug('WorkerArea: User role:', this.role);
+    this.logger.debug('WorkerArea: User role:', this.role);
   }
 
   private determineWorkerType(): void {
     const userData = this.authService.getData();
-    this.loggingService.debug('WorkerArea: Determining worker type from user data:', userData);
+    this.logger.debug('WorkerArea: Determining worker type from user data:', userData);
 
     if (userData && userData.areas) {
       const workerAreas = ['WAITER', 'KITCHEN', 'BAR', 'CASHIER'];
@@ -95,20 +95,20 @@ ngOnDestroy(): void {
         const areaName = area.name.toUpperCase();
         if (workerAreas.includes(areaName)) {
           this.workerType = areaName.toLowerCase();
-          this.loggingService.debug(`WorkerArea: Determined worker type as '${this.workerType}' from area '${area.name}'`);
+          this.logger.debug(`WorkerArea: Determined worker type as '${this.workerType}' from area '${area.name}'`);
           return;
         }
       }
 
       if (userData.areas.some(area => area.name === 'ADMINISTRATION')) {
-        this.loggingService.warn('WorkerArea: Admin user in worker area, defaulting to waiter');
+        this.logger.warn('WorkerArea: Admin user in worker area, defaulting to waiter');
         this.workerType = 'waiter';
       } else {
-        this.loggingService.warn('WorkerArea: No recognized worker area found, defaulting to waiter');
+        this.logger.warn('WorkerArea: No recognized worker area found, defaulting to waiter');
         this.workerType = 'waiter';
       }
     } else {
-      this.loggingService.warn('WorkerArea: No user data available, defaulting to waiter');
+      this.logger.warn('WorkerArea: No user data available, defaulting to waiter');
       this.workerType = 'waiter';
     }
   }
