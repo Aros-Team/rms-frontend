@@ -8,23 +8,21 @@ import {
     Router,
 } from '@angular/router';
 import { map, catchError } from 'rxjs';
-import { AuthService } from '@services/authentication/auth-service';
+import { Auth } from '@services/auth/auth';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthGuard implements CanActivate, CanActivateChild {
-  private authService = inject(AuthService);
+  private authService = inject(Auth);
   private router = inject(Router);
 
   canActivate(): MaybeAsync<GuardResult> {
     if (this.authService.isAuthenticated()) {
-      // Check if user data is available
       const userData = this.authService.getData();
       if (userData) {
         return true;
       } else {
-        // If authenticated but no user data yet, wait for it
         return new Promise<GuardResult>((resolve) => {
           const checkUserData = () => {
             const currentUserData = this.authService.getData();
@@ -39,7 +37,6 @@ export class AuthGuard implements CanActivate, CanActivateChild {
       }
     }
 
-    // If not authenticated, try to refresh the token
     return this.authService.refresh().pipe(
       map((res) => {
         if (res) {
@@ -49,7 +46,6 @@ export class AuthGuard implements CanActivate, CanActivateChild {
         }
       }),
       catchError(() => {
-        // If refresh fails, redirect to login
         return [new RedirectCommand(this.router.parseUrl('/login'))];
       })
     );
