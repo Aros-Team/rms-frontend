@@ -24,7 +24,8 @@
             "polyfills": [],
             "tsConfig": "tsconfig.app.json",
             "allowedCommonJsDependencies": [
-              "@stomp/stompjs"
+              "@stomp/stompjs",
+              "sockjs-client"
             ],
             "serviceWorker": "ngsw-config.json",
             "assets": [
@@ -35,6 +36,9 @@
             ],
             "styles": [
               "src/styles.css"
+            ],
+            "scripts": [
+              "node_modules/sockjs-client/dist/sockjs.min.js"
             ]
           },
           "configurations": {
