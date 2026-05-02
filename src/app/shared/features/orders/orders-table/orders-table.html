@@ -1,0 +1,83 @@
+<div class="mb-3 pb-4 flex flex-col sm:flex-row justify-between gap-3 flex-wrap">
+  <div class="flex gap-2 flex-wrap items-center">
+    <label for="statusFilter" class="text-surface-700 dark:text-surface-200">Filtrar:</label>
+    <p-select 
+      [options]="comboStatusOptions" 
+      [(ngModel)]="selectedStatus" 
+      placeholder="Estado" 
+      class="w-full sm:w-40"
+      (onChange)="onStatusChange($event.value)" 
+      appendTo="body"
+    />
+    <app-shared-datepicker (dateChange)="onDateChange($event)"></app-shared-datepicker>
+  </div>
+
+  <div class="flex items-center gap-2">
+    @if (hasUnsavedChanges) {
+      <span class="text-sm text-red-400">
+        {{ unsavedChangesCount }} sin guardar
+      </span>
+    }
+    <p-button 
+      icon="pi pi-save" 
+      label="Guardar" 
+      (onClick)="saveChanges()"
+      [disabled]="!hasUnsavedChanges || saving" 
+      [loading]="saving" 
+    />
+  </div>
+</div>
+
+<p-table [value]="orders" [scrollable]="true" scrollHeight="80vh" [paginator]="true" [rows]="20"
+  scrollWidth="flex" responsiveLayout="scroll">
+  <ng-template pTemplate="header">
+    <tr>
+      <th>ID</th>
+      <th>Estado</th>
+      <th>Fecha</th>
+      <th>Mesa</th>
+      <th>Detalles</th>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-order>
+    <tr>
+      <td>#{{ order.id }}</td>
+      <td>
+        <span [class]="getStatusClass(order.status) + ' px-2 py-1 rounded text-xs font-medium'">
+          {{ getStatusLabel(order.status) }}
+        </span>
+        <p-select 
+          [options]="comboStatusOptions" 
+          [(ngModel)]="order.status" 
+          (onChange)="onStatusFieldChange(order, $event.value)"
+          placeholder="Cambiar estado" 
+          optionLabel="label" 
+          optionValue="value" 
+          [style]="{'width': '150px'}" 
+          class="ml-2"
+          appendTo="body"
+        />
+      </td>
+      <td>{{ formatDate(order.date) }}</td>
+      <td>Mesa {{ order.tableId }}</td>
+      <td>
+        @if (order.details && order.details.length > 0) {
+          <div class="text-sm">
+            @for (detail of order.details; track detail.id) {
+              <div>{{ detail.productName }} - {{ detail.unitPrice | currency:'COP':'symbol':'1.2-2' }}</div>
+            }
+          </div>
+        } @else {
+          <span class="text-surface-400">Sin detalles</span>
+        }
+      </td>
+    </tr>
+  </ng-template>
+</p-table>
+
+@if (loading) {
+  <div class="mt-4 text-surface-600 dark:text-surface-300">Cargando pedidos...</div>
+}
+@if (error) {
+  <div class="mt-4 text-red-600">{{ error }}</div>
+}

@@ -15,8 +15,9 @@ import {
   provideHttpClient,
   withInterceptors,
 } from '@angular/common/http';
-import { authInterceptor } from '@core/interceptors/auth-interceptor';
+import { jwtInterceptor } from '@core/interceptors/jwt';
 import { urlInterceptor } from '@core/interceptors/url-interceptor';
+import { errorInterceptor } from '@core/interceptors/error';
 import { routes } from './app.routes';
 
 import { definePreset } from '@primeuix/themes';
@@ -54,7 +55,7 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(routes),
     provideHttpClient(
-      withInterceptors([urlInterceptor, authInterceptor])
+      withInterceptors([urlInterceptor, jwtInterceptor, errorInterceptor])
     ),
     {
       provide: LOCALE_ID,

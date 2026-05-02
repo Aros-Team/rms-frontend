@@ -5,14 +5,14 @@ import { filter } from 'rxjs/operators';
 
 import { Header, HorizontalMenuOption } from '../components/header/header';
 import { Sidebar } from '../components/sidebar/sidebar';
-import { ChatComponent } from '../components/chat/chat.component';
-import { MenuService } from '../../core/services/menu/menu-service';
+import { Chat } from '@app/areas/admin/features/chat/chat';
+import { Menu } from '@app/core/services/menu/menu';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-layout',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Header, Sidebar, ChatComponent],
+  imports: [Header, Sidebar, Chat],
   templateUrl: './layout.html',
   styles: ``
 })
@@ -20,7 +20,7 @@ export class Layout implements OnInit, OnDestroy {
   @Input() workerType?: string;
   @Input() hideSidebar = false;
   @Input() role?: string;
-  @ViewChild(ChatComponent) chatComponent!: ChatComponent;
+  @ViewChild(Chat) chatComponent!: Chat;
 
   sidebarVisible = false;
   isMobile = false;
@@ -30,7 +30,7 @@ export class Layout implements OnInit, OnDestroy {
   private resizeSubscription!: Subscription;
   private routerSubscription!: Subscription;
   private resizeHandler!: () => void;
-  private menuService = inject(MenuService);
+  private menuService = inject(Menu);
   private cdr = inject(ChangeDetectorRef);
   private router = inject(Router);
 
