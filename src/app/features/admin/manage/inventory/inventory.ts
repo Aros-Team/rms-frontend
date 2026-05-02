@@ -1,5 +1,6 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef, signal, computed, DestroyRef, NgZone } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { AuthService } from '@services/authentication/auth-service';
 import { InventoryService } from '@services/inventory/inventory-service';
@@ -7,6 +8,8 @@ import { PurchaseService } from '@services/purchases/purchase-service';
 import { SupplierService } from '@services/suppliers/supplier-service';
 import { SupplyService } from '@services/supplies/supply-service';
 import { LoggingService } from '@services/logging/logging-service';
+import { WebSocketService } from '@services/websocket/websocket.service';
+import { environment } from '@environments/environment';
 
 import { SupplyVariantResponse } from '@models/dto/supplies/supply-variant-response';
 import { SupplyCategoryResponse } from '@models/dto/supplies/supply-category-response';
@@ -15,6 +18,7 @@ import { PurchaseResponse } from '@models/dto/purchases/purchase-response';
 import { SupplyUnitResponse } from '@models/dto/supplies/supply-unit-response';
 import { SupplyResponse } from '@models/dto/supplies/supply-response';
 import { TransferItem } from '@models/dto/inventory/transfer-request';
+import { InventoryStockUpdatedEvent } from '@models/dto/inventory/inventory-stock-update';
 
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -73,6 +77,9 @@ export class Inventory implements OnInit {
   private logger = inject(LoggingService);
   private messageService = inject(MessageService);
   private fb = inject(FormBuilder);
+  private wsService = inject(WebSocketService);
+  private destroyRef = inject(DestroyRef);
+  private ngZone = inject(NgZone);
 
   readonly wizardSteps = [
     { key: 'category' as VariantStep, label: 'Categoría' },
@@ -214,6 +221,24 @@ export class Inventory implements OnInit {
     // With OnPush, form status changes don't trigger CD automatically.
     // Subscribe so the template re-evaluates [invalid] bindings when fields become valid.
     this.purchaseForm.statusChanges.subscribe(() => this.cdr.markForCheck());
+    // Real-time inventory updates via WebSocket
+    this.connectWebSocket();
+  }
+
+  private connectWebSocket(): void {
+    const token = this.authService.getToken();
+    if (!token) {
+      this.logger.warn('Inventory: No token available, skipping WebSocket connection');
+      return;
+    }
+
+    // Ensure the WebSocket client is connected (no-op if already connected)
+    this.wsService.connect(environment.wsUrl, token);
+
+    // Subscribe to inventory stock updates — auto-cleaned up on component destroy
+    this.wsService.inventoryUpdated$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => this.ngZone.run(() => this.applyInventoryUpdate(event)));
   }
 
   filterByCategory(categoryId: number | null): void {
@@ -668,6 +693,28 @@ export class Inventory implements OnInit {
       next: (res) => this.purchases.set(res),
       error: (err) => this.logger.error('Error loading purchases', err),
     });
+  }
+
+  private applyInventoryUpdate(event: InventoryStockUpdatedEvent): void {
+    if (this.supplies() === undefined) return;
+
+    this.supplies.update((list) => {
+      if (list === undefined) return list;
+      return list.map((supply) => {
+        const match = event.updatedItems.find((item) => item.supplyVariantId === supply.id);
+        if (!match) return supply;
+        const location = match.locationName.toUpperCase();
+        if (location === 'BODEGA') {
+          return { ...supply, stockBodega: match.currentQuantity };
+        }
+        if (location === 'COCINA') {
+          return { ...supply, stockCocina: match.currentQuantity };
+        }
+        return supply;
+      });
+    });
+
+    this.cdr.markForCheck();
   }
 
   private formatDateLocal(date: Date): string {
