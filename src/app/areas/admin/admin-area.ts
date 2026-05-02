@@ -2,7 +2,7 @@ import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/cor
 import { RouterOutlet } from '@angular/router';
 
 import { Layout } from '@app/shared/layout/layout';
-import { MenuService, MenuItem } from '@app/core/services/menu/menu-service';
+import { Menu, MenuItem } from '@app/core/services/menu/menu';
 
 @Component({
   selector: 'app-admin-area',
@@ -11,7 +11,7 @@ import { MenuService, MenuItem } from '@app/core/services/menu/menu-service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminArea implements OnInit {
-  private menuService = inject(MenuService);
+  private menuService = inject(Menu);
 
   role = 'ADMIN';
 

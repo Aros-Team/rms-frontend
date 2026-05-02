@@ -1,0 +1,214 @@
+import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { catchError, EMPTY, of, switchMap } from 'rxjs';
+
+import { DayMenuService } from '@app/core/services/daymenu/daymenu';
+import { Product } from '@app/core/services/products/product';
+import { Logging } from '@app/core/services/logging/logging';
+import { DayMenuResponse, DayMenuHistoryResponse, DayMenuHistoryPage } from '@app/shared/models/dto/daymenu/daymenu-response';
+import { ProductSimpleResponse } from '@app/shared/models/dto/products/product-simple-response';
+import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
+
+import { CurrencyPipe, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { ToastModule } from 'primeng/toast';
+import { SelectModule } from 'primeng/select';
+import { TableModule } from 'primeng/table';
+import { SkeletonModule } from 'primeng/skeleton';
+import { DialogModule } from 'primeng/dialog';
+import { TagModule } from 'primeng/tag';
+import { MessageService } from 'primeng/api';
+
+@Component({
+  selector: 'app-menu',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    FormsModule,
+    CurrencyPipe,
+    DatePipe,
+    ButtonModule,
+    CardModule,
+    ToastModule,
+    SelectModule,
+    TableModule,
+    SkeletonModule,
+    DialogModule,
+    TagModule,
+  ],
+  templateUrl: './menu.html',
+  providers: [MessageService],
+})
+export class Menu {
+  private dayMenuService = inject(DayMenuService);
+  private productService = inject(Product);
+  private logger = inject(Logging);
+  private messageService = inject(MessageService);
+
+  currentMenu = signal<DayMenuResponse | null>(null);
+  loadingCurrent = signal(true);
+  currentMenuOptions = signal<ProductOption[]>([]);
+  loadingCurrentOptions = signal(false);
+
+  // Dialog detalles del menú activo
+  showDetailDialog = signal(false);
+
+  products = signal<ProductSimpleResponse[]>([]);
+  loadingProducts = signal(true);
+  selectedProductId = signal<number | null>(null);
+  selectedProductOptions = signal<ProductOption[]>([]);
+  loadingSelectedOptions = signal(false);
+
+  get selectedProductIdValue(): number | null {
+    return this.selectedProductId();
+  }
+  set selectedProductIdValue(val: number | null) {
+    this.selectedProductId.set(val);
+    this.selectedProductOptions.set([]);
+    if (val !== null) {
+      this.loadingSelectedOptions.set(true);
+      this.productService.getOptions(val).pipe(
+        catchError(() => of([] as ProductOption[]))
+      ).subscribe(opts => {
+        this.selectedProductOptions.set(opts);
+        this.loadingSelectedOptions.set(false);
+      });
+    }
+  }
+  isSubmitting = signal(false);
+
+  history = signal<DayMenuHistoryResponse[]>([]);
+  loadingHistory = signal(true);
+  totalRecords = signal(0);
+  pageSize = 10;
+
+  selectedProduct = computed(() =>
+    this.products().find(p => p.id === this.selectedProductId()) ?? null
+  );
+
+  constructor() {
+    this.loadCurrentMenu();
+    this.loadProducts();
+    this.loadHistory(0);
+  }
+
+  private loadCurrentMenu(): void {
+    this.loadingCurrent.set(true);
+    this.dayMenuService.getCurrentDayMenu().pipe(
+      catchError((err: HttpErrorResponse) => {
+        if (err.status === 204 || err.status === 404) {
+          this.currentMenu.set(null);
+        } else {
+          this.logger.error('Error loading current day menu', err);
+        }
+        this.loadingCurrent.set(false);
+        return EMPTY;
+      }),
+      switchMap(menu => {
+        // 204 No Content llega como null en el next handler
+        if (!menu) {
+          this.currentMenu.set(null);
+          this.loadingCurrent.set(false);
+          return EMPTY;
+        }
+        this.currentMenu.set(menu);
+        this.loadingCurrent.set(false);
+        this.loadingCurrentOptions.set(true);
+        return this.productService.getOptions(menu.productId).pipe(
+          catchError(() => of([] as ProductOption[]))
+        );
+      })
+    ).subscribe(opts => {
+      this.currentMenuOptions.set(opts);
+      this.loadingCurrentOptions.set(false);
+    });
+  }
+
+  private loadProducts(): void {
+    this.loadingProducts.set(true);
+    this.productService.getProducts().pipe(
+      catchError(err => {
+        this.logger.error('Error loading products', err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los productos' });
+        this.loadingProducts.set(false);
+        return EMPTY;
+      })
+    ).subscribe(all => {
+      this.products.set(all.filter(p => p.active));
+      this.loadingProducts.set(false);
+    });
+  }
+
+  loadHistory(page: number): void {
+    this.loadingHistory.set(true);
+    this.dayMenuService.getHistory(page, this.pageSize).pipe(
+      catchError(err => {
+        this.logger.error('Error loading history', err);
+        this.loadingHistory.set(false);
+        return EMPTY;
+      })
+    ).subscribe((data: DayMenuHistoryPage) => {
+      this.history.set(data.content);
+      this.totalRecords.set(data.totalElements);
+      this.loadingHistory.set(false);
+    });
+  }
+
+  onPageChange(event: { first: number; rows: number }): void {
+    const page = Math.floor(event.first / event.rows);
+    this.loadHistory(page);
+  }
+
+  assign(): void {
+    const productId = this.selectedProductId();
+    if (productId === null) return;
+
+    this.isSubmitting.set(true);
+    this.dayMenuService.updateDayMenu(productId).pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.logger.error('Error updating day menu', err);
+        const detail = this.extractError(err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail });
+        this.isSubmitting.set(false);
+        return EMPTY;
+      }),
+      switchMap(updated => {
+        this.currentMenu.set(updated);
+        this.selectedProductId.set(null);
+        this.selectedProductOptions.set([]);
+        this.isSubmitting.set(false);
+        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: `Menú del día actualizado: ${updated.productName}` });
+        this.loadHistory(0);
+        this.loadingCurrentOptions.set(true);
+        return this.productService.getOptions(updated.productId).pipe(
+          catchError(() => of([] as ProductOption[]))
+        );
+      })
+    ).subscribe(opts => {
+      this.currentMenuOptions.set(opts);
+      this.loadingCurrentOptions.set(false);
+    });
+  }
+
+  private extractError(err: HttpErrorResponse): string {
+    if (err.status === 400) return 'El producto seleccionado no es válido para menú del día';
+    if (err.status === 404) return 'El producto no existe o está inactivo';
+    try {
+      const body = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+      if (body?.message) return body.message;
+    } catch { /* ignore */ }
+    return 'No se pudo actualizar el menú del día';
+  }
+
+  groupByCategory(options: ProductOption[]): { category: string; items: ProductOption[] }[] {
+    const map = new Map<string, ProductOption[]>();
+    for (const o of options) {
+      const arr = map.get(o.optionCategoryName) ?? [];
+      arr.push(o);
+      map.set(o.optionCategoryName, arr);
+    }
+    return Array.from(map.entries()).map(([category, items]) => ({ category, items }));
+  }
+}
