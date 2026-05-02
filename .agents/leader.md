@@ -59,6 +59,13 @@ Activity: "Implement user management module"
 
 When launching sub-agents, instruct them to write results to files (e.g. `progress/explore/<theme>.md`) and return only the reference, not the content. See `scripts/demo_orchestration.py` for the pattern.
 
+## Sub-Agent Templates
+
+When delegating, instruct sub-agents to read their role definition:
+
+- **Implementer**: `.agents/implementer.md` — handles implementation tasks
+- **Reviewer**: `.agents/reviewer.md` — handles verification and quality checks
+
 ## When NOT to Delegate
 
 - Conceptual questions or repo exploration (read-only) → answer directly, no sub-agents
@@ -81,6 +88,20 @@ Each activity in `activities.json` must follow this schema:
     "load() devuelve [] si el archivo no existe",
     "tests/test_storage.py cubre los 3 casos anteriores"
   ],
+  "tasks": [
+    {
+      "id": "a",
+      "description": "Crear src/storage.py con función load() y save() atómica",
+      "status": "pending",
+      "agent": "implementer"
+    },
+    {
+      "id": "b",
+      "description": "Crear tests/test_storage.py con casos para load, save y archivo inexistente",
+      "status": "pending",
+      "agent": "implementer"
+    }
+  ],
   "status": "done"
 }
 ```
@@ -92,6 +113,11 @@ Fields:
 - `title`: human-readable title in Spanish
 - `description`: brief explanation of what the activity does
 - `acceptance`: array of concrete criteria to consider the activity done
+- `tasks`: array of delegable sub-tasks (can be parallelized across agents)
+  - `id`: single letter (a, b, c...)
+  - `description`: what needs to be done
+  - `status`: `pending` | `in_progress` | `done` | `blocked`
+  - `agent`: which agent type should handle it (`implementer` | `reviewer`)
 - `status`: `pending` | `in_progress` | `done` | `blocked`
 
 ## Hard Rules
