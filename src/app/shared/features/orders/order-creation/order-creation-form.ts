@@ -10,9 +10,6 @@ import { Product } from '@core/services/products/product';
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Logging } from '@core/services/logging/logging';
-import { Cart } from '@core/services/cart/cart';
-import { MasterData } from '@app/core/services/master-data/master-data';
-import { OptionCategory } from '@app/core/services/option-category/option-category';
 
 @Component({
   selector: 'app-order-creation-form',

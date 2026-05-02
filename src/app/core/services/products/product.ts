@@ -19,7 +19,7 @@ export interface Category {
   products: string[] | null;
 }
 
-export interface Product {
+export interface ProductData {
   id: number;
   name: string;
   basePrice: number;
@@ -70,7 +70,7 @@ export class Product {
     return this.http.put(`v1/products/${id}/disable`, {});
   }
 
-  getProductById(id: number): Observable<Product | undefined> {
+  getProductById(id: number): Observable<ProductData | undefined> {
     return this.findProduct(id).pipe(
       map((product: ProductResponse) => ({
         id: product.id,
@@ -82,7 +82,7 @@ export class Product {
         areaId: product.areaId,
         quantity: null,
         observations: null
-      } as Product)),
+      } as ProductData)),
       catchError(() => of(undefined))
     );
   }

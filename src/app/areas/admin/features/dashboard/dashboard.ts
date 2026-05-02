@@ -7,7 +7,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { CommonModule } from '@angular/common';
 import { Order } from '@app/core/services/orders/order';
 import { Table } from '@app/core/services/tables/table';
-import { Product } from '@app/core/services/products/product';
+import { Product, ProductData } from '@app/core/services/products/product';
 import { DayMenuService } from '@app/core/services/daymenu/daymenu';
 import { DayMenuResponse } from '@app/shared/models/dto/daymenu/daymenu-response';
 import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
@@ -60,7 +60,7 @@ export class Dashboard implements OnInit {
   // Dialog state
   showOrderDetail = signal(false);
   selectedOrder = signal<OrderResponse | null>(null);
-  selectedProduct = signal<Product | null>(null);
+  selectedProduct = signal<ProductData | null>(null);
 
   ngOnInit() {
     this.loadDashboardData();
