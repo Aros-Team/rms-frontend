@@ -1,7 +1,6 @@
 # Restaurant Management System (RMS)
 
 **Frontend repository**
-**Version:** 0.2.1
 
 Robust, scalable frontend application that delivers an intuitive and accessible interface for restaurant operations management, enabling real-time data visualization and seamless user interactions.
 

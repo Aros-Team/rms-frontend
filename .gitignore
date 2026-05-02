@@ -1,11 +1,5 @@
-# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
-
-audit/*
-lighthouse/*
-deploy.sh
-.env
-src/environments/theme.development.ts
-.plan-build*.md
+progress/*
+feature_list.json
 
 # Compiled output
 **/dist
@@ -46,6 +40,9 @@ yarn-error.log
 testem.log
 /typings
 *.bkp
+audit/*
+.env
+
 
 # System files
 .DS_Store

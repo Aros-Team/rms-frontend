@@ -1,5 +1,6 @@
 {
-  "name": "client",
+  "name": "Restaurant Management System (RMS)",
+  "description": "Robust, scalable frontend application that delivers an intuitive and accessible interface for restaurant operations management, enabling real-time data visualization and seamless user interactions.",
   "version": "1.1.0",
   "scripts": {
     "ng": "ng",
