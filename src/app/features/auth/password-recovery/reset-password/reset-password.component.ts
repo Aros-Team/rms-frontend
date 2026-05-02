@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 
 import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { NgClass } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PasswordModule } from 'primeng/password';
 import { InputTextModule } from 'primeng/inputtext';
@@ -19,8 +20,10 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
 @Component({
   selector: 'app-reset-password',
   templateUrl: './reset-password.component.html',
+  styleUrls: ['./reset-password.component.css'],
   imports: [
     ReactiveFormsModule,
+    NgClass,
     PasswordModule,
     InputTextModule,
     ButtonModule,
@@ -41,9 +44,21 @@ export class ResetPasswordComponent implements OnInit {
   token = signal<string | null>(null);
 
   form: FormGroup = new FormGroup({
-    newPassword: new FormControl('', [Validators.required, Validators.minLength(6)]),
+    newPassword: new FormControl('', [Validators.required]),
     confirmPassword: new FormControl('', [Validators.required])
   }, { validators: passwordMatchValidator });
+
+  checkPasswordRequirement(requirement: string): boolean {
+    const password = this.form.get('newPassword')?.value || '';
+    switch (requirement) {
+      case 'minLength': return password.length >= 8;
+      case 'upperCase': return /[A-Z]/.test(password);
+      case 'lowerCase': return /[a-z]/.test(password);
+      case 'number': return /\d/.test(password);
+      case 'symbol': return /[@$!%*?&]/.test(password);
+      default: return false;
+    }
+  }
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {

@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 
 import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { NgClass } from '@angular/common';
 import { PasswordModule } from 'primeng/password';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
@@ -19,8 +20,10 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
 @Component({
   selector: 'app-change-password',
   templateUrl: './change-password.component.html',
+  styleUrls: ['./change-password.component.css'],
   imports: [
     ReactiveFormsModule,
+    NgClass,
     PasswordModule,
     InputTextModule,
     ButtonModule,
@@ -39,9 +42,21 @@ export class ChangePasswordComponent {
 
   form: FormGroup = new FormGroup({
     currentPassword: new FormControl('', [Validators.required]),
-    newPassword: new FormControl('', [Validators.required, Validators.minLength(6)]),
+    newPassword: new FormControl('', [Validators.required]),
     confirmPassword: new FormControl('', [Validators.required])
   }, { validators: passwordMatchValidator });
+
+  checkPasswordRequirement(requirement: string): boolean {
+    const password = this.form.get('newPassword')?.value || '';
+    switch (requirement) {
+      case 'minLength': return password.length >= 8;
+      case 'upperCase': return /[A-Z]/.test(password);
+      case 'lowerCase': return /[a-z]/.test(password);
+      case 'number': return /\d/.test(password);
+      case 'symbol': return /[@$!%*?&]/.test(password);
+      default: return false;
+    }
+  }
 
   onSubmit(): void {
     if (this.form.invalid) {
