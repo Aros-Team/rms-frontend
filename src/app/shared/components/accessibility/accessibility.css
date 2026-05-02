@@ -1,0 +1,39 @@
+:host {
+  display: inline-block;
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 2147483647;
+}
+
+.accessibility-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #4c86e5;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(76, 134, 229, 0.4);
+}
+
+.accessibility-btn:hover {
+  background: #3a6fd1;
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(76, 134, 229, 0.5);
+}
+
+.accessibility-btn:focus {
+  outline: 3px solid #4c86e5;
+  outline-offset: 3px;
+}
+
+.accessibility-btn svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}

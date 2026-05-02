@@ -7,9 +7,9 @@ import { FloatLabelModule } from 'primeng/floatlabel';
 @Component({
   selector: 'app-shared-datepicker',
   imports: [FormsModule, DatePickerModule, FloatLabelModule],
-  templateUrl: './datepicker.component.html',
+  templateUrl: './datepicker.html',
 })
-export class SharedDatepickerComponent {
+export class SharedDatepicker {
   // Modelo para selección de una sola fecha
   value: Date | null = null;
 
