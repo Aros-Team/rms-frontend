@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { SelectModule } from 'primeng/select';
@@ -6,9 +6,13 @@ import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { Subscription } from 'rxjs';
 import { OrderService, OrderStatus } from '@app/core/services/orders/order-service';
 import { OrderResponse } from '@models/dto/orders/order-response.model';
 import { SharedDatepickerComponent } from '@app/shared/components/datepicker/datepicker.component';
+import { WebSocketService } from '@services/websocket/websocket.service';
+import { AuthService } from '@services/authentication/auth-service';
+import { environment } from '@environments/environment';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -26,7 +30,7 @@ import { catchError } from 'rxjs/operators';
   ],
   templateUrl: './orders-table.html',
 })
-export class OrdersTable implements OnInit {
+export class OrdersTable implements OnInit, OnDestroy {
 
   orders: OrderResponse[] = [];
   private allOrders: OrderResponse[] = [];
@@ -52,9 +56,57 @@ export class OrdersTable implements OnInit {
   private orderService = inject(OrderService);
   private messageService = inject(MessageService);
   private cdr = inject(ChangeDetectorRef);
+  private wsService = inject(WebSocketService);
+  private authService = inject(AuthService);
+  private ngZone = inject(NgZone);
+
+  private wsSubs: Subscription[] = [];
 
   ngOnInit(): void {
     this.fetchOrders();
+    this.connectWebSocket();
+  }
+
+  ngOnDestroy(): void {
+    this.wsSubs.forEach(sub => sub.unsubscribe());
+  }
+
+  private connectWebSocket(): void {
+    const token = this.authService.getToken();
+    if (!token) return;
+
+    // Ensure connection is active (no-op if already connected from Kitchen)
+    this.wsService.connect(environment.wsUrl, token);
+
+    // When any order changes status, update it in the local list
+    const updateOrder = (updated: OrderResponse) => {
+      this.ngZone.run(() => {
+        // Update in allOrders
+        const idx = this.allOrders.findIndex(o => o.id === updated.id);
+        if (idx !== -1) {
+          this.allOrders[idx] = { ...this.allOrders[idx], status: updated.status };
+        } else {
+          // New order not yet in the list — add it
+          this.allOrders = [updated, ...this.allOrders];
+          this.originalOrders.set(updated.id, { ...updated });
+        }
+        // Also update originalOrders so the "unsaved changes" badge stays accurate
+        const original = this.originalOrders.get(updated.id);
+        if (original) {
+          original.status = updated.status;
+        }
+        // If this order was being edited locally, clear the pending change
+        // since the server already applied the new status
+        this.modifiedOrders.delete(updated.id);
+        this.applyFilters();
+        this.cdr.markForCheck();
+      });
+    };
+
+    this.wsSubs.push(this.wsService.orderCreated$.subscribe(updateOrder));
+    this.wsSubs.push(this.wsService.orderPreparing$.subscribe(updateOrder));
+    this.wsSubs.push(this.wsService.orderReady$.subscribe(updateOrder));
+    this.wsSubs.push(this.wsService.orderDelivered$.subscribe(updateOrder));
   }
 
   onStatusChange(value: string): void {

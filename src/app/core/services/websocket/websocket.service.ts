@@ -4,6 +4,10 @@ import { Subject, BehaviorSubject } from 'rxjs';
 
 import { LoggingService } from '@app/core/services/logging/logging-service';
 import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
+import { InventoryStockUpdatedEvent } from '@models/dto/inventory/inventory-stock-update';
+
+// SockJS is loaded as a global script (UMD build) via angular.json scripts array
+declare const SockJS: new (url: string) => WebSocket;
 
 export interface WebSocketMessage<T = unknown> {
   destination: string;
@@ -20,12 +24,16 @@ export class WebSocketService implements OnDestroy {
   private orderCreatedSubject = new Subject<OrderResponse>();
   private orderPreparingSubject = new Subject<OrderResponse>();
   private orderReadySubject = new Subject<OrderResponse>();
+  private orderDeliveredSubject = new Subject<OrderResponse>();
+  private inventoryUpdatedSubject = new Subject<InventoryStockUpdatedEvent>();
   // BehaviorSubject para que nuevos suscriptores reciban el estado actual inmediatamente
   private connectionSubject = new BehaviorSubject<boolean>(false);
 
   orderCreated$ = this.orderCreatedSubject.asObservable();
   orderPreparing$ = this.orderPreparingSubject.asObservable();
   orderReady$ = this.orderReadySubject.asObservable();
+  orderDelivered$ = this.orderDeliveredSubject.asObservable();
+  inventoryUpdated$ = this.inventoryUpdatedSubject.asObservable();
   connection$ = this.connectionSubject.asObservable();
 
   connect(wsUrl: string, token: string): void {
@@ -43,7 +51,8 @@ export class WebSocketService implements OnDestroy {
     console.log('WebSocket: Attempting connection with token:', token ? 'Present' : 'Missing');
 
     this.client = new Client({
-      brokerURL: wsUrl,
+      // Use SockJS as transport factory — required by Spring Boot's SockJS endpoint
+      webSocketFactory: () => new SockJS(wsUrl),
       connectHeaders: {
         Authorization: `Bearer ${token}`,
       },
@@ -53,7 +62,6 @@ export class WebSocketService implements OnDestroy {
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
-      // Agregar timeout para detectar fallos más rápido
       connectionTimeout: 10000,
     });
 
@@ -157,7 +165,35 @@ export class WebSocketService implements OnDestroy {
     });
     this.subscriptions.set('/topic/orders/ready', readySub);
     console.log('WebSocket: Subscribed to /topic/orders/ready');
-    
+
+    // Subscribe to inventory stock updates
+    const inventorySub = this.client.subscribe('/topic/inventory/updates', (message) => {
+      try {
+        const event: InventoryStockUpdatedEvent = JSON.parse(message.body);
+        this.logger.info('WebSocket: Inventory stock updated', event);
+        this.inventoryUpdatedSubject.next(event);
+      } catch (error) {
+        this.logger.error('WebSocket: Error parsing inventory update', error);
+      }
+    });
+    this.subscriptions.set('/topic/inventory/updates', inventorySub);
+    console.log('WebSocket: Subscribed to /topic/inventory/updates');
+
+    // Subscribe to delivered orders (DELIVERED)
+    const deliveredSub = this.client.subscribe('/topic/orders/delivered', (message) => {
+      try {
+        const order: OrderResponse = JSON.parse(message.body);
+        this.logger.info('WebSocket: Order delivered', order);
+        console.log('WebSocket: Received /topic/orders/delivered:', order);
+        this.orderDeliveredSubject.next(order);
+      } catch (error) {
+        this.logger.error('WebSocket: Error parsing delivered order', error);
+        console.error('WebSocket: Parse error for delivered order:', error);
+      }
+    });
+    this.subscriptions.set('/topic/orders/delivered', deliveredSub);
+    console.log('WebSocket: Subscribed to /topic/orders/delivered');
+
     console.log('WebSocket: All subscriptions completed');
   }
 

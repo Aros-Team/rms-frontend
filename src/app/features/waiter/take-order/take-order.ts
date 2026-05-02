@@ -101,18 +101,8 @@ export class TakeOrder implements OnInit {
   }
 
   addProduct(product: ProductListResponse): void {
-    if (!product.hasOptions) {
-      // Sin opciones: agregar directo al carrito
-      this.cart.update(c => [...c, {
-        product,
-        instructions: '',
-        selectedOptionIds: [],
-        optionNames: []
-      }]);
-      return;
-    }
-
-    // Con opciones: cargar las opciones específicas del producto y abrir modal
+    // Always open the options modal — products may or may not have options.
+    // If no options are available, the user can confirm without selecting any.
     this.pendingProduct.set(product);
     this.pendingOptions.set([]);
     this.pendingInstructions.set('');
@@ -128,8 +118,8 @@ export class TakeOrder implements OnInit {
       },
       error: (err) => {
         this.logger.error('TakeOrder: failed to load product options', err);
+        this.modalOptions.set([]);
         this.modalOptionsLoading.set(false);
-        this.error.set('No se pudieron cargar las opciones del producto.');
       }
     });
   }
@@ -153,11 +143,6 @@ export class TakeOrder implements OnInit {
   confirmOptions(): void {
     const product = this.pendingProduct();
     if (!product) return;
-
-    if (this.pendingOptions().length === 0) {
-      this.error.set(`"${product.name}" requiere al menos una opción.`);
-      return;
-    }
 
     const selectedIds = [...this.pendingOptions()];
     const optionNames = selectedIds

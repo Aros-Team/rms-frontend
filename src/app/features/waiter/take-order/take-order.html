@@ -99,11 +99,6 @@
                   <span class="font-medium text-surface-800 dark:text-surface-100 text-sm group-hover:text-primary-700 dark:group-hover:text-primary-300">
                     {{ product.name }}
                   </span>
-                  @if (product.hasOptions) {
-                    <span class="text-xs bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded ml-2 shrink-0">
-                      opciones
-                    </span>
-                  }
                 </div>
                 <div class="mt-1 text-primary-600 dark:text-primary-400 font-semibold text-sm">
                   ${{ product.basePrice | number:'1.2-2' }}

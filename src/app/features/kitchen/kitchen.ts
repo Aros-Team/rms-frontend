@@ -70,13 +70,10 @@ export class Kitchen implements OnInit, OnDestroy {
       return;
     }
 
-    const baseUrl = environment.apiUrl.replace('/api', '');
-    const wsUrl = baseUrl.replace('https://', 'wss://').replace('http://', 'ws://') + '/ws';
-    
-    console.log('Kitchen: Attempting WebSocket connection to:', wsUrl);
+    console.log('Kitchen: Attempting WebSocket connection to:', environment.wsUrl);
     
     // Conectar (si ya está conectado, connect() lo ignora internamente)
-    this.wsService.connect(wsUrl, token);
+    this.wsService.connect(environment.wsUrl, token);
 
     // Suscribirse al estado de conexión — BehaviorSubject emite el estado actual inmediatamente
     const connectionSub = this.wsService.connection$.subscribe({
@@ -124,6 +121,8 @@ export class Kitchen implements OnInit, OnDestroy {
     const preparingSub = this.wsService.orderPreparing$.subscribe({
       next: (order) => {
         console.log('Kitchen: Received orderPreparing event:', order.id);
+        // Clear preparingNext flag in case the WS arrives before the HTTP response
+        this.preparingNext.set(false);
         // Remover de cola y agregar a preparación
         this.queueOrders.update(list => list.filter(o => o.id !== order.id));
         this.preparingOrders.update(list => {
@@ -142,6 +141,8 @@ export class Kitchen implements OnInit, OnDestroy {
     const readySub = this.wsService.orderReady$.subscribe({
       next: (order) => {
         console.log('Kitchen: Received orderReady event:', order.id);
+        // Also clear processing flag in case the WS arrives before the HTTP response
+        this.processing.delete(order.id);
         // Remover de preparación y agregar a listas
         this.preparingOrders.update(list => list.filter(o => o.id !== order.id));
         this.readyOrders.update(list => {
@@ -155,6 +156,17 @@ export class Kitchen implements OnInit, OnDestroy {
       }
     });
     this.wsSubs.push(readySub);
+
+    // Suscribirse a órdenes entregadas (DELIVERED)
+    const deliveredSub = this.wsService.orderDelivered$.subscribe({
+      next: (order) => {
+        console.log('Kitchen: Received orderDelivered event:', order.id);
+        // Clear processing flag and remove from readyOrders on ALL devices
+        this.processing.delete(order.id);
+        this.readyOrders.update(list => list.filter(o => o.id !== order.id));
+      }
+    });
+    this.wsSubs.push(deliveredSub);
   }
 
   fetchAll(silent = false): void {
@@ -195,9 +207,9 @@ export class Kitchen implements OnInit, OnDestroy {
     this.error.set(null);
 
     this.orderService.prepareNext().subscribe({
-      next: (order) => {
-        this.queueOrders.update(list => list.filter(o => o.id !== order.id));
-        this.preparingOrders.update(list => [...list, order]);
+      next: () => {
+        // Do NOT update state locally — the WebSocket event (orderPreparing$) will
+        // broadcast to ALL connected clients including this one, avoiding duplicates.
         this.preparingNext.set(false);
       },
       error: (err) => {
@@ -214,9 +226,10 @@ export class Kitchen implements OnInit, OnDestroy {
     this.error.set(null);
 
     this.orderService.markAsReady(order.id).subscribe({
-      next: (updated) => {
-        this.preparingOrders.update(list => list.filter(o => o.id !== updated.id));
-        this.readyOrders.update(list => [...list, updated]);
+      next: () => {
+        // Clear the processing flag so the spinner stops on THIS device.
+        // The WebSocket event (orderReady$) will move the order to readyOrders
+        // on ALL connected devices including this one.
         this.processing.delete(order.id);
       },
       error: (err) => {
@@ -232,8 +245,12 @@ export class Kitchen implements OnInit, OnDestroy {
     this.error.set(null);
 
     this.orderService.deliverOrder(order.id).subscribe({
-      next: (updated) => {
-        this.readyOrders.update(list => list.filter(o => o.id !== updated.id));
+      next: () => {
+        // Remove locally immediately for the device that triggered the action.
+        // The WebSocket event (orderDelivered$) will also remove it on ALL other
+        // connected devices. If the backend emits /topic/orders/delivered, all
+        // devices sync automatically. If not, only this device updates locally.
+        this.readyOrders.update(list => list.filter(o => o.id !== order.id));
         this.processing.delete(order.id);
       },
       error: (err) => {
