@@ -6,7 +6,7 @@ import { OptionCategoryRequest, OptionCategoryResponse } from '@app/shared/model
 @Injectable({
   providedIn: 'root',
 })
-export class OptionCategoryService {
+export class OptionCategory {
   private http = inject(HttpClient);
 
   public getOptionCategories(): Observable<OptionCategoryResponse[]> {

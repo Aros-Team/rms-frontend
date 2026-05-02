@@ -12,7 +12,7 @@ export enum LogLevel {
 @Injectable({
   providedIn: 'root'
 })
-export class LoggingService {
+export class Logging {
   private logLevel: LogLevel = LogLevel.DEBUG;
 
   constructor() {

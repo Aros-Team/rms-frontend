@@ -4,7 +4,7 @@ import { isPlatformBrowser } from '@angular/common';
 @Injectable({
   providedIn: 'root',
 })
-export class FingerprintService {
+export class Fingerprint {
   private platformId = inject(PLATFORM_ID);
   private readonly FINGERPRINT_KEY = 'rms_device_fp';
   private readonly FINGERPRINT_EXPIRY = 'rms_fp_expiry';

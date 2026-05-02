@@ -1,13 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { ChatRequest, ChatStreamCallbacks } from './chat.models';
-import { LoggingService } from '../logging/logging-service';
+import { Logging } from '../logging/logging';
 import { environment } from '@environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ChatService {
-  private logger = inject(LoggingService);
+  private logger = inject(Logging);
 
   async streamMessage(request: ChatRequest, callbacks: ChatStreamCallbacks): Promise<void> {
     const controller = new AbortController();

@@ -2,14 +2,14 @@ import { Injectable, inject, signal, OnDestroy } from '@angular/core';
 import { interval, Subscription } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
-import { OrderService } from '@app/core/services/orders/order-service';
-import { LoggingService } from '@app/core/services/logging/logging-service';
+import { Order } from '@app/core/services/orders/order';
+import { Logging } from '@app/core/services/logging/logging';
 import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
 
 @Injectable({ providedIn: 'root' })
-export class NotificationService implements OnDestroy {
-  private orderService = inject(OrderService);
-  private logger = inject(LoggingService);
+export class Notification implements OnDestroy {
+  private orderService = inject(Order);
+  private logger = inject(Logging);
 
   private pollingSub?: Subscription;
   private readonly POLLING_INTERVAL = 5000;

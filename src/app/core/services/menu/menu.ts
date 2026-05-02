@@ -15,7 +15,7 @@ export interface MenuItem {
 @Injectable({
   providedIn: 'root'
 })
-export class MenuService {
+export class Menu {
   private menuItemsSubject = new BehaviorSubject<MenuItem[]>([]);
   private selectedMenuItemSubject = new BehaviorSubject<MenuItem | null>(null);
 

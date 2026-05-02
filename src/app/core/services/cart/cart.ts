@@ -1,8 +1,8 @@
 import { Injectable, signal } from '@angular/core';
-import { CartItem } from '@app/features/waiter/take-order/take-order';
+import { CartItem } from '@areas/worker/features/waiter/take-order/take-order';
 
 @Injectable({ providedIn: 'root' })
-export class CartService {
+export class Cart {
   private _pendingItems = signal<CartItem[]>([]);
 
   get pendingItems() {

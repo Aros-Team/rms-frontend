@@ -2,7 +2,7 @@ import { Injectable, inject, OnDestroy } from '@angular/core';
 import { Client, StompSubscription } from '@stomp/stompjs';
 import { Subject, BehaviorSubject } from 'rxjs';
 
-import { LoggingService } from '@app/core/services/logging/logging-service';
+import { Logging } from '@app/core/services/logging/logging';
 import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
 import { InventoryStockUpdatedEvent } from '@models/dto/inventory/inventory-stock-update';
 
@@ -15,8 +15,8 @@ export interface WebSocketMessage<T = unknown> {
 }
 
 @Injectable({ providedIn: 'root' })
-export class WebSocketService implements OnDestroy {
-  private logger = inject(LoggingService);
+export class WebSocket implements OnDestroy {
+  private logger = inject(Logging);
   private client?: Client;
   private connected = false;
   private subscriptions = new Map<string, StompSubscription>();
@@ -48,7 +48,7 @@ export class WebSocketService implements OnDestroy {
     }
 
     this.logger.info('WebSocket: Connecting to', wsUrl);
-    console.log('WebSocket: Attempting connection with token:', token ? 'Present' : 'Missing');
+    this.logger.debug('WebSocket: Attempting connection with token:', token ? 'Present' : 'Missing');
 
     this.client = new Client({
       // Use SockJS as transport factory — required by Spring Boot's SockJS endpoint
@@ -69,7 +69,7 @@ export class WebSocketService implements OnDestroy {
       this.connected = true;
       this.connectionSubject.next(true);
       this.logger.info('WebSocket: Connected successfully');
-      console.log('WebSocket: Connection established', frame);
+      this.logger.debug('WebSocket: Connection established', frame);
       this.subscribeToTopics();
     };
 
@@ -99,12 +99,12 @@ export class WebSocketService implements OnDestroy {
       this.connected = false;
       this.connectionSubject.next(false);
       this.logger.info('WebSocket: Disconnected');
-      console.log('WebSocket: Disconnected');
+      this.logger.debug('WebSocket: Disconnected');
     };
 
     try {
       this.client.activate();
-      console.log('WebSocket: Client activated');
+      this.logger.debug('WebSocket: Client activated');
     } catch (error) {
       this.logger.error('WebSocket: Failed to activate client', error);
       console.error('WebSocket: Activation error:', error);
@@ -115,18 +115,18 @@ export class WebSocketService implements OnDestroy {
 
   private subscribeToTopics(): void {
     if (!this.client) {
-      console.error('WebSocket: Cannot subscribe, client is null');
+      this.logger.debug('WebSocket: Cannot subscribe, client is null');
       return;
     }
 
-    console.log('WebSocket: Subscribing to topics...');
+      this.logger.debug('WebSocket: Subscribing to topics...');
 
     // Subscribe to new orders (QUEUE)
     const createdSub = this.client.subscribe('/topic/orders/created', (message) => {
       try {
         const order: OrderResponse = JSON.parse(message.body);
         this.logger.info('WebSocket: New order created', order);
-        console.log('WebSocket: Received /topic/orders/created:', order);
+        this.logger.debug('WebSocket: Received /topic/orders/created:', order);
         this.orderCreatedSubject.next(order);
       } catch (error) {
         this.logger.error('WebSocket: Error parsing created order', error);
@@ -134,14 +134,14 @@ export class WebSocketService implements OnDestroy {
       }
     });
     this.subscriptions.set('/topic/orders/created', createdSub);
-    console.log('WebSocket: Subscribed to /topic/orders/created');
+    this.logger.debug('WebSocket: Subscribed to /topic/orders/created');
 
     // Subscribe to orders in preparation (PREPARING)
     const preparingSub = this.client.subscribe('/topic/orders/preparing', (message) => {
       try {
         const order: OrderResponse = JSON.parse(message.body);
         this.logger.info('WebSocket: Order preparing', order);
-        console.log('WebSocket: Received /topic/orders/preparing:', order);
+        this.logger.debug('WebSocket: Received /topic/orders/preparing:', order);
         this.orderPreparingSubject.next(order);
       } catch (error) {
         this.logger.error('WebSocket: Error parsing preparing order', error);
@@ -149,14 +149,14 @@ export class WebSocketService implements OnDestroy {
       }
     });
     this.subscriptions.set('/topic/orders/preparing', preparingSub);
-    console.log('WebSocket: Subscribed to /topic/orders/preparing');
+    this.logger.debug('WebSocket: Subscribed to /topic/orders/preparing');
 
     // Subscribe to ready orders (READY)
     const readySub = this.client.subscribe('/topic/orders/ready', (message) => {
       try {
         const order: OrderResponse = JSON.parse(message.body);
         this.logger.info('WebSocket: Order ready', order);
-        console.log('WebSocket: Received /topic/orders/ready:', order);
+        this.logger.debug('WebSocket: Received /topic/orders/ready:', order);
         this.orderReadySubject.next(order);
       } catch (error) {
         this.logger.error('WebSocket: Error parsing ready order', error);
@@ -164,7 +164,7 @@ export class WebSocketService implements OnDestroy {
       }
     });
     this.subscriptions.set('/topic/orders/ready', readySub);
-    console.log('WebSocket: Subscribed to /topic/orders/ready');
+    this.logger.debug('WebSocket: Subscribed to /topic/orders/ready');
 
     // Subscribe to inventory stock updates
     const inventorySub = this.client.subscribe('/topic/inventory/updates', (message) => {
@@ -177,14 +177,14 @@ export class WebSocketService implements OnDestroy {
       }
     });
     this.subscriptions.set('/topic/inventory/updates', inventorySub);
-    console.log('WebSocket: Subscribed to /topic/inventory/updates');
+    this.logger.debug('WebSocket: Subscribed to /topic/inventory/updates');
 
     // Subscribe to delivered orders (DELIVERED)
     const deliveredSub = this.client.subscribe('/topic/orders/delivered', (message) => {
       try {
         const order: OrderResponse = JSON.parse(message.body);
         this.logger.info('WebSocket: Order delivered', order);
-        console.log('WebSocket: Received /topic/orders/delivered:', order);
+        this.logger.debug('WebSocket: Received /topic/orders/delivered:', order);
         this.orderDeliveredSubject.next(order);
       } catch (error) {
         this.logger.error('WebSocket: Error parsing delivered order', error);
@@ -192,9 +192,9 @@ export class WebSocketService implements OnDestroy {
       }
     });
     this.subscriptions.set('/topic/orders/delivered', deliveredSub);
-    console.log('WebSocket: Subscribed to /topic/orders/delivered');
+    this.logger.debug('WebSocket: Subscribed to /topic/orders/delivered');
 
-    console.log('WebSocket: All subscriptions completed');
+    this.logger.debug('WebSocket: All subscriptions completed');
   }
 
   disconnect(): void {

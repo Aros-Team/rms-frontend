@@ -7,7 +7,7 @@ import { SupplierCreateRequest } from '@models/dto/suppliers/supplier-create-req
 import { SupplierUpdateRequest } from '@models/dto/suppliers/supplier-update-request';
 
 @Injectable({ providedIn: 'root' })
-export class SupplierService {
+export class Supplier {
   private http = inject(HttpClient);
 
   public getSuppliers(): Observable<SupplierResponse[]> {

@@ -11,7 +11,7 @@ export interface WorkerType {
 @Injectable({
   providedIn: 'root'
 })
-export class WorkerConfigService {
+export class WorkerConfig {
   private workerTypes = new Map<string, WorkerType>();
 
   constructor() {

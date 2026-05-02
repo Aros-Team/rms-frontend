@@ -11,7 +11,7 @@ export interface AccessibilitySettings {
 @Injectable({
   providedIn: 'root'
 })
-export class AccessibilityService {
+export class Accessibility {
   private readonly STORAGE_KEY = 'accessibility_settings';
   
   readonly fontSize = signal<FontSize>('normal');

@@ -7,7 +7,7 @@ import { TableResponse } from "@app/shared/models/dto/tables/table-response.mode
 @Injectable({
   providedIn: 'root',
 })
-export class TableService {
+export class Table {
   private http = inject(HttpClient);
 
   public getTables(): Observable<TableResponse[]> {

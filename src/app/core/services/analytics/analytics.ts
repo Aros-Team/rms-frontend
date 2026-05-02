@@ -6,7 +6,7 @@ import { TopSellingProduct } from '@app/shared/models/dto/analytics/top-selling-
 @Injectable({
   providedIn: 'root'
 })
-export class AnalyticsService {
+export class Analytics {
   private http = inject(HttpClient);
 
   public getTopSellingProducts(): Observable<TopSellingProduct[]> {

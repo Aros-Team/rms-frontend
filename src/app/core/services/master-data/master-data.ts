@@ -7,7 +7,7 @@ import { ProductListResponse } from '@app/shared/models/dto/products/product-lis
 import { ProductOption, OptionCategory } from '@app/shared/models/dto/products/product-option.model';
 import { TableResponse } from '@app/shared/models/dto/tables/table-response.model';
 
-export interface MasterData {
+export interface MasterDataPayload {
   products: ProductListResponse[];
   productOptions: ProductOption[];
   optionCategories: OptionCategory[];
@@ -15,14 +15,13 @@ export interface MasterData {
 }
 
 @Injectable({ providedIn: 'root' })
-export class MasterDataService {
+export class MasterData {
   private http = inject(HttpClient);
 
-  private _data$ = new BehaviorSubject<MasterData | null>(null);
+  private _data$ = new BehaviorSubject<MasterDataPayload | null>(null);
   readonly data$ = this._data$.asObservable();
 
-  /** Carga todos los datos maestros en paralelo */
-  load(): Observable<MasterData> {
+  load(): Observable<MasterDataPayload> {
     return forkJoin({
       products: this.http.get<ProductListResponse[]>('v1/products'),
       productOptions: this.http.get<ProductOption[]>('v1/product-options'),
@@ -33,7 +32,6 @@ export class MasterDataService {
     );
   }
 
-  /** Recarga solo las mesas (después de crear una orden) */
   reloadTables(): Observable<TableResponse[]> {
     return this.http.get<TableResponse[]>('v1/tables').pipe(
       tap(tables => {
@@ -43,12 +41,10 @@ export class MasterDataService {
     );
   }
 
-  /** Opciones específicas de un producto via API */
   getProductOptions(productId: number): Observable<ProductOption[]> {
     return this.http.get<ProductOption[]>(`v1/products/${productId}/options`);
   }
 
-  /** Opciones agrupadas por categoría */
   groupOptionsByCategory(options: ProductOption[]): Record<string, ProductOption[]> {
     return options.reduce((acc, opt) => {
       const key = opt.optionCategoryName;
@@ -58,7 +54,7 @@ export class MasterDataService {
     }, {} as Record<string, ProductOption[]>);
   }
 
-  get snapshot(): MasterData | null {
+  get snapshot(): MasterDataPayload | null {
     return this._data$.value;
   }
 

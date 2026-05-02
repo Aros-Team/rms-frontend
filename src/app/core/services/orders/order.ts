@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 
-import { LoggingService } from '@app/core/services/logging/logging-service';
+import { Logging } from '@app/core/services/logging/logging';
 import { OrderResponse, calculateTotalPrice } from '@app/shared/models/dto/orders/order-response.model';
 import { UpdateOrderRequest } from '@app/shared/models/dto/orders/update-order-status.model';
 import { CreateOrderRequest } from '@app/shared/models/dto/orders/create-order-request.model';
@@ -10,9 +10,9 @@ import { CreateOrderRequest } from '@app/shared/models/dto/orders/create-order-r
 export type OrderStatus = 'QUEUE' | 'PREPARING' | 'READY' | 'DELIVERED' | 'CANCELLED';
 
 @Injectable({ providedIn: 'root' })
-export class OrderService {
+export class Order {
   private http = inject(HttpClient);
-  private log = inject(LoggingService);
+  private log = inject(Logging);
 
   private toLocalDateString(dateStr: string): string {
     return dateStr.split('T')[0];
@@ -64,7 +64,7 @@ export class OrderService {
   }
 
   createOrder(request: CreateOrderRequest): Observable<OrderResponse> {
-    this.log.debug('OrderService: createOrder', request);
+    this.log.debug('Order: createOrder', request);
     return this.http.post<OrderResponse>('v1/orders', request);
   }
 

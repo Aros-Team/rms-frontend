@@ -11,7 +11,7 @@ import { SupplyResponse } from '@models/dto/supplies/supply-response';
 import { SupplyCreateRequest } from '@models/dto/supplies/supply-create-request';
 
 @Injectable({ providedIn: 'root' })
-export class SupplyService {
+export class Supply {
   private http = inject(HttpClient);
 
   public getSupplyVariants(): Observable<SupplyVariantResponse[]> {

@@ -6,7 +6,7 @@ import { AreaRequest, AreaResponse } from "@app/shared/models/dto/areas/area.mod
 @Injectable({
   providedIn: 'root',
 })
-export class AreaService {
+export class Area {
   private http = inject(HttpClient);
 
   public getAreas(): Observable<AreaResponse[]> {

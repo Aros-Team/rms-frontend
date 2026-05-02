@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 @Injectable({
   providedIn: 'root'
 })
-export class PasswordService {
+export class Password {
   private http = inject(HttpClient);
 
   forgotPassword(email: string): Observable<void> {

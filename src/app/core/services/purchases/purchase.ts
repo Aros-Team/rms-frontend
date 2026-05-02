@@ -6,7 +6,7 @@ import { PurchaseResponse } from '@models/dto/purchases/purchase-response';
 import { PurchaseCreateRequest } from '@models/dto/purchases/purchase-create-request';
 
 @Injectable({ providedIn: 'root' })
-export class PurchaseService {
+export class Purchase {
   private http = inject(HttpClient);
 
   public getPurchases(): Observable<PurchaseResponse[]> {

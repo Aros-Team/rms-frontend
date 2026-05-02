@@ -33,7 +33,7 @@ export interface Product {
 @Injectable({
   providedIn: 'root',
 })
-export class ProductService {
+export class Product {
   private http = inject(HttpClient);
 
   public getProducts(): Observable<ProductResponse[]> {
