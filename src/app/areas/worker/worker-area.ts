@@ -1,6 +1,6 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
-import { effect } from '@angular/core';
-import { RouterOutlet, Router } from '@angular/router';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, DestroyRef, ChangeDetectorRef, effect } from '@angular/core';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 import { Layout } from '@app/shared/layout/layout';
 import { MenuService, MenuItem } from '@app/core/services/menu/menu-service';
@@ -25,16 +25,47 @@ export class WorkerArea implements OnInit, OnDestroy {
   private messageService = inject(MessageService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
+  private cdr = inject(ChangeDetectorRef);
 
   workerType = 'waiter';
   hideSidebar = false;
   role = 'WORKER';
+
+  constructor() {
+    // effect() must be called in injection context (constructor or field initializer)
+    effect(() => {
+      const orders = this.notificationService.unseenReadyOrders();
+      if (orders.length > 0) {
+        orders.forEach(order => {
+          const tableName = order.table || `Mesa ${order.tableId}`;
+          this.messageService.add({
+            severity: 'info',
+            summary: 'Orden lista para entregar',
+            detail: `${tableName} - Orden #${order.id}`,
+            life: 10000,
+            sticky: true
+          });
+        });
+        this.notificationService.markAllAsSeen();
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.determineRole();
     this.determineWorkerType();
     this.configureWorkerMenu();
     this.startNotifications();
+    this.setupRouterListener();
+  }
+
+  private setupRouterListener(): void {
+    const sub = this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      this.cdr.markForCheck();
+    });
+    this.destroyRef.onDestroy(() => sub.unsubscribe());
   }
 
 ngOnDestroy(): void {
@@ -44,28 +75,6 @@ ngOnDestroy(): void {
   private startNotifications(): void {
     if (this.workerType === 'waiter') {
       this.notificationService.startPolling();
-
-      effect(() => {
-        const intervalId = setInterval(() => {
-          const orders = this.notificationService.unseenReadyOrders();
-          orders.forEach(order => {
-            const tableName = order.table || `Mesa ${order.tableId}`;
-            this.messageService.add({
-              severity: 'info',
-              summary: 'Orden lista para entregar',
-              detail: `${tableName} - Orden #${order.id}`,
-              life: 10000,
-              sticky: true
-            });
-          });
-
-          if (orders.length > 0) {
-            this.notificationService.markAllAsSeen();
-          }
-        }, 1000);
-
-        this.destroyRef.onDestroy(() => clearInterval(intervalId));
-      });
     }
   }
 

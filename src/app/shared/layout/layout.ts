@@ -78,7 +78,7 @@ export class Layout implements OnInit, OnDestroy {
         icon: item.icon,
         routerLink: item.routerLink
       }));
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     });
   }
 
@@ -86,7 +86,7 @@ export class Layout implements OnInit, OnDestroy {
     this.routerSubscription = this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => {
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     });
   }
 
