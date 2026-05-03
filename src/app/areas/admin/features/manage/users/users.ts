@@ -19,6 +19,8 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import { FormValidation } from '@app/shared/components/form/form-validation';
 import { Logging } from '@app/core/services/logging/logging';
 import { UpdateUserRequest } from '@app/shared/models/dto/users/user-response.model';
+import { AreaResponse } from '@app/shared/models/dto/areas/area.model';
+import { Area } from '@app/core/services/areas/area';
 
 @Component({
   selector: 'app-users',
@@ -42,6 +44,7 @@ import { UpdateUserRequest } from '@app/shared/models/dto/users/user-response.mo
 })
 export class Users implements OnInit {
   private userService = inject(User);
+  private areaService = inject(Area);
   private messageService = inject(MessageService);
   private logger = inject(Logging);
   private confirmationService = inject(ConfirmationService);
@@ -50,6 +53,7 @@ export class Users implements OnInit {
   description = 'Gestión completa de todos los usuarios/empleados del restaurante';
 
   users = signal<UserResponse[]>([]);
+  areas = signal<AreaResponse[]>([]);
   editing = false;
   selectedUser: UserResponse | null = null;
 
@@ -59,6 +63,7 @@ export class Users implements OnInit {
     email: new FormControl('', [Validators.required, Validators.email, Validators.maxLength(100)]),
     phone: new FormControl('', [Validators.required, Validators.pattern('^\\d{10}$')]),
     address: new FormControl('', [Validators.maxLength(200)]),
+    areas: new FormControl<number[]>([], [Validators.required]),
   });
 
   creationModalVisible = false;
@@ -69,6 +74,7 @@ export class Users implements OnInit {
 
   ngOnInit(): void {
     this.searchForUsers();
+    this.searchForAreas();
   }
 
   closeModals(): void {
@@ -185,6 +191,7 @@ export class Users implements OnInit {
       email: this.userForm.get('email')?.value,
       phone: this.userForm.get('phone')?.value,
       address: this.userForm.get('address')?.value,
+      areas: this.userForm.get('areas')?.value || [],
     };
 
     this.userService.updateUser(this.selectedUser.id, updateData).subscribe({
@@ -356,6 +363,7 @@ export class Users implements OnInit {
       email: data.email,
       phone: data.phone ?? '',
       address: data.address ?? '',
+      areas: data.assignedAreas ?? [],
     });
   }
 
@@ -364,12 +372,16 @@ export class Users implements OnInit {
   }
 
   private formToRequest(): CreateUserRequest {
+    const areasControl = this.userForm.get('areas');
+    const selectedAreas = areasControl?.value as number[];
+    
     return {
       document: this.userForm.get('document')?.value,
       name: this.userForm.get('name')?.value,
       email: this.userForm.get('email')?.value,
       phone: this.userForm.get('phone')?.value,
       address: this.userForm.get('address')?.value,
+      areas: selectedAreas || [],
     };
   }
 
@@ -377,6 +389,13 @@ export class Users implements OnInit {
     this.userService.getUsers().subscribe((res) => {
       this.users.set(res);
       this.logger.debug('Users loaded:', this.users());
+    });
+  }
+
+  private searchForAreas(): void {
+    this.areaService.getAreas().subscribe((res) => {
+      this.areas.set(res);
+      this.logger.debug('Areas loaded:', this.areas());
     });
   }
 
