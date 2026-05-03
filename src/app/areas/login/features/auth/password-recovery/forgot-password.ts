@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { PasswordModule } from 'primeng/password';
 import { MessageModule } from 'primeng/message';
 import { Password } from '@app/core/services/auth/password';
@@ -19,7 +19,8 @@ import { MessageService } from 'primeng/api';
     MessageModule,
     FloatLabelModule,
     InputTextModule,
-    ButtonModule
+    ButtonModule,
+    RouterLink
   ],
 })
 export class ForgotPassword {
@@ -38,6 +39,10 @@ export class ForgotPassword {
   isInvalid(field: string): boolean {
     const control = this.form.get(field);
     return control ? control.invalid && control.touched : false;
+  }
+
+  goToLogin(): void {
+    void this.router.navigate(['/login']);
   }
 
   onSubmit(): void {
@@ -68,10 +73,5 @@ export class ForgotPassword {
         }
       }
     });
-  }
-
-  goToLogin(): void {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.router.navigate(['/login']);
   }
 }

@@ -1,5 +1,5 @@
-import { TestBed } from '@angular/core/testing';
-import { BrowserDynamicTestingModule, platformBrowserDynamicTesting } from '@angular/platform-browser-dynamic/testing';
+import { getTestBed } from '@angular/core/testing';
+import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
 
 // Mock matchMedia for jsdom environment - required by Theme service
 Object.defineProperty(window, 'matchMedia', {
@@ -21,5 +21,4 @@ Object.defineProperty(window, 'matchMedia', {
   }),
 });
 
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-TestBed.initTestEnvironment(BrowserDynamicTestingModule, platformBrowserDynamicTesting());
+getTestBed().initTestEnvironment(BrowserTestingModule, platformBrowserTesting());

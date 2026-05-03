@@ -5,9 +5,7 @@ import { Subject, BehaviorSubject } from 'rxjs';
 import { Logging } from '@app/core/services/logging/logging';
 import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
 import { InventoryStockUpdatedEvent } from '@models/dto/inventory/inventory-stock-update';
-
-// SockJS is loaded as a global script (UMD build) via angular.json scripts array
-declare const SockJS: new (url: string) => WebSocket;
+import SockJS from 'sockjs-client';
 
 export interface WebSocketMessage<T = unknown> {
   destination: string;

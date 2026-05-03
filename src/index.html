@@ -12,14 +12,20 @@
   <!-- PWA -->
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="RMS">
   <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
 
-  <link rel="icon" type="image/x-icon" href="Dfavicon.webp">
+  <link rel="icon" type="image/webp" href="/Dfavicon.webp">
 
   <!-- Security Headers -->
   <meta name="referrer" content="strict-origin-when-cross-origin">
+
+  <!-- Font preloads for critical fonts -->
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/Archivo-Regular.woff2" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/Archivo-Bold.woff2" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/Archivo-Black.woff2" crossorigin>
 
   <!-- Preconnect for external APIs -->
   <link rel="preconnect" href="https://api.rms.aros.services">

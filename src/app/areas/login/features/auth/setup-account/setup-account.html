@@ -83,12 +83,12 @@
 
             <div class="setup-form-field">
               <label for="admin-password" class="setup-label">Contraseña</label>
-              <p-password formControlName="newPassword" id="admin-password" [toggleMask]="true" [feedback]="false" placeholder="Crea una contraseña" styleClass="w-full"></p-password>
+              <p-password formControlName="newPassword" id="admin-password" [toggleMask]="true" [feedback]="false" placeholder="Crea una contraseña" styleClass="w-full" ariaLabel="Crear contraseña"></p-password>
             </div>
 
             <div class="setup-form-field">
               <label for="admin-confirm-password" class="setup-label">Confirmar contraseña</label>
-              <p-password formControlName="confirmPassword" id="admin-confirm-password" [toggleMask]="true" [feedback]="false" placeholder="Confirma la contraseña" styleClass="w-full"></p-password>
+              <p-password formControlName="confirmPassword" id="admin-confirm-password" [toggleMask]="true" [feedback]="false" placeholder="Confirma la contraseña" styleClass="w-full" ariaLabel="Confirmar contraseña"></p-password>
             </div>
 
             <div class="password-requirements">
@@ -133,7 +133,7 @@
 
           <div class="setup-form-field">
             <label for="worker-password" class="setup-label">Contraseña</label>
-            <p-password formControlName="newPassword" id="worker-password" [toggleMask]="true" [feedback]="false" placeholder="Crea una contraseña" styleClass="w-full"></p-password>
+            <p-password formControlName="newPassword" id="worker-password" [toggleMask]="true" [feedback]="false" placeholder="Crea una contraseña" styleClass="w-full" ariaLabel="Crear contraseña"></p-password>
             @if (isInvalid('newPassword')) {
               <small class="setup-error-small">La contraseña es requerida</small>
             }
@@ -141,7 +141,7 @@
 
           <div class="setup-form-field">
             <label for="worker-confirm-password" class="setup-label">Confirmar contraseña</label>
-            <p-password formControlName="confirmPassword" id="worker-confirm-password" [toggleMask]="true" [feedback]="false" placeholder="Confirma la contraseña" styleClass="w-full"></p-password>
+            <p-password formControlName="confirmPassword" id="worker-confirm-password" [toggleMask]="true" [feedback]="false" placeholder="Confirma la contraseña" styleClass="w-full" ariaLabel="Confirmar contraseña"></p-password>
             @if (isInvalid('confirmPassword')) {
               <small class="setup-error-small">La confirmación es requerida</small>
             }

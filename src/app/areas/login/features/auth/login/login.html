@@ -21,7 +21,7 @@
 
       <div>
           <label for="password" class="text-sm">Contraseña</label>
-          <p-password id="password" formControlName="password" [invalid]="isInvalid('password')" [feedback]="false" [toggleMask]="true" autocomplete="off" fluid  />
+          <p-password id="password" formControlName="password" [invalid]="isInvalid('password')" [feedback]="false" [toggleMask]="true" autocomplete="off" fluid ariaLabel="Contraseña"  />
         @if (form.get('password')?.invalid && form.get('password')?.touched) {
           <div class="text-red-500 text-sm">
             Campo requerido*
@@ -45,8 +45,7 @@
 
       <div class="text-center mt-4">
         <a 
-          href="javascript:void(0)" 
-          (click)="goToForgotPassword()"
+          [routerLink]="['/forgot-password']"
           class="text-sm text-primary-500 hover:text-primary-600 dark:hover:text-primary-400"
         >
           ¿Olvidaste tu contraseña?

@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { PasswordModule } from 'primeng/password';
 import { MessageModule } from 'primeng/message'
 import { Auth } from '@services/auth/auth';
@@ -15,7 +15,7 @@ import { Logging } from '@app/core/services/logging/logging';
   selector: 'app-login-form',
   templateUrl: './login.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, PasswordModule, MessageModule, FloatLabelModule, InputTextModule, ButtonModule],
+  imports: [ReactiveFormsModule, PasswordModule, MessageModule, FloatLabelModule, InputTextModule, ButtonModule, RouterLink],
 })
 export class LoginForm implements OnInit {
   private authService = inject(Auth);
@@ -153,9 +153,5 @@ export class LoginForm implements OnInit {
       this.logger.debug('User data not available yet, retrying in 100ms');
       setTimeout(() => { this.redirectBasedOnUserRole(); }, 100);
     }
-  }
-
-  goToForgotPassword(): void {
-    void this.router.navigate(['/forgot-password']);
   }
 }

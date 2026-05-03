@@ -37,9 +37,7 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": [
-              "node_modules/sockjs-client/dist/sockjs.min.js"
-            ]
+            "scripts": []
           },
           "configurations": {
             "production": {
