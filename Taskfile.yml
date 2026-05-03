@@ -16,7 +16,7 @@ tasks:
     desc: Run tests
     cmds:
       - npm run lint:check
-      - npm test -- --no-watch --browsers=ChromeHeadless
+      - npm test --
 
   format:
     desc: Fix code formatting

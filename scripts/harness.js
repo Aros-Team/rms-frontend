@@ -150,7 +150,7 @@ console.log('\n── 6. Running Tests ─────────────�
 
 if (fs.existsSync(path.join(PROJECT_ROOT, 'tests'))) {
   try {
-    execSync('npm test -- --watch=false', { stdio: 'inherit', cwd: PROJECT_ROOT });
+    execSync('npx vitest run', { stdio: 'inherit', cwd: PROJECT_ROOT });
     ok('All tests pass');
   } catch {
     fail('Some tests are broken');
