@@ -37,11 +37,11 @@ export class WorkerArea implements OnInit, OnDestroy {
       const orders = this.notificationService.unseenReadyOrders();
       if (orders.length > 0) {
         orders.forEach(order => {
-          const tableName = order.table || `Mesa ${order.tableId}`;
+          const tableName = order.table ?? `Mesa ${String(order.tableId)}`;
           this.messageService.add({
             severity: 'info',
             summary: 'Orden lista para entregar',
-            detail: `${tableName} - Orden #${order.id}`,
+            detail: `${tableName} - Orden #${String(order.id)}`,
             life: 10000,
             sticky: true
           });
@@ -65,7 +65,7 @@ export class WorkerArea implements OnInit, OnDestroy {
     ).subscribe(() => {
       this.cdr.markForCheck();
     });
-    this.destroyRef.onDestroy(() => sub.unsubscribe());
+    this.destroyRef.onDestroy(() => { sub.unsubscribe(); });
   }
 
 ngOnDestroy(): void {
@@ -80,7 +80,7 @@ ngOnDestroy(): void {
 
   private determineRole(): void {
     const userData = this.authService.getData();
-    this.role = userData?.role || 'WORKER';
+    this.role = userData?.role ?? 'WORKER';
     this.logger.debug('WorkerArea: User role:', this.role);
   }
 
@@ -88,7 +88,7 @@ ngOnDestroy(): void {
     const userData = this.authService.getData();
     this.logger.debug('WorkerArea: Determining worker type from user data:', userData);
 
-    if (userData && userData.areas) {
+    if (userData?.areas) {
       const workerAreas = ['WAITER', 'KITCHEN', 'BAR', 'CASHIER'];
 
       for (const area of userData.areas) {

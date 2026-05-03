@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 import { Category } from '@app/core/services/category/category';
 import { OptionCategory } from '@app/core/services/option-category/option-category';
@@ -54,7 +54,7 @@ export class Categories implements OnInit {
   productCategoryDialogOpen = signal(false);
 
   productCategoryForm: FormGroup = this.fb.group({
-    name: ['', Validators.required],
+    name: ['', (control: AbstractControl) => Validators.required(control)],
   });
   productCategorySaved = signal(false);
   productCategoryError = signal<string | null>(null);
@@ -64,8 +64,8 @@ export class Categories implements OnInit {
   optionCategoryDialogOpen = signal(false);
 
   optionCategoryForm: FormGroup = this.fb.group({
-    name: ['', Validators.required],
-    description: [''],
+    name: ['', (control: AbstractControl) => Validators.required(control)],
+    description: [''] as const,
   });
   optionCategorySaved = signal(false);
   optionCategoryError = signal<string | null>(null);
@@ -90,7 +90,9 @@ export class Categories implements OnInit {
       this.productCategoryForm.markAllAsTouched();
       return;
     }
-    this.categoryService.createCategory({ name: this.productCategoryForm.get('name')!.value }).subscribe({
+    const nameControl = this.productCategoryForm.get('name');
+    const name: string = (nameControl?.value as string | null | undefined) ?? '';
+    this.categoryService.createCategory({ name }).subscribe({
       next: () => {
         this.productCategorySaved.set(true);
         this.productCategoryForm.reset();
@@ -112,7 +114,7 @@ export class Categories implements OnInit {
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Confirmar',
       rejectLabel: 'Cancelar',
-      accept: () => this.toggleCategory(id),
+      accept: () => { this.toggleCategory(id); },
     });
   }
 
@@ -150,8 +152,8 @@ export class Categories implements OnInit {
       this.optionCategoryForm.markAllAsTouched();
       return;
     }
-    const { name, description } = this.optionCategoryForm.value;
-    this.optionCategoryService.createOptionCategory({ name, description: description || undefined }).subscribe({
+    const { name, description } = this.optionCategoryForm.getRawValue() as { name: string; description: string | undefined };
+    this.optionCategoryService.createOptionCategory({ name, description: description ?? undefined }).subscribe({
       next: () => {
         this.optionCategorySaved.set(true);
         this.optionCategoryForm.reset();
@@ -167,6 +169,6 @@ export class Categories implements OnInit {
   }
 
   private refreshOptionCategories(): void {
-    this.optionCategoryService.getOptionCategories().subscribe(res => this.optionCategories.set(res));
+    this.optionCategoryService.getOptionCategories().subscribe(res => { this.optionCategories.set(res); });
   }
 }

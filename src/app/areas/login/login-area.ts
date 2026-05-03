@@ -8,5 +8,5 @@ import { LoginForm } from '@areas/login/features/auth/login/login';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Login {
-  //
+  readonly area = 'login';
 }

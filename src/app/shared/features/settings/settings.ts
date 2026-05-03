@@ -215,7 +215,7 @@ export class Settings implements OnInit {
 
     if (accepted === 'true') {
       const date = localStorage.getItem('habeas_data_date');
-      this.habeasDataDate.set(date || '');
+      this.habeasDataDate.set(date ?? '');
     }
   }
 

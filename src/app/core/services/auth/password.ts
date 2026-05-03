@@ -8,19 +8,19 @@ import { Observable } from 'rxjs';
 export class Password {
   private http = inject(HttpClient);
 
-  forgotPassword(email: string): Observable<void> {
-    return this.http.post<void>('auth/forgot-password', { email });
+  forgotPassword(email: string): Observable<unknown> {
+    return this.http.post('auth/forgot-password', { email });
   }
 
-  resetPassword(token: string, newPassword: string): Observable<void> {
-    return this.http.post<void>('auth/reset-password', { 
-      token, 
-      newPassword 
+  resetPassword(token: string, newPassword: string): Observable<unknown> {
+    return this.http.post('auth/reset-password', {
+      token,
+      newPassword
     });
   }
 
-  changePassword(currentPassword: string, newPassword: string): Observable<void> {
-    return this.http.put<void>('v1/users/me/password', {
+  changePassword(currentPassword: string, newPassword: string): Observable<unknown> {
+    return this.http.put('v1/users/me/password', {
       currentPassword,
       newPassword
     });

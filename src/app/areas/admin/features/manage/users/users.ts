@@ -12,13 +12,21 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { TagModule } from 'primeng/tag';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { UserResponse } from '@app/shared/models/dto/users/user-response.model';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { User } from '@app/core/services/users/user';
 import { CreateUserRequest } from '@app/shared/models/dto/users/create-user-request.model';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { FormValidation } from '@app/shared/components/form/form-validation';
 import { Logging } from '@app/core/services/logging/logging';
 import { UpdateUserRequest } from '@app/shared/models/dto/users/user-response.model';
+
+interface UserFormValue {
+  document: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string | null;
+}
 
 @Component({
   selector: 'app-users',
@@ -54,11 +62,11 @@ export class Users implements OnInit {
   selectedUser: UserResponse | null = null;
 
   userForm: FormGroup = new FormGroup({
-    document: new FormControl('', [Validators.required, Validators.pattern('^\\d+$'), Validators.maxLength(20)]),
-    name: new FormControl('', [Validators.required, Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$'), Validators.maxLength(100)]),
-    email: new FormControl('', [Validators.required, Validators.email, Validators.maxLength(100)]),
-    phone: new FormControl('', [Validators.required, Validators.pattern('^\\d{10}$')]),
-    address: new FormControl('', [Validators.maxLength(200)]),
+    document: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.pattern('^\\d+$')(control), (control: AbstractControl) => Validators.maxLength(20)(control)]),
+    name: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$')(control), (control: AbstractControl) => Validators.maxLength(100)(control)]),
+    email: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.email(control), (control: AbstractControl) => Validators.maxLength(100)(control)]),
+    phone: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.pattern('^\\d{10}$')(control)]),
+    address: new FormControl('', [(control: AbstractControl) => Validators.maxLength(200)(control)]),
   });
 
   creationModalVisible = false;
@@ -143,21 +151,21 @@ export class Users implements OnInit {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: backendMessage || 'Ya existe un usuario con ese documento o correo',
+            detail: backendMessage ?? 'Ya existe un usuario con ese documento o correo',
             life: 5000,
           });
         } else if (err.status === 0 || (err.status && err.status >= 500)) {
           this.messageService.add({
             severity: 'error',
             summary: 'Error del servidor',
-            detail: backendMessage || 'Error del servidor. Intente más tarde.',
+            detail: backendMessage ?? 'Error del servidor. Intente más tarde.',
             life: 5000,
           });
         } else {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: backendMessage || 'Error al crear el usuario',
+            detail: backendMessage ?? 'Error al crear el usuario',
             life: 5000,
           });
         }
@@ -179,12 +187,13 @@ export class Users implements OnInit {
 
     this.backendFieldErrors = {};
 
+    const formValue = this.userForm.value as UserFormValue;
     const updateData: UpdateUserRequest = {
-      document: this.userForm.get('document')?.value,
-      name: this.userForm.get('name')?.value,
-      email: this.userForm.get('email')?.value,
-      phone: this.userForm.get('phone')?.value,
-      address: this.userForm.get('address')?.value,
+      document: formValue.document,
+      name: formValue.name,
+      email: formValue.email,
+      phone: formValue.phone,
+      address: formValue.address ?? '',
     };
 
     this.userService.updateUser(this.selectedUser.id, updateData).subscribe({
@@ -231,21 +240,21 @@ export class Users implements OnInit {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: backendMessage || 'Ya existe un usuario con ese documento o correo',
+            detail: backendMessage ?? 'Ya existe un usuario con ese documento o correo',
             life: 5000,
           });
         } else if (err.status === 0 || (err.status && err.status >= 500)) {
           this.messageService.add({
             severity: 'error',
             summary: 'Error del servidor',
-            detail: backendMessage || 'Error del servidor. Intente más tarde.',
+            detail: backendMessage ?? 'Error del servidor. Intente más tarde.',
             life: 5000,
           });
         } else {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: backendMessage || 'Error al actualizar el usuario',
+            detail: backendMessage ?? 'Error al actualizar el usuario',
             life: 5000,
           });
         }
@@ -264,7 +273,11 @@ export class Users implements OnInit {
       rejectLabel: 'Cancelar',
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
-        this.userService.deleteUser(user.id!).subscribe({
+        if (!user.id) {
+          this.logger.error('Cannot delete user without ID');
+          return;
+        }
+        this.userService.deleteUser(user.id).subscribe({
           next: () => {
             this.searchForUsers();
             this.messageService.add({
@@ -289,14 +302,14 @@ export class Users implements OnInit {
               this.messageService.add({
                 severity: 'error',
                 summary: 'Error del servidor',
-                detail: backendMessage || 'Error del servidor. Intente más tarde.',
+                detail: backendMessage ?? 'Error del servidor. Intente más tarde.',
                 life: 5000,
               });
             } else {
               this.messageService.add({
                 severity: 'error',
                 summary: 'Error',
-                detail: backendMessage || 'Error al eliminar el usuario',
+                detail: backendMessage ?? 'Error al eliminar el usuario',
                 life: 5000,
               });
             }
@@ -334,14 +347,14 @@ export class Users implements OnInit {
           this.messageService.add({
             severity: 'error',
             summary: 'Error del servidor',
-            detail: backendMessage || 'Error del servidor. Intente más tarde.',
+            detail: backendMessage ?? 'Error del servidor. Intente más tarde.',
             life: 5000,
           });
         } else {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: backendMessage || 'Error al reenviar el correo',
+            detail: backendMessage ?? 'Error al reenviar el correo',
             life: 5000,
           });
         }
@@ -364,12 +377,13 @@ export class Users implements OnInit {
   }
 
   private formToRequest(): CreateUserRequest {
+    const formValue = this.userForm.value as UserFormValue;
     return {
-      document: this.userForm.get('document')?.value,
-      name: this.userForm.get('name')?.value,
-      email: this.userForm.get('email')?.value,
-      phone: this.userForm.get('phone')?.value,
-      address: this.userForm.get('address')?.value,
+      document: formValue.document,
+      name: formValue.name,
+      email: formValue.email,
+      phone: formValue.phone,
+      address: formValue.address ?? undefined,
     };
   }
 

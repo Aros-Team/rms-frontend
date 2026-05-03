@@ -6,6 +6,6 @@ export class TableNumberPipe implements PipeTransform {
   transform(tables: TableResponse[], tableId: number | null): string {
     if (!tableId) return '';
     const t = tables.find(t => t.id === tableId);
-    return t ? `${t.tableNumber}` : '';
+    return t ? String(t.tableNumber) : '';
   }
 }

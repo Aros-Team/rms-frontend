@@ -19,6 +19,6 @@ export class Supplier {
   }
 
   public updateSupplier(id: number, data: SupplierUpdateRequest): Observable<SupplierResponse> {
-    return this.http.put<SupplierResponse>(`v1/suppliers/${id}`, data);
+    return this.http.put<SupplierResponse>(`v1/suppliers/${String(id)}`, data);
   }
 }

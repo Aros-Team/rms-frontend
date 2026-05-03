@@ -40,8 +40,8 @@ export class ProductCreationForm {
       estimateTime: this.form.get('estimateTime')?.value,
       areaId: this.form.get('preparationArea')?.value,
     }).subscribe({
-      next: (r) => this.logger.debug('Product created:', r),
-      error: (er) => this.logger.error('Error creating product:', er)
+      next: (r) => { this.logger.debug('Product created:', r); },
+      error: (er) => { this.logger.error('Error creating product:', er); }
     });
   }
 

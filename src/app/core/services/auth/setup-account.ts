@@ -17,8 +17,8 @@ export class SetupAccount {
     return this.http.get<SetupAccountResponse>(`auth/setup-account/validate?token=${token}`);
   }
 
-  setupPassword(data: SetupPasswordRequest): Observable<void> {
+  setupPassword(data: SetupPasswordRequest): Observable<unknown> {
     this.logger.auth('Setting up password for account');
-    return this.http.post<void>('auth/setup-password', data);
+    return this.http.post('auth/setup-password', data);
   }
 }

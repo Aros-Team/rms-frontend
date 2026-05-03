@@ -27,7 +27,7 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const newHeaders: Record<string, string> = {};
 
   if (authService.isAuthenticated()) {
-    newHeaders['Authorization'] = `Bearer ${authService.getToken()}`;
+    newHeaders['Authorization'] = `Bearer ${String(authService.getToken())}`;
     logger.http('Adding Authorization header to request');
   } else {
     logger.http('No authentication token available, proceeding without Authorization header');

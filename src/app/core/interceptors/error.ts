@@ -8,8 +8,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     tap({
-      next: () => logger.http(`Response from ${req.method} ${req.url}`),
-      error: (err) => logger.error(`Response from ${req.method} ${req.url} failed:`, err),
+      next: () => { logger.http(`Response from ${req.method} ${req.url}`); },
+      error: (err) => { logger.error(`Response from ${req.method} ${req.url} failed:`, err); },
     })
   );
 };

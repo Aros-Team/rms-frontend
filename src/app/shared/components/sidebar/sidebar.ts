@@ -30,9 +30,7 @@ export class Sidebar implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.menuSubscription) {
-      this.menuSubscription.unsubscribe();
-    }
+    this.menuSubscription.unsubscribe();
   }
 
   onMenuItemClick(item: MenuItem): void {

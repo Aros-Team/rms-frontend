@@ -40,8 +40,8 @@ export class Fingerprint {
       screen.height.toString(),
       screen.colorDepth.toString(),
       new Date().getTimezoneOffset().toString(),
-      navigator.hardwareConcurrency?.toString() || '0',
-      navigator.maxTouchPoints?.toString() || '0',
+      (navigator.hardwareConcurrency as number | undefined ?? 0).toString(),
+      (navigator.maxTouchPoints as number | undefined ?? 0).toString(),
       Intl.DateTimeFormat().resolvedOptions().timeZone,
       Intl.DateTimeFormat().resolvedOptions().locale,
     ];

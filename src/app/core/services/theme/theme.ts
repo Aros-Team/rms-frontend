@@ -22,7 +22,7 @@ export class Theme {
 
   // Get current theme (default: light)
   get(): string {
-    return localStorage.getItem('theme') || 'light';
+    return localStorage.getItem('theme') ?? 'light';
   }
 
   // Set theme and handle light/dark classes

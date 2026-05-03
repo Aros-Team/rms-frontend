@@ -77,8 +77,9 @@ export class TodayOrders implements OnInit {
         this.orders.update(list => list.map(o => o.id === updated.id ? updated : o));
         this.processing.delete(order.id);
       },
-      error: (err) => {
-        this.error.set(err?.error?.message || 'No se pudo cancelar la orden.');
+      error: (err: unknown) => {
+        const message = err instanceof Error ? err.message : null;
+        this.error.set(message ?? 'No se pudo cancelar la orden.');
         this.processing.delete(order.id);
       }
     });
@@ -93,8 +94,9 @@ export class TodayOrders implements OnInit {
         this.orders.update(list => list.map(o => o.id === updated.id ? updated : o));
         this.processing.delete(order.id);
       },
-      error: (err) => {
-        this.error.set(err?.error?.message || 'No se pudo entregar la orden.');
+      error: (err: unknown) => {
+        const message = err instanceof Error ? err.message : null;
+        this.error.set(message ?? 'No se pudo entregar la orden.');
         this.processing.delete(order.id);
       }
     });

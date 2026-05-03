@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 
-import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { NgClass } from '@angular/common';
 import { PasswordModule } from 'primeng/password';
 import { InputTextModule } from 'primeng/inputtext';
@@ -11,11 +11,11 @@ import { Password } from '@app/core/services/auth/password';
 import { Auth } from '@app/core/services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
 
-function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
-  const newPassword = control.get('newPassword')?.value;
-  const confirmPassword = control.get('confirmPassword')?.value;
+const passwordMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  const newPassword = String(control.get('newPassword')?.value ?? '');
+  const confirmPassword = String(control.get('confirmPassword')?.value ?? '');
   return newPassword === confirmPassword ? null : { mismatch: true };
-}
+};
 
 @Component({
   selector: 'app-change-password',
@@ -41,13 +41,13 @@ export class ChangePassword {
   success = signal(false);
 
   form: FormGroup = new FormGroup({
-    currentPassword: new FormControl('', [Validators.required]),
-    newPassword: new FormControl('', [Validators.required]),
-    confirmPassword: new FormControl('', [Validators.required])
+    currentPassword: new FormControl<string>('', [(control: AbstractControl) => Validators.required(control)]),
+    newPassword: new FormControl<string>('', [(control: AbstractControl) => Validators.required(control)]),
+    confirmPassword: new FormControl<string>('', [(control: AbstractControl) => Validators.required(control)])
   }, { validators: passwordMatchValidator });
 
   checkPasswordRequirement(requirement: string): boolean {
-    const password = this.form.get('newPassword')?.value || '';
+    const password = String(this.form.get('newPassword')?.value ?? '');
     switch (requirement) {
       case 'minLength': return password.length >= 8;
       case 'upperCase': return /[A-Z]/.test(password);
@@ -68,10 +68,10 @@ export class ChangePassword {
     this.error.set(null);
     this.success.set(false);
 
-    const currentPassword = this.form.get('currentPassword')?.value;
-    const newPassword = this.form.get('newPassword')?.value;
+    const currentPassword = String(this.form.get('currentPassword')?.value ?? '');
+    const newPassword = String(this.form.get('newPassword')?.value ?? '');
 
-    this.passwordService.changePassword(currentPassword, newPassword).subscribe({
+    void this.passwordService.changePassword(currentPassword, newPassword).subscribe({
       next: () => {
         this.loading.set(false);
         this.success.set(true);
@@ -82,9 +82,10 @@ export class ChangePassword {
         });
         this.form.reset();
       },
-      error: (err) => {
+      error: (err: unknown) => {
         this.loading.set(false);
-        if (err.status === 400) {
+        const status = typeof err === 'object' && err !== null && 'status' in err ? (err as { status: number }).status : 0;
+        if (status === 400) {
           this.error.set('La contraseña actual es incorrecta');
         } else {
           this.error.set('Ocurrió un error al cambiar la contraseña');

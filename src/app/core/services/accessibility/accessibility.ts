@@ -65,9 +65,18 @@ export class Accessibility {
     const stored = localStorage.getItem(this.STORAGE_KEY);
     if (stored) {
       try {
-        const settings: AccessibilitySettings = JSON.parse(stored);
-        this.fontSize.set(settings.fontSize || 'normal');
-        this.contrastMode.set(settings.contrastMode || 'normal');
+        const parsed: unknown = JSON.parse(stored);
+        if (parsed && typeof parsed === 'object') {
+          const settings = parsed as Record<string, unknown>;
+          const fontSize = settings['fontSize'];
+          const contrastMode = settings['contrastMode'];
+          if (fontSize === 'small' || fontSize === 'normal' || fontSize === 'large' || fontSize === 'extra-large') {
+            this.fontSize.set(fontSize);
+          }
+          if (contrastMode === 'normal' || contrastMode === 'high') {
+            this.contrastMode.set(contrastMode);
+          }
+        }
       } catch {
         this.fontSize.set('normal');
         this.contrastMode.set('normal');

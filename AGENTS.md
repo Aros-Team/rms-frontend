@@ -44,6 +44,7 @@
 - **One task at a time.** Do NOT mix tasks from different activities. Tasks can run in parallel if from same activity but different agents.
 - **Do NOT declare task done without green tests.** Run `node scripts/harness.js` — ensure all blocks pass.
 - **Document what do** in `progress/current.md` while work, NOT at end.
+- While an activity is in progress, write the implementation plan and task breakdown in progress/current.md so it's clear what we're working on.
 - **Leave repo clean** before close session (see §5).
 - **If no know something, search `docs/`** before make up.
 
@@ -74,11 +75,42 @@ Before end:
 1. Run `node scripts/harness.js` — all green.
 2. If task done: mark task status `done` in activities.json.
 3. If all tasks in activity are `done`: mark activity status `done` in activities.json.
-4. Move summary from `progress/current.md` to end `progress/history.md`.
-5. Empty `progress/current.md` leaving only template.
+4. Once an activity and ALL its tasks are done: move summary from `progress/current.md` to end `progress/history.md`.
+5. Then empty `progress/current.md` leaving only the template (the # Current Progress line).
 6. Do NOT leave temp files, `print()` debug, TODOs without context.
 
-## 7. If Blocked
+## 6.1 All Activities Complete
+
+When ALL activities in activities.json are marked "done":
+1. Ask the user: "¿Deseas limpiar la sesión para empezar otra? (yes/no)"
+2. If user says "yes":
+   - Clear all entries from activities.json (reset to empty array [])
+   - Empty progress/current.md to just the template
+   - Optionally save final state to progress/history.md
+3. If user says "no":
+   - Keep activities.json as is for reference
+   - End session normally
+
+## 7. Greeting Message
+
+When the leader agent (orchestrator) starts a new session, it must send this initial message to the user:
+
+```
+| > Hola, soy el orquestador principal para RMS.
+
+Mi rol es coordinar el trabajo de implementación y asegurarme de que todo avance de forma ordenada.
+
+Actualmente tenemos X actividad(es) pendiente(s) en cola.
+
+¿Qué te gustaría hacer hoy con el proyecto RMS?
+- ¿Implementar una nueva funcionalidad?
+- ¿Corregir un bug?
+- ¿Hacer alguna mejora o refactor?
+```
+
+Replace X with the actual count of pending activities from activities.json.
+
+## 8. If Blocked
 
 - Re-read relevant section `docs/`.
 - If tool no do what expect, **do NOT invent workaround**: document block in `progress/current.md` + stop session.

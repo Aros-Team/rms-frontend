@@ -1,7 +1,6 @@
-
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Area } from '@app/core/services/areas/area';
 import { AreaSimpleResponse } from '@app/shared/models/dto/areas/area-simple-response';
 import { Auth } from '@app/core/services/auth/auth';
@@ -117,8 +116,8 @@ export class Areas implements OnInit, OnDestroy {
   selectedArea?: AreaSimpleResponse;
 
   form: FormGroup = this.fb.group({
-    name: ['', Validators.required],
-    type: ['', Validators.required],
+    name: ['', (control: AbstractControl) => Validators.required(control)],
+    type: ['', (control: AbstractControl) => Validators.required(control)],
   });
 
   areaTypes = [
@@ -132,8 +131,8 @@ export class Areas implements OnInit, OnDestroy {
 
   loadAreas(): void {
     this.areasSubscription = this.areaService.getAreas().subscribe({
-      next: (areas) => this.areas.set(areas),
-      error: (err) => console.error('Error loading areas:', err),
+      next: (areas) => { this.areas.set(areas); },
+      error: (err) => { console.error('Error loading areas:', err); },
     });
   }
 
@@ -143,13 +142,13 @@ export class Areas implements OnInit, OnDestroy {
     }
   }
 
-  showCreateModal(): void {
+  showCreateModal = (): void => {
     this.editMode = false;
     this.form.reset();
     this.modalVisible = true;
-  }
+  };
 
-  showEditModal(area: AreaSimpleResponse): void {
+  showEditModal = (area: AreaSimpleResponse): void => {
     this.editMode = true;
     this.selectedArea = area;
     this.form.patchValue({
@@ -157,12 +156,12 @@ export class Areas implements OnInit, OnDestroy {
       type: area.type,
     });
     this.modalVisible = true;
-  }
+  };
 
-  saveArea(): void {
+  saveArea = (): void => {
     if (this.form.invalid) return;
 
-    const data = this.form.value;
+    const data = this.form.value as { name: string; type: 'KITCHEN' | 'BARTENDER' };
 
     if (this.editMode && this.selectedArea) {
       this.areaService.updateArea(this.selectedArea.id, data).subscribe({
@@ -179,11 +178,11 @@ export class Areas implements OnInit, OnDestroy {
         },
       });
     }
-  }
+  };
 
-  toggleArea(area: AreaSimpleResponse): void {
+  toggleArea = (area: AreaSimpleResponse): void => {
     this.areaService.toggleArea(area.id).subscribe({
-      next: () => this.loadAreas(),
+      next: () => { this.loadAreas(); },
     });
-  }
+  };
 }

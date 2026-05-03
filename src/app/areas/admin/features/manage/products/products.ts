@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, FormArray, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, FormGroup, FormArray, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, EMPTY, switchMap } from 'rxjs';
@@ -19,6 +19,7 @@ import { OptionCategoryResponse } from '@app/shared/models/dto/category/option-c
 import { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
 import { ProductRecipeItem, ProductResponse } from '@app/shared/models/dto/products/product-response';
 import { ProductOption as ProductOptionDTO, ProductOptionResponse } from '@app/shared/models/dto/products/product-option.model';
+import { ProductOptionCreateRequest, RecipeItemRequest } from '@app/shared/models/dto/products/product-create-request';
 
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -41,6 +42,14 @@ import { CurrencyPipe } from '@angular/common';
 
 // Wizard steps: 1=base+recipe, 2=options, 3=summary
 type WizardStep = 1 | 2 | 3;
+
+interface OptionFormValue {
+  id?: number | null;
+  name?: string;
+  optionCategoryId?: number | null;
+  recipe?: unknown[];
+  isExisting?: boolean;
+}
 
 @Component({
   selector: 'app-products',
@@ -132,16 +141,16 @@ export class Products implements OnInit {
   }
 
   getOptionRecipeCategory(optIdx: number, riIdx: number): number | null {
-    return this.optionRecipeCategoryMap.get(`${optIdx}-${riIdx}`) ?? null;
+    return this.optionRecipeCategoryMap.get(`${String(optIdx)}-${String(riIdx)}`) ?? null;
   }
 
   setOptionRecipeCategory(optIdx: number, riIdx: number, catId: number | null): void {
-    this.optionRecipeCategoryMap.set(`${optIdx}-${riIdx}`, catId);
+    this.optionRecipeCategoryMap.set(`${String(optIdx)}-${String(riIdx)}`, catId);
     this.getOptionRecipe(optIdx).at(riIdx).get('supplyVariantId')?.setValue(null);
   }
 
   filteredVariantsForOptionRecipe(optIdx: number, riIdx: number): (SupplyVariantResponse & { displayName: string })[] {
-    const catId = this.optionRecipeCategoryMap.get(`${optIdx}-${riIdx}`) ?? null;
+    const catId = this.optionRecipeCategoryMap.get(`${String(optIdx)}-${String(riIdx)}`) ?? null;
     return catId ? this.supplyVariantOptions().filter(v => v.categoryId === catId) : this.supplyVariantOptions();
   }
 
@@ -163,10 +172,10 @@ export class Products implements OnInit {
   // ── Step 1: product base + base recipe ──────────────────────────
   baseForm: FormGroup = this.fb.group({
     id: [null],
-    name: ['', [Validators.required, Validators.minLength(2)]],
-    basePrice: [null, [Validators.required, Validators.min(0)]],
-    categoryId: [null, Validators.required],
-    areaId: [null, Validators.required],
+    name: ['', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.minLength(2)(control)]],
+    basePrice: [null, [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.min(0)(control)]],
+    categoryId: [null, (control: AbstractControl) => Validators.required(control)],
+    areaId: [null, (control: AbstractControl) => Validators.required(control)],
   });
 
   baseRecipe: FormArray = this.fb.array([]);
@@ -191,11 +200,11 @@ export class Products implements OnInit {
         this.categories.set(categories.filter(c => c.enabled));
         this.optionCategories.set(optionCategories);
         this.supplyVariantOptions.set(
-          variants.map(v => ({ ...v, displayName: `${v.supplyName} — ${v.quantity} ${v.unitAbbreviation}` }))
+          variants.map(v => ({ ...v, displayName: `${v.supplyName} — ${String(v.quantity)} ${v.unitAbbreviation}` }))
         );
         this.allProductOptions.set(productOptions);
       },
-      error: err => this.logger.error('Error loading reference data', err),
+      error: err => { this.logger.error('Error loading reference data', err); },
     });
   }
 
@@ -206,7 +215,7 @@ export class Products implements OnInit {
     if (!nums || nums.length === 0) {
       this.refreshProducts();
     } else {
-      this.productService.filterByCategories(nums).subscribe(res => this.products.set(res));
+      this.productService.filterByCategories(nums).subscribe(res => { this.products.set(res); });
     }
   }
 
@@ -245,7 +254,7 @@ export class Products implements OnInit {
           id: p.id, name: p.name, basePrice: p.basePrice,
           categoryId: p.categoryId, areaId: p.areaId,
         });
-        this.existingRecipe.set(p.recipe ?? []);
+        this.existingRecipe.set(p.recipe);
         this.baseRecipe.clear();
         this.baseRecipeCategoryMap.clear();
         this.createdProduct.set(p);
@@ -266,8 +275,8 @@ export class Products implements OnInit {
 
   addBaseRecipeItem(): void {
     this.baseRecipe.push(this.fb.group({
-      supplyVariantId: [null, Validators.required],
-      requiredQuantity: [null, [Validators.required, Validators.min(0.001)]],
+      supplyVariantId: [null, (control: AbstractControl) => Validators.required(control)],
+      requiredQuantity: [null, [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.min(0.001)(control)]],
     }));
   }
 
@@ -279,7 +288,7 @@ export class Products implements OnInit {
 
   /** Nombre para mostrar de un insumo existente dado su supplyVariantId */
   getVariantDisplayName(variantId: number): string {
-    return this.supplyVariantOptions().find(v => v.id === variantId)?.displayName ?? `Insumo #${variantId}`;
+    return this.supplyVariantOptions().find(v => v.id === variantId)?.displayName ?? `Insumo #${String(variantId)}`;
   }
 
   // ── Option rows ──────────────────────────────────────────────────
@@ -287,16 +296,15 @@ export class Products implements OnInit {
   addOption(): void {
     this.optionsArray.push(this.fb.group({
       id: [null], // ID if selecting existing option
-      name: ['', Validators.required],
-      optionCategoryId: [null, Validators.required],
+      name: ['', (control: AbstractControl) => Validators.required(control)],
+      optionCategoryId: [null, (control: AbstractControl) => Validators.required(control)],
       recipe: this.fb.array([]),
       isExisting: [false], // Flag to track if this is an existing option
     }));
   }
 
   removeOption(i: number): void { 
-    const opt = this.optionsArray.at(i).value;
-    // If it was an existing option, remove from selectedOptionIds
+    const opt = this.optionsArray.at(i).value as OptionFormValue;
     if (opt.isExisting && opt.id) {
       this.selectedOptionIds.update(ids => ids.filter(id => id !== opt.id));
     }
@@ -314,8 +322,8 @@ export class Products implements OnInit {
 
   addOptionRecipeItem(optionIndex: number): void {
     this.getOptionRecipe(optionIndex).push(this.fb.group({
-      supplyVariantId: [null, Validators.required],
-      requiredQuantity: [null, [Validators.required, Validators.min(0.001)]],
+      supplyVariantId: [null, (control: AbstractControl) => Validators.required(control)],
+      requiredQuantity: [null, [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.min(0.001)(control)]],
     }));
   }
 
@@ -385,7 +393,7 @@ export class Products implements OnInit {
     // Check for duplicate name+category combinations (new options)
     const newOptionKeys = options
       .filter(o => !o.isExisting && o.name && o.optionCategoryId)
-      .map(o => `${o.optionCategoryId}-${o.name.trim().toLowerCase()}`);
+        .map(o => `${String(o.optionCategoryId)}-${o.name.trim().toLowerCase()}`);
     if (newOptionKeys.length !== new Set(newOptionKeys).size) {
       return true;
     }
@@ -411,7 +419,9 @@ export class Products implements OnInit {
     options.forEach((opt, idx) => {
       if (opt.isExisting && opt.id) {
         if (!idMap.has(opt.id)) idMap.set(opt.id, []);
-        idMap.get(opt.id)!.push(idx);
+        const idIndices = idMap.get(opt.id);
+        if (idIndices) idIndices.push(idx);
+        else idMap.set(opt.id, [idx]);
       }
     });
     idMap.forEach(indices => {
@@ -424,9 +434,11 @@ export class Products implements OnInit {
     const nameMap = new Map<string, number[]>();
     options.forEach((opt, idx) => {
       if (!opt.isExisting && opt.name && opt.optionCategoryId) {
-        const key = `${opt.optionCategoryId}-${opt.name.trim().toLowerCase()}`;
+        const key = `${String(opt.optionCategoryId)}-${opt.name.trim().toLowerCase()}`;
         if (!nameMap.has(key)) nameMap.set(key, []);
-        nameMap.get(key)!.push(idx);
+        const nameIndices = nameMap.get(key);
+        if (nameIndices) nameIndices.push(idx);
+        else nameMap.set(key, [idx]);
       }
     });
     nameMap.forEach(indices => {
@@ -470,16 +482,14 @@ export class Products implements OnInit {
     const addedExistingIds: number[] = [];
     const newOptions: { name: string; optionCategoryId: number; recipe: { supplyVariantId: number; requiredQuantity: number }[] }[] = [];
 
-    for (const opt of this.optionsArray.value) {
+    for (const opt of this.optionsArray.value as OptionFormValue[]) {
       if (opt.isExisting && opt.id) {
-        // Existing option added via the "Modificar opciones" form
         addedExistingIds.push(opt.id);
       } else {
-        // New option - needs to be created
         newOptions.push({
-          name: opt.name,
-          optionCategoryId: opt.optionCategoryId,
-          recipe: opt.recipe || [],
+          name: opt.name ?? '',
+          optionCategoryId: opt.optionCategoryId ?? 0,
+          recipe: opt.recipe as { supplyVariantId: number; requiredQuantity: number }[],
         });
       }
     }
@@ -512,31 +522,40 @@ export class Products implements OnInit {
         return of(allOptionIds);
       }),
       switchMap((allOptionIds: number[]) => {
-        // Now create or update the product with all option IDs
-        const v = this.baseForm.value;
-        // Combine kept existing recipe items + newly added ones
-        const fullRecipe = [...this.existingRecipe(), ...this.baseRecipe.value];
-
+        const v = this.baseForm.value as { 
+          id?: number | null; 
+          name: string; 
+          basePrice: number; 
+          categoryId: number; 
+          areaId: number; 
+        };
+        const existing = this.existingRecipe();
+        const baseItems = this.baseRecipe.value as RecipeItemRequest[];
+        const recipeItems: RecipeItemRequest[] = [];
+        Object.assign(recipeItems, existing);
+        Object.assign(recipeItems, baseItems);
         if (this.modalMode() === 'create') {
           return this.productService.createProduct({
             name: v.name,
             basePrice: v.basePrice,
             categoryId: v.categoryId,
             areaId: v.areaId,
-            recipe: fullRecipe,
+             
+            recipe: recipeItems,
             optionIds: allOptionIds,
           });
         } else {
-          return this.productService.updateProduct(v.id, {
-            id: v.id,
+          const productId = v.id ?? 0;
+          return this.productService.updateProduct(productId, {
+            id: productId,
             name: v.name,
             basePrice: v.basePrice,
             categoryId: v.categoryId,
             areaId: v.areaId,
-            recipe: fullRecipe,
+            recipe: recipeItems,
             optionIds: allOptionIds,
           }).pipe(
-            switchMap(() => this.productService.findProduct(v.id))
+            switchMap(() => this.productService.findProduct(productId))
           );
         }
       }),
@@ -580,7 +599,7 @@ export class Products implements OnInit {
   }
 
   private refreshProducts(): void {
-    this.productService.getProducts().subscribe(res => this.products.set(res));
+    this.productService.getProducts().subscribe(res => { this.products.set(res); });
   }
 
   showDetailDialog(product: ProductResponse): void {
@@ -621,8 +640,8 @@ export class Products implements OnInit {
   productsWithOptions = computed(() => this.products() ?? []);
 
   newOptionForm: FormGroup = this.fb.group({
-    optionCategoryId: [null, Validators.required],
-    name: ['', Validators.required],
+    optionCategoryId: [null, (control: AbstractControl) => Validators.required(control)],
+    name: ['', (control: AbstractControl) => Validators.required(control)],
   });
 
   // recipe rows para el dialog de nueva opción
@@ -653,8 +672,8 @@ export class Products implements OnInit {
 
   addNewOptionRecipeItem(): void {
     this.newOptionRecipe.push(this.fb.group({
-      supplyVariantId: [null, Validators.required],
-      requiredQuantity: [null, [Validators.required, Validators.min(0.001)]],
+      supplyVariantId: [null, (control: AbstractControl) => Validators.required(control)],
+      requiredQuantity: [null, [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.min(0.001)(control)]],
     }));
   }
 
@@ -662,12 +681,16 @@ export class Products implements OnInit {
 
   submitNewOption(): void {
     if (this.newOptionForm.invalid) { this.newOptionForm.markAllAsTouched(); return; }
-    const { optionCategoryId, name } = this.newOptionForm.value;
+    const { optionCategoryId, name } = this.newOptionForm.value as { optionCategoryId: number | null; name: string };
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const rawItems = this.newOptionRecipe.value;
+     
+    const toRecipeItem = (r: unknown): RecipeItemRequest => ({ supplyVariantId: (r as RecipeItemRequest).supplyVariantId, requiredQuantity: (r as RecipeItemRequest).requiredQuantity });
+    const recipeItems: RecipeItemRequest[] = Array.isArray(rawItems) ? rawItems.map(toRecipeItem) : [];
     this.newOptionSubmitting.set(true);
-    this.productService.createProductOption({
-      name, optionCategoryId,
-      recipe: this.newOptionRecipe.value,
-    }).pipe(
+     
+    const request: ProductOptionCreateRequest = { name, optionCategoryId: optionCategoryId ?? 0, recipe: recipeItems };
+    this.productService.createProductOption(request).pipe(
       switchMap(() => this.productOptionService.getOptions()),
       catchError(err => {
         this.logger.error('Error creating product option', err);

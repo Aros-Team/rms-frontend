@@ -14,7 +14,7 @@ export class OptionCategory {
   }
 
   public getOptionCategory(id: number): Observable<OptionCategoryResponse> {
-    return this.http.get<OptionCategoryResponse>(`v1/option-categories/${id}`);
+    return this.http.get<OptionCategoryResponse>(`v1/option-categories/${String(id)}`);
   }
 
   public createOptionCategory(data: OptionCategoryRequest): Observable<OptionCategoryResponse> {
@@ -22,6 +22,6 @@ export class OptionCategory {
   }
 
   public updateOptionCategory(id: number, data: OptionCategoryRequest): Observable<OptionCategoryResponse> {
-    return this.http.put<OptionCategoryResponse>(`v1/option-categories/${id}`, data);
+    return this.http.put<OptionCategoryResponse>(`v1/option-categories/${String(id)}`, data);
   }
 }

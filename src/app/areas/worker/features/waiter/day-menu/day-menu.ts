@@ -69,7 +69,7 @@ export class DayMenu implements OnInit {
         this.loading.set(false);
         this.loadProductOptions(menu.productId);
       },
-      error: (err) => {
+      error: (err: { status?: number }) => {
         // 404 también puede indicar que no hay menú configurado
         if (err.status === 404) {
           this.dayMenu.set(null);
@@ -86,7 +86,7 @@ export class DayMenu implements OnInit {
     this.productOptionsLoading.set(true);
     this.masterData.getProductOptions(productId).subscribe({
       next: (opts) => { this.productOptions.set(opts); this.productOptionsLoading.set(false); },
-      error: () => this.productOptionsLoading.set(false),
+      error: () => { this.productOptionsLoading.set(false); },
     });
   }
 
@@ -124,7 +124,9 @@ export class DayMenu implements OnInit {
         instructions: '', selectedOptionIds: [], optionNames: [],
       };
       this.cartService.addItems([item]);
-      this.router.navigate(['/worker/take-order']);
+      this.router.navigate(['/worker/take-order']).catch(() => {
+        // empty - navigation failure not critical
+      });
       return;
     }
 
@@ -178,7 +180,9 @@ export class DayMenu implements OnInit {
 
     this.cartService.addItems([item]);
     this.showOptionsModal.set(false);
-    this.router.navigate(['/worker/take-order']);
+    this.router.navigate(['/worker/take-order']).catch(() => {
+      // empty - navigation failure not critical
+    });
   }
 
   closeModal(): void {

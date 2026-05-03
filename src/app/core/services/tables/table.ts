@@ -15,7 +15,7 @@ export class Table {
   }
 
   public getTableById(id: number): Observable<TableResponse> {
-    return this.http.get<TableResponse>(`v1/tables/${id}`);
+    return this.http.get<TableResponse>(`v1/tables/${String(id)}`);
   }
 
   public createTable(data: TableRequest): Observable<TableResponse> {
@@ -23,11 +23,11 @@ export class Table {
   }
 
   public updateTable(id: number, data: TableRequest): Observable<TableResponse> {
-    return this.http.put<TableResponse>(`v1/tables/${id}`, data);
+    return this.http.put<TableResponse>(`v1/tables/${String(id)}`, data);
   }
 
   public changeStatus(id: number, status: 'AVAILABLE' | 'OCCUPIED' | 'RESERVED'): Observable<TableResponse> {
-    return this.http.put<TableResponse>(`v1/tables/${id}/status`, { status } as ChangeStatusRequest);
+    return this.http.put<TableResponse>(`v1/tables/${String(id)}/status`, { status } as ChangeStatusRequest);
   }
 
   public getOccupiedTablesCount(): Observable<number> {

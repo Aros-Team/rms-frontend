@@ -14,7 +14,7 @@ export class Purchase {
   }
 
   public getPurchaseById(id: number): Observable<PurchaseResponse> {
-    return this.http.get<PurchaseResponse>(`v1/purchases/${id}`);
+    return this.http.get<PurchaseResponse>(`v1/purchases/${String(id)}`);
   }
 
   public createPurchase(data: PurchaseCreateRequest): Observable<PurchaseResponse> {

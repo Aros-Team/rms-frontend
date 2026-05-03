@@ -44,7 +44,7 @@ export class Auth {
 
   private getCookie(name: string): string | null {
     if (!isPlatformBrowser(this.platformId)) return null;
-    const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+    const match = new RegExp(`(^| )${name}=([^;]+)`).exec(document.cookie);
     return match ? match[2] : null;
   }
 
@@ -143,6 +143,12 @@ export class Auth {
     const refreshToken = this.getRefreshToken();
     this.logger.info('Token refresh attempted');
 
+    if (!refreshToken) {
+      this.logger.error('No refresh token available');
+      this.logout();
+      return throwError(() => new Error('No refresh token available'));
+    }
+
     return this.http.post<AuthResponse>('auth/refresh', {}, {
       headers: {
         'Authorization': `Bearer ${refreshToken}`
@@ -153,7 +159,7 @@ export class Auth {
         this.saveTokens(response.accessToken, response.refreshToken);
         this.getUserInfo();
       }),
-      catchError((err) => {
+      catchError((err: Error) => {
         this.logger.error('Token refresh failed', err);
         this.logout();
         return throwError(() => err);

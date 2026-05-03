@@ -23,7 +23,7 @@ export interface OrderResponse {
 }
 
 export function calculateTotalPrice(order: OrderResponse): number {
-  if (!order.details || order.details.length === 0) {
+  if (order.details.length === 0) {
     return 0;
   }
   return order.details.reduce((sum, detail) => sum + detail.unitPrice, 0);

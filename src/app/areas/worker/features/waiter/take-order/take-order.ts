@@ -67,7 +67,7 @@ export class TakeOrder implements OnInit {
   filteredProducts = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
     const category = this.activeCategory();
-    const products = this.productsByCategory()[category] || [];
+    const products = this.productsByCategory()[category] ?? [];
     
     if (!query) return products;
     
@@ -176,8 +176,8 @@ export class TakeOrder implements OnInit {
     return !!this.selectedTableId() && this.cart().length > 0 && !this.submitting();
   }
 
-  private resolveOrderError(err: { status?: number; error?: { message?: string } }): string {
-    return err?.error?.message || 'No se pudo crear la orden. Intenta de nuevo.';
+  private resolveOrderError(err: { status?: number; error?: { message?: string } } | null): string {
+    return err?.error?.message ?? 'No se pudo crear la orden. Intenta de nuevo.';
   }
 
   submitOrder(): void {
@@ -196,7 +196,7 @@ export class TakeOrder implements OnInit {
     this.orderService.createOrder({ tableId, details }).subscribe({
       next: (order) => {
         this.logger.info('TakeOrder: order created', order);
-        this.successMessage.set(`Orden #${order.id} creada exitosamente`);
+        this.successMessage.set(`Orden #${String(order.id)} creada exitosamente`);
         this.cart.set([]);
         this.selectedTableId.set(null);
         this.submitting.set(false);
@@ -205,7 +205,7 @@ export class TakeOrder implements OnInit {
           this.tables.set(this.masterData.getAvailableTables());
         });
       },
-      error: (err) => {
+      error: (err: { status?: number; error?: { message?: string } } | null) => {
         this.logger.error('TakeOrder: create order failed', err);
         const msg = this.resolveOrderError(err);
         this.error.set(msg);

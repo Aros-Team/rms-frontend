@@ -14,7 +14,7 @@ export class Area {
   }
 
   public getArea(id: number): Observable<AreaResponse> {
-    return this.http.get<AreaResponse>(`v1/areas/${id}`);
+    return this.http.get<AreaResponse>(`v1/areas/${String(id)}`);
   }
 
   public createArea(data: AreaRequest): Observable<AreaResponse> {
@@ -22,10 +22,10 @@ export class Area {
   }
 
   public updateArea(id: number, data: AreaRequest): Observable<AreaResponse> {
-    return this.http.put<AreaResponse>(`v1/areas/${id}`, data);
+    return this.http.put<AreaResponse>(`v1/areas/${String(id)}`, data);
   }
 
   public toggleArea(id: number): Observable<AreaResponse> {
-    return this.http.put<AreaResponse>(`v1/areas/${id}/toggle`, {});
+    return this.http.put<AreaResponse>(`v1/areas/${String(id)}/toggle`, {});
   }
 }

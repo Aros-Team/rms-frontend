@@ -49,9 +49,7 @@ export class Header implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.menuSubscription) {
-      this.menuSubscription.unsubscribe();
-    }
+    this.menuSubscription.unsubscribe();
   }
 
   onLogout(): void {
@@ -61,7 +59,7 @@ export class Header implements OnInit, OnDestroy {
   confirmLogout(): void {
     this.showLogoutDialog = false;
     this.authService.logout();
-    this.router.navigate(['/login']);
+    void this.router.navigate(['/login']);
   }
 
   cancelLogout(): void {
@@ -71,7 +69,7 @@ export class Header implements OnInit, OnDestroy {
   onHorizontalOptionClick(option: HorizontalMenuOption): void {
     // Navigate if routerLink is provided
     if (option.routerLink) {
-      this.router.navigate([option.routerLink]);
+      void this.router.navigate([option.routerLink]);
     }
 
     // Execute command if provided

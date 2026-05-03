@@ -73,19 +73,19 @@ export class Order {
   }
 
   markAsReady(id: number): Observable<OrderResponse> {
-    return this.http.put<OrderResponse>(`v1/orders/${id}/ready`, {});
+    return this.http.put<OrderResponse>(`v1/orders/${String(id)}/ready`, {});
   }
 
   deliverOrder(id: number): Observable<OrderResponse> {
-    return this.http.put<OrderResponse>(`v1/orders/${id}/deliver`, {});
+    return this.http.put<OrderResponse>(`v1/orders/${String(id)}/deliver`, {});
   }
 
   cancelOrder(id: number): Observable<OrderResponse> {
-    return this.http.put<OrderResponse>(`v1/orders/${id}/cancel`, {});
+    return this.http.put<OrderResponse>(`v1/orders/${String(id)}/cancel`, {});
   }
 
   updateOrder(request: UpdateOrderRequest): Observable<void> {
-    return this.http.put<void>(`v1/orders/${request.id}`, request);
+    return this.http.put(`v1/orders/${String(request.id)}`, request).pipe(map(() => undefined));
   }
 
   getCompletedOrdersCount(): Observable<number> {

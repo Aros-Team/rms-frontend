@@ -29,7 +29,7 @@ export class OrderCreationForm implements OnInit {
   description = 'Registra un nuevo pedido indicando la mesa y los productos para cada orden de cliente.';
 
   form: FormGroup = this.fb.group({
-    table: new FormControl<number | null>(null, { nonNullable: false, validators: [Validators.required, Validators.min(1)] }),
+    table: new FormControl<number | null>(null, { nonNullable: false, validators: [Validators.required.bind(Validators), Validators.min(1).bind(Validators)] }),
     clientOrders: this.fb.array([this.createClientOrderGroup()])
   });
 
@@ -55,8 +55,8 @@ export class OrderCreationForm implements OnInit {
 
   createDetailGroup(): FormGroup {
     return this.fb.group({
-      product: new FormControl<number | null>(null, [Validators.required, Validators.min(1)]),
-      quantity: new FormControl<number>(1, [Validators.required, Validators.min(1)]),
+      product: new FormControl<number | null>(null, [Validators.required.bind(Validators), Validators.min(1).bind(Validators)]),
+      quantity: new FormControl<number>(1, [Validators.required.bind(Validators), Validators.min(1).bind(Validators)]),
       observations: new FormControl<string>('', []),
       subProducts: new FormControl<string>('', []) // comma-separated ids
     });
@@ -115,7 +115,7 @@ export class OrderCreationForm implements OnInit {
 
           return {
             productId: Number(d.product),
-            instructions: d.observations?.trim() ?? '',
+            instructions: d.observations ? d.observations.trim() : '',
             selectedOptionIds: parsedSubProducts,
           };
         })
@@ -130,14 +130,16 @@ export class OrderCreationForm implements OnInit {
       },
       error: (err) => {
         this.logger.error('CreateOrder failed', err);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.resolveCreateOrderError(err) });
+        const errorDetail = typeof err === 'object' && err !== null ? this.resolveCreateOrderError(err) : 'Error desconocido';
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: errorDetail });
       }
     });
   }
 
-  private resolveCreateOrderError(err: { status?: number; error?: { message?: string } }): string {
-    const status = err?.status;
-    const message = err?.error?.message ?? '';
+  private resolveCreateOrderError(err: unknown): string {
+    const errorObj = err as { status?: number; error?: { message?: string } };
+    const status = errorObj.status;
+    const message = errorObj.error?.message ?? '';
 
     if (status === 409) {
       if (message.startsWith('Table not available')) return 'La mesa no está disponible.';

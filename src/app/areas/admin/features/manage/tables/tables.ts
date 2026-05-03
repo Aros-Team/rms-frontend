@@ -44,11 +44,11 @@ export class Tables implements OnInit {
     id: new FormControl<number | null>(null),
     tableNumber: new FormControl<number | null>(null, {
       nonNullable: false,
-      validators: [Validators.required, Validators.min(1)],
+      validators: [(control) => Validators.required(control), Validators.min(1)],
     }),
     capacity: new FormControl<number | null>(null, {
       nonNullable: false,
-      validators: [Validators.required, Validators.min(1)],
+      validators: [(control) => Validators.required(control), Validators.min(1)],
     }),
   });
 

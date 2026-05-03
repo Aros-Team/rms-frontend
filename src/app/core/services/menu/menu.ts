@@ -22,10 +22,6 @@ export class Menu {
   menuItems$: Observable<MenuItem[]> = this.menuItemsSubject.asObservable();
   selectedMenuItem$: Observable<MenuItem | null> = this.selectedMenuItemSubject.asObservable();
 
-  constructor() {
-    // No hardcoded menu items - they will be set by each area
-  }
-
   setMenuItems(items: MenuItem[]): void {
     this.menuItemsSubject.next(items);
   }

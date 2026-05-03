@@ -45,10 +45,10 @@ export class Chat implements OnDestroy, AfterViewChecked {
 
   openChat(): void {
     this.isOpen.set(true);
-    const panel = document.querySelector('.chat-panel') as HTMLElement;
+    const panel = document.querySelector('.chat-panel') ?? null;
     if (panel) {
       panel.addEventListener('transitionend', () => {
-        const input = panel.querySelector('textarea') as HTMLTextAreaElement;
+        const input = panel.querySelector('textarea') ?? null;
         input?.focus();
       }, { once: true });
     }
@@ -73,7 +73,7 @@ export class Chat implements OnDestroy, AfterViewChecked {
     const keyEvent = event as KeyboardEvent;
     if (keyEvent.key === 'Enter' && !keyEvent.shiftKey) {
       event.preventDefault();
-      this.sendMessage();
+      void this.sendMessage();
     }
   }
 
@@ -89,7 +89,7 @@ export class Chat implements OnDestroy, AfterViewChecked {
     };
 
     this.messages.update(msgs => [...msgs, userMessage]);
-    setTimeout(() => this.scrollToBottom(), 50);
+    setTimeout(() => { this.scrollToBottom(); }, 50);
     this.currentMessage.set('');
     this.loading.set(true);
     this.error.set(null);
@@ -102,7 +102,7 @@ export class Chat implements OnDestroy, AfterViewChecked {
 
     const request: ChatRequest = {
       message: content,
-      session_id: this.sessionId() || undefined,
+      session_id: this.sessionId() ?? undefined,
     };
 
     this.logger.debug('Chat: Sending request', request);
@@ -185,7 +185,7 @@ export class Chat implements OnDestroy, AfterViewChecked {
   }
 
   ngAfterViewChecked(): void {
-    if (!this.scrollInitialized && this.messagesContainer) {
+    if (!this.scrollInitialized) {
       this.scrollToBottom();
       this.scrollInitialized = true;
     }
@@ -205,9 +205,9 @@ export class Chat implements OnDestroy, AfterViewChecked {
   }
 
   copyMessage(content: string): void {
-    navigator.clipboard.writeText(content).then(() => {
+    void navigator.clipboard.writeText(content).then(() => {
       this.copySuccess.set(true);
-      setTimeout(() => this.copySuccess.set(false), 2000);
+      setTimeout(() => { this.copySuccess.set(false); }, 2000);
     });
   }
 

@@ -50,7 +50,7 @@ export class Accessibility implements OnInit {
     }
 
     const savedTheme = localStorage.getItem(this.THEME_KEY);
-    this.currentTheme = savedTheme || 'light';
+    this.currentTheme = savedTheme ?? 'light';
     this.theme.set(this.currentTheme);
 
     const savedContrast = localStorage.getItem(this.HIGH_CONTRAST_KEY);
@@ -88,7 +88,7 @@ export class Accessibility implements OnInit {
   private applySettings(): void {
     const fontScale = this.currentFontSize / 16;
     document.documentElement.style.setProperty('--font-scale', fontScale.toString());
-    document.documentElement.style.fontSize = `${this.currentFontSize}px`;
+    document.documentElement.style.fontSize = this.currentFontSize.toString() + 'px';
 
     if (this.highContrast) {
       document.body.classList.add('high-contrast');

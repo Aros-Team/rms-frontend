@@ -59,15 +59,15 @@ export class Product {
   }
 
   public updateProduct(id: number, data: ProductUpdateRequest): Observable<object> {
-    return this.http.put(`v1/products/${id}`, data);
+    return this.http.put('v1/products/' + String(id), data);
   }
 
   public findProduct(id: number): Observable<ProductResponse> {
-    return this.http.get<ProductResponse>(`v1/products/${id}`);
+    return this.http.get<ProductResponse>('v1/products/' + String(id));
   }
 
   public disableProduct(id: number): Observable<object> {
-    return this.http.put(`v1/products/${id}/disable`, {});
+    return this.http.put('v1/products/' + String(id) + '/disable', {});
   }
 
   getProductById(id: number): Observable<ProductData | undefined> {
@@ -88,7 +88,7 @@ export class Product {
   }
 
   getProductsByCategories(categoryIds: number[]): Observable<ProductResponse[]> {
-    if (!categoryIds || categoryIds.length === 0) {
+    if (categoryIds.length === 0) {
       return this.getProducts();
     }
     return this.http.get<ProductResponse[]>('v1/products', {
@@ -97,6 +97,6 @@ export class Product {
   }
 
   public getOptions(productId: number): Observable<ProductOption[]> {
-    return this.http.get<ProductOption[]>(`v1/products/${productId}/options`);
+    return this.http.get<ProductOption[]>('v1/products/' + String(productId) + '/options');
   }
 }

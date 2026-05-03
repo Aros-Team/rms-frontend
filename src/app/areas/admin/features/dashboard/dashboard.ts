@@ -68,7 +68,7 @@ export class Dashboard implements OnInit {
     this.updateDateTime();
     this.loadSalesVisibility();
     // Update time every minute
-    setInterval(() => this.updateDateTime(), 60000);
+    setInterval(() => { this.updateDateTime(); }, 60000);
   }
 
   private loadDashboardData() {
@@ -258,7 +258,7 @@ export class Dashboard implements OnInit {
     // For now, get a sample product to show in the dialog
     this.productService.getProductById(1).subscribe({
       next: (product) => {
-        this.selectedProduct.set(product || null);
+        this.selectedProduct.set(product ?? null);
         this.showOrderDetail.set(true);
       },
       error: (error) => {

@@ -8,4 +8,4 @@ import localeEs from '@angular/common/locales/es';
 registerLocaleData(localeEs);
 
 bootstrapApplication(App, appConfig)
-  .catch((err) => console.error(err));
+  .catch((err: unknown) => { console.error(err); });

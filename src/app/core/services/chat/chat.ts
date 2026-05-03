@@ -25,7 +25,7 @@ export class ChatService {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP error! status: ${String(response.status)}`);
       }
 
       const requestId = response.headers.get('X-Request-ID');
@@ -43,6 +43,7 @@ export class ChatService {
       const decoder = new TextDecoder();
       let buffer = '';
 
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       while (true) {
         const { done, value } = await reader.read();
 
@@ -52,7 +53,7 @@ export class ChatService {
 
         buffer += decoder.decode(value, { stream: true });
         const events = buffer.split('\n\n');
-        buffer = events.pop() || '';
+        buffer = events.pop() ?? '';
         for (const event of events) {
           const lines = event.split('\n');
           for (const line of lines) {

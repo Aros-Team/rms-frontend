@@ -68,7 +68,7 @@ export class OrdersTable implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.wsSubs.forEach(sub => sub.unsubscribe());
+    this.wsSubs.forEach(sub => { sub.unsubscribe(); });
   }
 
   private connectWebSocket(): void {
@@ -179,7 +179,7 @@ export class OrdersTable implements OnInit, OnDestroy {
   }
 
   private applyFilters(): void {
-    if (!this.allOrders) {
+    if (this.allOrders.length === 0) {
       this.orders = [];
       return;
     }
@@ -252,42 +252,48 @@ export class OrdersTable implements OnInit, OnDestroy {
     const updates = Array.from(this.modifiedOrders.values()).map(orderChanges => {
       const status = orderChanges.status;
 
+      const orderId = orderChanges.id;
+      if (orderId == null) {
+        return of({ error: true, orderId: undefined });
+      }
+
       if (status === 'PREPARING') {
         // PREPARING se activa con el endpoint "prepare next" que toma la siguiente de la cola.
         // Desde la tabla de admin usamos prepareNext() ya que no hay endpoint directo por ID.
         return this.orderService.prepareNext().pipe(
           catchError(error => {
-            console.error(`Error preparing order ${orderChanges.id}:`, error);
-            return of({ error: true, orderId: orderChanges.id });
+            console.error('Error preparing order:', orderId, error);
+            return of({ error: true, orderId });
           })
         );
       } else if (status === 'READY') {
-        return this.orderService.markAsReady(orderChanges.id!).pipe(
+        return this.orderService.markAsReady(orderId).pipe(
           catchError(error => {
-            console.error(`Error updating order ${orderChanges.id}:`, error);
-            return of({ error: true, orderId: orderChanges.id });
+            console.error('Error updating order:', orderId, error);
+            return of({ error: true, orderId });
           })
         );
       } else if (status === 'DELIVERED') {
-        return this.orderService.deliverOrder(orderChanges.id!).pipe(
+        return this.orderService.deliverOrder(orderId).pipe(
           catchError(error => {
-            console.error(`Error delivering order ${orderChanges.id}:`, error);
-            return of({ error: true, orderId: orderChanges.id });
+            console.error('Error delivering order:', orderId, error);
+            return of({ error: true, orderId });
           })
         );
       } else if (status === 'CANCELLED') {
-        return this.orderService.cancelOrder(orderChanges.id!).pipe(
+        return this.orderService.cancelOrder(orderId).pipe(
           catchError(error => {
-            console.error(`Error cancelling order ${orderChanges.id}:`, error);
-            return of({ error: true, orderId: orderChanges.id });
+            console.error('Error cancelling order:', orderId, error);
+            return of({ error: true, orderId });
           })
         );
       } else {
         // Estado no soportado para cambio manual
+        const statusStr = status ?? 'desconocido';
         this.messageService.add({
           severity: 'warn',
           summary: 'Acción no disponible',
-          detail: `El estado "${status}" no puede asignarse manualmente desde esta vista.`,
+          detail: 'El estado "' + statusStr + '" no puede asignarse manualmente desde esta vista.',
           life: 4000,
         });
         return of({ error: true, orderId: orderChanges.id });
@@ -296,14 +302,14 @@ export class OrdersTable implements OnInit, OnDestroy {
 
     forkJoin(updates).subscribe({
       next: (results) => {
-        const errors = results.filter((r: unknown) => (r as { error?: boolean })?.error);
+        const errors = results.filter((r: unknown) => (r as { error?: boolean }).error);
         const successCount = results.length - errors.length;
 
         if (errors.length === 0) {
           this.messageService.add({
             severity: 'success',
             summary: 'Cambios guardados',
-            detail: `Se actualizaron ${successCount} pedido(s) exitosamente.`,
+            detail: 'Se actualizaron ' + String(successCount) + ' pedido(s) exitosamente.',
             life: 3000,
           });
 
@@ -318,7 +324,7 @@ export class OrdersTable implements OnInit, OnDestroy {
           this.messageService.add({
             severity: 'warn',
             summary: 'Guardado parcial',
-            detail: `Se actualizaron ${successCount} pedido(s), pero ${errors.length} fallaron.`,
+            detail: 'Se actualizaron ' + String(successCount) + ' pedido(s), pero ' + String(errors.length) + ' fallaron.',
             life: 5000,
           });
         }

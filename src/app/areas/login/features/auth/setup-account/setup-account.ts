@@ -41,19 +41,19 @@ export class SetupAccount implements OnInit {
   currentStep = signal(1);
 
   passwordForm: FormGroup = new FormGroup({
-    newPassword: new FormControl('', [Validators.required]),
-    confirmPassword: new FormControl('', [Validators.required]),
+    newPassword: new FormControl<string>('', [(control) => Validators.required(control)]),
+    confirmPassword: new FormControl<string>('', [(control) => Validators.required(control)]),
   });
 
   adminStep1Form: FormGroup = new FormGroup({
-    name: new FormControl('', [Validators.required, Validators.minLength(2)]),
-    document: new FormControl('', [Validators.required, Validators.minLength(5)]),
+    name: new FormControl<string>('', [(control) => Validators.required(control), (control) => Validators.minLength(2)(control)]),
+    document: new FormControl<string>('', [(control) => Validators.required(control), (control) => Validators.minLength(5)(control)]),
   });
 
   private token = '';
 
   ngOnInit(): void {
-    this.token = this.route.snapshot.queryParamMap.get('token') || '';
+    this.token = this.route.snapshot.queryParamMap.get('token') ?? '';
     if (!this.token) {
       this.error.set('Token no proporcionado');
       this.loading.set(false);
@@ -99,8 +99,10 @@ export class SetupAccount implements OnInit {
       return;
     }
 
-    const password = this.passwordForm.get('newPassword')?.value;
-    const confirmPassword = this.passwordForm.get('confirmPassword')?.value;
+    const passwordControl = this.passwordForm.get('newPassword');
+    const confirmPasswordControl = this.passwordForm.get('confirmPassword');
+    const password = String(passwordControl?.value ?? '');
+    const confirmPassword = String(confirmPasswordControl?.value ?? '');
 
     if (password !== confirmPassword) {
       this.messageService.add({
@@ -122,8 +124,10 @@ export class SetupAccount implements OnInit {
     };
 
     if (this.isAdmin()) {
-      data.name = this.adminStep1Form.get('name')?.value;
-      data.document = this.adminStep1Form.get('document')?.value;
+      const nameControl = this.adminStep1Form.get('name');
+      const documentControl = this.adminStep1Form.get('document');
+      data.name = String(nameControl?.value ?? '');
+      data.document = String(documentControl?.value ?? '');
     }
 
     this.loading.set(true);
@@ -132,7 +136,7 @@ export class SetupAccount implements OnInit {
         this.loading.set(false);
         this.success.set(true);
         setTimeout(() => {
-          this.router.navigate(['/login'], { queryParams: { accountActivated: 'true' } });
+          void this.router.navigate(['/login'], { queryParams: { accountActivated: 'true' } });
         }, 2000);
       },
       error: (err: HttpErrorResponse) => {
@@ -184,7 +188,9 @@ export class SetupAccount implements OnInit {
   }
 
   getPasswordValue(field: string): string {
-    return this.passwordForm.get(field)?.value || '';
+    const control = this.passwordForm.get(field);
+    const value = control?.value as string | null | undefined;
+    return value ?? '';
   }
 
   isInvalid(field: string): boolean {
@@ -204,6 +210,6 @@ export class SetupAccount implements OnInit {
   }
 
   goToLogin(): void {
-    this.router.navigate(['/login']);
+    void this.router.navigate(['/login']);
   }
 }

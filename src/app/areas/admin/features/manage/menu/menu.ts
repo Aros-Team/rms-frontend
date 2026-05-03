@@ -196,7 +196,8 @@ export class Menu {
     if (err.status === 400) return 'El producto seleccionado no es válido para menú del día';
     if (err.status === 404) return 'El producto no existe o está inactivo';
     try {
-      const body = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+      const parsedError: unknown = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+      const body = parsedError as { message?: string } | null;
       if (body?.message) return body.message;
     } catch { /* ignore */ }
     return 'No se pudo actualizar el menú del día';

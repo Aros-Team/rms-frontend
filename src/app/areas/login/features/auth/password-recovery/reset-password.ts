@@ -12,8 +12,8 @@ import { Password } from '@app/core/services/auth/password';
 import { Logging } from '@app/core/services/logging/logging';
 
 function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
-  const newPassword = control.get('newPassword')?.value;
-  const confirmPassword = control.get('confirmPassword')?.value;
+  const newPassword = control.get('newPassword')?.value as string;
+  const confirmPassword = control.get('confirmPassword')?.value as string;
   return newPassword === confirmPassword ? null : { mismatch: true };
 }
 
@@ -44,12 +44,12 @@ export class ResetPassword implements OnInit {
   token = signal<string | null>(null);
 
   form: FormGroup = new FormGroup({
-    newPassword: new FormControl('', [Validators.required]),
-    confirmPassword: new FormControl('', [Validators.required])
-  }, { validators: passwordMatchValidator });
+    newPassword: new FormControl<string>('', [(control) => Validators.required(control)]),
+    confirmPassword: new FormControl<string>('', [(control) => Validators.required(control)])
+  }, { validators: (control) => passwordMatchValidator(control) });
 
   checkPasswordRequirement(requirement: string): boolean {
-    const password = this.form.get('newPassword')?.value || '';
+    const password = this.form.get('newPassword')?.value as string;
     switch (requirement) {
       case 'minLength': return password.length >= 8;
       case 'upperCase': return /[A-Z]/.test(password);
@@ -62,7 +62,7 @@ export class ResetPassword implements OnInit {
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
-      const token = params['token'];
+      const token = params['token'] as string | null;
       this.token.set(token);
     });
   }
@@ -82,9 +82,9 @@ export class ResetPassword implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    const newPassword = this.form.get('newPassword')?.value;
+    const newPassword = this.form.get('newPassword')?.value as string;
 
-    this.passwordService.resetPassword(token, newPassword).subscribe({
+    void this.passwordService.resetPassword(token, newPassword).subscribe({
       next: () => {
         this.loading.set(false);
         this.success.set(true);
@@ -94,7 +94,7 @@ export class ResetPassword implements OnInit {
           detail: 'Tu contraseña ha sido restablecida'
         });
       },
-      error: (err) => {
+      error: (err: { status?: number }) => {
         this.loading.set(false);
         if (err.status === 400) {
           this.error.set('Token inválido o expirado. Por favor, solicita un nuevo código.');
@@ -107,6 +107,6 @@ export class ResetPassword implements OnInit {
   }
 
   goToLogin(): void {
-    this.router.navigate(['/login']);
+    void this.router.navigate(['/login']);
   }
 }

@@ -31,8 +31,8 @@ export class Notification implements OnDestroy {
         switchMap(() => this.orderService.getOrdersByStatus('READY'))
       )
       .subscribe({
-        next: (orders) => this.processNewOrders(orders),
-        error: (err) => this.logger.error('Error polling READY orders', err)
+        next: (orders) => { this.processNewOrders(orders); },
+        error: (err) => { this.logger.error('Error polling READY orders', err); }
       });
   }
 
@@ -66,14 +66,13 @@ export class Notification implements OnDestroy {
 
   private playSound(): void {
     try {
-      const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (!this.audioContext) {
-        this.audioContext = new AudioContextClass();
-      }
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      const AudioContextClass = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      this.audioContext ??= new AudioContextClass();
 
       const ctx = this.audioContext;
       if (ctx.state === 'suspended') {
-        ctx.resume();
+        void ctx.resume();
       }
 
       const oscillator = ctx.createOscillator();

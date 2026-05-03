@@ -19,6 +19,6 @@ export class Category {
   }
 
   public toggleCategory(id: number): Observable<object> {
-    return this.http.put(`v1/categories/${id}/toggle`, {});
+    return this.http.put(`v1/categories/${String(id)}/toggle`, {});
   }
 }

@@ -28,7 +28,7 @@ export class MasterData {
       optionCategories: this.http.get<OptionCategory[]>('v1/option-categories'),
       tables: this.http.get<TableResponse[]>('v1/tables'),
     }).pipe(
-      tap(data => this._data$.next(data))
+      tap(data => { this._data$.next(data); })
     );
   }
 
@@ -42,16 +42,16 @@ export class MasterData {
   }
 
   getProductOptions(productId: number): Observable<ProductOption[]> {
-    return this.http.get<ProductOption[]>(`v1/products/${productId}/options`);
+    return this.http.get<ProductOption[]>(`v1/products/${String(productId)}/options`);
   }
 
   groupOptionsByCategory(options: ProductOption[]): Record<string, ProductOption[]> {
-    return options.reduce((acc, opt) => {
+    return options.reduce<Record<string, ProductOption[]>>((acc, opt) => {
       const key = opt.optionCategoryName;
-      if (!acc[key]) acc[key] = [];
+      acc[key] ??= [];
       acc[key].push(opt);
       return acc;
-    }, {} as Record<string, ProductOption[]>);
+    }, {});
   }
 
   get snapshot(): MasterDataPayload | null {
@@ -72,11 +72,11 @@ export class MasterData {
 
   getProductsByCategory(): Record<string, ProductListResponse[]> {
     const products = this.getActiveProducts();
-    return products.reduce((acc, p) => {
+    return products.reduce<Record<string, ProductListResponse[]>>((acc, p) => {
       const key = p.categoryName;
-      if (!acc[key]) acc[key] = [];
+      acc[key] ??= [];
       acc[key].push(p);
       return acc;
-    }, {} as Record<string, ProductListResponse[]>);
+    }, {});
   }
 }

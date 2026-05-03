@@ -46,15 +46,9 @@ export class Layout implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.resizeSubscription) {
-      this.resizeSubscription.unsubscribe();
-    }
-    if (this.routerSubscription) {
-      this.routerSubscription.unsubscribe();
-    }
-    if (this.resizeHandler) {
-      window.removeEventListener('resize', this.resizeHandler);
-    }
+    this.resizeSubscription.unsubscribe();
+    this.routerSubscription.unsubscribe();
+    window.removeEventListener('resize', this.resizeHandler);
   }
 
   private checkScreenSize(): void {
@@ -103,8 +97,6 @@ export class Layout implements OnInit, OnDestroy {
   chatVisible = false;
 
   toggleChat(): void {
-    if (this.chatComponent) {
-      this.chatComponent.toggleChat();
-    }
+    this.chatComponent.toggleChat();
   }
 }

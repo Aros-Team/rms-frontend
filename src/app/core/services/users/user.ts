@@ -25,16 +25,16 @@ export class User {
 
   public updateUser(id: number, data: UpdateUserRequest): Observable<UserResponse> {
     this.logger.debug('User: Calling PUT users with id:', id, 'data:', data);
-    return this.http.put<UserResponse>(`v1/users/${id}`, data);
+    return this.http.put<UserResponse>(`v1/users/${String(id)}`, data);
   }
 
-  public deleteUser(id: number): Observable<void> {
+  public deleteUser(id: number): Observable<unknown> {
     this.logger.debug('User: Calling DELETE users with id:', id);
-    return this.http.delete<void>(`v1/users/${id}`);
+    return this.http.delete<unknown>(`v1/users/${String(id)}`);
   }
 
-  public retryEmail(id: number): Observable<void> {
+  public retryEmail(id: number): Observable<unknown> {
     this.logger.debug('User: Calling POST retry-setup-email with id:', id);
-    return this.http.post<void>(`v1/users/${id}/retry-setup-email`, {});
+    return this.http.post<unknown>(`v1/users/${String(id)}/retry-setup-email`, {});
   }
 }

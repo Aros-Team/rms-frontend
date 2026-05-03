@@ -38,9 +38,9 @@ export class TopSellingChart implements OnInit {
       tooltip: {
         callbacks: {
           label: (context: { label?: string; parsed: number }) => {
-            const label = context.label || '';
+            const label = context.label ?? '';
             const value = context.parsed;
-            return `${label}: ${value}`;
+            return `${label}: ${String(value)}`;
           }
         }
       }
@@ -52,7 +52,7 @@ export class TopSellingChart implements OnInit {
   ngOnInit(): void {
     this.analytics.getTopSellingProducts().subscribe({
       next: (products) => {
-        const top = (products ?? []).slice(0, 10);
+        const top = products.slice(0, 10);
         const labels = top.map(p => p.name);
         const quantities = top.map(p => p.soldQuantity);
 

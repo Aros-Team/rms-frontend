@@ -42,7 +42,7 @@ export class WebSocket implements OnDestroy {
       return;
     }
 
-    if (this.client && this.client.active) {
+    if (this.client?.active) {
       this.logger.debug('WebSocket: Client already active, skipping');
       return;
     }
@@ -124,7 +124,7 @@ export class WebSocket implements OnDestroy {
     // Subscribe to new orders (QUEUE)
     const createdSub = this.client.subscribe('/topic/orders/created', (message) => {
       try {
-        const order: OrderResponse = JSON.parse(message.body);
+        const order = JSON.parse(message.body) as OrderResponse;
         this.logger.info('WebSocket: New order created', order);
         this.logger.debug('WebSocket: Received /topic/orders/created:', order);
         this.orderCreatedSubject.next(order);
@@ -139,7 +139,7 @@ export class WebSocket implements OnDestroy {
     // Subscribe to orders in preparation (PREPARING)
     const preparingSub = this.client.subscribe('/topic/orders/preparing', (message) => {
       try {
-        const order: OrderResponse = JSON.parse(message.body);
+        const order = JSON.parse(message.body) as OrderResponse;
         this.logger.info('WebSocket: Order preparing', order);
         this.logger.debug('WebSocket: Received /topic/orders/preparing:', order);
         this.orderPreparingSubject.next(order);
@@ -154,7 +154,7 @@ export class WebSocket implements OnDestroy {
     // Subscribe to ready orders (READY)
     const readySub = this.client.subscribe('/topic/orders/ready', (message) => {
       try {
-        const order: OrderResponse = JSON.parse(message.body);
+        const order = JSON.parse(message.body) as OrderResponse;
         this.logger.info('WebSocket: Order ready', order);
         this.logger.debug('WebSocket: Received /topic/orders/ready:', order);
         this.orderReadySubject.next(order);
@@ -169,7 +169,7 @@ export class WebSocket implements OnDestroy {
     // Subscribe to inventory stock updates
     const inventorySub = this.client.subscribe('/topic/inventory/updates', (message) => {
       try {
-        const event: InventoryStockUpdatedEvent = JSON.parse(message.body);
+        const event = JSON.parse(message.body) as InventoryStockUpdatedEvent;
         this.logger.info('WebSocket: Inventory stock updated', event);
         this.inventoryUpdatedSubject.next(event);
       } catch (error) {
@@ -182,7 +182,7 @@ export class WebSocket implements OnDestroy {
     // Subscribe to delivered orders (DELIVERED)
     const deliveredSub = this.client.subscribe('/topic/orders/delivered', (message) => {
       try {
-        const order: OrderResponse = JSON.parse(message.body);
+        const order = JSON.parse(message.body) as OrderResponse;
         this.logger.info('WebSocket: Order delivered', order);
         this.logger.debug('WebSocket: Received /topic/orders/delivered:', order);
         this.orderDeliveredSubject.next(order);
@@ -199,7 +199,7 @@ export class WebSocket implements OnDestroy {
 
   disconnect(): void {
     if (this.client) {
-      this.subscriptions.forEach((sub) => sub.unsubscribe());
+      this.subscriptions.forEach((sub) => { sub.unsubscribe(); });
       this.subscriptions.clear();
       this.client.deactivate();
       this.connected = false;

@@ -1,5 +1,6 @@
 
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 
@@ -45,7 +46,7 @@ export class Kitchen implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     // Solo desuscribir los observables locales, NO desconectar el WebSocket
     // El servicio es singleton y puede ser usado por otros componentes
-    this.wsSubs.forEach(sub => sub.unsubscribe());
+    this.wsSubs.forEach(sub => { sub.unsubscribe(); });
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
     }
@@ -214,8 +215,8 @@ export class Kitchen implements OnInit, OnDestroy {
         // broadcast to ALL connected clients including this one, avoiding duplicates.
         this.preparingNext.set(false);
       },
-      error: (err) => {
-        const msg = err?.error?.message || 'No hay órdenes en cola.';
+      error: (err: HttpErrorResponse) => {
+        const msg = (err.error as { message?: string }).message ?? 'No hay órdenes en cola.';
         this.error.set(msg);
         this.preparingNext.set(false);
       }
@@ -234,8 +235,8 @@ export class Kitchen implements OnInit, OnDestroy {
         // on ALL connected devices including this one.
         this.processing.delete(order.id);
       },
-      error: (err) => {
-        this.error.set(err?.error?.message || 'No se pudo marcar como lista.');
+error: (err: HttpErrorResponse) => {
+        this.error.set((err.error as { message?: string }).message ?? 'No se pudo marcar como lista.');
         this.processing.delete(order.id);
       }
     });
@@ -255,8 +256,8 @@ export class Kitchen implements OnInit, OnDestroy {
         this.readyOrders.update(list => list.filter(o => o.id !== order.id));
         this.processing.delete(order.id);
       },
-      error: (err) => {
-        this.error.set(err?.error?.message || 'No se pudo entregar la orden.');
+error: (err: HttpErrorResponse) => {
+        this.error.set((err.error as { message?: string }).message ?? 'No se pudo entregar la orden.');
         this.processing.delete(order.id);
       }
     });
@@ -271,6 +272,6 @@ export class Kitchen implements OnInit, OnDestroy {
   }
 
   totalItems(order: OrderResponse): number {
-    return order.details?.length ?? 0;
+    return order.details.length;
   }
 }

@@ -14,7 +14,7 @@ export class ProductOptionService {
   }
 
   public getOption(id: number): Observable<ProductOptionResponse> {
-    return this.http.get<ProductOptionResponse>(`v1/product-options/${id}`);
+    return this.http.get<ProductOptionResponse>(`v1/product-options/${String(id)}`);
   }
 
   public createOption(data: ProductOptionRequest): Observable<ProductOptionResponse> {
@@ -22,6 +22,6 @@ export class ProductOptionService {
   }
 
   public updateOption(id: number, data: ProductOptionRequest): Observable<ProductOptionResponse> {
-    return this.http.put<ProductOptionResponse>(`v1/product-options/${id}`, data);
+    return this.http.put<ProductOptionResponse>(`v1/product-options/${String(id)}`, data);
   }
 }
