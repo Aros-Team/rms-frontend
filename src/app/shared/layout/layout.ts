@@ -3,16 +3,16 @@ import { Component, OnInit, OnDestroy, inject, Input, ChangeDetectorRef, ViewChi
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
-import { Header, HorizontalMenuOption } from '../components/header/header';
+import { Header } from '../components/header/header';
 import { Sidebar } from '../components/sidebar/sidebar';
 import { Chat } from '@app/areas/admin/features/chat/chat';
-import { Menu } from '@app/core/services/menu/menu';
+import { Accessibility } from '../components/accessibility/accessibility';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-layout',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Header, Sidebar, Chat],
+  imports: [Header, Sidebar, Chat, Accessibility],
   templateUrl: './layout.html',
   styles: ``
 })
@@ -25,19 +25,16 @@ export class Layout implements OnInit, OnDestroy {
   sidebarVisible = false;
   isMobile = false;
   isTablet = false;
-  horizontalMenuOptions: HorizontalMenuOption[] = [];
 
   private resizeSubscription!: Subscription;
   private routerSubscription!: Subscription;
   private resizeHandler!: () => void;
-  private menuService = inject(Menu);
   private cdr = inject(ChangeDetectorRef);
   private router = inject(Router);
 
   ngOnInit(): void {
     this.checkScreenSize();
     this.setupResizeListener();
-    this.configureHorizontalMenu();
     this.setupRouterListener();
 
     if (this.hideSidebar) {
@@ -63,19 +60,6 @@ export class Layout implements OnInit, OnDestroy {
     window.addEventListener('resize', this.resizeHandler);
   }
 
-  private configureHorizontalMenu(): void {
-    this.menuService.menuItems$.subscribe(items => {
-      this.horizontalMenuOptions = items.map(item => ({
-        id: item.id,
-        label: item.label,
-        description: item.description,
-        icon: item.icon,
-        routerLink: item.routerLink
-      }));
-      this.cdr.markForCheck();
-    });
-  }
-
   private setupRouterListener(): void {
     this.routerSubscription = this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
@@ -94,7 +78,9 @@ export class Layout implements OnInit, OnDestroy {
     this.sidebarVisible = visible;
   }
 
-  chatVisible = false;
+  get isChatOpen(): boolean {
+    return this.chatComponent?.isOpen() ?? false;
+  }
 
   toggleChat(): void {
     this.chatComponent.toggleChat();

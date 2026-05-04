@@ -1,21 +1,32 @@
-<!-- Overlay Background -->
 @if (isOpen()) {
   <button
-    class="fixed inset-0 bg-surface-900/40 backdrop-blur-[2px] z-40 transition-opacity duration-300 cursor-default"
+    class="fixed inset-0 bg-surface-900/40 backdrop-blur-[2px] z-40 transition-opacity duration-300 cursor-default lg:block md:hidden"
     (click)="closeChat()"
     (keydown.escape)="closeChat()"
     aria-label="Cerrar chat">
   </button>
 }
 
-<!-- Chat Panel -->
 <aside
-  class="chat-panel fixed top-0 right-0 h-full w-full sm:w-[28rem] bg-surface-50 dark:bg-surface-900 z-50 flex flex-col transition-transform duration-300 ease-in-out shadow-2xl"
+  class="chat-panel fixed top-0 right-0 h-full w-full sm:w-96 lg:w-[28rem] bg-surface-50 dark:bg-surface-900 z-50 flex flex-col overflow-hidden transition-all duration-300 ease-in-out lg:h-[95vh] lg:top-1/2 lg:-translate-y-1/2"
+  [class.rounded-none]="true"
+  [class.md:top-16]="true"
+  [class.md:right-4]="true"
+  [class.md:h-[450px]]="true"
+  [class.md:max-h-[calc(100vh-6rem)]]="true"
+  [class.md:w-[380px]]="true"
+  [class.md:rounded-xl]="true"
+  [class.md:border]="true"
+  [class.md:border-surface-200]="true"
+  [class.dark:md:border-surface-700]="true"
   [class.translate-x-0]="isOpen()"
-  [class.translate-x-full]="!isOpen()">
+  [class.translate-x-full]="!isOpen()"
+  [class.opacity-0]="!isOpen()"
+  [class.pointer-events-none]="!isOpen()">
 
-  <!-- Header -->
-  <div class="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900">
+  <div class="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900"
+       [class.md:rounded-t-xl]="true"
+       [class.lg:rounded-none]="true">
     <div class="flex items-center gap-3">
       <div class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
         <i class="pi pi-comments text-primary-500 text-xl"></i>
@@ -35,7 +46,7 @@
         </button>
       }
       <button
-        class="p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
+        class="p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors lg:flex md:hidden"
         (click)="closeChat()"
         aria-label="Cerrar chat">
         <i class="pi pi-times text-surface-500"></i>
@@ -43,10 +54,8 @@
     </div>
   </div>
 
-  <!-- Messages Container -->
   <div class="messages-container flex-1 overflow-y-auto p-4 space-y-4 w-full" role="log" aria-live="polite">
     @if (messages().length === 0 && !loading()) {
-      <!-- Empty State -->
       <div class="flex flex-col items-center justify-center h-full text-center px-4">
         <div class="w-20 h-20 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center mb-4">
           <i class="pi pi-sparkles text-primary-500 text-3xl"></i>
@@ -64,7 +73,6 @@
       <div class="flex w-full"
            [class.flex-row-reverse]="message.role === 'user'">
 
-        <!-- Message Bubble -->
         <div class="max-w-[80%] rounded-2xl px-4 py-3 break-words overflow-hidden"
              [class.bg-surface-600]="message.role === 'user'"
              [class.dark:bg-surface-500]="message.role === 'user'"
@@ -101,7 +109,6 @@
       </div>
     }
 
-    <!-- Loading Indicator -->
     @if (loading()) {
       <div class="flex w-full">
         <div class="bg-surface-100 dark:bg-surface-800 rounded-2xl px-4 py-3">
@@ -123,7 +130,6 @@
       </div>
     }
 
-    <!-- Error Message -->
     @if (error()) {
       <div class="flex w-full">
         <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl px-4 py-3 max-w-[80%]">
@@ -133,8 +139,9 @@
     }
   </div>
 
-  <!-- Input Area -->
-  <div class="p-4 border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900">
+  <div class="p-4 border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900"
+       [class.md:rounded-b-xl]="true"
+       [class.lg:rounded-none]="true">
     <div class="flex gap-3 items-center">
         <textarea
           [(ngModel)]="currentMessage"

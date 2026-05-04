@@ -1,0 +1,93 @@
+.current-date {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.current-date ::ng-deep .p-datepicker {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.current-date ::ng-deep .p-datepicker-header {
+  background: transparent;
+  border: none;
+}
+
+.current-date ::ng-deep .p-datepicker-calendar {
+  background: transparent;
+}
+
+.current-date ::ng-deep .p-datepicker-calendar-container {
+  background: transparent;
+}
+
+.current-date ::ng-deep .p-datepicker-panel {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.current-date ::ng-deep .p-datepicker-calendar td span {
+  color: var(--surface-700);
+}
+
+.current-date ::ng-deep .p-datepicker-calendar td.p-datepicker-today span {
+  background: var(--primary-100);
+  color: var(--primary-700);
+  font-weight: 700;
+}
+
+.current-date ::ng-deep .p-datepicker-calendar td.p-highlight span {
+  background: var(--primary-500);
+  color: var(--primary-contrast);
+}
+
+.current-date ::ng-deep .p-datepicker-title {
+  color: var(--surface-900);
+  font-weight: 600;
+}
+
+.current-date ::ng-deep .p-datepicker-calendar th {
+  color: var(--surface-600);
+}
+
+.current-date ::ng-deep .p-datepicker-prev,
+.current-date ::ng-deep .p-datepicker-next {
+  color: var(--surface-600);
+}
+
+html.dark .current-date ::ng-deep .p-datepicker-calendar td span {
+  color: var(--surface-300);
+}
+
+html.dark .current-date ::ng-deep .p-datepicker-calendar td.p-datepicker-today span {
+  background: var(--primary-900);
+  color: var(--primary-200);
+}
+
+html.dark .current-date ::ng-deep .p-datepicker-calendar td.p-highlight span {
+  background: var(--primary-400);
+  color: var(--surface-900);
+}
+
+html.dark .current-date ::ng-deep .p-datepicker-title {
+  color: var(--surface-100);
+}
+
+html.dark .current-date ::ng-deep .p-datepicker-calendar th {
+  color: var(--surface-400);
+}
+
+html.dark .current-date ::ng-deep .p-datepicker-prev,
+html.dark .current-date ::ng-deep .p-datepicker-next {
+  color: var(--surface-400);
+}
+
+@media (min-width: 1024px) {
+  .current-date ::ng-deep .p-datepicker {
+    transform: scale(0.85);
+    transform-origin: center top;
+  }
+}

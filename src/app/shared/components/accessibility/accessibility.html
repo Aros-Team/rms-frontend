@@ -1,7 +1,12 @@
 <button
+  #dragBtn
   type="button"
   class="accessibility-btn"
-  (click)="openDialog()"
+  [style.left.px]="buttonPosition.left"
+  [style.top.px]="buttonPosition.top"
+  (mousedown)="onMouseDown($event)"
+  (touchstart)="onMouseDown($event)"
+  (click)="onClick()"
   title="Accesibilidad"
   aria-label="Abrir configuración de accesibilidad"
 >
@@ -28,7 +33,6 @@
   styleClass="accessibility-dialog"
 >
   <div class="flex flex-col gap-6">
-    <!-- Tamaño de letra -->
     <div role="group" aria-labelledby="font-size-label-access">
       <span id="font-size-label-access" class="block text-sm font-medium mb-3">
         <i class="pi pi-text-height mr-2"></i>Tamaño de letra
@@ -46,7 +50,6 @@
       </div>
     </div>
 
-    <!-- Modo tema -->
     <div role="group" aria-labelledby="theme-label-access">
       <span id="theme-label-access" class="block text-sm font-medium mb-3">
         <i class="pi pi-sun mr-2"></i>Modo
@@ -69,7 +72,6 @@
       </div>
     </div>
 
-    <!-- Alto contraste -->
     <div role="group" aria-labelledby="contrast-label-access">
       <span id="contrast-label-access" class="block text-sm font-medium mb-3">
         <i class="pi pi-eye mr-2"></i>Alto contraste

@@ -1,5 +1,14 @@
 import { Injectable } from '@angular/core';
-import { HorizontalMenuOption } from '@app/shared/components/header/header';
+
+export interface HorizontalMenuOption {
+  id: string;
+  label: string;
+  description: string;
+  icon?: string;
+  isActive?: boolean;
+  command?: () => void;
+  routerLink?: string;
+}
 
 export interface WorkerType {
   id: string;
@@ -19,7 +28,6 @@ export class WorkerConfig {
   }
 
   private initializeWorkerTypes(): void {
-    // Kitchen Worker Type
     this.workerTypes.set('kitchen', {
       id: 'kitchen',
       name: 'Cocina',
@@ -31,14 +39,11 @@ export class WorkerConfig {
           description: 'Ver pedidos en cola',
           icon: 'pi pi-list',
           isActive: false,
-          command: () => {
-            // Renderizar componente de cocina
-          }
+          command: () => {}
         },
       ]
     });
 
-    // Waiter Worker Type
     this.workerTypes.set('waiter', {
       id: 'waiter',
       name: 'Mesero',
@@ -50,9 +55,7 @@ export class WorkerConfig {
           description: 'Crear nuevo pedido',
           icon: 'pi pi-pencil',
           isActive: false,
-          command: () => {
-            // Renderizar componente de creación de pedidos
-          }
+          command: () => {}
         },
         {
           id: 'day-menu',
@@ -71,7 +74,6 @@ export class WorkerConfig {
       ]
     });
 
-    // Bar Worker Type
     this.workerTypes.set('bar', {
       id: 'bar',
       name: 'Bar',
@@ -83,9 +85,7 @@ export class WorkerConfig {
           description: 'Crear nuevo pedido',
           icon: 'pi pi-pencil',
           isActive: false,
-          command: () => {
-            // Renderizar componente de creación de pedidos
-          }
+          command: () => {}
         },
         {
           id: 'day-menu',

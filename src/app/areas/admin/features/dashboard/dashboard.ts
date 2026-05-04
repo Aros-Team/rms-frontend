@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, HostListener } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { BadgeModule } from 'primeng/badge';
@@ -15,10 +15,12 @@ import { OrderDetailDialog } from '@shared/components/order-detail-dialog/order-
 import { Logging } from '@app/core/services/logging/logging';
 import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
 import { OrderDetailsResponse } from '@app/shared/models/dto/orders/order-details-response.model';
-import { of } from 'rxjs';
+import { of, interval, Subscription } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { calculateTotalPrice } from '@app/shared/models/dto/orders/order-response.model';
 import { Message } from "primeng/message";
+import { HttpClient } from '@angular/common/http';
+import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-dashboard',
@@ -35,12 +37,16 @@ import { Message } from "primeng/message";
   ],
 
 })
-export class Dashboard implements OnInit {
+export class Dashboard implements OnInit, OnDestroy {
   private orderService = inject(Order);
   private tableService = inject(Table);
   private productService = inject(Product);
   private dayMenuService = inject(DayMenuService);
   private logger = inject(Logging);
+  private http = inject(HttpClient);
+
+  serverStatus = signal<'online' | 'offline' | 'checking'>('checking');
+  private healthCheckSubscription!: Subscription;
 
   orders = signal<OrderResponse[]>([]);
   orderDetails = signal<OrderDetailsResponse[]>([]);
@@ -57,18 +63,49 @@ export class Dashboard implements OnInit {
   currentTime = signal('');
   showSales = signal(true);
 
-  // Dialog state
   showOrderDetail = signal(false);
   selectedOrder = signal<OrderResponse | null>(null);
   selectedProduct = signal<ProductData | null>(null);
+  isSwipedLeft = signal(false);
+  private touchStartX = 0;
+  private touchEndX = 0;
+  private minSwipeDistance = 50;
+  private isMobile = signal(false);
 
   ngOnInit() {
+    this.checkScreenSize();
     this.loadDashboardData();
     this.loadDayMenu();
     this.updateDateTime();
     this.loadSalesVisibility();
-    // Update time every minute
+    this.startHealthCheck();
     setInterval(() => { this.updateDateTime(); }, 60000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.healthCheckSubscription) {
+      this.healthCheckSubscription.unsubscribe();
+    }
+  }
+
+  private startHealthCheck(): void {
+    this.checkServerStatus();
+    this.healthCheckSubscription = interval(30000).subscribe(() => {
+      this.checkServerStatus();
+    });
+  }
+
+  checkServerStatus(): void {
+    this.serverStatus.set('checking');
+    const baseUrl = environment.apiUrl.replace('/api', '');
+    this.http.get<{status: string}>(`${baseUrl}/health`).subscribe({
+      next: (response) => {
+        this.serverStatus.set(response.status === 'UP' ? 'online' : 'offline');
+      },
+      error: () => {
+        this.serverStatus.set('offline');
+      }
+    });
   }
 
   private loadDashboardData() {
@@ -284,5 +321,37 @@ export class Dashboard implements OnInit {
     if (stored !== null) {
       this.showSales.set(stored === 'true');
     }
+  }
+
+  private checkScreenSize(): void {
+    this.isMobile.set(window.innerWidth < 1024);
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.checkScreenSize();
+  }
+
+  onTouchStart(event: TouchEvent): void {
+    this.touchStartX = event.touches[0].clientX;
+  }
+
+  onTouchMove(event: TouchEvent): void {
+    this.touchEndX = event.touches[0].clientX;
+  }
+
+  onTouchEnd(): void {
+    const swipeDistance = this.touchEndX - this.touchStartX;
+    if (Math.abs(swipeDistance) > this.minSwipeDistance) {
+      if (swipeDistance < 0 && !this.isSwipedLeft()) {
+        this.isSwipedLeft.set(true);
+      } else if (swipeDistance > 0 && this.isSwipedLeft()) {
+        this.isSwipedLeft.set(false);
+      }
+    }
+  }
+
+  onIndicatorClick(direction: 'left' | 'right'): void {
+    this.isSwipedLeft.set(direction === 'left');
   }
 }
