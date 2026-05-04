@@ -19,13 +19,16 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import { FormValidation } from '@app/shared/components/form/form-validation';
 import { Logging } from '@app/core/services/logging/logging';
 import { UpdateUserRequest } from '@app/shared/models/dto/users/user-response.model';
+import { AreaResponse } from '@app/shared/models/dto/areas/area.model';
+import { Area } from '@app/core/services/areas/area';
 
 interface UserFormValue {
   document: string;
   name: string;
   email: string;
   phone: string;
-  address: string | null;
+  address: string | null,
+  areas: number[]
 }
 
 @Component({
@@ -50,6 +53,7 @@ interface UserFormValue {
 })
 export class Users implements OnInit {
   private userService = inject(User);
+  private areaService = inject(Area);
   private messageService = inject(MessageService);
   private logger = inject(Logging);
   private confirmationService = inject(ConfirmationService);
@@ -58,6 +62,7 @@ export class Users implements OnInit {
   description = 'Gestión completa de todos los usuarios/empleados del restaurante';
 
   users = signal<UserResponse[]>([]);
+  areas = signal<AreaResponse[]>([]);
   editing = false;
   selectedUser: UserResponse | null = null;
 
@@ -67,6 +72,7 @@ export class Users implements OnInit {
     email: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.email(control), (control: AbstractControl) => Validators.maxLength(100)(control)]),
     phone: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.pattern('^\\d{10}$')(control)]),
     address: new FormControl('', [(control: AbstractControl) => Validators.maxLength(200)(control)]),
+    areas: new FormControl<number[]>([], [(control: AbstractControl) => Validators.required(control)]),
   });
 
   creationModalVisible = false;
@@ -77,6 +83,7 @@ export class Users implements OnInit {
 
   ngOnInit(): void {
     this.searchForUsers();
+    this.searchForAreas();
   }
 
   closeModals(): void {
@@ -194,6 +201,7 @@ export class Users implements OnInit {
       email: formValue.email,
       phone: formValue.phone,
       address: formValue.address ?? '',
+      areas: formValue.areas || [],
     };
 
     this.userService.updateUser(this.selectedUser.id, updateData).subscribe({
@@ -369,6 +377,7 @@ export class Users implements OnInit {
       email: data.email,
       phone: data.phone ?? '',
       address: data.address ?? '',
+      areas: data.assignedAreas ?? [],
     });
   }
 
@@ -384,6 +393,7 @@ export class Users implements OnInit {
       email: formValue.email,
       phone: formValue.phone,
       address: formValue.address ?? undefined,
+      areas: formValue.areas ?? []
     };
   }
 
@@ -391,6 +401,13 @@ export class Users implements OnInit {
     this.userService.getUsers().subscribe((res) => {
       this.users.set(res);
       this.logger.debug('Users loaded:', this.users());
+    });
+  }
+
+  private searchForAreas(): void {
+    this.areaService.getAreas().subscribe((res) => {
+      this.areas.set(res);
+      this.logger.debug('Areas loaded:', this.areas());
     });
   }
 

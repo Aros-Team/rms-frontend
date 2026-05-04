@@ -16,4 +16,5 @@ export interface UpdateUserRequest {
   email: string;
   phone: string;
   address: string;
+  areas: number[];
 }
