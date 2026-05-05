@@ -1,6 +1,6 @@
 import { Injectable, inject, OnDestroy } from '@angular/core';
 import { Client, StompSubscription } from '@stomp/stompjs';
-import { Observable, Subject, BehaviorSubject } from 'rxjs';
+import { Observable, Subject, BehaviorSubject, share } from 'rxjs';
 import SockJS from 'sockjs-client';
 
 import { Logging } from '@app/core/services/logging/logging';
@@ -22,8 +22,13 @@ export class WebSocket implements OnDestroy {
   private client?: Client;
   private connected = false;
 
-  // Subjects keyed by topic — created on first subscription, shared across callers
+  // Subjects keyed by topic — one Subject per topic, receives raw STOMP messages
   private topicSubjects = new Map<string, Subject<unknown>>();
+
+  // Shared observables keyed by topic — derived from topicSubjects via share().
+  // All Angular subscribers for the same topic consume a single multicast stream;
+  // the underlying STOMP subscription is torn down when the ref-count drops to zero.
+  private topicObservables = new Map<string, Observable<unknown>>();
 
   // STOMP subscriptions keyed by topic — one per topic regardless of how many
   // Angular subscribers are listening to the corresponding Subject
@@ -114,47 +119,46 @@ export class WebSocket implements OnDestroy {
   }
 
   /**
-   * Returns a typed Observable for the given STOMP topic.
+   * Returns a typed, multicasted Observable for the given STOMP topic.
    *
-   * - The STOMP subscription is created lazily when the first Angular subscriber
-   *   arrives (or immediately if already connected) and is shared across all
-   *   callers for the same topic.
-   * - When the last Angular subscriber unsubscribes, the underlying STOMP
+   * Sharing semantics (via share):
+   * - A single STOMP subscription is created for each topic, regardless of how
+   *   many Angular components subscribe to the returned Observable.
+   * - When the ref-count drops to zero (all components unsubscribed), the STOMP
    *   subscription is torn down so the broker stops sending messages for that
    *   topic to this client.
+   * - No replay buffer — late subscribers only receive future messages, which
+   *   prevents stale events from being re-processed on component re-mount.
    *
-   * Components should unsubscribe from the returned Observable in ngOnDestroy
-   * (or use takeUntilDestroyed / async pipe).
+   * Components should unsubscribe in ngOnDestroy (or use takeUntilDestroyed /
+   * async pipe).
    */
   subscribeToTopic<T = unknown>(topic: string): Observable<T> {
-    if (!this.topicSubjects.has(topic)) {
-      this.topicSubjects.set(topic, new Subject<unknown>());
+    if (!this.topicObservables.has(topic)) {
+      const subject = new Subject<unknown>();
+      this.topicSubjects.set(topic, subject);
+
+      const shared = subject.pipe(
+        share({
+          resetOnRefCountZero: () => new Observable((observer) => {
+            // Teardown: destroy the STOMP subscription when no one is listening
+            this.destroyStompSubscription(topic);
+            observer.complete();
+          }),
+        }),
+      );
+
+      this.topicObservables.set(topic, shared);
     }
 
+    // If already connected and not yet subscribed via STOMP, do it now.
+    // (If not connected yet, resubscribeAll() will handle it on onConnect.)
     const subject = this.topicSubjects.get(topic)!;
-
-    // If already connected and not yet subscribed via STOMP, do it now
     if (this.connected && !this.stompSubscriptions.has(topic)) {
       this.createStompSubscription(topic, subject);
     }
 
-    return new Observable<T>((observer) => {
-      const sub = subject.subscribe({
-        next: (value) => { observer.next(value as T); },
-        error: (err: unknown) => { observer.error(err); },
-        complete: () => { observer.complete(); },
-      });
-
-      return () => {
-        sub.unsubscribe();
-
-        // If no more observers are listening to this topic, tear down the STOMP
-        // subscription to stop receiving messages from the broker.
-        if (!subject.observed) {
-          this.destroyStompSubscription(topic);
-        }
-      };
-    });
+    return this.topicObservables.get(topic) as Observable<T>;
   }
 
   disconnect(): void {
@@ -185,6 +189,7 @@ export class WebSocket implements OnDestroy {
     this.disconnect();
     this.topicSubjects.forEach((subject) => { subject.complete(); });
     this.topicSubjects.clear();
+    this.topicObservables.clear();
     this.cacheInvalidationSubject.complete();
   }
 
@@ -193,7 +198,7 @@ export class WebSocket implements OnDestroy {
   /** Called after every successful (re)connect to restore active topic subscriptions. */
   private resubscribeAll(): void {
     this.topicSubjects.forEach((subject, topic) => {
-      // Only subscribe if someone is still listening
+      // Only create a STOMP subscription if the shared Observable has active observers
       if (subject.observed && !this.stompSubscriptions.has(topic)) {
         this.createStompSubscription(topic, subject);
       }
