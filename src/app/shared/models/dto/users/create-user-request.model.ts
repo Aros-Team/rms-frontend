@@ -4,4 +4,5 @@ export interface CreateUserRequest {
   email: string;
   phone?: string;
   address?: string;
+  areas: number[];
 }

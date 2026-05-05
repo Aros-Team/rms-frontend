@@ -200,6 +200,24 @@
         <label for="create.phone">N# Celular</label>
         <app-form-validation field="phone" [backendError]="getBackendError('phone')"></app-form-validation>
       </p-iftalabel>
+      <p-multiselect
+        [options]="areas()"
+        formControlName="areas"
+        optionLabel="name"
+        optionValue="id"
+        placeholder="Seleccione las areas de trabajo"
+        [showClear]="true"
+        class="w-full"
+        appendTo="body"
+      >
+        <ng-template let-area pTemplate="item">
+          <div class="flex flex-col">
+            <span class="font-medium">{{ area.name }}</span>
+            <span class="text-xs text-muted-color">{{ area.type }}</span>
+          </div>
+        </ng-template>
+      </p-multiselect>
+      <small class="ml-1 text-muted-color">Seleccione las áreas de trabajo *</small>
     </form>
 
     <div class="flex justify-start gap-2 mt-8">
