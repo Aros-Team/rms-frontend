@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed, DestroyRef } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -33,7 +33,7 @@ const WS_TOPICS = {
   templateUrl: './take-order.html',
   imports: [CommonModule, FormsModule, TableNumberPipe, KeyValuePipe],
 })
-export class TakeOrder implements OnInit, OnDestroy {
+export class TakeOrder implements OnInit {
   private masterData = inject(MasterData);
   private orderService = inject(Order);
   private logger = inject(Logging);
@@ -103,10 +103,6 @@ export class TakeOrder implements OnInit, OnDestroy {
     });
 
     this.connectWebSocket();
-  }
-
-  ngOnDestroy(): void {
-    // takeUntilDestroyed handles cleanup automatically
   }
 
   selectCategory(cat: string): void {

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, signal, computed, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { RouterModule } from '@angular/router';
@@ -46,7 +46,7 @@ const WS_TOPICS = {
   ],
   templateUrl: './tables.html',
 })
-export class Tables implements OnInit, OnDestroy {
+export class Tables implements OnInit {
   private tableService = inject(Table);
   private messageService = inject(MessageService);
   private wsService = inject(WebSocket);
@@ -81,10 +81,6 @@ export class Tables implements OnInit, OnDestroy {
       this.cache.tables.refresh();
     }
     this.connectWebSocket();
-  }
-
-  ngOnDestroy(): void {
-    // takeUntilDestroyed handles cleanup automatically
   }
 
   onVisible(): void {
