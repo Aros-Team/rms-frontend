@@ -1,5 +1,19 @@
 # Changelog
 
+## [v2.0.0](https://github.com/Aros-Team/rms-frontend/releases/tag/v2.0.0)
+
+### Features
+
+- **admin**: add table support and other improvements
+- **admin**: ResourceCache architecture, responsive tables, and orders management overhaul
+
+### Bug Fixes
+
+- redirect workers based on area type
+- **BREAKING**: added area field for create/update user form
+- **BREAKING**: areas on employee creation/modification
+- improve data load and view errors
+
 ## [v1.3.0](https://github.com/Aros-Team/rms-frontend/releases/tag/v1.3.0)
 
 ### Features

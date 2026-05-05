@@ -2,7 +2,7 @@
   "name": "Restaurant Management System (RMS)",
   "type": "module",
   "description": "Robust, scalable frontend application that delivers an intuitive and accessible interface for restaurant operations management, enabling real-time data visualization and seamless user interactions.",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --configuration development",
