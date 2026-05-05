@@ -77,6 +77,17 @@ export class ResourceCache<T> {
     }
   }
 
+  /**
+   * Applies a pure transform function to the cached data without triggering
+   * an HTTP fetch. Useful for applying real-time WebSocket updates in-place.
+   * No-op if there is no data in cache yet.
+   */
+  patchData(updater: (current: T) => T): void {
+    const current = this.entry();
+    if (current.data === null) return;
+    this.entry.set({ ...current, data: updater(current.data) });
+  }
+
   reset(): void {
     this.entry.set({ data: null, timestamp: 0, status: 'stale' });
   }

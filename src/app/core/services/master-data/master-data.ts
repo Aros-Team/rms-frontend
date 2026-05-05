@@ -41,6 +41,17 @@ export class MasterData {
     );
   }
 
+  /**
+   * Applies a single table update from WebSocket directly into the in-memory
+   * snapshot without making an HTTP request.
+   */
+  applyTableUpdate(updated: TableResponse): void {
+    const current = this._data$.value;
+    if (!current) return;
+    const tables = current.tables.map(t => t.id === updated.id ? { ...t, ...updated } : t);
+    this._data$.next({ ...current, tables });
+  }
+
   getProductOptions(productId: number): Observable<ProductOption[]> {
     return this.http.get<ProductOption[]>(`v1/products/${String(productId)}/options`);
   }

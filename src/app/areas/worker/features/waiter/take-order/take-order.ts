@@ -1,17 +1,21 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { MasterData } from '@app/core/services/master-data/master-data';
 import { Order } from '@app/core/services/orders/order';
 import { Logging } from '@app/core/services/logging/logging';
 import { Cart } from '@app/core/services/cart/cart';
+import { WebSocket } from '@app/core/services/websocket/websocket';
+import { Auth } from '@app/core/services/auth/auth';
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
 import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
 import { TableResponse } from '@app/shared/models/dto/tables/table-response.model';
 import { CreateOrderDetail } from '@app/shared/models/dto/orders/create-order-request.model';
 import { TableNumberPipe } from '@app/shared/pipes/table-number.pipe';
 import { KeyValuePipe } from '@angular/common';
+import { environment } from '@environments/environment';
 
 export interface CartItem {
   product: ProductListResponse;
@@ -20,16 +24,23 @@ export interface CartItem {
   optionNames: string[];
 }
 
+const WS_TOPICS = {
+  tableStatus: '/topic/tables/status',
+} as const;
+
 @Component({
   selector: 'app-take-order',
   templateUrl: './take-order.html',
   imports: [CommonModule, FormsModule, TableNumberPipe, KeyValuePipe],
 })
-export class TakeOrder implements OnInit {
+export class TakeOrder implements OnInit, OnDestroy {
   private masterData = inject(MasterData);
   private orderService = inject(Order);
   private logger = inject(Logging);
   private cartService = inject(Cart);
+  private wsService = inject(WebSocket);
+  private authService = inject(Auth);
+  private destroyRef = inject(DestroyRef);
 
   // Estado de carga
   loading = signal(true);
@@ -63,17 +74,13 @@ export class TakeOrder implements OnInit {
   modalOptionsByCategory = computed(() =>
     this.masterData.groupOptionsByCategory(this.modalOptions())
   );
-  
+
   filteredProducts = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
     const category = this.activeCategory();
     const products = this.productsByCategory()[category] ?? [];
-    
     if (!query) return products;
-    
-    return products.filter(p => 
-      p.name.toLowerCase().includes(query)
-    );
+    return products.filter(p => p.name.toLowerCase().includes(query));
   });
 
   ngOnInit(): void {
@@ -94,6 +101,12 @@ export class TakeOrder implements OnInit {
         this.loading.set(false);
       }
     });
+
+    this.connectWebSocket();
+  }
+
+  ngOnDestroy(): void {
+    // takeUntilDestroyed handles cleanup automatically
   }
 
   selectCategory(cat: string): void {
@@ -101,8 +114,6 @@ export class TakeOrder implements OnInit {
   }
 
   addProduct(product: ProductListResponse): void {
-    // Always open the options modal — products may or may not have options.
-    // If no options are available, the user can confirm without selecting any.
     this.pendingProduct.set(product);
     this.pendingOptions.set([]);
     this.pendingInstructions.set('');
@@ -130,7 +141,6 @@ export class TakeOrder implements OnInit {
       .map(o => o.id);
 
     this.pendingOptions.update(ids => {
-      // quitar todas las de la misma categoría, luego agregar la nueva (o deseleccionar si ya estaba)
       const withoutCategory = ids.filter(id => !sameCategory.includes(id));
       return ids.includes(optionId) ? withoutCategory : [...withoutCategory, optionId];
     });
@@ -200,17 +210,35 @@ export class TakeOrder implements OnInit {
         this.cart.set([]);
         this.selectedTableId.set(null);
         this.submitting.set(false);
-        // Recargar mesas para reflejar estado OCCUPIED
-        this.masterData.reloadTables().subscribe(() => {
-          this.tables.set(this.masterData.getAvailableTables());
-        });
+        // No HTTP reload needed — the WS event /topic/tables/status will arrive
+        // with status OCCUPIED and update masterData + this.tables automatically.
       },
       error: (err: { status?: number; error?: { message?: string } } | null) => {
         this.logger.error('TakeOrder: create order failed', err);
-        const msg = this.resolveOrderError(err);
-        this.error.set(msg);
+        this.error.set(this.resolveOrderError(err));
         this.submitting.set(false);
       }
     });
+  }
+
+  // ─── Private ───────────────────────────────────────────────────────────────
+
+  private connectWebSocket(): void {
+    const token = this.authService.getToken();
+    if (!token) return;
+
+    this.wsService.connect(environment.wsUrl, token);
+
+    // When a table changes status, update masterData in-memory and re-derive
+    // the available tables list so the UI reflects the change instantly.
+    this.wsService
+      .subscribeToTopic<TableResponse>(WS_TOPICS.tableStatus)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((updated) => {
+        this.logger.debug('TakeOrder: table status update received', updated.id, updated.status);
+        this.masterData.applyTableUpdate(updated);
+        // Re-derive available tables from the updated snapshot
+        this.tables.set(this.masterData.getAvailableTables());
+      });
   }
 }

@@ -1,4 +1,5 @@
-import { Component, inject, OnInit, OnDestroy, signal, HostListener } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed, HostListener, DestroyRef, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { BadgeModule } from 'primeng/badge';
@@ -14,18 +15,31 @@ import { DayMenuResponse } from '@app/shared/models/dto/daymenu/daymenu-response
 import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
 import { OrderDetailDialog } from '@shared/components/order-detail-dialog/order-detail-dialog';
 import { Logging } from '@app/core/services/logging/logging';
+import { WebSocket } from '@app/core/services/websocket/websocket';
+import { Auth } from '@app/core/services/auth/auth';
 import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
 import { OrderDetailsResponse } from '@app/shared/models/dto/orders/order-details-response.model';
+import { TableResponse } from '@app/shared/models/dto/tables/table-response.model';
 import { of, interval, Subscription } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { calculateTotalPrice } from '@app/shared/models/dto/orders/order-response.model';
-import { Message } from "primeng/message";
+import { Message } from 'primeng/message';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@environments/environment';
+
+const WS_TOPICS = {
+  created:     '/topic/orders/created',
+  preparing:   '/topic/orders/preparing',
+  ready:       '/topic/orders/ready',
+  delivered:   '/topic/orders/delivered',
+  cancelled:   '/topic/orders/cancelled',
+  tableStatus: '/topic/tables/status',
+} as const;
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     ButtonModule,
@@ -35,9 +49,8 @@ import { environment } from '@environments/environment';
     SkeletonModule,
     TagModule,
     OrderDetailDialog,
-    Message
+    Message,
   ],
-
 })
 export class Dashboard implements OnInit, OnDestroy {
   private orderService = inject(Order);
@@ -46,10 +59,15 @@ export class Dashboard implements OnInit, OnDestroy {
   private dayMenuService = inject(DayMenuService);
   private logger = inject(Logging);
   private http = inject(HttpClient);
+  private wsService = inject(WebSocket);
+  private authService = inject(Auth);
+  private destroyRef = inject(DestroyRef);
+  private cdr = inject(ChangeDetectorRef);
 
   serverStatus = signal<'online' | 'offline' | 'checking'>('checking');
   private healthCheckSubscription: Subscription | undefined;
 
+  // All today's orders — kept in sync via WebSocket events
   orders = signal<OrderResponse[]>([]);
   isLoading = signal(true);
   orderDetails = signal<OrderDetailsResponse[]>([]);
@@ -57,11 +75,27 @@ export class Dashboard implements OnInit, OnDestroy {
   dayMenuOptions = signal<ProductOption[]>([]);
   loadingDayMenuOptions = signal(false);
   existDayMenu = false;
-  completedOrdersCount = signal(0);
-  preparingOrdersCount = signal(0);
-  occupiedTablesCount = signal(0);
-  totalTables = signal(0);
-  totalSales = signal(0);
+
+  // Metrics derived from the orders signal — no extra HTTP calls needed
+  completedOrdersCount = computed(() =>
+    this.orders().filter(o => o.status === 'DELIVERED').length
+  );
+  preparingOrdersCount = computed(() =>
+    this.orders().filter(o => o.status === 'PREPARING').length
+  );
+  totalSales = computed(() =>
+    this.orders()
+      .filter(o => o.status === 'DELIVERED')
+      .reduce((sum, o) => sum + calculateTotalPrice(o), 0)
+  );
+
+  // Tables — kept in sync via WebSocket events
+  private allTables = signal<TableResponse[]>([]);
+  occupiedTablesCount = computed(() =>
+    this.allTables().filter(t => t.status === 'OCCUPIED').length
+  );
+  totalTables = computed(() => this.allTables().length);
+
   currentDate = signal('');
   currentTime = signal('');
   showSales = signal(true);
@@ -72,24 +106,125 @@ export class Dashboard implements OnInit, OnDestroy {
   isSwipedLeft = signal(false);
   private touchStartX = 0;
   private touchEndX = 0;
-  private minSwipeDistance = 50;
+  private readonly minSwipeDistance = 50;
   private isMobile = signal(false);
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.checkScreenSize();
     this.loadDashboardData();
     this.loadDayMenu();
     this.updateDateTime();
     this.loadSalesVisibility();
     this.startHealthCheck();
+    this.connectWebSocket();
     setInterval(() => { this.updateDateTime(); }, 60000);
   }
 
   ngOnDestroy(): void {
-    if (this.healthCheckSubscription) {
-      this.healthCheckSubscription.unsubscribe();
-    }
+    this.healthCheckSubscription?.unsubscribe();
   }
+
+  // ─── WebSocket ─────────────────────────────────────────────────────────────
+
+  private connectWebSocket(): void {
+    const token = this.authService.getToken();
+    if (!token) return;
+
+    this.wsService.connect(environment.wsUrl, token);
+
+    // ── Orders ──────────────────────────────────────────────────────────────
+
+    // New order created → add to list (avoid duplicates)
+    this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.created)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((order) => {
+        this.logger.debug('Dashboard: orderCreated', order.id);
+        this.orders.update(list =>
+          list.some(o => o.id === order.id) ? list : [order, ...list]
+        );
+        this.cdr.markForCheck();
+      });
+
+    // Status transitions — update the order in-place so computed metrics react
+    const updateOrderStatus = (updated: OrderResponse): void => {
+      this.orders.update(list =>
+        list.map(o => o.id === updated.id ? { ...o, status: updated.status } : o)
+      );
+      this.cdr.markForCheck();
+    };
+
+    this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.preparing)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((o) => { this.logger.debug('Dashboard: orderPreparing', o.id); updateOrderStatus(o); });
+
+    this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.ready)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((o) => { this.logger.debug('Dashboard: orderReady', o.id); updateOrderStatus(o); });
+
+    this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.delivered)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((o) => { this.logger.debug('Dashboard: orderDelivered', o.id); updateOrderStatus(o); });
+
+    this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.cancelled)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((o) => { this.logger.debug('Dashboard: orderCancelled', o.id); updateOrderStatus(o); });
+
+    // ── Tables ───────────────────────────────────────────────────────────────
+
+    this.wsService.subscribeToTopic<TableResponse>(WS_TOPICS.tableStatus)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((updated) => {
+        this.logger.debug('Dashboard: tableStatus', updated.id, updated.status);
+        this.allTables.update(list =>
+          list.map(t => t.id === updated.id ? { ...t, ...updated } : t)
+        );
+        this.cdr.markForCheck();
+      });
+  }
+
+  // ─── Initial data load ─────────────────────────────────────────────────────
+
+  private loadDashboardData(): void {
+    this.isLoading.set(true);
+
+    // Load today's orders — metrics are derived via computed() from this signal
+    this.orderService.getTodayOrders().subscribe({
+      next: (orders) => {
+        this.logger.debug('Dashboard: orders loaded', orders.length);
+        this.orders.set(orders);
+        this.isLoading.set(false);
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        this.logger.error('Dashboard: error loading orders, trying fallback', error);
+        this.orderService.getOrdersByStatusOrAll().subscribe({
+          next: (allOrders) => {
+            this.orders.set(allOrders);
+            this.isLoading.set(false);
+            this.cdr.markForCheck();
+          },
+          error: (fallbackError) => {
+            this.logger.error('Dashboard: fallback also failed', fallbackError);
+            this.isLoading.set(false);
+            this.cdr.markForCheck();
+          }
+        });
+      }
+    });
+
+    // Load tables — occupied count is derived via computed() from this signal
+    this.tableService.getTables().subscribe({
+      next: (tables) => {
+        this.allTables.set(tables);
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        this.logger.error('Dashboard: error loading tables', error);
+      }
+    });
+  }
+
+  // ─── Health check ──────────────────────────────────────────────────────────
 
   private startHealthCheck(): void {
     this.checkServerStatus();
@@ -101,132 +236,23 @@ export class Dashboard implements OnInit, OnDestroy {
   checkServerStatus(): void {
     this.serverStatus.set('checking');
     const baseUrl = environment.apiUrl.replace('/api', '');
-    this.http.get<{status: string}>(`${baseUrl}/health`).subscribe({
+    this.http.get<{ status: string }>(`${baseUrl}/health`).subscribe({
       next: (response) => {
         this.serverStatus.set(response.status === 'UP' ? 'online' : 'offline');
+        this.cdr.markForCheck();
       },
       error: () => {
         this.serverStatus.set('offline');
+        this.cdr.markForCheck();
       }
     });
   }
 
-  private loadDashboardData() {
-    this.isLoading.set(true);
+  // ─── Day menu ──────────────────────────────────────────────────────────────
 
-    // Load orders
-    this.orderService.getTodayOrders().subscribe({
-      next: (orders) => {
-        this.logger.debug('Dashboard: Orders loaded:', orders);
-        this.orders.set(orders);
-        this.isLoading.set(false);
-      },
-      error: (error) => {
-        this.logger.error('Error loading orders:', error);
-        // Fallback: try to get all orders without date filter
-        this.orderService.getOrdersByStatusOrAll().subscribe({
-          next: (allOrders) => {
-            this.logger.debug('Dashboard: Fallback orders loaded:', allOrders);
-            this.orders.set(allOrders);
-            this.isLoading.set(false);
-          },
-          error: (fallbackError) => {
-            this.logger.error('Error loading fallback orders:', fallbackError);
-            this.isLoading.set(false);
-          }
-        });
-      }
-    });
-
-    // Load statistics
-    this.orderService.getCompletedOrdersCount().subscribe({
-      next: (count) => {
-        this.completedOrdersCount.set(count);
-      },
-      error: (error) => {
-        this.logger.error('Error loading completed orders count:', error);
-        this.completedOrdersCount.set(0);
-      }
-    });
-
-    this.orderService.getPreparingOrdersCount().subscribe({
-      next: (count) => {
-        this.preparingOrdersCount.set(count);
-      },
-      error: (error) => {
-        this.logger.error('Error loading preparing orders count:', error);
-        this.preparingOrdersCount.set(0);
-      }
-    });
-
-    this.tableService.getOccupiedTablesCount().subscribe({
-      next: (count) => {
-        this.occupiedTablesCount.set(count);
-      },
-      error: (error) => {
-        this.logger.error('Error loading occupied tables count:', error);
-        this.occupiedTablesCount.set(0);
-      }
-    });
-
-    this.tableService.getTotalTablesCount().subscribe({
-      next: (count) => {
-        this.totalTables.set(count);
-      },
-      error: (error) => {
-        this.logger.error('Error loading tables count:', error);
-        this.occupiedTablesCount.set(0);
-      }
-    })
-
-    this.orderService.getTotalSales().subscribe({
-      next: (total) => {
-        this.totalSales.set(total);
-      },
-      error: (error) => {
-        this.logger.error('Error loading total sales:', error);
-        this.totalSales.set(0);
-      }
-    });
-  }
-
-  private updateDateTime() {
-    const now = new Date();
-
-    // Format date in Spanish
-    const dateOptions: Intl.DateTimeFormatOptions = {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour12: true
-    };
-    this.currentDate.set(now.toLocaleDateString('es-ES', dateOptions));
-
-    // Format time
-    this.currentTime.set(now.toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    }));
-  }
-
-  formatDate(date: string | Date): string {
-    if (!date) return '-';
-
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-
-    return new Intl.DateTimeFormat('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    }).format(dateObj);
-  }
-
-  private loadDayMenu() {
+  private loadDayMenu(): void {
     this.dayMenuService.getCurrentDayMenu().pipe(
       switchMap(menu => {
-        // 204 No Content llega como null
         if (!menu) {
           this.dayMenu.set(null);
           this.existDayMenu = false;
@@ -247,7 +273,28 @@ export class Dashboard implements OnInit, OnDestroy {
     ).subscribe(opts => {
       this.dayMenuOptions.set(opts);
       this.loadingDayMenuOptions.set(false);
+      this.cdr.markForCheck();
     });
+  }
+
+  // ─── Helpers ───────────────────────────────────────────────────────────────
+
+  private updateDateTime(): void {
+    const now = new Date();
+    this.currentDate.set(now.toLocaleDateString('es-ES', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour12: true,
+    }));
+    this.currentTime.set(now.toLocaleTimeString('es-ES', {
+      hour: '2-digit', minute: '2-digit', hour12: true,
+    }));
+  }
+
+  formatDate(date: string | Date): string {
+    if (!date) return '-';
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return new Intl.DateTimeFormat('es-ES', {
+      hour: '2-digit', minute: '2-digit', hour12: true,
+    }).format(dateObj);
   }
 
   groupByCategory(options: ProductOption[]): { category: string; items: ProductOption[] }[] {
@@ -266,82 +313,64 @@ export class Dashboard implements OnInit, OnDestroy {
 
   getStatusBadgeClass(status: string): string {
     switch (status) {
-      case 'DELIVERED':
-        return 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-300';
-      case 'PREPARING':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-300';
-      case 'READY':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-300';
-      case 'QUEUE':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-800 dark:text-orange-300';
-      case 'CANCELLED':
-        return 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-300';
-      default:
-        return 'bg-surface-100 text-surface-800 dark:bg-surface-800 dark:text-surface-300';
+      case 'DELIVERED': return 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-300';
+      case 'PREPARING':  return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-300';
+      case 'READY':      return 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-300';
+      case 'QUEUE':      return 'bg-orange-100 text-orange-800 dark:bg-orange-800 dark:text-orange-300';
+      case 'CANCELLED':  return 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-300';
+      default:           return 'bg-surface-100 text-surface-800 dark:bg-surface-800 dark:text-surface-300';
     }
   }
 
   getStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'secondary' | 'danger' {
     switch (status) {
-      case 'QUEUE':
-        return 'info';
-      case 'PREPARING':
-        return 'warn';
-      case 'READY':
-        return 'success';
-      case 'DELIVERED':
-        return 'secondary';
-      case 'CANCELLED':
-        return 'danger';
-      default:
-        return 'secondary';
+      case 'QUEUE':      return 'info';
+      case 'PREPARING':  return 'warn';
+      case 'READY':      return 'success';
+      case 'DELIVERED':  return 'secondary';
+      case 'CANCELLED':  return 'danger';
+      default:           return 'secondary';
     }
   }
 
   getStatusText(status: string): string {
     switch (status) {
-      case 'DELIVERED':
-        return 'Entregado';
-      case 'PREPARING':
-        return 'En preparación';
-      case 'READY':
-        return 'Listo';
-      case 'QUEUE':
-        return 'En cola';
-      case 'CANCELLED':
-        return 'Cancelado';
-      default:
-        return status;
+      case 'DELIVERED': return 'Entregado';
+      case 'PREPARING': return 'En preparación';
+      case 'READY':     return 'Listo';
+      case 'QUEUE':     return 'En cola';
+      case 'CANCELLED': return 'Cancelado';
+      default:          return status;
     }
   }
 
-  viewOrderDetails(order: OrderResponse) {
+  viewOrderDetails(order: OrderResponse): void {
     this.selectedOrder.set(order);
-    // For now, get a sample product to show in the dialog
     this.productService.getProductById(1).subscribe({
       next: (product) => {
         this.selectedProduct.set(product ?? null);
         this.showOrderDetail.set(true);
+        this.cdr.markForCheck();
       },
       error: (error) => {
-        this.logger.error('Error loading product details:', error);
+        this.logger.error('Dashboard: error loading product details', error);
       }
     });
   }
 
-  closeOrderDetail() {
+  closeOrderDetail(): void {
     this.showOrderDetail.set(false);
     this.selectedOrder.set(null);
     this.orderDetails.set([]);
   }
 
-  toggleSalesVisibility() {
+  toggleSalesVisibility(): void {
     const newVisibility = !this.showSales();
     this.showSales.set(newVisibility);
     localStorage.setItem('dashboard_sales_visible', newVisibility.toString());
   }
 
-  private loadSalesVisibility() {
+  private loadSalesVisibility(): void {
     const stored = localStorage.getItem('dashboard_sales_visible');
     if (stored !== null) {
       this.showSales.set(stored === 'true');
