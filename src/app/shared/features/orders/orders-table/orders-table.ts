@@ -22,6 +22,13 @@ import { environment } from '@environments/environment';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
+const WS_TOPICS = {
+  created:   '/topic/orders/created',
+  preparing: '/topic/orders/preparing',
+  ready:     '/topic/orders/ready',
+  delivered: '/topic/orders/delivered',
+} as const;
+
 @Component({
   selector: 'app-orders-table',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -126,7 +133,6 @@ export class OrdersTable implements OnInit, OnDestroy {
     // When any order changes status, update it in the local list
     const updateOrder = (updated: OrderResponse) => {
       this.ngZone.run(() => {
-        // Update in allOrders
         const idx = this.allOrders.findIndex(o => o.id === updated.id);
         if (idx !== -1) {
           this.allOrders[idx] = { ...this.allOrders[idx], status: updated.status };
@@ -148,10 +154,10 @@ export class OrdersTable implements OnInit, OnDestroy {
       });
     };
 
-    this.wsSubs.push(this.wsService.orderCreated$.subscribe(updateOrder));
-    this.wsSubs.push(this.wsService.orderPreparing$.subscribe(updateOrder));
-    this.wsSubs.push(this.wsService.orderReady$.subscribe(updateOrder));
-    this.wsSubs.push(this.wsService.orderDelivered$.subscribe(updateOrder));
+    this.wsSubs.push(this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.created).subscribe(updateOrder));
+    this.wsSubs.push(this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.preparing).subscribe(updateOrder));
+    this.wsSubs.push(this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.ready).subscribe(updateOrder));
+    this.wsSubs.push(this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.delivered).subscribe(updateOrder));
   }
 
   onStatusChange(value: string): void {
