@@ -7,7 +7,6 @@ import {
 import { provideRouter } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { LOCALE_ID } from '@angular/core';
 
 
@@ -71,7 +70,6 @@ export const appConfig: ApplicationConfig = {
     }),
     MessageService,
     ConfirmationService,
-    provideAnimationsAsync(), // eslint-disable-line @typescript-eslint/no-deprecated
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode,
       registrationStrategy: 'registerWhenStable:30000'

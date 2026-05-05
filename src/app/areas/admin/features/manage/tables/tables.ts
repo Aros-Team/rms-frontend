@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 
 import { RouterModule } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -8,9 +8,15 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { TableModule } from 'primeng/table';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { DialogModule } from 'primeng/dialog';
+import { TagModule } from 'primeng/tag';
+import { SkeletonModule } from 'primeng/skeleton';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 import { Table } from '@app/core/services/tables/table';
 import { MessageService } from 'primeng/api';
 import { TableResponse } from '@app/shared/models/dto/tables/table-response.model';
+import { TablesCacheService } from './tables-cache.service';
+import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
 
 @Component({
   selector: 'app-tables',
@@ -24,18 +30,24 @@ import { TableResponse } from '@app/shared/models/dto/tables/table-response.mode
     TableModule,
     IftaLabelModule,
     DialogModule,
+    TagModule,
+    SkeletonModule,
+    IconFieldModule,
+    InputIconModule,
+    LazyLoadDirective,
   ],
   templateUrl: './tables.html',
 })
 export class Tables implements OnInit {
   private tableService = inject(Table);
   private messageService = inject(MessageService);
+  readonly cache = inject(TablesCacheService);
 
   title = 'Gestión de Mesas';
   description = 'Configura las mesas del restaurante';
 
-  tables = signal<TableResponse[]>([]);
-  loading = signal(false);
+  tables = computed(() => this.cache.tables.data() ?? []);
+  loading = computed(() => this.cache.tables.isLoading());
 
   modalIsOpen = signal(false);
   modalMode = signal<'edit' | 'create'>('create');
@@ -53,27 +65,18 @@ export class Tables implements OnInit {
   });
 
   ngOnInit(): void {
-    this.loadTables();
+    // Force load on first visit if no data
+    if (this.cache.tables.data() === null) {
+      this.cache.tables.refresh();
+    }
+  }
+
+  onVisible(): void {
+    this.cache.tables.loadIfStale();
   }
 
   loadTables(): void {
-    this.loading.set(true);
-    this.tableService.getTables().subscribe({
-      next: (tables) => {
-        this.tables.set(tables);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        console.error('Error loading tables:', err);
-        this.loading.set(false);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudieron cargar las mesas',
-          life: 3000,
-        });
-      },
-    });
+    this.cache.tables.refresh();
   }
 
   showCreationModal(): void {
@@ -171,16 +174,18 @@ export class Tables implements OnInit {
     });
   }
 
-  getStatusClass(status: string): string {
+  getStatusSeverity(status: string): 'success' | 'warn' | 'info' | 'secondary' | 'danger' | 'contrast' | undefined {
     switch (status) {
       case 'AVAILABLE':
-        return 'bg-green-100 text-green-800';
+        return 'success';
       case 'OCCUPIED':
-        return 'bg-red-100 text-red-800';
+        return 'warn';
       case 'RESERVED':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'info';
+      case 'INACTIVE':
+        return 'secondary';
       default:
-        return '';
+        return 'secondary';
     }
   }
 

@@ -4,6 +4,7 @@ import { TableModule } from 'primeng/table';
 import { BadgeModule } from 'primeng/badge';
 import { CardModule } from 'primeng/card';
 import { SkeletonModule } from 'primeng/skeleton';
+import { TagModule } from 'primeng/tag';
 import { CommonModule } from '@angular/common';
 import { Order } from '@app/core/services/orders/order';
 import { Table } from '@app/core/services/tables/table';
@@ -32,6 +33,7 @@ import { environment } from '@environments/environment';
     BadgeModule,
     CardModule,
     SkeletonModule,
+    TagModule,
     OrderDetailDialog,
     Message
   ],
@@ -46,9 +48,10 @@ export class Dashboard implements OnInit, OnDestroy {
   private http = inject(HttpClient);
 
   serverStatus = signal<'online' | 'offline' | 'checking'>('checking');
-  private healthCheckSubscription!: Subscription;
+  private healthCheckSubscription: Subscription | undefined;
 
   orders = signal<OrderResponse[]>([]);
+  isLoading = signal(true);
   orderDetails = signal<OrderDetailsResponse[]>([]);
   dayMenu = signal<DayMenuResponse | null>(null);
   dayMenuOptions = signal<ProductOption[]>([]);
@@ -109,11 +112,14 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   private loadDashboardData() {
+    this.isLoading.set(true);
+
     // Load orders
     this.orderService.getTodayOrders().subscribe({
       next: (orders) => {
         this.logger.debug('Dashboard: Orders loaded:', orders);
         this.orders.set(orders);
+        this.isLoading.set(false);
       },
       error: (error) => {
         this.logger.error('Error loading orders:', error);
@@ -122,9 +128,11 @@ export class Dashboard implements OnInit, OnDestroy {
           next: (allOrders) => {
             this.logger.debug('Dashboard: Fallback orders loaded:', allOrders);
             this.orders.set(allOrders);
+            this.isLoading.set(false);
           },
           error: (fallbackError) => {
             this.logger.error('Error loading fallback orders:', fallbackError);
+            this.isLoading.set(false);
           }
         });
       }
@@ -270,6 +278,23 @@ export class Dashboard implements OnInit, OnDestroy {
         return 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-300';
       default:
         return 'bg-surface-100 text-surface-800 dark:bg-surface-800 dark:text-surface-300';
+    }
+  }
+
+  getStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'secondary' | 'danger' {
+    switch (status) {
+      case 'QUEUE':
+        return 'info';
+      case 'PREPARING':
+        return 'warn';
+      case 'READY':
+        return 'success';
+      case 'DELIVERED':
+        return 'secondary';
+      case 'CANCELLED':
+        return 'danger';
+      default:
+        return 'secondary';
     }
   }
 

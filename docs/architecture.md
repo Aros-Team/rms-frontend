@@ -124,6 +124,175 @@ component-name/
 
 ---
 
+## 10. Data Loading Strategy (ResourceCache)
+
+### 10.1 Overview
+
+Use `ResourceCache<T>` for all data fetching to enable:
+- **Lazy loading**: Data loads only when needed
+- **Caching**: Avoid repeated API calls
+- **Stale-while-revalidate**: Fresh data without blocking UI
+- **Signals integration**: Reactive state management
+
+### 10.2 Architecture
+
+```
+src/app/
+├── core/
+│   ├── cache/
+│   │   └── resource-cache.ts       # Base cache class
+│   └── directives/
+│       └── lazy-load.directive.ts  # Viewport-triggered loading
+└── features/
+    └── feature-name/
+        └── feature-cache.service.ts # Domain-specific cache service
+```
+
+### 10.3 ResourceCache API
+
+```typescript
+class ResourceCache<T> {
+  // Signals (read-only)
+  readonly data: Signal<T | null>
+  readonly isLoading: Signal<boolean>
+  readonly hasData: Signal<boolean>
+  readonly error: Signal<Error | undefined>
+
+  // Methods
+  load(): void                    // Force fresh fetch
+  loadIfStale(): void             // Load only if expired/empty
+  refresh(): void                 // Reload with stale-while-revalidate
+  invalidate(): void              // Mark as stale
+  reset(): void                   // Clear all data
+}
+```
+
+### 10.4 Cache Service Pattern
+
+Create one cache service per domain:
+
+```typescript
+@Injectable({ providedIn: 'root' })
+export class ProductCacheService {
+  private readonly http = inject(HttpClient);
+
+  // Different TTLs for different data types
+  readonly products = new ResourceCache<Product[]>(
+    () => this.http.get<Product[]>('/api/products'),
+    { ttlMs: 2 * 60 * 1000 }  // 2 minutes
+  );
+
+  readonly categories = new ResourceCache<Category[]>(
+    () => this.http.get<Category[]>('/api/categories'),
+    { ttlMs: 30 * 60 * 1000 } // 30 minutes
+  );
+
+  readonly productDetail = (id: number) => {
+    // Per-ID cache using Map
+    if (!this.detailCaches.has(id)) {
+      this.detailCaches.set(id, new ResourceCache(
+        () => this.http.get<Product>(`/api/products/${id}`),
+        { ttlMs: 5 * 60 * 1000 }
+      ));
+    }
+    return this.detailCaches.get(id)!;
+  }
+}
+```
+
+### 10.5 Component Usage
+
+**Template:**
+```html
+<!-- Lazy load when visible -->
+<div [appLazyLoad]="cache.products" class="h-full">
+  @if (cache.products.data(); as products) {
+    <p-table [value]="products" />
+  } @else {
+    <p-skeleton height="400px" />
+  }
+</div>
+```
+
+**Component:**
+```typescript
+export class Products {
+  readonly cache = inject(ProductCacheService);
+  
+  // Access data via computed signals
+  products = computed(() => this.cache.products.data());
+  isLoading = computed(() => this.cache.products.isLoading());
+}
+```
+
+### 10.6 Lazy Loading Directive
+
+The `appLazyLoad` directive triggers loading when element enters viewport:
+
+```html
+<!-- With default 200px margin (preloads before visible) -->
+<div [appLazyLoad]="cache">
+  <p-table [value]="cache.data()" />
+</div>
+
+<!-- Custom margin -->
+<div [appLazyLoad]="cache" [appLazyLoadMargin]="'100px'">
+```
+
+### 10.7 Cache Invalidation
+
+Invalidate caches on mutations:
+
+```typescript
+// After creating/updating/deleting
+async onSave() {
+  await this.http.post('/api/products', data).toPromise();
+  this.cacheService.products.invalidate();
+}
+
+// WebSocket push invalidation
+constructor() {
+  this.ws.on('products:updated').subscribe(() => {
+    this.cacheService.products.invalidate();
+  });
+}
+```
+
+### 10.8 Best Practices
+
+1. **Separate critical vs reference data:**
+   - Critical: Short TTL (1-2 min), loads immediately
+   - Reference: Long TTL (30+ min), loads on demand
+
+2. **Use computed signals for derived state:**
+   ```typescript
+   filteredProducts = computed(() => {
+     const all = this.cache.products.data() ?? [];
+     return all.filter(p => p.active);
+   });
+   ```
+
+3. **Never expose ResourceCache directly to templates:**
+   ```typescript
+   // Bad: template accesses cache directly
+   <p-table [value]="cache.products.data()" />
+
+   // Good: use computed property
+   products = computed(() => this.cache.products.data());
+   <p-table [value]="products()" />
+   ```
+
+4. **Handle loading states:**
+   ```typescript
+   @if (cache.isLoading() && !cache.hasData()) {
+     <p-skeleton />
+   } @else {
+     <p-table [value]="cache.data()" [loading]="cache.isLoading()" />
+   }
+   ```
+
+---
+
 ## 9. Project Goals
 
 Every decision must contribute to building:

@@ -30,9 +30,9 @@ export class Header implements OnInit, OnDestroy {
   showOverflowMenu = signal(false);
   isNavigating = signal(false);
   
-  private menuSubscription!: Subscription;
-  private itemsSubscription!: Subscription;
-  private navigationSubscription!: Subscription;
+  private menuSubscription: Subscription | undefined;
+  private itemsSubscription: Subscription | undefined;
+  private navigationSubscription: Subscription | undefined;
   showLogoutDialog = false;
 
   private menuService = inject(Menu);
@@ -58,8 +58,8 @@ export class Header implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.menuSubscription.unsubscribe();
-    this.itemsSubscription.unsubscribe();
+    this.menuSubscription?.unsubscribe();
+    this.itemsSubscription?.unsubscribe();
     this.navigationSubscription?.unsubscribe();
   }
 

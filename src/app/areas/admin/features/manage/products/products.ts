@@ -1,17 +1,16 @@
 import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, FormArray, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { forkJoin, of } from 'rxjs';
-import { catchError, EMPTY, switchMap } from 'rxjs';
+import { of, EMPTY, forkJoin } from 'rxjs';
+import { catchError, switchMap } from 'rxjs';
 
-import { Area } from '@app/core/services/areas/area';
-import { Category } from '@app/core/services/category/category';
 import { Product } from '@app/core/services/products/product';
-import { OptionCategory } from '@app/core/services/option-category/option-category';
-import { ProductOptionService } from '@app/core/services/product-option/product-option';
-import { Supply } from '@app/core/services/supplies/supply';
 import { MasterData } from '@app/core/services/master-data/master-data';
 import { Logging } from '@app/core/services/logging/logging';
+import { ProductCacheService } from './product-cache.service';
+import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
+import { ProductOptionService } from '@app/core/services/product-option/product-option';
+import { WebSocket } from '@app/core/services/websocket/websocket';
 
 import { AreaSimpleResponse } from '@app/shared/models/dto/areas/area-simple-response';
 import { CategorySimpleResponse } from '@app/shared/models/dto/category/category-simple-response';
@@ -29,7 +28,6 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TextareaModule } from 'primeng/textarea';
@@ -60,7 +58,6 @@ interface OptionFormValue {
     FormsModule,
     CurrencyPipe,
     TableModule,
-    ProgressSpinnerModule,
     ButtonModule,
     IconFieldModule,
     InputTextModule,
@@ -75,6 +72,7 @@ interface OptionFormValue {
     TagModule,
     DividerModule,
     SkeletonModule,
+    LazyLoadDirective,
   ],
   templateUrl: './products.html',
   providers: [MessageService],
@@ -82,30 +80,34 @@ interface OptionFormValue {
 export class Products implements OnInit {
   private fb = inject(FormBuilder);
   private productService = inject(Product);
-  private areaService = inject(Area);
-  private categoryService = inject(Category);
-  private optionCategoryService = inject(OptionCategory);
   private productOptionService = inject(ProductOptionService);
   private masterDataService = inject(MasterData);
-  private supplyService = inject(Supply);
   private messageService = inject(MessageService);
   private logger = inject(Logging);
+  private wsService = inject(WebSocket);
+  readonly cache = inject(ProductCacheService);
 
   title = 'Carta de Productos';
   description = 'Gestión completa de todos los productos del restaurante';
   currencyFormat = Intl.NumberFormat('es-Co', { style: 'currency', currency: 'COP' });
 
-  // Table
-  products = signal<ProductResponse[] | undefined>(undefined);
+  // Table - usando cache service
   filterCategories = new FormControl<number[]>([], []);
   tableSearch = signal('');
 
-  // Reference data
+  // Table data - local signal updated from cache
+  products = signal<ProductResponse[] | undefined>(undefined);
+  
+  // Reference data - local signals updated from cache
   areas = signal<AreaSimpleResponse[]>([]);
   categories = signal<CategorySimpleResponse[]>([]);
   optionCategories = signal<OptionCategoryResponse[]>([]);
   supplyVariantOptions = signal<(SupplyVariantResponse & { displayName: string })[]>([]);
   allProductOptions = signal<ProductOptionResponse[]>([]);
+
+  // Estados de carga
+  productsLoading = computed(() => this.cache.products.isLoading());
+  referenceDataLoading = computed(() => this.cache.referenceData.isLoading());
 
   filteredProducts = computed(() => {
     const all = this.products();
@@ -187,25 +189,38 @@ export class Products implements OnInit {
   selectedOptionIds = signal<number[]>([]);
 
   ngOnInit(): void {
-    this.refreshProducts();
-    forkJoin({
-      areas: this.areaService.getAreas(),
-      categories: this.categoryService.getCategories(),
-      optionCategories: this.optionCategoryService.getOptionCategories(),
-      variants: this.supplyService.getSupplyVariants(),
-      productOptions: this.productOptionService.getOptions(),
-    }).subscribe({
-      next: ({ areas, categories, optionCategories, variants, productOptions }) => {
-        this.areas.set(areas);
-        this.categories.set(categories.filter(c => c.enabled));
-        this.optionCategories.set(optionCategories);
-        this.supplyVariantOptions.set(
-          variants.map(v => ({ ...v, displayName: `${v.supplyName} — ${String(v.quantity)} ${v.unitAbbreviation}` }))
-        );
-        this.allProductOptions.set(productOptions);
-      },
-      error: err => { this.logger.error('Error loading reference data', err); },
-    });
+    this.syncFromCache();
+    // Force load on first visit if no data
+    if (this.cache.products.data() === null) {
+      this.cache.products.refresh();
+    }
+    // Load reference data (categories, areas) for filters
+    if (this.cache.referenceData.data() === null) {
+      this.cache.referenceData.refresh();
+    }
+  }
+
+  onVisible(): void {
+    this.syncFromCache();
+    this.cache.products.loadIfStale();
+  }
+
+  private syncFromCache(): void {
+    // Sync products from cache
+    const cachedProducts = this.cache.products.data();
+    if (cachedProducts !== null) {
+      this.products.set(cachedProducts);
+    }
+
+    // Sync reference data from cache
+    const refData = this.cache.referenceData.data();
+    if (refData !== null) {
+      this.areas.set(refData.areas);
+      this.categories.set(refData.categories);
+      this.optionCategories.set(refData.optionCategories);
+      this.supplyVariantOptions.set(refData.variants);
+      this.allProductOptions.set(refData.productOptions);
+    }
   }
 
   // ── Table ────────────────────────────────────────────────────────
@@ -222,6 +237,7 @@ export class Products implements OnInit {
   // ── Modal open ───────────────────────────────────────────────────
 
   showCreationModal(): void {
+    this.cache.referenceData.loadIfStale();
     this.baseForm.reset();
     this.baseRecipe.clear();
     this.optionsArray.clear();
@@ -237,6 +253,7 @@ export class Products implements OnInit {
   }
 
   showModificationModal(id: number): void {
+    this.cache.referenceData.loadIfStale();
     this.baseForm.reset();
     this.baseRecipe.clear();
     this.optionsArray.clear();
@@ -578,6 +595,7 @@ export class Products implements OnInit {
       this.existingOptions.set(savedOptions);
       this.isSubmitting.set(false);
       this.refreshProducts();
+      this.wsService.emitCacheInvalidation('products', this.modalMode() === 'create' ? 'create' : 'update');
       this.currentStep.set(3);
     });
   }
@@ -599,7 +617,7 @@ export class Products implements OnInit {
   }
 
   private refreshProducts(): void {
-    this.productService.getProducts().subscribe(res => { this.products.set(res); });
+    this.cache.products.refresh();
   }
 
   showDetailDialog(product: ProductResponse): void {
@@ -698,8 +716,8 @@ export class Products implements OnInit {
         this.newOptionSubmitting.set(false);
         return EMPTY;
       })
-    ).subscribe(allOpts => {
-      this.allProductOptions.set(allOpts);
+    ).subscribe(() => {
+      this.cache.referenceData.refresh();
       this.newOptionSubmitting.set(false);
       this.newOptionDialogOpen.set(false);
       this.messageService.add({ severity: 'success', summary: 'Opción creada', detail: `"${name}" agregada correctamente` });

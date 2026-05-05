@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, computed } from '@angular/core';
 
 import { RouterModule } from '@angular/router';
 import { TableModule } from 'primeng/table';
@@ -19,6 +19,8 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import { FormValidation } from '@app/shared/components/form/form-validation';
 import { Logging } from '@app/core/services/logging/logging';
 import { UpdateUserRequest } from '@app/shared/models/dto/users/user-response.model';
+import { UsersCacheService } from './users-cache.service';
+import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
 
 interface UserFormValue {
   document: string;
@@ -44,6 +46,7 @@ interface UserFormValue {
     TagModule,
     ConfirmDialogModule,
     FormValidation,
+    LazyLoadDirective,
   ],
   templateUrl: './users.html',
   styles: ``,
@@ -53,19 +56,20 @@ export class Users implements OnInit {
   private messageService = inject(MessageService);
   private logger = inject(Logging);
   private confirmationService = inject(ConfirmationService);
+  readonly cache = inject(UsersCacheService);
 
   title = 'Administracion de usuarios';
   description = 'Gestión completa de todos los usuarios/empleados del restaurante';
 
-  users = signal<UserResponse[]>([]);
+  users = computed(() => this.cache.users.data() ?? []);
   editing = false;
   selectedUser: UserResponse | null = null;
 
   userForm: FormGroup = new FormGroup({
-    document: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.pattern('^\\d+$')(control), (control: AbstractControl) => Validators.maxLength(20)(control)]),
-    name: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$')(control), (control: AbstractControl) => Validators.maxLength(100)(control)]),
+    document: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.pattern(/^\d+$/)(control), (control: AbstractControl) => Validators.maxLength(20)(control)]),
+    name: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)(control), (control: AbstractControl) => Validators.maxLength(100)(control)]),
     email: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.email(control), (control: AbstractControl) => Validators.maxLength(100)(control)]),
-    phone: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.pattern('^\\d{10}$')(control)]),
+    phone: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.pattern(/^\d{10}$/)(control)]),
     address: new FormControl('', [(control: AbstractControl) => Validators.maxLength(200)(control)]),
   });
 
@@ -76,7 +80,14 @@ export class Users implements OnInit {
   private backendFieldErrors: Record<string, string> = {};
 
   ngOnInit(): void {
-    this.searchForUsers();
+    // Force load on first visit if no data
+    if (this.cache.users.data() === null) {
+      this.cache.users.refresh();
+    }
+  }
+
+  onVisible(): void {
+    this.cache.users.loadIfStale();
   }
 
   closeModals(): void {
@@ -388,10 +399,7 @@ export class Users implements OnInit {
   }
 
   private searchForUsers(): void {
-    this.userService.getUsers().subscribe((res) => {
-      this.users.set(res);
-      this.logger.debug('Users loaded:', this.users());
-    });
+    this.cache.users.refresh();
   }
 
   public isValidField(field: string): boolean {

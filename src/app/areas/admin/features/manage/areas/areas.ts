@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, computed } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Area } from '@app/core/services/areas/area';
@@ -10,7 +10,11 @@ import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { SelectModule } from 'primeng/select';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 import { FormValidation } from '@app/shared/components/form/form-validation';
+import { TablesCacheService } from '../tables/tables-cache.service';
+import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
 
 @Component({
   selector: 'app-areas',
@@ -22,10 +26,13 @@ import { FormValidation } from '@app/shared/components/form/form-validation';
     IftaLabelModule,
     InputTextModule,
     SelectModule,
-    FormValidation
+    IconFieldModule,
+    InputIconModule,
+    FormValidation,
+    LazyLoadDirective
 ],
   template: `
-    <div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0">
+    <div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0" [appLazyLoad]="cache.areas" (appLazyLoadVisible)="onVisible()">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
         <div>
           <h2 class="text-xl md:text-2xl font-bold">Áreas de Trabajo</h2>
@@ -34,39 +41,48 @@ import { FormValidation } from '@app/shared/components/form/form-validation';
         <p-button label="Nueva área" icon="pi pi-plus" class="btn-icon-text-sm" pTooltip="Crear nueva área" tooltipPosition="bottom" (onClick)="showCreateModal()"></p-button>
       </div>
 
-      <div class="flex-1 min-h-0 overflow-auto">
-      <p-table [value]="areas()" [tableStyle]="{'min-width': '50rem'}" [scrollable]="true" scrollHeight="400px" responsiveLayout="scroll" stripedRows styleClass="h-full">
-        <ng-template #header>
-          <tr>
-            <th class="text-xs md:text-sm">Nombre</th>
-            <th class="text-xs md:text-sm">Tipo</th>
-            <th class="text-xs md:text-sm">Estado</th>
-            <th class="text-center text-xs md:text-sm">Acc.</th>
-          </tr>
-        </ng-template>
-        <ng-template #body let-area>
-          <tr>
-            <td class="font-medium">{{ area.name }}</td>
-            <td class="text-sm">{{ area.type === 'KITCHEN' ? 'Cocina' : 'Bartender' }}</td>
-            <td>
-              <span [class]="area.enabled ? 'text-green-600' : 'text-red-600'" class="text-sm">
-                {{ area.enabled ? 'Activo' : 'Inactivo' }}
-              </span>
-            </td>
-            <td>
-              <div class="flex gap-1 items-center justify-center">
-                <p-button icon="pi pi-pencil" [text]="true" severity="warn" size="small" class="btn-icon-only-sm" (onClick)="showEditModal(area)"></p-button>
-                <p-button icon="pi pi-power-off" [text]="true" [severity]="area.enabled ? 'danger' : 'success'" size="small" class="btn-icon-only-sm" (onClick)="toggleArea(area)"></p-button>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template #emptymessage>
-          <tr>
-            <td colspan="4" class="text-center">No hay áreas registradas</td>
-          </tr>
-        </ng-template>
-      </p-table>
+      <div class="flex-1 min-h-0">
+        <p-table #dt [value]="areas()" [paginator]="true" [rows]="10" [scrollable]="true" scrollHeight="500px" responsiveLayout="scroll" styleClass="h-full rounded-lg overflow-hidden" [showGridlines]="true" [globalFilterFields]="['name', 'type']">
+          <ng-template #caption>
+            <div class="flex flex-col sm:flex-row gap-2 flex-wrap">
+              <p-iconfield iconPosition="left" class="w-full lg:w-80">
+                <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+                <input pInputText type="text" class="w-full" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Buscar por nombre..." />
+              </p-iconfield>
+              <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="dt.clear()" />
+            </div>
+          </ng-template>
+          <ng-template #header>
+            <tr>
+              <th class="text-xs md:text-sm">Nombre</th>
+              <th class="text-xs md:text-sm">Tipo</th>
+              <th class="text-xs md:text-sm">Estado</th>
+              <th class="text-center text-xs md:text-sm">Acc.</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-area>
+            <tr>
+              <td class="font-medium">{{ area.name }}</td>
+              <td class="text-sm">{{ area.type === 'KITCHEN' ? 'Cocina' : 'Bartender' }}</td>
+              <td>
+                <span [class]="area.enabled ? 'text-green-600' : 'text-red-600'" class="text-sm">
+                  {{ area.enabled ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td>
+                <div class="flex gap-1 items-center justify-center">
+                  <p-button icon="pi pi-pencil" [text]="true" severity="warn" size="small" class="btn-icon-only-sm" (onClick)="showEditModal(area)"></p-button>
+                  <p-button icon="pi pi-power-off" [text]="true" [severity]="area.enabled ? 'danger' : 'success'" size="small" class="btn-icon-only-sm" (onClick)="toggleArea(area)"></p-button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template #emptymessage>
+            <tr>
+              <td colspan="4" class="text-center">No hay áreas registradas</td>
+            </tr>
+          </ng-template>
+        </p-table>
       </div>
     </div>
 
@@ -109,8 +125,9 @@ export class Areas implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private authService = inject(Auth);
   private areasSubscription: Subscription | null = null;
+  readonly cache = inject(TablesCacheService);
 
-  areas = signal<AreaSimpleResponse[]>([]);
+  areas = computed(() => this.cache.areas.data() ?? []);
   modalVisible = false;
   editMode = false;
   selectedArea?: AreaSimpleResponse;
@@ -126,14 +143,15 @@ export class Areas implements OnInit, OnDestroy {
   ];
 
   ngOnInit(): void {
-    this.loadAreas();
+    this.cache.areas.loadIfStale();
+  }
+
+  onVisible(): void {
+    this.cache.areas.loadIfStale();
   }
 
   loadAreas(): void {
-    this.areasSubscription = this.areaService.getAreas().subscribe({
-      next: (areas) => { this.areas.set(areas); },
-      error: (err) => { console.error('Error loading areas:', err); },
-    });
+    this.cache.areas.refresh();
   }
 
   ngOnDestroy(): void {

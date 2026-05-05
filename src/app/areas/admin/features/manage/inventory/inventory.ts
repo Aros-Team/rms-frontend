@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef, signal, computed, DestroyRef, NgZone } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef, signal, computed, effect, DestroyRef, NgZone } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -10,6 +10,8 @@ import { Supply } from '@services/supplies/supply';
 import { Logging } from '@services/logging/logging';
 import { WebSocket } from '@services/websocket/websocket';
 import { environment } from '@environments/environment';
+import { InventoryCacheService } from './inventory-cache.service';
+import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
 
 import { SupplyVariantResponse } from '@models/dto/supplies/supply-variant-response';
 import { SupplyCategoryResponse } from '@models/dto/supplies/supply-category-response';
@@ -27,7 +29,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { IftaLabelModule } from 'primeng/iftalabel';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { SkeletonModule } from 'primeng/skeleton';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TextareaModule } from 'primeng/textarea';
@@ -46,7 +48,7 @@ type VariantStep = 'category' | 'supply' | 'variant';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     TableModule,
-    ProgressSpinnerModule,
+    SkeletonModule,
     ButtonModule,
     IconFieldModule,
     InputTextModule,
@@ -63,6 +65,7 @@ type VariantStep = 'category' | 'supply' | 'variant';
     MultiSelectModule,
     TooltipModule,
     CheckboxModule,
+    LazyLoadDirective,
   ],
   providers: [MessageService],
   templateUrl: './inventory.html',
@@ -80,6 +83,7 @@ export class Inventory implements OnInit {
   private wsService = inject(WebSocket);
   private destroyRef = inject(DestroyRef);
   private ngZone = inject(NgZone);
+  readonly cache = inject(InventoryCacheService);
 
   readonly wizardSteps = [
     { key: 'category' as VariantStep, label: 'Categoría' },
@@ -87,11 +91,35 @@ export class Inventory implements OnInit {
     { key: 'variant' as VariantStep, label: 'Presentación' },
   ];
 
+  // Local signals - se sincronizan con el cache
   supplies = signal<SupplyVariantResponse[] | undefined>(undefined);
   suppliers = signal<SupplierResponse[]>([]);
   purchases = signal<PurchaseResponse[] | undefined>(undefined);
   categories = signal<SupplyCategoryResponse[]>([]);
+  units = signal<SupplyUnitResponse[]>([]);
+  allSupplies = signal<SupplyResponse[]>([]);
   selectedCategoryId = signal<number | null>(null);
+
+  // Efecto para sincronizar automáticamente cuando el cache cambie
+  private syncEffect = effect(() => {
+    const cachedSupplies = this.cache.supplies.data();
+    if (cachedSupplies !== null) {
+      this.supplies.set(cachedSupplies);
+    }
+
+    const cachedPurchases = this.cache.purchases.data();
+    if (cachedPurchases !== null) {
+      this.purchases.set(cachedPurchases);
+    }
+
+    const refData = this.cache.referenceData.data();
+    if (refData !== null) {
+      this.suppliers.set(refData.suppliers);
+      this.categories.set(refData.categories);
+      this.units.set(refData.units);
+      this.allSupplies.set(refData.allSupplies);
+    }
+  });
 
   filteredSupplies = computed(() => {
     const all = this.supplies();
@@ -100,9 +128,9 @@ export class Inventory implements OnInit {
     return catId === null ? all : all.filter((s) => s.categoryId === catId);
   });
 
+  loading = computed(() => this.supplies() === undefined);
+
   // --- new variant wizard ---
-  units = signal<SupplyUnitResponse[]>([]);
-  allSupplies = signal<SupplyResponse[]>([]);
   variantModalIsOpen = false;
   variantStep = signal<VariantStep>('category');
   variantSubmitting = false;
@@ -220,17 +248,47 @@ export class Inventory implements OnInit {
   });
 
   ngOnInit(): void {
-    this.loadSupplies();
-    this.loadSuppliers();
-    this.loadPurchases();
-    this.loadCategories();
-    this.loadUnits();
-    this.loadAllSupplies();
+    // Force load on first visit if no data
+    if (this.cache.supplies.data() === null) {
+      this.cache.supplies.refresh();
+    }
+    if (this.cache.purchases.data() === null) {
+      this.cache.purchases.refresh();
+    }
+    // Load reference data (categories, suppliers, units) for filters
+    if (this.cache.referenceData.data() === null) {
+      this.cache.referenceData.refresh();
+    }
     // With OnPush, form status changes don't trigger CD automatically.
     // Subscribe so the template re-evaluates [invalid] bindings when fields become valid.
     this.purchaseForm.statusChanges.subscribe(() => { this.cdr.markForCheck(); });
     // Real-time inventory updates via WebSocket
     this.connectWebSocket();
+  }
+
+  onVisible(): void {
+    this.cache.supplies.loadIfStale();
+    this.cache.purchases.loadIfStale();
+  }
+
+  private syncFromCache(): void {
+    const cachedSupplies = this.cache.supplies.data();
+    if (cachedSupplies !== null) {
+      this.supplies.set(cachedSupplies);
+    }
+
+    const cachedPurchases = this.cache.purchases.data();
+    if (cachedPurchases !== null) {
+      this.purchases.set(cachedPurchases);
+    }
+
+    const refData = this.cache.referenceData.data();
+    if (refData !== null) {
+      this.suppliers.set(refData.suppliers);
+      this.categories.set(refData.categories);
+      this.units.set(refData.units);
+      this.allSupplies.set(refData.allSupplies);
+    }
   }
 
   private connectWebSocket(): void {
@@ -693,47 +751,44 @@ export class Inventory implements OnInit {
     });
   }
 
-  private loadCategories(): void {
-    this.supplyService.getCategories().subscribe({
-      next: (res) => { this.categories.set(res); },
-      error: (err) => { this.logger.error('Error loading categories', err); },
-    });
-  }
-
-  private loadUnits(): void {
-    this.supplyService.getUnits().subscribe({
-      next: (res) => { this.units.set(res); },
-      error: (err) => { this.logger.error('Error loading units', err); },
-    });
-  }
-
-  private loadAllSupplies(): void {
-    this.supplyService.getSupplies().subscribe({
-      next: (res) => { this.allSupplies.set(res); },
-      error: (err) => { this.logger.error('Error loading all supplies', err); },
-    });
+  private loadReferenceData(): void {
+    this.cache.referenceData.loadIfStale();
   }
 
   private loadSupplies(): void {
-    this.supplyService.getSupplyVariants().subscribe({
-      next: (res) => { this.supplies.set(res); },
-      error: (err) => { this.logger.error('Error loading supplies', err); },
-    });
-  }
-
-  private loadSuppliers(): void {
-    this.supplierService.getSuppliers().subscribe({
-      next: (res) => { this.suppliers.set(res); },
-      error: (err) => { this.logger.error('Error loading suppliers', err); },
-    });
+    this.cache.supplies.refresh();
   }
 
   private loadPurchases(): void {
-    this.purchases.set(undefined);
-    this.purchaseService.getPurchases().subscribe({
-      next: (res) => { this.purchases.set(res); },
-      error: (err) => { this.logger.error('Error loading purchases', err); },
-    });
+    this.cache.purchases.refresh();
+  }
+
+  private loadSuppliers(): void {
+    const refData = this.cache.referenceData.data();
+    if (refData !== null) {
+      this.suppliers.set(refData.suppliers);
+    }
+  }
+
+  private loadCategories(): void {
+    const refData = this.cache.referenceData.data();
+    if (refData !== null) {
+      this.categories.set(refData.categories);
+    }
+  }
+
+  private loadUnits(): void {
+    const refData = this.cache.referenceData.data();
+    if (refData !== null) {
+      this.units.set(refData.units);
+    }
+  }
+
+  private loadAllSupplies(): void {
+    const refData = this.cache.referenceData.data();
+    if (refData !== null) {
+      this.allSupplies.set(refData.allSupplies);
+    }
   }
 
   private applyInventoryUpdate(event: InventoryStockUpdatedEvent): void {

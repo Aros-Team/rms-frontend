@@ -6,7 +6,7 @@ export interface HorizontalMenuOption {
   description: string;
   icon?: string;
   isActive?: boolean;
-  command?: () => void;
+  command?: (() => void) | undefined;
   routerLink?: string;
 }
 
@@ -39,7 +39,7 @@ export class WorkerConfig {
           description: 'Ver pedidos en cola',
           icon: 'pi pi-list',
           isActive: false,
-          command: () => {}
+          command: undefined
         },
       ]
     });
@@ -55,7 +55,7 @@ export class WorkerConfig {
           description: 'Crear nuevo pedido',
           icon: 'pi pi-pencil',
           isActive: false,
-          command: () => {}
+          command: undefined
         },
         {
           id: 'day-menu',
@@ -85,7 +85,7 @@ export class WorkerConfig {
           description: 'Crear nuevo pedido',
           icon: 'pi pi-pencil',
           isActive: false,
-          command: () => {}
+          command: undefined
         },
         {
           id: 'day-menu',

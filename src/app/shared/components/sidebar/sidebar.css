@@ -1,7 +1,0 @@
-app-sidebar aside {
-  border-left: 1px solid var(--surface-300);
-}
-
-html.dark app-sidebar aside {
-  border-left-color: var(--surface-700);
-}

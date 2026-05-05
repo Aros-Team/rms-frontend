@@ -486,8 +486,48 @@ canvas {
   max-width: 100%;
 }
 
-@media (min-width: 768px) and (max-width: 1024px) {
-  html {
-    font-size: 18px;
+/* ========================================
+   Route Content Animations - CSS Only
+   ======================================== */
+@keyframes route-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Class applied to route content containers */
+.route-content {
+  animation: route-enter 200ms ease-out;
+}
+
+/* ========================================
+   PrimeNG Table Styles - Rounded Borders
+   ======================================== */
+.p-datatable {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.p-datatable .p-datatable-wrapper {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.p-datatable-table {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+/* Ensure tables have consistent white background */
+.p-datatable .p-datatable-tbody > tr {
+  background: white;
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+  background: var(--surface-50);
 }

@@ -1,9 +1,10 @@
-<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0">
+<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0" [appLazyLoad]="cache.tables" (appLazyLoadVisible)="onVisible()">
   <!-- Header -->
   <div class="flex items-center justify-between gap-4 mb-2 md:mb-4 min-w-0 flex-shrink-0">
     <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0 break-words min-w-0">{{ title }}</h1>
     <p-button
       icon="pi pi-plus"
+      label="Nueva mesa"
       class="btn-icon-text-sm"
       pTooltip="Crear mesa"
       tooltipPosition="bottom"
@@ -14,9 +15,23 @@
   <p class="text-surface-600 dark:text-surface-400 mb-2 md:mb-4 text-sm">{{ description }}</p>
 
   <div class="flex-1 min-h-0">
-    <p-table [value]="tables()" [loading]="loading()" [paginator]="true" [rows]="10"
-      [scrollable]="true" scrollHeight="flex" responsiveLayout="scroll" styleClass="h-full">
-    <ng-template pTemplate="header">
+    @if (loading() && tables().length === 0) {
+      <p-skeleton height="300px" />
+    }
+    <p-table #dt [value]="tables()" [loading]="loading()" [paginator]="true" [rows]="10"
+      [scrollable]="true" scrollHeight="500px" responsiveLayout="scroll" styleClass="h-full rounded-lg overflow-hidden"
+      [tableStyle]="{'min-width': '500px'}"
+      [showGridlines]="true" [globalFilterFields]="['tableNumber', 'capacity']">
+      <ng-template #caption>
+        <div class="flex flex-col sm:flex-row gap-2 flex-wrap">
+          <p-iconfield iconPosition="left" class="w-full lg:w-80">
+            <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+            <input pInputText type="text" class="w-full" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Buscar por número o capacidad..." />
+          </p-iconfield>
+          <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="dt.clear()" />
+        </div>
+      </ng-template>
+      <ng-template pTemplate="header">
       <tr>
         <th class="text-xs md:text-sm">#</th>
         <th class="text-xs md:text-sm">Cap.</th>
@@ -34,9 +49,7 @@
           </div>
         </td>
         <td class="hidden sm:table-cell">
-          <span [class]="getStatusClass(table.status) + ' px-2 py-1 rounded text-xs font-medium'">
-            {{ getStatusLabel(table.status) }}
-          </span>
+          <p-tag [value]="getStatusLabel(table.status)" [severity]="getStatusSeverity(table.status)" />
         </td>
         <td>
           <div class="flex items-center justify-center">

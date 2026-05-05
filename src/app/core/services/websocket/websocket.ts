@@ -27,12 +27,16 @@ export class WebSocket implements OnDestroy {
   // BehaviorSubject para que nuevos suscriptores reciban el estado actual inmediatamente
   private connectionSubject = new BehaviorSubject<boolean>(false);
 
+  // Cache invalidation events
+  private cacheInvalidationSubject = new Subject<{ resource: string; action: 'create' | 'update' | 'delete'; id?: number }>();
+
   orderCreated$ = this.orderCreatedSubject.asObservable();
   orderPreparing$ = this.orderPreparingSubject.asObservable();
   orderReady$ = this.orderReadySubject.asObservable();
   orderDelivered$ = this.orderDeliveredSubject.asObservable();
   inventoryUpdated$ = this.inventoryUpdatedSubject.asObservable();
   connection$ = this.connectionSubject.asObservable();
+  cacheInvalidation$ = this.cacheInvalidationSubject.asObservable();
 
   connect(wsUrl: string, token: string): void {
     if (this.connected) {
@@ -214,6 +218,15 @@ export class WebSocket implements OnDestroy {
 
   isConnected(): boolean {
     return this.connected;
+  }
+
+  /**
+   * Emite evento de invalidación de caché para que otros componentes
+   * recarguen sus datos cuando hay cambios.
+   */
+  emitCacheInvalidation(resource: string, action: 'create' | 'update' | 'delete', id?: number): void {
+    this.cacheInvalidationSubject.next({ resource, action, id });
+    this.logger.debug('WebSocket: Cache invalidation emitted', { resource, action, id });
   }
 
   ngOnDestroy(): void {

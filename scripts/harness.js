@@ -59,16 +59,17 @@ console.log('\n── 3. Validating activities.json ─────────�
 
 try {
   const data = JSON.parse(fs.readFileSync(path.join(PROJECT_ROOT, 'activities.json'), 'utf8'));
+  const activities = Array.isArray(data) ? data : data.activities || [];
   const validStatuses = new Set(['pending', 'in_progress', 'done', 'blocked']);
   const validTypes = new Set(['fix', 'feat', 'chore']);
-  const inProgress = data.activities.filter(a => a.status === 'in_progress');
+  const inProgress = activities.filter(a => a.status === 'in_progress');
 
   if (inProgress.length > 1) {
     fail(`Found ${inProgress.length} activities in in_progress (max 1)`);
     exitCode = 1;
   }
 
-  for (const a of data.activities) {
+  for (const a of activities) {
     if (a.status === 'done' && a.tasks && a.tasks.some(t => t.status !== 'done')) {
       warn(`Activity ${a.id} is done but has tasks not done`);
     }
@@ -81,7 +82,7 @@ try {
   }
 
   let hasInvalid = false;
-  for (const a of data.activities) {
+  for (const a of activities) {
     if (!validStatuses.has(a.status)) {
       fail(`Invalid status in activity ${a.id}: ${a.status}`);
       hasInvalid = true;
@@ -111,7 +112,7 @@ try {
   }
 
   if (!hasInvalid) {
-    ok(`activities.json valid (${data.activities.length} activities)`);
+    ok(`activities.json valid (${activities.length} activities)`);
   }
 } catch (e) {
   fail(`activities.json invalid: ${e.message}`);

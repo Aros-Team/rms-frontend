@@ -20,15 +20,15 @@ export class Layout implements OnInit, OnDestroy {
   @Input() workerType?: string;
   @Input() hideSidebar = false;
   @Input() role?: string;
-  @ViewChild(Chat) chatComponent!: Chat;
+  @ViewChild(Chat) chatComponent?: Chat;
 
   sidebarVisible = false;
   isMobile = false;
   isTablet = false;
 
-  private resizeSubscription!: Subscription;
-  private routerSubscription!: Subscription;
-  private resizeHandler!: () => void;
+  private resizeSubscription: Subscription | undefined;
+  private routerSubscription: Subscription | undefined;
+  private resizeHandler: (() => void) | undefined;
   private cdr = inject(ChangeDetectorRef);
   private router = inject(Router);
 
@@ -43,16 +43,19 @@ export class Layout implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.resizeSubscription.unsubscribe();
-    this.routerSubscription.unsubscribe();
-    window.removeEventListener('resize', this.resizeHandler);
+    this.resizeSubscription?.unsubscribe();
+    this.routerSubscription?.unsubscribe();
+    if (this.resizeHandler) {
+      window.removeEventListener('resize', this.resizeHandler);
+    }
   }
 
   private checkScreenSize(): void {
     const width = window.innerWidth;
     this.isMobile = width < 768;
     this.isTablet = width >= 768 && width < 1024;
-    this.sidebarVisible = !this.isMobile && !this.hideSidebar;
+    // Sidebar solo visible en desktop (>=1024px), no en tablet porque hay menú horizontal
+    this.sidebarVisible = !this.isMobile && !this.isTablet && !this.hideSidebar;
   }
 
   private setupResizeListener(): void {
@@ -83,6 +86,6 @@ export class Layout implements OnInit, OnDestroy {
   }
 
   toggleChat(): void {
-    this.chatComponent.toggleChat();
+    this.chatComponent?.toggleChat();
   }
 }

@@ -1,6 +1,6 @@
 <p-toast />
 
-<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0">
+<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0" [appLazyLoad]="cache.supplies" (appLazyLoadVisible)="onVisible()">
   <!-- Header -->
   <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 min-w-0 flex-shrink-0">
     <div class="min-w-0">
@@ -12,27 +12,9 @@
     <p-button icon="pi pi-shopping-cart" label="Registrar compra" pTooltip="Registrar nueva compra de insumos" tooltipPosition="bottom" (click)="openPurchaseModal()" />
   </div>
 
-  <!-- Category filter -->
-  <div class="flex flex-col sm:flex-row gap-2 mb-3 flex-shrink-0">
-    <p-select
-      [options]="categories()"
-      optionLabel="name"
-      optionValue="id"
-      placeholder="Filtrar por categoría"
-      [showClear]="true"
-      class="w-full sm:w-48 md:w-64"
-      [ngModel]="selectedCategoryId()"
-      (onChange)="filterByCategory($event.value)"
-      (onClear)="filterByCategory(null)"
-      appendTo="body"
-    />
-  </div>
-
   <!-- Supplies table -->
   @if (filteredSupplies() === undefined) {
-    <div class="flex justify-center items-center my-8">
-      <p-progress-spinner aria-label="Cargando insumos" />
-    </div>
+    <p-skeleton height="400px" />
   } @else {
     <div class="flex-1 min-h-0">
     <p-table
@@ -42,14 +24,15 @@
       [rows]="10"
       [rowsPerPageOptions]="[10, 25, 50]"
       [scrollable]="true"
-      scrollHeight="flex"
+      scrollHeight="600px"
       responsiveLayout="scroll"
-      stripedRows
       showGridlines
-      styleClass="h-full"
+      styleClass="h-full rounded-lg overflow-hidden"
+      [tableStyle]="{'min-width': '700px'}"
       [globalFilterFields]="['supplyName', 'categoryName', 'unitAbbreviation']"
+      [loading]="loading()"
     >
-      <ng-template #caption>
+      <ng-template pTemplate="caption">
         <div class="flex flex-col sm:flex-row gap-2 flex-wrap">
           <p-iconfield iconPosition="left" class="w-full lg:w-80">
             <p-inputicon><i class="pi pi-search"></i></p-inputicon>
@@ -61,6 +44,18 @@
               placeholder="Buscar por nombre..."
             />
           </p-iconfield>
+          <p-select
+            [options]="categories()"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="Filtrar por categoría"
+            [showClear]="true"
+            class="w-full sm:w-48"
+            [ngModel]="selectedCategoryId()"
+            (onChange)="filterByCategory($event.value)"
+            (onClear)="filterByCategory(null)"
+            appendTo="body"
+          />
           <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="dt.clear()" />
           <div class="flex gap-2 sm:ml-auto flex-wrap">
             <p-button icon="pi pi-plus" label="Nuevo insumo" severity="secondary" size="small" pTooltip="Registrar nuevo insumo" tooltipPosition="bottom" (click)="openVariantModal()" />
@@ -70,7 +65,7 @@
         </div>
       </ng-template>
 
-      <ng-template #header>
+      <ng-template pTemplate="header">
         <tr>
           <th pSortableColumn="supplyName" class="text-xs md:text-sm">Insumo <p-sortIcon field="supplyName" /></th>
           <th pSortableColumn="categoryName" class="text-xs md:text-sm hidden sm:table-cell">Categoría <p-sortIcon field="categoryName" /></th>
@@ -80,7 +75,7 @@
         </tr>
       </ng-template>
 
-      <ng-template #body let-supply>
+      <ng-template pTemplate="body" let-supply>
         <tr>
           <td class="font-medium text-sm">{{ supply.supplyName }}</td>
           <td class="hidden sm:table-cell text-sm">{{ supply.categoryName }}</td>
@@ -98,7 +93,7 @@
         </tr>
       </ng-template>
 
-      <ng-template #emptymessage>
+      <ng-template pTemplate="emptymessage">
         <tr>
           <td colspan="5" class="text-center text-surface-500 py-6">No hay insumos registrados.</td>
         </tr>

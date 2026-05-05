@@ -1,14 +1,20 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef, NgZone } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { TableModule } from 'primeng/table';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef, NgZone, ViewChild } from '@angular/core';
+import { CommonModule, SlicePipe } from '@angular/common';
+import { Table, TableModule } from 'primeng/table';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { SkeletonModule } from 'primeng/skeleton';
+import { TagModule } from 'primeng/tag';
+import { DialogModule } from 'primeng/dialog';
+import { TooltipModule } from 'primeng/tooltip';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 import { Subscription } from 'rxjs';
 import { Order, OrderStatus } from '@app/core/services/orders/order';
-import { OrderResponse } from '@models/dto/orders/order-response.model';
+import { OrderResponse, OrderDetailItem } from '@models/dto/orders/order-response.model';
 import { SharedDatepicker } from '@app/shared/components/datepicker/datepicker';
 import { WebSocket } from '@services/websocket/websocket';
 import { Auth } from '@services/auth/auth';
@@ -26,17 +32,30 @@ import { catchError } from 'rxjs/operators';
     SelectModule,
     FormsModule,
     ButtonModule,
-    InputTextModule
+    InputTextModule,
+    SkeletonModule,
+    TagModule,
+    DialogModule,
+    TooltipModule,
+    IconFieldModule,
+    InputIconModule,
+    SlicePipe
   ],
   templateUrl: './orders-table.html',
 })
 export class OrdersTable implements OnInit, OnDestroy {
+
+  @ViewChild('dt') table!: Table;
 
   orders: OrderResponse[] = [];
   private allOrders: OrderResponse[] = [];
   loading = false;
   saving = false;
   error: string | null = null;
+
+  searchQuery = '';
+  selectedOrder: OrderResponse | null = null;
+  detailsDialogVisible = false;
 
   comboStatusOptions = [
     { label: 'Todos', value: 'ALL' },
@@ -48,7 +67,7 @@ export class OrdersTable implements OnInit, OnDestroy {
   ];
 
   selectedStatus = 'ALL';
-  selectedDate: Date | null = null;
+  selectedDate: Date | null = new Date();
 
   private modifiedOrders = new Map<number, Partial<OrderResponse>>();
   private originalOrders = new Map<number, OrderResponse>();
@@ -63,8 +82,34 @@ export class OrdersTable implements OnInit, OnDestroy {
   private wsSubs: Subscription[] = [];
 
   ngOnInit(): void {
+    this.selectedDate = new Date();
     this.fetchOrders();
     this.connectWebSocket();
+  }
+
+  onSearchChange(query: string): void {
+    this.searchQuery = query.toLowerCase();
+    this.applyFilters();
+  }
+
+  getOrderTotal(order: OrderResponse): number {
+    if (order.details.length === 0) return 0;
+    return order.details.reduce((sum: number, detail: OrderDetailItem) =>
+      sum + detail.unitPrice, 0
+    );
+  }
+
+  showOrderDetails(order: OrderResponse): void {
+    this.selectedOrder = order;
+    this.detailsDialogVisible = true;
+  }
+
+  clearFilters(): void {
+    this.searchQuery = '';
+    this.selectedStatus = 'ALL';
+    this.selectedDate = new Date();
+    this.table.clear();
+    this.fetchOrders();
   }
 
   ngOnDestroy(): void {
@@ -167,14 +212,14 @@ export class OrdersTable implements OnInit, OnDestroy {
     return option ? option.label : status;
   }
 
-  getStatusClass(status: string): string {
+  getStatusSeverity(status: string): 'info' | 'warn' | 'success' | 'danger' | 'secondary' {
     switch (status) {
-      case 'QUEUE': return 'bg-blue-100 text-blue-800';
-      case 'PREPARING': return 'bg-yellow-100 text-yellow-800';
-      case 'READY': return 'bg-green-100 text-green-800';
-      case 'DELIVERED': return 'bg-gray-100 text-gray-800';
-      case 'CANCELLED': return 'bg-red-100 text-red-800';
-      default: return '';
+      case 'QUEUE': return 'info';
+      case 'PREPARING': return 'warn';
+      case 'READY': return 'success';
+      case 'DELIVERED': return 'secondary';
+      case 'CANCELLED': return 'danger';
+      default: return 'secondary';
     }
   }
 
@@ -184,19 +229,32 @@ export class OrdersTable implements OnInit, OnDestroy {
       return;
     }
 
+    let filtered = [...this.allOrders];
+
     const date = this.selectedDate;
-    if (!date) {
-      this.orders = [...this.allOrders];
-      return;
+    if (date) {
+      const start = this.startOfDay(date);
+      const end = this.endOfDay(date);
+      filtered = filtered.filter((o) => {
+        const d = new Date(o.date);
+        return d >= start && d <= end;
+      });
     }
 
-    const start = this.startOfDay(date);
-    const end = this.endOfDay(date);
+    if (this.searchQuery.trim()) {
+      const query = this.searchQuery.toLowerCase();
+      filtered = filtered.filter((o) => {
+        const matchesId = o.id.toString().includes(query);
+        const matchesTable = o.tableId.toString().includes(query);
+        const matchesProducts = o.details.some((d: OrderDetailItem) =>
+          d.productName.toLowerCase().includes(query)
+        );
+        return matchesId || matchesTable || matchesProducts;
+      });
+    }
 
-    this.orders = this.allOrders.filter((o) => {
-      const d = new Date(o.date);
-      return d >= start && d <= end;
-    });
+    this.orders = filtered;
+    this.cdr.markForCheck();
   }
 
   private startOfDay(d: Date): Date {

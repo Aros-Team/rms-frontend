@@ -1,12 +1,12 @@
-import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { AbstractControl, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 import { Category } from '@app/core/services/category/category';
 import { OptionCategory } from '@app/core/services/option-category/option-category';
 import { Logging } from '@app/core/services/logging/logging';
+import { CategoriesCacheService } from './categories-cache.service';
+import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
 
-import { CategorySimpleResponse } from '@app/shared/models/dto/category/category-simple-response';
-import { OptionCategoryResponse } from '@app/shared/models/dto/category/option-category.model';
 import { FormValidation } from '@app/shared/components/form/form-validation';
 
 import { ButtonModule } from 'primeng/button';
@@ -33,6 +33,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
     DialogModule,
     ConfirmDialogModule,
     ToastModule,
+    LazyLoadDirective,
   ],
   templateUrl: './categories.html',
   providers: [MessageService],
@@ -47,10 +48,12 @@ export class Categories implements OnInit {
   private messageService = inject(MessageService);
   private confirmService = inject(ConfirmationService);
   private logger = inject(Logging);
+  readonly cache = inject(CategoriesCacheService);
 
   // ── Product categories ───────────────────────────────────────────
-  activeCategories = signal<CategorySimpleResponse[]>([]);
-  inactiveCategories = signal<CategorySimpleResponse[]>([]);
+  productCategories = computed(() => this.cache.productCategories.data() ?? []);
+  activeCategories = computed(() => this.productCategories().filter(c => c.enabled));
+  inactiveCategories = computed(() => this.productCategories().filter(c => !c.enabled));
   productCategoryDialogOpen = signal(false);
 
   productCategoryForm: FormGroup = this.fb.group({
@@ -60,7 +63,7 @@ export class Categories implements OnInit {
   productCategoryError = signal<string | null>(null);
 
   // ── Option categories ────────────────────────────────────────────
-  optionCategories = signal<OptionCategoryResponse[]>([]);
+  optionCategories = computed(() => this.cache.optionCategories.data() ?? []);
   optionCategoryDialogOpen = signal(false);
 
   optionCategoryForm: FormGroup = this.fb.group({
@@ -71,8 +74,18 @@ export class Categories implements OnInit {
   optionCategoryError = signal<string | null>(null);
 
   ngOnInit(): void {
-    this.refreshProductCategories();
-    this.refreshOptionCategories();
+    // Force load on first visit if no data
+    if (this.cache.productCategories.data() === null) {
+      this.cache.productCategories.refresh();
+    }
+    if (this.cache.optionCategories.data() === null) {
+      this.cache.optionCategories.refresh();
+    }
+  }
+
+  onVisible(): void {
+    this.cache.productCategories.loadIfStale();
+    this.cache.optionCategories.loadIfStale();
   }
 
   // ── Product category actions ─────────────────────────────────────
@@ -131,10 +144,7 @@ export class Categories implements OnInit {
   }
 
   private refreshProductCategories(): void {
-    this.categoryService.getCategories().subscribe(res => {
-      this.activeCategories.set(res.filter(c => c.enabled));
-      this.inactiveCategories.set(res.filter(c => !c.enabled));
-    });
+    this.cache.productCategories.refresh();
   }
 
   // ── Option category actions ──────────────────────────────────────
@@ -169,6 +179,6 @@ export class Categories implements OnInit {
   }
 
   private refreshOptionCategories(): void {
-    this.optionCategoryService.getOptionCategories().subscribe(res => { this.optionCategories.set(res); });
+    this.cache.optionCategories.refresh();
   }
 }

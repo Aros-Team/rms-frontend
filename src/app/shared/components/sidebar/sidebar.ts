@@ -8,8 +8,7 @@ import { CurrentDate } from '../current-date/current-date';
 @Component({
   selector: 'app-sidebar',
   imports: [CommonModule, RouterModule, CurrentDate],
-  templateUrl: './sidebar.html',
-  styleUrl: './sidebar.css'
+  templateUrl: './sidebar.html'
 })
 export class Sidebar implements OnInit, OnDestroy {
   @Input() visible = true;
@@ -46,7 +45,7 @@ export class Sidebar implements OnInit, OnDestroy {
     this.visibleChange.emit(false);
   }
 
-  trackByMenuItem(index: number, item: MenuItem): string {
+  trackByMenuItem(_index: number, item: MenuItem): string {
     return item.id;
   }
 }
