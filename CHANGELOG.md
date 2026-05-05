@@ -1,5 +1,23 @@
 # Changelog
 
+## [v1.3.0](https://github.com/Aros-Team/rms-frontend/releases/tag/v1.3.0)
+
+### Features
+
+- add real-time password validation feedback and unify field styling across change-password and reset-password components
+- **admin-ui**: enhance usability for product update flow
+- implement WebSockets for inventory and kitchen-admin synchronization
+
+### Bug Fixes
+
+- remove theme generation script, use static theme and update
+- update release workflow
+- unify phone validation to 10 digits and translate messages to Spanish
+- update release workflow
+- add character limits and name pattern validation to user forms
+- improve name validation error message to be more specific
+- **worker**: move effect to constructor to resolve NG0203
+
 ## [v1.1.0](https://github.com/Aros-Team/rms-frontend/releases/tag/v1.1.0)
 
 ### Features
