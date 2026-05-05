@@ -17,6 +17,7 @@ const WS_TOPICS = {
   preparing: '/topic/orders/preparing',
   ready:     '/topic/orders/ready',
   delivered: '/topic/orders/delivered',
+  cancelled: '/topic/orders/cancelled',
 } as const;
 
 @Component({
@@ -173,6 +174,20 @@ export class Kitchen implements OnInit, OnDestroy {
       }
     });
     this.wsSubs.push(deliveredSub);
+
+    // Suscribirse a órdenes canceladas (CANCELLED)
+    // Una orden puede cancelarse desde cualquier estado activo (QUEUE, PREPARING, READY),
+    // así que la eliminamos de las tres listas.
+    const cancelledSub = this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.cancelled).subscribe({
+      next: (order) => {
+        this.logger.debug('Kitchen: Received orderCancelled event:', order.id);
+        this.processing.delete(order.id);
+        this.queueOrders.update(list => list.filter(o => o.id !== order.id));
+        this.preparingOrders.update(list => list.filter(o => o.id !== order.id));
+        this.readyOrders.update(list => list.filter(o => o.id !== order.id));
+      }
+    });
+    this.wsSubs.push(cancelledSub);
   }
 
   fetchAll(silent = false): void {

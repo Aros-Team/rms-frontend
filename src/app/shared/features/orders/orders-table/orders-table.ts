@@ -27,6 +27,7 @@ const WS_TOPICS = {
   preparing: '/topic/orders/preparing',
   ready:     '/topic/orders/ready',
   delivered: '/topic/orders/delivered',
+  cancelled: '/topic/orders/cancelled',
 } as const;
 
 @Component({
@@ -158,6 +159,7 @@ export class OrdersTable implements OnInit, OnDestroy {
     this.wsSubs.push(this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.preparing).subscribe(updateOrder));
     this.wsSubs.push(this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.ready).subscribe(updateOrder));
     this.wsSubs.push(this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.delivered).subscribe(updateOrder));
+    this.wsSubs.push(this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.cancelled).subscribe(updateOrder));
   }
 
   onStatusChange(value: string): void {
