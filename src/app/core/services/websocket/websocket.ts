@@ -153,8 +153,8 @@ export class WebSocket implements OnDestroy {
 
     // If already connected and not yet subscribed via STOMP, do it now.
     // (If not connected yet, resubscribeAll() will handle it on onConnect.)
-    const subject = this.topicSubjects.get(topic)!;
-    if (this.connected && !this.stompSubscriptions.has(topic)) {
+    const subject = this.topicSubjects.get(topic);
+    if (subject && this.connected && !this.stompSubscriptions.has(topic)) {
       this.createStompSubscription(topic, subject);
     }
 
