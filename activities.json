@@ -110,15 +110,15 @@
         "id": "t1",
         "description": "Actualizar Inventory component para usar paginacion del backend",
         "agent": "implementer",
-        "status": "in_progress"
+        "status": "done"
       },
       {
         "id": "t2",
         "description": "Agregar controles de paginacion y filtros en la UI",
         "agent": "implementer",
-        "status": "pending"
+        "status": "done"
       }
     ],
-    "status": "in_progress"
+    "status": "done"
   }
 ]
