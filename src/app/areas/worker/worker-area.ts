@@ -54,6 +54,10 @@ export class WorkerArea implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.determineRole();
     this.determineWorkerType();
+    if (this.router.url === '/worker') {
+      const target = this.workerType === 'kitchen' ? '/worker/kitchen' : '/worker/day-menu';
+      void this.router.navigate([target]);
+    }
     this.configureWorkerMenu();
     this.startNotifications();
     this.setupRouterListener();
@@ -89,7 +93,7 @@ ngOnDestroy(): void {
     this.logger.debug('WorkerArea: Determining worker type from user data:', userData);
 
     if (userData?.areas) {
-      const workerAreas = ['WAITER', 'KITCHEN', 'BAR', 'CASHIER'];
+      const workerAreas = ['SERVICE', 'KITCHEN', 'BAR', 'CASHIER'];
 
       for (const area of userData.areas) {
         const areaName = area.name.toUpperCase();
@@ -114,7 +118,7 @@ ngOnDestroy(): void {
   }
 
   private configureWorkerMenu(): void {
-    const workerMenuItems: MenuItem[] = [
+    const waiterItems: MenuItem[] = [
       {
         id: 'take-order',
         label: 'Tomar Orden',
@@ -128,13 +132,6 @@ ngOnDestroy(): void {
         description: 'Ver pedidos del día',
         icon: 'pi pi-list',
         routerLink: '/worker/orders'
-      },
-      {
-        id: 'kitchen',
-        label: 'Cocina',
-        description: 'Pedidos en preparación',
-        icon: 'pi pi-box',
-        routerLink: '/worker/kitchen'
       },
       {
         id: 'day-menu',
@@ -152,6 +149,9 @@ ngOnDestroy(): void {
       }
     ];
 
-    this.menuService.setMenuItems(workerMenuItems);
+    const kitchenItems: MenuItem[] = [];
+
+    const items = this.workerType === 'kitchen' ? kitchenItems : waiterItems;
+    this.menuService.setMenuItems(items);
   }
 }

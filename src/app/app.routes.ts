@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { AreaGuard } from '@core/guards/area';
 import { AuthGuard } from '@core/guards/auth';
 import { RoleGuard } from '@core/guards/role';
 import { RedirectGuard } from '@app/core/guards/redirect-guard';
@@ -104,11 +105,11 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     children: [
       { path: '', redirectTo: 'day-menu', pathMatch: 'full' },
-      { path: 'day-menu', loadComponent: () => import('@areas/worker/features/waiter/day-menu/day-menu').then(m => m.DayMenu) },
-      { path: 'take-order', loadComponent: () => import('@areas/worker/features/waiter/take-order/take-order').then(m => m.TakeOrder) },
-      { path: 'orders', loadComponent: () => import('@areas/worker/features/waiter/today-orders/today-orders').then(m => m.TodayOrders) },
-      { path: 'kitchen', loadComponent: () => import('@areas/worker/features/kitchen/kitchen').then(m => m.Kitchen) },
-      { path: 'profile', loadComponent: () => import('@shared/features/settings/settings').then(m => m.Settings) },
+      { path: 'day-menu', loadComponent: () => import('@areas/worker/features/waiter/day-menu/day-menu').then(m => m.DayMenu), canActivate: [AreaGuard] },
+      { path: 'take-order', loadComponent: () => import('@areas/worker/features/waiter/take-order/take-order').then(m => m.TakeOrder), canActivate: [AreaGuard] },
+      { path: 'orders', loadComponent: () => import('@areas/worker/features/waiter/today-orders/today-orders').then(m => m.TodayOrders), canActivate: [AreaGuard] },
+      { path: 'kitchen', loadComponent: () => import('@areas/worker/features/kitchen/kitchen').then(m => m.Kitchen), canActivate: [AreaGuard] },
+      { path: 'profile', loadComponent: () => import('@shared/features/settings/settings').then(m => m.Settings), canActivate: [AreaGuard] },
     ]
   },
   {
