@@ -31,6 +31,10 @@
             {{ product.active ? 'Activo' : 'Inactivo' }}
           </span>
         </div>
+        <div class="flex justify-between">
+          <span class="text-surface-500">Descripción</span>
+          <span class="text-surface-700 dark:text-surface-300" [class.italic]="!product.description">{{ product.description || 'Sin descripción' }}</span>
+        </div>
       </div>
 
       <!-- Opciones -->

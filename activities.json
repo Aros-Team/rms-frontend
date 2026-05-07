@@ -28,16 +28,16 @@
         "id": "t1",
         "description": "En AuthGuard y logout, asegurar redirect automatico a /login",
         "agent": "implementer",
-        "status": "in_progress"
+        "status": "done"
       },
       {
         "id": "t2",
         "description": "Verificar que logout limpie tokens y redirija correctamente",
         "agent": "reviewer",
-        "status": "pending"
+        "status": "done"
       }
     ],
-    "status": "in_progress"
+    "status": "done"
   },
   {
     "id": "feat/dynamic-table-creation",
@@ -51,7 +51,7 @@
         "status": "pending"
       }
     ],
-    "status": "pending"
+    "status": "in_progress"
   },
   {
     "id": "fix/orders-table-total",

@@ -11,6 +11,7 @@ export interface ProductOptionCreateRequest {
 
 export interface ProductCreateRequest {
   name: string;
+  description?: string;
   basePrice: number;
   categoryId: number;
   areaId: number;
