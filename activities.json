@@ -48,10 +48,10 @@
         "id": "t1",
         "description": "Reemplazar tabla+modal de creacion de mesas con interfaz dinamica",
         "agent": "implementer",
-        "status": "pending"
+        "status": "done"
       }
     ],
-    "status": "in_progress"
+    "status": "done"
   },
   {
     "id": "fix/orders-table-total",
@@ -62,10 +62,10 @@
         "id": "t1",
         "description": "Agregar columna total en OrdersTable y ajustar columna acciones",
         "agent": "implementer",
-        "status": "pending"
+        "status": "in_progress"
       }
     ],
-    "status": "pending"
+    "status": "in_progress"
   },
   {
     "id": "feat/employees-endpoint",

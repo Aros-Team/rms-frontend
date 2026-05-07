@@ -6,116 +6,93 @@
       icon="pi pi-plus"
       label="Nueva mesa"
       class="btn-icon-text-sm"
-      pTooltip="Crear mesa"
-      tooltipPosition="bottom"
       (onClick)="showCreationModal()"
     ></p-button>
   </div>
 
-  <p class="text-surface-600 dark:text-surface-400 mb-2 md:mb-4 text-sm">{{ description }}</p>
-
-  <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-0 dark:bg-surface-800 overflow-hidden">
-    <p-table #dt [value]="tables()" [loading]="loading()" [showLoader]="false" [paginator]="true" [rows]="10"
-      [scrollable]="true" scrollHeight="flex" responsiveLayout="scroll" styleClass="h-full"
-      [tableStyle]="{'min-width': '500px'}"
-      sortMode="multiple"
-      [globalFilterFields]="['tableNumber', 'capacity']">
-      <ng-template #caption>
-        <div class="flex flex-col sm:flex-row gap-2 flex-wrap">
-          <p-iconfield iconPosition="left" class="w-full lg:w-80">
-            <p-inputicon><i class="pi pi-search"></i></p-inputicon>
-            <input pInputText type="text" class="w-full" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Buscar por número o capacidad..." />
-          </p-iconfield>
-          <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="dt.clear()" />
+  <!-- Creation Form -->
+  @if (modalMode() === 'create' && modalIsOpen()) {
+    <div class="mb-4 p-4 bg-surface-0 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl">
+      <h3 class="text-lg font-semibold mb-4">Crear Mesa</h3>
+      <form [formGroup]="tableForm" (ngSubmit)="saveTable()" class="flex flex-wrap gap-4 items-end">
+        <div class="flex flex-col gap-1">
+          <label for="newTableNumber" class="text-sm text-surface-600 dark:text-surface-400">Número</label>
+          <input pInputText id="newTableNumber" type="number" formControlName="tableNumber" class="w-24" />
         </div>
-      </ng-template>
-      <ng-template pTemplate="header">
-      <tr>
-        <th class="text-xs md:text-sm" pSortableColumn="tableNumber"># <p-sortIcon field="tableNumber" /></th>
-        <th class="text-xs md:text-sm" pSortableColumn="capacity">Cap. <p-sortIcon field="capacity" /></th>
-        <th class="text-xs md:text-sm hidden sm:table-cell">Estado</th>
-        <th class="text-center text-xs md:text-sm">Acc.</th>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-table>
-      <tr>
-        <td class="font-medium">{{ table.tableNumber }}</td>
-        <td>
-          <div class="flex items-center gap-1">
-            <i class="pi pi-users text-xs text-surface-500"></i>
-            <span>{{ table.capacity }}</span>
-          </div>
-        </td>
-        <td class="hidden sm:table-cell">
-          <p-tag [value]="getStatusLabel(table.status)" [severity]="getStatusSeverity(table.status)" />
-        </td>
-        <td>
-          <div class="flex items-center justify-center">
-            <p-button 
-              icon="pi pi-pencil" 
-              [text]="true"
-              severity="warn"
-              size="small"
-              (onClick)="showEditModal(table)"
-            ></p-button>
-          </div>
-        </td>
-      </tr>
-    </ng-template>
-    <ng-template #loadingbody>
-      <tr>
-        <td colspan="4">
-          <div class="min-h-[400px] w-full">
-            <app-table-skeleton [rowCount]="6" [colCount]="4" />
-          </div>
-        </td>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="emptymessage">
-      <tr>
-        <td colspan="4" class="text-center">No hay mesas configuradas</td>
-      </tr>
-    </ng-template>
-  </p-table>
-</div>
-
-<p-dialog
-  [modal]="true"
-  [visible]="modalIsOpen()"
-  (visibleChange)="modalIsOpen.set($event)"
-  [header]="modalMode() === 'edit' ? 'Editar Mesa' : 'Crear Mesa'"
-  [style]="{width: '90vw', maxWidth: '400px'}"
->
-  <form [formGroup]="tableForm" (ngSubmit)="saveTable()">
-    <div class="flex flex-col gap-4">
-      <p-iftalabel>
-        <input
-          pInputText
-          id="tableNumber"
-          type="number"
-          class="w-full"
-          formControlName="tableNumber"
-          placeholder="Número de mesa"
-        />
-        <label for="tableNumber">Número de mesa</label>
-      </p-iftalabel>
-
-      <p-iftalabel>
-        <input
-          pInputText
-          id="capacity"
-          type="number"
-          class="w-full"
-          formControlName="capacity"
-          placeholder="Capacidad"
-        />
-        <label for="capacity">Capacidad (personas)</label>
-      </p-iftalabel>
+        <div class="flex flex-col gap-1">
+          <label for="newCapacity" class="text-sm text-surface-600 dark:text-surface-400">Capacidad</label>
+          <input pInputText id="newCapacity" type="number" formControlName="capacity" class="w-24" />
+        </div>
+        <div class="flex gap-2">
+          <p-button label="Crear" type="submit" [disabled]="tableForm.invalid" icon="pi pi-check"></p-button>
+          <p-button label="Cancelar" severity="secondary" (onClick)="closeModal()"></p-button>
+        </div>
+      </form>
     </div>
-  </form>
+  }
 
-  <ng-template pTemplate="footer">
-    <p-button label="Cancelar" severity="secondary" (onClick)="closeModal()"></p-button>
-    <p-button label="Guardar" (onClick)="saveTable()" [disabled]="tableForm.invalid"></p-button>
-  </ng-template>
-</p-dialog>
+  <!-- Tables Grid -->
+  <div class="flex-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+    @if (loading()) {
+      @for (i of [1,2,3,4,5,6]; track i) {
+        <div class="h-32 bg-surface-100 dark:bg-surface-700 rounded-xl animate-pulse"></div>
+      }
+    } @else if (tables().length === 0) {
+      <div class="col-span-full text-center py-20 text-surface-400">
+        <i class="pi pi-table text-4xl mb-4 block"></i>
+        <p>No hay mesas configuradas</p>
+        <p-button label="Crear primera mesa" icon="pi pi-plus" class="mt-4" (onClick)="showCreationModal()" />
+      </div>
+    } @else {
+      @for (table of tables(); track table.id) {
+        <div 
+          class="relative bg-surface-0 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl p-4 flex flex-col gap-2 hover:border-primary-300 dark:hover:border-primary-600 transition-colors cursor-pointer"
+          (click)="showEditModal(table)"
+          (keydown.enter)="showEditModal(table)"
+          tabindex="0"
+          role="button"
+        >
+          <div class="text-center">
+            <span class="text-3xl font-bold text-surface-900 dark:text-surface-0">#{{ table.tableNumber }}</span>
+          </div>
+          
+          <div class="flex items-center justify-center gap-2 text-surface-500">
+            <i class="pi pi-users text-xs"></i>
+            <span class="text-sm">{{ table.capacity }} personas</span>
+          </div>
+          
+          <div class="flex justify-center mt-auto">
+            <p-tag [value]="getStatusLabel(table.status)" [severity]="getStatusSeverity(table.status)" />
+          </div>
+
+          <div class="absolute top-2 right-2 opacity-0 hover:opacity-100 transition-opacity">
+            <i class="pi pi-pencil text-xs text-surface-400"></i>
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Edit Modal -->
+  @if (modalMode() === 'edit' && modalIsOpen()) {
+    <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center" (click)="closeModal()" (keydown.escape)="closeModal()" tabindex="-1" role="dialog">
+      <div class="bg-surface-0 dark:bg-surface-800 rounded-xl p-6 w-80 shadow-xl" (click)="$event.stopPropagation()" (keydown.escape)="closeModal()" role="document">
+        <h3 class="text-lg font-semibold mb-4">Editar Mesa</h3>
+        <form [formGroup]="tableForm" (ngSubmit)="saveTable()" class="flex flex-col gap-4">
+          <div>
+            <label for="editTableNumber" class="text-sm text-surface-600 dark:text-surface-400 block mb-1">Número</label>
+            <input pInputText id="editTableNumber" type="number" formControlName="tableNumber" class="w-full" />
+          </div>
+          <div>
+            <label for="editCapacity" class="text-sm text-surface-600 dark:text-surface-400 block mb-1">Capacidad</label>
+            <input pInputText id="editCapacity" type="number" formControlName="capacity" class="w-full" />
+          </div>
+          <div class="flex gap-2 mt-2">
+            <p-button label="Guardar" type="submit" [disabled]="tableForm.invalid" class="flex-1"></p-button>
+            <p-button label="Cancelar" severity="secondary" (onClick)="closeModal()" class="flex-1"></p-button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

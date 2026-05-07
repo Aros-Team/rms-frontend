@@ -65,6 +65,8 @@ export class Tables implements OnInit {
   modalIsOpen = signal(false);
   modalMode = signal<'edit' | 'create'>('create');
 
+  selectedTableId: number | null = null;
+
   tableForm = new FormGroup({
     id: new FormControl<number | null>(null),
     tableNumber: new FormControl<number | null>(null, {
@@ -105,11 +107,13 @@ export class Tables implements OnInit {
       tableNumber: table.tableNumber,
       capacity: table.capacity,
     });
+    this.selectedTableId = table.id;
     this.modalMode.set('edit');
     this.modalIsOpen.set(true);
   }
 
   closeModal(): void {
+    this.selectedTableId = null;
     this.modalIsOpen.set(false);
   }
 
