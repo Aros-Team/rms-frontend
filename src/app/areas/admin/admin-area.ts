@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, ViewChild } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, ViewChild, signal, ChangeDetectorRef } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { Layout } from '@app/shared/layout/layout';
@@ -14,9 +14,10 @@ import { Menu, MenuItem } from '@app/core/services/menu/menu';
 export class AdminArea implements OnInit {
   @ViewChild(Chat) chatComponent?: Chat;
   private menuService = inject(Menu);
+  private cdr = inject(ChangeDetectorRef);
 
   role = 'ADMIN';
-  isChatOpen = false;
+  isChatOpen = signal(false);
 
   ngOnInit(): void {
     this.configureAdminMenu();
@@ -24,7 +25,8 @@ export class AdminArea implements OnInit {
 
   toggleChat(): void {
     this.chatComponent?.toggleChat();
-    this.isChatOpen = this.chatComponent?.isOpen() ?? false;
+    this.isChatOpen.set(this.chatComponent?.isOpen() ?? false);
+    this.cdr.markForCheck();
   }
 
   private configureAdminMenu(): void {
