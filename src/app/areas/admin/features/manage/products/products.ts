@@ -729,7 +729,13 @@ export class Products implements OnInit {
           this.wizardProductImages.update(imgs => [...imgs, image]);
         }
       },
-      complete: () => { this.isUploadingImage.set(false); }
+      complete: () => { 
+        this.isUploadingImage.set(false);
+        // Reload to ensure we have latest data including server-generated URLs
+        if (productId) {
+          this.loadWizardProductImages(productId);
+        }
+      }
     });
   }
 
@@ -738,8 +744,11 @@ export class Products implements OnInit {
     if (!productId) return;
     this.imageService.deleteImage(productId, image.id).pipe(
       catchError(() => of(false))
-    ).subscribe(() => {
-      this.wizardProductImages.update(imgs => imgs.filter(img => img.id !== image.id));
+    ).subscribe(result => {
+      if (result) {
+        // Reload to ensure UI matches server state
+        this.loadWizardProductImages(productId);
+      }
     });
   }
 
@@ -809,6 +818,8 @@ export class Products implements OnInit {
       complete: () => {
         this.isUploadingImage.set(false);
         this.localUploadProgress.set(0);
+        // Reload to ensure UI shows complete image data
+        this.loadProductImages(productId);
       }
     });
   }
@@ -823,7 +834,8 @@ export class Products implements OnInit {
       })
     ).subscribe(result => {
       if (result) {
-        this.productImages.update(imgs => imgs.filter(img => img.id !== image.id));
+        // Reload to ensure UI matches server state after delete
+        this.loadProductImages(productId);
         this.messageService.add({
           severity: 'success',
           summary: 'Imagen eliminada',
