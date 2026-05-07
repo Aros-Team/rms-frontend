@@ -1,15 +1,19 @@
 import { Injectable, inject, OnDestroy } from '@angular/core';
 import { Client, StompSubscription } from '@stomp/stompjs';
-import { Subject, BehaviorSubject } from 'rxjs';
+import { Observable, Subject, BehaviorSubject, share } from 'rxjs';
+import SockJS from 'sockjs-client';
 
 import { Logging } from '@app/core/services/logging/logging';
-import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
-import { InventoryStockUpdatedEvent } from '@models/dto/inventory/inventory-stock-update';
-import SockJS from 'sockjs-client';
 
 export interface WebSocketMessage<T = unknown> {
   destination: string;
   body: T;
+}
+
+export interface CacheInvalidationEvent {
+  resource: string;
+  action: 'create' | 'update' | 'delete';
+  id?: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -17,26 +21,28 @@ export class WebSocket implements OnDestroy {
   private logger = inject(Logging);
   private client?: Client;
   private connected = false;
-  private subscriptions = new Map<string, StompSubscription>();
 
-  private orderCreatedSubject = new Subject<OrderResponse>();
-  private orderPreparingSubject = new Subject<OrderResponse>();
-  private orderReadySubject = new Subject<OrderResponse>();
-  private orderDeliveredSubject = new Subject<OrderResponse>();
-  private inventoryUpdatedSubject = new Subject<InventoryStockUpdatedEvent>();
-  // BehaviorSubject para que nuevos suscriptores reciban el estado actual inmediatamente
+  // Subjects keyed by topic — one Subject per topic, receives raw STOMP messages
+  private topicSubjects = new Map<string, Subject<unknown>>();
+
+  // Shared observables keyed by topic — derived from topicSubjects via share().
+  // All Angular subscribers for the same topic consume a single multicast stream;
+  // the underlying STOMP subscription is torn down when the ref-count drops to zero.
+  private topicObservables = new Map<string, Observable<unknown>>();
+
+  // STOMP subscriptions keyed by topic — one per topic regardless of how many
+  // Angular subscribers are listening to the corresponding Subject
+  private stompSubscriptions = new Map<string, StompSubscription>();
+
+  // BehaviorSubject so new subscribers receive the current state immediately
   private connectionSubject = new BehaviorSubject<boolean>(false);
-
-  // Cache invalidation events
-  private cacheInvalidationSubject = new Subject<{ resource: string; action: 'create' | 'update' | 'delete'; id?: number }>();
-
-  orderCreated$ = this.orderCreatedSubject.asObservable();
-  orderPreparing$ = this.orderPreparingSubject.asObservable();
-  orderReady$ = this.orderReadySubject.asObservable();
-  orderDelivered$ = this.orderDeliveredSubject.asObservable();
-  inventoryUpdated$ = this.inventoryUpdatedSubject.asObservable();
   connection$ = this.connectionSubject.asObservable();
+
+  // Internal cache-invalidation channel (not tied to STOMP topics)
+  private cacheInvalidationSubject = new Subject<CacheInvalidationEvent>();
   cacheInvalidation$ = this.cacheInvalidationSubject.asObservable();
+
+  // ─── Public API ────────────────────────────────────────────────────────────
 
   connect(wsUrl: string, token: string): void {
     if (this.connected) {
@@ -50,7 +56,6 @@ export class WebSocket implements OnDestroy {
     }
 
     this.logger.info('WebSocket: Connecting to', wsUrl);
-    this.logger.debug('WebSocket: Attempting connection with token:', token ? 'Present' : 'Missing');
 
     this.client = new Client({
       // Use SockJS as transport factory — required by Spring Boot's SockJS endpoint
@@ -70,14 +75,15 @@ export class WebSocket implements OnDestroy {
     this.client.onConnect = (frame) => {
       this.connected = true;
       this.connectionSubject.next(true);
-      this.logger.info('WebSocket: Connected successfully');
-      this.logger.debug('WebSocket: Connection established', frame);
-      this.subscribeToTopics();
+      this.logger.info('WebSocket: Connected successfully', frame);
+
+      // Re-subscribe any topics that were registered before the connection was
+      // established (or after a reconnect).
+      this.resubscribeAll();
     };
 
     this.client.onStompError = (frame) => {
       this.logger.error('WebSocket STOMP Error:', frame.headers['message'], frame.body);
-      this.logger.error('WebSocket STOMP Error frame:', frame);
       this.connected = false;
       this.connectionSubject.next(false);
     };
@@ -93,18 +99,18 @@ export class WebSocket implements OnDestroy {
       this.logger.warn('WebSocket closed:', closeEvent.code, closeEvent.reason);
       this.connected = false;
       this.connectionSubject.next(false);
+      // Clear STOMP subscriptions — they will be re-created on reconnect via resubscribeAll()
+      this.stompSubscriptions.clear();
     };
 
     this.client.onDisconnect = () => {
       this.connected = false;
       this.connectionSubject.next(false);
       this.logger.info('WebSocket: Disconnected');
-      this.logger.debug('WebSocket: Disconnected');
     };
 
     try {
       this.client.activate();
-      this.logger.debug('WebSocket: Client activated');
     } catch (error) {
       this.logger.error('WebSocket: Failed to activate client', error);
       this.connected = false;
@@ -112,90 +118,53 @@ export class WebSocket implements OnDestroy {
     }
   }
 
-  private subscribeToTopics(): void {
-    if (!this.client) {
-      this.logger.debug('WebSocket: Cannot subscribe, client is null');
-      return;
+  /**
+   * Returns a typed, multicasted Observable for the given STOMP topic.
+   *
+   * Sharing semantics (via share):
+   * - A single STOMP subscription is created for each topic, regardless of how
+   *   many Angular components subscribe to the returned Observable.
+   * - When the ref-count drops to zero (all components unsubscribed), the STOMP
+   *   subscription is torn down so the broker stops sending messages for that
+   *   topic to this client.
+   * - No replay buffer — late subscribers only receive future messages, which
+   *   prevents stale events from being re-processed on component re-mount.
+   *
+   * Components should unsubscribe in ngOnDestroy (or use takeUntilDestroyed /
+   * async pipe).
+   */
+  subscribeToTopic<T = unknown>(topic: string): Observable<T> {
+    if (!this.topicObservables.has(topic)) {
+      const subject = new Subject<unknown>();
+      this.topicSubjects.set(topic, subject);
+
+      const shared = subject.pipe(
+        share({
+          resetOnRefCountZero: () => new Observable((observer) => {
+            // Teardown: destroy the STOMP subscription when no one is listening
+            this.destroyStompSubscription(topic);
+            observer.complete();
+          }),
+        }),
+      );
+
+      this.topicObservables.set(topic, shared);
     }
 
-      this.logger.debug('WebSocket: Subscribing to topics...');
+    // If already connected and not yet subscribed via STOMP, do it now.
+    // (If not connected yet, resubscribeAll() will handle it on onConnect.)
+    const subject = this.topicSubjects.get(topic);
+    if (subject && this.connected && !this.stompSubscriptions.has(topic)) {
+      this.createStompSubscription(topic, subject);
+    }
 
-    // Subscribe to new orders (QUEUE)
-    const createdSub = this.client.subscribe('/topic/orders/created', (message) => {
-      try {
-        const order = JSON.parse(message.body) as OrderResponse;
-        this.logger.info('WebSocket: New order created', order);
-        this.logger.debug('WebSocket: Received /topic/orders/created:', order);
-        this.orderCreatedSubject.next(order);
-      } catch (error) {
-        this.logger.error('WebSocket: Error parsing created order', error);
-      }
-    });
-    this.subscriptions.set('/topic/orders/created', createdSub);
-    this.logger.debug('WebSocket: Subscribed to /topic/orders/created');
-
-    // Subscribe to orders in preparation (PREPARING)
-    const preparingSub = this.client.subscribe('/topic/orders/preparing', (message) => {
-      try {
-        const order = JSON.parse(message.body) as OrderResponse;
-        this.logger.info('WebSocket: Order preparing', order);
-        this.logger.debug('WebSocket: Received /topic/orders/preparing:', order);
-        this.orderPreparingSubject.next(order);
-      } catch (error) {
-        this.logger.error('WebSocket: Error parsing preparing order', error);
-      }
-    });
-    this.subscriptions.set('/topic/orders/preparing', preparingSub);
-    this.logger.debug('WebSocket: Subscribed to /topic/orders/preparing');
-
-    // Subscribe to ready orders (READY)
-    const readySub = this.client.subscribe('/topic/orders/ready', (message) => {
-      try {
-        const order = JSON.parse(message.body) as OrderResponse;
-        this.logger.info('WebSocket: Order ready', order);
-        this.logger.debug('WebSocket: Received /topic/orders/ready:', order);
-        this.orderReadySubject.next(order);
-      } catch (error) {
-        this.logger.error('WebSocket: Error parsing ready order', error);
-      }
-    });
-    this.subscriptions.set('/topic/orders/ready', readySub);
-    this.logger.debug('WebSocket: Subscribed to /topic/orders/ready');
-
-    // Subscribe to inventory stock updates
-    const inventorySub = this.client.subscribe('/topic/inventory/updates', (message) => {
-      try {
-        const event = JSON.parse(message.body) as InventoryStockUpdatedEvent;
-        this.logger.info('WebSocket: Inventory stock updated', event);
-        this.inventoryUpdatedSubject.next(event);
-      } catch (error) {
-        this.logger.error('WebSocket: Error parsing inventory update', error);
-      }
-    });
-    this.subscriptions.set('/topic/inventory/updates', inventorySub);
-    this.logger.debug('WebSocket: Subscribed to /topic/inventory/updates');
-
-    // Subscribe to delivered orders (DELIVERED)
-    const deliveredSub = this.client.subscribe('/topic/orders/delivered', (message) => {
-      try {
-        const order = JSON.parse(message.body) as OrderResponse;
-        this.logger.info('WebSocket: Order delivered', order);
-        this.logger.debug('WebSocket: Received /topic/orders/delivered:', order);
-        this.orderDeliveredSubject.next(order);
-      } catch (error) {
-        this.logger.error('WebSocket: Error parsing delivered order', error);
-      }
-    });
-    this.subscriptions.set('/topic/orders/delivered', deliveredSub);
-    this.logger.debug('WebSocket: Subscribed to /topic/orders/delivered');
-
-    this.logger.debug('WebSocket: All subscriptions completed');
+return this.topicObservables.get(topic) as Observable<T>;
   }
 
   disconnect(): void {
     if (this.client) {
-      this.subscriptions.forEach((sub) => { sub.unsubscribe(); });
-      this.subscriptions.clear();
+      this.stompSubscriptions.forEach((sub) => { sub.unsubscribe(); });
+      this.stompSubscriptions.clear();
       this.client.deactivate();
       this.connected = false;
       this.connectionSubject.next(false);
@@ -203,19 +172,13 @@ export class WebSocket implements OnDestroy {
     }
   }
 
-  /** Llamar solo cuando el componente se desmonta pero NO queremos destruir la conexión */
-  unsubscribeComponent(): void {
-    // No desconecta el cliente, solo limpia las suscripciones locales del componente
-    // El cliente sigue activo para otros componentes o cuando se vuelva a navegar aquí
-  }
-
   isConnected(): boolean {
     return this.connected;
   }
 
   /**
-   * Emite evento de invalidación de caché para que otros componentes
-   * recarguen sus datos cuando hay cambios.
+   * Emits a cache-invalidation event so other services can refresh their data.
+   * This is an internal pub/sub channel — it does NOT send anything to the broker.
    */
   emitCacheInvalidation(resource: string, action: 'create' | 'update' | 'delete', id?: number): void {
     this.cacheInvalidationSubject.next({ resource, action, id });
@@ -224,5 +187,46 @@ export class WebSocket implements OnDestroy {
 
   ngOnDestroy(): void {
     this.disconnect();
+    this.topicSubjects.forEach((subject) => { subject.complete(); });
+    this.topicSubjects.clear();
+    this.topicObservables.clear();
+    this.cacheInvalidationSubject.complete();
+  }
+
+  // ─── Private helpers ───────────────────────────────────────────────────────
+
+  /** Called after every successful (re)connect to restore active topic subscriptions. */
+  private resubscribeAll(): void {
+    this.topicSubjects.forEach((subject, topic) => {
+      // Only create a STOMP subscription if the shared Observable has active observers
+      if (subject.observed && !this.stompSubscriptions.has(topic)) {
+        this.createStompSubscription(topic, subject);
+      }
+    });
+  }
+
+  private createStompSubscription(topic: string, subject: Subject<unknown>): void {
+    if (!this.client) return;
+
+    const stompSub = this.client.subscribe(topic, (message) => {
+      try {
+        const parsed: unknown = JSON.parse(message.body);
+        subject.next(parsed);
+      } catch (error) {
+        this.logger.error(`WebSocket: Error parsing message on ${topic}`, error);
+      }
+    });
+
+    this.stompSubscriptions.set(topic, stompSub);
+    this.logger.debug(`WebSocket: Subscribed to ${topic}`);
+  }
+
+  private destroyStompSubscription(topic: string): void {
+    const stompSub = this.stompSubscriptions.get(topic);
+    if (stompSub) {
+      stompSub.unsubscribe();
+      this.stompSubscriptions.delete(topic);
+      this.logger.debug(`WebSocket: Unsubscribed from ${topic}`);
+    }
   }
 }

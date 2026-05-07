@@ -1,4 +1,5 @@
-import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { RouterModule } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -18,6 +19,13 @@ import { TableResponse } from '@app/shared/models/dto/tables/table-response.mode
 import { TablesCacheService } from './tables-cache.service';
 import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton';
+import { WebSocket } from '@app/core/services/websocket/websocket';
+import { Auth } from '@app/core/services/auth/auth';
+import { environment } from '@environments/environment';
+
+const WS_TOPICS = {
+  tableStatus: '/topic/tables/status',
+} as const;
 
 @Component({
   selector: 'app-tables',
@@ -43,6 +51,9 @@ import { TableSkeleton } from '@shared/skeletons/table-skeleton';
 export class Tables implements OnInit {
   private tableService = inject(Table);
   private messageService = inject(MessageService);
+  private wsService = inject(WebSocket);
+  private authService = inject(Auth);
+  private destroyRef = inject(DestroyRef);
   readonly cache = inject(TablesCacheService);
 
   title = 'Gestión de Mesas';
@@ -71,6 +82,7 @@ export class Tables implements OnInit {
     if (this.cache.tables.data() === null) {
       this.cache.tables.refresh();
     }
+    this.connectWebSocket();
   }
 
   onVisible(): void {
@@ -202,5 +214,27 @@ export class Tables implements OnInit {
       default:
         return status;
     }
+  }
+
+  // ─── Private ───────────────────────────────────────────────────────────────
+
+  private connectWebSocket(): void {
+    const token = this.authService.getToken();
+    if (!token) return;
+
+    this.wsService.connect(environment.wsUrl, token);
+
+    // TablesCacheService already patches the cache; subscribing here is only
+    // needed so the component re-renders when the computed() signal changes.
+    // The actual data update is handled centrally in TablesCacheService.
+    this.wsService
+      .subscribeToTopic<TableResponse>(WS_TOPICS.tableStatus)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((updated) => {
+        // Cache is already patched by TablesCacheService constructor subscription.
+        // This subscription ensures the component's computed() re-evaluates
+        // and Angular's OnPush CD picks up the change.
+        this.cache.applyTableUpdate(updated);
+      });
   }
 }

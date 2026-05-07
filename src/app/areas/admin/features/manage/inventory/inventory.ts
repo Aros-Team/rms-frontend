@@ -303,8 +303,8 @@ export class Inventory implements OnInit {
     // Ensure the WebSocket client is connected (no-op if already connected)
     this.wsService.connect(environment.wsUrl, token);
 
-    // Subscribe to inventory stock updates — auto-cleaned up on component destroy
-    this.wsService.inventoryUpdated$
+    // Subscribe only to inventory updates — auto-cleaned up on component destroy
+    this.wsService.subscribeToTopic<InventoryStockUpdatedEvent>('/topic/inventory/updates')
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((event) => { this.ngZone.run(() => { this.applyInventoryUpdate(event); }); });
   }

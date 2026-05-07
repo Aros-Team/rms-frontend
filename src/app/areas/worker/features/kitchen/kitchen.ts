@@ -12,6 +12,14 @@ import { Auth } from '@app/core/services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
 import { environment } from '@environments/environment';
 
+const WS_TOPICS = {
+  created:   '/topic/orders/created',
+  preparing: '/topic/orders/preparing',
+  ready:     '/topic/orders/ready',
+  delivered: '/topic/orders/delivered',
+  cancelled: '/topic/orders/cancelled',
+} as const;
+
 @Component({
   selector: 'app-kitchen',
   imports: [RouterModule, OptionNamesPipe],
@@ -74,7 +82,7 @@ export class Kitchen implements OnInit, OnDestroy {
     }
 
     this.logger.debug('Kitchen: Attempting WebSocket connection to:', environment.wsUrl);
-    
+
     // Conectar (si ya está conectado, connect() lo ignora internamente)
     this.wsService.connect(environment.wsUrl, token);
 
@@ -83,7 +91,7 @@ export class Kitchen implements OnInit, OnDestroy {
       next: (connected) => {
         this.logger.debug('Kitchen: WebSocket connection status:', connected);
         this.wsConnected.set(connected);
-        
+
         if (!connected) {
           if (!this.pollingInterval) {
             this.logger.warn('Kitchen: WebSocket disconnected, activating polling fallback');
@@ -104,11 +112,10 @@ export class Kitchen implements OnInit, OnDestroy {
     this.wsSubs.push(connectionSub);
 
     // Suscribirse a nuevas órdenes (QUEUE)
-    const createdSub = this.wsService.orderCreated$.subscribe({
+    const createdSub = this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.created).subscribe({
       next: (order) => {
         this.logger.debug('Kitchen: Received orderCreated event:', order.id);
         this.queueOrders.update(list => {
-          // Evitar duplicados
           if (list.some(o => o.id === order.id)) {
             this.logger.debug('Kitchen: Order', order.id, 'already in queue, skipping');
             return list;
@@ -121,12 +128,11 @@ export class Kitchen implements OnInit, OnDestroy {
     this.wsSubs.push(createdSub);
 
     // Suscribirse a órdenes en preparación (PREPARING)
-    const preparingSub = this.wsService.orderPreparing$.subscribe({
+    const preparingSub = this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.preparing).subscribe({
       next: (order) => {
         this.logger.debug('Kitchen: Received orderPreparing event:', order.id);
         // Clear preparingNext flag in case the WS arrives before the HTTP response
         this.preparingNext.set(false);
-        // Remover de cola y agregar a preparación
         this.queueOrders.update(list => list.filter(o => o.id !== order.id));
         this.preparingOrders.update(list => {
           if (list.some(o => o.id === order.id)) {
@@ -141,12 +147,11 @@ export class Kitchen implements OnInit, OnDestroy {
     this.wsSubs.push(preparingSub);
 
     // Suscribirse a órdenes listas (READY)
-    const readySub = this.wsService.orderReady$.subscribe({
+    const readySub = this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.ready).subscribe({
       next: (order) => {
         this.logger.debug('Kitchen: Received orderReady event:', order.id);
         // Also clear processing flag in case the WS arrives before the HTTP response
         this.processing.delete(order.id);
-        // Remover de preparación y agregar a listas
         this.preparingOrders.update(list => list.filter(o => o.id !== order.id));
         this.readyOrders.update(list => {
           if (list.some(o => o.id === order.id)) {
@@ -161,15 +166,28 @@ export class Kitchen implements OnInit, OnDestroy {
     this.wsSubs.push(readySub);
 
     // Suscribirse a órdenes entregadas (DELIVERED)
-    const deliveredSub = this.wsService.orderDelivered$.subscribe({
+    const deliveredSub = this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.delivered).subscribe({
       next: (order) => {
         this.logger.debug('Kitchen: Received orderDelivered event:', order.id);
-        // Clear processing flag and remove from readyOrders on ALL devices
         this.processing.delete(order.id);
         this.readyOrders.update(list => list.filter(o => o.id !== order.id));
       }
     });
     this.wsSubs.push(deliveredSub);
+
+    // Suscribirse a órdenes canceladas (CANCELLED)
+    // Una orden puede cancelarse desde cualquier estado activo (QUEUE, PREPARING, READY),
+    // así que la eliminamos de las tres listas.
+    const cancelledSub = this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.cancelled).subscribe({
+      next: (order) => {
+        this.logger.debug('Kitchen: Received orderCancelled event:', order.id);
+        this.processing.delete(order.id);
+        this.queueOrders.update(list => list.filter(o => o.id !== order.id));
+        this.preparingOrders.update(list => list.filter(o => o.id !== order.id));
+        this.readyOrders.update(list => list.filter(o => o.id !== order.id));
+      }
+    });
+    this.wsSubs.push(cancelledSub);
   }
 
   fetchAll(silent = false): void {
