@@ -44,6 +44,8 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import { CurrencyPipe } from '@angular/common';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton';
 import { ProductEditModal } from './componentes/product-edit-modal/product-edit-modal';
+import { NewOptionDialog } from './componentes/new-option-dialog/new-option-dialog';
+import { ProductDetailDialog } from './componentes/product-detail-dialog/product-detail-dialog';
 
 // Wizard steps: 1=basic data+image, 2=insumos, 3=options, 4=finalize
 type WizardStep = 1 | 2 | 3 | 4;
@@ -88,6 +90,8 @@ interface OptionFormValue {
     ConfirmPopupModule,
     ConfirmDialogModule,
     ProductEditModal,
+    NewOptionDialog,
+    ProductDetailDialog,
   ],
   templateUrl: './products.html',
   providers: [MessageService, ConfirmationService],

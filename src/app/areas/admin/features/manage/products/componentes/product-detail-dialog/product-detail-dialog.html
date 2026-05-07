@@ -1,0 +1,151 @@
+<p-dialog [modal]="true" [(visible)]="visible"
+  header="Detalles del producto"
+  draggable="false" [style]="{ width: '36vw', minWidth: '320px' }" appendTo="body"
+  (onHide)="close()">
+
+  @if (product) {
+    <div class="flex flex-col gap-4 text-sm">
+
+      <!-- Info principal -->
+      <div class="flex flex-col gap-2 border border-surface-200 dark:border-surface-700 rounded-lg p-4">
+        <div class="flex justify-between items-start">
+          <span class="text-lg font-semibold text-surface-900 dark:text-surface-0">{{ product.name }}</span>
+          <p-tag [value]="detailOptions().length > 0 ? 'Personalizable' : 'Simple'"
+            [severity]="detailOptions().length > 0 ? 'info' : 'secondary'" />
+        </div>
+        <div class="flex justify-between">
+          <span class="text-surface-500">Precio base</span>
+          <span class="font-medium">{{ currencyFormat.format(product.basePrice) }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-surface-500">Categoría</span>
+          <span>{{ product.categoryName }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-surface-500">Área</span>
+          <span>{{ product.areaName }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-surface-500">Estado</span>
+          <span [class]="product.active ? 'text-green-600 font-medium' : 'text-red-500 font-medium'">
+            {{ product.active ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Opciones -->
+      <div class="flex flex-col gap-2">
+        <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Opciones disponibles</span>
+          @if (detailOptionsLoading()) {
+            <div class="flex flex-col gap-2">
+              <p-skeleton height="1.5rem" />
+              <p-skeleton height="1.5rem" width="75%" />
+            </div>
+          } @else if (detailOptions().length === 0) {
+            <p class="text-surface-400 italic text-xs">Sin opciones registradas aún</p>
+          } @else {
+            <div class="flex flex-col gap-3">
+              @for (group of groupByCategory(detailOptions()); track group.category) {
+                <div class="flex flex-col gap-1">
+                  <span class="text-xs font-medium text-surface-600 dark:text-surface-400">{{ group.category }}</span>
+                  <div class="flex flex-wrap gap-1">
+                    @for (opt of group.items; track opt.id) {
+                      <span class="text-xs px-2 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-700">
+                        {{ opt.name }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Images Section -->
+        <div class="mt-4 border-t border-surface-200 dark:border-surface-700 pt-4">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-sm font-medium text-surface-700 dark:text-surface-300">Imágenes del producto</h4>
+            <p-fileupload
+              #fuImages
+              mode="basic"
+              name="image"
+              accept="image/*"
+              maxFileSize="5000000"
+              [auto]="true"
+              chooseLabel="Agregar imagen"
+              (onSelect)="onImageSelect($event)"
+              [disabled]="isUploadingImage()"
+              chooseIcon="pi pi-plus"
+            />
+          </div>
+
+          @if (imagesLoading()) {
+            <p-progressBar mode="indeterminate" styleClass="h-2" />
+          } @else if (productImages().length === 0) {
+            <p class="text-sm text-surface-500 text-center py-4">No hay imágenes</p>
+          } @else {
+            <div class="grid grid-cols-3 gap-3">
+              @for (image of productImages(); track image.id; let i = $index) {
+                <div class="relative group">
+                  <p-image
+                    [src]="getImageUrl(image)"
+                    [alt]="image.originalName"
+                    [preview]="true"
+                    width="100"
+                    height="80"
+                    styleClass="cursor-pointer"
+                    (onClick)="openGalleria(i)"
+                  />
+                  <p-button
+                    icon="pi pi-times"
+                    severity="danger"
+                    size="small"
+                    [text]="true"
+                    class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    (onClick)="confirmDeleteImage($event, image)"
+                  />
+                  <span class="block text-xs text-center mt-1 text-surface-600 truncate">
+                    {{ image.originalName }}
+                  </span>
+                </div>
+              }
+            </div>
+          }
+
+          @if (isUploadingImage()) {
+            <div class="mt-3">
+              <p-progressBar [value]="localUploadProgress()" />
+              <span class="text-xs text-surface-500">Subiendo imagen... {{ localUploadProgress() }}%</span>
+            </div>
+          }
+        </div>
+    </div>
+  }
+
+  <ng-template #footer>
+    <p-button label="Cerrar" severity="secondary" icon="pi pi-times" (click)="close()" />
+    <p-button label="Editar" icon="pi pi-pencil"
+      (click)="openEditDialog()" />
+  </ng-template>
+
+</p-dialog>
+
+<!-- Image Galleria Viewer -->
+<p-galleria
+  [value]="productImages()"
+  [visible]="galleriaVisible()"
+  [activeIndex]="selectedImageIndex()"
+  (visibleChange)="galleriaVisible.set($event)"
+  (activeIndexChange)="selectedImageIndex.set($event)"
+  [responsiveOptions]="galleriaResponsiveOptions"
+  [containerStyle]="{'max-width': '80vw'}"
+  [numVisible]="5"
+  [circular]="true"
+>
+  <ng-template pTemplate="item" let-item>
+    <img [src]="getImageUrl(item)" alt="Product image" class="w-full max-h-[70vh] object-contain" />
+  </ng-template>
+  <ng-template pTemplate="thumbnail" let-item>
+    <img [src]="getImageUrl(item, 'tablet')" alt="Thumbnail" class="w-20 h-16 object-cover" />
+  </ng-template>
+</p-galleria>
