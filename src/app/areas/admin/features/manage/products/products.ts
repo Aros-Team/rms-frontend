@@ -1,8 +1,8 @@
-import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy, effect } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, FormArray, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { of, EMPTY, forkJoin } from 'rxjs';
-import { catchError, switchMap } from 'rxjs';
+import { catchError, switchMap, map } from 'rxjs/operators';
 
 import { Product } from '@app/core/services/products/product';
 import { MasterData } from '@app/core/services/master-data/master-data';
@@ -12,15 +12,20 @@ import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
 import { ProductOptionService } from '@app/core/services/product-option/product-option';
 import { WebSocket } from '@app/core/services/websocket/websocket';
 
-import { AreaSimpleResponse } from '@app/shared/models/dto/areas/area-simple-response';
-import { CategorySimpleResponse } from '@app/shared/models/dto/category/category-simple-response';
-import { OptionCategoryResponse } from '@app/shared/models/dto/category/option-category.model';
 import { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
 import { ProductRecipeItem, ProductResponse } from '@app/shared/models/dto/products/product-response';
 import { ProductOption as ProductOptionDTO, ProductOptionResponse } from '@app/shared/models/dto/products/product-option.model';
 import { ProductOptionCreateRequest, RecipeItemRequest } from '@app/shared/models/dto/products/product-create-request';
+import { ProductImage } from '@app/core/services/product-image';
+import { ProductImageResponse } from '@app/shared/models/dto/products/product-image-response';
 
 import { ButtonModule } from 'primeng/button';
+import { FileUploadModule } from 'primeng/fileupload';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { ImageModule } from 'primeng/image';
+import { GalleriaModule } from 'primeng/galleria';
+import { ConfirmPopupModule } from 'primeng/confirmpopup';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { IftaLabelModule } from 'primeng/iftalabel';
@@ -37,6 +42,7 @@ import { DividerModule } from 'primeng/divider';
 import { SkeletonModule } from 'primeng/skeleton';
 import { MessageService } from 'primeng/api';
 import { CurrencyPipe } from '@angular/common';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton';
 
 // Wizard steps: 1=base+recipe, 2=options, 3=summary
 type WizardStep = 1 | 2 | 3;
@@ -73,6 +79,13 @@ interface OptionFormValue {
     DividerModule,
     SkeletonModule,
     LazyLoadDirective,
+    TableSkeleton,
+    FileUploadModule,
+    ProgressBarModule,
+    ImageModule,
+    GalleriaModule,
+    ConfirmPopupModule,
+    ConfirmDialogModule,
   ],
   templateUrl: './products.html',
   providers: [MessageService],
@@ -86,6 +99,7 @@ export class Products implements OnInit {
   private logger = inject(Logging);
   private wsService = inject(WebSocket);
   readonly cache = inject(ProductCacheService);
+  readonly imageService = inject(ProductImage);
 
   title = 'Carta de Productos';
   description = 'Gestión completa de todos los productos del restaurante';
@@ -95,15 +109,29 @@ export class Products implements OnInit {
   filterCategories = new FormControl<number[]>([], []);
   tableSearch = signal('');
 
-  // Table data - local signal updated from cache
-  products = signal<ProductResponse[] | undefined>(undefined);
+  // Thumbnails map (productId -> first image url)
+  productThumbnails = signal<Map<number, string>>(new Map());
+  thumbnailsLoading = signal(false);
+
+  // Table data - computed from cache with override support
+  private _productsOverride = signal<ProductResponse[] | undefined>(undefined);
+  products = computed(() => this._productsOverride() ?? this.cache.products.data() ?? undefined);
+
+  // Effect to load thumbnails when products are loaded
+  private readonly thumbnailsEffect = effect(() => {
+    const prods = this.products();
+    if (prods && prods.length > 0) {
+      this.ensureThumbnails();
+    }
+  });
   
-  // Reference data - local signals updated from cache
-  areas = signal<AreaSimpleResponse[]>([]);
-  categories = signal<CategorySimpleResponse[]>([]);
-  optionCategories = signal<OptionCategoryResponse[]>([]);
-  supplyVariantOptions = signal<(SupplyVariantResponse & { displayName: string })[]>([]);
-  allProductOptions = signal<ProductOptionResponse[]>([]);
+  // Reference data - computed from cache with override support
+  private _allProductOptionsOverride = signal<ProductOptionResponse[] | undefined>(undefined);
+  areas = computed(() => this.cache.referenceData.data()?.areas ?? []);
+  categories = computed(() => this.cache.referenceData.data()?.categories ?? []);
+  optionCategories = computed(() => this.cache.referenceData.data()?.optionCategories ?? []);
+  supplyVariantOptions = computed(() => this.cache.referenceData.data()?.variants ?? []);
+  allProductOptions = computed(() => this._allProductOptionsOverride() ?? this.cache.referenceData.data()?.productOptions ?? []);
 
   // Estados de carga
   productsLoading = computed(() => this.cache.products.isLoading());
@@ -171,6 +199,26 @@ export class Products implements OnInit {
   detailOptions = signal<ProductOptionDTO[]>([]);
   detailOptionsLoading = signal(false);
 
+  // Image gallery state
+  productImages = signal<ProductImageResponse[]>([]);
+  imagesLoading = signal(false);
+  selectedImageIndex = signal(0);
+  galleriaVisible = signal(false);
+
+  // Wizard images state
+  wizardProductImages = signal<ProductImageResponse[]>([]);
+  wizardImagesLoading = signal(false);
+
+  // Upload state
+  localUploadProgress = signal(0);
+  isUploadingImage = signal(false);
+
+  // Galleria responsive options
+  galleriaResponsiveOptions = [
+    { breakpoint: '1024px', numVisible: 5 },
+    { breakpoint: '768px', numVisible: 3 }
+  ];
+
   // ── Step 1: product base + base recipe ──────────────────────────
   baseForm: FormGroup = this.fb.group({
     id: [null],
@@ -189,7 +237,6 @@ export class Products implements OnInit {
   selectedOptionIds = signal<number[]>([]);
 
   ngOnInit(): void {
-    this.syncFromCache();
     // Force load on first visit if no data
     if (this.cache.products.data() === null) {
       this.cache.products.refresh();
@@ -201,26 +248,7 @@ export class Products implements OnInit {
   }
 
   onVisible(): void {
-    this.syncFromCache();
     this.cache.products.loadIfStale();
-  }
-
-  private syncFromCache(): void {
-    // Sync products from cache
-    const cachedProducts = this.cache.products.data();
-    if (cachedProducts !== null) {
-      this.products.set(cachedProducts);
-    }
-
-    // Sync reference data from cache
-    const refData = this.cache.referenceData.data();
-    if (refData !== null) {
-      this.areas.set(refData.areas);
-      this.categories.set(refData.categories);
-      this.optionCategories.set(refData.optionCategories);
-      this.supplyVariantOptions.set(refData.variants);
-      this.allProductOptions.set(refData.productOptions);
-    }
   }
 
   // ── Table ────────────────────────────────────────────────────────
@@ -230,7 +258,7 @@ export class Products implements OnInit {
     if (!nums || nums.length === 0) {
       this.refreshProducts();
     } else {
-      this.productService.filterByCategories(nums).subscribe(res => { this.products.set(res); });
+      this.productService.filterByCategories(nums).subscribe(res => { this._productsOverride.set(res); });
     }
   }
 
@@ -249,6 +277,7 @@ export class Products implements OnInit {
     this.optionRecipeCategoryMap.clear();
     this.currentStep.set(1);
     this.modalMode.set('create');
+    this.wizardProductImages.set([]);
     this.modalIsOpen.set(true);
   }
 
@@ -275,6 +304,9 @@ export class Products implements OnInit {
         this.baseRecipe.clear();
         this.baseRecipeCategoryMap.clear();
         this.createdProduct.set(p);
+        if (p.id) {
+          this.loadWizardProductImages(p.id);
+        }
         return this.masterDataService.getProductOptions(p.id).pipe(
           catchError(() => of([]))
         );
@@ -286,7 +318,10 @@ export class Products implements OnInit {
     });
   }
 
-  closeModal(): void { this.modalIsOpen.set(false); }
+  closeModal(): void {
+    this.modalIsOpen.set(false);
+    this.wizardProductImages.set([]);
+  }
 
   // ── Base recipe rows ─────────────────────────────────────────────
 
@@ -531,7 +566,7 @@ export class Products implements OnInit {
         if (createdOptions.length > 0) {
           return this.productOptionService.getOptions().pipe(
             switchMap(allOpts => {
-              this.allProductOptions.set(allOpts);
+              this._allProductOptionsOverride.set(allOpts);
               return of(allOptionIds);
             })
           );
@@ -620,11 +655,99 @@ export class Products implements OnInit {
     this.cache.products.refresh();
   }
 
+  loadProductImages(productId: number): void {
+    this.imagesLoading.set(true);
+    this.imageService.getImages(productId).pipe(
+      catchError(err => {
+        this.logger.error('Error loading product images', err);
+        return of([]);
+      })
+    ).subscribe(images => {
+      this.productImages.set(images);
+      this.imagesLoading.set(false);
+    });
+  }
+
+  loadWizardProductImages(productId: number): void {
+    this.wizardImagesLoading.set(true);
+    this.imageService.getImages(productId).pipe(
+      catchError(() => of([]))
+    ).subscribe(images => {
+      this.wizardProductImages.set(images);
+      this.wizardImagesLoading.set(false);
+    });
+  }
+
+  loadProductThumbnails(productIds: number[]): void {
+    if (productIds.length === 0) return;
+
+    this.thumbnailsLoading.set(true);
+
+    forkJoin(
+      productIds.map(id =>
+        this.imageService.getImages(id).pipe(
+          map(images => ({ productId: id, thumbnail: images[0]?.desktopUrl ?? null })),
+          catchError(() => of({ productId: id, thumbnail: null }))
+        )
+      )
+    ).subscribe(results => {
+      const map = new Map<number, string>();
+      results.forEach(r => {
+        if (r.thumbnail) map.set(r.productId, r.thumbnail);
+      });
+      this.productThumbnails.set(map);
+      this.thumbnailsLoading.set(false);
+    });
+  }
+
+  getThumbnailUrl(productId: number): string | null {
+    return this.productThumbnails().get(productId) ?? null;
+  }
+
+  private ensureThumbnails(): void {
+    const products = this.products();
+    if (!products || products.length === 0) return;
+
+    const currentThumbs = this.productThumbnails();
+    if (currentThumbs.size === 0 && !this.thumbnailsLoading()) {
+      const ids = products.map(p => p.id);
+      this.loadProductThumbnails(ids);
+    }
+  }
+
+  onWizardImageSelect(event: { files: File[] }): void {
+    const file = event.files[0];
+    const productId = this.createdProduct()?.id;
+    if (!productId) return;
+
+    this.isUploadingImage.set(true);
+    this.imageService.uploadImage(productId, file).subscribe({
+      next: (result) => {
+        const image = result.image;
+        if (image != null) {
+          this.wizardProductImages.update(imgs => [...imgs, image]);
+        }
+      },
+      complete: () => { this.isUploadingImage.set(false); }
+    });
+  }
+
+  deleteWizardImage(image: ProductImageResponse): void {
+    const productId = this.createdProduct()?.id;
+    if (!productId) return;
+    this.imageService.deleteImage(productId, image.id).pipe(
+      catchError(() => of(false))
+    ).subscribe(() => {
+      this.wizardProductImages.update(imgs => imgs.filter(img => img.id !== image.id));
+    });
+  }
+
   showDetailDialog(product: ProductResponse): void {
     this.detailProduct.set(product);
     this.detailOptions.set([]);
     this.detailDialogOpen.set(true);
     this.detailOptionsLoading.set(true);
+    this.loadProductImages(product.id);
     this.productService.getOptions(product.id).pipe(
       catchError(() => of([] as ProductOptionDTO[]))
     ).subscribe(opts => {
@@ -637,6 +760,76 @@ export class Products implements OnInit {
     this.detailDialogOpen.set(false);
     this.detailProduct.set(null);
     this.detailOptions.set([]);
+    this.productImages.set([]);
+  }
+
+  // ── Image gallery methods ───────────────────────────────────────
+
+  openGalleria(index: number): void {
+    this.selectedImageIndex.set(index);
+    this.galleriaVisible.set(true);
+  }
+
+  closeGalleria(): void {
+    this.galleriaVisible.set(false);
+  }
+
+  getImageUrl(image: ProductImageResponse, type: 'mobile' | 'tablet' | 'desktop' = 'desktop'): string {
+    return type === 'mobile' ? image.mobileUrl : type === 'tablet' ? image.tabletUrl : image.desktopUrl;
+  }
+
+  onImageSelect(event: { files: File[] }): void {
+    const files: File[] = event.files;
+    if (files.length === 0) return;
+
+    const productId = this.detailProduct()?.id;
+    if (!productId) return;
+
+    this.isUploadingImage.set(true);
+    this.localUploadProgress.set(0);
+
+    this.imageService.uploadImage(productId, files[0]).subscribe({
+      next: (result) => {
+        this.localUploadProgress.set(result.progress);
+        const image = result.image;
+        if (image != null) {
+          this.productImages.update(imgs => [...imgs, image]);
+        }
+      },
+      error: (err) => {
+        this.logger.error('Error uploading image', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error de upload',
+          detail: 'No se pudo subir la imagen'
+        });
+        this.isUploadingImage.set(false);
+      },
+      complete: () => {
+        this.isUploadingImage.set(false);
+        this.localUploadProgress.set(0);
+      }
+    });
+  }
+
+  confirmDeleteImage(event: Event, image: ProductImageResponse): void {
+    const productId = this.detailProduct()?.id;
+    if (!productId) return;
+    this.imageService.deleteImage(productId, image.id).pipe(
+      catchError(err => {
+        this.logger.error('Error deleting image', err);
+        return of(false);
+      })
+    ).subscribe(result => {
+      if (result) {
+        this.productImages.update(imgs => imgs.filter(img => img.id !== image.id));
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Imagen eliminada',
+          detail: 'La imagen fue eliminada correctamente'
+        });
+      }
+    });
   }
 
   groupByCategory(options: ProductOptionDTO[]): { category: string; items: ProductOptionDTO[] }[] {
