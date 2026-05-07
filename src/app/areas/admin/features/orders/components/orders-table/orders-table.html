@@ -64,7 +64,7 @@
       [rows]="10"
       [rowsPerPageOptions]="[10, 20, 50]"
       styleClass="h-full rounded-lg overflow-hidden"
-      [tableStyle]="{'min-width': '1200px'}"
+      [tableStyle]="{'min-width': '900px'}"
       [loading]="loading"
       [showLoader]="false"
       [globalFilterFields]="['id', 'tableId']"
@@ -76,7 +76,7 @@
           <th class="text-xs md:text-sm w-32">Estado</th>
           <th class="text-xs md:text-sm w-40" pSortableColumn="date">Fecha y Hora <p-sortIcon field="date" /></th>
           <th class="text-xs md:text-sm w-24" pSortableColumn="tableId">Mesa <p-sortIcon field="tableId" /></th>
-          <th class="text-xs md:text-sm w-28" pSortableColumn="total">Total <p-sortIcon field="total" /></th>
+          <th class="text-xs md:text-sm w-28">Total</th>
           <th class="text-xs md:text-sm">Productos</th>
           <th class="text-xs md:text-sm w-24 text-center">Acciones</th>
         </tr>
@@ -108,7 +108,7 @@
           <td class="text-sm">Mesa {{ order.tableId }}</td>
           
           <td class="font-medium text-sm">
-            {{ getOrderTotal(order) | currency:'COP':'symbol':'1.0-0' }}
+            {{ order.total ?? getOrderTotal(order) | currency:'COP':'symbol':'1.0-0' }}
           </td>
           
           <td>

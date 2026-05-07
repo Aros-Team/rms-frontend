@@ -20,6 +20,7 @@ export interface OrderResponse {
   tableId: number;
   details: OrderDetailItem[];
   table?: string;
+  total?: number;
 }
 
 export function calculateTotalPrice(order: OrderResponse): number {
