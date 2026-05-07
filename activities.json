@@ -1,0 +1,124 @@
+[
+  {
+    "id": "feat/product-description",
+    "type": "feat",
+    "description": "Agregar campo descripcion a productos en admin",
+    "tasks": [
+      {
+        "id": "t1",
+        "description": "Agregar campo descripcion en formulario de creacion de producto",
+        "agent": "implementer",
+        "status": "done"
+      },
+      {
+        "id": "t2",
+        "description": "Agregar campo descripcion en vista de detalle del producto",
+        "agent": "implementer",
+        "status": "done"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": "fix/session-expired-redirect",
+    "type": "fix",
+    "description": "Redirigir automaticamente al login cuando el JWT expire o haga logout",
+    "tasks": [
+      {
+        "id": "t1",
+        "description": "En AuthGuard y logout, asegurar redirect automatico a /login",
+        "agent": "implementer",
+        "status": "in_progress"
+      },
+      {
+        "id": "t2",
+        "description": "Verificar que logout limpie tokens y redirija correctamente",
+        "agent": "reviewer",
+        "status": "pending"
+      }
+    ],
+    "status": "in_progress"
+  },
+  {
+    "id": "feat/dynamic-table-creation",
+    "type": "feat",
+    "description": "Creacion dinamica de mesas en admin sin tabla ni modal",
+    "tasks": [
+      {
+        "id": "t1",
+        "description": "Reemplazar tabla+modal de creacion de mesas con interfaz dinamica",
+        "agent": "implementer",
+        "status": "pending"
+      }
+    ],
+    "status": "pending"
+  },
+  {
+    "id": "fix/orders-table-total",
+    "type": "fix",
+    "description": "Mostrar campo total y corregir posicion de acciones en tabla de pedidos admin",
+    "tasks": [
+      {
+        "id": "t1",
+        "description": "Agregar columna total en OrdersTable y ajustar columna acciones",
+        "agent": "implementer",
+        "status": "pending"
+      }
+    ],
+    "status": "pending"
+  },
+  {
+    "id": "feat/employees-endpoint",
+    "type": "feat",
+    "description": "Usar endpoint GET /api/v1/employees en manage de admin",
+    "tasks": [
+      {
+        "id": "t1",
+        "description": "Crear servicio o usar endpoint /employees en manage users",
+        "agent": "implementer",
+        "status": "pending"
+      }
+    ],
+    "status": "pending"
+  },
+  {
+    "id": "feat/products-pagination",
+    "type": "feat",
+    "description": "Implementar paginacion en products con filtros page, size, includeInactive",
+    "tasks": [
+      {
+        "id": "t1",
+        "description": "Actualizar Products component para usar paginacion del backend",
+        "agent": "implementer",
+        "status": "pending"
+      },
+      {
+        "id": "t2",
+        "description": "Agregar controles de paginacion y filtros en la UI",
+        "agent": "implementer",
+        "status": "pending"
+      }
+    ],
+    "status": "pending"
+  },
+  {
+    "id": "feat/supplies-pagination",
+    "type": "feat",
+    "description": "Implementar paginacion en supplies con filtros categoryId y name",
+    "tasks": [
+      {
+        "id": "t1",
+        "description": "Actualizar Inventory component para usar paginacion del backend",
+        "agent": "implementer",
+        "status": "pending"
+      },
+      {
+        "id": "t2",
+        "description": "Agregar controles de paginacion y filtros en la UI",
+        "agent": "implementer",
+        "status": "pending"
+      }
+    ],
+    "status": "pending"
+  }
+]
