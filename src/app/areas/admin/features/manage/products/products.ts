@@ -123,7 +123,11 @@ export class Products implements OnInit {
 
   // Table data - computed from cache with override support
   private _productsOverride = signal<ProductResponse[] | undefined>(undefined);
-  products = computed(() => this._productsOverride() ?? this.cache.products.data() ?? undefined);
+  products = computed(() => this._productsOverride() ?? this.cache.products.data()?.content ?? undefined);
+  totalPages = computed(() => this.cache.products.data()?.totalPages ?? 0);
+  currentPage = signal(0);
+  pageSize = signal(20);
+  includeInactive = signal(false);
 
   // Effect to load thumbnails when products are loaded
   private readonly thumbnailsEffect = effect(() => {
@@ -257,6 +261,18 @@ export class Products implements OnInit {
     if (this.cache.referenceData.data() === null) {
       this.cache.referenceData.refresh();
     }
+  }
+
+  loadPage(page: number): void {
+    this.currentPage.set(page);
+    this.cache.products.refresh();
+  }
+
+  onPage(event: { first: number; rows: number }): void {
+    const page = Math.floor(event.first / event.rows);
+    this.currentPage.set(page);
+    this.pageSize.set(event.rows);
+    this.cache.products.refresh();
   }
 
   onVisible(): void {

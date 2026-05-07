@@ -8,6 +8,7 @@ import { OptionCategory } from '@app/core/services/option-category/option-catego
 import { Supply } from '@app/core/services/supplies/supply';
 import { ProductOptionService } from '@app/core/services/product-option/product-option';
 import { ProductResponse } from '@app/shared/models/dto/products/product-response';
+import { PaginatedProductsResponse } from '@app/core/services/products/product';
 import { AreaSimpleResponse } from '@app/shared/models/dto/areas/area-simple-response';
 import { CategorySimpleResponse } from '@app/shared/models/dto/category/category-simple-response';
 import { OptionCategoryResponse } from '@app/shared/models/dto/category/option-category.model';
@@ -35,9 +36,9 @@ export class ProductCacheService implements OnDestroy {
 
   private cacheInvalidationSubscription: Subscription;
 
-  // Lista de productos - carga inmediata, TTL corto (2 min)
-  readonly products = new ResourceCache<ProductResponse[]>(
-    () => this.productService.getProducts(),
+  // Lista de productos - ahora paginada
+  readonly products = new ResourceCache<PaginatedProductsResponse>(
+    () => this.productService.getProductsPaginated(0, 20, false),
     { ttlMs: 2 * 60 * 1000, staleWhileRevalidate: true }
   );
 

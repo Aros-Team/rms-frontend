@@ -5,7 +5,15 @@ import { ProductResponse } from '@app/shared/models/dto/products/product-respons
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
 import { ProductUpdateRequest } from '@app/shared/models/dto/products/product-update-request';
 import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
-import { catchError, map, Observable, of } from 'rxjs';
+import { Observable, catchError, map, of } from 'rxjs';
+
+export interface PaginatedProductsResponse {
+  content: ProductResponse[];
+  totalElements: number;
+  totalPages: number;
+  page: number;
+  size: number;
+}
 
 export interface PreparationArea {
   id: number;
@@ -38,6 +46,12 @@ export class Product {
 
   public getProducts(): Observable<ProductResponse[]> {
     return this.http.get<ProductResponse[]>('v1/products');
+  }
+
+  public getProductsPaginated(page = 0, size = 20, includeInactive = false): Observable<PaginatedProductsResponse> {
+    return this.http.get<PaginatedProductsResponse>('v1/products', {
+      params: { page: String(page), size: String(size), includeInactive: String(includeInactive) }
+    });
   }
 
   public getAllProducts(): Observable<ProductListResponse[]> {

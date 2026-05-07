@@ -17,7 +17,9 @@
       #dt1
       [value]="filteredProducts() ?? []"
       [paginator]="true"
-      [rows]="10"
+      [rows]="pageSize()"
+      [totalRecords]="cache.products.data()?.totalElements ?? 0"
+      (onPage)="onPage($event)"
       [scrollable]="true"
       scrollHeight="600px"
       responsiveLayout="scroll"
