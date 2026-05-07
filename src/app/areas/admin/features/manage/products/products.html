@@ -128,7 +128,7 @@
 
   <!-- Indicador de pasos -->
   <div class="flex items-center mb-6">
-    @for (step of [1,2,3]; track step; let i = $index; let last = $last) {
+    @for (step of [1,2,3,4]; track step; let i = $index; let last = $last) {
       <div class="flex items-center flex-1">
         <div class="flex flex-col items-center gap-1">
           <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors"
@@ -138,9 +138,10 @@
           </div>
           <span class="text-xs text-surface-500 whitespace-nowrap">
             @switch (step) {
-              @case (1) { Producto base }
-              @case (2) { Opciones }
-              @case (3) { Resumen }
+              @case (1) { Datos básicos }
+              @case (2) { Insumos }
+              @case (3) { Opciones }
+              @case (4) { Finalizar }
             }
           </span>
         </div>
@@ -152,46 +153,92 @@
     }
   </div>
 
-  <!-- ══ PASO 1: Datos base + receta del producto ══ -->
+  <!-- ══ PASO 1: Datos básicos + imagen ══ -->
   @if (currentStep() === 1) {
     <div class="flex flex-col gap-4">
 
       <!-- Datos base -->
       <form [formGroup]="baseForm" class="flex flex-col gap-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <p-iftalabel class="md:col-span-2">
-            <input pInputText id="name" class="w-full" formControlName="name"
-              [invalid]="isInvalid(baseForm, 'name')" />
-            <label for="name">Nombre del producto *</label>
-          </p-iftalabel>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <p-iftalabel class="md:col-span-2">
+          <input pInputText id="name" class="w-full" formControlName="name"
+            [invalid]="isInvalid(baseForm, 'name')" />
+          <label for="name">Nombre del producto *</label>
+        </p-iftalabel>
 
-          <p-iftalabel>
-            <p-inputnumber formControlName="basePrice" inputId="basePrice"
-              mode="currency" currency="COP" locale="es-CO" class="w-full"
-              [invalid]="isInvalid(baseForm, 'basePrice')" />
-            <label for="basePrice">Precio base *</label>
-          </p-iftalabel>
+        <p-iftalabel>
+          <p-inputnumber formControlName="basePrice" inputId="basePrice"
+            mode="currency" currency="COP" locale="es-CO" class="w-full"
+            [invalid]="isInvalid(baseForm, 'basePrice')" />
+          <label for="basePrice">Precio base *</label>
+        </p-iftalabel>
 
-          <p-iftalabel>
-            <p-select [options]="categories()" inputId="categoryId" class="w-full"
-              optionValue="id" optionLabel="name" formControlName="categoryId"
-              appendTo="body"
-              [invalid]="isInvalid(baseForm, 'categoryId')" />
-            <label for="categoryId">Categoría *</label>
-          </p-iftalabel>
+        <p-iftalabel>
+          <p-select [options]="categories()" inputId="categoryId" class="w-full"
+            optionValue="id" optionLabel="name" formControlName="categoryId"
+            appendTo="body"
+            [invalid]="isInvalid(baseForm, 'categoryId')" />
+          <label for="categoryId">Categoría *</label>
+        </p-iftalabel>
 
-          <p-iftalabel>
-            <p-select [options]="areas()" inputId="areaId" class="w-full"
-              optionValue="id" optionLabel="name" formControlName="areaId"
-              appendTo="body"
-              [invalid]="isInvalid(baseForm, 'areaId')" />
-            <label for="areaId">Área de preparación *</label>
-          </p-iftalabel>
-        </div>
+        <p-iftalabel>
+          <p-select [options]="areas()" inputId="areaId" class="w-full"
+            optionValue="id" optionLabel="name" formControlName="areaId"
+            appendTo="body"
+            [invalid]="isInvalid(baseForm, 'areaId')" />
+          <label for="areaId">Área de preparación *</label>
+        </p-iftalabel>
+      </div>
       </form>
 
-      <!-- Receta base -->
-      <p-divider />
+      <!-- Image upload for new product -->
+      @if (createdProduct()?.id || modalMode() === 'edit') {
+        <div class="mt-4 border-t border-surface-200 dark:border-surface-700 pt-4">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-sm font-medium">Imagen del producto</h4>
+            <p-fileupload
+              #fuWizard
+              mode="basic"
+              name="image"
+              accept="image/*"
+              maxFileSize="5000000"
+              [auto]="true"
+              chooseLabel="Agregar imagen"
+              (onSelect)="onWizardImageSelect($event)"
+              [disabled]="isUploadingImage()"
+            />
+          </div>
+          @if (wizardImagesLoading()) {
+            <p-progressBar mode="indeterminate" styleClass="h-2" />
+          } @else if (wizardProductImages().length > 0) {
+            <div class="flex gap-2 flex-wrap">
+              @for (image of wizardProductImages(); track image.id) {
+                <div class="relative">
+                  <p-image [src]="getImageUrl(image, 'tablet')" [preview]="true" width="80" height="60" />
+                  <p-button icon="pi pi-times" severity="danger" size="small" [text]="true"
+                    class="absolute -top-2 -right-2" (onClick)="deleteWizardImage(image)" />
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="text-sm text-surface-500 text-center py-2">Sin imágenes</p>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="flex justify-end gap-2 mt-6">
+      <p-button label="Cancelar" severity="secondary" icon="pi pi-times" (click)="closeModal()" />
+      <p-button label="Siguiente"
+        icon="pi pi-arrow-right"
+        iconPos="right"
+        [loading]="isSubmitting()" (click)="submitStep1()" />
+    </div>
+  }
+
+  <!-- ══ PASO 2: Insumos del producto ══ -->
+  @if (currentStep() === 2) {
+    <div class="flex flex-col gap-4">
       <div class="flex items-center justify-between">
         <div>
           <span class="font-medium text-surface-800 dark:text-surface-200">Insumos del producto</span>
@@ -261,17 +308,17 @@
       </div>
     </div>
 
-    <div class="flex justify-end gap-2 mt-6">
-      <p-button label="Cancelar" severity="secondary" icon="pi pi-times" (click)="closeModal()" />
+    <div class="flex justify-between mt-6">
+      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="backToStep2()" />
       <p-button label="Siguiente"
         icon="pi pi-arrow-right"
         iconPos="right"
-        [loading]="isSubmitting()" (click)="submitStep1()" />
+        (click)="submitStep2()" />
     </div>
   }
 
-  <!-- ══ PASO 2: Opciones del producto ══ -->
-  @if (currentStep() === 2) {
+  <!-- ══ PASO 3: Opciones del producto ══ -->
+  @if (currentStep() === 3) {
     <div class="flex flex-col gap-4">
       <p class="text-surface-500 text-sm">
         Selecciona opciones existentes o crea nuevas. Cada opción puede tener su propia receta de insumos.
@@ -420,20 +467,20 @@
     </div>
 
     <div class="flex justify-between mt-6">
-      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="currentStep.set(1)" />
+      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="backToStep3()" />
       <div class="flex gap-2">
         <p-button label="Cancelar" severity="secondary" (click)="closeModal()" />
         <p-button [label]="modalMode() === 'create' ? 'Crear producto' : 'Guardar cambios'"
           icon="pi pi-check"
           [loading]="isSubmitting()"
           [disabled]="hasDuplicateOptions()"
-          (click)="submitStep2()" />
+          (click)="submitStep3()" />
       </div>
     </div>
   }
 
-  <!-- ══ PASO 3: Resumen ══ -->
-  @if (currentStep() === 3) {
+  <!-- ══ PASO 4: Finalizar ══ -->
+  @if (currentStep() === 4) {
     <div class="flex flex-col gap-4">
       <div class="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
         <i class="pi pi-check-circle text-green-500 text-2xl"></i>
@@ -487,7 +534,7 @@
           </div>
         }
 
-        <!-- Images Section in Step 3 -->
+        <!-- Images Section in Step 4 -->
         @if (createdProduct()?.id) {
           <div class="mt-4 border-t border-surface-200 dark:border-surface-700 pt-4">
             <div class="flex items-center justify-between mb-3">

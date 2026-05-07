@@ -45,8 +45,8 @@ import { CurrencyPipe } from '@angular/common';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton';
 import { ProductEditModal } from './componentes/product-edit-modal/product-edit-modal';
 
-// Wizard steps: 1=base+recipe, 2=options, 3=summary
-type WizardStep = 1 | 2 | 3;
+// Wizard steps: 1=basic data+image, 2=insumos, 3=options, 4=finalize
+type WizardStep = 1 | 2 | 3 | 4;
 
 interface OptionFormValue {
   id?: number | null;
@@ -517,17 +517,72 @@ export class Products implements OnInit {
 
   submitStep1(): void {
     if (this.baseForm.invalid) { this.baseForm.markAllAsTouched(); return; }
-    // Always go to step 2 to manage options
-    this.currentStep.set(2);
+
+    const v = this.baseForm.value as {
+      id?: number | null;
+      name: string;
+      basePrice: number;
+      categoryId: number;
+      areaId: number;
+    };
+
+    this.isSubmitting.set(true);
+
+    if (this.modalMode() === 'create') {
+      // Create product first before proceeding to step 2 (insumos)
+      this.productService.createProduct({
+        name: v.name,
+        basePrice: v.basePrice,
+        categoryId: v.categoryId,
+        areaId: v.areaId,
+        recipe: [],
+        optionIds: [],
+      }).pipe(
+        switchMap((product: ProductResponse) => {
+          this.createdProduct.set(product);
+          return of(product);
+        }),
+        catchError(err => {
+          this.logger.error('Error creating product', err);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo crear el producto'
+          });
+          this.isSubmitting.set(false);
+          return EMPTY;
+        })
+      ).subscribe(() => {
+        this.isSubmitting.set(false);
+        this.currentStep.set(2);
+      });
+    } else {
+      // Edit mode: product already exists, just go to step 2
+      this.isSubmitting.set(false);
+      this.currentStep.set(2);
+    }
   }
 
   submitStep2(): void {
+    // Step 2 is now about insumos only - validate base recipe and proceed to step 3 (options)
+    this.currentStep.set(3);
+  }
+
+  backToStep2(): void {
+    this.currentStep.set(2);
+  }
+
+  backToStep3(): void {
+    this.currentStep.set(3);
+  }
+
+  submitStep3(): void {
     if (this.optionsArray.invalid) { this.optionsArray.markAllAsTouched(); return; }
     if (this.hasDuplicateOptions()) {
-      this.messageService.add({ 
-        severity: 'error', 
-        summary: 'Error', 
-        detail: 'No puedes agregar la misma opción más de una vez' 
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No puedes agregar la misma opción más de una vez'
       });
       return;
     }
@@ -581,54 +636,43 @@ export class Products implements OnInit {
         return of(allOptionIds);
       }),
       switchMap((allOptionIds: number[]) => {
-        const v = this.baseForm.value as { 
-          id?: number | null; 
-          name: string; 
-          basePrice: number; 
-          categoryId: number; 
-          areaId: number; 
+        const v = this.baseForm.value as {
+          id?: number | null;
+          name: string;
+          basePrice: number;
+          categoryId: number;
+          areaId: number;
         };
         const existing = this.existingRecipe();
         const baseItems = this.baseRecipe.value as RecipeItemRequest[];
         const recipeItems: RecipeItemRequest[] = [];
         Object.assign(recipeItems, existing);
         Object.assign(recipeItems, baseItems);
-        if (this.modalMode() === 'create') {
-          return this.productService.createProduct({
-            name: v.name,
-            basePrice: v.basePrice,
-            categoryId: v.categoryId,
-            areaId: v.areaId,
-             
-            recipe: recipeItems,
-            optionIds: allOptionIds,
-          });
-        } else {
-          const productId = v.id ?? 0;
-          return this.productService.updateProduct(productId, {
-            id: productId,
-            name: v.name,
-            basePrice: v.basePrice,
-            categoryId: v.categoryId,
-            areaId: v.areaId,
-            recipe: recipeItems,
-            optionIds: allOptionIds,
-          }).pipe(
-            switchMap(() => this.productService.findProduct(productId))
-          );
-        }
+
+        const productId = this.createdProduct()?.id ?? 0;
+        return this.productService.updateProduct(productId, {
+          id: productId,
+          name: v.name,
+          basePrice: v.basePrice,
+          categoryId: v.categoryId,
+          areaId: v.areaId,
+          recipe: recipeItems,
+          optionIds: allOptionIds,
+        }).pipe(
+          switchMap(() => this.productService.findProduct(productId))
+        );
       }),
       switchMap((product: ProductResponse) => {
         this.createdProduct.set(product);
-        // Load the associated options for display in step 3
+        // Load the associated options for display in step 4
         return this.masterDataService.getProductOptions(product.id);
       }),
       catchError(err => {
         this.logger.error('Error saving product with options', err);
-        this.messageService.add({ 
-          severity: 'error', 
-          summary: 'Error', 
-          detail: 'No se pudo guardar el producto con sus opciones' 
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo guardar el producto con sus opciones'
         });
         this.isSubmitting.set(false);
         return EMPTY;
@@ -637,14 +681,9 @@ export class Products implements OnInit {
       this.existingOptions.set(savedOptions);
       this.isSubmitting.set(false);
       this.refreshProducts();
-      this.wsService.emitCacheInvalidation('products', this.modalMode() === 'create' ? 'create' : 'update');
-      this.currentStep.set(3);
+      this.wsService.emitCacheInvalidation('products', 'update');
+      this.currentStep.set(4);
     });
-  }
-
-  skipOptions(): void {
-    // Submit step 2 with no options (product without options)
-    this.submitStep2();
   }
 
   finish(): void {
