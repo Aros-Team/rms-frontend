@@ -1,0 +1,58 @@
+<p-dialog
+  [modal]="true"
+  [(visible)]="visible"
+  header="Editar producto"
+  [style]="{ width: '90vw', maxWidth: '500px' }"
+  [draggable]="false"
+  appendTo="body"
+  (onHide)="close()">
+
+  @if (isLoading()) {
+    <div class="flex justify-center py-8">
+      <i class="pi pi-spin pi-spinner text-2xl text-primary-500"></i>
+    </div>
+  } @else {
+    <form [formGroup]="editForm" class="flex flex-col gap-4">
+      <p-iftalabel>
+        <input pInputText id="name" class="w-full" formControlName="name"
+          [invalid]="isFieldInvalid('name')" />
+        <label for="name">Nombre del producto *</label>
+      </p-iftalabel>
+
+      <p-iftalabel>
+        <p-inputnumber inputId="basePrice" formControlName="basePrice"
+          mode="currency" currency="COP" locale="es-CO" class="w-full"
+          [invalid]="isFieldInvalid('basePrice')" />
+        <label for="basePrice">Precio base *</label>
+      </p-iftalabel>
+
+      <p-iftalabel>
+        <p-select [options]="categories()" inputId="categoryId" class="w-full"
+          optionValue="id" optionLabel="name" formControlName="categoryId"
+          appendTo="body"
+          [invalid]="isFieldInvalid('categoryId')" />
+        <label for="categoryId">Categoría *</label>
+      </p-iftalabel>
+
+      <p-iftalabel>
+        <p-select [options]="areas()" inputId="areaId" class="w-full"
+          optionValue="id" optionLabel="name" formControlName="areaId"
+          appendTo="body"
+          [invalid]="isFieldInvalid('areaId')" />
+        <label for="areaId">Área de preparación *</label>
+      </p-iftalabel>
+
+      <div class="flex items-center gap-2">
+        <input type="checkbox" id="active" formControlName="active" />
+        <label for="active" class="text-sm text-surface-700 dark:text-surface-300">Producto activo</label>
+      </div>
+    </form>
+  }
+
+  <ng-template #footer>
+    <p-button label="Cancelar" severity="secondary" (click)="close()" />
+    <p-button label="Guardar" icon="pi pi-check" [loading]="isSaving()" (click)="save()" />
+  </ng-template>
+</p-dialog>
+
+<p-toast />

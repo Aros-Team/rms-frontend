@@ -95,7 +95,7 @@
               <p-button icon="pi pi-eye" severity="secondary" size="small" [text]="true"
                 pTooltip="Ver detalles" tooltipPosition="top" (click)="showDetailDialog(product)" />
               <p-button icon="pi pi-pencil" severity="warn" size="small" [text]="true"
-                pTooltip="Editar" tooltipPosition="top" (click)="showModificationModal(product.id)" />
+                pTooltip="Editar" tooltipPosition="top" (click)="openEditModal(product.id)" />
               <p-button icon="pi pi-trash" severity="danger" size="small" [text]="true"
                 pTooltip="Eliminar" tooltipPosition="top"
                 (click)="confirmDeleteProduct($event, product)" />
@@ -743,7 +743,7 @@
   <ng-template #footer>
     <p-button label="Cerrar" severity="secondary" icon="pi pi-times" (click)="closeDetailDialog()" />
     <p-button label="Editar" icon="pi pi-pencil"
-      (click)="closeDetailDialog(); showModificationModal(detailProduct()!.id)" />
+      (click)="closeDetailDialog(); openEditModal(detailProduct()!.id)" />
   </ng-template>
 
 </p-dialog>
@@ -767,3 +767,13 @@
     <img [src]="getImageUrl(item, 'tablet')" alt="Thumbnail" class="w-20 h-16 object-cover" />
   </ng-template>
 </p-galleria>
+
+<!-- ════════════════════════════════════════════════
+     SIMPLE EDIT MODAL
+════════════════════════════════════════════════ -->
+<app-product-edit-modal
+  [productId]="editingProductId()"
+  [visible]="editModalVisible"
+  (visibleChange)="editModalVisible.set($event)"
+  (productUpdated)="onProductUpdated()"
+/>

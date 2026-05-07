@@ -43,6 +43,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { CurrencyPipe } from '@angular/common';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton';
+import { ProductEditModal } from './componentes/product-edit-modal/product-edit-modal';
 
 // Wizard steps: 1=base+recipe, 2=options, 3=summary
 type WizardStep = 1 | 2 | 3;
@@ -86,6 +87,7 @@ interface OptionFormValue {
     GalleriaModule,
     ConfirmPopupModule,
     ConfirmDialogModule,
+    ProductEditModal,
   ],
   templateUrl: './products.html',
   providers: [MessageService, ConfirmationService],
@@ -213,6 +215,10 @@ export class Products implements OnInit {
   // Upload state
   localUploadProgress = signal(0);
   isUploadingImage = signal(false);
+
+  // Edit modal state
+  editModalVisible = signal(false);
+  editingProductId = signal<number | null>(null);
 
   // Galleria responsive options
   galleriaResponsiveOptions = [
@@ -967,5 +973,16 @@ export class Products implements OnInit {
       this.newOptionDialogOpen.set(false);
       this.messageService.add({ severity: 'success', summary: 'Opción creada', detail: `"${name}" agregada correctamente` });
     });
+  }
+
+  // ── Edit modal methods ─────────────────────────────────────────
+
+  openEditModal(productId: number): void {
+    this.editingProductId.set(productId);
+    this.editModalVisible.set(true);
+  }
+
+  onProductUpdated(): void {
+    this.refreshProducts();
   }
 }
