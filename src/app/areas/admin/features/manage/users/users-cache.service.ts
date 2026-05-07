@@ -9,7 +9,7 @@ export class UsersCacheService {
 
   // Users list - TTL corto (2 min) por seguridad
   readonly users = new ResourceCache<UserResponse[]>(
-    () => this.userService.getUsers(),
+    () => this.userService.getEmployees(),
     { ttlMs: 2 * 60 * 1000, staleWhileRevalidate: true }
   );
 

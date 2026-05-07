@@ -76,10 +76,10 @@
         "id": "t1",
         "description": "Crear servicio o usar endpoint /employees en manage users",
         "agent": "implementer",
-        "status": "in_progress"
+        "status": "done"
       }
     ],
-    "status": "in_progress"
+    "status": "done"
   },
   {
     "id": "feat/products-pagination",
@@ -90,7 +90,7 @@
         "id": "t1",
         "description": "Actualizar Products component para usar paginacion del backend",
         "agent": "implementer",
-        "status": "pending"
+        "status": "in_progress"
       },
       {
         "id": "t2",
@@ -99,7 +99,7 @@
         "status": "pending"
       }
     ],
-    "status": "pending"
+    "status": "in_progress"
   },
   {
     "id": "feat/supplies-pagination",
