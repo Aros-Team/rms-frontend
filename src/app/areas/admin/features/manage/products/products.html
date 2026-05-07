@@ -96,6 +96,9 @@
                 pTooltip="Ver detalles" tooltipPosition="top" (click)="showDetailDialog(product)" />
               <p-button icon="pi pi-pencil" severity="warn" size="small" [text]="true"
                 pTooltip="Editar" tooltipPosition="top" (click)="showModificationModal(product.id)" />
+              <p-button icon="pi pi-trash" severity="danger" size="small" [text]="true"
+                pTooltip="Eliminar" tooltipPosition="top"
+                (click)="confirmDeleteProduct($event, product)" />
             </div>
           </td>
         </tr>

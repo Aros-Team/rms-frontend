@@ -40,7 +40,7 @@ import { ToastModule } from 'primeng/toast';
 import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
 import { SkeletonModule } from 'primeng/skeleton';
-import { MessageService } from 'primeng/api';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import { CurrencyPipe } from '@angular/common';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton';
 
@@ -88,7 +88,7 @@ interface OptionFormValue {
     ConfirmDialogModule,
   ],
   templateUrl: './products.html',
-  providers: [MessageService],
+  providers: [MessageService, ConfirmationService],
 })
 export class Products implements OnInit {
   private fb = inject(FormBuilder);
@@ -96,6 +96,7 @@ export class Products implements OnInit {
   private productOptionService = inject(ProductOptionService);
   private masterDataService = inject(MasterData);
   private messageService = inject(MessageService);
+  private confirmationService = inject(ConfirmationService);
   private logger = inject(Logging);
   private wsService = inject(WebSocket);
   readonly cache = inject(ProductCacheService);
@@ -829,6 +830,45 @@ export class Products implements OnInit {
           detail: 'La imagen fue eliminada correctamente'
         });
       }
+    });
+  }
+
+  confirmDeleteProduct(event: Event, product: ProductResponse): void {
+    this.confirmationService.confirm({
+      target: event.target as HTMLElement,
+      message: `¿Estás seguro de eliminar "${product.name}"? Esta acción no se puede deshacer.`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Eliminar',
+      rejectLabel: 'Cancelar',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => {
+        this.deleteProduct(product.id);
+      }
+    });
+  }
+
+  private deleteProduct(productId: number): void {
+    this.productService.deleteProduct(productId).pipe(
+      switchMap(() => {
+        this.refreshProducts();
+        this.wsService.emitCacheInvalidation('products', 'delete');
+        return of(null);
+      }),
+      catchError(err => {
+        this.logger.error('Error deleting product', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo eliminar el producto'
+        });
+        return of(null);
+      })
+    ).subscribe(() => {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Producto eliminado',
+        detail: 'El producto fue eliminado correctamente'
+      });
     });
   }
 
