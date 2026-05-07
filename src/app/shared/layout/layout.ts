@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, inject, Input, Output, EventEmitter, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -11,7 +12,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-layout',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Header, Sidebar, Accessibility],
+  imports: [Header, Sidebar, Accessibility, CommonModule],
   templateUrl: './layout.html',
   styles: ``
 })

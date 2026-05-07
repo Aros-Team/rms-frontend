@@ -23,8 +23,14 @@ export class AreaGuard implements CanActivate {
 
     // kitchen route requires KITCHEN area
     if (targetRoute === 'kitchen') {
-      const hasKitchen = userData?.areas.some(a => a.name === 'KITCHEN') ?? false;
+      const hasKitchen = userData?.areas.some(a => a.type === 'KITCHEN') ?? false;
+      const hasService = userData?.areas.some(a => a.type === 'SERVICE' || a.type === 'WAITER') ?? false;
       if (!hasKitchen) {
+        if (!hasService) {
+          // No kitchen AND no service → redirect to profile (safe default)
+          this.logger.warn(`AreaGuard: User lacks both KITCHEN and SERVICE areas, redirecting to profile`);
+          return new RedirectCommand(this.router.parseUrl('/worker/profile'));
+        }
         this.logger.warn(`AreaGuard: User lacks KITCHEN area, redirecting from /worker/kitchen`);
         return new RedirectCommand(this.router.parseUrl('/worker/day-menu'));
       }
@@ -34,8 +40,14 @@ export class AreaGuard implements CanActivate {
     // take-order, orders, day-menu require SERVICE area
     const serviceRoutes = ['take-order', 'orders', 'day-menu'];
     if (serviceRoutes.includes(targetRoute)) {
-      const hasService = userData?.areas.some(a => a.name === 'SERVICE') ?? false;
+      const hasService = userData?.areas.some(a => a.type === 'SERVICE') ?? false;
+      const hasKitchen = userData?.areas.some(a => a.type === 'KITCHEN') ?? false;
       if (!hasService) {
+        if (!hasKitchen) {
+          // No service AND no kitchen → redirect to profile (safe default)
+          this.logger.warn(`AreaGuard: User lacks both SERVICE and KITCHEN areas, redirecting to profile`);
+          return new RedirectCommand(this.router.parseUrl('/worker/profile'));
+        }
         this.logger.warn(`AreaGuard: User lacks SERVICE area, redirecting from /worker/${targetRoute}`);
         return new RedirectCommand(this.router.parseUrl('/worker/kitchen'));
       }

@@ -1,8 +1,8 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, DestroyRef, ChangeDetectorRef, effect } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, DestroyRef, ChangeDetectorRef, effect, signal } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
-import { Layout } from '@app/shared/layout/layout';
+import { WorkerLayout } from '@app/shared/layout/worker-layout';
 import { Menu, MenuItem } from '@app/core/services/menu/menu';
 import { Auth } from '@app/core/services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
@@ -13,7 +13,7 @@ import { ToastModule } from 'primeng/toast';
 @Component({
   selector: 'app-worker-area',
   templateUrl: './worker-area.html',
-  imports: [Layout, RouterOutlet, ToastModule],
+  imports: [WorkerLayout, RouterOutlet, ToastModule],
   providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -27,7 +27,7 @@ export class WorkerArea implements OnInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
   private cdr = inject(ChangeDetectorRef);
 
-  workerType = 'waiter';
+workerType = signal('');
   hideSidebar = false;
   role = 'WORKER';
 
@@ -52,15 +52,31 @@ export class WorkerArea implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.determineRole();
-    this.determineWorkerType();
-    if (this.router.url === '/worker') {
-      const target = this.workerType === 'kitchen' ? '/worker/kitchen' : '/worker/day-menu';
-      void this.router.navigate([target]);
+    void this.waitForUserData().then(() => {
+      this.determineRole();
+      this.determineWorkerType();
+      this.cdr.markForCheck();
+      this.configureWorkerMenu();
+      this.startNotifications();
+      this.setupRouterListener();
+    });
+  }
+
+  private waitForUserData(): Promise<void> {
+    const userData = this.authService.getData();
+    if (userData) {
+      return Promise.resolve();
     }
-    this.configureWorkerMenu();
-    this.startNotifications();
-    this.setupRouterListener();
+    return new Promise<void>(resolve => {
+      const check = () => {
+        if (this.authService.getData()) {
+          resolve();
+        } else {
+          setTimeout(check, 100);
+        }
+      };
+      setTimeout(check, 100);
+    });
   }
 
   private setupRouterListener(): void {
@@ -77,7 +93,7 @@ ngOnDestroy(): void {
   }
 
   private startNotifications(): void {
-    if (this.workerType === 'waiter') {
+    if (this.workerType() === 'waiter') {
       this.notificationService.startPolling();
     }
   }
@@ -92,29 +108,23 @@ ngOnDestroy(): void {
     const userData = this.authService.getData();
     this.logger.debug('WorkerArea: Determining worker type from user data:', userData);
 
-    if (userData?.areas) {
-      const workerAreas = ['SERVICE', 'KITCHEN', 'BAR', 'CASHIER'];
-
-      for (const area of userData.areas) {
-        const areaName = area.name.toUpperCase();
-        if (workerAreas.includes(areaName)) {
-          this.workerType = areaName.toLowerCase();
-          this.logger.debug(`WorkerArea: Determined worker type as '${this.workerType}' from area '${area.name}'`);
-          return;
-        }
-      }
-
-      if (userData.areas.some(area => area.name === 'ADMINISTRATION')) {
-        this.logger.warn('WorkerArea: Admin user in worker area, defaulting to waiter');
-        this.workerType = 'waiter';
-      } else {
-        this.logger.warn('WorkerArea: No recognized worker area found, defaulting to waiter');
-        this.workerType = 'waiter';
-      }
-    } else {
-      this.logger.warn('WorkerArea: No user data available, defaulting to waiter');
-      this.workerType = 'waiter';
+    if (!userData?.areas) {
+      this.logger.warn('WorkerArea: No user data or areas available');
+      void this.router.navigate(['/login']);
+      return;
     }
+
+    for (const area of userData.areas) {
+      const areaType = area.type?.toUpperCase();
+      if (areaType === 'KITCHEN' || areaType === 'WAITER' || areaType === 'SERVICE' || areaType === 'BAR' || areaType === 'CASHIER') {
+        this.workerType.set(areaType.toLowerCase());
+        this.logger.debug(`WorkerArea: Determined worker type as '${this.workerType()}' from area type '${areaType}'`);
+        return;
+      }
+    }
+
+    this.logger.warn('WorkerArea: No recognized worker area found');
+    void this.router.navigate(['/login']);
   }
 
   private configureWorkerMenu(): void {
@@ -151,7 +161,7 @@ ngOnDestroy(): void {
 
     const kitchenItems: MenuItem[] = [];
 
-    const items = this.workerType === 'kitchen' ? kitchenItems : waiterItems;
+    const items = this.workerType() === 'kitchen' ? kitchenItems : waiterItems;
     this.menuService.setMenuItems(items);
   }
 }

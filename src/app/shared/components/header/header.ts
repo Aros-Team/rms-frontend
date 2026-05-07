@@ -21,6 +21,7 @@ export class Header implements OnInit, OnDestroy {
   @Input() isMobile = false;
   @Input() role?: string;
   @Input() isChatOpen = false;
+  @Input() workerType?: string;
   customer = environment.customer;
 
   selectedMenuItem: MenuItem | null = null;
@@ -178,5 +179,17 @@ export class Header implements OnInit, OnDestroy {
 
   cancelLogout(): void {
     this.showLogoutDialog = false;
+  }
+
+  onSettings(): void {
+    void this.router.navigate(['/worker/profile']);
+  }
+
+  onKitchen(): void {
+    void this.router.navigate(['/worker/kitchen']);
+  }
+
+  onHome(): void {
+    void this.router.navigate(['/worker/day-menu']);
   }
 }

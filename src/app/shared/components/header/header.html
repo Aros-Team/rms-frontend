@@ -94,6 +94,36 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
       (click)="onLogout()" aria-label="Cerrar sesión" title="Cerrar sesión">
       <i class="pi pi-sign-out text-surface-600 dark:text-surface-400"></i>
     </button>
+
+    @if (workerType === 'kitchen') {
+    <button 
+      class="p-2 rounded-xl hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer w-10 h-10 flex items-center justify-center shrink-0"
+      (click)="onKitchen()" 
+      aria-label="Ir a cocina" 
+      title="Ir a cocina">
+      <i class="pi pi-box text-surface-600 dark:text-surface-400"></i>
+    </button>
+    }
+
+    @if (workerType === 'service' || workerType === 'waiter') {
+    <button 
+      class="p-2 rounded-xl hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer w-10 h-10 flex items-center justify-center shrink-0"
+      (click)="onHome()" 
+      aria-label="Ir al inicio" 
+      title="Ir al inicio">
+      <i class="pi pi-home text-surface-600 dark:text-surface-400"></i>
+    </button>
+    }
+
+    @if (role === 'WORKER') {
+    <button
+      class="p-2 rounded-xl hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer w-10 h-10 flex items-center justify-center shrink-0"
+      (click)="onSettings()"
+      aria-label="Configuración"
+      title="Configuración">
+      <i class="pi pi-cog text-surface-600 dark:text-surface-400"></i>
+    </button>
+    }
   </section>
 </header>
 
