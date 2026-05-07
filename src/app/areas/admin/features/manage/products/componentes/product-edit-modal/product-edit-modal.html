@@ -46,6 +46,49 @@
         <input type="checkbox" id="active" formControlName="active" />
         <label for="active" class="text-sm text-surface-700 dark:text-surface-300">Producto activo</label>
       </div>
+
+      <!-- Image section -->
+      <div class="flex flex-col gap-2">
+        <span class="text-sm font-medium text-surface-700 dark:text-surface-300">Imágenes del producto</span>
+        
+        @if (imagesLoading()) {
+          <div class="flex justify-center py-4">
+            <i class="pi pi-spin pi-spinner text-xl text-primary-500"></i>
+          </div>
+        } @else {
+          <div class="flex flex-wrap gap-2">
+            @for (image of productImages(); track image.id) {
+              <div class="relative w-20 h-20 rounded-lg overflow-hidden border border-surface-300 dark:border-surface-600">
+                <img [src]="getImageUrl(image, 'desktop')" 
+                     alt="Product image" 
+                     class="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  class="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
+                  (click)="confirmDeleteImage($event, image)">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            }
+          </div>
+          
+          <p-fileupload
+            mode="basic"
+            accept="image/*"
+            [maxFileSize]="5000000"
+            chooseIcon="pi pi-plus"
+            chooseLabel="Agregar imagen"
+            [auto]="true"
+            [customUpload]="true"
+            (onSelect)="onImageSelect($event)"
+            [disabled]="isUploadingImage()"
+            class="mt-2" />
+          
+          @if (isUploadingImage()) {
+            <p-progressbar mode="indeterminate" styleClass="h-1" />
+          }
+        }
+      </div>
     </form>
   }
 

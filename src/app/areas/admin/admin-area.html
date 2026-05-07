@@ -3,4 +3,4 @@
     <router-outlet></router-outlet>
   </div>
 </app-layout>
-<app-chat></app-chat>
+<app-chat (closed)="isChatOpen.set(false)"></app-chat>

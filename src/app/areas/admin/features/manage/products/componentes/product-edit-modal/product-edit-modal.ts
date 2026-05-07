@@ -1,12 +1,16 @@
-import { Component, inject, Input, Output, EventEmitter, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, Input, Output, EventEmitter, signal, OnInit, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Product } from '@app/core/services/products/product';
 import { Logging } from '@app/core/services/logging/logging';
 import { ProductCacheService } from '../../product-cache.service';
+import { ProductImage } from '@app/core/services/product-image';
+import { ProductImageResponse } from '@app/shared/models/dto/products/product-image-response';
 
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
+import { FileUploadModule } from 'primeng/fileupload';
+import { ProgressBarModule } from 'primeng/progressbar';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
@@ -15,6 +19,8 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
 import { AbstractControl, FormBuilder, Validators } from '@angular/forms';
+import { catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-product-edit-modal',
@@ -25,6 +31,8 @@ import { AbstractControl, FormBuilder, Validators } from '@angular/forms';
     FormsModule,
     DialogModule,
     ButtonModule,
+    FileUploadModule,
+    ProgressBarModule,
     IftaLabelModule,
     InputTextModule,
     InputNumberModule,
@@ -35,7 +43,7 @@ import { AbstractControl, FormBuilder, Validators } from '@angular/forms';
   templateUrl: './product-edit-modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProductEditModal implements OnInit {
+export class ProductEditModal implements OnInit, OnChanges {
   @Input() productId: number | null = null;
   @Input() visible = signal(false);
   @Output() visibleChange = new EventEmitter<boolean>();
@@ -45,12 +53,16 @@ export class ProductEditModal implements OnInit {
   private productService = inject(Product);
   private logger = inject(Logging);
   private messageService = inject(MessageService);
+  private imageService = inject(ProductImage);
   readonly cache = inject(ProductCacheService);
 
   categories = signal<{ id: number; name: string }[]>([]);
   areas = signal<{ id: number; name: string }[]>([]);
   isLoading = signal(false);
   isSaving = signal(false);
+  productImages = signal<ProductImageResponse[]>([]);
+  imagesLoading = signal(false);
+  isUploadingImage = signal(false);
 
   editForm = this.fb.group({
     id: [null as number | null],
@@ -60,6 +72,13 @@ export class ProductEditModal implements OnInit {
     areaId: [null as number | null, (control: AbstractControl) => Validators.required(control)],
     active: [true],
   });
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  ngOnChanges(_changes: SimpleChanges): void {
+    if (this.productId !== null) {
+      this.loadProduct(this.productId);
+    }
+  }
 
   ngOnInit(): void {
     this.loadReferenceData();
@@ -88,6 +107,7 @@ export class ProductEditModal implements OnInit {
           active: product.active,
         });
         this.isLoading.set(false);
+        this.loadProductImages(id);
       },
       error: (err) => {
         this.logger.error('Error loading product', err);
@@ -98,6 +118,63 @@ export class ProductEditModal implements OnInit {
         });
         this.isLoading.set(false);
         this.close();
+      }
+    });
+  }
+
+  loadProductImages(productId: number): void {
+    this.imagesLoading.set(true);
+    this.imageService.getImages(productId).pipe(
+      catchError(() => of([]))
+    ).subscribe(images => {
+      this.productImages.set(images);
+      this.imagesLoading.set(false);
+    });
+  }
+
+  getImageUrl(image: ProductImageResponse, type: 'mobile' | 'tablet' | 'desktop' = 'desktop'): string {
+    return type === 'mobile' ? image.mobileUrl : type === 'tablet' ? image.tabletUrl : image.desktopUrl;
+  }
+
+  onImageSelect(event: { files: File[] }): void {
+    const files: File[] = event.files;
+    if (files.length === 0 || !this.productId) return;
+
+    this.isUploadingImage.set(true);
+    this.imageService.uploadImage(this.productId, files[0]).subscribe({
+      next: (result) => {
+        const image = result.image;
+        if (image != null) {
+          this.productImages.update(imgs => [...imgs, image]);
+        }
+      },
+      error: (err) => {
+        this.logger.error('Error uploading image', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error de upload',
+          detail: 'No se pudo subir la imagen'
+        });
+        this.isUploadingImage.set(false);
+      },
+      complete: () => {
+        this.isUploadingImage.set(false);
+        const id = this.productId;
+        if (id !== null) {
+          this.loadProductImages(id);
+        }
+      }
+    });
+  }
+
+  confirmDeleteImage(event: Event, image: ProductImageResponse): void {
+    const productId = this.productId;
+    if (!productId) return;
+    this.imageService.deleteImage(productId, image.id).pipe(
+      catchError(() => of(false))
+    ).subscribe(result => {
+      if (result) {
+        this.loadProductImages(productId);
       }
     });
   }

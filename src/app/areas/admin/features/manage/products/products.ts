@@ -119,6 +119,7 @@ export class Products implements OnInit {
   // Thumbnails map (productId -> first image url)
   productThumbnails = signal<Map<number, string>>(new Map());
   thumbnailsLoading = signal(false);
+  private failedThumbnailProductIds = signal<Set<number>>(new Set());
 
   // Table data - computed from cache with override support
   private _productsOverride = signal<ProductResponse[] | undefined>(undefined);
@@ -702,6 +703,7 @@ export class Products implements OnInit {
   }
 
   private refreshProducts(): void {
+    this.failedThumbnailProductIds.set(new Set());
     this.cache.products.refresh();
   }
 
@@ -731,10 +733,15 @@ export class Products implements OnInit {
   loadProductThumbnails(productIds: number[]): void {
     if (productIds.length === 0) return;
 
+    // Filter out IDs we've already tried and failed for
+    const failedIds = this.failedThumbnailProductIds();
+    const idsToLoad = productIds.filter(id => !failedIds.has(id));
+    if (idsToLoad.length === 0) return;
+
     this.thumbnailsLoading.set(true);
 
     forkJoin(
-      productIds.map(id =>
+      idsToLoad.map(id =>
         this.imageService.getImages(id).pipe(
           map(images => ({ productId: id, thumbnail: images[0]?.desktopUrl ?? null })),
           catchError(() => of({ productId: id, thumbnail: null }))
@@ -743,10 +750,19 @@ export class Products implements OnInit {
     ).subscribe(results => {
       const map = new Map<number, string>();
       results.forEach(r => {
-        if (r.thumbnail) map.set(r.productId, r.thumbnail);
+        if (r.thumbnail) {
+          map.set(r.productId, r.thumbnail);
+        }
       });
       this.productThumbnails.set(map);
       this.thumbnailsLoading.set(false);
+
+      // If ALL thumbnails are null (map is empty), mark these IDs as permanently failed
+      if (map.size === 0) {
+        const newFailed = new Set(failedIds);
+        results.forEach(r => newFailed.add(r.productId));
+        this.failedThumbnailProductIds.set(newFailed);
+      }
     });
   }
 
@@ -903,13 +919,13 @@ export class Products implements OnInit {
       rejectLabel: 'Cancelar',
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
-        this.deleteProduct(product.id);
+        this.disableProduct(product.id);
       }
     });
   }
 
-  private deleteProduct(productId: number): void {
-    this.productService.deleteProduct(productId).pipe(
+  private disableProduct(productId: number): void {
+    this.productService.disableProduct(productId).pipe(
       switchMap(() => {
         this.refreshProducts();
         this.wsService.emitCacheInvalidation('products', 'delete');

@@ -66,22 +66,7 @@ This project uses [Taskfile](https://taskfile.dev/) for running common commands.
   task test
   ```
 
-- **Lint and format:**
+- **And format:**
   ```bash
   task format        # Check and fix formatting
-  task format:check  # Check without fixing
   ```
-
-
-## WebSocket Integration
-
-The kitchen module uses WebSocket for real-time order updates. See the documentation for details:
-
-- [WebSocket Implementation Guide](docs/websocket-implementation.md) - Technical details and architecture
-- [WebSocket Usage Examples](docs/websocket-ejemplo-uso.md) - How to use WebSocket in other components
-- [WebSocket Summary](docs/websocket-resumen.md) - Quick overview in Spanish
-
-The WebSocket connection is established automatically when accessing the kitchen view, providing instant updates for:
-- New orders (QUEUE)
-- Orders in preparation (PREPARING)
-- Orders ready for delivery (READY)

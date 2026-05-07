@@ -1,4 +1,4 @@
-import { Component, inject, signal, ChangeDetectionStrategy, OnDestroy, AfterViewChecked, ViewChild, ElementRef } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy, OnDestroy, AfterViewChecked, ViewChild, ElementRef, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -17,6 +17,7 @@ import { Logging } from '@app/core/services/logging/logging';
 })
 export class Chat implements OnDestroy, AfterViewChecked {
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
+  @Output() closed = new EventEmitter<void>();
   private scrollInitialized = false;
 
   private chatService = inject(ChatService);
@@ -56,6 +57,7 @@ export class Chat implements OnDestroy, AfterViewChecked {
 
   closeChat(): void {
     this.isOpen.set(false);
+    this.closed.emit();
   }
 
   ngOnDestroy(): void {

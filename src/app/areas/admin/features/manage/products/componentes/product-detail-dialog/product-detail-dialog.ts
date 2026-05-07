@@ -94,6 +94,8 @@ export class ProductDetailDialog implements OnChanges {
     this.imageService.getImages(productId).pipe(
       catchError(err => {
         this.logger.error('Error loading product images', err);
+        this.imagesLoading.set(false);
+        // On 404 (product deleted), return empty but mark as handled
         return of([]);
       })
     ).subscribe(images => {
