@@ -62,8 +62,8 @@ export class WebSocket implements OnDestroy {
         this.logger.debug('WebSocket STOMP:', str);
       },
       reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
+      heartbeatIncoming: 20000,
+      heartbeatOutgoing: 20000,
       connectionTimeout: 10000,
     });
 
@@ -77,14 +77,13 @@ export class WebSocket implements OnDestroy {
 
     this.client.onStompError = (frame) => {
       this.logger.error('WebSocket STOMP Error:', frame.headers['message'], frame.body);
-      console.error('WebSocket STOMP Error:', frame);
+      this.logger.error('WebSocket STOMP Error frame:', frame);
       this.connected = false;
       this.connectionSubject.next(false);
     };
 
     this.client.onWebSocketError = (event) => {
       this.logger.error('WebSocket Error:', event);
-      console.error('WebSocket connection error:', event);
       this.connected = false;
       this.connectionSubject.next(false);
     };
@@ -92,7 +91,6 @@ export class WebSocket implements OnDestroy {
     this.client.onWebSocketClose = (event) => {
       const closeEvent = event as { code?: number; reason?: string };
       this.logger.warn('WebSocket closed:', closeEvent.code, closeEvent.reason);
-      console.warn('WebSocket closed:', event);
       this.connected = false;
       this.connectionSubject.next(false);
     };
@@ -109,7 +107,6 @@ export class WebSocket implements OnDestroy {
       this.logger.debug('WebSocket: Client activated');
     } catch (error) {
       this.logger.error('WebSocket: Failed to activate client', error);
-      console.error('WebSocket: Activation error:', error);
       this.connected = false;
       this.connectionSubject.next(false);
     }
@@ -132,7 +129,6 @@ export class WebSocket implements OnDestroy {
         this.orderCreatedSubject.next(order);
       } catch (error) {
         this.logger.error('WebSocket: Error parsing created order', error);
-        console.error('WebSocket: Parse error for created order:', error);
       }
     });
     this.subscriptions.set('/topic/orders/created', createdSub);
@@ -147,7 +143,6 @@ export class WebSocket implements OnDestroy {
         this.orderPreparingSubject.next(order);
       } catch (error) {
         this.logger.error('WebSocket: Error parsing preparing order', error);
-        console.error('WebSocket: Parse error for preparing order:', error);
       }
     });
     this.subscriptions.set('/topic/orders/preparing', preparingSub);
@@ -162,7 +157,6 @@ export class WebSocket implements OnDestroy {
         this.orderReadySubject.next(order);
       } catch (error) {
         this.logger.error('WebSocket: Error parsing ready order', error);
-        console.error('WebSocket: Parse error for ready order:', error);
       }
     });
     this.subscriptions.set('/topic/orders/ready', readySub);
@@ -190,7 +184,6 @@ export class WebSocket implements OnDestroy {
         this.orderDeliveredSubject.next(order);
       } catch (error) {
         this.logger.error('WebSocket: Error parsing delivered order', error);
-        console.error('WebSocket: Parse error for delivered order:', error);
       }
     });
     this.subscriptions.set('/topic/orders/delivered', deliveredSub);

@@ -10,6 +10,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TagModule } from 'primeng/tag';
+import { SkeletonModule } from 'primeng/skeleton';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { UserResponse } from '@app/shared/models/dto/users/user-response.model';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -24,6 +25,7 @@ import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
 import { AreaResponse } from '@app/shared/models/dto/areas/area.model';
 import { Area } from '@app/core/services/areas/area';
 import { signal } from '@angular/core';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton';
 
 interface UserFormValue {
   document: string;
@@ -48,9 +50,11 @@ interface UserFormValue {
     IconFieldModule,
     MultiSelectModule,
     TagModule,
+    SkeletonModule,
     ConfirmDialogModule,
     FormValidation,
     LazyLoadDirective,
+    TableSkeleton,
   ],
   templateUrl: './users.html',
   styles: ``,

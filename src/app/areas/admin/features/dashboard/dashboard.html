@@ -5,7 +5,7 @@
          (touchstart)="onTouchStart($event)"
          (touchmove)="onTouchMove($event)"
          (touchend)="onTouchEnd()">
-      
+
       <div class="w-full h-full flex-shrink-0">
         <div class="flex flex-col gap-4 h-full p-4">
           <header class="border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-100 dark:bg-surface-800 overflow-hidden flex-shrink-0">
@@ -47,60 +47,85 @@
                 </button>
               </div>
 
-              <div class="flex justify-around pt-2 border-t border-surface-200 dark:border-surface-700">
-                <div class="text-center">
-                  <div class="text-lg font-bold text-surface-700 dark:text-surface-300">
-                    {{ completedOrdersCount() }}
+              @if (!isStatsLoaded()) {
+                <div class="flex justify-around pt-2 border-t border-surface-200 dark:border-surface-700">
+                  <div class="text-center">
+                    <p-skeleton width="40px" height="20px" />
+                    <div class="text-xs text-surface-500">Completados</div>
                   </div>
-                  <div class="text-xs text-surface-500">Completados</div>
+                  <div class="text-center">
+                    <p-skeleton width="40px" height="20px" />
+                    <div class="text-xs text-surface-500">Mesas</div>
+                  </div>
+                  <div class="text-center">
+                    <p-skeleton width="40px" height="20px" />
+                    <div class="text-xs text-surface-500">Preparando</div>
+                  </div>
                 </div>
-                <div class="text-center">
-                  <div class="text-lg font-bold text-surface-700 dark:text-surface-300">{{ occupiedTablesCount() }}</div>
-                  <div class="text-xs text-surface-500">Mesas</div>
+              } @else {
+                <div class="flex justify-around pt-2 border-t border-surface-200 dark:border-surface-700">
+                  <div class="text-center">
+                    <div class="text-lg font-bold text-surface-700 dark:text-surface-300">
+                      {{ completedOrdersCount() }}
+                    </div>
+                    <div class="text-xs text-surface-500">Completados</div>
+                  </div>
+                  <div class="text-center">
+                    <div class="text-lg font-bold text-surface-700 dark:text-surface-300">{{ occupiedTablesCount() }}</div>
+                    <div class="text-xs text-surface-500">Mesas</div>
+                  </div>
+                  <div class="text-center">
+                    <div class="text-lg font-bold text-surface-700 dark:text-surface-300">{{ preparingOrdersCount() }}</div>
+                    <div class="text-xs text-surface-500">Preparando</div>
+                  </div>
                 </div>
-                <div class="text-center">
-                  <div class="text-lg font-bold text-surface-700 dark:text-surface-300">{{ preparingOrdersCount() }}</div>
-                  <div class="text-xs text-surface-500">Preparando</div>
-                </div>
-              </div>
+              }
             </div>
           </header>
 
           <section class="flex-1 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast flex flex-col min-h-0 overflow-hidden">
             <header class="flex justify-between items-center p-3 border-b border-surface-200 dark:border-surface-700 flex-shrink-0">
               <h2 class="text-base font-bold text-surface-700 dark:text-surface-300">Pedidos del Día</h2>
-              <span class="rounded-full bg-primary-500 py-0.5 px-2 text-primary-contrast text-xs">{{orders().length}}</span>
+              @if (isOrdersLoading()) {
+                <p-skeleton width="30px" height="18px" borderRadius="12px" />
+              } @else {
+                <span class="rounded-full bg-primary-500 py-0.5 px-2 text-primary-contrast text-xs">{{orders().length}}</span>
+              }
             </header>
 
             <div class="flex-1 overflow-auto p-2">
-              <div class="space-y-2">
-                @for (order of orders(); track order.id) {
-                <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-3 border border-surface-200 dark:border-surface-700">
-                  <div class="flex justify-between items-start mb-2">
-                    <div class="flex items-center gap-2">
-                      <span class="font-mono text-sm text-surface-500">#{{ order.id }}</span>
-                      <span class="font-medium">{{ order.table }}</span>
+              @if (isOrdersLoading()) {
+                <app-list-skeleton [itemCount]="3" firstColWidth="40px" secondColWidth="50px" badgeWidth="60px" badgeHeight="18px" badgeBorderRadius="12px" actionSize="1.5rem" />
+              } @else {
+                <div class="space-y-2">
+                  @for (order of orders(); track order.id) {
+                  <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-3 border border-surface-200 dark:border-surface-700">
+                    <div class="flex justify-between items-start mb-2">
+                      <div class="flex items-center gap-2">
+                        <span class="font-mono text-sm text-surface-500">#{{ order.id }}</span>
+                        <span class="font-medium">{{ order.table }}</span>
+                      </div>
+                      <span [class]="getStatusBadgeClass(order.status)" class="px-2 py-0.5 rounded-full text-xs font-medium">
+                        {{ getStatusText(order.status) }}
+                      </span>
                     </div>
-                    <span [class]="getStatusBadgeClass(order.status)" class="px-2 py-0.5 rounded-full text-xs font-medium">
-                      {{ getStatusText(order.status) }}
-                    </span>
-                  </div>
-                  <div class="flex justify-between items-center">
-                    <span class="text-sm text-surface-600 dark:text-surface-400">{{ formatDate(order.date) }}</span>
-                    <div class="flex items-center gap-2">
-                      <span class="font-semibold">$ {{ calcTotal(order) | number:'1.0-0' }}</span>
-                      <p-button icon="pi pi-ellipsis-h" size="small" [text]="true" [rounded]="true" severity="secondary"
-                        (onClick)="viewOrderDetails(order)" title="Ver detalle del pedido">
-                      </p-button>
+                    <div class="flex justify-between items-center">
+                      <span class="text-sm text-surface-600 dark:text-surface-400">{{ formatDate(order.date) }}</span>
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold">$ {{ calcTotal(order) | number:'1.0-0' }}</span>
+                        <p-button icon="pi pi-ellipsis-h" size="small" [text]="true" [rounded]="true" severity="secondary"
+                          (onClick)="viewOrderDetails(order)" title="Ver detalle del pedido">
+                        </p-button>
+                      </div>
                     </div>
                   </div>
+                  } @empty {
+                  <div class="text-center p-4 text-surface-500">
+                    No hay pedidos para mostrar
+                  </div>
+                  }
                 </div>
-                } @empty {
-                <div class="text-center p-4 text-surface-500">
-                  No hay pedidos para mostrar
-                </div>
-                }
-              </div>
+              }
             </div>
           </section>
 
@@ -117,10 +142,12 @@
       <div class="w-full h-full flex-shrink-0 p-4 flex flex-col gap-4">
         <div class="flex-1 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast overflow-hidden flex flex-col">
           <header class="flex justify-between items-center p-4 border-b border-surface-200 dark:border-surface-700">
-            <h2 class="font-bold text-lg break-words">Menú del Día</h2>
+            <h2 class="text-surface-700 dark:text-surface-300 text-lg break-words">Menú del Día</h2>
           </header>
           <div class="p-4 flex-1 overflow-y-auto">
-            @if (dayMenu()) {
+            @if (loadingDayMenu()) {
+              <app-daymenu-skeleton variant="mobile" />
+            } @else if (dayMenu()) {
             <div class="bg-surface-50 dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 p-4">
               <div class="flex items-center gap-2 mb-3">
                 <i class="pi pi-thumbtack text-lg text-primary-500"></i>
@@ -203,31 +230,46 @@
         </div>
 
           <div class="flex justify-around pt-4 border-t border-surface-200 dark:border-surface-700">
-            <div class="text-center">
-              <div class="flex justify-center items-center gap-2">
-                <div class="text-2xl font-bold text-surface-700 dark:text-surface-300">
-                  @if (showSales()) {
-                  ${{ totalSales() | number:'1.0-0' }}
-                  } @else {
-                  •••
-                  }
-                </div>
-                <p-button [icon]="showSales() ? 'pi pi-eye' : 'pi pi-eye-slash'" size="small" [text]="true" [rounded]="true"
-                  severity="secondary" (onClick)="toggleSalesVisibility()"
-                  [title]="showSales() ? 'Ocultar ventas' : 'Mostrar ventas'">
-                </p-button>
+            @if (!isStatsLoaded()) {
+              <div class="text-center">
+                <p-skeleton width="100px" height="28px" />
+                <div class="text-sm text-surface-500">Ventas</div>
               </div>
-              <div class="text-sm text-surface-500">Ventas</div>
-            </div>
+              <div class="text-center">
+                <p-skeleton width="40px" height="28px" />
+                <div class="text-sm text-surface-500">Mesas Ocupadas</div>
+              </div>
+              <div class="text-center">
+                <p-skeleton width="40px" height="28px" />
+                <div class="text-sm text-surface-500">Preparando</div>
+              </div>
+            } @else {
+              <div class="text-center">
+                <div class="flex justify-center items-center gap-2">
+                  <div class="text-2xl font-bold text-surface-700 dark:text-surface-300">
+                    @if (showSales()) {
+                    ${{ totalSales() | number:'1.0-0' }}
+                    } @else {
+                    •••
+                    }
+                  </div>
+                  <p-button [icon]="showSales() ? 'pi pi-eye' : 'pi pi-eye-slash'" size="small" [text]="true" [rounded]="true"
+                    severity="secondary" (onClick)="toggleSalesVisibility()"
+                    [title]="showSales() ? 'Ocultar ventas' : 'Mostrar ventas'">
+                  </p-button>
+                </div>
+                <div class="text-sm text-surface-500">Ventas</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl font-bold text-surface-700 dark:text-surface-300">{{ occupiedTablesCount() }}</div>
+                <div class="text-sm text-surface-500">Mesas Ocupadas</div>
+              </div>
             <div class="text-center">
-              <div class="text-2xl font-bold text-surface-700 dark:text-surface-300">{{ occupiedTablesCount() }}</div>
-              <div class="text-sm text-surface-500">Mesas Ocupadas</div>
+              <div class="text-2xl font-bold text-surface-700 dark:text-surface-300">{{ preparingOrdersCount() }}</div>
+              <div class="text-sm text-surface-500">Preparando</div>
             </div>
-          <div class="text-center">
-            <div class="text-2xl font-bold text-surface-700 dark:text-surface-300">{{ preparingOrdersCount() }}</div>
-            <div class="text-sm text-surface-500">Preparando</div>
+            }
           </div>
-        </div>
       </div>
     </header>
 
@@ -237,7 +279,9 @@
           <h2 class="font-bold text-base break-words">Menú del Día</h2>
         </header>
         <div class="p-3 flex-1 overflow-y-auto">
-          @if (dayMenu()) {
+          @if (loadingDayMenu()) {
+            <app-daymenu-skeleton variant="tablet" />
+          } @else if (dayMenu()) {
           <div class="bg-surface-50 dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 p-3">
             <div class="flex items-center gap-2 mb-2">
               <i class="pi pi-thumbtack text-primary-500"></i>
@@ -269,38 +313,52 @@
       <section class="w-[55%] border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast flex flex-col overflow-hidden">
         <header class="flex justify-between items-center p-3 border-b border-surface-200 dark:border-surface-700 flex-shrink-0">
           <h2 class="text-base font-bold text-surface-700 dark:text-surface-300">Pedidos del Día</h2>
-          <span class="rounded-full bg-primary-500 py-0.5 px-2 text-primary-contrast text-xs">{{orders().length}}</span>
+          @if (isOrdersLoading()) {
+            <p-skeleton width="30px" height="18px" borderRadius="12px" />
+          } @else {
+            <span class="rounded-full bg-primary-500 py-0.5 px-2 text-primary-contrast text-xs">{{orders().length}}</span>
+          }
         </header>
 
         <div class="flex-1 overflow-auto p-2">
-          <div class="space-y-2">
-            @for (order of orders(); track order.id) {
-            <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-2 border border-surface-200 dark:border-surface-700">
-              <div class="flex justify-between items-start mb-1">
-                <div class="flex items-center gap-2">
-                  <span class="font-mono text-xs text-surface-500">#{{ order.id }}</span>
-                  <span class="font-medium text-sm">{{ order.table }}</span>
+          @if (isOrdersLoading()) {
+            <app-list-skeleton [itemCount]="3"
+            firstColWidth="40px"
+            secondColWidth="50px"
+            badgeWidth="60px"
+            badgeHeight="18px"
+            badgeBorderRadius="12px"
+            actionSize="1.5rem" />
+          } @else {
+            <div class="space-y-2">
+              @for (order of orders(); track order.id) {
+              <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-2 border border-surface-200 dark:border-surface-700">
+                <div class="flex justify-between items-start mb-1">
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono text-xs text-surface-500">#{{ order.id }}</span>
+                    <span class="font-medium text-sm">{{ order.table }}</span>
+                  </div>
+                  <span [class]="getStatusBadgeClass(order.status)" class="px-2 py-0.5 rounded-full text-xs font-medium">
+                    {{ getStatusText(order.status) }}
+                  </span>
                 </div>
-                <span [class]="getStatusBadgeClass(order.status)" class="px-2 py-0.5 rounded-full text-xs font-medium">
-                  {{ getStatusText(order.status) }}
-                </span>
-              </div>
-              <div class="flex justify-between items-center text-sm">
-                <span class="text-xs text-surface-600 dark:text-surface-400">{{ formatDate(order.date) }}</span>
-                <div class="flex items-center gap-2">
-                  <span class="font-semibold">$ {{ calcTotal(order) | number:'1.0-0' }}</span>
-                  <p-button icon="pi pi-ellipsis-h" size="small" [text]="true" [rounded]="true" severity="secondary"
-                    (onClick)="viewOrderDetails(order)" title="Ver detalle del pedido">
-                  </p-button>
+                <div class="flex justify-between items-center text-sm">
+                  <span class="text-xs text-surface-600 dark:text-surface-400">{{ formatDate(order.date) }}</span>
+                  <div class="flex items-center gap-2">
+                    <span class="font-semibold">$ {{ calcTotal(order) | number:'1.0-0' }}</span>
+                    <p-button icon="pi pi-ellipsis-h" size="small" [text]="true" [rounded]="true" severity="secondary"
+                      (onClick)="viewOrderDetails(order)" title="Ver detalle del pedido">
+                    </p-button>
+                  </div>
                 </div>
               </div>
+              } @empty {
+              <div class="text-center p-4 text-surface-500">
+                No hay pedidos para mostrar
+              </div>
+              }
             </div>
-            } @empty {
-            <div class="text-center p-4 text-surface-500">
-              No hay pedidos para mostrar
-            </div>
-            }
-          </div>
+          }
         </div>
       </section>
     </div>
@@ -312,7 +370,9 @@
         <h2 class="font-bold text-lg break-words">Menú del Día</h2>
       </header>
       <div class="p-4 flex-1 overflow-y-auto">
-        @if (dayMenu()) {
+          @if (loadingDayMenu()) {
+            <app-daymenu-skeleton variant="desktop" />
+          } @else if (dayMenu()) {
         <div class="bg-surface-50 dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 p-4">
           <div class="flex items-center gap-2 mb-3">
             <i class="pi pi-thumbtack text-primary-500"></i>
@@ -348,7 +408,7 @@
             <h2 class="text-xl font-bold text-surface-700 dark:text-surface-300">{{ currentDate() }}</h2>
             <p class="text-base text-surface-600 dark:text-surface-400">{{ currentTime() }}</p>
           </div>
-          <button 
+          <button
             class="px-3 py-1 rounded-full text-xs font-medium flex items-center gap-2 flex-shrink-0 transition-colors"
             [class.bg-green-100]="serverStatus() === 'online'"
             [class.text-green-700]="serverStatus() === 'online'"
@@ -364,7 +424,7 @@
             [class.dark:text-yellow-300]="serverStatus() === 'checking'"
             (click)="checkServerStatus()"
             title="Estado del servidor">
-            <i 
+            <i
               class="pi text-xs"
               [class.pi-check-circle]="serverStatus() === 'online'"
               [class.pi-times-circle]="serverStatus() === 'offline'"
@@ -381,51 +441,63 @@
         </div>
 
         <section class="flex-1 flex flex-row px-4 py-2 gap-2">
-          <div class="flex-1 text-center border-r border-surface-200 dark:border-surface-700 flex flex-col justify-center">
-            <div class="flex justify-center items-center gap-2">
-              <div class="text-3xl font-bold text-surface-700 dark:text-surface-300">
-                @if (showSales()) {
-                $ {{ totalSales() | number:'1.0-0' }}
-                } @else {
-                •••••
-                }
+          @if (!isStatsLoaded()) {
+            <div class="flex-1 text-center border-r border-surface-200 dark:border-surface-700 flex flex-col justify-center">
+              <p-skeleton width="100px" height="28px" styleClass="mx-auto" />
+            </div>
+            <div class="flex-1 text-center border-r border-surface-200 dark:border-surface-700 flex flex-col justify-center">
+              <p-skeleton width="40px" height="28px" styleClass="mx-auto" />
+            </div>
+            <div class="flex-1 text-center flex flex-col justify-center">
+              <p-skeleton width="40px" height="28px" styleClass="mx-auto" />
+            </div>
+          } @else {
+            <div class="flex-1 text-center border-r border-surface-200 dark:border-surface-700 flex flex-col justify-center">
+              <div class="flex justify-center items-center gap-2">
+                <div class="text-3xl font-bold text-surface-700 dark:text-surface-300">
+                  @if (showSales()) {
+                  $ {{ totalSales() | number:'1.0-0' }}
+                  } @else {
+                  •••••
+                  }
+                </div>
+                <p-button [icon]="showSales() ? 'pi pi-eye' : 'pi pi-eye-slash'" size="small" [text]="true" [rounded]="true"
+                  severity="secondary" (onClick)="toggleSalesVisibility()"
+                  [title]="showSales() ? 'Ocultar ventas' : 'Mostrar ventas'">
+                </p-button>
               </div>
-              <p-button [icon]="showSales() ? 'pi pi-eye' : 'pi pi-eye-slash'" size="small" [text]="true" [rounded]="true"
-                severity="secondary" (onClick)="toggleSalesVisibility()"
-                [title]="showSales() ? 'Ocultar ventas' : 'Mostrar ventas'">
-              </p-button>
+              <div class="text-base text-surface-600 dark:text-surface-400 mt-1">
+                Ventas del Día
+              </div>
+              <p class="text-sm text-surface-500 dark:text-surface-500">
+                {{ completedOrdersCount() }} pedidos
+              </p>
             </div>
-            <div class="text-base text-surface-600 dark:text-surface-400 mt-1">
-              Ventas del Día
-            </div>
-            <p class="text-sm text-surface-500 dark:text-surface-500">
-              {{ completedOrdersCount() }} pedidos
-            </p>
-          </div>
 
-          <div class="flex-1 text-center border-r border-surface-200 dark:border-surface-700 flex flex-col justify-center">
-            <div class="text-3xl font-bold text-surface-700 dark:text-surface-300">
-              {{ occupiedTablesCount() }}
+            <div class="flex-1 text-center border-r border-surface-200 dark:border-surface-700 flex flex-col justify-center">
+              <div class="text-3xl font-bold text-surface-700 dark:text-surface-300">
+                {{ occupiedTablesCount() }}
+              </div>
+              <div class="text-base text-surface-600 dark:text-surface-400 mt-1">
+                Mesas Ocupadas
+              </div>
+              <p class="text-sm text-surface-500 dark:text-surface-500">
+                De {{totalTables()}} totales
+              </p>
             </div>
-            <div class="text-base text-surface-600 dark:text-surface-400 mt-1">
-              Mesas Ocupadas
-            </div>
-            <p class="text-sm text-surface-500 dark:text-surface-500">
-              De {{totalTables()}} totales
-            </p>
-          </div>
 
-          <div class="flex-1 text-center flex flex-col justify-center">
-            <div class="text-3xl font-bold text-surface-700 dark:text-surface-300">
-              {{ preparingOrdersCount() }}
+            <div class="flex-1 text-center flex flex-col justify-center">
+              <div class="text-3xl font-bold text-surface-700 dark:text-surface-300">
+                {{ preparingOrdersCount() }}
+              </div>
+              <div class="text-base text-surface-600 dark:text-surface-400 mt-1">
+                En Preparación
+              </div>
+              <p class="text-sm text-surface-500 dark:text-surface-500">
+                Pedidos activos
+              </p>
             </div>
-            <div class="text-base text-surface-600 dark:text-surface-400 mt-1">
-              En Preparación
-            </div>
-            <p class="text-sm text-surface-500 dark:text-surface-500">
-              Pedidos activos
-            </p>
-          </div>
+          }
         </section>
       </header>
 
@@ -438,53 +510,60 @@
         </header>
 
         <div class="p-4 pt-0 flex-1 min-h-0 overflow-hidden">
-          @if (orders().length === 0 && isLoading()) {
-            <p-skeleton height="400px" />
-          } @else {
-            <p-table [value]="orders()" size="small" selectionMode="single" [scrollable]="true" scrollHeight="flex"
-              scrollWidth="flex" responsiveLayout="scroll" styleClass="h-full"
-              [tableStyle]="{'min-width': '20rem'}"
-              [stripedRows]="true" [showGridlines]="true" [loading]="isLoading()">
-              <ng-template pTemplate="header">
-                <tr>
-                  <th class="text-left">ID</th>
-                  <th class="text-left">Mesa</th>
-                  <th class="text-left">Fecha</th>
-                  <th class="text-left">Estado</th>
-                  <th class="text-right">Total</th>
-                  <th class="text-center">Detalles</th>
-                </tr>
-              </ng-template>
+          <p-table [value]="orders()" size="small" selectionMode="single" [scrollable]="true" scrollHeight="flex"
+            scrollWidth="flex" responsiveLayout="scroll" styleClass="h-full"
+            [tableStyle]="{'min-width': '20rem'}"
+            [stripedRows]="true" [loading]="isOrdersLoading()" [showLoader]="false">
+            <ng-template pTemplate="header">
+              <tr>
+                <th class="text-left">ID</th>
+                <th class="text-left">Mesa</th>
+                <th class="text-left">Fecha</th>
+                <th class="text-left">Estado</th>
+                <th class="text-right">Total</th>
+                <th class="text-center">Detalles</th>
+              </tr>
+            </ng-template>
 
-              <ng-template pTemplate="body" let-order>
-                <tr>
-                  <td class="font-mono text-sm">{{ order.id }}</td>
-                  <td class="font-medium">{{ order.table }}</td>
-                  <td class="text-sm text-surface-600 dark:text-surface-400">
-                    {{ formatDate(order.date) }}
-                  </td>
-                  <td>
-                    <p-tag [value]="getStatusText(order.status)" [severity]="getStatusSeverity(order.status)" />
-                  </td>
-                  <td class="text-right font-semibold">
-                    $ {{ calcTotal(order) | number:'1.0-0' }}
-                  </td>
-                  <td class="text-center">
-                    <p-button icon="pi pi-ellipsis-h" size="small" [text]="true" [rounded]="true" severity="secondary"
-                      (onClick)="viewOrderDetails(order)" title="Ver detalle del pedido">
-                    </p-button>
-                  </td>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="emptymessage">
-                <tr>
-                  <td colspan="6" class="text-center text-surface-500 py-4">
-                    No hay pedidos para mostrar
-                  </td>
-                </tr>
-              </ng-template>
-            </p-table>
-          }
+            <ng-template pTemplate="body" let-order>
+              <tr>
+                <td class="font-mono text-sm">{{ order.id }}</td>
+                <td class="font-medium">{{ order.table }}</td>
+                <td class="text-sm text-surface-600 dark:text-surface-400">
+                  {{ formatDate(order.date) }}
+                </td>
+                <td>
+                  <p-tag [value]="getStatusText(order.status)" [severity]="getStatusSeverity(order.status)" />
+                </td>
+                <td class="text-right font-semibold">
+                  $ {{ calcTotal(order) | number:'1.0-0' }}
+                </td>
+                <td class="text-center">
+                  <p-button icon="pi pi-ellipsis-h" size="small" [text]="true" [rounded]="true" severity="secondary"
+                    (onClick)="viewOrderDetails(order)" title="Ver detalle del pedido">
+                  </p-button>
+                </td>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="loadingbody">
+              <tr>
+                <td colspan="6" class="p-0">
+                  <div class="min-h-[300px] w-full">
+                    <app-table-skeleton [colCount]="6" />
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="6" class="text-center text-surface-500 py-4">
+                  No hay pedidos para mostrar
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
         </div>
       </section>
     </div>

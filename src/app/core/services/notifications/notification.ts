@@ -12,7 +12,7 @@ export class Notification implements OnDestroy {
   private logger = inject(Logging);
 
   private pollingSub?: Subscription;
-  private readonly POLLING_INTERVAL = 5000;
+  private readonly POLLING_INTERVAL = 15000;
 
   private seenOrderIds = signal<Set<number>>(new Set());
   unseenReadyOrders = signal<OrderResponse[]>([]);

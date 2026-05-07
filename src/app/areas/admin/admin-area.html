@@ -1,5 +1,6 @@
-<app-layout [role]="role">
+<app-layout [role]="role" [isChatOpen]="isChatOpen" (toggleChatEvent)="toggleChat()">
   <div class="route-content h-full w-full">
     <router-outlet></router-outlet>
   </div>
 </app-layout>
+<app-chat></app-chat>

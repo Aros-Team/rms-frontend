@@ -1,18 +1,17 @@
-import { Component, OnInit, OnDestroy, inject, Input, ChangeDetectorRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, Input, Output, EventEmitter, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
 import { Header } from '../components/header/header';
 import { Sidebar } from '../components/sidebar/sidebar';
-import { Chat } from '@app/areas/admin/features/chat/chat';
 import { Accessibility } from '../components/accessibility/accessibility';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-layout',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Header, Sidebar, Chat, Accessibility],
+  imports: [Header, Sidebar, Accessibility],
   templateUrl: './layout.html',
   styles: ``
 })
@@ -20,7 +19,8 @@ export class Layout implements OnInit, OnDestroy {
   @Input() workerType?: string;
   @Input() hideSidebar = false;
   @Input() role?: string;
-  @ViewChild(Chat) chatComponent?: Chat;
+  @Input() isChatOpen = false;
+  @Output() toggleChatEvent = new EventEmitter<void>();
 
   sidebarVisible = false;
   isMobile = false;
@@ -81,11 +81,7 @@ export class Layout implements OnInit, OnDestroy {
     this.sidebarVisible = visible;
   }
 
-  get isChatOpen(): boolean {
-    return this.chatComponent?.isOpen() ?? false;
-  }
-
-  toggleChat(): void {
-    this.chatComponent?.toggleChat();
+  onToggleChat(): void {
+    this.toggleChatEvent.emit();
   }
 }

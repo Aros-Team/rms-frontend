@@ -291,6 +291,63 @@ constructor() {
    }
    ```
 
+5. **Use computed signals for derived state from cache:**
+   ```typescript
+   // Component with cache pattern (like products.ts or menu.ts)
+   export class Feature {
+     readonly cache = inject(CacheService);
+
+     // Expose cache data as computed signals
+     items = computed(() => this.cache.items.data() ?? []);
+     isLoading = computed(() => this.cache.items.isLoading());
+
+     // For computed derived values (filtering, searching)
+     filteredItems = computed(() => {
+       const all = this.items();
+       const search = this.searchText().toLowerCase();
+       if (!search) return all;
+       return all.filter(item => item.name.toLowerCase().includes(search));
+     });
+   }
+   ```
+
+6. **Initialize cache in constructor, not ngOnInit:**
+   ```typescript
+   constructor() {
+     // Initialize cache immediately in constructor
+     this.cache.items.load();
+     this.loadRelatedData();
+   }
+   ```
+
+7. **Shared caches across components (Dashboard + Manage):**
+   ```typescript
+   // daymenu-cache.service.ts
+   @Injectable({ providedIn: 'root' })
+   export class DayMenuCacheService {
+     readonly currentMenu = new ResourceCache<DayMenuResponse | null>(
+       () => this.dayMenuService.getCurrentDayMenu(),
+       { ttlMs: 2 * 60 * 1000, staleWhileRevalidate: true }
+     );
+   }
+
+   // Both components use the SAME cache instance
+   export class Dashboard {
+     readonly cache = inject(DayMenuCacheService);
+     dayMenu = computed(() => this.cache.currentMenu.data());
+   }
+
+   export class MenuManage {
+     readonly cache = inject(DayMenuCacheService);
+     dayMenu = computed(() => this.cache.currentMenu.data());
+
+     assign() {
+       // Update triggers cache invalidation for ALL consumers
+       this.cache.currentMenu.refresh();
+     }
+   }
+   ```
+
 ---
 
 ## 9. Project Goals

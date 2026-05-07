@@ -1,9 +1,9 @@
 import { Component, OnInit, OnDestroy, Output, EventEmitter, inject, Input, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule, NavigationStart } from '@angular/router';
+import { Router, RouterModule, NavigationEnd, NavigationStart } from '@angular/router';
 import { MenuItem, Menu } from '@core/services/menu/menu';
 import { Auth } from '@core/services/auth/auth';
-import { Subscription, filter } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { Logo } from "../logo/logo";
 import { environment } from '@environments/environment';
 import { ButtonModule } from 'primeng/button';
@@ -11,7 +11,7 @@ import { DialogModule } from 'primeng/dialog';
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule, Logo, ButtonModule, DialogModule, RouterModule],
+  imports: [CommonModule, Logo, RouterModule, ButtonModule, DialogModule],
   templateUrl: './header.html',
   styles: ``
 })
@@ -47,14 +47,31 @@ export class Header implements OnInit, OnDestroy {
     this.itemsSubscription = this.menuService.menuItems$.subscribe(items => {
       this.menuItems = items;
       this.calculateVisibleItems();
+      this.syncMenuItemFromRoute();
     });
 
-    this.navigationSubscription = this.router.events.pipe(
-      filter(event => event instanceof NavigationStart)
-    ).subscribe(() => {
-      this.isNavigating.set(true);
-      this.showOverflowMenu.set(false);
+    this.navigationSubscription = this.router.events.subscribe(event => {
+      if (event instanceof NavigationStart) {
+        this.isNavigating.set(true);
+        this.showOverflowMenu.set(false);
+      }
+      if (event instanceof NavigationEnd) {
+        this.isNavigating.set(false);
+        this.syncMenuItemFromRoute();
+      }
     });
+  }
+
+  private syncMenuItemFromRoute(): void {
+    const url = this.router.url;
+    const matched = this.menuItems.find(item => {
+      if (!item.routerLink) return false;
+      if (item.exact) return url === item.routerLink;
+      return url.startsWith(item.routerLink);
+    });
+    if (matched) {
+      this.menuService.selectMenuItem(matched);
+    }
   }
 
   ngOnDestroy(): void {

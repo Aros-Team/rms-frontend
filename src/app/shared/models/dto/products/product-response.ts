@@ -14,4 +14,5 @@ export interface ProductResponse {
   areaId: number;
   areaName: string;
   recipe: ProductRecipeItem[];
+  thumbnailUrl?: string;
 }

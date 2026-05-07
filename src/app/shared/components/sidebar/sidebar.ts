@@ -3,11 +3,10 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MenuItem, Menu } from '@core/services/menu/menu';
 import { Subscription } from 'rxjs';
-import { CurrentDate } from '../current-date/current-date';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [CommonModule, RouterModule, CurrentDate],
+  imports: [CommonModule, RouterModule],
   templateUrl: './sidebar.html'
 })
 export class Sidebar implements OnInit, OnDestroy {
@@ -16,7 +15,6 @@ export class Sidebar implements OnInit, OnDestroy {
   @Output() visibleChange = new EventEmitter<boolean>();
 
   menuItems: MenuItem[] = [];
-  currentDate = new Date();
   private menuSubscription!: Subscription;
 
   private menuService = inject(Menu);

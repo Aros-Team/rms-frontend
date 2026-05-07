@@ -22,6 +22,10 @@
   <!-- Security Headers -->
   <meta name="referrer" content="strict-origin-when-cross-origin">
 
+  <!-- Preload critical resources for faster FCP -->
+  <link rel="preload" href="main.js" as="script">
+  <link rel="preload" href="styles.css" as="style">
+
   <!-- Preconnect for external APIs -->
   <link rel="preconnect" href="https://api.rms.aros.services">
   <link rel="preconnect" href="https://abi.aros.services">

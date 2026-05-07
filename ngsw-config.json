@@ -4,7 +4,8 @@
   "assetGroups": [
     {
       "name": "app",
-      "installMode": "prefetch",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
       "resources": {
         "files": [
           "/favicon.ico",
@@ -31,17 +32,29 @@
   ],
   "dataGroups": [
     {
-      "name": "api-freshness",
+      "name": "api-auth",
+      "urls": [
+        "/auth/**",
+        "/v1/auth/**"
+      ],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 10,
+        "maxAge": "10m",
+        "timeout": "10s"
+      }
+    },
+    {
+      "name": "api-business",
       "urls": [
         "/v1/**",
-        "/auth/**",
         "/api/**"
       ],
       "cacheConfig": {
         "strategy": "freshness",
         "maxSize": 100,
         "maxAge": "1h",
-        "timeout": "5s"
+        "timeout": "10s"
       }
     }
   ]

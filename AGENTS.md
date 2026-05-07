@@ -1,6 +1,6 @@
 # AGENTS.md — AI Agent Navigation Map
 
-> Entry point any agent work in this repo. NOT bible: **map**. Read only what need when need (progressive disclosure).
+> Entry point for agent work in this repo. NOT bible: **map**. Read only what you need when you need it (progressive disclosure).
 
 ---
 
@@ -8,10 +8,9 @@
 
 1. Run `node scripts/harness.js` — verify end without errors. If fail, **STOP** — resolve env before touch code.
 2. If harness detects missing files (AGENTS.md, docs/, activities.json, etc.), run `node scripts/build_harness.js` to create them.
-3. **Read `.agents/leader.md` — YOU ARE THE LEADER.** Orchestrate only. Delegate all implementation to sub-agents. Never do the work yourself.
-4. Read `progress/current.md` — understand state from last session.
-5. Read `activities.json` — identify pending activities and their tasks.
-6. Assign ONE task from ONE pending activity to a sub-agent via delegation. **Never work directly — always delegate.**
+3. Read `progress/current.md` — understand state from last session.
+4. Read `activities.json` — identify pending activities and their tasks.
+5. Assign ONE task from ONE pending activity to a sub-agent via delegation. **Never work directly — always delegate.**
 
 ## 2. Repo Map
 
@@ -26,7 +25,6 @@
 | `docs/conventions.md` | Style rules, names, structure | Before write code |
 | `docs/verification.md` | How verify work works | Before declare task `done` |
 | `docs/CHECKPOINTS.md` | Final state evaluation checklist | Before declare task `done` |
-| `.agents/*.md` | Sub-agent definitions (leader, implementer, reviewer) | When orchestrating work |
 | `scripts/harness.js` | Entry harness (verifies env + quality) | Before start |
 | `scripts/build_harness.js` | Creates activities.json + progress/ folder | For setup |
 | `src/` | Application code | For implement |
@@ -54,14 +52,25 @@
 - `feat` — New feature
 - `chore` — Maintenance task (refactor, deps, config)
 
-## 5. How Assign Tasks
+## 5. Available Agents for Delegation
+
+Use the `delegate` tool to assign tasks. Available agents:
+
+| Agent | Use When |
+|-------|----------|
+| `task-executor` | Leader assigns specific implementation tasks |
+| `implementation-reviewer` | Validate completed work before marking done |
+| `explore` | Fast codebase exploration (find files, search patterns) |
+| `general` | Research complex questions, multi-step tasks |
+
+### 5.1 How to Delegate
 
 ```
 1. Open activities.json
 2. Filter activities with status == "pending" or "in_progress"
 3. For each pending activity, check its tasks array
 4. Pick ONE task with status "pending"
-5. Delegate to appropriate agent (implementer/reviewer)
+5. Delegate to appropriate agent (task-executor for implement, implementation-reviewer for verify)
 6. Update task status to "in_progress" in activities.json
 7. Annotate progress/current.md: activity, task, start time
 ```

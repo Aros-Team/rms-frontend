@@ -1,4 +1,4 @@
-<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0" [appLazyLoad]="cache.tables" (appLazyLoadVisible)="onVisible()">
+<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.tables" (appLazyLoadVisible)="onVisible()">
   <!-- Header -->
   <div class="flex items-center justify-between gap-4 mb-2 md:mb-4 min-w-0 flex-shrink-0">
     <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0 break-words min-w-0">{{ title }}</h1>
@@ -14,14 +14,12 @@
 
   <p class="text-surface-600 dark:text-surface-400 mb-2 md:mb-4 text-sm">{{ description }}</p>
 
-  <div class="flex-1 min-h-0">
-    @if (loading() && tables().length === 0) {
-      <p-skeleton height="300px" />
-    }
-    <p-table #dt [value]="tables()" [loading]="loading()" [paginator]="true" [rows]="10"
-      [scrollable]="true" scrollHeight="500px" responsiveLayout="scroll" styleClass="h-full rounded-lg overflow-hidden"
+  <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-0 dark:bg-surface-800 overflow-hidden">
+    <p-table #dt [value]="tables()" [loading]="loading()" [showLoader]="false" [paginator]="true" [rows]="10"
+      [scrollable]="true" scrollHeight="flex" responsiveLayout="scroll" styleClass="h-full"
       [tableStyle]="{'min-width': '500px'}"
-      [showGridlines]="true" [globalFilterFields]="['tableNumber', 'capacity']">
+      sortMode="multiple"
+      [globalFilterFields]="['tableNumber', 'capacity']">
       <ng-template #caption>
         <div class="flex flex-col sm:flex-row gap-2 flex-wrap">
           <p-iconfield iconPosition="left" class="w-full lg:w-80">
@@ -33,8 +31,8 @@
       </ng-template>
       <ng-template pTemplate="header">
       <tr>
-        <th class="text-xs md:text-sm">#</th>
-        <th class="text-xs md:text-sm">Cap.</th>
+        <th class="text-xs md:text-sm" pSortableColumn="tableNumber"># <p-sortIcon field="tableNumber" /></th>
+        <th class="text-xs md:text-sm" pSortableColumn="capacity">Cap. <p-sortIcon field="capacity" /></th>
         <th class="text-xs md:text-sm hidden sm:table-cell">Estado</th>
         <th class="text-center text-xs md:text-sm">Acc.</th>
       </tr>
@@ -60,6 +58,15 @@
               size="small"
               (onClick)="showEditModal(table)"
             ></p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #loadingbody>
+      <tr>
+        <td colspan="4">
+          <div class="min-h-[400px] w-full">
+            <app-table-skeleton [rowCount]="6" [colCount]="4" />
           </div>
         </td>
       </tr>

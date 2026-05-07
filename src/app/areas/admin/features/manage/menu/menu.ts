@@ -5,10 +5,9 @@ import { catchError, EMPTY, of, switchMap } from 'rxjs';
 import { DayMenuService } from '@app/core/services/daymenu/daymenu';
 import { Product } from '@app/core/services/products/product';
 import { Logging } from '@app/core/services/logging/logging';
-import { DayMenuResponse, DayMenuHistoryResponse, DayMenuHistoryPage } from '@app/shared/models/dto/daymenu/daymenu-response';
+import { DayMenuHistoryResponse, DayMenuHistoryPage } from '@app/shared/models/dto/daymenu/daymenu-response';
 import { ProductSimpleResponse } from '@app/shared/models/dto/products/product-simple-response';
 import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
-
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -21,6 +20,8 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
 import { MessageService } from 'primeng/api';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton';
+import { DayMenuCacheService } from './daymenu-cache.service';
 
 @Component({
   selector: 'app-menu',
@@ -37,6 +38,7 @@ import { MessageService } from 'primeng/api';
     SkeletonModule,
     DialogModule,
     TagModule,
+    TableSkeleton,
   ],
   templateUrl: './menu.html',
   providers: [MessageService],
@@ -46,11 +48,7 @@ export class Menu {
   private productService = inject(Product);
   private logger = inject(Logging);
   private messageService = inject(MessageService);
-
-  currentMenu = signal<DayMenuResponse | null>(null);
-  loadingCurrent = signal(true);
-  currentMenuOptions = signal<ProductOption[]>([]);
-  loadingCurrentOptions = signal(false);
+  readonly cache = inject(DayMenuCacheService);
 
   // Dialog detalles del menú activo
   showDetailDialog = signal(false);
@@ -60,6 +58,12 @@ export class Menu {
   selectedProductId = signal<number | null>(null);
   selectedProductOptions = signal<ProductOption[]>([]);
   loadingSelectedOptions = signal(false);
+
+  // Computed from cache - same pattern as products.ts
+  currentMenu = computed(() => this.cache.currentMenu.data());
+  loadingCurrent = computed(() => this.cache.currentMenu.isLoading());
+  currentMenuOptions = computed(() => this.cache.currentOptions.data() ?? []);
+  loadingCurrentOptions = computed(() => this.cache.currentOptions.isLoading());
 
   get selectedProductIdValue(): number | null {
     return this.selectedProductId();
@@ -89,41 +93,10 @@ export class Menu {
   );
 
   constructor() {
-    this.loadCurrentMenu();
+    // Initialize cache
+    this.cache.currentMenu.load();
     this.loadProducts();
     this.loadHistory(0);
-  }
-
-  private loadCurrentMenu(): void {
-    this.loadingCurrent.set(true);
-    this.dayMenuService.getCurrentDayMenu().pipe(
-      catchError((err: HttpErrorResponse) => {
-        if (err.status === 204 || err.status === 404) {
-          this.currentMenu.set(null);
-        } else {
-          this.logger.error('Error loading current day menu', err);
-        }
-        this.loadingCurrent.set(false);
-        return EMPTY;
-      }),
-      switchMap(menu => {
-        // 204 No Content llega como null en el next handler
-        if (!menu) {
-          this.currentMenu.set(null);
-          this.loadingCurrent.set(false);
-          return EMPTY;
-        }
-        this.currentMenu.set(menu);
-        this.loadingCurrent.set(false);
-        this.loadingCurrentOptions.set(true);
-        return this.productService.getOptions(menu.productId).pipe(
-          catchError(() => of([] as ProductOption[]))
-        );
-      })
-    ).subscribe(opts => {
-      this.currentMenuOptions.set(opts);
-      this.loadingCurrentOptions.set(false);
-    });
   }
 
   private loadProducts(): void {
@@ -175,21 +148,15 @@ export class Menu {
         return EMPTY;
       }),
       switchMap(updated => {
-        this.currentMenu.set(updated);
+        this.cache.invalidateAll();
         this.selectedProductId.set(null);
         this.selectedProductOptions.set([]);
         this.isSubmitting.set(false);
         this.messageService.add({ severity: 'success', summary: 'Éxito', detail: `Menú del día actualizado: ${updated.productName}` });
         this.loadHistory(0);
-        this.loadingCurrentOptions.set(true);
-        return this.productService.getOptions(updated.productId).pipe(
-          catchError(() => of([] as ProductOption[]))
-        );
+        return of(updated);
       })
-    ).subscribe(opts => {
-      this.currentMenuOptions.set(opts);
-      this.loadingCurrentOptions.set(false);
-    });
+    ).subscribe();
   }
 
   private extractError(err: HttpErrorResponse): string {

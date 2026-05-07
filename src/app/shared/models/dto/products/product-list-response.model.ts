@@ -6,4 +6,5 @@ export interface ProductListResponse {
   categoryId: number;
   categoryName: string;
   areaId: number;
+  thumbnailUrl?: string;
 }

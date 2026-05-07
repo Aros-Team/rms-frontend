@@ -1,6 +1,6 @@
 <p-toast />
 
-<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0" [appLazyLoad]="cache.supplies" (appLazyLoadVisible)="onVisible()">
+<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.supplies" (appLazyLoadVisible)="onVisible()">
   <!-- Header -->
   <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 min-w-0 flex-shrink-0">
     <div class="min-w-0">
@@ -13,24 +13,22 @@
   </div>
 
   <!-- Supplies table -->
-  @if (filteredSupplies() === undefined) {
-    <p-skeleton height="400px" />
-  } @else {
-    <div class="flex-1 min-h-0">
+  <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-0 dark:bg-surface-800 overflow-hidden">
     <p-table
       #dt
-      [value]="filteredSupplies()!"
+      [value]="filteredSupplies() ?? []"
       [paginator]="true"
       [rows]="10"
       [rowsPerPageOptions]="[10, 25, 50]"
       [scrollable]="true"
       scrollHeight="600px"
       responsiveLayout="scroll"
-      showGridlines
-      styleClass="h-full rounded-lg overflow-hidden"
+      sortMode="multiple"
+      styleClass="h-full"
       [tableStyle]="{'min-width': '700px'}"
       [globalFilterFields]="['supplyName', 'categoryName', 'unitAbbreviation']"
       [loading]="loading()"
+      [showLoader]="false"
     >
       <ng-template pTemplate="caption">
         <div class="flex flex-col sm:flex-row gap-2 flex-wrap">
@@ -92,6 +90,15 @@
           </td>
         </tr>
       </ng-template>
+      <ng-template #loadingbody>
+        <tr>
+          <td colspan="5">
+            <div class="min-h-[400px] w-full">
+              <app-table-skeleton [rowCount]="6" [colCount]="5" />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
 
       <ng-template pTemplate="emptymessage">
         <tr>
@@ -100,7 +107,6 @@
       </ng-template>
     </p-table>
   </div>
-  }
 </div>
 
 <!-- ===== New supply variant wizard ===== -->

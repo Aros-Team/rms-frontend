@@ -39,6 +39,7 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TooltipModule } from 'primeng/tooltip';
 import { CheckboxModule } from 'primeng/checkbox';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton';
 
 // Wizard step type
 type VariantStep = 'category' | 'supply' | 'variant';
@@ -66,6 +67,7 @@ type VariantStep = 'category' | 'supply' | 'variant';
     TooltipModule,
     CheckboxModule,
     LazyLoadDirective,
+    TableSkeleton,
   ],
   providers: [MessageService],
   templateUrl: './inventory.html',

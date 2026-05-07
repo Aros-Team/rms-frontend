@@ -1,14 +1,14 @@
-<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0" [appLazyLoad]="cache.productCategories" (appLazyLoadVisible)="onVisible()">
+<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.productCategories" (appLazyLoadVisible)="onVisible()">
   <div class="flex items-center gap-4 mb-2 md:mb-4 min-w-0 flex-shrink-0">
     <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0 break-words min-w-0">{{ title }}</h1>
   </div>
   <p class="text-surface-600 dark:text-surface-400 mb-4 text-sm">{{ description }}</p>
 
-  <div class="flex-1 min-h-0">
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 pb-4">
+  <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-0 dark:bg-surface-800 overflow-hidden pb-4">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 p-4 md:p-6">
 
   <!-- ══ CATEGORÍAS DE PRODUCTO ══ -->
-  <div class="bg-surface-0 dark:bg-surface-800 rounded-lg shadow-sm border border-surface-200 dark:border-surface-700 p-4 md:p-6">
+  <div class="bg-primary-contrast rounded-xl border border-surface-200 dark:border-surface-700 p-4 md:p-6">
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
       <div>
         <p class="font-semibold text-surface-800 dark:text-surface-200">Categorías de producto</p>
@@ -25,7 +25,7 @@
         } @else {
           <div class="flex flex-wrap gap-3">
             @for (c of activeCategories(); track c.id) {
-              <p-chip class="shadow-xs border border-surface-200 dark:border-surface-700">
+              <p-chip class="border border-surface-200 dark:border-surface-700">
                 <div class="flex items-center gap-2">
                   <i class="pi pi-tag"></i>
                   <span class="mx-1">{{ c.name }}</span>
@@ -46,7 +46,7 @@
         } @else {
           <div class="flex flex-wrap gap-3">
             @for (c of inactiveCategories(); track c.id) {
-              <p-chip class="shadow-xs border border-surface-200 dark:border-surface-700 opacity-60">
+              <p-chip class="border border-surface-200 dark:border-surface-700 opacity-60">
                 <div class="flex items-center gap-2">
                   <i class="pi pi-tag"></i>
                   <span class="mx-1 line-through">{{ c.name }}</span>

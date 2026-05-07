@@ -17,7 +17,7 @@ export class ResourceCache<T> {
   private readonly entry = signal<CacheEntry<T>>({
     data: null,
     timestamp: 0,
-    status: 'stale'
+    status: 'loading'
   });
 
   private readonly _config: CacheConfig;
@@ -58,10 +58,17 @@ export class ResourceCache<T> {
 
   loadIfStale(): void {
     const current = this.entry();
-    if (current.status === 'loading') return;
+    if (current.status === 'loading' && this.isLoadingFlag) return;
     
     if (current.status === 'stale' || !current.data || this.isExpired(current)) {
       this.load();
+    }
+  }
+
+  startLoading(): void {
+    const current = this.entry();
+    if (current.status !== 'loading') {
+      this.entry.set({ ...current, status: 'loading' });
     }
   }
 
@@ -79,6 +86,10 @@ export class ResourceCache<T> {
 
   reset(): void {
     this.entry.set({ data: null, timestamp: 0, status: 'stale' });
+  }
+
+  fetchInBackground(): void {
+    this.fetchFresh();
   }
 
   private fetchFresh(): void {

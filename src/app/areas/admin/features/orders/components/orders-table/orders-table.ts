@@ -21,6 +21,7 @@ import { Auth } from '@services/auth/auth';
 import { environment } from '@environments/environment';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton';
 
 @Component({
   selector: 'app-orders-table',
@@ -39,7 +40,8 @@ import { catchError } from 'rxjs/operators';
     TooltipModule,
     IconFieldModule,
     InputIconModule,
-    SlicePipe
+    SlicePipe,
+    TableSkeleton
   ],
   templateUrl: './orders-table.html',
 })

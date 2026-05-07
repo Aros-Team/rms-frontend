@@ -1,22 +1,30 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, ViewChild } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { Layout } from '@app/shared/layout/layout';
+import { Chat } from '@app/areas/admin/features/chat/chat';
 import { Menu, MenuItem } from '@app/core/services/menu/menu';
 
 @Component({
   selector: 'app-admin-area',
   templateUrl: './admin-area.html',
-  imports: [Layout, RouterOutlet],
+  imports: [Layout, RouterOutlet, Chat],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminArea implements OnInit {
+  @ViewChild(Chat) chatComponent?: Chat;
   private menuService = inject(Menu);
 
   role = 'ADMIN';
+  isChatOpen = false;
 
   ngOnInit(): void {
     this.configureAdminMenu();
+  }
+
+  toggleChat(): void {
+    this.chatComponent?.toggleChat();
+    this.isChatOpen = this.chatComponent?.isOpen() ?? false;
   }
 
   private configureAdminMenu(): void {

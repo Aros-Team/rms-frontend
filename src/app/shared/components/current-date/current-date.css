@@ -1,13 +1,21 @@
 .current-date {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  transform: scale(0.8);
 }
 
 .current-date ::ng-deep .p-datepicker {
+
+  border-radius: none;
   background: transparent;
   border: none;
   box-shadow: none;
+  width: 100%;
+}
+
+.current-date ::ng-deep .p-datepicker-panel {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  width: 100%;
 }
 
 .current-date ::ng-deep .p-datepicker-header {
@@ -17,16 +25,12 @@
 
 .current-date ::ng-deep .p-datepicker-calendar {
   background: transparent;
+  width: 100%;
 }
 
 .current-date ::ng-deep .p-datepicker-calendar-container {
   background: transparent;
-}
-
-.current-date ::ng-deep .p-datepicker-panel {
-  background: transparent;
-  border: none;
-  box-shadow: none;
+  width: 100%;
 }
 
 .current-date ::ng-deep .p-datepicker-calendar td span {
@@ -83,11 +87,4 @@ html.dark .current-date ::ng-deep .p-datepicker-calendar th {
 html.dark .current-date ::ng-deep .p-datepicker-prev,
 html.dark .current-date ::ng-deep .p-datepicker-next {
   color: var(--surface-400);
-}
-
-@media (min-width: 1024px) {
-  .current-date ::ng-deep .p-datepicker {
-    transform: scale(0.85);
-    transform-origin: center top;
-  }
 }

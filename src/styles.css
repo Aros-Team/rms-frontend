@@ -297,7 +297,6 @@ html, body {
 body {
   overflow-wrap: break-word;
   word-wrap: break-word;
-  -webkit-hyphens: auto;
   hyphens: auto;
 }
 
@@ -361,17 +360,17 @@ body {
   .p-button.btn-icon-only-sm .p-button-label {
     display: none !important;
   }
-  
+
   .p-button.btn-icon-only-sm .p-button-icon {
     margin: 0 !important;
   }
-  
+
   .p-button.btn-icon-only-sm.p-button {
     padding: 0.5rem !important;
     min-width: 2.5rem !important;
     width: 2.5rem !important;
   }
-  
+
   .p-button.btn-icon-only-sm .p-button-icon {
     font-size: 1rem !important;
   }
@@ -392,13 +391,13 @@ body {
     font-size: 0.75rem !important;
     margin-left: 0.25rem !important;
   }
-  
+
   .p-button.btn-icon-text-sm.p-button {
     padding: 0.5rem 0.75rem !important;
     min-width: auto !important;
     white-space: nowrap !important;
   }
-  
+
   .p-button.btn-icon-text-sm .p-button-icon {
     margin: 0 !important;
   }
@@ -422,14 +421,14 @@ body {
   .icon-text-nav .nav-label {
     display: none !important;
   }
-  
+
   .icon-text-nav .nav-item {
     flex-shrink: 0 !important;
     padding: 0.5rem !important;
     min-width: 2.5rem !important;
     justify-content: center !important;
   }
-  
+
   .icon-text-nav .nav-item i {
     margin: 0 !important;
   }
@@ -442,12 +441,12 @@ body {
     font-size: 0.7rem !important;
     margin-left: 0.25rem !important;
   }
-  
+
   .btn-icon-text-sm.p-button {
     padding: 0.5rem 0.6rem !important;
     min-width: auto !important;
   }
-  
+
   .btn-icon-text-sm .p-button-icon {
     margin: 0 !important;
     font-size: 0.9rem !important;
@@ -523,9 +522,142 @@ canvas {
   overflow: hidden;
 }
 
-/* Ensure tables have consistent white background */
+/* Ensure tables have consistent background */
 .p-datatable .p-datatable-tbody > tr {
-  background: white;
+  background: var(--surface-0);
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+  background: var(--surface-100);
+  color: var(--surface-700);
+}
+
+:root.dark .p-datatable .p-datatable-thead > tr > th {
+  background: var(--surface-700);
+  color: var(--surface-200);
+}
+
+/* ========================================
+    Custom Scrollbar Styles
+    ======================================== */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+html:root.dark {
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-track-piece {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  border: none !important;
+}
+
+:root.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+:root.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+::-webkit-scrollbar-button,
+::-webkit-scrollbar-button:vertical:start,
+::-webkit-scrollbar-button:vertical:end,
+::-webkit-scrollbar-button:horizontal:start,
+::-webkit-scrollbar-button:horizontal:end,
+::-webkit-scrollbar-button:single-button,
+::-webkit-scrollbar-button:decrement,
+::-webkit-scrollbar-button:increment {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: none !important;
+  border: none !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  color: transparent !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent !important;
+}
+
+/* Target specific scrollable containers */
+.overflow-y-auto::-webkit-scrollbar-button,
+.p-datatable-wrapper::-webkit-scrollbar-button,
+.p-scroller::-webkit-scrollbar-button {
+  display: none !important;
+  height: 0 !important;
+  width: 0 !important;
+}
+
+::-webkit-scrollbar-track {
+  background: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0);
+  border-radius: 10px;
+}
+
+:root.dark ::-webkit-scrollbar-thumb {
+  background: none;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+:root.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent !important;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+:root.dark * {
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+/* PrimeNG inputs - lighter background in dark mode */
+:root.dark .p-inputtext,
+:root.dark .p-select,
+:root.dark .p-multiselect,
+:root.dark .p-iconfield .p-inputtext {
+  background-color: var(--surface-300) !important;
 }
 
 .p-datatable .p-datatable-tbody > tr:hover {

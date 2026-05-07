@@ -4,7 +4,7 @@ import {
   provideZonelessChangeDetection,
   isDevMode,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withPreloading, PreloadAllModules, withComponentInputBinding } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { LOCALE_ID } from '@angular/core';
@@ -52,7 +52,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideRouter(routes),
+    provideRouter(routes, withPreloading(PreloadAllModules), withComponentInputBinding()),
     provideHttpClient(
       withInterceptors([urlInterceptor, jwtInterceptor, errorInterceptor])
     ),
@@ -72,7 +72,7 @@ export const appConfig: ApplicationConfig = {
     ConfirmationService,
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode,
-      registrationStrategy: 'registerWhenStable:30000'
+      registrationStrategy: 'registerWhenStable:15000'
     }),
 
   ],

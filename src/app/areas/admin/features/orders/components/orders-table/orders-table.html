@@ -1,5 +1,5 @@
 <div class="flex flex-col gap-4">
-  <div class="bg-surface-0 dark:bg-surface-800 rounded-lg shadow-sm border border-surface-200 dark:border-surface-700 p-4">
+  <div class="rounded-lg border border-surface-200 dark:border-surface-700 p-4">
     <div class="flex flex-col lg:flex-row justify-between gap-4">
       <div class="flex flex-col sm:flex-row gap-3 flex-wrap items-start sm:items-center flex-1">
         <p-iconfield iconPosition="left" class="w-full sm:w-72">
@@ -27,12 +27,11 @@
           (dateChange)="onDateChange($event)"
         ></app-shared-datepicker>
 
-        <p-button 
-          icon="pi pi-filter-slash" 
+        <p-button
+          icon="pi pi-filter-slash"
           label="Limpiar filtros"
           [outlined]="true"
           (onClick)="clearFilters()"
-          severity="secondary"
         />
       </div>
 
@@ -55,7 +54,7 @@
     </div>
   </div>
 
-  <div class="bg-surface-0 dark:bg-surface-800 rounded-lg shadow-sm border border-surface-200 dark:border-surface-700 p-4 flex-1 min-h-0">
+  <div class="rounded-lg border border-surface-200 dark:border-surface-700 p-4 flex-1 min-h-0">
     <p-table 
       #dt
       [value]="orders" 
@@ -66,17 +65,18 @@
       [rowsPerPageOptions]="[10, 20, 50]"
       styleClass="h-full rounded-lg overflow-hidden"
       [tableStyle]="{'min-width': '1200px'}"
-      showGridlines
       [loading]="loading"
+      [showLoader]="false"
       [globalFilterFields]="['id', 'tableId']"
+      sortMode="multiple"
     >
       <ng-template pTemplate="header">
         <tr>
-          <th class="text-xs md:text-sm w-16">ID</th>
+          <th class="text-xs md:text-sm w-16" pSortableColumn="id">ID <p-sortIcon field="id" /></th>
           <th class="text-xs md:text-sm w-32">Estado</th>
-          <th class="text-xs md:text-sm w-40">Fecha y Hora</th>
-          <th class="text-xs md:text-sm w-24">Mesa</th>
-          <th class="text-xs md:text-sm w-28">Total</th>
+          <th class="text-xs md:text-sm w-40" pSortableColumn="date">Fecha y Hora <p-sortIcon field="date" /></th>
+          <th class="text-xs md:text-sm w-24" pSortableColumn="tableId">Mesa <p-sortIcon field="tableId" /></th>
+          <th class="text-xs md:text-sm w-28" pSortableColumn="total">Total <p-sortIcon field="total" /></th>
           <th class="text-xs md:text-sm">Productos</th>
           <th class="text-xs md:text-sm w-24 text-center">Acciones</th>
         </tr>
@@ -141,7 +141,17 @@
           </td>
         </tr>
       </ng-template>
-      
+
+      <ng-template #loadingbody>
+        <tr>
+          <td colspan="7">
+            <div class="min-h-[400px] w-full">
+              <app-table-skeleton [rowCount]="6" [colCount]="7" />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
       <ng-template pTemplate="emptymessage">
         <tr>
           <td colspan="7" class="text-center text-surface-500 py-8">
@@ -153,10 +163,6 @@
     </p-table>
   </div>
 </div>
-
-@if (loading && orders.length === 0) {
-  <p-skeleton height="400px" />
-}
 
 @if (error) {
   <div class="mt-4 text-red-600 bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">

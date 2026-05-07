@@ -1,4 +1,4 @@
-<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0" [appLazyLoad]="cache.users" (appLazyLoadVisible)="onVisible()">
+<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.users" (appLazyLoadVisible)="onVisible()">
   <!-- Header -->
   <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 min-w-0 flex-shrink-0">
     <div class="min-w-0">
@@ -8,11 +8,12 @@
     <p-button icon="pi pi-user-plus" label="Nuevo empleado" pTooltip="Registrar nuevo empleado" tooltipPosition="bottom" (click)="showCreationModal()" />
   </div>
 
-  <div class="flex-1 min-h-0">
+  <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-0 dark:bg-surface-800 overflow-hidden">
     <p-table
       #dt1
       [value]="users()"
       [loading]="cache.users.isLoading()"
+      [showLoader]="false"
       [paginator]="true"
       [rows]="10"
       [rowsPerPageOptions]="[10, 25, 50]"
@@ -21,8 +22,8 @@
       [scrollable]="true"
       scrollHeight="600px"
       responsiveLayout="scroll"
-      showGridlines
       styleClass="h-full rounded-lg overflow-hidden"
+      sortMode="multiple"
     >
       <ng-template #caption>
         <div class="flex flex-col sm:flex-row gap-2 flex-wrap">
@@ -43,9 +44,9 @@
       </ng-template>
       <ng-template #header>
         <tr>
-          <th class="text-xs md:text-sm">Doc.</th>
-          <th class="text-xs md:text-sm">Nombre</th>
-          <th class="text-xs md:text-sm hidden lg:table-cell">Correo</th>
+          <th class="text-xs md:text-sm" pSortableColumn="document">Doc. <p-sortIcon field="document" /></th>
+          <th class="text-xs md:text-sm" pSortableColumn="name">Nombre <p-sortIcon field="name" /></th>
+          <th class="text-xs md:text-sm hidden lg:table-cell" pSortableColumn="email">Correo <p-sortIcon field="email" /></th>
           <th class="text-xs md:text-sm hidden md:table-cell">Tel.</th>
           <th class="text-xs md:text-sm hidden xl:table-cell">Dirección</th>
           <th class="text-center text-xs md:text-sm">Status</th>
@@ -112,6 +113,15 @@
                   (click)="retryEmail(user)"
                 ></p-button>
               }
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #loadingbody>
+        <tr>
+          <td colspan="7">
+            <div class="min-h-[400px] w-full">
+              <app-table-skeleton [rowCount]="6" [colCount]="7" />
             </div>
           </td>
         </tr>

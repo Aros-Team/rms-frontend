@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 
-import { OrdersTable } from '@shared/features/orders/orders-table/orders-table';
+import { OrdersTable } from '@areas/admin/features/orders/components/orders-table/orders-table';
 
 @Component({
   selector: 'app-orders',

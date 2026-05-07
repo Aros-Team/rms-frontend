@@ -15,6 +15,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { FormValidation } from '@app/shared/components/form/form-validation';
 import { TablesCacheService } from '../tables/tables-cache.service';
 import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton';
 
 @Component({
   selector: 'app-areas',
@@ -28,11 +29,12 @@ import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
     SelectModule,
     IconFieldModule,
     InputIconModule,
-    FormValidation,
-    LazyLoadDirective
-],
+FormValidation,
+    LazyLoadDirective,
+    TableSkeleton
+  ],
   template: `
-    <div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0" [appLazyLoad]="cache.areas" (appLazyLoadVisible)="onVisible()">
+    <div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.areas" (appLazyLoadVisible)="onVisible()">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
         <div>
           <h2 class="text-xl md:text-2xl font-bold">Áreas de Trabajo</h2>
@@ -41,8 +43,8 @@ import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
         <p-button label="Nueva área" icon="pi pi-plus" class="btn-icon-text-sm" pTooltip="Crear nueva área" tooltipPosition="bottom" (onClick)="showCreateModal()"></p-button>
       </div>
 
-      <div class="flex-1 min-h-0">
-        <p-table #dt [value]="areas()" [paginator]="true" [rows]="10" [scrollable]="true" scrollHeight="500px" responsiveLayout="scroll" styleClass="h-full rounded-lg overflow-hidden" [showGridlines]="true" [globalFilterFields]="['name', 'type']">
+      <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-0 dark:bg-surface-800 overflow-hidden">
+        <p-table #dt [value]="areas()" [loading]="cache.areas.isLoading()" [showLoader]="false" [paginator]="true" [rows]="10" [scrollable]="true" scrollHeight="flex" responsiveLayout="scroll" styleClass="h-full" sortMode="multiple" [globalFilterFields]="['name', 'type']">
           <ng-template #caption>
             <div class="flex flex-col sm:flex-row gap-2 flex-wrap">
               <p-iconfield iconPosition="left" class="w-full lg:w-80">
@@ -54,8 +56,8 @@ import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
           </ng-template>
           <ng-template #header>
             <tr>
-              <th class="text-xs md:text-sm">Nombre</th>
-              <th class="text-xs md:text-sm">Tipo</th>
+              <th class="text-xs md:text-sm" pSortableColumn="name">Nombre <p-sortIcon field="name" /></th>
+              <th class="text-xs md:text-sm" pSortableColumn="type">Tipo <p-sortIcon field="type" /></th>
               <th class="text-xs md:text-sm">Estado</th>
               <th class="text-center text-xs md:text-sm">Acc.</th>
             </tr>
@@ -73,6 +75,15 @@ import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
                 <div class="flex gap-1 items-center justify-center">
                   <p-button icon="pi pi-pencil" [text]="true" severity="warn" size="small" class="btn-icon-only-sm" (onClick)="showEditModal(area)"></p-button>
                   <p-button icon="pi pi-power-off" [text]="true" [severity]="area.enabled ? 'danger' : 'success'" size="small" class="btn-icon-only-sm" (onClick)="toggleArea(area)"></p-button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template #loadingbody>
+            <tr>
+              <td colspan="4">
+                <div class="min-h-[400px] w-full">
+                  <app-table-skeleton [rowCount]="6" [colCount]="4" />
                 </div>
               </td>
             </tr>

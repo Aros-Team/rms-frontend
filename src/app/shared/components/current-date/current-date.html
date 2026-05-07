@@ -1,11 +1,13 @@
-<div class="current-date bg-surface-50 dark:bg-surface-800 rounded-lg">
+<div class="current-date
+  bg-surface-50 dark:bg-surface-800
+  lg:border-t lg:border-t-surface-300 dark:border-t-surface-700">
   <p-datepicker
     [(ngModel)]="currentDate"
     [inline]="true"
     [readonlyInput]="true"
-    [showIcon]="false"
+    [showIcon]="true"
     [showWeek]="false"
-    [disabled]="true"
+    [disabled]="false"
     [maxDate]="maxDate"
     [minDate]="minDate">
   </p-datepicker>

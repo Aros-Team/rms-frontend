@@ -6,7 +6,7 @@ import { RouterModule } from '@angular/router';
   selector: 'app-manage',
   imports: [RouterModule],
   templateUrl: './manage.html',
-  styles: ``
+  styleUrl: './manage.css'
 })
 export class Manage {
   activeSection = 'staff';

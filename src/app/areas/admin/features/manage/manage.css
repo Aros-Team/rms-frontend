@@ -1,0 +1,74 @@
+@reference "tailwindcss";
+
+.manage-layout {
+  @apply flex flex-col min-h-0 h-full items-stretch p-2 lg:p-0 ;
+  background-color: var(--p-surface-50);
+}
+
+.manage-nav-bar {
+  @apply flex-shrink-0 sticky top-0 z-10;
+  border-bottom-color: var(--p-surface-200);
+  background-color: var(--p-surface-50);
+}
+
+.manage-nav-list {
+  @apply flex flex-nowrap overflow-x-auto flex-nowrap pb-1 gap-1 md:gap-2;
+  scrollbar-width: none;
+}
+
+.manage-nav-list::-webkit-scrollbar {
+  display: none;
+}
+
+.manage-nav-item {
+  @apply flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg flex-shrink-0 transition-colors duration-200;
+  border-width: 1px;
+  border-color: var(--p-surface-300);
+  background-color: var(--p-surface-100);
+  color: var(--p-surface-700);
+}
+
+.manage-nav-item:hover {
+  background-color: var(--p-surface-200);
+}
+
+.manage-nav-item-active {
+  background-color: var(--p-surface-200) !important;
+}
+
+.manage-content {
+  @apply flex flex-col flex-1 min-h-0 overflow-y-auto items-stretch;
+}
+
+@media (min-width: 768px) {
+  .manage-nav-bar {
+    @apply px-6 py-4;
+  }
+
+  .manage-nav-item {
+    @apply px-4;
+  }
+}
+
+.manage-layout:where(.dark, .dark *) {
+  background-color: var(--p-surface-900);
+}
+
+.manage-nav-bar:where(.dark, .dark *) {
+  border-bottom-color: var(--p-surface-700);
+  background-color: var(--p-surface-900);
+}
+
+.manage-nav-item:where(.dark, .dark *) {
+  border-color: var(--p-surface-600);
+  background-color: var(--p-surface-800);
+  color: var(--p-surface-300);
+}
+
+.manage-nav-item:where(.dark, .dark *):hover {
+  background-color: var(--p-surface-700);
+}
+
+.manage-nav-item-active:where(.dark, .dark *) {
+  background-color: var(--p-surface-900) !important;
+}

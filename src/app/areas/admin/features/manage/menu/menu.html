@@ -1,4 +1,4 @@
-<div class="flex flex-col p-4 md:p-6 gap-4 md:gap-6 min-w-0 min-h-0">
+<div class="flex flex-col p-4 md:p-6 gap-4 md:gap-6 min-w-0 min-h-0 h-full">
 
   <!-- Header -->
   <div class="min-w-0 flex-shrink-0">
@@ -8,8 +8,6 @@
 
   <!-- Content -->
   <div class="flex-1 min-h-0 flex flex-col gap-4 md:gap-6">
-
-  <!-- Menú activo actual -->
   <p-card header="Menú Activo">
     @if (loadingCurrent()) {
       <p-skeleton height="3rem" />
@@ -104,51 +102,56 @@
 
   <!-- Historial -->
   <p-card header="Historial de Menús del Día">
-    @if (loadingHistory() && history().length === 0) {
-      <p-skeleton height="200px" />
-    } @else {
-      <p-table
-        [value]="history()"
-        [loading]="loadingHistory()"
-        [paginator]="true"
-        [rows]="pageSize"
-        [totalRecords]="totalRecords()"
-        [lazy]="true"
-        (onPage)="onPageChange($event)"
-        [rowsPerPageOptions]="[10, 20, 50]"
-        styleClass="p-datatable-sm rounded-lg overflow-hidden"
-  
-        [showGridlines]="true"
-        [scrollable]="true"
-        scrollWidth="flex"
-        responsiveLayout="scroll"
-        [tableStyle]="{'min-width': '50rem'}"
-      >
-        <ng-template #header>
-          <tr>
-            <th>Producto</th>
-            <th>Precio base</th>
-            <th>Vigente desde</th>
-            <th>Vigente hasta</th>
-            <th>Creado por</th>
-          </tr>
-        </ng-template>
-        <ng-template #body let-item>
-          <tr>
-            <td>{{ item.productName }}</td>
-            <td>{{ item.productBasePrice | currency:'COP':'symbol':'1.0-0':'es-CO' }}</td>
-            <td>{{ item.validFrom | date:'dd/MM/yyyy HH:mm' }}</td>
-            <td>{{ item.validUntil | date:'dd/MM/yyyy HH:mm' }}</td>
-            <td>{{ item.createdBy }}</td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="5" class="text-center text-surface-400 py-4">Sin historial disponible</td>
-          </tr>
-        </ng-template>
-      </p-table>
-    }
+    <p-table
+      [value]="history()"
+      [loading]="loadingHistory()"
+      [paginator]="true"
+      [rows]="pageSize"
+      [totalRecords]="totalRecords()"
+      [lazy]="true"
+      (onPage)="onPageChange($event)"
+      [rowsPerPageOptions]="[10, 20, 50]"
+      styleClass="p-datatable-sm"
+
+      [scrollable]="true"
+      scrollWidth="flex"
+      responsiveLayout="scroll"
+      [tableStyle]="{'min-width': '50rem'}"
+      [showLoader]="false"
+    >
+      <ng-template #header>
+        <tr>
+          <th pSortableColumn="productName">Producto <p-sortIcon field="productName" /></th>
+          <th pSortableColumn="productBasePrice">Precio base <p-sortIcon field="productBasePrice" /></th>
+          <th pSortableColumn="validFrom">Vigente desde <p-sortIcon field="validFrom" /></th>
+          <th pSortableColumn="validUntil">Vigente hasta <p-sortIcon field="validUntil" /></th>
+          <th pSortableColumn="createdBy">Creado por <p-sortIcon field="createdBy" /></th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-item>
+        <tr>
+          <td>{{ item.productName }}</td>
+          <td>{{ item.productBasePrice | currency:'COP':'symbol':'1.0-0':'es-CO' }}</td>
+          <td>{{ item.validFrom | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ item.validUntil | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ item.createdBy }}</td>
+        </tr>
+      </ng-template>
+      <ng-template #loadingbody>
+        <tr>
+          <td colspan="5">
+            <div class="min-h-[400px] w-full">
+              <app-table-skeleton [rowCount]="6" [colCount]="5" />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5" class="text-center text-surface-400 py-4">Sin historial disponible</td>
+        </tr>
+      </ng-template>
+    </p-table>
   </p-card>
 
   </div> <!-- end scrollable content -->

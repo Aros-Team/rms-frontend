@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, signal, HostListener } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, HostListener, computed } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { BadgeModule } from 'primeng/badge';
@@ -10,18 +10,21 @@ import { Order } from '@app/core/services/orders/order';
 import { Table } from '@app/core/services/tables/table';
 import { Product, ProductData } from '@app/core/services/products/product';
 import { DayMenuService } from '@app/core/services/daymenu/daymenu';
-import { DayMenuResponse } from '@app/shared/models/dto/daymenu/daymenu-response';
 import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
 import { OrderDetailDialog } from '@shared/components/order-detail-dialog/order-detail-dialog';
 import { Logging } from '@app/core/services/logging/logging';
 import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
 import { OrderDetailsResponse } from '@app/shared/models/dto/orders/order-details-response.model';
-import { of, interval, Subscription } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { forkJoin, of, interval, Subscription, EMPTY } from 'rxjs';
+import { catchError, switchMap, finalize } from 'rxjs/operators';
 import { calculateTotalPrice } from '@app/shared/models/dto/orders/order-response.model';
 import { Message } from "primeng/message";
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@environments/environment';
+import { DaymenuSkeleton } from './skeletons/daymenu-skeleton';
+import { ListSkeleton } from '@shared/skeletons/list-skeleton';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton';
+import { DayMenuCacheService } from '../manage/menu/daymenu-cache.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -35,7 +38,10 @@ import { environment } from '@environments/environment';
     SkeletonModule,
     TagModule,
     OrderDetailDialog,
-    Message
+    Message,
+    ListSkeleton,
+    DaymenuSkeleton,
+    TableSkeleton,
   ],
 
 })
@@ -46,17 +52,23 @@ export class Dashboard implements OnInit, OnDestroy {
   private dayMenuService = inject(DayMenuService);
   private logger = inject(Logging);
   private http = inject(HttpClient);
+  readonly dayMenuCache = inject(DayMenuCacheService);
 
   serverStatus = signal<'online' | 'offline' | 'checking'>('checking');
   private healthCheckSubscription: Subscription | undefined;
 
   orders = signal<OrderResponse[]>([]);
-  isLoading = signal(true);
+  isOrdersLoading = signal(true);
+  isStatsLoaded = signal(false);
   orderDetails = signal<OrderDetailsResponse[]>([]);
-  dayMenu = signal<DayMenuResponse | null>(null);
-  dayMenuOptions = signal<ProductOption[]>([]);
-  loadingDayMenuOptions = signal(false);
-  existDayMenu = false;
+
+  // Day menu from cache
+  dayMenu = computed(() => this.dayMenuCache.currentMenu.data());
+  loadingDayMenu = computed(() => this.dayMenuCache.currentMenu.isLoading());
+  dayMenuOptions = computed(() => this.dayMenuCache.currentOptions.data() ?? []);
+  loadingDayMenuOptions = computed(() => this.dayMenuCache.currentOptions.isLoading());
+
+  existDayMenu = computed(() => this.dayMenu() !== null);
   completedOrdersCount = signal(0);
   preparingOrdersCount = signal(0);
   occupiedTablesCount = signal(0);
@@ -77,11 +89,18 @@ export class Dashboard implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.checkScreenSize();
-    this.loadDashboardData();
-    this.loadDayMenu();
     this.updateDateTime();
     this.loadSalesVisibility();
     this.startHealthCheck();
+
+    // Initialize day menu cache
+    this.dayMenuCache.currentMenu.load();
+
+    // Skeletons pintan inmediatamente. Datos cargan en orden estricto.
+    setTimeout(() => {
+      this.loadStatsThenOrders();
+    }, 0);
+
     setInterval(() => { this.updateDateTime(); }, 60000);
   }
 
@@ -111,83 +130,69 @@ export class Dashboard implements OnInit, OnDestroy {
     });
   }
 
-  private loadDashboardData() {
-    this.isLoading.set(true);
+  private loadStatsThenOrders() {
+    const stats$ = forkJoin({
+      completedOrders: this.orderService.getCompletedOrdersCount().pipe(
+        catchError(error => {
+          this.logger.error('Error loading completed orders count:', error);
+          return of(0);
+        })
+      ),
+      preparingOrders: this.orderService.getPreparingOrdersCount().pipe(
+        catchError(error => {
+          this.logger.error('Error loading preparing orders count:', error);
+          return of(0);
+        })
+      ),
+      occupiedTables: this.tableService.getOccupiedTablesCount().pipe(
+        catchError(error => {
+          this.logger.error('Error loading occupied tables count:', error);
+          return of(0);
+        })
+      ),
+      totalTables: this.tableService.getTotalTablesCount().pipe(
+        catchError(error => {
+          this.logger.error('Error loading tables count:', error);
+          return of(0);
+        })
+      ),
+      totalSales: this.orderService.getTotalSales().pipe(
+        catchError(error => {
+          this.logger.error('Error loading total sales:', error);
+          return of(0);
+        })
+      ),
+    }).pipe(
+      finalize(() => { this.isStatsLoaded.set(true); })
+    );
 
-    // Load orders
-    this.orderService.getTodayOrders().subscribe({
-      next: (orders) => {
-        this.logger.debug('Dashboard: Orders loaded:', orders);
-        this.orders.set(orders);
-        this.isLoading.set(false);
-      },
-      error: (error) => {
+    const orders$ = this.orderService.getTodayOrders().pipe(
+      catchError(error => {
         this.logger.error('Error loading orders:', error);
-        // Fallback: try to get all orders without date filter
-        this.orderService.getOrdersByStatusOrAll().subscribe({
-          next: (allOrders) => {
-            this.logger.debug('Dashboard: Fallback orders loaded:', allOrders);
-            this.orders.set(allOrders);
-            this.isLoading.set(false);
-          },
-          error: (fallbackError) => {
+        return this.orderService.getOrdersByStatusOrAll().pipe(
+          catchError(fallbackError => {
             this.logger.error('Error loading fallback orders:', fallbackError);
-            this.isLoading.set(false);
-          }
-        });
-      }
-    });
+            return of([] as OrderResponse[]);
+          })
+        );
+      }),
+      finalize(() => { this.isOrdersLoading.set(false); })
+    );
 
-    // Load statistics
-    this.orderService.getCompletedOrdersCount().subscribe({
-      next: (count) => {
-        this.completedOrdersCount.set(count);
-      },
-      error: (error) => {
-        this.logger.error('Error loading completed orders count:', error);
-        this.completedOrdersCount.set(0);
-      }
-    });
-
-    this.orderService.getPreparingOrdersCount().subscribe({
-      next: (count) => {
-        this.preparingOrdersCount.set(count);
-      },
-      error: (error) => {
-        this.logger.error('Error loading preparing orders count:', error);
-        this.preparingOrdersCount.set(0);
-      }
-    });
-
-    this.tableService.getOccupiedTablesCount().subscribe({
-      next: (count) => {
-        this.occupiedTablesCount.set(count);
-      },
-      error: (error) => {
-        this.logger.error('Error loading occupied tables count:', error);
-        this.occupiedTablesCount.set(0);
-      }
-    });
-
-    this.tableService.getTotalTablesCount().subscribe({
-      next: (count) => {
-        this.totalTables.set(count);
-      },
-      error: (error) => {
-        this.logger.error('Error loading tables count:', error);
-        this.occupiedTablesCount.set(0);
-      }
-    })
-
-    this.orderService.getTotalSales().subscribe({
-      next: (total) => {
-        this.totalSales.set(total);
-      },
-      error: (error) => {
-        this.logger.error('Error loading total sales:', error);
-        this.totalSales.set(0);
-      }
-    });
+    stats$.pipe(
+      switchMap(stats => {
+        this.completedOrdersCount.set(stats.completedOrders);
+        this.preparingOrdersCount.set(stats.preparingOrders);
+        this.occupiedTablesCount.set(stats.occupiedTables);
+        this.totalTables.set(stats.totalTables);
+        this.totalSales.set(stats.totalSales);
+        return orders$;
+      }),
+      switchMap(orders => {
+        this.orders.set(orders);
+        return EMPTY;
+      })
+    ).subscribe();
   }
 
   private updateDateTime() {
@@ -221,33 +226,6 @@ export class Dashboard implements OnInit, OnDestroy {
       minute: '2-digit',
       hour12: true
     }).format(dateObj);
-  }
-
-  private loadDayMenu() {
-    this.dayMenuService.getCurrentDayMenu().pipe(
-      switchMap(menu => {
-        // 204 No Content llega como null
-        if (!menu) {
-          this.dayMenu.set(null);
-          this.existDayMenu = false;
-          return of([] as ProductOption[]);
-        }
-        this.dayMenu.set(menu);
-        this.existDayMenu = true;
-        this.loadingDayMenuOptions.set(true);
-        return this.productService.getOptions(menu.productId).pipe(
-          catchError(() => of([] as ProductOption[]))
-        );
-      }),
-      catchError(() => {
-        this.dayMenu.set(null);
-        this.existDayMenu = false;
-        return of([] as ProductOption[]);
-      })
-    ).subscribe(opts => {
-      this.dayMenuOptions.set(opts);
-      this.loadingDayMenuOptions.set(false);
-    });
   }
 
   groupByCategory(options: ProductOption[]): { category: string; items: ProductOption[] }[] {

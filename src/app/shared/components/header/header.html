@@ -10,11 +10,11 @@
     <span class="font-bold bg-primary-500 py-1 px-2.5 rounded-md text-primary-contrast break-words shrink-0">{{customer}}</span>
 
     @if (selectedMenuItem) {
-    <div class="hidden md:flex items-center gap-2 ml-4 pl-4 border-l border-surface-200 dark:border-surface-700 shrink-0">
+    <div class="hidden lg:flex items-center gap-2 ml-4 pl-4 border-l border-surface-200 dark:border-surface-700 shrink-0">
       @if (selectedMenuItem.icon) {
       <i [class]="selectedMenuItem.icon + ' text-surface-500 dark:text-surface-400'"></i>
       }
-      <span class="text-surface-700 dark:text-surface-300 font-medium">
+      <span class="text-surface-700 dark:text-surface-300 font-medium truncate">
         {{ selectedMenuItem.description }}
       </span>
     </div>
@@ -80,17 +80,13 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
       (click)="toggleChat.emit()"
       [attr.aria-label]="isChatOpen ? 'Cerrar chat' : 'Abrir chat con asistente IA'"
       [title]="isChatOpen ? 'Cerrar chat' : 'Asistente IA'">
-      @if (isChatOpen) {
-        <i class="pi pi-times text-lg text-surface-600 dark:text-surface-400"></i>
-      } @else {
-        <i class="pi pi-comment text-lg transition-colors duration-300"
-           [class.text-orange-500]="!isMobile"
-           [class.text-orange-500]="isMobile"
-           [class.dark:text-orange-400]="!isMobile"
-           [class.dark:text-orange-400]="isMobile"></i>
-        <span class="absolute top-1 right-1 w-2 h-2 bg-primary-500 rounded-full animate-ping"></span>
-        <span class="absolute top-1 right-1 w-2 h-2 bg-primary-500 rounded-full"></span>
-      }
+   @if (isChatOpen) {
+     <i class="pi pi-times text-lg transition-colors duration-300 text-primary-500 dark:text-primary-400"></i>
+   } @else {
+     <i class="pi pi-comment text-lg transition-colors duration-300 text-primary-500 dark:text-primary-400"></i>
+     <span class="absolute top-1 right-1 w-2 h-2 bg-primary-500 rounded-full animate-ping"></span>
+     <span class="absolute top-1 right-1 w-2 h-2 bg-primary-500 rounded-full"></span>
+   }
     </button>
     }
 

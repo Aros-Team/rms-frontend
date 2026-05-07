@@ -17,6 +17,7 @@ import { MessageService } from 'primeng/api';
 import { TableResponse } from '@app/shared/models/dto/tables/table-response.model';
 import { TablesCacheService } from './tables-cache.service';
 import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton';
 
 @Component({
   selector: 'app-tables',
@@ -35,6 +36,7 @@ import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
     IconFieldModule,
     InputIconModule,
     LazyLoadDirective,
+    TableSkeleton,
   ],
   templateUrl: './tables.html',
 })
