@@ -85,6 +85,18 @@ export const routes: Routes = [
             path: 'inventory',
             loadComponent: () => import('@areas/admin/features/manage/inventory/inventory').then(m => m.Inventory),
           },
+          {
+            path: 'schedules',
+            loadComponent: () => import('@areas/admin/features/manage/schedules/schedules').then(m => m.Schedules),
+          },
+          {
+            path: 'schedules/:scheduleId/assignments',
+            loadComponent: () => import('@areas/admin/features/manage/schedules/assignments/schedule-assignments').then(m => m.ScheduleAssignments),
+          },
+          {
+            path: 'time-logs',
+            loadComponent: () => import('@areas/admin/features/manage/time-logs/time-logs').then(m => m.TimeLogs),
+          },
         ]
       },
       {
@@ -113,6 +125,7 @@ export const routes: Routes = [
       { path: 'orders', loadComponent: () => import('@areas/worker/features/waiter/today-orders/today-orders').then(m => m.TodayOrders) },
       { path: 'kitchen', loadComponent: () => import('@areas/worker/features/kitchen/kitchen').then(m => m.Kitchen) },
       { path: 'profile', loadComponent: () => import('@shared/features/settings/settings').then(m => m.Settings) },
+      { path: 'my-schedule', loadComponent: () => import('@areas/worker/features/my-schedule/my-schedule').then(m => m.MySchedule) },
     ]
   },
   {

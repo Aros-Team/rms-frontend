@@ -6,12 +6,13 @@ import { filter } from 'rxjs/operators';
 import { Header } from '../components/header/header';
 import { Sidebar } from '../components/sidebar/sidebar';
 import { Accessibility } from '../components/accessibility/accessibility';
+import { RestrictedBanner } from '../components/restricted-banner/restricted-banner';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-layout',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Header, Sidebar, Accessibility],
+  imports: [Header, Sidebar, Accessibility, RestrictedBanner],
   templateUrl: './layout.html',
   styles: ``
 })
