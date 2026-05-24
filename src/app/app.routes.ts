@@ -78,6 +78,10 @@ export const routes: Routes = [
             loadComponent: () => import('@areas/admin/features/manage/users/users').then(m => m.Users),
           },
           {
+            path: 'users/:id/salary-history',
+            loadComponent: () => import('@areas/admin/features/manage/users/salary-history/salary-history').then(m => m.SalaryHistory),
+          },
+          {
             path: 'inventory',
             loadComponent: () => import('@areas/admin/features/manage/inventory/inventory').then(m => m.Inventory),
           },

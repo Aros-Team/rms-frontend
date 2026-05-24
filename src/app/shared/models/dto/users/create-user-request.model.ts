@@ -5,4 +5,5 @@ export interface CreateUserRequest {
   phone?: string;
   address?: string;
   areas: number[];
+  salary?: number | null;
 }

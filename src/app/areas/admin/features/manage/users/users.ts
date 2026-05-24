@@ -1,4 +1,6 @@
-import { Component, OnInit, inject, computed } from '@angular/core';
+import { CurrencyPipe } from '@angular/common';
+import { Component, OnInit, inject, computed, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { RouterModule } from '@angular/router';
 import { TableModule } from 'primeng/table';
@@ -9,6 +11,8 @@ import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { TooltipModule } from 'primeng/tooltip';
 import { TagModule } from 'primeng/tag';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -33,7 +37,10 @@ interface UserFormValue {
   email: string;
   phone: string;
   address: string | null,
-  areas: number[]
+  areas: number[],
+  salary: number | null,
+  reason: string | null,
+  observations: string | null,
 }
 
 @Component({
@@ -49,12 +56,15 @@ interface UserFormValue {
     InputIconModule,
     IconFieldModule,
     MultiSelectModule,
+    InputNumberModule,
+    TooltipModule,
     TagModule,
     SkeletonModule,
     ConfirmDialogModule,
     FormValidation,
     LazyLoadDirective,
     TableSkeleton,
+    CurrencyPipe,
   ],
   templateUrl: './users.html',
   styles: ``,
@@ -65,6 +75,7 @@ export class Users implements OnInit {
   private messageService = inject(MessageService);
   private logger = inject(Logging);
   private confirmationService = inject(ConfirmationService);
+  private destroyRef = inject(DestroyRef);
   readonly cache = inject(UsersCacheService);
 
   title = 'Administracion de usuarios';
@@ -74,6 +85,9 @@ export class Users implements OnInit {
   areas = signal<AreaResponse[]>([]);
   editing = false;
   selectedUser: UserResponse | null = null;
+  originalSalary = signal<number | null>(null);
+  salaryValue = signal<number | null>(null);
+  salaryChanged = computed(() => this.salaryValue() !== this.originalSalary());
 
   userForm: FormGroup = new FormGroup({
     document: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.pattern(/^\d+$/)(control), (control: AbstractControl) => Validators.maxLength(20)(control)]),
@@ -81,6 +95,9 @@ export class Users implements OnInit {
     email: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.email(control), (control: AbstractControl) => Validators.maxLength(100)(control)]),
     phone: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.pattern(/^\d{10}$/)(control)]),
     address: new FormControl('', [(control: AbstractControl) => Validators.maxLength(200)(control)]),
+    salary: new FormControl<number | null>(null),
+    reason: new FormControl<string | null>(null),
+    observations: new FormControl<string | null>(null),
     areas: new FormControl<number[]>([], [(control: AbstractControl) => Validators.required(control)]),
   });
 
@@ -91,11 +108,14 @@ export class Users implements OnInit {
   private backendFieldErrors: Record<string, string> = {};
 
   ngOnInit(): void {
-
     // Force load on first visit if no data
     if (this.cache.users.data() === null) {
       this.cache.users.refresh();
     }
+
+    this.userForm.get('salary')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((val) => { this.salaryValue.set(val as number | null); });
   }
 
   onVisible(): void {
@@ -113,6 +133,9 @@ export class Users implements OnInit {
     this.editing = true;
     this.backendFieldErrors = {};
     this.fillFormWithData(user);
+    this.originalSalary.set(user.salary ?? null);
+    this.salaryValue.set(user.salary ?? null);
+    this.userForm.patchValue({ reason: null, observations: null });
     this.creationModalVisible = true;
   }
 
@@ -212,6 +235,19 @@ export class Users implements OnInit {
     this.backendFieldErrors = {};
 
     const formValue = this.userForm.value as UserFormValue;
+
+    if (this.salaryChanged()) {
+      if (!formValue.reason || formValue.reason.trim() === '') {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error de validación',
+          detail: 'La razón es obligatoria cuando se cambia el salario.',
+          life: 5000,
+        });
+        return;
+      }
+    }
+
     const updateData: UpdateUserRequest = {
       document: formValue.document,
       name: formValue.name,
@@ -220,6 +256,12 @@ export class Users implements OnInit {
       address: formValue.address ?? '',
       areas: formValue.areas,
     };
+
+    if (this.salaryChanged()) {
+      updateData.salary = formValue.salary;
+      updateData.reason = formValue.reason;
+      updateData.observations = formValue.observations ?? null;
+    }
 
     this.userService.updateUser(this.selectedUser.id, updateData).subscribe({
       next: () => {
@@ -395,6 +437,7 @@ export class Users implements OnInit {
       phone: data.phone ?? '',
       address: data.address ?? '',
       areas: data.assignedAreas ?? [],
+      salary: data.salary ?? null,
     });
   }
 
@@ -410,7 +453,8 @@ export class Users implements OnInit {
       email: formValue.email,
       phone: formValue.phone,
       address: formValue.address ?? undefined,
-      areas: formValue.areas
+      areas: formValue.areas,
+      salary: formValue.salary ?? undefined,
     };
   }
 
@@ -435,7 +479,7 @@ export class Users implements OnInit {
 
   private parseBackendValidationErrors(backendMessage: string): void {
     this.backendFieldErrors = {};
-    const fieldMarkers = ['document:', 'email:', 'phone:', 'name:', 'address:'];
+    const fieldMarkers = ['document:', 'email:', 'phone:', 'name:', 'address:', 'salary:', 'reason:'];
 
     const errorTranslations: Record<string, string> = {
       'Phone must be between 10 and 20 characters': 'El teléfono debe tener 10 dígitos',
@@ -452,6 +496,8 @@ export class Users implements OnInit {
       'El documento debe tener máximo 20 caracteres': 'El documento debe tener máximo 20 caracteres',
       'El correo debe tener máximo 100 caracteres': 'El correo debe tener máximo 100 caracteres',
       'La dirección debe tener máximo 200 caracteres': 'La dirección debe tener máximo 200 caracteres',
+      'Salary must be a positive value': 'El salario debe ser un valor positivo',
+      'Reason is required when salary changes': 'La razón es obligatoria cuando se cambia el salario',
     };
 
     for (const marker of fieldMarkers) {

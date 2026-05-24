@@ -8,6 +8,7 @@ export interface UserResponse {
   role?: 'ADMIN' | 'WORKER';
   status?: 'PENDING' | 'ERROR' | 'ACTIVE' | 'INACTIVE';
   assignedAreas?: number[];
+  salary?: number | null;
 }
 
 export interface UpdateUserRequest {
@@ -17,4 +18,7 @@ export interface UpdateUserRequest {
   phone: string;
   address: string;
   areas: number[];
+  salary?: number | null;
+  reason?: string | null;
+  observations?: string | null;
 }

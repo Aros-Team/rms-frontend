@@ -1,6 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable, inject } from "@angular/core";
 import { CreateUserRequest } from "@app/shared/models/dto/users/create-user-request.model";
+import { SalaryHistoryEntry } from "@app/shared/models/dto/users/salary-history-entry.model";
 import { UpdateUserRequest, UserResponse } from "@app/shared/models/dto/users/user-response.model";
 import { Observable } from "rxjs";
 import { Logging } from '@app/core/services/logging/logging';
@@ -26,6 +27,11 @@ export class User {
   public updateUser(id: number, data: UpdateUserRequest): Observable<UserResponse> {
     this.logger.debug('User: Calling PUT users with id:', id, 'data:', data);
     return this.http.put<UserResponse>(`v1/users/${String(id)}`, data);
+  }
+
+  public getSalaryHistory(userId: number): Observable<SalaryHistoryEntry[]> {
+    this.logger.debug('User: Calling GET salary-history with id:', userId);
+    return this.http.get<SalaryHistoryEntry[]>(`v1/users/${String(userId)}/salary-history`);
   }
 
   public deleteUser(id: number): Observable<unknown> {
