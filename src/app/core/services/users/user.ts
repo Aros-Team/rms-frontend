@@ -20,7 +20,7 @@ export class User {
 
   public getEmployees(): Observable<UserResponse[]> {
     this.logger.debug('User: Calling GET employees');
-    return this.http.get<UserResponse[]>('v1/employees');
+    return this.http.get<UserResponse[]>('v1/users/employees');
   }
 
   public createUser(data: CreateUserRequest): Observable<UserResponse> {
