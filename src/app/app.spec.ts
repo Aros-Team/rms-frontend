@@ -1,6 +1,10 @@
 import { TestBed } from '@angular/core/testing';
+import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
 import { MessageService } from 'primeng/api';
 import { App } from './app';
+import appHtmlContent from './app.html?raw';
 
 // Mock matchMedia for jsdom environment
 Object.defineProperty(window, 'matchMedia', {
@@ -23,11 +27,22 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 describe('App', () => {
+  beforeAll(async () => {
+    await resolveComponentResources((url: string) => {
+      if (url === './app.html') {
+        return Promise.resolve(appHtmlContent as unknown as string);
+      }
+      return Promise.reject(new Error(`Unknown resource: ${url}`));
+    });
+  });
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [
         MessageService,
+        provideRouter([]),
+        provideHttpClient(),
       ],
     }).compileComponents();
   });

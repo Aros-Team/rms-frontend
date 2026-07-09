@@ -1,5 +1,19 @@
 [
   {
+    "id": "fix/employees-endpoint-path",
+    "type": "fix",
+    "description": "Corregir path del endpoint employees en frontend de /api/v1/employees a /api/v1/users/employees",
+    "tasks": [
+      {
+        "id": "t1",
+        "description": "Cambiar v1/employees a v1/users/employees en User.getEmployees()",
+        "agent": "implementer",
+        "status": "done"
+      }
+    ],
+    "status": "done"
+  },
+  {
     "id": "feat/product-description",
     "type": "feat",
     "description": "Agregar campo descripcion a productos en admin",
@@ -120,5 +134,37 @@
       }
     ],
     "status": "done"
+  },
+  {
+    "id": "chore/clean-harness",
+    "type": "chore",
+    "description": "Resolver bloqueos del harness: schema de activities.json, lint por import sin usar, y falta de carpeta tests/",
+    "tasks": [
+      {
+        "id": "t1",
+        "description": "Corregir agent inválido task-executor → implementer en activities.json",
+        "agent": "implementer",
+        "status": "done"
+      },
+      {
+        "id": "t2",
+        "description": "Eliminar import sin usar TableSkeleton en src/app/areas/admin/features/manage/tables/tables.ts",
+        "agent": "implementer",
+        "status": "done"
+      },
+      {
+        "id": "t3",
+        "description": "Crear carpeta tests/ con smoke test y actualizar vitest.config.ts para incluir src/ + tests/",
+        "agent": "implementer",
+        "status": "done"
+      },
+      {
+        "id": "t4",
+        "description": "Arreglar app.spec.ts para resolver templateUrl en vitest puro (agregar provideRouter, provideHttpClient y resolver de ?raw)",
+        "agent": "implementer",
+        "status": "done"
+      }
+    ],
+    "status": "done"
   }
-]
+] 

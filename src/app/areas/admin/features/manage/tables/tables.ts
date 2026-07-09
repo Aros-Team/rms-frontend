@@ -18,7 +18,6 @@ import { MessageService } from 'primeng/api';
 import { TableResponse } from '@app/shared/models/dto/tables/table-response.model';
 import { TablesCacheService } from './tables-cache.service';
 import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
-import { TableSkeleton } from '@shared/skeletons/table-skeleton';
 import { WebSocket } from '@app/core/services/websocket/websocket';
 import { Auth } from '@app/core/services/auth/auth';
 import { environment } from '@environments/environment';
@@ -44,7 +43,6 @@ const WS_TOPICS = {
     IconFieldModule,
     InputIconModule,
     LazyLoadDirective,
-    TableSkeleton,
   ],
   templateUrl: './tables.html',
 })
@@ -97,6 +95,10 @@ export class Tables implements OnInit {
 
   showCreationModal(): void {
     this.tableForm.reset();
+    // Auto-suggest next table number
+    const existingNumbers = this.tables().map(t => t.tableNumber);
+    const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
+    this.tableForm.patchValue({ tableNumber: nextNumber, capacity: null });
     this.modalMode.set('create');
     this.modalIsOpen.set(true);
   }
