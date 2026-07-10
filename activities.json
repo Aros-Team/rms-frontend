@@ -1,38 +1,25 @@
 [
   {
-    "id": "fix/waiter-review-fixes",
+    "id": "fix/dock-mobile-responsive",
     "type": "fix",
-    "description": "Resolve critical bugs, convention violations, and code smells identified in waiter module review.",
-    "status": "done",
+    "name": "dock-mobile-responsive",
+    "title": "Hacer dock responsive, expandible y mobile-first",
+    "description": "El dock inferior es restrictivo y rompe el layout en mobile. La tabla no funciona, las tarjetas de producto y tabs no responden bien. Rediseñar dock como panel expandible con agarre (grab), mobile-first.",
+    "acceptance": [
+      "Table selector funcional (binding correcto, muestra mesas disponibles)",
+      "Dock con agarre (grab handle) que se expande hacia el centro de la pantalla",
+      "Layout responsive mobile-first: dock se adapta a pantallas chicas",
+      "Tabs de navegación (Menú/Carta/Pedidos) responsive, se envuelven o desplazan horizontalmente",
+      "Tarjetas de producto orientación correcta en mobile (stack vertical, no se rompen)",
+      "Estilos más flexibles, sin restricciones de altura/anchura fijas"
+    ],
     "tasks": [
-      {"id": "routing-dock", "description": "Fix direct routes bypassing dock", "status": "done", "agent": "implementer"},
-      {"id": "day-menu-options-race", "description": "Cancel stale options requests, disable order btn until ready", "status": "done", "agent": "implementer"},
-      {"id": "today-orders-bugs", "description": "Fix timezone, add realtime, cancel stale responses", "status": "done", "agent": "implementer"},
-      {"id": "carta-options-race", "description": "Cancel stale getProductOptions on pendingProduct change", "status": "done", "agent": "implementer"},
-      {"id": "worker-area-notifications", "description": "Priority-based workerType, start polling for SERVICE too", "status": "done", "agent": "implementer"},
-      {"id": "diner-removal-safety", "description": "Confirm before removing diner with items", "status": "done", "agent": "implementer"},
-      {"id": "confirm-stale-snapshot", "description": "Capture allDinerOrders at accept time, not before dialog", "status": "done", "agent": "implementer"},
-      {"id": "naming-style-conventions", "description": "Rename class suffixes, add styleUrl, fix import order", "status": "done", "agent": "implementer"},
-      {"id": "primeng-templates", "description": "Replace native inputs/buttons with PrimeNG components", "status": "done", "agent": "implementer"},
-      {"id": "waiter-skeletons", "description": "Add skeleton loaders per conventions §12", "status": "done", "agent": "implementer"},
-      {"id": "shared-options-modal", "description": "Extract shared ProductOptionsModal component", "status": "done", "agent": "implementer"},
-      {"id": "toast-consistency", "description": "Replace custom alerts with MessageService/p-toast", "status": "done", "agent": "implementer"},
-      {"id": "dead-code-cleanup", "description": "Remove unused injections, processing→signal", "status": "done", "agent": "implementer"},
-      {"id": "z-index-resolution", "description": "Fix z-index overlap modals vs dock", "status": "done", "agent": "implementer"},
-      {"id": "error-message-extraction", "description": "Extract error from HttpErrorResponse properly", "status": "done", "agent": "implementer"}
-    ]
-  },
-  {
-    "id": "feat/dock-table-selector",
-    "type": "feat",
-    "description": "Explicit table picker in dock replacing auto-assign findAvailableTable()",
-    "status": "done",
-    "tasks": [
-      {"id": "table-state", "description": "Add availableTables signals + loader to OrderDock service", "status": "done", "agent": "implementer"},
-      {"id": "table-selector-ui", "description": "UI table picker inside OrderDockComponent", "status": "done", "agent": "implementer"},
-      {"id": "table-validation", "description": "Validate table selected before placeOrder", "status": "done", "agent": "implementer"},
-      {"id": "table-invalidation", "description": "Invalidate tables cache after order mutations", "status": "done", "agent": "implementer"},
-      {"id": "backend-error-surfacing", "description": "Surface 409/400 errors as specific toasts", "status": "done", "agent": "implementer"}
-    ]
+      {"id": "fix-table-bind", "description": "Depurar y arreglar el binding del table selector (p-select selectedTableId no funciona)", "status": "pending", "agent": "implementer"},
+      {"id": "dock-grab-expand", "description": "Rediseñar dock como panel expandible con handle de agarre (grab), animación de altura, overlay semitransparente. Mobile-first, touch compatible.", "status": "pending", "agent": "implementer"},
+      {"id": "responsive-nav-tabs", "description": "Hacer tabs de navegacion responsivos: wrap o scroll horizontal en mobile, touch targets grandes.", "status": "pending", "agent": "implementer"},
+      {"id": "product-card-orientation", "description": "Corregir orientacion de tarjetas producto en mobile: stack vertical, imagenes responsive, grid adaptativo.", "status": "pending", "agent": "implementer"},
+      {"id": "dock-minimal-styles", "description": "Refactorizar estilos del dock: quitar restricciones de tamaño fijo, usar layout flexible, padding/height dinamicos.", "status": "pending", "agent": "implementer"}
+    ],
+    "status": "pending"
   }
 ]
