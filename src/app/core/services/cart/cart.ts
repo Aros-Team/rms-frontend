@@ -1,19 +1,19 @@
 import { Injectable, signal } from '@angular/core';
-import { CartItem } from '@areas/worker/features/waiter/take-order/take-order';
+import { DockItem } from '@app/core/services/order-dock/order-dock';
 
 @Injectable({ providedIn: 'root' })
 export class Cart {
-  private _pendingItems = signal<CartItem[]>([]);
+  private _pendingItems = signal<DockItem[]>([]);
 
   get pendingItems() {
     return this._pendingItems.asReadonly();
   }
 
-  addItems(items: CartItem[]): void {
+  addItems(items: DockItem[]): void {
     this._pendingItems.set(items);
   }
 
-  flush(): CartItem[] {
+  flush(): DockItem[] {
     const items = this._pendingItems();
     this._pendingItems.set([]);
     return items;

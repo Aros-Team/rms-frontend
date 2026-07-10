@@ -1,16 +1,14 @@
 import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
-import { Router } from '@angular/router';
 import { KeyValuePipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { DayMenuService } from '@app/core/services/daymenu/daymenu';
 import { MasterData } from '@app/core/services/master-data/master-data';
-import { Cart } from '@app/core/services/cart/cart';
+import { OrderDock, DockItem } from '@app/core/services/order-dock/order-dock';
 import { Logging } from '@app/core/services/logging/logging';
 
 import { DayMenuResponse } from '@app/shared/models/dto/daymenu/daymenu-response';
 import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
-import { CartItem } from '@areas/worker/features/waiter/take-order/take-order';
 
 import { ButtonModule } from 'primeng/button';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
@@ -26,8 +24,7 @@ import { TagModule } from 'primeng/tag';
 export class DayMenu implements OnInit {
   private dayMenuService = inject(DayMenuService);
   private masterData = inject(MasterData);
-  private cartService = inject(Cart);
-  private router = inject(Router);
+  private dock = inject(OrderDock);
   private logger = inject(Logging);
 
   loading = signal(true);
@@ -59,8 +56,6 @@ export class DayMenu implements OnInit {
   ngOnInit(): void {
     this.dayMenuService.getCurrentDayMenu().subscribe({
       next: (menu) => {
-        // El backend retorna 204 No Content cuando no hay menú del día.
-        // Angular HttpClient lo trata como éxito con body null.
         if (!menu) {
           this.dayMenu.set(null);
           this.loading.set(false);
@@ -71,7 +66,6 @@ export class DayMenu implements OnInit {
         this.loadProductOptions(menu.productId);
       },
       error: (err: { status?: number }) => {
-        // 404 también puede indicar que no hay menú configurado
         if (err.status === 404) {
           this.dayMenu.set(null);
         } else {
@@ -95,28 +89,10 @@ export class DayMenu implements OnInit {
     const menu = this.dayMenu();
     if (!menu) return;
 
-    // Necesitamos saber si el producto tiene opciones — lo buscamos en master data
-    // Si no está cargado aún, lo cargamos
-    const snapshot = this.masterData.snapshot;
-    if (snapshot) {
-      this.resolveProduct(menu);
-    } else {
-      this.loading.set(true);
-      this.masterData.load().subscribe({
-        next: () => { this.loading.set(false); this.resolveProduct(menu); },
-        error: () => { this.loading.set(false); this.resolveProduct(menu); },
-      });
-    }
-  }
-
-  private resolveProduct(menu: DayMenuResponse): void {
-    // Always show the options modal — the product may or may not have options.
-    // If no options are loaded, the user can confirm without selecting any.
     const loadedOptions = this.productOptions();
 
     if (loadedOptions.length === 0) {
-      // No options available — add directly to cart without modal
-      const item: CartItem = {
+      const item: DockItem = {
         product: {
           id: menu.productId, name: menu.productName,
           basePrice: menu.productBasePrice,
@@ -124,14 +100,10 @@ export class DayMenu implements OnInit {
         },
         instructions: '', selectedOptionIds: [], optionNames: [],
       };
-      this.cartService.addItems([item]);
-      this.router.navigate(['/worker/take-order']).catch(() => {
-        // empty - navigation failure not critical
-      });
+      this.dock.addItemToDiner(item);
       return;
     }
 
-    // Options available — open modal for selection
     this.pendingOptions.set([]);
     this.pendingInstructions.set('');
     this.optionsError.set(null);
@@ -164,7 +136,7 @@ export class DayMenu implements OnInit {
       .map(id => this.modalOptions().find(o => o.id === id)?.name ?? '')
       .filter(Boolean);
 
-    const item: CartItem = {
+    const item: DockItem = {
       product: {
         id: menu.productId,
         name: menu.productName,
@@ -179,11 +151,8 @@ export class DayMenu implements OnInit {
       optionNames,
     };
 
-    this.cartService.addItems([item]);
+    this.dock.addItemToDiner(item);
     this.showOptionsModal.set(false);
-    this.router.navigate(['/worker/take-order']).catch(() => {
-      // empty - navigation failure not critical
-    });
   }
 
   closeModal(): void {

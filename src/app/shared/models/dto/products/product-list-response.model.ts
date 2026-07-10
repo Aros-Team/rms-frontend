@@ -1,6 +1,7 @@
 export interface ProductListResponse {
   id: number;
   name: string;
+  description?: string;
   basePrice: number;
   active: boolean;
   categoryId: number;

@@ -20,7 +20,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         authService.logout();
         void router.navigate(['/login']);
       }
-      throw new Error(err.message || 'HTTP Error');
+      // eslint-disable-next-line @typescript-eslint/only-throw-error
+      throw err;
     })
   );
 };

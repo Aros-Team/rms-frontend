@@ -15,7 +15,7 @@
 </nav>
 
 <!-- Content area — switches inline based on activeTab -->
-<div class="flex-1 min-h-0 overflow-hidden">
+<div class="flex-1 min-h-0 overflow-hidden pb-24">
   @if (activeTab() === 'menu') {
     <app-day-menu />
   } @else if (activeTab() === 'carta') {
@@ -24,3 +24,5 @@
     <app-today-orders />
   }
 </div>
+
+<app-order-dock />

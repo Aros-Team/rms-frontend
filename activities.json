@@ -1,114 +1,17 @@
 [
   {
-    "id": "fix/waiter-enterprise-theme-and-landing",
-    "type": "fix",
-    "description": "Resolver 3 issues reportados: (1) bg warm cream demasiado informal — cambiar a slate neutral + gold accent para tono enterprise; (2) problemas de contraste; (3) /worker no muestra menú waiter — crear WaiterHome con 3 tiles y dispatch por assignedArea (SERVICE → waiter, KITCHEN → kitchen)",
-    "tasks": [
-      {
-        "id": "t1",
-        "description": "Reemplazar familia --color-cream-* por --color-slate-* en styles.css @theme block y surface family en theme.ts (slate-50 #f8fafc para page, slate-0 #ffffff para card); actualizar waiter-shell.css para usar --color-slate-50 + border slate-200",
-        "agent": "implementer",
-        "status": "done"
-      },
-      {
-        "id": "t2",
-        "description": "Auditar contrastes: ajustar outline-warm, surface-variant para slate family; asegurar WCAG AA en text/bg combinations (text-slate-900 sobre bg-white, text-slate-600 sobre bg-slate-50)",
-        "agent": "implementer",
-        "status": "done"
-      },
-      {
-        "id": "t3",
-        "description": "Crear WaiterHome component en src/app/areas/worker/features/waiter/waiter-home/ con 3 tiles (Tomar Pedido, Menú del Día, Órdenes del Día) usando app-waiter-shell + icon + descripción + tap para navegar",
-        "agent": "implementer",
-        "status": "done"
-      },
-      {
-        "id": "t4",
-        "description": "Actualizar app.routes.ts: nueva ruta /worker/waiter → WaiterHome; eliminar redirectTo 'day-menu'. Actualizar AreaGuard para '' target: si SERVICE → /worker/waiter, si KITCHEN → /worker/kitchen, si ninguno → /worker/profile",
-        "agent": "implementer",
-        "status": "done"
-      }
-    ],
-    "status": "done"
-  },
-  {
-    "id": "chore/waiter-design-guide",
-    "type": "chore",
-    "description": "Documentar Waiter Service Design System desde Stitch (project 7190928068831492323): brand, colores, tipografía, spacing, componentes, 2 screens referencia, mapeo a PrimeNG",
-    "tasks": [
-      {
-        "id": "t1",
-        "description": "Descargar assets Stitch (screenshots + HTML) a assets/stitch/waiter-service/",
-        "agent": "implementer",
-        "status": "done"
-      },
-      {
-        "id": "t2",
-        "description": "Escribir docs/design/waiter-service.md con guía completa (brand, colores, tipografía, spacing, layout, elevación, shapes, componentes, screens, mapeo PrimeNG, reglas de implementación)",
-        "agent": "implementer",
-        "status": "done"
-      }
-    ],
-    "status": "done"
-  },
-  {
-    "id": "chore/theme-apply-stitch",
-    "type": "chore",
-    "description": "Fusionar tokens del Waiter Service Design System sobre el stack existente (Angular 21 + PrimeNG 21 + Tailwind v4 + @primeuix/themes Aura + Archivo local). NO introducir tech nuevo. Extender @theme {} de styles.css y arosPreset en app.config.ts.",
-    "tasks": [
-      {
-        "id": "t1",
-        "description": "Agregar surface warm cream family (--color-cream-50..500), outline-warm, spacing tokens (xs/sm/md/lg/xl/touch), border-radius extendidos (card/container/sheet-top) en bloque @theme {} de src/styles.css",
-        "agent": "implementer",
-        "status": "done"
-      },
-      {
-        "id": "t2",
-        "description": "Extender src/environments/theme.ts con semantic.info (blue #3b82f6), semantic.success (emerald #10b981), semantic.warn (amber #f59e0b) y semantic.surface cream family",
-        "agent": "implementer",
-        "status": "done"
-      },
-      {
-        "id": "t3",
-        "description": "Extender arosPreset en src/app/app.config.ts con semantic.colorScheme para info/success/warn y mapear surface family a variables CSS de PrimeNG",
-        "agent": "implementer",
-        "status": "done"
-      },
-      {
-        "id": "t4",
-        "description": "Verificar que la utility class bg-cream-50, p-touch, rounded-card, rounded-container, rounded-t-sheet-top se generan correctamente con Tailwind v4",
-        "agent": "implementer",
-        "status": "done"
-      }
-    ],
-    "status": "done"
-  },
-  {
-    "id": "feat/waiter-status-badge",
+    "id": "feat-waiter-dock",
     "type": "feat",
-    "description": "Crear componente reutilizable <app-waiter-status-badge> con disciplina estricta de color funcional (warn=QUEUE amber, info=PREPARING blue, success=READY emerald, error=CANCELLED red) y tipografía label-caps",
+    "description": "Implementar dock fijo inferior para meseros con gestión de comensales, sincronización con tabs Menú/Carta/Pedidos, y envío de órdenes",
+    "status": "done",
     "tasks": [
-      {
-        "id": "t1",
-        "description": "Crear shared/components/waiter-status-badge con input 'status' (OrderStatus enum), template <p-tag> con severity + rounded + uppercase label-caps",
-        "agent": "implementer",
-        "status": "done"
-      }
-    ],
-    "status": "done"
-  },
-  {
-    "id": "chore/design-guide-refresh",
-    "type": "chore",
-    "description": "Rewrite docs/design/waiter-service.md to reflect enterprise slate direction: replace warm-cream tokens with slate neutral, remove App-in-Card wrapper, remove shadows, document 3-tab dashboard layout.",
-    "tasks": [
-      {
-        "id": "t1",
-        "description": "Rewrite design guide for slate enterprise + inline dashboard + no shadows",
-        "agent": "implementer",
-        "status": "done"
-      }
-    ],
-    "status": "done"
+      {"id": "dock-service", "description": "Crear OrderDockService — estado compartido de comensales, items, place order", "status": "done", "agent": "implementer"},
+      {"id": "dock-component", "description": "Crear OrderDockComponent — UI dock fijo inferior con +/- comensales, lista items, botón colocar pedido con confirmación", "status": "done", "agent": "implementer"},
+      {"id": "product-model", "description": "Agregar description field a ProductListResponse", "status": "done", "agent": "implementer"},
+      {"id": "dashboard-update", "description": "Actualizar WaiterDashboard — integrar dock, padding bottom", "status": "done", "agent": "implementer"},
+      {"id": "carta-cards", "description": "Refactorizar TakeOrder — tarjetas producto con imagen/nombre/precio/descripción, modal sincronizado con dock", "status": "done", "agent": "implementer"},
+      {"id": "menu-dock", "description": "Refactorizar DayMenu — agregar al dock en lugar del cart service", "status": "done", "agent": "implementer"},
+      {"id": "backend-fix", "description": "Corregir error interceptor para preservar HttpErrorResponse original, permitiendo manejo de errores adecuado desde componentes", "status": "done", "agent": "implementer"}
+    ]
   }
 ]
