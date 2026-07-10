@@ -17,6 +17,7 @@ import { CartaSkeleton } from './skeletons/carta-skeleton';
 @Component({
   selector: 'app-take-order',
   templateUrl: './take-order.html',
+  styleUrl: './take-order.css',
   imports: [CommonModule, FormsModule, KeyValuePipe, CartaSkeleton, InputTextModule, IconFieldModule, InputIconModule],
 })
 export class TakeOrder implements OnInit {

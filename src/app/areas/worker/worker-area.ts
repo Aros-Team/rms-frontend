@@ -2,20 +2,22 @@ import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, DestroyR
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
-import { WorkerLayout } from '@app/shared/layout/worker-layout';
-import { Menu, MenuItem } from '@app/core/services/menu/menu';
-import { Auth } from '@app/core/services/auth/auth';
-import { Logging } from '@app/core/services/logging/logging';
-import { Notification } from '@app/core/services/notifications/notification';
-import { OrderDock } from '@app/core/services/order-dock/order-dock';
-import { OrderDockComponent } from '@app/shared/components/order-dock/order-dock';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+
+import { Auth } from '@app/core/services/auth/auth';
+import { Logging } from '@app/core/services/logging/logging';
+import { Menu, MenuItem } from '@app/core/services/menu/menu';
+import { Notification } from '@app/core/services/notifications/notification';
+import { OrderDock } from '@app/core/services/order-dock/order-dock';
+import { WorkerLayout } from '@app/shared/layout/worker-layout';
+import { OrderDock as OrderDockPanel } from '@app/shared/components/order-dock/order-dock';
 
 @Component({
   selector: 'app-worker-area',
   templateUrl: './worker-area.html',
-  imports: [WorkerLayout, RouterOutlet, ToastModule, OrderDockComponent],
+  styleUrl: './worker-area.css',
+  imports: [WorkerLayout, RouterOutlet, ToastModule, OrderDockPanel],
   providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

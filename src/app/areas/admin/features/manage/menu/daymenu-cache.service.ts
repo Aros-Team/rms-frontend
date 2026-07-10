@@ -1,7 +1,7 @@
 import { Injectable, inject, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ResourceCache } from '@app/core/cache/resource-cache';
-import { DayMenuService } from '@app/core/services/daymenu/daymenu';
+import { DayMenu } from '@app/core/services/daymenu/daymenu';
 import { Product } from '@app/core/services/products/product';
 import { DayMenuResponse } from '@app/shared/models/dto/daymenu/daymenu-response';
 import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
@@ -9,7 +9,7 @@ import { WebSocket } from '@app/core/services/websocket/websocket';
 
 @Injectable({ providedIn: 'root' })
 export class DayMenuCacheService implements OnDestroy {
-  private readonly dayMenuService = inject(DayMenuService);
+  private readonly dayMenuService = inject(DayMenu);
   private readonly productService = inject(Product);
   private readonly wsService = inject(WebSocket);
 

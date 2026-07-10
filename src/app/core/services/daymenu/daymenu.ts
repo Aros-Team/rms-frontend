@@ -6,7 +6,7 @@ import { DayMenuResponse, DayMenuHistoryPage } from '@app/shared/models/dto/daym
 @Injectable({
   providedIn: 'root'
 })
-export class DayMenuService {
+export class DayMenu {
   private http = inject(HttpClient);
 
   getCurrentDayMenu(): Observable<DayMenuResponse | null> {

@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
 import { Order } from '@app/core/services/orders/order';
 import { Table } from '@app/core/services/tables/table';
 import { Product, ProductData } from '@app/core/services/products/product';
-import { DayMenuService } from '@app/core/services/daymenu/daymenu';
+import { DayMenu } from '@app/core/services/daymenu/daymenu';
 import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
 import { OrderDetailDialog } from '@shared/components/order-detail-dialog/order-detail-dialog';
 import { Logging } from '@app/core/services/logging/logging';
@@ -63,7 +63,7 @@ export class Dashboard implements OnInit, OnDestroy {
   private orderService = inject(Order);
   private tableService = inject(Table);
   private productService = inject(Product);
-  private dayMenuService = inject(DayMenuService);
+  private dayMenuService = inject(DayMenu);
   private logger = inject(Logging);
   private http = inject(HttpClient);
   readonly dayMenuCache = inject(DayMenuCacheService);

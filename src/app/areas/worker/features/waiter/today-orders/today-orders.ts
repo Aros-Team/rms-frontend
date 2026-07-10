@@ -18,6 +18,7 @@ import { TodayOrdersSkeleton } from './skeletons/today-orders-skeleton';
 @Component({
   selector: 'app-today-orders',
   templateUrl: './today-orders.html',
+  styleUrl: './today-orders.css',
   imports: [RouterModule, FormsModule, OptionNamesPipe, TodayOrdersSkeleton, DatePickerModule, SelectModule, ButtonModule],
 })
 export class TodayOrders implements OnInit {

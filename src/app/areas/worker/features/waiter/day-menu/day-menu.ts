@@ -2,18 +2,18 @@ import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy } 
 import { KeyValuePipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-import { DayMenuService } from '@app/core/services/daymenu/daymenu';
-import { MasterData } from '@app/core/services/master-data/master-data';
-import { OrderDock, DockItem } from '@app/core/services/order-dock/order-dock';
-import { Logging } from '@app/core/services/logging/logging';
-
-import { DayMenuResponse } from '@app/shared/models/dto/daymenu/daymenu-response';
-import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
-
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TagModule } from 'primeng/tag';
+
+import { DayMenu as DayMenuSvc } from '@app/core/services/daymenu/daymenu';
+import { Logging } from '@app/core/services/logging/logging';
+import { MasterData } from '@app/core/services/master-data/master-data';
+import { OrderDock, DockItem } from '@app/core/services/order-dock/order-dock';
+
+import { DayMenuResponse } from '@app/shared/models/dto/daymenu/daymenu-response';
+import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
 
 import { DayMenuSkeleton } from './skeletons/day-menu-skeleton';
 
@@ -21,10 +21,11 @@ import { DayMenuSkeleton } from './skeletons/day-menu-skeleton';
   selector: 'app-day-menu',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './day-menu.html',
+  styleUrl: './day-menu.css',
   imports: [ButtonModule, ProgressSpinnerModule, TagModule, KeyValuePipe, DatePipe, FormsModule, DayMenuSkeleton],
 })
 export class DayMenu implements OnInit {
-  private dayMenuService = inject(DayMenuService);
+  private dayMenuService = inject(DayMenuSvc);
   private masterData = inject(MasterData);
   private dock = inject(OrderDock);
   private logger = inject(Logging);

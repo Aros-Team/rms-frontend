@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { OrderDock } from '@app/core/services/order-dock/order-dock';
+import { OrderDock as OrderDockSvc } from '@app/core/services/order-dock/order-dock';
 import { Order } from '@app/core/services/orders/order';
 import { Logging } from '@app/core/services/logging/logging';
 import { MasterData } from '@app/core/services/master-data/master-data';
@@ -11,11 +11,12 @@ import { MasterData } from '@app/core/services/master-data/master-data';
 @Component({
   selector: 'app-order-dock',
   templateUrl: './order-dock.html',
+  styleUrl: './order-dock.css',
   imports: [CommonModule, FormsModule, ConfirmDialogModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class OrderDockComponent {
-  protected dock = inject(OrderDock);
+export class OrderDock {
+  protected dock = inject(OrderDockSvc);
   private orderService = inject(Order);
   private logger = inject(Logging);
   private masterData = inject(MasterData);

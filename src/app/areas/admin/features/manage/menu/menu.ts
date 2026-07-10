@@ -2,7 +2,7 @@ import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@a
 import { HttpErrorResponse } from '@angular/common/http';
 import { catchError, EMPTY, of, switchMap } from 'rxjs';
 
-import { DayMenuService } from '@app/core/services/daymenu/daymenu';
+import { DayMenu } from '@app/core/services/daymenu/daymenu';
 import { Product } from '@app/core/services/products/product';
 import { Logging } from '@app/core/services/logging/logging';
 import { DayMenuHistoryResponse, DayMenuHistoryPage } from '@app/shared/models/dto/daymenu/daymenu-response';
@@ -44,7 +44,7 @@ import { DayMenuCacheService } from './daymenu-cache.service';
   providers: [MessageService],
 })
 export class Menu {
-  private dayMenuService = inject(DayMenuService);
+  private dayMenuService = inject(DayMenu);
   private productService = inject(Product);
   private logger = inject(Logging);
   private messageService = inject(MessageService);
