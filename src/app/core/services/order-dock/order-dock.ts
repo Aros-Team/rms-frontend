@@ -133,6 +133,10 @@ export class OrderDock {
     this.selectedTableId.set(id);
   }
 
+  resetTableSelection(): void {
+    this.selectedTableId.set(null);
+  }
+
   getOrderDetailsForAllDiners(): { dinerId: number; details: CreateOrderDetail[] }[] {
     return this._diners().map(diner => ({
       dinerId: diner.id,

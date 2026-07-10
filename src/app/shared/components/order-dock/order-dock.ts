@@ -74,7 +74,7 @@ export class OrderDock {
 
     const tableId = this.dock.selectedTableId();
     if (tableId === null) {
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Selecciona una mesa antes de colocar el pedido.' });
+      this.messageService.add({ severity: 'warn', summary: 'Seleccionar mesa', detail: 'Debe seleccionar una mesa antes de colocar el pedido.' });
       this.submitting.set(false);
       return;
     }
@@ -86,6 +86,7 @@ export class OrderDock {
       next: (order) => {
         this.messageService.add({ severity: 'success', summary: 'Pedido creado', detail: `Orden #${String(order.id)} creada exitosamente` });
         this.dock.clearAll();
+        this.dock.resetTableSelection();
         this.submitting.set(false);
       },
       error: (err) => {
