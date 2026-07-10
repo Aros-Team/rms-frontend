@@ -2,37 +2,37 @@
   {
     "id": "fix/waiter-review-fixes",
     "type": "fix",
-    "description": "Resolve critical bugs, convention violations, and code smells identified in waiter module review (Task ses_0b2aa9e8bffezGOC11wB0laJ9w). Group into atomic, PR-able tasks.",
-    "status": "in_progress",
+    "description": "Resolve critical bugs, convention violations, and code smells identified in waiter module review.",
+    "status": "done",
     "tasks": [
-      {"id": "routing-dock", "description": "Fix direct waiter routes bypassing dock (Option C): redirect /worker/{take-order,day-menu,orders} to /worker?tab=X; hoist <app-order-dock /> to worker-area.html with SERVICE/WAITER-only gate; dashboard reads ?tab on init.", "status": "done", "agent": "implementer"},
-      {"id": "day-menu-options-race", "description": "DayMenu can add item before product options load. Disable order btn until options resolve; cancel stale requests; show error toast on options API failure; preload MasterData tables when component loads.", "status": "done", "agent": "implementer"},
-      {"id": "today-orders-bugs", "description": "TodayOrders: fix UTC vs local date timezone bug, add realtime subscription, add request cancellation to prevent stale-response races.", "status": "done", "agent": "implementer"},
-      {"id": "carta-options-race", "description": "Carta product options modal: cancel stale getProductOptions() when pendingProduct changes so product A options don't populate product B modal.", "status": "done", "agent": "implementer"},
-      {"id": "worker-area-notifications", "description": "Fix determineWorkerType to use priority (SERVICE>WAITER>KITCHEN); start notification polling for both SERVICE and WAITER.", "status": "done", "agent": "implementer"},
-      {"id": "diner-removal-safety", "description": "Confirm before removing diner with items; remove selected diner not always last; show item/price totals across all diners.", "status": "in_progress", "agent": "implementer"},
-      {"id": "confirm-stale-snapshot", "description": "Recompute allDinerOrders at confirmation accept time, not before dialog opens.", "status": "in_progress", "agent": "implementer"},
-      {"id": "naming-style-conventions", "description": "Rename class suffixes, add missing styleUrl, fix import group order.", "status": "done", "agent": "implementer"},
-      {"id": "primeng-templates", "description": "Replace native input/select/button with PrimeNG components in waiter templates.", "status": "done", "agent": "implementer"},
-      {"id": "waiter-skeletons", "description": "Add skeleton components per conventions §12 for Day Menu, Carta, Today Orders.", "status": "done", "agent": "implementer"},
-      {"id": "shared-options-modal", "description": "Extract shared ProductOptionsModal component for Day Menu and Carta.", "status": "done", "agent": "implementer"},
-      {"id": "toast-consistency", "description": "Replace custom fixed alerts in order-dock.html with MessageService/p-toast.", "status": "done", "agent": "implementer"},
-      {"id": "dead-code-cleanup", "description": "Remove unused injections, fix processing: Set→signal, clean dead state.", "status": "done", "agent": "implementer"},
-      {"id": "z-index-resolution", "description": "Resolve z-50 overlap between modals (z-60) and dock (z-40).", "status": "done", "agent": "implementer"},
-      {"id": "error-message-extraction", "description": "Pull msg from HttpErrorResponse.error.message instead of just instanceof Error.", "status": "done", "agent": "implementer"}
+      {"id": "routing-dock", "description": "Fix direct routes bypassing dock", "status": "done", "agent": "implementer"},
+      {"id": "day-menu-options-race", "description": "Cancel stale options requests, disable order btn until ready", "status": "done", "agent": "implementer"},
+      {"id": "today-orders-bugs", "description": "Fix timezone, add realtime, cancel stale responses", "status": "done", "agent": "implementer"},
+      {"id": "carta-options-race", "description": "Cancel stale getProductOptions on pendingProduct change", "status": "done", "agent": "implementer"},
+      {"id": "worker-area-notifications", "description": "Priority-based workerType, start polling for SERVICE too", "status": "done", "agent": "implementer"},
+      {"id": "diner-removal-safety", "description": "Confirm before removing diner with items", "status": "done", "agent": "implementer"},
+      {"id": "confirm-stale-snapshot", "description": "Capture allDinerOrders at accept time, not before dialog", "status": "done", "agent": "implementer"},
+      {"id": "naming-style-conventions", "description": "Rename class suffixes, add styleUrl, fix import order", "status": "done", "agent": "implementer"},
+      {"id": "primeng-templates", "description": "Replace native inputs/buttons with PrimeNG components", "status": "done", "agent": "implementer"},
+      {"id": "waiter-skeletons", "description": "Add skeleton loaders per conventions §12", "status": "done", "agent": "implementer"},
+      {"id": "shared-options-modal", "description": "Extract shared ProductOptionsModal component", "status": "done", "agent": "implementer"},
+      {"id": "toast-consistency", "description": "Replace custom alerts with MessageService/p-toast", "status": "done", "agent": "implementer"},
+      {"id": "dead-code-cleanup", "description": "Remove unused injections, processing→signal", "status": "done", "agent": "implementer"},
+      {"id": "z-index-resolution", "description": "Fix z-index overlap modals vs dock", "status": "done", "agent": "implementer"},
+      {"id": "error-message-extraction", "description": "Extract error from HttpErrorResponse properly", "status": "done", "agent": "implementer"}
     ]
   },
   {
     "id": "feat/dock-table-selector",
     "type": "feat",
-    "description": "Replace unsafe auto-assign findAvailableTable() with explicit table picker in dock. Waiter chooses table; surface backend conflicts; invalidate tables after mutation.",
-    "status": "pending",
+    "description": "Explicit table picker in dock replacing auto-assign findAvailableTable()",
+    "status": "done",
     "tasks": [
-      {"id": "table-state", "description": "Add availableTables signal + loader integration in OrderDockService. Trigger preload on waiter dashboard init.", "status": "pending", "agent": "implementer"},
-      {"id": "table-selector-ui", "description": "UI: table picker inside OrderDockComponent replacing findAvailableTable() auto-assign.", "status": "pending", "agent": "implementer"},
-      {"id": "table-validation", "description": "Validate selected table before placeOrder; block submit if none selected.", "status": "pending", "agent": "implementer"},
-      {"id": "table-invalidation", "description": "Invalidate availableTables cache after order create/cancel; reload tables on dock open.", "status": "pending", "agent": "implementer"},
-      {"id": "backend-error-surfacing", "description": "Surface 409 backend errors as specific toasts instead of generic msg.", "status": "pending", "agent": "implementer"}
+      {"id": "table-state", "description": "Add availableTables signals + loader to OrderDock service", "status": "done", "agent": "implementer"},
+      {"id": "table-selector-ui", "description": "UI table picker inside OrderDockComponent", "status": "done", "agent": "implementer"},
+      {"id": "table-validation", "description": "Validate table selected before placeOrder", "status": "done", "agent": "implementer"},
+      {"id": "table-invalidation", "description": "Invalidate tables cache after order mutations", "status": "done", "agent": "implementer"},
+      {"id": "backend-error-surfacing", "description": "Surface 409/400 errors as specific toasts", "status": "done", "agent": "implementer"}
     ]
   }
 ]
