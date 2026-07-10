@@ -2,3 +2,7 @@
 <app-worker-layout [workerType]="workerType()" [role]="role">
   <router-outlet></router-outlet>
 </app-worker-layout>
+
+@if (canOrder()) {
+  <app-order-dock />
+}

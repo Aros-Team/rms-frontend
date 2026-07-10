@@ -7,13 +7,15 @@ import { Menu, MenuItem } from '@app/core/services/menu/menu';
 import { Auth } from '@app/core/services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
 import { Notification } from '@app/core/services/notifications/notification';
+import { OrderDock } from '@app/core/services/order-dock/order-dock';
+import { OrderDockComponent } from '@app/shared/components/order-dock/order-dock';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'app-worker-area',
   templateUrl: './worker-area.html',
-  imports: [WorkerLayout, RouterOutlet, ToastModule],
+  imports: [WorkerLayout, RouterOutlet, ToastModule, OrderDockComponent],
   providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -22,12 +24,16 @@ export class WorkerArea implements OnInit, OnDestroy {
   private authService = inject(Auth);
   private logger = inject(Logging);
   private notificationService = inject(Notification);
+  // OrderDock service injected here so the singleton lives in the worker shell
+  // and persists across tab switches inside /worker?tab=*.
+  protected dock = inject(OrderDock);
   private messageService = inject(MessageService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
   private cdr = inject(ChangeDetectorRef);
 
 workerType = signal('');
+  canOrder = signal(false);
   hideSidebar = false;
   role = 'WORKER';
 
@@ -55,11 +61,21 @@ workerType = signal('');
     void this.waitForUserData().then(() => {
       this.determineRole();
       this.determineWorkerType();
+      this.computeCanOrder();
       this.cdr.markForCheck();
       this.configureWorkerMenu();
       this.startNotifications();
       this.setupRouterListener();
     });
+  }
+
+  private computeCanOrder(): void {
+    const userData = this.authService.getData();
+    const canOrder = userData?.areas.some(
+      a => a.type === 'SERVICE' || a.type === 'WAITER'
+    ) ?? false;
+    this.canOrder.set(canOrder);
+    this.logger.debug(`WorkerArea: canOrder=${String(canOrder)} based on user areas`);
   }
 
   private waitForUserData(): Promise<void> {
@@ -134,21 +150,21 @@ ngOnDestroy(): void {
         label: 'Tomar Orden',
         description: 'Crear nueva orden',
         icon: 'pi pi-plus-circle',
-        routerLink: '/worker/take-order'
+        routerLink: '/worker?tab=carta'
       },
       {
         id: 'orders',
         label: 'Órdenes del Día',
         description: 'Ver pedidos del día',
         icon: 'pi pi-list',
-        routerLink: '/worker/orders'
+        routerLink: '/worker?tab=pedidos'
       },
       {
         id: 'day-menu',
         label: 'Menú del Día',
         description: 'Ver menú del día',
         icon: 'pi pi-calendar',
-        routerLink: '/worker/day-menu'
+        routerLink: '/worker?tab=menu'
       },
       {
         id: 'profile',
