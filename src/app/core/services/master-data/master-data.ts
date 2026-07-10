@@ -28,7 +28,14 @@ export class MasterData {
       optionCategories: this.http.get<OptionCategory[]>('v1/option-categories'),
       tables: this.http.get<TableResponse[]>('v1/tables'),
     }).pipe(
-      tap(data => { this._data$.next(data); })
+      tap(data => {
+        this._data$.next({
+          products: Array.isArray(data.products) ? data.products : [],
+          productOptions: Array.isArray(data.productOptions) ? data.productOptions : [],
+          optionCategories: Array.isArray(data.optionCategories) ? data.optionCategories : [],
+          tables: Array.isArray(data.tables) ? data.tables : [],
+        });
+      })
     );
   }
 
@@ -70,19 +77,23 @@ export class MasterData {
   }
 
   getAvailableTables(): TableResponse[] {
-    return (this._data$.value?.tables ?? []).filter(t => t.status === 'AVAILABLE');
+    const tables = this._data$.value?.tables;
+    return Array.isArray(tables) ? tables.filter(t => t.status === 'AVAILABLE') : [];
   }
 
   getAllTables(): TableResponse[] {
-    return this._data$.value?.tables ?? [];
+    const tables = this._data$.value?.tables;
+    return Array.isArray(tables) ? tables : [];
   }
 
   getActiveProducts(): ProductListResponse[] {
-    return (this._data$.value?.products ?? []).filter(p => p.active);
+    const products = this._data$.value?.products;
+    return Array.isArray(products) ? products.filter(p => p.active) : [];
   }
 
   getProductsByCategory(): Record<string, ProductListResponse[]> {
     const products = this.getActiveProducts();
+    if (products.length === 0) return {};
     return products.reduce<Record<string, ProductListResponse[]>>((acc, p) => {
       const key = p.categoryName;
       acc[key] ??= [];
