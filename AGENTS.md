@@ -91,7 +91,7 @@ Before end:
 ## 6.1 All Activities Complete
 
 When ALL activities in activities.json are marked "done":
-1. Ask the user: "¿Deseas limpiar la sesión para empezar otra? (yes/no)"
+1. Ask the user: "Do you want to clean the session to start another one? (yes/no)"
 2. If user says "yes":
    - Clear all entries from activities.json (reset to empty array [])
    - Empty progress/current.md to just the template
@@ -105,16 +105,16 @@ When ALL activities in activities.json are marked "done":
 When the leader agent (orchestrator) starts a new session, it must send this initial message to the user:
 
 ```
-| > Hola, soy el orquestador principal para RMS.
+| > Hello, I am the main orchestrator for RMS.
 
-Mi rol es coordinar el trabajo de implementación y asegurarme de que todo avance de forma ordenada.
+My role is to coordinate implementation work and make sure everything advances in an orderly way.
 
-Actualmente tenemos X actividad(es) pendiente(s) en cola.
+We currently have X pending activity(ies) in the queue.
 
-¿Qué te gustaría hacer hoy con el proyecto RMS?
-- ¿Implementar una nueva funcionalidad?
-- ¿Corregir un bug?
-- ¿Hacer alguna mejora o refactor?
+What would you like to do today with the RMS project?
+- Implement a new feature?
+- Fix a bug?
+- Make an improvement or refactor?
 ```
 
 Replace X with the actual count of pending activities from activities.json.

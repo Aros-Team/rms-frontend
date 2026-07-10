@@ -1,17 +1,1 @@
-[
-  {
-    "id": "feat-waiter-dock",
-    "type": "feat",
-    "description": "Implementar dock fijo inferior para meseros con gestión de comensales, sincronización con tabs Menú/Carta/Pedidos, y envío de órdenes",
-    "status": "done",
-    "tasks": [
-      {"id": "dock-service", "description": "Crear OrderDockService — estado compartido de comensales, items, place order", "status": "done", "agent": "implementer"},
-      {"id": "dock-component", "description": "Crear OrderDockComponent — UI dock fijo inferior con +/- comensales, lista items, botón colocar pedido con confirmación", "status": "done", "agent": "implementer"},
-      {"id": "product-model", "description": "Agregar description field a ProductListResponse", "status": "done", "agent": "implementer"},
-      {"id": "dashboard-update", "description": "Actualizar WaiterDashboard — integrar dock, padding bottom", "status": "done", "agent": "implementer"},
-      {"id": "carta-cards", "description": "Refactorizar TakeOrder — tarjetas producto con imagen/nombre/precio/descripción, modal sincronizado con dock", "status": "done", "agent": "implementer"},
-      {"id": "menu-dock", "description": "Refactorizar DayMenu — agregar al dock en lugar del cart service", "status": "done", "agent": "implementer"},
-      {"id": "backend-fix", "description": "Corregir error interceptor para preservar HttpErrorResponse original, permitiendo manejo de errores adecuado desde componentes", "status": "done", "agent": "implementer"}
-    ]
-  }
-]
+[]
