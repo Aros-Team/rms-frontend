@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { CommonModule, KeyValuePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { InputTextModule } from 'primeng/inputtext';
@@ -13,12 +13,13 @@ import { ProductListResponse } from '@app/shared/models/dto/products/product-lis
 import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
 
 import { CartaSkeleton } from './skeletons/carta-skeleton';
+import { ProductOptionsModal, ProductOptionsConfirmEvent } from '@app/shared/components/product-options-modal/product-options-modal';
 
 @Component({
   selector: 'app-take-order',
   templateUrl: './take-order.html',
   styleUrl: './take-order.css',
-  imports: [CommonModule, FormsModule, KeyValuePipe, CartaSkeleton, InputTextModule, IconFieldModule, InputIconModule],
+  imports: [CommonModule, FormsModule, CartaSkeleton, InputTextModule, IconFieldModule, InputIconModule, ProductOptionsModal],
 })
 export class TakeOrder implements OnInit {
   private masterData = inject(MasterData);
@@ -35,8 +36,6 @@ export class TakeOrder implements OnInit {
   // Options modal state
   showOptionsModal = signal(false);
   pendingProduct = signal<ProductListResponse | null>(null);
-  pendingOptions = signal<number[]>([]);
-  pendingInstructions = signal('');
   modalOptions = signal<ProductOption[]>([]);
   modalOptionsLoading = signal(false);
   optionsError = signal<string | null>(null);
@@ -51,10 +50,6 @@ export class TakeOrder implements OnInit {
     if (!query) return products;
     return products.filter(p => p.name.toLowerCase().includes(query));
   });
-
-  modalOptionsByCategory = computed(() =>
-    this.masterData.groupOptionsByCategory(this.modalOptions())
-  );
 
   ngOnInit(): void {
     this.masterData.load().subscribe({
@@ -78,8 +73,6 @@ export class TakeOrder implements OnInit {
 
   addProduct(product: ProductListResponse): void {
     this.pendingProduct.set(product);
-    this.pendingOptions.set([]);
-    this.pendingInstructions.set('');
     this.modalOptions.set([]);
     this.showOptionsModal.set(true);
     this.error.set(null);
@@ -107,46 +100,24 @@ export class TakeOrder implements OnInit {
     });
   }
 
-  toggleOption(optionId: number, categoryId: number): void {
-    const sameCategory = this.modalOptions()
-      .filter(o => o.optionCategoryId === categoryId)
-      .map(o => o.id);
-
-    this.pendingOptions.update(ids => {
-      const withoutCategory = ids.filter(id => !sameCategory.includes(id));
-      return ids.includes(optionId) ? withoutCategory : [...withoutCategory, optionId];
-    });
-  }
-
-  isOptionSelected(optionId: number): boolean {
-    return this.pendingOptions().includes(optionId);
-  }
-
-  confirmOptions(): void {
-    const product = this.pendingProduct();
-    if (!product) return;
-
-    const selectedIds = [...this.pendingOptions()];
-    const optionNames = selectedIds
-      .map(id => this.modalOptions().find(o => o.id === id)?.name ?? '')
-      .filter(Boolean);
-
+  onConfirmOptions(event: ProductOptionsConfirmEvent): void {
     const item: DockItem = {
-      product,
-      instructions: this.pendingInstructions(),
-      selectedOptionIds: selectedIds,
-      optionNames
+      product: event.product,
+      instructions: event.instructions,
+      selectedOptionIds: event.selectedOptions.map(o => o.optionId),
+      optionNames: event.selectedOptions.map(o => o.optionName),
     };
 
-    this.dock.addItemToDiner(item);
+    for (let i = 0; i < event.quantity; i++) {
+      this.dock.addItemToDiner(item);
+    }
+
     this.closeModal();
   }
 
   closeModal(): void {
     this.showOptionsModal.set(false);
     this.pendingProduct.set(null);
-    this.pendingOptions.set([]);
-    this.pendingInstructions.set('');
     this.modalOptions.set([]);
     this.error.set(null);
     this.optionsError.set(null);

@@ -111,7 +111,7 @@ ngOnDestroy(): void {
   }
 
   private startNotifications(): void {
-    if (this.workerType() === 'waiter') {
+    if (this.workerType() === 'waiter' || this.workerType() === 'service') {
       this.notificationService.startPolling();
     }
   }
@@ -132,11 +132,12 @@ ngOnDestroy(): void {
       return;
     }
 
-    for (const area of userData.areas) {
-      const areaType = area.type?.toUpperCase();
-      if (areaType === 'KITCHEN' || areaType === 'WAITER' || areaType === 'SERVICE' || areaType === 'BAR' || areaType === 'CASHIER') {
-        this.workerType.set(areaType.toLowerCase());
-        this.logger.debug(`WorkerArea: Determined worker type as '${this.workerType()}' from area type '${areaType}'`);
+    // Priority-based selection: SERVICE > WAITER > KITCHEN > BAR > CASHIER
+    const priority = ['service', 'waiter', 'kitchen', 'bar', 'cashier'];
+    for (const p of priority) {
+      if (userData.areas.some(a => a.type?.toLowerCase() === p)) {
+        this.workerType.set(p);
+        this.logger.debug(`WorkerArea: Determined worker type as '${this.workerType()}' via priority selection`);
         return;
       }
     }

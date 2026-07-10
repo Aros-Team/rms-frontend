@@ -1,11 +1,8 @@
 import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { KeyValuePipe, DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { TagModule } from 'primeng/tag';
 
 import { DayMenu as DayMenuSvc } from '@app/core/services/daymenu/daymenu';
 import { Logging } from '@app/core/services/logging/logging';
@@ -14,15 +11,17 @@ import { OrderDock, DockItem } from '@app/core/services/order-dock/order-dock';
 
 import { DayMenuResponse } from '@app/shared/models/dto/daymenu/daymenu-response';
 import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
+import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
 
 import { DayMenuSkeleton } from './skeletons/day-menu-skeleton';
+import { ProductOptionsModal, ProductOptionsConfirmEvent } from '@app/shared/components/product-options-modal/product-options-modal';
 
 @Component({
   selector: 'app-day-menu',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './day-menu.html',
   styleUrl: './day-menu.css',
-  imports: [ButtonModule, ProgressSpinnerModule, TagModule, KeyValuePipe, DatePipe, FormsModule, DayMenuSkeleton],
+  imports: [ButtonModule, KeyValuePipe, DatePipe, DayMenuSkeleton, ProductOptionsModal],
 })
 export class DayMenu implements OnInit {
   private dayMenuService = inject(DayMenuSvc);
@@ -35,22 +34,28 @@ export class DayMenu implements OnInit {
   dayMenu = signal<DayMenuResponse | null>(null);
   error = signal<string | null>(null);
 
+  /** Transforms DayMenuResponse into ProductListResponse for the shared modal. */
+  dayMenuProduct = computed<ProductListResponse | null>(() => {
+    const menu = this.dayMenu();
+    if (!menu) return null;
+    return {
+      id: menu.productId,
+      name: menu.productName,
+      basePrice: menu.productBasePrice,
+      active: true,
+      categoryId: 0,
+      categoryName: '',
+      areaId: 0,
+    };
+  });
+
   // Options modal
   showOptionsModal = signal(false);
-  modalOptions = signal<ProductOption[]>([]);
-  modalOptionsLoading = signal(false);
-  pendingOptions = signal<number[]>([]);
-  pendingInstructions = signal('');
-  optionsError = signal<string | null>(null);
 
   // Opciones del producto mostradas en la card
   productOptions = signal<ProductOption[]>([]);
   productOptionsLoading = signal(false);
   optionsLoadError = signal<string | null>(null);
-
-  modalOptionsByCategory = computed(() =>
-    this.masterData.groupOptionsByCategory(this.modalOptions())
-  );
 
   productOptionsByCategory = computed(() =>
     this.masterData.groupOptionsByCategory(this.productOptions())
@@ -135,79 +140,37 @@ export class DayMenu implements OnInit {
   }
 
   orderDayMenu(): void {
-    const menu = this.dayMenu();
-    if (!menu) return;
+    const prod = this.dayMenuProduct();
+    if (!prod) return;
 
-    const loadedOptions = this.productOptions();
-
-    if (loadedOptions.length === 0) {
+    if (this.productOptions().length === 0) {
       const item: DockItem = {
-        product: {
-          id: menu.productId, name: menu.productName,
-          basePrice: menu.productBasePrice,
-          active: true, categoryId: 0, categoryName: '', areaId: 0,
-        },
+        product: prod,
         instructions: '', selectedOptionIds: [], optionNames: [],
       };
       this.dock.addItemToDiner(item);
       return;
     }
 
-    this.pendingOptions.set([]);
-    this.pendingInstructions.set('');
-    this.optionsError.set(null);
-    this.modalOptions.set(loadedOptions);
-    this.modalOptionsLoading.set(false);
     this.showOptionsModal.set(true);
   }
 
-  toggleOption(optionId: number, categoryId: number): void {
-    const sameCategory = this.modalOptions()
-      .filter(o => o.optionCategoryId === categoryId)
-      .map(o => o.id);
-
-    this.pendingOptions.update(ids => {
-      const withoutCategory = ids.filter(id => !sameCategory.includes(id));
-      return ids.includes(optionId) ? withoutCategory : [...withoutCategory, optionId];
-    });
-  }
-
-  isOptionSelected(optionId: number): boolean {
-    return this.pendingOptions().includes(optionId);
-  }
-
-  confirmOptions(): void {
-    const menu = this.dayMenu();
-    if (!menu) return;
-
-    const selectedIds = [...this.pendingOptions()];
-    const optionNames = selectedIds
-      .map(id => this.modalOptions().find(o => o.id === id)?.name ?? '')
-      .filter(Boolean);
-
+  onConfirmOptions(event: ProductOptionsConfirmEvent): void {
     const item: DockItem = {
-      product: {
-        id: menu.productId,
-        name: menu.productName,
-        basePrice: menu.productBasePrice,
-        active: true,
-        categoryId: 0,
-        categoryName: '',
-        areaId: 0,
-      },
-      instructions: this.pendingInstructions(),
-      selectedOptionIds: selectedIds,
-      optionNames,
+      product: event.product,
+      instructions: event.instructions,
+      selectedOptionIds: event.selectedOptions.map(o => o.optionId),
+      optionNames: event.selectedOptions.map(o => o.optionName),
     };
 
-    this.dock.addItemToDiner(item);
+    for (let i = 0; i < event.quantity; i++) {
+      this.dock.addItemToDiner(item);
+    }
+
     this.showOptionsModal.set(false);
   }
 
   closeModal(): void {
     this.showOptionsModal.set(false);
-    this.pendingOptions.set([]);
-    this.pendingInstructions.set('');
-    this.optionsError.set(null);
   }
 }
