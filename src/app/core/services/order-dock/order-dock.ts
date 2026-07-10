@@ -84,6 +84,7 @@ export class OrderDock {
     if (current >= total) {
       this._selectedDinerIndex.set(Math.max(0, total - 1));
     }
+    this.loadAvailableTables();
   }
 
   addItemToDiner(item: DockItem): void {

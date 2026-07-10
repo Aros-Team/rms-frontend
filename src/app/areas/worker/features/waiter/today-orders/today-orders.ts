@@ -10,6 +10,7 @@ import { SelectModule } from 'primeng/select';
 import { ButtonModule } from 'primeng/button';
 
 import { Order } from '@app/core/services/orders/order';
+import { OrderDock as OrderDockSvc } from '@app/core/services/order-dock/order-dock';
 import { Logging } from '@app/core/services/logging/logging';
 import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
 import { OptionNamesPipe } from '@app/shared/pipes/option-names.pipe';
@@ -24,6 +25,7 @@ import { TodayOrdersSkeleton } from './skeletons/today-orders-skeleton';
 })
 export class TodayOrders implements OnInit {
   private orderService = inject(Order);
+  private dock = inject(OrderDockSvc);
   private log = inject(Logging);
   private destroyRef = inject(DestroyRef);
 
@@ -115,6 +117,7 @@ export class TodayOrders implements OnInit {
     this.orderService.cancelOrder(order.id).subscribe({
       next: (updated) => {
         this.orders.update(list => list.map(o => o.id === updated.id ? updated : o));
+        this.dock.loadAvailableTables();
         this.clearProcessing(order.id);
       },
       error: (err: unknown) => {

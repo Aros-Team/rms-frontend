@@ -87,10 +87,12 @@ export class OrderDock {
         this.messageService.add({ severity: 'success', summary: 'Pedido creado', detail: `Orden #${String(order.id)} creada exitosamente` });
         this.dock.clearAll();
         this.dock.resetTableSelection();
+        this.dock.loadAvailableTables();
         this.submitting.set(false);
       },
       error: (err) => {
         this.messageService.add({ severity: 'error', summary: 'Error', detail: extractError(err) });
+        this.dock.loadAvailableTables();
         this.submitting.set(false);
       }
     });
