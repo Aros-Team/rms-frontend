@@ -32,6 +32,42 @@
 /* Set Archivo as the default font family */
 @theme {
   --font-sans: 'Archivo', sans-serif;
+
+  /* ========================================
+     Waiter Service Design System tokens
+     Source: docs/design/waiter-service.md § 9.1
+     Brand: Aros Hospitality Core
+     ======================================== */
+
+  /* Slate neutral family — enterprise (cool, sober) */
+  --color-slate-50:  #f8fafc;   /* page bg */
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;   /* border */
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;   /* muted text */
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;   /* secondary text */
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;   /* primary text */
+  --color-slate-950: #020617;
+
+  /* Outline family (mapped to slate for enterprise sober tone) */
+  --color-outline-warm: #475569;            /* slate-600 — readable on white */
+  --color-outline-variant-warm: #cbd5e1;    /* slate-300 — hairline divider */
+
+  /* Spacing (8 px base) */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-touch: 44px;
+
+  /* Extended radius (App-in-Card) */
+  --radius-card: 1rem;         /* 16 px */
+  --radius-container: 1.5rem;  /* 24 px */
+  --radius-sheet-top: 1.75rem; /* 28 px */
 }
 
 /* Apply Archivo font globally */

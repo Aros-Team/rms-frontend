@@ -104,7 +104,7 @@ export const routes: Routes = [
     loadComponent: () => import('@areas/worker/worker-area').then(m => m.WorkerArea),
     canActivate: [AuthGuard, RoleGuard],
     children: [
-      { path: '', redirectTo: 'day-menu', pathMatch: 'full' },
+      { path: '', loadComponent: () => import('@areas/worker/features/waiter/waiter-dashboard/waiter-dashboard').then(m => m.WaiterDashboard), canActivate: [AreaGuard] },
       { path: 'day-menu', loadComponent: () => import('@areas/worker/features/waiter/day-menu/day-menu').then(m => m.DayMenu), canActivate: [AreaGuard] },
       { path: 'take-order', loadComponent: () => import('@areas/worker/features/waiter/take-order/take-order').then(m => m.TakeOrder), canActivate: [AreaGuard] },
       { path: 'orders', loadComponent: () => import('@areas/worker/features/waiter/today-orders/today-orders').then(m => m.TodayOrders), canActivate: [AreaGuard] },

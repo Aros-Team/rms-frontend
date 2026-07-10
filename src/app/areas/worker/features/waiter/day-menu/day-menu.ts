@@ -16,6 +16,7 @@ import { ButtonModule } from 'primeng/button';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TagModule } from 'primeng/tag';
 
+
 @Component({
   selector: 'app-day-menu',
   changeDetection: ChangeDetectionStrategy.OnPush,

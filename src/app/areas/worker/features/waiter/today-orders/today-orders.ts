@@ -8,6 +8,7 @@ import { Logging } from '@app/core/services/logging/logging';
 import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
 import { OptionNamesPipe } from '@app/shared/pipes/option-names.pipe';
 
+
 @Component({
   selector: 'app-today-orders',
   templateUrl: './today-orders.html',

@@ -1,0 +1,26 @@
+<!-- Horizontal nav bar — style matches header.html:23-34 -->
+<nav class="flex items-center gap-1 px-4 py-2 bg-white border-b border-surface-200">
+  @for (tab of tabs; track tab.id) {
+    <button
+      (click)="setTab(tab.id)"
+      class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors cursor-pointer text-sm whitespace-nowrap"
+      [class]="activeTab() === tab.id
+        ? 'text-primary-500 font-semibold'
+        : 'text-surface-700 hover:bg-surface-100'"
+      [attr.aria-current]="activeTab() === tab.id ? 'page' : null">
+      <i [class]="tab.icon + ' text-sm'"></i>
+      <span>{{ tab.label }}</span>
+    </button>
+  }
+</nav>
+
+<!-- Content area — switches inline based on activeTab -->
+<div class="flex-1 min-h-0 overflow-hidden">
+  @if (activeTab() === 'menu') {
+    <app-day-menu />
+  } @else if (activeTab() === 'carta') {
+    <app-take-order />
+  } @else if (activeTab() === 'pedidos') {
+    <app-today-orders />
+  }
+</div>

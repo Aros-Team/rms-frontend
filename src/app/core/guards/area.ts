@@ -1,3 +1,5 @@
+// Activity: fix/waiter-enterprise-theme-and-landing (t4)
+// Routes `/worker` default to WaiterHome for SERVICE users; KITCHEN-only users are sent to `/worker/kitchen`.
 import { Injectable, inject } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, GuardResult, MaybeAsync, RedirectCommand, Router } from '@angular/router';
 import { Auth } from '@services/auth/auth';
@@ -15,6 +17,25 @@ export class AreaGuard implements CanActivate {
   canActivate(route: ActivatedRouteSnapshot): MaybeAsync<GuardResult> {
     const userData: UserInfo | undefined = this.authService.getData();
     const targetRoute = route.routeConfig?.path ?? '';
+
+    // Default '/' inside /worker — dispatch by assigned area
+    if (targetRoute === '') {
+      const hasService = userData?.areas.some(a => a.type === 'SERVICE' || a.type === 'WAITER') ?? false;
+      const hasKitchen = userData?.areas.some(a => a.type === 'KITCHEN') ?? false;
+
+      if (hasService) {
+        // Waiter lands on the 3-tile home
+        return true;
+      }
+      if (hasKitchen) {
+        // No SERVICE area → send to kitchen queue
+        this.logger.warn(`AreaGuard: User lacks SERVICE area at /worker, redirecting to /worker/kitchen`);
+        return new RedirectCommand(this.router.parseUrl('/worker/kitchen'));
+      }
+      // No recognized worker area → safe default
+      this.logger.warn(`AreaGuard: User has no SERVICE or KITCHEN area at /worker, redirecting to profile`);
+      return new RedirectCommand(this.router.parseUrl('/worker/profile'));
+    }
 
     // profile is available to all workers
     if (targetRoute === 'profile') {
