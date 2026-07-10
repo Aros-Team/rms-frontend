@@ -1,11 +1,11 @@
 import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ConfirmationService } from 'primeng/api';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { OrderDock as OrderDockSvc } from '@app/core/services/order-dock/order-dock';
 import { Order } from '@app/core/services/orders/order';
-import { Logging } from '@app/core/services/logging/logging';
 import { MasterData } from '@app/core/services/master-data/master-data';
 
 @Component({
@@ -18,13 +18,11 @@ import { MasterData } from '@app/core/services/master-data/master-data';
 export class OrderDock {
   protected dock = inject(OrderDockSvc);
   private orderService = inject(Order);
-  private logger = inject(Logging);
   private masterData = inject(MasterData);
   private confirmationService = inject(ConfirmationService);
+  private messageService = inject(MessageService);
 
   submitting = signal(false);
-  successMessage = signal<string | null>(null);
-  errorMessage = signal<string | null>(null);
   showDinerList = signal(false);
 
   placeOrder(): void {
@@ -54,11 +52,10 @@ export class OrderDock {
 
   private submitOrders(allDinerOrders: { dinerId: number; details: import('@app/shared/models/dto/orders/create-order-request.model').CreateOrderDetail[] }[]): void {
     this.submitting.set(true);
-    this.errorMessage.set(null);
 
     const tableId = this.findAvailableTable();
     if (!tableId) {
-      this.errorMessage.set('No hay mesas disponibles. Libera una mesa primero.');
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No hay mesas disponibles. Libera una mesa primero.' });
       this.submitting.set(false);
       return;
     }
@@ -68,14 +65,12 @@ export class OrderDock {
       details: allDinerOrders.flatMap(d => d.details),
     }).subscribe({
       next: (order) => {
-        this.logger.info('OrderDock: order created', order);
-        this.successMessage.set(`Orden #${String(order.id)} creada exitosamente`);
+        this.messageService.add({ severity: 'success', summary: 'Pedido creado', detail: `Orden #${String(order.id)} creada exitosamente` });
         this.dock.clearAll();
         this.submitting.set(false);
       },
       error: (err) => {
-        this.logger.error('OrderDock: create order failed', err);
-        this.errorMessage.set('No se pudo crear la orden. Intenta de nuevo.');
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: extractError(err) });
         this.submitting.set(false);
       }
     });
@@ -110,4 +105,14 @@ export class OrderDock {
   trackByDinerId(_index: number, diner: { id: number }): number {
     return diner.id;
   }
+}
+
+function extractError(err: unknown): string {
+  if (err instanceof HttpErrorResponse) {
+    const errorBody: unknown = err.error;
+    const body = errorBody as { message?: string } | null;
+    return body?.message ?? err.message;
+  }
+  if (err instanceof Error) return err.message;
+  return 'Error desconocido';
 }

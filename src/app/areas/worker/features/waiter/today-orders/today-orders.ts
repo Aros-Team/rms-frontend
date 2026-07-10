@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal, DestroyRef } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 
 import { FormsModule } from '@angular/forms';
@@ -30,7 +31,7 @@ export class TodayOrders implements OnInit {
   refreshing = signal(false);
   error = signal<string | null>(null);
   orders = signal<OrderResponse[]>([]);
-  processing = new Set<number>();
+  private processingIds = signal(new Set<number>());
 
   selectedStatus = '';
   selectedDate: Date;
@@ -108,41 +109,55 @@ export class TodayOrders implements OnInit {
   }
 
   cancelOrder(order: OrderResponse): void {
-    if (this.processing.has(order.id)) return;
-    this.processing.add(order.id);
+    if (this.isProcessing(order.id)) return;
+    this.toggleProcessing(order.id);
 
     this.orderService.cancelOrder(order.id).subscribe({
       next: (updated) => {
         this.orders.update(list => list.map(o => o.id === updated.id ? updated : o));
-        this.processing.delete(order.id);
+        this.clearProcessing(order.id);
       },
       error: (err: unknown) => {
-        const message = err instanceof Error ? err.message : null;
-        this.error.set(message ?? 'No se pudo cancelar la orden.');
-        this.processing.delete(order.id);
+        this.error.set(extractError(err));
+        this.clearProcessing(order.id);
       }
     });
   }
 
   deliverOrder(order: OrderResponse): void {
-    if (this.processing.has(order.id)) return;
-    this.processing.add(order.id);
+    if (this.isProcessing(order.id)) return;
+    this.toggleProcessing(order.id);
 
     this.orderService.deliverOrder(order.id).subscribe({
       next: (updated) => {
         this.orders.update(list => list.map(o => o.id === updated.id ? updated : o));
-        this.processing.delete(order.id);
+        this.clearProcessing(order.id);
       },
       error: (err: unknown) => {
-        const message = err instanceof Error ? err.message : null;
-        this.error.set(message ?? 'No se pudo entregar la orden.');
-        this.processing.delete(order.id);
+        this.error.set(extractError(err));
+        this.clearProcessing(order.id);
       }
     });
   }
 
   isProcessing(id: number): boolean {
-    return this.processing.has(id);
+    return this.processingIds().has(id);
+  }
+
+  private toggleProcessing(id: number): void {
+    this.processingIds.update(set => {
+      const next = new Set(set);
+      next.add(id);
+      return next;
+    });
+  }
+
+  private clearProcessing(id: number): void {
+    this.processingIds.update(set => {
+      const next = new Set(set);
+      next.delete(id);
+      return next;
+    });
   }
 
   statusLabel(status: string): string {
@@ -178,4 +193,14 @@ export class TodayOrders implements OnInit {
   get deliveredCount(): number {
     return this.orders().filter(o => o.status === 'DELIVERED').length;
   }
+}
+
+function extractError(err: unknown): string {
+  if (err instanceof HttpErrorResponse) {
+    const errorBody: unknown = err.error;
+    const body = errorBody as { message?: string } | null;
+    return body?.message ?? err.message;
+  }
+  if (err instanceof Error) return err.message;
+  return 'Error desconocido';
 }

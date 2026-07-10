@@ -1,12 +1,10 @@
-import { Component, ChangeDetectionStrategy, DestroyRef, inject, signal, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, DestroyRef, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { DayMenu } from '@areas/worker/features/waiter/day-menu/day-menu';
 import { TakeOrder } from '@areas/worker/features/waiter/take-order/take-order';
 import { TodayOrders } from '@areas/worker/features/waiter/today-orders/today-orders';
-import { Auth } from '@app/core/services/auth/auth';
-import { OrderDock } from '@app/core/services/order-dock/order-dock';
 
 type TabId = 'menu' | 'carta' | 'pedidos';
 
@@ -30,11 +28,9 @@ interface DashboardTab {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WaiterDashboard {
-  private auth = inject(Auth);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
-  protected dock = inject(OrderDock);
 
   activeTab = signal<TabId>('menu');
 
@@ -43,11 +39,6 @@ export class WaiterDashboard {
     { id: 'carta',   label: 'Carta',        icon: 'pi pi-book' },
     { id: 'pedidos', label: 'Pedidos',      icon: 'pi pi-list' },
   ];
-
-  userName = computed(() => {
-    const u = this.auth.getData();
-    return u?.name ?? 'Mesero';
-  });
 
   constructor() {
     const sub = this.route.queryParamMap.subscribe(params => {

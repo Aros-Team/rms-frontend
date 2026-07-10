@@ -34,9 +34,8 @@ export class WorkerArea implements OnInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
   private cdr = inject(ChangeDetectorRef);
 
-workerType = signal('');
+  workerType = signal('');
   canOrder = signal(false);
-  hideSidebar = false;
   role = 'WORKER';
 
   constructor() {
