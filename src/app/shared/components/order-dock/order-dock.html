@@ -118,7 +118,29 @@
       </div>
     </div>
 
-    <!-- Row 2: Diner removal confirmation (when diner has items) -->
+    <!-- Row 2: Table selector -->
+    <div class="flex items-center gap-2 border-t border-surface-200 dark:border-surface-700 pt-2">
+      <span class="text-sm font-medium text-surface-700 dark:text-surface-300 shrink-0">Mesa:</span>
+      @if (dock.tablesLoading()) {
+        <div class="flex items-center gap-2">
+          <i class="pi pi-spin pi-spinner text-surface-500"></i>
+          <span class="text-sm text-surface-500">Cargando mesas...</span>
+        </div>
+      } @else if (dock.tablesError(); as errorMsg) {
+        <span class="text-red-500 text-sm">{{ errorMsg }}</span>
+      } @else {
+        <p-select
+          [options]="dock.availableTables()"
+          [ngModel]="dock.selectedTableId()"
+          (ngModelChange)="dock.selectTable($event)"
+          optionLabel="tableNumber"
+          optionValue="id"
+          placeholder="Seleccionar mesa"
+          class="w-48" />
+      }
+    </div>
+
+    <!-- Row 3: Diner removal confirmation (when diner has items) -->
     @if (showRemoveConfirm()) {
       <div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
         <i class="pi pi-exclamation-triangle text-yellow-600 dark:text-yellow-400 text-sm"></i>
@@ -137,7 +159,7 @@
       </div>
     }
 
-    <!-- Row 3: Mini items preview per diner (if more than 1 diner) -->
+    <!-- Row 4: Mini items preview per diner (if more than 1 diner) -->
     @if (dock.totalDiners() > 1) {
       <div class="flex items-center gap-1.5 overflow-x-auto scrollbar-none -mx-1 px-1">
         @for (diner of dock.diners(); track trackByDinerId($index, diner); let i = $index) {

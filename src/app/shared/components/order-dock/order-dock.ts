@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { SelectModule } from 'primeng/select';
 import { OrderDock as OrderDockSvc } from '@app/core/services/order-dock/order-dock';
 import { Order } from '@app/core/services/orders/order';
 
@@ -11,7 +12,7 @@ import { Order } from '@app/core/services/orders/order';
   selector: 'app-order-dock',
   templateUrl: './order-dock.html',
   styleUrl: './order-dock.css',
-  imports: [CommonModule, FormsModule, ConfirmDialogModule],
+  imports: [CommonModule, FormsModule, ConfirmDialogModule, SelectModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrderDock {
