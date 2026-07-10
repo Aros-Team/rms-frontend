@@ -2,10 +2,7 @@
 
     <!-- Loading -->
     @if (loading()) {
-      <div class="flex flex-col items-center gap-4 py-24">
-        <p-progress-spinner aria-label="Cargando menú del día" />
-        <p class="text-slate-600 dark:text-slate-300">Cargando menú del día...</p>
-      </div>
+      <app-daymenu-skeleton />
     }
 
     <!-- Error -->
@@ -56,6 +53,11 @@
                 <i class="pi pi-spin pi-spinner"></i>
                 <span class="text-sm">Cargando opciones...</span>
               </div>
+            } @else if (optionsLoadError()) {
+              <div class="flex items-center gap-2 px-4 py-3 rounded-2xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                <i class="pi pi-exclamation-circle text-red-700 dark:text-red-300 text-sm shrink-0"></i>
+                <p class="text-red-700 dark:text-red-300 text-sm">{{ optionsLoadError() }}</p>
+              </div>
             } @else if (productOptions().length > 0) {
               <div class="flex flex-col gap-4">
                 @for (catEntry of (productOptionsByCategory() | keyvalue); track catEntry.key) {
@@ -71,6 +73,11 @@
                   </div>
                 }
               </div>
+            } @else {
+              <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 py-2">
+                <i class="pi pi-info-circle"></i>
+                <span class="text-sm">No hay opciones disponibles</span>
+              </div>
             }
           </div>
 
@@ -84,12 +91,13 @@
         </div>
 
         <!-- Botón ordenar -->
-        <button
-          class="w-full flex items-center justify-center gap-2 bg-primary-500 hover:bg-primary-600 text-slate-900 text-xl py-4 px-6 rounded-2xl font-bold transition-all focus:outline-none focus:ring-2 focus:ring-primary-400"
-          (click)="orderDayMenu()">
-          <i class="pi pi-shopping-cart"></i>
-          Ordenar este plato
-        </button>
+        <p-button
+          label="Ordenar este plato"
+          icon="pi pi-shopping-cart"
+          styleClass="w-full rounded-2xl py-4 px-6 text-xl font-bold"
+          [disabled]="!canPlaceOrder()"
+          (onClick)="orderDayMenu()"
+        />
 
       </div>
     }

@@ -2,16 +2,22 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
+import { InputTextModule } from 'primeng/inputtext';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+
 import { MasterData } from '@app/core/services/master-data/master-data';
 import { OrderDock, DockItem } from '@app/core/services/order-dock/order-dock';
 import { Logging } from '@app/core/services/logging/logging';
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
 import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
 
+import { CartaSkeleton } from './skeletons/carta-skeleton';
+
 @Component({
   selector: 'app-take-order',
   templateUrl: './take-order.html',
-  imports: [CommonModule, FormsModule, KeyValuePipe],
+  imports: [CommonModule, FormsModule, KeyValuePipe, CartaSkeleton, InputTextModule, IconFieldModule, InputIconModule],
 })
 export class TakeOrder implements OnInit {
   private masterData = inject(MasterData);
@@ -32,6 +38,8 @@ export class TakeOrder implements OnInit {
   pendingInstructions = signal('');
   modalOptions = signal<ProductOption[]>([]);
   modalOptionsLoading = signal(false);
+  optionsError = signal<string | null>(null);
+  private optionsSeq = 0;
 
   categories = computed(() => Object.keys(this.productsByCategory()));
 
@@ -72,18 +80,27 @@ export class TakeOrder implements OnInit {
     this.pendingOptions.set([]);
     this.pendingInstructions.set('');
     this.modalOptions.set([]);
-    this.modalOptionsLoading.set(true);
     this.showOptionsModal.set(true);
     this.error.set(null);
+    this.optionsError.set(null);
+
+    this.loadProductOptions(product);
+  }
+
+  private loadProductOptions(product: ProductListResponse): void {
+    const seq = ++this.optionsSeq;
+    this.modalOptionsLoading.set(true);
 
     this.masterData.getProductOptions(product.id).subscribe({
       next: (options) => {
+        if (seq !== this.optionsSeq) return; // stale
         this.modalOptions.set(options);
         this.modalOptionsLoading.set(false);
       },
       error: (err) => {
+        if (seq !== this.optionsSeq) return; // stale
         this.logger.error('TakeOrder: failed to load product options', err);
-        this.modalOptions.set([]);
+        this.optionsError.set('No se pudieron cargar las opciones. Intenta de nuevo.');
         this.modalOptionsLoading.set(false);
       }
     });
@@ -131,6 +148,7 @@ export class TakeOrder implements OnInit {
     this.pendingInstructions.set('');
     this.modalOptions.set([]);
     this.error.set(null);
+    this.optionsError.set(null);
   }
 
   defaultImage = 'assets/placeholder-product.svg';

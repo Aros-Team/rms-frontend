@@ -1,30 +1,38 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, DestroyRef } from '@angular/core';
+import { Subscription } from 'rxjs';
 
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+
+import { DatePickerModule } from 'primeng/datepicker';
+import { SelectModule } from 'primeng/select';
+import { ButtonModule } from 'primeng/button';
 
 import { Order } from '@app/core/services/orders/order';
 import { Logging } from '@app/core/services/logging/logging';
 import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
 import { OptionNamesPipe } from '@app/shared/pipes/option-names.pipe';
 
+import { TodayOrdersSkeleton } from './skeletons/today-orders-skeleton';
 
 @Component({
   selector: 'app-today-orders',
   templateUrl: './today-orders.html',
-  imports: [RouterModule, FormsModule, OptionNamesPipe],
+  imports: [RouterModule, FormsModule, OptionNamesPipe, TodayOrdersSkeleton, DatePickerModule, SelectModule, ButtonModule],
 })
 export class TodayOrders implements OnInit {
   private orderService = inject(Order);
   private log = inject(Logging);
+  private destroyRef = inject(DestroyRef);
 
   loading = signal(false);
+  refreshing = signal(false);
   error = signal<string | null>(null);
   orders = signal<OrderResponse[]>([]);
   processing = new Set<number>();
 
   selectedStatus = '';
-  selectedDate: string = new Date().toISOString().split('T')[0];
+  selectedDate: Date;
 
   statusOptions = [
     { label: 'Todos', value: '' },
@@ -35,32 +43,61 @@ export class TodayOrders implements OnInit {
     { label: 'Cancelada', value: 'CANCELLED' }
   ];
 
+  private subscription?: Subscription;
+  private loadSeq = 0;
+  private pollingInterval?: ReturnType<typeof setInterval>;
+
+  constructor() {
+    this.selectedDate = new Date();
+    this.startPolling();
+  }
+
+  private startPolling(): void {
+    this.pollingInterval = setInterval(() => {
+      this.log.debug('TodayOrders: polling for updates');
+      this.fetchOrders(true);
+    }, 30000);
+    this.destroyRef.onDestroy(() => {
+      if (this.pollingInterval) {
+        clearInterval(this.pollingInterval);
+      }
+    });
+  }
+
   ngOnInit(): void {
     this.fetchOrders();
   }
 
-  fetchOrders(): void {
-    if (!this.selectedDate || this.selectedDate.trim() === '') {
-      this.selectedDate = new Date().toISOString().split('T')[0];
+  fetchOrders(silent = false): void {
+    const seq = ++this.loadSeq;
+    if (silent) {
+      this.refreshing.set(true);
+    } else {
+      this.loading.set(true);
     }
-
-    this.loading.set(true);
     this.error.set(null);
 
-    const startDate = new Date(this.selectedDate + 'T00:00:00');
-    const endDate = new Date(this.selectedDate + 'T23:59:59');
+    const startDate = new Date(this.selectedDate);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(this.selectedDate);
+    endDate.setHours(23, 59, 59, 999);
     const status = this.selectedStatus || undefined;
 
-    this.orderService.getOrdersByDateRange(startDate, endDate, status).subscribe({
+    this.subscription?.unsubscribe();
+    this.subscription = this.orderService.getOrdersByDateRange(startDate, endDate, status).subscribe({
       next: (data) => {
+        if (seq !== this.loadSeq) return;
         this.log.debug('TodayOrders: loaded', data);
         this.orders.set(data);
         this.loading.set(false);
+        this.refreshing.set(false);
       },
       error: (err) => {
+        if (seq !== this.loadSeq) return;
         this.log.error('TodayOrders: error', err);
         this.error.set('No se pudieron cargar las órdenes.');
         this.loading.set(false);
+        this.refreshing.set(false);
       }
     });
   }

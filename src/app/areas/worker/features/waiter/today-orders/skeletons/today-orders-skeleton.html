@@ -1,0 +1,28 @@
+<div class="space-y-3 max-w-3xl mx-auto">
+  @for (_ of [1,2,3,4,5]; track $index) {
+    <div class="bg-primary-contrast dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 overflow-hidden">
+      <!-- Order header -->
+      <div class="flex items-center justify-between px-4 py-3 border-b border-surface-100 dark:border-surface-700">
+        <div class="flex items-center gap-3">
+          <p-skeleton width="40px" height="1rem" />
+          <p-skeleton width="60px" height="0.875rem" />
+          <p-skeleton width="70px" height="0.75rem" />
+        </div>
+        <p-skeleton width="65px" height="22px" borderRadius="999px" />
+      </div>
+
+      <!-- Products -->
+      <div class="px-4 py-3 flex flex-col gap-2">
+        <p-skeleton width="75%" height="0.875rem" />
+        <p-skeleton width="50%" height="0.75rem" />
+        <p-skeleton width="55%" height="0.75rem" />
+      </div>
+
+      <!-- Actions -->
+      <div class="px-4 pb-3 flex gap-2">
+        <p-skeleton width="85px" height="30px" borderRadius="8px" />
+        <p-skeleton width="85px" height="30px" borderRadius="8px" />
+      </div>
+    </div>
+  }
+</div>

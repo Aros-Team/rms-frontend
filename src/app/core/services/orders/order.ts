@@ -18,13 +18,20 @@ export class Order {
     return dateStr.split('T')[0];
   }
 
+  private formatDateLocal(d: Date): string {
+    const y = String(d.getFullYear());
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
   private filterOrdersByDateRange(
     orders: OrderResponse[],
     startDate: Date,
     endDate: Date
   ): OrderResponse[] {
-    const startStr = this.toLocalDateString(startDate.toISOString());
-    const endStr = this.toLocalDateString(endDate.toISOString());
+    const startStr = this.formatDateLocal(startDate);
+    const endStr = this.formatDateLocal(endDate);
 
     return orders.filter(o => {
       const orderDateStr = this.toLocalDateString(o.date);

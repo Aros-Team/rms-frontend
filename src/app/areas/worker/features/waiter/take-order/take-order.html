@@ -6,10 +6,7 @@
 
   <!-- Loading -->
   @if (loading()) {
-    <div class="flex flex-col items-center justify-center py-24 gap-4">
-      <i class="pi pi-spin pi-spinner text-4xl text-primary-700 dark:text-primary-300"></i>
-      <p class="text-slate-600 dark:text-slate-300">Cargando productos...</p>
-    </div>
+    <app-carta-skeleton />
   }
 
   @if (!loading()) {
@@ -25,15 +22,10 @@
     }
 
     <!-- Search bar -->
-    <div class="relative mb-4">
-      <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-surface-400"></i>
-      <input
-        type="text"
-        [(ngModel)]="searchQuery"
-        placeholder="Buscar producto..."
-        class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-surface-200 dark:border-surface-600 bg-white dark:bg-surface-800 text-surface-800 dark:text-surface-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-      />
-    </div>
+    <p-iconfield iconPosition="left" class="mb-4">
+      <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+      <input pInputText type="text" [(ngModel)]="searchQuery" placeholder="Buscar producto..." class="w-full" />
+    </p-iconfield>
 
     <!-- Category tabs -->
     <div class="flex overflow-x-auto gap-1 mb-4 scrollbar-none">
@@ -213,10 +205,10 @@
           </div>
         }
 
-        @if (error()) {
+        @if (optionsError()) {
           <div class="flex items-center gap-2 px-4 py-3 rounded-2xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
             <i class="pi pi-exclamation-circle text-red-700 dark:text-red-300 text-sm shrink-0"></i>
-            <p class="text-red-700 dark:text-red-300 text-sm">{{ error() }}</p>
+            <p class="text-red-700 dark:text-red-300 text-sm">{{ optionsError() }}</p>
           </div>
         }
       </div>
@@ -225,7 +217,7 @@
       <div class="px-6 py-5 flex flex-col gap-3 shrink-0 border-t border-surface-200 dark:border-surface-700">
         <button
           class="w-full py-3.5 rounded-2xl text-sm font-bold transition-all focus:outline-none focus:ring-2 focus:ring-primary-400 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-primary-500 hover:bg-primary-600 text-slate-900"
-          [disabled]="modalOptionsLoading()"
+          [disabled]="modalOptionsLoading() || !!optionsError()"
           (click)="confirmOptions()">
           @if (modalOptionsLoading()) {
             <i class="pi pi-spin pi-spinner"></i>
