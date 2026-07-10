@@ -1,8 +1,11 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Order } from '@app/core/services/orders/order';
 import { Logging } from '@app/core/services/logging/logging';
+import { MasterData } from '@app/core/services/master-data/master-data';
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
 import { CreateOrderDetail } from '@app/shared/models/dto/orders/create-order-request.model';
+import { TableResponse } from '@app/shared/models/dto/tables/table-response.model';
 export interface DockItem {
   product: ProductListResponse;
   instructions: string;
@@ -19,6 +22,12 @@ export interface DinerState {
 export class OrderDock {
   private orderService = inject(Order);
   private logger = inject(Logging);
+  private masterData = inject(MasterData);
+
+  readonly availableTables = signal<TableResponse[]>([]);
+  readonly tablesLoading = signal(false);
+  readonly tablesError = signal<string | null>(null);
+  readonly selectedTableId = signal<number | null>(null);
 
   private _diners = signal<DinerState[]>([{ id: 1, items: [] }]);
   private _selectedDinerIndex = signal<number>(0);
@@ -43,11 +52,13 @@ export class OrderDock {
     this._diners().some(d => d.items.length > 0)
   );
 
-  readonly canPlaceOrder = computed(() => this.hasItems());
+  readonly canPlaceOrder = computed(() => this.hasItems() && this.hasSelectedTable());
 
   readonly allDinersEmpty = computed(() =>
     this._diners().length > 0 && this._diners().every(d => d.items.length === 0)
   );
+
+  readonly hasSelectedTable = computed(() => this.selectedTableId() !== null);
 
   selectDiner(index: number): void {
     if (index >= 0 && index < this._diners().length) {
@@ -103,6 +114,25 @@ export class OrderDock {
     this._selectedDinerIndex.set(0);
   }
 
+  loadAvailableTables(): void {
+    this.tablesLoading.set(true);
+    this.tablesError.set(null);
+    this.masterData.reloadTables().subscribe({
+      next: (tables) => {
+        this.availableTables.set(tables.filter(t => t.status === 'AVAILABLE'));
+        this.tablesLoading.set(false);
+      },
+      error: (err) => {
+        this.tablesError.set(extractError(err));
+        this.tablesLoading.set(false);
+      },
+    });
+  }
+
+  selectTable(id: number | null): void {
+    this.selectedTableId.set(id);
+  }
+
   getOrderDetailsForAllDiners(): { dinerId: number; details: CreateOrderDetail[] }[] {
     return this._diners().map(diner => ({
       dinerId: diner.id,
@@ -123,4 +153,14 @@ export class OrderDock {
       selectedOptionIds: item.selectedOptionIds,
     }));
   }
+}
+
+function extractError(err: unknown): string {
+  if (err instanceof HttpErrorResponse) {
+    const errorBody: unknown = err.error;
+    const body = errorBody as { message?: string } | null;
+    return body?.message ?? err.message;
+  }
+  if (err instanceof Error) return err.message;
+  return 'Error desconocido';
 }

@@ -6,7 +6,6 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { OrderDock as OrderDockSvc } from '@app/core/services/order-dock/order-dock';
 import { Order } from '@app/core/services/orders/order';
-import { MasterData } from '@app/core/services/master-data/master-data';
 
 @Component({
   selector: 'app-order-dock',
@@ -18,9 +17,14 @@ import { MasterData } from '@app/core/services/master-data/master-data';
 export class OrderDock {
   protected dock = inject(OrderDockSvc);
   private orderService = inject(Order);
-  private masterData = inject(MasterData);
   private confirmationService = inject(ConfirmationService);
   private messageService = inject(MessageService);
+
+  constructor() {
+    if (this.dock.availableTables().length === 0 && !this.dock.tablesLoading()) {
+      this.dock.loadAvailableTables();
+    }
+  }
 
   submitting = signal(false);
   showDinerList = signal(false);
@@ -67,9 +71,9 @@ export class OrderDock {
   private submitOrders(allDinerOrders: { dinerId: number; details: import('@app/shared/models/dto/orders/create-order-request.model').CreateOrderDetail[] }[]): void {
     this.submitting.set(true);
 
-    const tableId = this.findAvailableTable();
-    if (!tableId) {
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No hay mesas disponibles. Libera una mesa primero.' });
+    const tableId = this.dock.selectedTableId();
+    if (tableId === null) {
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Selecciona una mesa antes de colocar el pedido.' });
       this.submitting.set(false);
       return;
     }
@@ -88,11 +92,6 @@ export class OrderDock {
         this.submitting.set(false);
       }
     });
-  }
-
-  private findAvailableTable(): number | null {
-    const tables = this.masterData.getAvailableTables();
-    return tables.length > 0 ? tables[0].id : null;
   }
 
   toggleDinerList(): void {
