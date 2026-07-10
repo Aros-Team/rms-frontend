@@ -91,7 +91,16 @@ export class OrderDock {
         this.submitting.set(false);
       },
       error: (err) => {
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: extractError(err) });
+        const status = err instanceof HttpErrorResponse ? err.status : 0;
+        const summary = status === 409 ? 'Conflicto'
+                      : status === 400 ? 'Datos inválidos'
+                      : 'Error al crear pedido';
+        this.messageService.add({
+          severity: status === 400 ? 'warn' : 'error',
+          summary,
+          detail: extractError(err),
+          life: 6000,
+        });
         this.dock.loadAvailableTables();
         this.submitting.set(false);
       }

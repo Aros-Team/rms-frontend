@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal, DestroyRef } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { MessageService } from 'primeng/api';
 import { Subscription } from 'rxjs';
 
 import { FormsModule } from '@angular/forms';
@@ -27,6 +28,7 @@ export class TodayOrders implements OnInit {
   private orderService = inject(Order);
   private dock = inject(OrderDockSvc);
   private log = inject(Logging);
+  private messageService = inject(MessageService);
   private destroyRef = inject(DestroyRef);
 
   loading = signal(false);
@@ -121,7 +123,16 @@ export class TodayOrders implements OnInit {
         this.clearProcessing(order.id);
       },
       error: (err: unknown) => {
-        this.error.set(extractError(err));
+        const status = err instanceof HttpErrorResponse ? err.status : 0;
+        const summary = status === 409 ? 'Conflicto'
+                      : status === 400 ? 'Datos inválidos'
+                      : 'Error al cancelar pedido';
+        this.messageService.add({
+          severity: status === 400 ? 'warn' : 'error',
+          summary,
+          detail: extractError(err),
+          life: 6000,
+        });
         this.clearProcessing(order.id);
       }
     });
@@ -137,7 +148,16 @@ export class TodayOrders implements OnInit {
         this.clearProcessing(order.id);
       },
       error: (err: unknown) => {
-        this.error.set(extractError(err));
+        const status = err instanceof HttpErrorResponse ? err.status : 0;
+        const summary = status === 409 ? 'Conflicto'
+                      : status === 400 ? 'Datos inválidos'
+                      : 'Error al entregar pedido';
+        this.messageService.add({
+          severity: status === 400 ? 'warn' : 'error',
+          summary,
+          detail: extractError(err),
+          life: 6000,
+        });
         this.clearProcessing(order.id);
       }
     });
