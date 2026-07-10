@@ -1,11 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin, Observable, BehaviorSubject } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
 import { ProductOption, OptionCategory } from '@app/shared/models/dto/products/product-option.model';
 import { TableResponse } from '@app/shared/models/dto/tables/table-response.model';
+
+interface PageResponse<T> {
+  content?: T[];
+  totalElements?: number;
+  totalPages?: number;
+}
 
 export interface MasterDataPayload {
   products: ProductListResponse[];
@@ -23,7 +29,9 @@ export class MasterData {
 
   load(): Observable<MasterDataPayload> {
     return forkJoin({
-      products: this.http.get<ProductListResponse[]>('v1/products'),
+      products: this.http.get<PageResponse<ProductListResponse>>('v1/products?page=0&size=100').pipe(
+        map(page => page.content ?? [])
+      ),
       productOptions: this.http.get<ProductOption[]>('v1/product-options'),
       optionCategories: this.http.get<OptionCategory[]>('v1/option-categories'),
       tables: this.http.get<TableResponse[]>('v1/tables'),
