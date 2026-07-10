@@ -10,16 +10,16 @@
       {"id": "today-orders-bugs", "description": "TodayOrders: fix UTC vs local date timezone bug, add realtime subscription, add request cancellation to prevent stale-response races.", "status": "done", "agent": "implementer"},
       {"id": "carta-options-race", "description": "Carta product options modal: cancel stale getProductOptions() when pendingProduct changes so product A options don't populate product B modal.", "status": "done", "agent": "implementer"},
       {"id": "worker-area-notifications", "description": "Fix determineWorkerType to use priority (SERVICE>WAITER>KITCHEN); start notification polling for both SERVICE and WAITER.", "status": "done", "agent": "implementer"},
-      {"id": "diner-removal-safety", "description": "Confirm before removing diner with items; remove selected diner not always last; show item/price totals across all diners.", "status": "pending", "agent": "implementer"},
-      {"id": "confirm-stale-snapshot", "description": "Recompute allDinerOrders at confirmation accept time, not before dialog opens.", "status": "pending", "agent": "implementer"},
+      {"id": "diner-removal-safety", "description": "Confirm before removing diner with items; remove selected diner not always last; show item/price totals across all diners.", "status": "in_progress", "agent": "implementer"},
+      {"id": "confirm-stale-snapshot", "description": "Recompute allDinerOrders at confirmation accept time, not before dialog opens.", "status": "in_progress", "agent": "implementer"},
       {"id": "naming-style-conventions", "description": "Rename class suffixes, add missing styleUrl, fix import group order.", "status": "done", "agent": "implementer"},
       {"id": "primeng-templates", "description": "Replace native input/select/button with PrimeNG components in waiter templates.", "status": "done", "agent": "implementer"},
       {"id": "waiter-skeletons", "description": "Add skeleton components per conventions §12 for Day Menu, Carta, Today Orders.", "status": "done", "agent": "implementer"},
       {"id": "shared-options-modal", "description": "Extract shared ProductOptionsModal component for Day Menu and Carta.", "status": "done", "agent": "implementer"},
-      {"id": "toast-consistency", "description": "Replace custom fixed alerts in order-dock.html with MessageService/p-toast.", "status": "in_progress", "agent": "implementer"},
-      {"id": "dead-code-cleanup", "description": "Remove unused injections, fix processing: Set→signal, clean dead state.", "status": "in_progress", "agent": "implementer"},
+      {"id": "toast-consistency", "description": "Replace custom fixed alerts in order-dock.html with MessageService/p-toast.", "status": "done", "agent": "implementer"},
+      {"id": "dead-code-cleanup", "description": "Remove unused injections, fix processing: Set→signal, clean dead state.", "status": "done", "agent": "implementer"},
       {"id": "z-index-resolution", "description": "Resolve z-50 overlap between modals (z-60) and dock (z-40).", "status": "done", "agent": "implementer"},
-      {"id": "error-message-extraction", "description": "Pull msg from HttpErrorResponse.error.message instead of just instanceof Error.", "status": "in_progress", "agent": "implementer"}
+      {"id": "error-message-extraction", "description": "Pull msg from HttpErrorResponse.error.message instead of just instanceof Error.", "status": "done", "agent": "implementer"}
     ]
   },
   {

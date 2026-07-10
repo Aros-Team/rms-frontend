@@ -118,7 +118,26 @@
       </div>
     </div>
 
-    <!-- Row 2: Mini items preview per diner (if more than 1 diner) -->
+    <!-- Row 2: Diner removal confirmation (when diner has items) -->
+    @if (showRemoveConfirm()) {
+      <div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+        <i class="pi pi-exclamation-triangle text-yellow-600 dark:text-yellow-400 text-sm"></i>
+        <span class="text-sm text-yellow-800 dark:text-yellow-200 flex-1">
+          @let diner = dinerRemoveData();
+          @if (diner) {
+            ¿Eliminar comensal #{{ diner.id }}? Tiene {{ diner.items.length }} producto(s). ¿Continuar?
+          }
+        </span>
+        <button
+          class="px-3 h-7 rounded-lg bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-bold transition-colors"
+          (click)="confirmRemoveDiner()">Sí</button>
+        <button
+          class="px-3 h-7 rounded-lg bg-surface-200 dark:bg-surface-700 text-surface-700 dark:text-surface-300 hover:bg-surface-300 dark:hover:bg-surface-600 text-xs font-bold transition-colors"
+          (click)="cancelRemoveDiner()">No</button>
+      </div>
+    }
+
+    <!-- Row 3: Mini items preview per diner (if more than 1 diner) -->
     @if (dock.totalDiners() > 1) {
       <div class="flex items-center gap-1.5 overflow-x-auto scrollbar-none -mx-1 px-1">
         @for (diner of dock.diners(); track trackByDinerId($index, diner); let i = $index) {

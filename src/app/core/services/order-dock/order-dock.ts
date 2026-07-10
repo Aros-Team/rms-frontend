@@ -60,16 +60,18 @@ export class OrderDock {
       const newId = Math.max(...diners.map(d => d.id), 0) + 1;
       return [...diners, { id: newId, items: [] }];
     });
+    this._selectedDinerIndex.set(this._diners().length - 1);
   }
 
-  removeDiner(): void {
+  removeDiner(dinerIndex: number): void {
     this._diners.update(diners => {
       if (diners.length <= 1) return diners;
-      const removed = diners.slice(0, -1);
-      return removed;
+      return diners.filter((_, i) => i !== dinerIndex);
     });
-    if (this._selectedDinerIndex() >= this._diners().length) {
-      this._selectedDinerIndex.set(Math.max(0, this._diners().length - 1));
+    const current = this._selectedDinerIndex();
+    const total = this._diners().length;
+    if (current >= total) {
+      this._selectedDinerIndex.set(Math.max(0, total - 1));
     }
   }
 
