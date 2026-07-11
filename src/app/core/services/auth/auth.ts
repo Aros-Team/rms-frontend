@@ -1,11 +1,12 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Observable, tap, throwError, BehaviorSubject, catchError } from 'rxjs';
 import { UserInfo } from '@models/domain/user/user-info.model';
 import { AuthRequest } from '@models/dto/auth/auth-request.model';
 import { AuthResponse } from '@models/dto/auth/auth-response.model';
 import { TwoFactorVerifyRequest } from '@models/dto/auth/two-factor-verify-request.model';
+import { jwtDecode } from 'jwt-decode';
 import { Logging } from '@app/core/services/logging/logging';
 import { Fingerprint } from '@app/core/services/fingerprint/fingerprint';
 
@@ -20,6 +21,7 @@ export class Auth {
 
   private _token: string | undefined;
   private _userData?: UserInfo;
+  private _restricted = signal<boolean>(false);
   
   private tfaTokenSubject = new BehaviorSubject<string | null>(null);
   tfaToken$ = this.tfaTokenSubject.asObservable();
@@ -67,6 +69,7 @@ export class Auth {
       const expiryTime = parseInt(expiry, 10);
       if (Date.now() < expiryTime) {
         this._token = storedToken;
+        this.extractRestrictedClaim(storedToken);
         this.logger.info('Session restored successfully');
         
         if (this._userData === undefined) {
@@ -170,6 +173,7 @@ export class Auth {
   logout(): void {
     this._token = undefined;
     this._userData = undefined;
+    this._restricted.set(false);
     this.tfaTokenSubject.next(null);
     this.pendingUsername = null;
     this.clearStorage();
@@ -188,6 +192,20 @@ export class Auth {
     return this._userData;
   }
 
+  isRestricted(): boolean {
+    return this._restricted();
+  }
+
+  private extractRestrictedClaim(token: string): void {
+    try {
+      const decoded: { restricted?: boolean } = jwtDecode(token);
+      this._restricted.set(decoded.restricted ?? false);
+      this.logger.info('Auth: restricted claim:', decoded.restricted);
+    } catch {
+      this._restricted.set(false);
+    }
+  }
+
   private getRefreshToken(): string | null {
     if (isPlatformBrowser(this.platformId)) {
       return this.getCookie(Auth.REFRESH_KEY);
@@ -197,6 +215,7 @@ export class Auth {
 
   private saveTokens(accessToken: string, refreshToken: string | null): void {
     this._token = accessToken;
+    this.extractRestrictedClaim(accessToken);
     
     if (isPlatformBrowser(this.platformId)) {
       const sevenDaysSeconds = 7 * 24 * 60 * 60;

@@ -48,6 +48,7 @@
           <th class="text-xs md:text-sm" pSortableColumn="name">Nombre <p-sortIcon field="name" /></th>
           <th class="text-xs md:text-sm hidden lg:table-cell" pSortableColumn="email">Correo <p-sortIcon field="email" /></th>
           <th class="text-xs md:text-sm hidden md:table-cell">Tel.</th>
+          <th class="text-xs md:text-sm hidden md:table-cell" pSortableColumn="salary">Salario <p-sortIcon field="salary" /></th>
           <th class="text-xs md:text-sm hidden xl:table-cell">Dirección</th>
           <th class="text-center text-xs md:text-sm">Status</th>
           <th class="text-center text-xs md:text-sm">Acc.</th>
@@ -59,6 +60,9 @@
           <td class="font-medium">{{ user.name }}</td>
           <td class="hidden lg:table-cell text-sm truncate max-w-[150px]">{{ user.email }}</td>
           <td class="hidden md:table-cell">{{ user.phone }}</td>
+          <td class="hidden md:table-cell text-sm font-mono">
+            {{ user.salary !== null ? (user.salary | currency:'COP':'symbol-narrow':'1.0-0') : '-' }}
+          </td>
           <td class="hidden xl:table-cell text-sm truncate max-w-[120px]">{{ user.address }}</td>
           <td class="text-center">
             @switch (user.status) {
@@ -92,6 +96,16 @@
                 (click)="showModificationModal(user)"
               ></p-button>
               <p-button
+                severity="info"
+                icon="pi pi-history"
+                size="small"
+                [text]="true"
+                class="btn-icon-only-sm"
+                pTooltip="Ver historial salarial"
+                tooltipPosition="top"
+                [routerLink]="['/admin/manage/users', user.id, 'salary-history']"
+              ></p-button>
+              <p-button
                 severity="danger"
                 icon="pi pi-trash"
                 size="small"
@@ -119,15 +133,15 @@
       </ng-template>
       <ng-template #loadingbody>
         <tr>
-          <td colspan="7">
+          <td colspan="8">
             <div class="min-h-[400px] w-full">
-              <app-table-skeleton [rowCount]="6" [colCount]="7" />
+              <app-table-skeleton [rowCount]="6" [colCount]="8" />
             </div>
           </td>
         </tr>
       </ng-template>
       <ng-template pTemplate="emptymessage">
-        <tr><td colspan="7" class="text-center text-surface-500 py-4">No hay usuarios registrados</td></tr>
+        <tr><td colspan="8" class="text-center text-surface-500 py-4">No hay usuarios registrados</td></tr>
       </ng-template>
     </p-table>
   </div>
@@ -210,6 +224,45 @@
         <label for="create.phone">N# Celular</label>
         <app-form-validation field="phone" [backendError]="getBackendError('phone')"></app-form-validation>
       </p-iftalabel>
+      <p-iftalabel class="w-full">
+        <p-inputnumber
+          id="create.salary"
+          formControlName="salary"
+          [min]="0"
+          [maxFractionDigits]="0"
+          locale="es-CO"
+          placeholder="Salario del trabajador"
+          class="w-full"
+          pTooltip="Solo aplica para trabajadores"
+          tooltipPosition="top"
+        />
+        <label for="create.salary">Salario</label>
+      </p-iftalabel>
+      @if (editing && salaryChanged()) {
+        <p-iftalabel class="w-full">
+          <input
+            pInputText
+            id="edit.reason"
+            class="w-full"
+            autocomplete="off"
+            formControlName="reason"
+            placeholder="Razón del cambio salarial"
+          />
+          <label for="edit.reason">Razón *</label>
+          <app-form-validation field="reason" [backendError]="getBackendError('reason')"></app-form-validation>
+        </p-iftalabel>
+        <p-iftalabel class="w-full">
+          <input
+            pInputText
+            id="edit.observations"
+            class="w-full"
+            autocomplete="off"
+            formControlName="observations"
+            placeholder="Observaciones adicionales"
+          />
+          <label for="edit.observations">Observaciones</label>
+        </p-iftalabel>
+      }
       <p-multiselect
         [options]="areas()"
         formControlName="areas"

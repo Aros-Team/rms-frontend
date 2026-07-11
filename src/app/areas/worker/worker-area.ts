@@ -146,6 +146,8 @@ ngOnDestroy(): void {
   }
 
   private configureWorkerMenu(): void {
+    const restrictedIds = new Set(['take-order', 'orders', 'kitchen']);
+
     const waiterItems: MenuItem[] = [
       {
         id: 'take-order',
@@ -167,12 +169,29 @@ ngOnDestroy(): void {
         description: 'Ver menú del día',
         icon: 'pi pi-calendar',
         routerLink: '/worker?tab=menu'
+      },
+      {
+        id: 'my-schedule',
+        label: 'Mi Horario',
+        description: 'Ver turnos asignados',
+        icon: 'pi pi-clock',
+        routerLink: '/worker/my-schedule'
+      },
+      {
+        id: 'profile',
+        label: 'Configuración',
+        description: 'Ajustes de cuenta',
+        icon: 'pi pi-cog',
+        routerLink: '/worker/profile'
       }
     ];
 
     const kitchenItems: MenuItem[] = [];
 
-    const items = this.workerType() === 'kitchen' ? kitchenItems : waiterItems;
+    const allItems = this.workerType() === 'kitchen' ? kitchenItems : waiterItems;
+    const items = this.authService.isRestricted()
+      ? allItems.filter(item => !restrictedIds.has(item.id))
+      : allItems;
     this.menuService.setMenuItems(items);
   }
 }
