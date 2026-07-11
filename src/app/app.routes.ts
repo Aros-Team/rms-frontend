@@ -9,24 +9,24 @@ export const routes: Routes = [
 
   {
     path: 'login',
-    loadComponent: () => import('@areas/login/login-area').then(m => m.Login),
+    loadComponent: () => import('@areas/auth/auth-area').then(m => m.Auth),
     canActivate: [RedirectGuard],
   },
   {
     path: 'forgot-password',
-    loadComponent: () => import('@areas/login/features/auth/password-recovery/forgot-password').then(m => m.ForgotPassword),
+    loadComponent: () => import('@areas/auth/features/password-recovery/forgot-password').then(m => m.ForgotPassword),
   },
   {
     path: 'reset-password',
-    loadComponent: () => import('@areas/login/features/auth/password-recovery/reset-password').then(m => m.ResetPassword),
+    loadComponent: () => import('@areas/auth/features/password-recovery/reset-password').then(m => m.ResetPassword),
   },
   {
     path: 'login/verify',
-    loadComponent: () => import('@areas/login/features/auth/two-factor/two-factor-verify/two-factor-verify').then(m => m.TwoFactorVerify),
+    loadComponent: () => import('@areas/auth/features/two-factor/two-factor-verify/two-factor-verify').then(m => m.TwoFactorVerify),
   },
   {
     path: 'setup-account',
-    loadComponent: () => import('@areas/login/features/auth/setup-account/setup-account').then(m => m.SetupAccount),
+    loadComponent: () => import('@areas/auth/features/setup-account/setup-account').then(m => m.SetupAccount),
   },
   {
     path: 'admin',
