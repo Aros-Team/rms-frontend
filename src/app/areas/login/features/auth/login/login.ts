@@ -1,32 +1,37 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { PasswordModule } from 'primeng/password';
 import { MessageModule } from 'primeng/message'
 import { Auth } from '@services/auth/auth';
-import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button'
 import { MessageService } from 'primeng/api';
 import { Logging } from '@app/core/services/logging/logging';
+import { CheckboxModule } from 'primeng/checkbox';
+import { HabeasDataService } from '@shared/features/habeas-data/habeas-data.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-login-form',
   templateUrl: './login.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, PasswordModule, MessageModule, FloatLabelModule, InputTextModule, ButtonModule, RouterLink],
+  imports: [ReactiveFormsModule, PasswordModule, MessageModule, InputTextModule, ButtonModule, RouterLink, CheckboxModule],
 })
-export class LoginForm implements OnInit {
+export class LoginForm implements OnInit, OnDestroy {
   private authService = inject(Auth);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private messageService = inject(MessageService);
   private logger = inject(Logging);
+  private habeasDataService = inject(HabeasDataService);
+  private subs: Subscription[] = [];
 
   form: FormGroup = new FormGroup({
     username: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.email(control)]),
     password: new FormControl('', [(control: AbstractControl) => Validators.required(control)]),
+    termsAccepted: new FormControl(false, [(control: AbstractControl) => Validators.requiredTrue(control)]),
   });
 
   formStatus: 'Free' | 'Occuped' = 'Free';
@@ -43,6 +48,26 @@ export class LoginForm implements OnInit {
         void this.router.navigate([], { queryParams: { passwordResetSent: null }, queryParamsHandling: 'merge' });
       }
     });
+
+    const accepted = localStorage.getItem('habeas_data_accepted') === 'true';
+    this.form.get('termsAccepted')?.setValue(accepted);
+
+    this.subs.push(
+      this.habeasDataService.accepted.subscribe(() => {
+        this.form.get('termsAccepted')?.setValue(true);
+      }),
+      this.habeasDataService.rejected.subscribe(() => {
+        this.form.get('termsAccepted')?.setValue(false);
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subs.forEach(s => { s.unsubscribe(); });
+  }
+
+  showHabeasData(): void {
+    this.habeasDataService.showDialog.next();
   }
 
   onSubmit() {
@@ -120,12 +145,6 @@ export class LoginForm implements OnInit {
   isInvalid(value: string): boolean {
     const control = this.form.get(value);
     return control ? control.invalid && control.touched : false;
-  }
-
-  hide = signal(true);
-  clickEvent(event: MouseEvent) {
-    this.hide.set(!this.hide());
-    event.stopPropagation();
   }
 
   private redirectBasedOnUserRole(): void {

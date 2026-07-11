@@ -70,6 +70,11 @@
   --radius-sheet-top: 1.75rem; /* 28 px */
 }
 
+/* Global link styles */
+a {
+  @apply underline text-surface-600;
+}
+
 /* Apply Archivo font globally */
 body &:where(.dark, .dark *) {
   font-family: var(--font-sans);

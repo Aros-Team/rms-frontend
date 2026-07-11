@@ -1,19 +1,29 @@
-<main class="w-full h-[100vh] flex flex-col">
-  <div class="flex items-center justify-center w-full h-full">
-    <div class="flex flex-col items-center">
-      <h1 class="text-lg font-bold text-surface-900 dark:text-surface-100 mb-8">
-        Inicio de sesión
-      </h1>
-      <app-login-form></app-login-form>
-    </div>
-  </div>
+<main class="flex h-dvh w-full items-center justify-center bg-surface-50 pt-12 gap-8">
+  <div style="width: 100%; max-width: 400px;" class="px-4 sm:px-0">
+    <!-- Logo + Title -->
+    <header class="mb-[4rem] flex items-center gap-4">
+      <img src="/logo.svg" alt="RMS Logo" class="h-14 w-14 flex-shrink-0" />
+      <div>
+        <h1 class="text-2xl font-black text-surface-900">RMS</h1>
+        <p class="text-sm text-surface-500">Sistema de Gestión para restaurantes.</p>
+      </div>
+    </header>
 
-    <footer class="w-full flex items-center justify-center gap-0.5 text-md text-surface-400 mb-2">
-      <span>powered by</span>
-      <svg viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg" class="inline-block w-6 h-6">
-        <path d="M314.575 172.224L149.7 243.077L99.8002 193.177L158.185 20.56L125.453 0L0 342.877L50.5946 325.061L50.5946 246L158.186 276.202L335.823 201.328L314.575 172.224Z" fill="currentColor" fill-rule="evenodd" stroke-width="80" stroke="currentColor" transform="matrix(1 0 0 1 446 278)" />
-        <path d="M0 1.14893L536.875 0" fill="none" stroke-width="115" stroke="currentColor" stroke-linecap="square" transform="translate(260 745)" />
-      </svg>
-      <span class="font-black text-lg">AROS</span>
+    <!-- Form -->
+    <div style="width: 100%;">
+      <app-login-form />
+    </div>
+
+    <!-- Footer -->
+    <footer class="flex flex-col items-center gap-2">
+      <div class="flex items-center gap-1">
+        <span class="text-xs text-surface-600">Desarrollado por el equipo</span>
+        <svg viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg" class="inline-block w-4 h-4 text-surface-600">
+          <path d="M314.575 172.224L149.7 243.077L99.8002 193.177L158.185 20.56L125.453 0L0 342.877L50.5946 325.061L50.5946 246L158.186 276.202L335.823 201.328L314.575 172.224Z" fill="currentColor" fill-rule="evenodd" stroke-width="80" stroke="currentColor" transform="matrix(1 0 0 1 446 278)" />
+          <path d="M0 1.14893L536.875 0" fill="none" stroke-width="160" stroke="currentColor" stroke-linecap="square" transform="translate(260 745)" />
+        </svg>
+        <span class="font-black text-sm text-surface-600 relative left-[-4px]">AROS</span>
+      </div>
     </footer>
+  </div>
 </main>
