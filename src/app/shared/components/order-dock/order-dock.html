@@ -1,185 +1,187 @@
 <p-confirmdialog />
 
-<!-- ═══ DOCK PRINCIPAL ═══ -->
+<!-- Edit product options modal (pre-filled for editing) -->
+<app-product-options-modal
+  [product]="editProduct()"
+  [options]="editOptions()"
+  [loading]="editOptionsLoading()"
+  [error]="editOptionsError()"
+  [visible]="showEditModal()"
+  [initialOptionIds]="editInitialOptionIds()"
+  [initialInstructions]="editInitialInstructions()"
+  [initialQuantity]="editInitialQuantity()"
+  (confirm)="onEditConfirm($event)"
+  (dismiss)="closeEditModal()"
+  (errorClear)="editOptionsError.set(null)" />
+
+<!-- Narrative summary dialog -->
+<p-dialog
+  [(visible)]="showNarrativeSummary"
+  [header]="'Resumen del Pedido'"
+  [modal]="true"
+  [style]="{ maxWidth: '90vw', width: '500px' }"
+  [closable]="false"
+  [draggable]="false"
+  [dismissableMask]="false">
+  <div class="text-sm leading-relaxed text-surface-700 dark:text-surface-300" [innerHTML]="narrativeSummary()"></div>
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2">
+      <button class="px-4 py-2 rounded-xl text-sm font-bold text-surface-700 dark:text-surface-300 border border-surface-300 dark:border-surface-600 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors" (click)="cancelNarrativeOrder()">Modificar</button>
+      <button class="px-4 py-2 rounded-xl text-sm font-bold bg-primary-500 hover:bg-primary-600 text-slate-900 transition-colors" (click)="confirmNarrativeOrder()">Sí, colocar pedido</button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- ═══ DOCK ═══ -->
 <div
-  class="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-surface-900 border-t border-surface-200 dark:border-surface-700 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.3)]"
-  (click)="showDinerList.set(false)"
-  (keydown.escape)="showDinerList.set(false)"
+  class="dock-container bg-primary-contrast border-t-2 border-surface-200 dark:border-surface-700 flex flex-col"
+  [class.dock-collapsed]="!isExpanded()"
+  [class.dock-expanded]="isExpanded()"
   role="region"
-  aria-label="Panel de pedido"
-  tabindex="-1">
+  aria-label="Panel de pedido">
 
-  <div class="max-w-7xl mx-auto px-3 py-2 flex flex-col gap-2">
+  <!-- ═══ MERGED TAB: table + diner count + expand trigger ═══ -->
+  <button
+    class="dock-tab flex items-center justify-between w-full px-4 py-2.5 bg-surface-100 dark:bg-surface-800 border-b border-surface-200 dark:border-surface-700 cursor-pointer flex-shrink-0 text-left min-h-[44px] hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors"
+    (click)="onTabClick()"
+    (keydown.enter)="onTabClick()"
+    (touchstart)="onTouchStart($event)"
+    (touchend)="onTouchEnd($event)"
+    tabindex="0"
+    [attr.aria-label]="isExpanded() ? 'Cerrar panel' : 'Abrir panel'">
 
-    <!-- Row 1: Diner controls + Place order -->
-    <div class="flex items-center gap-2">
+    <!-- Table info: click opens popover (separate from tab expand/collapse) -->
+    <div class="flex items-center gap-2 text-sm font-medium overflow-hidden cursor-pointer" (click)="onTableInfoClick(); $event.stopPropagation()" (keydown.enter)="onTableInfoClick(); $event.stopPropagation()" tabindex="0" role="button" [attr.aria-label]="'Seleccionar mesa'">
+      <i class="pi pi-table text-surface-500"></i>
+      <span class="font-semibold whitespace-nowrap text-surface-700 dark:text-surface-300">
+        @if (selectedTable(); as table) { Mesa {{ table.tableNumber }} }
+        @else { Sin mesa }
+      </span>
 
-      <!-- Diner controls -->
-      <div class="flex items-center gap-1 shrink-0">
-        <button
-          class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-100 dark:bg-surface-800 text-surface-600 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors disabled:opacity-30 text-sm font-bold"
-          (click)="onRemoveDiner(); $event.stopPropagation()"
-          [disabled]="dock.totalDiners() <= 1"
-          title="Quitar comensal">
-          <i class="pi pi-minus text-xs"></i>
-        </button>
-
-        <!-- Diner selector dropdown trigger -->
-        <div class="relative" (click)="$event.stopPropagation()" (keydown.escape)="showDinerList.set(false)" tabindex="-1">
-          <button
-            class="min-w-[3rem] h-8 px-2 rounded-lg bg-primary-500 text-slate-900 font-bold text-sm flex items-center justify-center gap-1 hover:bg-primary-600 transition-colors"
-            (click)="toggleDinerList()"
-            (keydown.enter)="toggleDinerList()"
-            title="Seleccionar comensal">
-            <span>{{ dock.selectedDinerIndex() + 1 }}</span>
-            <i class="pi pi-chevron-down text-[10px]"></i>
-          </button>
-
-          <!-- Dropdown diner list -->
-          @if (showDinerList()) {
-            <div class="absolute bottom-full left-0 mb-1 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg shadow-xl py-1 min-w-32 z-50">
-              @for (diner of dock.diners(); track trackByDinerId($index, diner); let i = $index) {
-                <button
-                  class="flex items-center gap-2 w-full px-3 py-2 text-sm transition-colors text-left"
-                  [class]="i === dock.selectedDinerIndex()
-                    ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 font-semibold'
-                    : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'"
-                  (click)="onDinerSelect(i)">
-                  <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                    [class]="i === dock.selectedDinerIndex()
-                      ? 'bg-primary-500 text-slate-900'
-                      : 'bg-surface-200 dark:bg-surface-700 text-surface-600 dark:text-surface-400'">
-                    {{ diner.id }}
-                  </span>
-                  <span>Comensal {{ diner.id }}</span>
-                  @if (diner.items.length > 0) {
-                    <span class="ml-auto text-xs bg-surface-200 dark:bg-surface-700 text-surface-600 dark:text-surface-400 rounded-full px-1.5 py-0.5">{{ diner.items.length }}</span>
-                  }
-                </button>
-              }
-            </div>
-          }
-        </div>
-
-        <button
-          class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-100 dark:bg-surface-800 text-surface-600 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors text-sm font-bold"
-          (click)="onAddDiner(); $event.stopPropagation()"
-          title="Agregar comensal">
-          <i class="pi pi-plus text-xs"></i>
-        </button>
-      </div>
-
-      <!-- Divider -->
-      <div class="w-px h-6 bg-surface-200 dark:bg-surface-700 shrink-0"></div>
-
-      <!-- Items for selected diner (scrollable) -->
-      <div class="flex-1 min-w-0">
-        @if (dock.selectedDinerItems().length === 0) {
-          <p class="text-xs text-surface-500 dark:text-surface-400 truncate">
-            Selecciona productos del menú o la carta
-          </p>
-        } @else {
-          <div class="flex gap-1.5 overflow-x-auto scrollbar-none">
-            @for (item of dock.selectedDinerItems(); track $index; let i = $index) {
-              <div class="flex items-center gap-1 px-2 py-1 rounded-lg bg-surface-100 dark:bg-surface-800 text-xs shrink-0 max-w-[160px]">
-                <span class="truncate font-medium text-surface-700 dark:text-surface-300">{{ item.product.name }}</span>
-                <button
-                  class="text-red-500 hover:text-red-700 shrink-0 ml-0.5"
-                  (click)="onRemoveItem(i); $event.stopPropagation()"
-                  title="Eliminar">
-                  <i class="pi pi-times-circle text-[10px]"></i>
-                </button>
-              </div>
-            }
-          </div>
-        }
-      </div>
-
-      <!-- Total + Place Order button -->
-      <div class="flex items-center gap-2 shrink-0" (click)="$event.stopPropagation()" (keydown.escape)="showDinerList.set(false)" tabindex="-1">
-        <div class="text-right hidden sm:block">
-          <span class="text-[10px] text-surface-500 dark:text-surface-400 block -mb-0.5">Comensal {{ dock.selectedDinerIndex() + 1 }}</span>
-          <span class="text-xs font-bold text-surface-700 dark:text-surface-300">{{ dock.selectedDinerItems().length }} item(s)</span>
-        </div>
-        <button
-          class="px-4 h-8 rounded-xl text-sm font-bold transition-all flex items-center gap-1.5"
-          [class]="dock.canPlaceOrder() && !submitting()
-            ? 'bg-primary-500 hover:bg-primary-600 text-slate-900'
-            : 'bg-surface-200 dark:bg-surface-700 text-surface-400 dark:text-surface-500 cursor-not-allowed'"
-          [disabled]="!dock.canPlaceOrder() || submitting()"
-          (click)="placeOrder()">
-          @if (submitting()) {
-            <i class="pi pi-spin pi-spinner"></i>
-          } @else {
-            <i class="pi pi-send text-xs"></i>
-          }
-          <span class="hidden xs:inline">Colocar Pedido</span>
-        </button>
-      </div>
     </div>
 
-    <!-- Row 2: Table selector -->
-    <div class="flex items-center gap-2 border-t border-surface-200 dark:border-surface-700 pt-2">
-      <span class="text-sm font-medium text-surface-700 dark:text-surface-300 shrink-0">Mesa:</span>
+    <i class="pi text-surface-400 text-xs" [class.pi-chevron-up]="!isExpanded()" [class.pi-chevron-down]="isExpanded()"></i>
+  </button>
+
+  <!-- ═══ TABLE POPOVER ═══ -->
+  @if (showTablePopover()) {
+    <div class="dock-popover bg-primary-contrast border border-surface-200 dark:border-surface-700 rounded-xl p-3">
+      <div class="text-xs font-semibold text-surface-500 mb-2">Seleccionar Mesa</div>
+      <div class="flex flex-wrap gap-1.5">
+        @for (table of dock.availableTables(); track table.id) {
+          <button
+            class="w-[52px] h-[52px] flex items-center justify-center rounded-lg border-2 cursor-pointer transition-all font-bold text-sm"
+            [ngClass]="dock.selectedTableId() === table.id
+              ? 'bg-primary-50 border-primary-500 text-primary-700'
+              : 'bg-surface-100 border-surface-200 text-surface-700 hover:bg-surface-200 dark:bg-surface-700 dark:border-surface-600 dark:text-surface-300 dark:hover:bg-surface-600'"
+            (click)="onTableSelect(table.id)"
+            [title]="'Mesa ' + table.tableNumber">
+            {{ table.tableNumber }}
+          </button>
+        }
+      </div>
       @if (dock.tablesLoading()) {
-        <div class="flex items-center gap-2">
-          <i class="pi pi-spin pi-spinner text-surface-500"></i>
-          <span class="text-sm text-surface-500">Cargando mesas...</span>
+        <div class="flex items-center gap-2 mt-2 text-xs text-surface-500"><i class="pi pi-spin pi-spinner"></i> Cargando...</div>
+      }
+      @if (dock.tablesError(); as err) {
+        <div class="flex items-center gap-2 mt-2 text-xs text-red-500"><i class="pi pi-exclamation-triangle"></i> {{ err }}</div>
+      }
+    </div>
+  }
+
+  <!-- ═══ DINER BAR — always visible ═══ -->
+  <div class="flex items-center gap-1.5 px-3 py-1 flex-shrink-0 bg-primary-contrast" [class.border-b.border-surface-200.dark:border-surface-700]="!isExpanded()">
+    <!-- Left: diner icons -->
+    <div class="flex items-center gap-1.5 flex-1">
+      @for (diner of dock.diners(); track trackByDinerId($index, diner); let i = $index) {
+        <div class="relative">
+          <button
+            class="w-[36px] h-[36px] flex flex-col items-center justify-center rounded-lg border-2 transition-all cursor-pointer text-[10px] font-bold"
+            [class]="i === dock.selectedDinerIndex()
+              ? 'bg-primary-500 border-primary-500 text-slate-900'
+              : 'bg-surface-100 dark:bg-surface-700 border-surface-200 dark:border-surface-600 text-surface-500 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-600'"
+            (click)="onDinerSelect(i)"
+            [title]="'Comensal ' + diner.id">
+            <i class="pi pi-user text-xs leading-none"></i>
+            <span class="text-[8px] font-bold leading-none mt-[1px]">{{ diner.id }}</span>
+          </button>
+          @if (diner.items.length > 0) {
+            <span class="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] flex items-center justify-center rounded-full bg-primary-500 text-white text-[8px] font-bold px-[2px]">{{ diner.items.length }}</span>
+          }
         </div>
-      } @else if (dock.tablesError(); as errorMsg) {
-        <span class="text-red-500 text-sm">{{ errorMsg }}</span>
-      } @else {
-        <p-select
-          [options]="dock.availableTables()"
-          [ngModel]="dock.selectedTableId()"
-          (ngModelChange)="dock.selectTable($event)"
-          optionLabel="tableNumber"
-          optionValue="id"
-          placeholder="Seleccionar mesa"
-          class="w-48" />
       }
     </div>
 
-    <!-- Row 3: Diner removal confirmation (when diner has items) -->
-    @if (showRemoveConfirm()) {
-      <div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
-        <i class="pi pi-exclamation-triangle text-yellow-600 dark:text-yellow-400 text-sm"></i>
-        <span class="text-sm text-yellow-800 dark:text-yellow-200 flex-1">
-          @let diner = dinerRemoveData();
-          @if (diner) {
-            ¿Eliminar comensal #{{ diner.id }}? Tiene {{ diner.items.length }} producto(s). ¿Continuar?
-          }
-        </span>
-        <button
-          class="px-3 h-7 rounded-lg bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-bold transition-colors"
-          (click)="confirmRemoveDiner()">Sí</button>
-        <button
-          class="px-3 h-7 rounded-lg bg-surface-200 dark:bg-surface-700 text-surface-700 dark:text-surface-300 hover:bg-surface-300 dark:hover:bg-surface-600 text-xs font-bold transition-colors"
-          (click)="cancelRemoveDiner()">No</button>
-      </div>
-    }
-
-    <!-- Row 4: Mini items preview per diner (if more than 1 diner) -->
-    @if (dock.totalDiners() > 1) {
-      <div class="flex items-center gap-1.5 overflow-x-auto scrollbar-none -mx-1 px-1">
-        @for (diner of dock.diners(); track trackByDinerId($index, diner); let i = $index) {
-          <button
-            class="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] transition-colors shrink-0"
-            [class]="i === dock.selectedDinerIndex()
-              ? 'bg-primary-100 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 font-semibold'
-              : 'bg-surface-100 dark:bg-surface-800 text-surface-500 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700'"
-            (click)="onDinerSelect(i)">
-            <span class="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold"
-              [class]="i === dock.selectedDinerIndex()
-                ? 'bg-primary-500 text-slate-900'
-                : 'bg-surface-300 dark:bg-surface-600 text-surface-600'">
-              {{ diner.id }}
-            </span>
-            <span>{{ diner.items.length > 0 ? diner.items.length + ' item' : 'vacío' }}</span>
-          </button>
-        }
-      </div>
-    }
-
+    <!-- Right: actions -->
+    <div class="flex items-center gap-1.5">
+      <button
+        class="w-7 h-7 flex items-center justify-center rounded-lg bg-surface-100 dark:bg-surface-700 text-surface-500 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors disabled:opacity-30 text-[10px]"
+        (click)="onRemoveDiner()"
+        [disabled]="dock.totalDiners() <= 1"
+        title="Eliminar comensal">
+        <i class="pi pi-trash text-xs"></i>
+      </button>
+      <button
+        class="w-7 h-7 flex items-center justify-center rounded-lg bg-surface-100 dark:bg-surface-700 text-surface-500 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors text-[10px]"
+        (click)="onAddDiner()"
+        title="Agregar comensal">
+        <i class="pi pi-plus"></i>
+      </button>
+    </div>
   </div>
+
+  <!-- ── Removal confirmation (always visible) ── -->
+  @if (showRemoveConfirm()) {
+    <div class="flex items-center gap-2 px-3 py-2 bg-yellow-50 dark:bg-yellow-900/10 border-b border-yellow-200 dark:border-yellow-800 flex-shrink-0">
+      <i class="pi pi-exclamation-triangle text-yellow-600 dark:text-yellow-400 text-xs"></i>
+      <span class="flex-1 text-sm text-yellow-800 dark:text-yellow-200">
+        @let diner = dinerRemoveData();
+        @if (diner) { ¿Eliminar comensal #{{ diner.id }}? Tiene {{ diner.items.length }} producto(s). }
+      </span>
+      <button class="px-3 py-1 rounded-md text-xs font-bold bg-yellow-500 hover:bg-yellow-600 text-white transition-colors" (click)="confirmRemoveDiner()">Sí</button>
+      <button class="px-3 py-1 rounded-md text-xs font-bold bg-surface-200 dark:bg-surface-600 text-surface-700 dark:text-surface-300 hover:bg-surface-300 dark:hover:bg-surface-500 transition-colors" (click)="cancelRemoveDiner()">No</button>
+    </div>
+  }
+
+  <!-- ═══ EXPANDED ═══ -->
+  @if (isExpanded()) {
+    <div class="flex flex-col flex-1 overflow-hidden px-3 py-2 gap-2 bg-primary-contrast">
+      <!-- ── Items list ── -->
+      @if (dock.selectedDinerItems().length === 0) {
+        <div class="flex-1 flex items-center justify-center text-sm text-surface-400 bg-surface-50 dark:bg-surface-800 rounded-xl">Selecciona productos del menú o la carta</div>
+      } @else {
+        <div class="flex-1 overflow-y-auto flex flex-col gap-1 min-h-0">
+          @for (item of dock.selectedDinerItems(); track $index; let i = $index) {
+            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-50 dark:bg-surface-800 flex-shrink-0 text-sm">
+              <button class="w-7 h-7 flex items-center justify-center rounded-md bg-primary-contrast dark:bg-surface-700 text-surface-500 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors text-[10px]" (click)="dock.decrementItemQuantity(i)" title="Reducir"><i class="pi pi-minus"></i></button>
+              <span class="w-6 text-center font-bold text-surface-700 dark:text-surface-300 text-sm">{{ item.quantity }}</span>
+              <button class="w-7 h-7 flex items-center justify-center rounded-md bg-primary-contrast dark:bg-surface-700 text-surface-500 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors text-[10px]" (click)="dock.incrementItemQuantity(i)" title="Aumentar"><i class="pi pi-plus"></i></button>
+
+              <button class="flex-1 text-left font-medium text-surface-700 dark:text-surface-300 hover:text-primary-500 dark:hover:text-primary-400 transition-colors truncate bg-transparent border-none cursor-pointer px-0" (click)="openEditModal(i)" title="Modificar">{{ item.product.name }}</button>
+
+              @if (item.optionNames.length > 0) {
+                <span class="text-[11px] text-surface-500 max-w-[80px] truncate flex-shrink-0 hidden sm:inline">{{ item.optionNames.join(', ') }}</span>
+              }
+
+              <button class="w-7 h-7 flex items-center justify-center rounded-md text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-colors text-[11px] bg-transparent border-none cursor-pointer" (click)="dock.decrementItemQuantity(i)" title="Eliminar"><i class="pi pi-trash"></i></button>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ── Place Order ── -->
+      <button
+        class="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl text-sm font-bold border-none cursor-pointer flex-shrink-0 transition-all"
+        [class]="dock.canPlaceOrder() && !submitting()
+          ? 'bg-primary-500 hover:bg-primary-600 text-white'
+          : 'bg-surface-200 dark:bg-surface-700 text-surface-400 dark:text-surface-500 cursor-not-allowed'"
+        [disabled]="!dock.canPlaceOrder() || submitting()"
+        [title]="!dock.hasSelectedTable() ? 'Selecciona una mesa primero' : !dock.hasItems() ? 'Agrega productos al pedido' : 'Colocar pedido'"
+        (click)="placeOrderWithNarrative()">
+        @if (submitting()) { <i class="pi pi-spin pi-spinner"></i> }
+        @else { <i class="pi pi-send"></i> }
+        <span>Colocar Pedido</span>
+      </button>
+    </div>
+  }
 </div>

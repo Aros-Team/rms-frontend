@@ -1,11 +1,10 @@
-<div class="flex items-center justify-between gap-4 w-full">
-    <div class="flex items-baseline gap-3">
-      <h1 class="text-xl md:text-2xl font-black tracking-tight">Órdenes del Día</h1>
+<div class="flex flex-col items-center justify-between gap-4 w-full mb-6">
+    <header class="flex justify-between">
       <p class="text-sm text-slate-500">
         {{ activeCount }} activas · {{ deliveredCount }} entregadas
       </p>
-    </div>
-    
+    </header>
+<section class="flex items-center justify-between">
     <!-- Filters on header right -->
     <div class="flex items-center gap-2">
       <!-- Date Picker -->
@@ -34,6 +33,7 @@
         [loading]="loading() || refreshing()"
       />
     </div>
+    </section>
   </div>
 
   <!-- Error -->
@@ -96,26 +96,15 @@
           </div>
 
           <!-- Acciones -->
-          @if (order.status === 'QUEUE' || order.status === 'READY') {
+          @if (order.status === 'READY') {
             <div class="px-4 pb-3 flex gap-2">
-              @if (order.status === 'QUEUE') {
-                <button
-                  class="px-3 py-1.5 rounded-lg text-xs font-medium border border-red-300 text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
-                  [disabled]="isProcessing(order.id)"
-                  (click)="cancelOrder(order)">
-                  @if (isProcessing(order.id)) { <i class="pi pi-spin pi-spinner mr-1"></i> }
-                  Cancelar
-                </button>
-              }
-              @if (order.status === 'READY') {
-                <button
-                  class="px-3 py-1.5 rounded-lg text-xs font-medium bg-primary-500 hover:bg-primary-600 text-slate-900 transition-colors disabled:opacity-50"
-                  [disabled]="isProcessing(order.id)"
-                  (click)="deliverOrder(order)">
-                  @if (isProcessing(order.id)) { <i class="pi pi-spin pi-spinner mr-1"></i> }
-                  Entregar
-                </button>
-              }
+              <button
+                class="px-3 py-1.5 rounded-lg text-xs font-medium bg-primary-500 hover:bg-primary-600 text-slate-900 transition-colors disabled:opacity-50"
+                [disabled]="isProcessing(order.id)"
+                (click)="deliverOrder(order)">
+                @if (isProcessing(order.id)) { <i class="pi pi-spin pi-spinner mr-1"></i> }
+                Entregar
+              </button>
             </div>
           }
 

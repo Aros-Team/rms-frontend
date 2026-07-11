@@ -1,1 +1,37 @@
-/* Convention compliance */
+:host {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: block;
+  pointer-events: none;
+}
+
+.dock-container {
+  pointer-events: auto;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  transition: height 0.25s ease;
+  overflow: visible;
+}
+
+.dock-collapsed { height: var(--dock-collapsed-height, 88px); overflow: hidden; }
+.dock-expanded { height: var(--dock-expanded-height, 50vh); }
+
+@media (min-width: 768px) {
+  .dock-container { max-width: 600px; margin: 0 auto; }
+  .dock-expanded { height: 40vh; }
+}
+
+/* Popover above dock */
+.dock-popover {
+  position: absolute;
+  bottom: 100%;
+  left: 8px;
+  right: 8px;
+  margin-bottom: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1001;
+}

@@ -14,12 +14,14 @@
       "Estilos más flexibles, sin restricciones de altura/anchura fijas"
     ],
     "tasks": [
-      {"id": "fix-table-bind", "description": "Depurar y arreglar el binding del table selector (p-select selectedTableId no funciona)", "status": "pending", "agent": "implementer"},
-      {"id": "dock-grab-expand", "description": "Rediseñar dock como panel expandible con handle de agarre (grab), animación de altura, overlay semitransparente. Mobile-first, touch compatible.", "status": "pending", "agent": "implementer"},
-      {"id": "responsive-nav-tabs", "description": "Hacer tabs de navegacion responsivos: wrap o scroll horizontal en mobile, touch targets grandes.", "status": "pending", "agent": "implementer"},
-      {"id": "product-card-orientation", "description": "Corregir orientacion de tarjetas producto en mobile: stack vertical, imagenes responsive, grid adaptativo.", "status": "pending", "agent": "implementer"},
-      {"id": "dock-minimal-styles", "description": "Refactorizar estilos del dock: quitar restricciones de tamaño fijo, usar layout flexible, padding/height dinamicos.", "status": "pending", "agent": "implementer"}
+      {"id": "fix-table-bind", "description": "Depurar y arreglar el binding del table selector (p-select selectedTableId no funciona)", "status": "done", "agent": "implementer"},
+      {"id": "dock-grab-expand", "description": "Rediseñar dock como panel expandible con handle de agarre (grab), animación de altura, overlay semitransparente. Mobile-first, touch compatible.", "status": "done", "agent": "implementer"},
+      {"id": "responsive-nav-tabs", "description": "Hacer tabs de navegacion responsivos: wrap o scroll horizontal en mobile, touch targets grandes.", "status": "done", "agent": "implementer"},
+      {"id": "product-card-orientation", "description": "Corregir orientacion de tarjetas producto en mobile: stack vertical, imagenes responsive, grid adaptativo.", "status": "done", "agent": "implementer"},
+      {"id": "dock-minimal-styles", "description": "Refactorizar estilos del dock: quitar restricciones de tamaño fijo, usar layout flexible, padding/height dinamicos.", "status": "done", "agent": "implementer"},
+      {"id": "fix-collapsed-height", "description": "Aumentar collapsed-height de 48px a 64px para que grab handle + header quepan sin clipping", "status": "done", "agent": "implementer"},
+      {"id": "qty-vertical-list-narrative", "description": "Agregar quantity a DockItem, lista vertical con +/- y click-para-editar via ProductOptionsModal, resumen narrativo al colocar pedido", "status": "done", "agent": "implementer"}
     ],
-    "status": "pending"
+    "status": "done"
   }
 ]

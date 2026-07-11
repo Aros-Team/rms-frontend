@@ -1,1 +1,5 @@
-/* Convention compliance */
+:host {
+  display: block;
+  /* Clear fixed dock at bottom so content not hidden behind collapsed dock */
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 100px);
+}

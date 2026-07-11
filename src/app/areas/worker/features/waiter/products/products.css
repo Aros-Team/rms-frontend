@@ -1,0 +1,25 @@
+/* ══ Product Grid — mobile-first ══ */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+@media (max-width: 480px) {
+  .product-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ══ Card Image Container — aspect-ratio 1:1, no fixed size ══ */
+.product-card-image {
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+.product-card-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

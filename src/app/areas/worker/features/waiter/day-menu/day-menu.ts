@@ -147,6 +147,7 @@ export class DayMenu implements OnInit {
       const item: DockItem = {
         product: prod,
         instructions: '', selectedOptionIds: [], optionNames: [],
+        quantity: 1,
       };
       this.dock.addItemToDiner(item);
       return;
@@ -161,11 +162,10 @@ export class DayMenu implements OnInit {
       instructions: event.instructions,
       selectedOptionIds: event.selectedOptions.map(o => o.optionId),
       optionNames: event.selectedOptions.map(o => o.optionName),
+      quantity: event.quantity,
     };
 
-    for (let i = 0; i < event.quantity; i++) {
-      this.dock.addItemToDiner(item);
-    }
+    this.dock.addItemToDiner(item);
 
     this.showOptionsModal.set(false);
   }

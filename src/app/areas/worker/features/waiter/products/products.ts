@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -16,12 +16,12 @@ import { CartaSkeleton } from './skeletons/carta-skeleton';
 import { ProductOptionsModal, ProductOptionsConfirmEvent } from '@app/shared/components/product-options-modal/product-options-modal';
 
 @Component({
-  selector: 'app-take-order',
-  templateUrl: './take-order.html',
-  styleUrl: './take-order.css',
+  selector: 'app-products',
+  templateUrl: './products.html',
+  styleUrl: './products.css',
   imports: [CommonModule, FormsModule, CartaSkeleton, InputTextModule, IconFieldModule, InputIconModule, ProductOptionsModal],
 })
-export class TakeOrder implements OnInit {
+export class Products implements OnInit {
   private masterData = inject(MasterData);
   private dock = inject(OrderDock);
   private logger = inject(Logging);
@@ -43,12 +43,26 @@ export class TakeOrder implements OnInit {
 
   categories = computed(() => Object.keys(this.productsByCategory()));
 
+  /** When user types in search, clear active category filter */
+  private readonly _searchEffect = effect(() => {
+    const q = this.searchQuery();
+    if (q.trim().length > 0 && this.activeCategory()) {
+      this.activeCategory.set('');
+    }
+  });
+
   filteredProducts = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
     const category = this.activeCategory();
-    const products = this.productsByCategory()[category] ?? [];
-    if (!query) return products;
-    return products.filter(p => p.name.toLowerCase().includes(query));
+
+    // If searching, search ALL products across categories
+    if (query) {
+      const allProducts = Object.values(this.productsByCategory()).flat();
+      return allProducts.filter(p => p.name.toLowerCase().includes(query));
+    }
+
+    // No search — filter by active category
+    return this.productsByCategory()[category] ?? [];
   });
 
   ngOnInit(): void {
@@ -60,7 +74,7 @@ export class TakeOrder implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        this.logger.error('TakeOrder: failed to load master data', err);
+        this.logger.error('Products: failed to load master data', err);
         this.error.set('No se pudieron cargar los datos. Intenta de nuevo.');
         this.loading.set(false);
       }
@@ -93,7 +107,7 @@ export class TakeOrder implements OnInit {
       },
       error: (err) => {
         if (seq !== this.optionsSeq) return; // stale
-        this.logger.error('TakeOrder: failed to load product options', err);
+        this.logger.error('Products: failed to load product options', err);
         this.optionsError.set('No se pudieron cargar las opciones. Intenta de nuevo.');
         this.modalOptionsLoading.set(false);
       }
@@ -106,11 +120,10 @@ export class TakeOrder implements OnInit {
       instructions: event.instructions,
       selectedOptionIds: event.selectedOptions.map(o => o.optionId),
       optionNames: event.selectedOptions.map(o => o.optionName),
+      quantity: event.quantity,
     };
 
-    for (let i = 0; i < event.quantity; i++) {
-      this.dock.addItemToDiner(item);
-    }
+    this.dock.addItemToDiner(item);
 
     this.closeModal();
   }

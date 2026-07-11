@@ -22,6 +22,8 @@ export class Header implements OnInit, OnDestroy {
   @Input() role?: string;
   @Input() isChatOpen = false;
   @Input() workerType?: string;
+  /** When true, hides the tablet inline nav (used when a separate tab bar exists below header) */
+  @Input() hideTabletNav = false;
   customer = environment.customer;
 
   selectedMenuItem: MenuItem | null = null;
@@ -35,6 +37,7 @@ export class Header implements OnInit, OnDestroy {
   private itemsSubscription: Subscription | undefined;
   private navigationSubscription: Subscription | undefined;
   showLogoutDialog = false;
+  showSettingsDialog = false;
 
   private menuService = inject(Menu);
   private authService = inject(Auth);
@@ -181,15 +184,7 @@ export class Header implements OnInit, OnDestroy {
     this.showLogoutDialog = false;
   }
 
-  onSettings(): void {
-    void this.router.navigate(['/worker/profile']);
-  }
-
   onKitchen(): void {
     void this.router.navigate(['/worker/kitchen']);
-  }
-
-  onHome(): void {
-    void this.router.navigate(['/worker/day-menu']);
   }
 }

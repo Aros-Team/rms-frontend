@@ -11,6 +11,7 @@ export interface DockItem {
   instructions: string;
   selectedOptionIds: number[];
   optionNames: string[];
+  quantity: number;
 }
 
 export interface DinerState {
@@ -91,8 +92,25 @@ export class OrderDock {
     const index = this._selectedDinerIndex();
     this._diners.update(diners => {
       const updated = [...diners];
-      const diner = { ...updated[index], items: [...updated[index].items, item] };
-      updated[index] = diner;
+      const currentItems = updated[index].items;
+
+      // Check if same product + same options + same instructions exists
+      const existingIndex = currentItems.findIndex(ex =>
+        ex.product.id === item.product.id &&
+        ex.instructions === item.instructions &&
+        ex.selectedOptionIds.length === item.selectedOptionIds.length &&
+        ex.selectedOptionIds.every((id, i) => id === item.selectedOptionIds[i])
+      );
+
+      if (existingIndex >= 0) {
+        // Increment quantity on existing item
+        const items = [...currentItems];
+        items[existingIndex] = { ...items[existingIndex], quantity: items[existingIndex].quantity + 1 };
+        updated[index] = { ...updated[index], items };
+      } else {
+        // Add new item with quantity
+        updated[index] = { ...updated[index], items: [...currentItems, { ...item, quantity: item.quantity || 1 }] };
+      }
       return updated;
     });
   }
@@ -106,6 +124,47 @@ export class OrderDock {
         items: updated[index].items.filter((_, i) => i !== itemIndex)
       };
       updated[index] = diner;
+      return updated;
+    });
+  }
+
+  incrementItemQuantity(itemIndex: number): void {
+    const dinerIndex = this._selectedDinerIndex();
+    this._diners.update(diners => {
+      const updated = [...diners];
+      const items = [...updated[dinerIndex].items];
+      items[itemIndex] = { ...items[itemIndex], quantity: items[itemIndex].quantity + 1 };
+      updated[dinerIndex] = { ...updated[dinerIndex], items };
+      return updated;
+    });
+  }
+
+  decrementItemQuantity(itemIndex: number): void {
+    const dinerIndex = this._selectedDinerIndex();
+    this._diners.update(diners => {
+      const updated = [...diners];
+      const currentItems = updated[dinerIndex].items;
+      const currentQty = currentItems[itemIndex].quantity;
+
+      if (currentQty <= 1) {
+        // Remove item when quantity reaches 0
+        updated[dinerIndex] = { ...updated[dinerIndex], items: currentItems.filter((_, i) => i !== itemIndex) };
+      } else {
+        const items = [...currentItems];
+        items[itemIndex] = { ...items[itemIndex], quantity: currentQty - 1 };
+        updated[dinerIndex] = { ...updated[dinerIndex], items };
+      }
+      return updated;
+    });
+  }
+
+  updateDinerItem(dinerIndex: number, itemIndex: number, updates: Partial<DockItem>): void {
+    this._diners.update(diners => {
+      if (dinerIndex >= diners.length || itemIndex >= diners[dinerIndex].items.length) return diners;
+      const updated = [...diners];
+      const items = [...updated[dinerIndex].items];
+      items[itemIndex] = { ...items[itemIndex], ...updates };
+      updated[dinerIndex] = { ...updated[dinerIndex], items };
       return updated;
     });
   }
@@ -141,22 +200,26 @@ export class OrderDock {
   getOrderDetailsForAllDiners(): { dinerId: number; details: CreateOrderDetail[] }[] {
     return this._diners().map(diner => ({
       dinerId: diner.id,
-      details: diner.items.map(item => ({
-        productId: item.product.id,
-        instructions: item.instructions,
-        selectedOptionIds: item.selectedOptionIds,
-      }))
+      details: diner.items.flatMap(item =>
+        Array.from({ length: item.quantity }, () => ({
+          productId: item.product.id,
+          instructions: item.instructions,
+          selectedOptionIds: item.selectedOptionIds,
+        }))
+      )
     })).filter(d => d.details.length > 0);
   }
 
   getOrderDetailsForDiner(dinerIndex: number): CreateOrderDetail[] {
     const diners = this._diners();
     if (dinerIndex >= diners.length) return [];
-    return diners[dinerIndex].items.map(item => ({
-      productId: item.product.id,
-      instructions: item.instructions,
-      selectedOptionIds: item.selectedOptionIds,
-    }));
+    return diners[dinerIndex].items.flatMap(item =>
+      Array.from({ length: item.quantity }, () => ({
+        productId: item.product.id,
+        instructions: item.instructions,
+        selectedOptionIds: item.selectedOptionIds,
+      }))
+    );
   }
 }
 

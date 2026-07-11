@@ -3,10 +3,24 @@
     [isMobile]="false"
     [role]="role"
     [workerType]="workerType"
+    [hideTabletNav]="true"
     [isChatOpen]="false">
   </app-header>
 
-  <main class="flex-1 flex flex-col items-center justify-start pt-20 px-4 overflow-y-auto">
+  <!-- ═══ Tab bar — fixed below header ═══ -->
+  <nav class="fixed top-16 left-0 right-0 h-12 flex items-center gap-1 px-4 bg-surface-50 dark:bg-surface-900 border-b border-surface-200 dark:border-surface-700 z-10 overflow-x-auto">
+    @for (tab of tabs; track tab.id) {
+      <button
+        (click)="onTabClick(tab)"
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm whitespace-nowrap transition-colors cursor-pointer text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-800"
+        [ngClass]="isActive(tab) ? '!text-primary-500 font-semibold' : ''">
+        <i [class]="tab.icon + ' text-sm'"></i>
+        <span>{{ tab.label }}</span>
+      </button>
+    }
+  </nav>
+
+  <main class="flex-1 flex flex-col items-center justify-start pt-32 px-4 pb-24 overflow-y-auto">
     <div class="w-full max-w-7xl">
       <ng-content></ng-content>
     </div>

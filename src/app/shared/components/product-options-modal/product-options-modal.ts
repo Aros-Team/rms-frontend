@@ -34,6 +34,11 @@ export class ProductOptionsModal {
   error = input<string | null>(null);
   visible = input(false);
 
+  // Editing support: pre-fill with existing values
+  initialOptionIds = input<number[]>([]);
+  initialInstructions = input<string>('');
+  initialQuantity = input<number>(1);
+
   // ── Outputs ──
   readonly confirm = output<ProductOptionsConfirmEvent>();
   readonly dismiss = output();
@@ -56,9 +61,9 @@ export class ProductOptionsModal {
   constructor() {
     effect(() => {
       if (this.visible()) {
-        this.selectedOptionIds.set([]);
-        this.instructions.set('');
-        this.quantity.set(1);
+        this.selectedOptionIds.set(this.initialOptionIds());
+        this.instructions.set(this.initialInstructions());
+        this.quantity.set(this.initialQuantity());
       }
     });
   }

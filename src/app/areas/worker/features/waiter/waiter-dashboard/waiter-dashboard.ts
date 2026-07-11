@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { DayMenu } from '@areas/worker/features/waiter/day-menu/day-menu';
-import { TakeOrder } from '@areas/worker/features/waiter/take-order/take-order';
+import { Products } from '@areas/worker/features/waiter/products/products';
 import { TodayOrders } from '@areas/worker/features/waiter/today-orders/today-orders';
 
 type TabId = 'menu' | 'carta' | 'pedidos';
@@ -24,7 +24,7 @@ interface DashboardTab {
   selector: 'app-waiter-dashboard',
   templateUrl: './waiter-dashboard.html',
   styleUrl: './waiter-dashboard.css',
-  imports: [CommonModule, DayMenu, TakeOrder, TodayOrders],
+  imports: [CommonModule, DayMenu, Products, TodayOrders],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WaiterDashboard {

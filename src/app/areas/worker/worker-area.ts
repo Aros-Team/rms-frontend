@@ -149,31 +149,24 @@ ngOnDestroy(): void {
     const waiterItems: MenuItem[] = [
       {
         id: 'take-order',
-        label: 'Tomar Orden',
-        description: 'Crear nueva orden',
-        icon: 'pi pi-plus-circle',
+        label: 'Carta',
+        description: 'Seleccionar productos',
+        icon: 'pi pi-book',
         routerLink: '/worker?tab=carta'
       },
       {
         id: 'orders',
-        label: 'Órdenes del Día',
+        label: 'Pedidos',
         description: 'Ver pedidos del día',
         icon: 'pi pi-list',
         routerLink: '/worker?tab=pedidos'
       },
       {
         id: 'day-menu',
-        label: 'Menú del Día',
+        label: 'Menú del día',
         description: 'Ver menú del día',
         icon: 'pi pi-calendar',
         routerLink: '/worker?tab=menu'
-      },
-      {
-        id: 'profile',
-        label: 'Configuración',
-        description: 'Ajustes de cuenta',
-        icon: 'pi pi-cog',
-        routerLink: '/worker/profile'
       }
     ];
 
