@@ -1,8 +1,7 @@
-<div class="min-w-[300px] mx-auto my-8">
-    <h1 class="text-xl font-bold mb-6 text-center text-surface">Inicio de sesión</h1>
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-8 mt-8">
+<div>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
 
-      <div>
+      <div class="flex flex-col gap-1">
         <label for="username" class="text-sm">Correo electrónico</label>
           <input
             pInputText
@@ -19,7 +18,7 @@
         }
       </div>
 
-      <div>
+      <div class="flex flex-col gap-1">
           <label for="password" class="text-sm">Contraseña</label>
           <p-password id="password" formControlName="password" [invalid]="isInvalid('password')" [feedback]="false" [toggleMask]="true" autocomplete="off" fluid ariaLabel="Contraseña"  />
         @if (form.get('password')?.invalid && form.get('password')?.touched) {
