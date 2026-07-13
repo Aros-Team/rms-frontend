@@ -45,7 +45,7 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
           </button>
 
           @if (showOverflowMenu()) {
-            <div class="absolute top-full left-0 mt-1 bg-surface-0 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg shadow-xl py-2 min-w-48 z-50">
+            <div class="absolute top-full left-0 mt-1 bg-primary-contrast dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg py-2 min-w-48 z-50">
               @for (item of overflowMenuItems(); track item.id) {
                 <a [routerLink]="item.routerLink"
                    routerLinkActive="!text-primary-500 font-semibold"

@@ -44,6 +44,7 @@ const baseFiles = [
   'docs/conventions.md',
   'docs/verification.md',
   'docs/CHECKPOINTS.md',
+  'docs/DESIGN.md',
 ];
 
 for (const f of baseFiles) {
@@ -147,7 +148,75 @@ if (fs.existsSync(path.join(PROJECT_ROOT, 'angular.json'))) {
   warn('angular.json not found, skipping build');
 }
 
-console.log('\n── 6. Running Tests ───────────────────────────────────');
+console.log('\n── 6. DESIGN.md Style Validation ─────────────────────');
+
+const hasDesignMd = fs.existsSync(path.join(PROJECT_ROOT, 'docs/DESIGN.md'));
+
+if (hasDesignMd) {
+  let styleErrors = 0;
+
+  // Scan HTML templates for black/000 violations
+  const htmlFiles = execSync(
+    'find src -name "*.html" -not -path "*/node_modules/*"',
+    { encoding: 'utf8', cwd: PROJECT_ROOT }
+  ).trim().split('\n').filter(Boolean);
+
+  const shadowPattern = /\b(shadow-sm|shadow-md|shadow-lg|shadow-xl|shadow-xs|shadow-2xl)\b/;
+  const bgWhitePattern = /\bbg-white\b/;
+  const bgSurface0Pattern = /\bbg-surface-0\b/;
+
+  for (const file of htmlFiles) {
+    const content = fs.readFileSync(path.join(PROJECT_ROOT, file), 'utf8');
+
+    if (shadowPattern.test(content)) {
+      fail(`shadow-* class found in ${file}`);
+      styleErrors++;
+    }
+
+    if (bgWhitePattern.test(content)) {
+      fail(`bg-white found in ${file} (use bg-primary-contrast instead)`);
+      styleErrors++;
+    }
+  }
+
+  // Scan CSS files for box-shadow violations (excluding high-contrast and scrollbar)
+  const cssFiles = execSync(
+    'find src -name "*.css" -not -path "*/node_modules/*"',
+    { encoding: 'utf8', cwd: PROJECT_ROOT }
+  ).trim().split('\n').filter(Boolean);
+
+  const boxShadowPattern = /box-shadow\s*:\s*(?!none\b)(?![^;}]*none)/;
+
+  for (const file of cssFiles) {
+    const content = fs.readFileSync(path.join(PROJECT_ROOT, file), 'utf8');
+    // Skip high-contrast section and scrollbar/thumb pseudo selectors
+    const stripped = content
+      .replace(/body\.high-contrast[\s\S]*?(?=^\s*\/\*|\n\n|\Z)/gm, '')
+      .replace(/::-webkit-scrollbar-thumb[\s\S]*?\}/g, '')
+      .replace(/scrollbar-color[^;]+;/g, '')
+      .replace(/::-webkit-scrollbar[^{]*\{[^}]*\}/g, '');
+
+    // Find all box-shadow declarations, exclude "none" values
+    const shadowMatches = stripped.matchAll(/box-shadow\s*:\s*([^;}]+?)\s*;/g);
+    for (const match of shadowMatches) {
+      const value = match[1].trim();
+      if (value !== 'none' && !value.startsWith('none')) {
+        fail(`box-shadow found in ${file}: ${match[0].trim().substring(0, 80)}`);
+        styleErrors++;
+      }
+    }
+  }
+
+  if (styleErrors === 0) {
+    ok('Style rules comply with docs/DESIGN.md');
+  } else {
+    exitCode = 1;
+  }
+} else {
+  warn('docs/DESIGN.md not found, skipping style validation');
+}
+
+console.log('\n── 7. Running Tests ───────────────────────────────────');
 
 if (fs.existsSync(path.join(PROJECT_ROOT, 'tests'))) {
   try {
@@ -161,7 +230,7 @@ if (fs.existsSync(path.join(PROJECT_ROOT, 'tests'))) {
   warn('tests/ folder does not exist yet');
 }
 
-console.log('\n── 7. Summary ─────────────────────────────────────────');
+console.log('\n── 8. Summary ─────────────────────────────────────────');
 
 if (exitCode === 0) {
   ok('Environment ready. You can start working.');

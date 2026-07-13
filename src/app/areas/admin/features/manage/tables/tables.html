@@ -76,7 +76,7 @@
   <!-- Edit Modal -->
   @if (modalMode() === 'edit' && modalIsOpen()) {
     <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center" (click)="closeModal()" (keydown.escape)="closeModal()" tabindex="-1" role="dialog">
-      <div class="bg-surface-0 dark:bg-surface-800 rounded-xl p-6 w-80 shadow-xl" (click)="$event.stopPropagation()" (keydown.escape)="closeModal()" role="document">
+      <div class="bg-primary-contrast dark:bg-surface-800 rounded-xl p-6 w-80 border border-surface-200 dark:border-surface-700" (click)="$event.stopPropagation()" (keydown.escape)="closeModal()" role="document">
         <h3 class="text-lg font-semibold mb-4">Editar Mesa</h3>
         <form [formGroup]="tableForm" (ngSubmit)="saveTable()" class="flex flex-col gap-4">
           <div>

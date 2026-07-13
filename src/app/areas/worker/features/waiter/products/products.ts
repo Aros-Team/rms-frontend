@@ -1,7 +1,8 @@
-import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { forkJoin, of, map, catchError } from 'rxjs';
+import { of, from, map, catchError, mergeMap } from 'rxjs';
 
 import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -28,6 +29,7 @@ export class Products implements OnInit {
   private dock = inject(OrderDock);
   private logger = inject(Logging);
   private imageService = inject(ProductImage);
+  private destroyRef = inject(DestroyRef);
 
   loading = signal(true);
   error = signal<string | null>(null);
@@ -70,7 +72,7 @@ export class Products implements OnInit {
   });
 
   ngOnInit(): void {
-    this.masterData.load().subscribe({
+    this.masterData.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.productsByCategory.set(this.masterData.getProductsByCategory());
         const cats = Object.keys(this.masterData.getProductsByCategory());
@@ -104,7 +106,7 @@ export class Products implements OnInit {
     const seq = ++this.optionsSeq;
     this.modalOptionsLoading.set(true);
 
-    this.masterData.getProductOptions(product.id).subscribe({
+    this.masterData.getProductOptions(product.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (options) => {
         if (seq !== this.optionsSeq) return; // stale
         this.modalOptions.set(options);
@@ -145,23 +147,22 @@ export class Products implements OnInit {
     const allProducts = Object.values(this.productsByCategory()).flat();
     if (allProducts.length === 0) return;
 
+    const batchSize = 6;
     const ids = allProducts.map(p => p.id);
+    const results = new Map<number, string>();
+    let completed = 0;
 
-    forkJoin(
-      ids.map(id =>
+    from(ids).pipe(
+      mergeMap(id =>
         this.imageService.getImages(id).pipe(
           map(images => ({ productId: id, thumbnail: images[0]?.desktopUrl ?? null })),
           catchError(() => of({ productId: id, thumbnail: null }))
         )
-      )
-    ).subscribe(results => {
-      const map = new Map<number, string>();
-      results.forEach(r => {
-        if (r.thumbnail) {
-          map.set(r.productId, r.thumbnail);
-        }
-      });
-      this.productThumbnails.set(map);
+      , batchSize),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(r => {
+      if (r.thumbnail) results.set(r.productId, r.thumbnail);
+      if (++completed === ids.length) this.productThumbnails.set(results);
     });
   }
 

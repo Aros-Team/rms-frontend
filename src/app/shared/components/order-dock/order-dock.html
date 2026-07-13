@@ -26,8 +26,8 @@
   <div class="text-sm leading-relaxed text-surface-700 dark:text-surface-300" [innerHTML]="narrativeSummary()"></div>
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2">
-      <button class="px-4 py-2 rounded-xl text-sm font-bold text-surface-700 dark:text-surface-300 border border-surface-300 dark:border-surface-600 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors" (click)="cancelNarrativeOrder()">Modificar</button>
-      <button class="px-4 py-2 rounded-xl text-sm font-bold bg-primary-500 hover:bg-primary-600 text-slate-900 transition-colors" (click)="confirmNarrativeOrder()">Sí, colocar pedido</button>
+      <button class="px-4 py-2 rounded-xl text-sm text-surface-700 dark:text-surface-300 border border-surface-300 dark:border-surface-600 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors" (click)="cancelNarrativeOrder()">Modificar</button>
+      <button class="px-4 py-2 rounded-xl text-sm font-semibold bg-primary-500 hover:bg-primary-600 text-surface-900 transition-colors" (click)="confirmNarrativeOrder()">Sí, colocar pedido</button>
     </div>
   </ng-template>
 </p-dialog>
@@ -70,7 +70,7 @@
       <div class="flex flex-wrap gap-1.5">
         @for (table of dock.availableTables(); track table.id) {
           <button
-            class="w-[52px] h-[52px] flex items-center justify-center rounded-lg border-2 cursor-pointer transition-all font-bold text-sm"
+            class="w-[52px] h-[52px] flex items-center justify-center rounded-lg border-2 cursor-pointer transition-all text-sm"
             [ngClass]="dock.selectedTableId() === table.id
               ? 'bg-primary-50 border-primary-500 text-primary-700'
               : 'bg-surface-100 border-surface-200 text-surface-700 hover:bg-surface-200 dark:bg-surface-700 dark:border-surface-600 dark:text-surface-300 dark:hover:bg-surface-600'"
@@ -96,17 +96,17 @@
       @for (diner of dock.diners(); track trackByDinerId($index, diner); let i = $index) {
         <div class="relative">
           <button
-            class="w-[36px] h-[36px] flex flex-col items-center justify-center rounded-lg border-2 transition-all cursor-pointer text-[10px] font-bold"
+            class="w-[36px] h-[36px] flex flex-col items-center justify-center rounded-lg border-2 transition-all cursor-pointer text-[10px]"
             [class]="i === dock.selectedDinerIndex()
-              ? 'bg-primary-500 border-primary-500 text-slate-900'
+              ? 'bg-primary-500 border-primary-500 text-surface-900'
               : 'bg-surface-100 dark:bg-surface-700 border-surface-200 dark:border-surface-600 text-surface-500 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-600'"
             (click)="onDinerSelect(i)"
             [title]="'Comensal ' + diner.id">
             <i class="pi pi-user text-xs leading-none"></i>
-            <span class="text-[8px] font-bold leading-none mt-[1px]">{{ diner.id }}</span>
+            <span class="text-[8px] leading-none mt-[1px]">{{ diner.id }}</span>
           </button>
           @if (diner.items.length > 0) {
-            <span class="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] flex items-center justify-center rounded-full bg-primary-500 text-white text-[8px] font-bold px-[2px]">{{ diner.items.length }}</span>
+            <span class="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] flex items-center justify-center rounded-full bg-primary-500 text-white text-[8px] px-[2px]">{{ diner.items.length }}</span>
           }
         </div>
       }
@@ -138,8 +138,8 @@
         @let diner = dinerRemoveData();
         @if (diner) { ¿Eliminar comensal #{{ diner.id }}? Tiene {{ diner.items.length }} producto(s). }
       </span>
-      <button class="px-3 py-1 rounded-md text-xs font-bold bg-yellow-500 hover:bg-yellow-600 text-white transition-colors" (click)="confirmRemoveDiner()">Sí</button>
-      <button class="px-3 py-1 rounded-md text-xs font-bold bg-surface-200 dark:bg-surface-600 text-surface-700 dark:text-surface-300 hover:bg-surface-300 dark:hover:bg-surface-500 transition-colors" (click)="cancelRemoveDiner()">No</button>
+      <button class="px-3 py-1 rounded-md text-xs font-semibold bg-yellow-500 hover:bg-yellow-600 text-white transition-colors" (click)="confirmRemoveDiner()">Sí</button>
+      <button class="px-3 py-1 rounded-md text-xs bg-surface-200 dark:bg-surface-600 text-surface-700 dark:text-surface-300 hover:bg-surface-300 dark:hover:bg-surface-500 transition-colors" (click)="cancelRemoveDiner()">No</button>
     </div>
   }
 
@@ -154,7 +154,7 @@
           @for (item of dock.selectedDinerItems(); track $index; let i = $index) {
             <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-50 dark:bg-surface-800 flex-shrink-0 text-sm">
               <button class="w-7 h-7 flex items-center justify-center rounded-md bg-primary-contrast dark:bg-surface-700 text-surface-500 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors text-[10px]" (click)="dock.decrementItemQuantity(i)" title="Reducir"><i class="pi pi-minus"></i></button>
-              <span class="w-6 text-center font-bold text-surface-700 dark:text-surface-300 text-sm">{{ item.quantity }}</span>
+              <span class="w-6 text-center text-surface-700 dark:text-surface-300 text-sm">{{ item.quantity }}</span>
               <button class="w-7 h-7 flex items-center justify-center rounded-md bg-primary-contrast dark:bg-surface-700 text-surface-500 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors text-[10px]" (click)="dock.incrementItemQuantity(i)" title="Aumentar"><i class="pi pi-plus"></i></button>
 
               <button class="flex-1 text-left font-medium text-surface-700 dark:text-surface-300 hover:text-primary-500 dark:hover:text-primary-400 transition-colors truncate bg-transparent border-none cursor-pointer px-0" (click)="openEditModal(i)" title="Modificar">{{ item.product.name }}</button>
@@ -171,9 +171,9 @@
 
       <!-- ── Place Order ── -->
       <button
-        class="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl text-sm font-bold border-none cursor-pointer flex-shrink-0 transition-all"
+        class="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl text-sm font-semibold border-none cursor-pointer flex-shrink-0 transition-all"
         [class]="dock.canPlaceOrder() && !submitting()
-          ? 'bg-primary-500 hover:bg-primary-600 text-white'
+          ? 'bg-primary-500 hover:bg-primary-600 text-surface-0'
           : 'bg-surface-200 dark:bg-surface-700 text-surface-400 dark:text-surface-500 cursor-not-allowed'"
         [disabled]="!dock.canPlaceOrder() || submitting()"
         [title]="!dock.hasSelectedTable() ? 'Selecciona una mesa primero' : !dock.hasItems() ? 'Agrega productos al pedido' : 'Colocar pedido'"

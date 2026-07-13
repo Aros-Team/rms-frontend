@@ -17,10 +17,10 @@
     @if (!loading() && !error() && !dayMenu()) {
       <div class="text-center py-16">
         <div class="inline-flex items-center justify-center w-28 h-28 bg-surface-100 dark:bg-surface-800 rounded-full mb-6">
-          <i class="pi pi-calendar text-5xl text-slate-500 dark:text-slate-400"></i>
+          <i class="pi pi-calendar text-5xl text-surface-500 dark:text-surface-400"></i>
         </div>
         <h2 class="text-2xl font-semibold text-surface-700 dark:text-surface-200 mb-2">Sin menú configurado</h2>
-        <p class="text-slate-600 dark:text-slate-300">No hay un menú del día activo para hoy.</p>
+        <p class="text-surface-600 dark:text-surface-300">No hay un menú del día activo para hoy.</p>
       </div>
     }
 
@@ -35,21 +35,21 @@
         </div>
 
         <!-- Card del plato -->
-        <div class="bg-white dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 overflow-hidden">
+        <div class="bg-primary-contrast dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 overflow-hidden">
 
           <!-- Cabecera -->
           <div class="bg-primary-500 px-6 py-5 flex items-center gap-3">
-            <i class="pi pi-bookmark-fill text-slate-900 text-2xl"></i>
+            <i class="pi pi-bookmark-fill text-surface-900 text-2xl"></i>
             <div>
-              <h3 class="text-slate-900 text-2xl font-bold leading-tight">{{ dayMenu()!.productName }}</h3>
-              <p class="text-slate-800 text-sm mt-0.5">Vigente desde: {{ dayMenu()!.validFrom | date:'dd/MM/yyyy HH:mm' }}</p>
+              <h3 class="text-surface-900 text-2xl font-bold leading-tight">{{ dayMenu()!.productName }}</h3>
+              <p class="text-surface-700 text-sm mt-0.5">Vigente desde: {{ dayMenu()!.validFrom | date:'dd/MM/yyyy HH:mm' }}</p>
             </div>
           </div>
 
           <!-- Opciones del producto -->
           <div class="px-6 pt-5 pb-2">
             @if (productOptionsLoading()) {
-              <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 py-2">
+              <div class="flex items-center gap-2 text-surface-500 dark:text-surface-400 py-2">
                 <i class="pi pi-spin pi-spinner"></i>
                 <span class="text-sm">Cargando opciones...</span>
               </div>
@@ -62,7 +62,7 @@
               <div class="flex flex-col gap-4">
                 @for (catEntry of (productOptionsByCategory() | keyvalue); track catEntry.key) {
                   <div>
-                    <p class="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide mb-2">{{ catEntry.key }}</p>
+                    <p class="text-xs font-semibold text-surface-600 dark:text-surface-300 uppercase tracking-wide mb-2">{{ catEntry.key }}</p>
                     <div class="flex flex-wrap gap-2">
                       @for (opt of catEntry.value; track opt.id) {
                         <span class="px-4 py-1.5 rounded-full text-sm font-medium bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-700">
@@ -74,7 +74,7 @@
                 }
               </div>
             } @else {
-              <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 py-2">
+              <div class="flex items-center gap-2 text-surface-500 dark:text-surface-400 py-2">
                 <i class="pi pi-info-circle"></i>
                 <span class="text-sm">No hay opciones disponibles</span>
               </div>
@@ -83,7 +83,7 @@
 
           <!-- Footer precio -->
           <div class="px-6 py-4 mt-2 bg-surface-50 dark:bg-surface-900/50 border-t border-surface-200 dark:border-surface-700 flex items-center justify-between">
-            <span class="text-slate-600 dark:text-slate-300 text-base">Precio base:</span>
+            <span class="text-surface-600 dark:text-surface-300 text-base">Precio base:</span>
             <span class="text-3xl font-black text-surface-900 dark:text-surface-0">
               {{ currencyFormat.format(dayMenu()!.productBasePrice) }}
             </span>
@@ -94,7 +94,7 @@
         <p-button
           label="Ordenar este plato"
           icon="pi pi-shopping-cart"
-          styleClass="w-full rounded-2xl py-4 px-6 text-xl font-bold"
+          styleClass="w-full rounded-2xl py-4 px-6 text-xl font-semibold"
           [disabled]="!canPlaceOrder()"
           (onClick)="orderDayMenu()"
         />

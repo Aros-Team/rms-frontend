@@ -1,1 +1,15 @@
-[]
+[
+  {
+    "id": "styling-consistency",
+    "type": "chore",
+    "title": "Enforce design-token uniformity and create DESIGN.md",
+    "description": "Remove all exaggerated shadows and black text (#000, black) to enforce design-token uniformity; create DESIGN.md documenting styling conventions; update harness to validate against it.",
+    "status": "done",
+    "tasks": [
+      { "id": "t1", "description": "Search codebase for #000, black, shadow violations", "status": "done" },
+      { "id": "t2", "description": "Write docs/DESIGN.md with token conventions", "status": "done" },
+      { "id": "t3", "description": "Fix all violations found", "status": "done" },
+      { "id": "t4", "description": "Update scripts/harness.js with DESIGN.md validation step", "status": "done" }
+    ]
+  }
+]

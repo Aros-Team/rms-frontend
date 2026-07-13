@@ -3,7 +3,11 @@
 }
 
 .chat-panel {
-  box-shadow: -4px 0 12px var(--surface-900-alpha-15, rgba(0, 0, 0, 0.15));
+  border-left: 1px solid var(--surface-200);
+}
+
+:root.dark .chat-panel {
+  border-left-color: var(--surface-700);
 }
 
 .message-content {
@@ -230,14 +234,14 @@ textarea {
 }
 
 .glow-effect {
-  animation: glow 2s ease-in-out infinite alternate;
+  animation: pulse-border 2s ease-in-out infinite alternate;
 }
 
-@keyframes glow {
+@keyframes pulse-border {
   from {
-    box-shadow: 0 0 5px var(--primary-400), 0 0 10px var(--primary-300);
+    border-color: var(--primary-300);
   }
   to {
-    box-shadow: 0 0 10px var(--primary-500), 0 0 20px var(--primary-400);
+    border-color: var(--primary-500);
   }
 }

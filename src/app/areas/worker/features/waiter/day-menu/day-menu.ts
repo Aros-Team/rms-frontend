@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KeyValuePipe, DatePipe } from '@angular/common';
 
 import { MessageService } from 'primeng/api';
@@ -29,6 +30,7 @@ export class DayMenu implements OnInit {
   private dock = inject(OrderDock);
   private logger = inject(Logging);
   private messageService = inject(MessageService);
+  private destroyRef = inject(DestroyRef);
 
   loading = signal(true);
   dayMenu = signal<DayMenuResponse | null>(null);
@@ -79,13 +81,13 @@ export class DayMenu implements OnInit {
   constructor() {
     // Preload MasterData tables so dock always has table data ready,
     // even if user never opened Carta module.
-    this.masterData.reloadTables().subscribe({
+    this.masterData.reloadTables().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       error: () => { this.logger.warn('DayMenu: tables preload failed (non-fatal)'); },
     });
   }
 
   ngOnInit(): void {
-    this.dayMenuService.getCurrentDayMenu().subscribe({
+    this.dayMenuService.getCurrentDayMenu().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (menu) => {
         if (!menu) {
           this.dayMenu.set(null);
@@ -117,7 +119,7 @@ export class DayMenu implements OnInit {
     this.optionsLoadError.set(null);
     this.productOptions.set([]);
 
-    this.masterData.getProductOptions(productId).subscribe({
+    this.masterData.getProductOptions(productId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (opts) => {
         if (seq !== this.optionsSeq) return; // stale — discard
         this.productOptions.set(opts);

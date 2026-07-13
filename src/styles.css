@@ -71,8 +71,8 @@
 }
 
 /* Global link styles */
-a {
-  @apply underline text-surface-600;
+a, p {
+  @apply text-surface-600;
 }
 
 /* Apply Archivo font globally */
