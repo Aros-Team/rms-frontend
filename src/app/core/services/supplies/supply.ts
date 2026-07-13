@@ -10,14 +10,6 @@ import { SupplyUnitResponse } from '@models/dto/supplies/supply-unit-response';
 import { SupplyResponse } from '@models/dto/supplies/supply-response';
 import { SupplyCreateRequest } from '@models/dto/supplies/supply-create-request';
 
-export interface PaginatedSuppliesResponse {
-  content: SupplyVariantResponse[];
-  totalElements: number;
-  totalPages: number;
-  page: number;
-  size: number;
-}
-
 @Injectable({ providedIn: 'root' })
 export class Supply {
   private http = inject(HttpClient);
@@ -50,13 +42,6 @@ export class Supply {
 
   public getSupplies(): Observable<SupplyResponse[]> {
     return this.http.get<SupplyResponse[]>('v1/supplies');
-  }
-
-  public getSuppliesPaginated(page = 0, size = 20, categoryId?: number, name?: string): Observable<PaginatedSuppliesResponse> {
-    const params: Record<string, string> = { page: String(page), size: String(size) };
-    if (categoryId) params['categoryId'] = String(categoryId);
-    if (name) params['name'] = name;
-    return this.http.get<PaginatedSuppliesResponse>('v1/supplies', { params });
   }
 
   public createSupply(data: SupplyCreateRequest): Observable<SupplyResponse> {

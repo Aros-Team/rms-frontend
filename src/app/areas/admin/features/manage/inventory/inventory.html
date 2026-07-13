@@ -17,9 +17,6 @@
     <p-table
       #dt
       [value]="filteredSupplies() ?? []"
-      [paginator]="true"
-      [rows]="10"
-      [rowsPerPageOptions]="[10, 25, 50]"
       [scrollable]="true"
       scrollHeight="600px"
       responsiveLayout="scroll"

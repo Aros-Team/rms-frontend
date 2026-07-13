@@ -40,8 +40,8 @@
         type="submit"
         aria-label="Verificar Código"
         class="w-full"
-        [loading]="formStatus === 'Occuped'"
-        [disabled]="formStatus === 'Occuped' || form.invalid"
+        [loading]="formStatus() === 'Occuped'"
+        [disabled]="formStatus() === 'Occuped' || form.invalid"
       >Verificar Código</button>
     </form>
 

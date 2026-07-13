@@ -10,7 +10,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
-import { MultiSelectModule } from 'primeng/multiselect';
+import { SelectModule } from 'primeng/select';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { TooltipModule } from 'primeng/tooltip';
 import { TagModule } from 'primeng/tag';
@@ -37,7 +37,7 @@ interface UserFormValue {
   email: string;
   phone: string;
   address: string | null,
-  areas: number[],
+  areaId: number | null,
   salary: number | null,
   reason: string | null,
   observations: string | null,
@@ -55,7 +55,7 @@ interface UserFormValue {
     ReactiveFormsModule,
     InputIconModule,
     IconFieldModule,
-    MultiSelectModule,
+    SelectModule,
     InputNumberModule,
     TooltipModule,
     TagModule,
@@ -98,7 +98,7 @@ export class Users implements OnInit {
     salary: new FormControl<number | null>(null),
     reason: new FormControl<string | null>(null),
     observations: new FormControl<string | null>(null),
-    areas: new FormControl<number[]>([], [(control: AbstractControl) => Validators.required(control)]),
+    areaId: new FormControl<number | null>(null, [(control: AbstractControl) => Validators.required(control)]),
   });
 
   creationModalVisible = false;
@@ -254,7 +254,7 @@ export class Users implements OnInit {
       email: formValue.email,
       phone: formValue.phone,
       address: formValue.address ?? '',
-      areas: formValue.areas,
+      areas: formValue.areaId != null ? [formValue.areaId] : [],
     };
 
     if (this.salaryChanged()) {
@@ -436,7 +436,7 @@ export class Users implements OnInit {
       email: data.email,
       phone: data.phone ?? '',
       address: data.address ?? '',
-      areas: data.assignedAreas ?? [],
+      areaId: data.assignedAreas?.[0] ?? null,
       salary: data.salary ?? null,
     });
   }
@@ -453,7 +453,7 @@ export class Users implements OnInit {
       email: formValue.email,
       phone: formValue.phone,
       address: formValue.address ?? undefined,
-      areas: formValue.areas,
+      areas: formValue.areaId != null ? [formValue.areaId] : [],
       salary: formValue.salary ?? undefined,
     };
   }

@@ -102,16 +102,11 @@ export class Inventory implements OnInit {
   allSupplies = signal<SupplyResponse[]>([]);
   selectedCategoryId = signal<number | null>(null);
 
-  // Pagination
-  currentPage = signal(0);
-  pageSize = signal(20);
-  totalPages = computed(() => this.cache.supplies.data()?.totalPages ?? 0);
-
   // Efecto para sincronizar automáticamente cuando el cache cambie
   private syncEffect = effect(() => {
     const cachedSupplies = this.cache.supplies.data();
     if (cachedSupplies !== null) {
-      this.supplies.set(cachedSupplies.content);
+      this.supplies.set(cachedSupplies);
     }
 
     const cachedPurchases = this.cache.purchases.data();
@@ -281,7 +276,7 @@ export class Inventory implements OnInit {
   private syncFromCache(): void {
     const cachedSupplies = this.cache.supplies.data();
     if (cachedSupplies !== null) {
-      this.supplies.set(cachedSupplies.content);
+      this.supplies.set(cachedSupplies);
     }
 
     const cachedPurchases = this.cache.purchases.data();
@@ -763,18 +758,6 @@ export class Inventory implements OnInit {
   }
 
   private loadSupplies(): void {
-    this.cache.supplies.refresh();
-  }
-
-  loadPage(page: number): void {
-    this.currentPage.set(page);
-    this.cache.supplies.refresh();
-  }
-
-  onPage(event: { first: number; rows: number }): void {
-    const page = Math.floor(event.first / event.rows);
-    this.currentPage.set(page);
-    this.pageSize.set(event.rows);
     this.cache.supplies.refresh();
   }
 

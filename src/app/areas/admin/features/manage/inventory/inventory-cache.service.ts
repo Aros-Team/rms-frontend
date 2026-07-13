@@ -19,14 +19,6 @@ export interface InventoryReferenceData {
   allSupplies: SupplyResponse[];
 }
 
-export interface PaginatedSuppliesResponse {
-  content: SupplyVariantResponse[];
-  totalElements: number;
-  totalPages: number;
-  page: number;
-  size: number;
-}
-
 @Injectable({ providedIn: 'root' })
 export class InventoryCacheService {
   private readonly inventoryService = inject(InventoryService);
@@ -34,9 +26,8 @@ export class InventoryCacheService {
   private readonly supplyService = inject(Supply);
   private readonly purchaseService = inject(Purchase);
 
-  // Supplies list - ahora paginada
-  readonly supplies = new ResourceCache<PaginatedSuppliesResponse>(
-    () => this.supplyService.getSuppliesPaginated(0, 20),
+  readonly supplies = new ResourceCache<SupplyVariantResponse[]>(
+    () => this.supplyService.getSupplyVariants(),
     { ttlMs: 2 * 60 * 1000, staleWhileRevalidate: true }
   );
 

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy, OnDestroy, signal } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
@@ -11,6 +11,7 @@ import { MessageService } from 'primeng/api';
 import { Logging } from '@app/core/services/logging/logging';
 import { CheckboxModule } from 'primeng/checkbox';
 import { HabeasDataService } from '@shared/features/habeas-data/habeas-data.service';
+import { UserInfo } from '@models/domain/user/user-info.model';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -34,7 +35,7 @@ export class LoginForm implements OnInit, OnDestroy {
     termsAccepted: new FormControl(false, [(control: AbstractControl) => Validators.requiredTrue(control)]),
   });
 
-  formStatus: 'Free' | 'Occuped' = 'Free';
+  formStatus = signal<'Free' | 'Occuped'>('Free');
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
@@ -72,14 +73,14 @@ export class LoginForm implements OnInit, OnDestroy {
 
   onSubmit() {
     this.logger.auth('Login form submitted');
-    this.formStatus = 'Occuped';
+    this.formStatus.set('Occuped');
 
     const username = this.form.get('username')?.value as string | undefined;
     const password = this.form.get('password')?.value as string | undefined;
 
     if (!username || !password) {
       this.logger.error('Username or password is missing');
-      this.formStatus = 'Free';
+      this.formStatus.set('Free');
       return;
     }
 
@@ -89,27 +90,26 @@ export class LoginForm implements OnInit, OnDestroy {
         password,
       })
       .subscribe({
-        next: (response) => {
-          this.logger.auth('Login response type:', response.type);
-          
-          if (response.type === 'TFA_REQUIRED') {
+        next: (response: UserInfo | { type: string }) => {
+          if ('type' in response && response.type === 'TFA_REQUIRED') {
             this.logger.auth('TFA required, navigating to verification');
-            this.formStatus = 'Free';
+            this.formStatus.set('Free');
             void this.router.navigate(['/login/verify']);
           } else {
+            const userInfo = response as UserInfo;
             this.logger.auth('Login successful, redirecting based on user role');
-            this.redirectBasedOnUserRole();
-            this.formStatus = 'Free';
+            this.redirectBasedOnUserRole(userInfo);
+            this.formStatus.set('Free');
           }
         },
         error: (err: HttpErrorResponse) => {
           this.logger.error('Login failed:', err);
           this.authService.logout();
-          this.formStatus = 'Free';
+          this.formStatus.set('Free');
 
-          const errorMessage = (err.error as { message?: string; error?: string } | undefined)?.message ?? 
+          const errorMessage = (err.error as { message?: string; error?: string } | undefined)?.message ??
                                (err.error as { message?: string; error?: string } | undefined)?.error ?? '';
-          const isInvalidCredentials = err.status === 401 || 
+          const isInvalidCredentials = err.status === 401 ||
             errorMessage.toLowerCase().includes('invalid credentials') ||
             errorMessage.toLowerCase().includes('incorrectos');
 
@@ -147,30 +147,20 @@ export class LoginForm implements OnInit, OnDestroy {
     return control ? control.invalid && control.touched : false;
   }
 
-  private redirectBasedOnUserRole(): void {
-    const userData = this.authService.getData();
-    this.logger.auth('redirectBasedOnUserRole called - user data:', userData);
-
-    if (userData) {
-      if (userData.role === 'ADMIN') {
-        this.logger.routing('Redirecting admin user to /admin');
-        void this.router.navigate(['/admin']);
-      } else {
-        // Worker - check first area type
-        const firstArea = userData.areas[0];
-
-        if (firstArea.type === 'KITCHEN') {
-          this.logger.routing('Redirecting kitchen worker to /worker/kitchen');
-          void this.router.navigate(['/worker/kitchen']);
-        } else {
-          // WAITER or no area - default to waiter
-          this.logger.routing('Redirecting waiter worker to /worker/waiter');
-          void this.router.navigate(['/worker/waiter']);
-        }
-      }
+  private redirectBasedOnUserRole(userData: UserInfo): void {
+    this.logger.auth('redirectBasedOnUserRole - user data:', userData);
+    if (userData.role === 'ADMIN') {
+      this.logger.routing('Redirecting admin user to /admin');
+      void this.router.navigate(['/admin']);
     } else {
-      this.logger.debug('User data not available yet, retrying in 100ms');
-      setTimeout(() => { this.redirectBasedOnUserRole(); }, 100);
+      const firstArea = userData.areas[0];
+      if (firstArea.type === 'KITCHEN') {
+        this.logger.routing('Redirecting kitchen worker to /worker/kitchen');
+        void this.router.navigate(['/worker/kitchen']);
+      } else {
+        this.logger.routing('Redirecting waiter worker to /worker/waiter');
+        void this.router.navigate(['/worker/waiter']);
+      }
     }
   }
 }

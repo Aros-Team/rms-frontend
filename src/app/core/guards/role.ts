@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, GuardResult, MaybeAsync, RedirectCommand, Router } from '@angular/router';
+import { map, catchError, of } from 'rxjs';
 import { Auth } from '@services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
 
@@ -13,23 +14,13 @@ export class RoleGuard implements CanActivate {
 
   canActivate(route: ActivatedRouteSnapshot): MaybeAsync<GuardResult> {
     const userData = this.authService.getData();
-
-    if (!userData) {
-      this.logger.info("RoleGuard: User data not loaded yet, waiting...");
-      return new Promise<GuardResult>((resolve) => {
-        const checkUserData = () => {
-          const currentUserData = this.authService.getData();
-          if (currentUserData) {
-            resolve(this.checkRole(currentUserData, route));
-          } else {
-            setTimeout(checkUserData, 100);
-          }
-        };
-        setTimeout(checkUserData, 100);
-      });
+    if (userData) {
+      return this.checkRole(userData, route);
     }
-
-    return this.checkRole(userData, route);
+    return this.authService.loadUserInfo().pipe(
+      map((u) => this.checkRole(u, route)),
+      catchError(() => of<RedirectCommand>(new RedirectCommand(this.router.parseUrl('/login')))),
+    );
   }
 
   private checkRole(userData: ReturnType<typeof this.authService.getData>, route: ActivatedRouteSnapshot): GuardResult {

@@ -53,9 +53,9 @@
 
           <!-- Product image -->
           <div class="product-card-image bg-surface-100 dark:bg-surface-700 flex items-center justify-center">
-            @if (product.thumbnailUrl) {
+            @if (getThumbnailUrl(product.id); as thumbnailUrl) {
               <img
-                [src]="product.thumbnailUrl"
+                [src]="thumbnailUrl"
                 [alt]="product.name"
                 class="group-hover:scale-105 transition-transform duration-300"
                 loading="lazy"

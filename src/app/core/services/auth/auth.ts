@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Observable, tap, throwError, BehaviorSubject, catchError } from 'rxjs';
+import { Observable, tap, throwError, BehaviorSubject, catchError, switchMap, of } from 'rxjs';
 import { UserInfo } from '@models/domain/user/user-info.model';
 import { AuthRequest } from '@models/dto/auth/auth-request.model';
 import { AuthResponse } from '@models/dto/auth/auth-response.model';
@@ -74,7 +74,7 @@ export class Auth {
         
         if (this._userData === undefined) {
           setTimeout(() => {
-            this.getUserInfo();
+            this.loadUserInfo();
           }, 0);
         }
       } else {
@@ -84,7 +84,7 @@ export class Auth {
     }
   }
 
-  login(credentials: AuthRequest): Observable<AuthResponse> {
+  login(credentials: AuthRequest): Observable<AuthResponse | UserInfo> {
     const deviceHash = this.fingerprintService.getDeviceHash();
     this.logger.info('Login attempt initiated');
 
@@ -97,7 +97,7 @@ export class Auth {
       .pipe(
         tap((response: AuthResponse) => {
           this.logger.info('Login response received');
-          
+
           if (response.type === 'TFA_REQUIRED') {
             this.logger.info('TFA required');
             this.tfaTokenSubject.next(response.accessToken);
@@ -105,16 +105,21 @@ export class Auth {
           } else {
             this.logger.info('Login successful, saving session');
             this.saveTokens(response.accessToken, response.refreshToken);
-            this.getUserInfo();
           }
+        }),
+        switchMap((response: AuthResponse): Observable<AuthResponse | UserInfo> => {
+          if (response.type === 'TFA_REQUIRED') {
+            return of(response);
+          }
+          return this.loadUserInfo();
         }),
       );
   }
 
-  verifyTwoFactor(code: string): Observable<AuthResponse> {
+  verifyTwoFactor(code: string): Observable<AuthResponse | UserInfo> {
     const tfaToken = this.tfaTokenSubject.value;
     const deviceHash = this.fingerprintService.getDeviceHash();
-    
+
     if (!tfaToken) {
       this.logger.error('TFA token not found');
       return throwError(() => new Error('TFA token not found'));
@@ -137,7 +142,9 @@ export class Auth {
           this.tfaTokenSubject.next(null);
           this.pendingUsername = null;
           this.saveTokens(response.accessToken, response.refreshToken);
-          this.getUserInfo();
+        }),
+        switchMap((): Observable<AuthResponse | UserInfo> => {
+          return this.loadUserInfo();
         }),
       );
   }
@@ -160,7 +167,7 @@ export class Auth {
       tap((response: AuthResponse) => {
         this.logger.info('Token refresh successful');
         this.saveTokens(response.accessToken, response.refreshToken);
-        this.getUserInfo();
+        this.loadUserInfo();
       }),
       catchError((err: Error) => {
         this.logger.error('Token refresh failed', err);
@@ -237,20 +244,21 @@ export class Auth {
     }
   }
 
-  private getUserInfo(): void {
-    this.http.get<UserInfo>('auth').subscribe({
-      next: (userInfo: UserInfo) => {
+  loadUserInfo(): Observable<UserInfo> {
+    return this.http.get<UserInfo>('auth').pipe(
+      tap((userInfo: UserInfo) => {
         this._userData = userInfo;
         this.logger.info('User info loaded successfully');
-      },
-      error: (err: unknown) => {
+      }),
+      catchError((err: unknown) => {
         this.logger.error('Failed to load user info', err);
         const httpErr = err as { status?: number };
         if (httpErr.status === 401 || httpErr.status === 404) {
           this.logger.info('Session invalid, clearing');
           this.logout();
         }
-      }
-    });
+        return throwError(() => err);
+      }),
+    );
   }
 }

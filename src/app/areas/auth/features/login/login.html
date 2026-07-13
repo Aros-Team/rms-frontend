@@ -70,17 +70,17 @@
   <p-button
     type="submit"
     class="mt-2"
-    [disabled]="formStatus === 'Occuped' || form.invalid"
-    [loading]="formStatus === 'Occuped'"
+    [disabled]="formStatus() === 'Occuped' || form.invalid"
+    [loading]="formStatus() === 'Occuped'"
     styleClass="w-full justify-center gap-2"
   >
-    @if (formStatus === 'Free') {
+    @if (formStatus() === 'Free') {
       <span class="flex items-center gap-2">
         Entrar al sistema
         <i class="pi pi-arrow-right"></i>
       </span>
     }
-    @if (formStatus === 'Occuped') {
+    @if (formStatus() === 'Occuped') {
       <span>Autenticando...</span>
     }
   </p-button>

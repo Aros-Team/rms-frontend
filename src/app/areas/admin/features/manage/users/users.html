@@ -164,6 +164,27 @@
 
     <form action="" [formGroup]="userForm" class="flex flex-col gap-4">
       <p-iftalabel class="w-full">
+        <p-select
+          [options]="areas()"
+          formControlName="areaId"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Seleccione el area de trabajo"
+          [showClear]="true"
+          class="w-full"
+          appendTo="body"
+        >
+          <ng-template #item let-area>
+            <span class="text-sm">{{ area.name.toLowerCase() }}</span>
+          </ng-template>
+          <ng-template #selectedItem let-area>
+            <span class="text-sm">{{ area.name.toLowerCase() }}</span>
+          </ng-template>
+        </p-select>
+        <label for="create.areaId">Área de trabajo *</label>
+        <app-form-validation field="areaId" [backendError]="getBackendError('areaId')"></app-form-validation>
+      </p-iftalabel>
+      <p-iftalabel class="w-full">
         <input
           pInputText
           id="create.document"
@@ -263,24 +284,6 @@
           <label for="edit.observations">Observaciones</label>
         </p-iftalabel>
       }
-      <p-multiselect
-        [options]="areas()"
-        formControlName="areas"
-        optionLabel="name"
-        optionValue="id"
-        placeholder="Seleccione las areas de trabajo"
-        [showClear]="true"
-        class="w-full"
-        appendTo="body"
-      >
-        <ng-template let-area pTemplate="item">
-          <div class="flex flex-col">
-            <span class="font-medium">{{ area.name }}</span>
-            <span class="text-xs text-muted-color">{{ area.type }}</span>
-          </div>
-        </ng-template>
-      </p-multiselect>
-      <small class="ml-1 text-muted-color">Seleccione las áreas de trabajo *</small>
     </form>
 
     <div class="flex justify-start gap-2 mt-8">

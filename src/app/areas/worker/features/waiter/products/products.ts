@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { forkJoin, of, map, catchError } from 'rxjs';
 
 import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -9,6 +10,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { MasterData } from '@app/core/services/master-data/master-data';
 import { OrderDock, DockItem } from '@app/core/services/order-dock/order-dock';
 import { Logging } from '@app/core/services/logging/logging';
+import { ProductImage } from '@app/core/services/product-image';
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
 import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
 
@@ -25,11 +27,13 @@ export class Products implements OnInit {
   private masterData = inject(MasterData);
   private dock = inject(OrderDock);
   private logger = inject(Logging);
+  private imageService = inject(ProductImage);
 
   loading = signal(true);
   error = signal<string | null>(null);
 
   productsByCategory = signal<Record<string, ProductListResponse[]>>({});
+  productThumbnails = signal<Map<number, string>>(new Map());
   searchQuery = signal<string>('');
   activeCategory = signal<string>('');
 
@@ -72,6 +76,7 @@ export class Products implements OnInit {
         const cats = Object.keys(this.masterData.getProductsByCategory());
         if (cats.length) this.activeCategory.set(cats[0]);
         this.loading.set(false);
+        this.loadProductThumbnails();
       },
       error: (err) => {
         this.logger.error('Products: failed to load master data', err);
@@ -134,6 +139,34 @@ export class Products implements OnInit {
     this.modalOptions.set([]);
     this.error.set(null);
     this.optionsError.set(null);
+  }
+
+  private loadProductThumbnails(): void {
+    const allProducts = Object.values(this.productsByCategory()).flat();
+    if (allProducts.length === 0) return;
+
+    const ids = allProducts.map(p => p.id);
+
+    forkJoin(
+      ids.map(id =>
+        this.imageService.getImages(id).pipe(
+          map(images => ({ productId: id, thumbnail: images[0]?.desktopUrl ?? null })),
+          catchError(() => of({ productId: id, thumbnail: null }))
+        )
+      )
+    ).subscribe(results => {
+      const map = new Map<number, string>();
+      results.forEach(r => {
+        if (r.thumbnail) {
+          map.set(r.productId, r.thumbnail);
+        }
+      });
+      this.productThumbnails.set(map);
+    });
+  }
+
+  getThumbnailUrl(productId: number): string | null {
+    return this.productThumbnails().get(productId) ?? null;
   }
 
   defaultImage = 'assets/placeholder-product.svg';
