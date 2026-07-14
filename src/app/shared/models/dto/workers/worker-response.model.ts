@@ -1,4 +1,4 @@
-export interface UserResponse {
+export interface WorkerResponse {
   id?: number;
   document: string;
   name: string;
@@ -11,7 +11,7 @@ export interface UserResponse {
   salary?: number | null;
 }
 
-export interface UpdateUserRequest {
+export interface UpdateWorkerRequest {
   document: string;
   name: string;
   email: string;

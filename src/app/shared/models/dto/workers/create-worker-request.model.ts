@@ -1,4 +1,4 @@
-export interface CreateUserRequest {
+export interface CreateWorkerRequest {
   document: string;
   name: string;
   email: string;

@@ -1,12 +1,13 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { SkeletonModule } from 'primeng/skeleton';
 
-import { User } from '@app/core/services/users/user';
-import { SalaryHistoryEntry } from '@app/shared/models/dto/users/salary-history-entry.model';
+import { Worker } from '@app/core/services/workers/worker';
+import { SalaryHistoryEntry } from '@app/shared/models/dto/workers/salary-history-entry.model';
 import { Logging } from '@app/core/services/logging/logging';
 
 @Component({
@@ -22,7 +23,7 @@ import { Logging } from '@app/core/services/logging/logging';
 })
 export class SalaryHistory implements OnInit {
   private route = inject(ActivatedRoute);
-  private userService = inject(User);
+  private workerService = inject(Worker);
   private logger = inject(Logging);
 
   userId = signal<number>(0);
@@ -58,11 +59,11 @@ export class SalaryHistory implements OnInit {
   }
 
   private loadHistory(): void {
-    this.userService.getSalaryHistory(this.userId()).subscribe({
-      next: (data) => {
+    this.workerService.getSalaryHistory(this.userId()).subscribe({
+      next: (data: SalaryHistoryEntry[]) => {
         this.entries.set(data);
       },
-      error: (err) => {
+      error: (err: HttpErrorResponse) => {
         this.logger.error('Error loading salary history:', err);
         this.entries.set([]);
       },

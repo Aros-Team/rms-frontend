@@ -19,15 +19,15 @@ import { TagModule } from 'primeng/tag';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DatePickerModule } from 'primeng/datepicker';
-import { UserResponse } from '@app/shared/models/dto/users/user-response.model';
+import { WorkerResponse } from '@app/shared/models/dto/workers/worker-response.model';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { User } from '@app/core/services/users/user';
-import { CreateUserRequest } from '@app/shared/models/dto/users/create-user-request.model';
+import { Worker } from '@app/core/services/workers/worker';
+import { CreateWorkerRequest } from '@app/shared/models/dto/workers/create-worker-request.model';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { FormValidation } from '@app/shared/components/form/form-validation';
 import { Logging } from '@app/core/services/logging/logging';
-import { UpdateUserRequest } from '@app/shared/models/dto/users/user-response.model';
-import { UsersCacheService } from './users-cache.service';
+import { UpdateWorkerRequest } from '@app/shared/models/dto/workers/worker-response.model';
+import { WorkersCacheService } from './workers-cache.service';
 import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
 import { AreaResponse } from '@app/shared/models/dto/areas/area.model';
 import { Area } from '@app/core/services/areas/area';
@@ -39,7 +39,7 @@ import { Schedule } from '@app/core/services/schedules/schedule';
 import { ScheduleAssignment } from '@app/core/services/schedules/schedule-assignment';
 import { Schedule as ScheduleModel } from '@app/shared/models/dto/schedules/schedule.model';
 
-interface UserFormValue {
+interface WorkerFormValue {
   document: string;
   name: string;
   email: string;
@@ -52,7 +52,7 @@ interface UserFormValue {
 }
 
 @Component({
-  selector: 'app-users',
+  selector: 'app-workers',
   imports: [
     RouterModule,
     FormsModule,
@@ -77,17 +77,17 @@ interface UserFormValue {
     WorkerCard,
     NgClass,
   ],
-  templateUrl: './users.html',
+  templateUrl: './workers.html',
   styles: ``,
 })
-export class Users implements OnInit {
-  private userService = inject(User);
+export class Workers implements OnInit {
+  private workerService = inject(Worker);
   private areaService = inject(Area);
   private messageService = inject(MessageService);
   private logger = inject(Logging);
   private confirmationService = inject(ConfirmationService);
   private destroyRef = inject(DestroyRef);
-  readonly cache = inject(UsersCacheService);
+  readonly cache = inject(WorkersCacheService);
   private timeLogService = inject(TimeLog);
   private scheduleService = inject(Schedule);
   private scheduleAssignmentService = inject(ScheduleAssignment);
@@ -100,8 +100,8 @@ export class Users implements OnInit {
   // Tab navigation
   activeEmployeeTab = signal<'list' | 'time-logs'>('list');
 
-  title = 'Administracion de usuarios';
-  description = 'Gestión completa de todos los usuarios/empleados del restaurante';
+  title = 'Administración de trabajadores';
+  description = 'Gestión completa de todos los trabajadores del restaurante';
 
   // Time-log state
   timeLogs = signal<TimeLogEntry[]>([]);
@@ -113,7 +113,7 @@ export class Users implements OnInit {
 
   // Schedule assignment state
   scheduleDialogVisible = signal(false);
-  selectedWorkerForSchedule = signal<UserResponse | null>(null);
+  selectedWorkerForSchedule = signal<WorkerResponse | null>(null);
   allSchedules = signal<ScheduleModel[]>([]);
   workerAssignedScheduleIds = signal<number[]>([]);
   assigningScheduleIds = signal<Set<number>>(new Set());
@@ -121,10 +121,10 @@ export class Users implements OnInit {
   userAssignedSchedules = signal<Map<number, number[]>>(new Map());
 
   // Filter to show only WORKER role users (employees)
-  users = computed(() => (this.cache.users.data() ?? []).filter(u => u.role === 'WORKER'));
+  workers = computed(() => (this.cache.workers.data() ?? []));
   areas = signal<AreaResponse[]>([]);
   editing = false;
-  selectedUser: UserResponse | null = null;
+  selectedWorker: WorkerResponse | null = null;
   originalSalary = signal<number | null>(null);
   salaryValue = signal<number | null>(null);
   salaryChanged = computed(() => this.salaryValue() !== this.originalSalary());
@@ -149,8 +149,8 @@ export class Users implements OnInit {
 
   ngOnInit(): void {
     // Force load on first visit if no data
-    if (this.cache.users.data() === null) {
-      this.cache.users.refresh();
+    if (this.cache.workers.data() === null) {
+      this.cache.workers.refresh();
     }
 
     this.userForm.get('salary')?.valueChanges
@@ -159,7 +159,7 @@ export class Users implements OnInit {
   }
 
   onVisible(): void {
-    this.cache.users.loadIfStale();
+    this.cache.workers.loadIfStale();
     this.searchForAreas();
   }
 
@@ -168,13 +168,13 @@ export class Users implements OnInit {
     this.creationModalVisible = false;
   }
 
-  showModificationModal(user: UserResponse): void {
-    this.selectedUser = user;
+  showModificationModal(worker: WorkerResponse): void {
+    this.selectedWorker = worker;
     this.editing = true;
     this.backendFieldErrors = {};
-    this.fillFormWithData(user);
-    this.originalSalary.set(user.salary ?? null);
-    this.salaryValue.set(user.salary ?? null);
+    this.fillFormWithData(worker);
+    this.originalSalary.set(worker.salary ?? null);
+    this.salaryValue.set(worker.salary ?? null);
     this.userForm.patchValue({ reason: null, observations: null });
     this.creationModalVisible = true;
   }
@@ -192,7 +192,7 @@ export class Users implements OnInit {
     setTimeout(() => this.firstInputRef?.nativeElement.focus());
   }
 
-  createUser(): void {
+  createWorker(): void {
     if (this.userForm.invalid) {
       this.userForm.markAllAsTouched();
       this.messageService.add({
@@ -206,19 +206,19 @@ export class Users implements OnInit {
 
     this.backendFieldErrors = {};
 
-    this.userService.createUser(this.formToRequest()).subscribe({
+    this.workerService.createWorker(this.formToRequest()).subscribe({
       next: () => {
         this.closeModals();
-        this.searchForUsers();
+        this.searchForWorkers();
         this.messageService.add({
           severity: 'success',
           summary: 'Operación exitosa',
-          detail: 'El usuario ha sido creado. Se enviará una contraseña al correo.',
+          detail: 'El trabajador ha sido creado. Se enviará una contraseña al correo.',
           life: 5000,
         });
       },
       error: (err: { status?: number; error?: { message?: string } }) => {
-        this.logger.error('Error creating user:', err);
+        this.logger.error('Error creating worker:', err);
         const backendMessage = err.error?.message;
 
         if (err.status === 400 && backendMessage) {
@@ -243,7 +243,7 @@ export class Users implements OnInit {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: backendMessage ?? 'Ya existe un usuario con ese documento o correo',
+            detail: backendMessage ?? 'Ya existe un trabajador con ese documento o correo',
             life: 5000,
           });
         } else if (err.status === 0 || (err.status && err.status >= 500)) {
@@ -257,7 +257,7 @@ export class Users implements OnInit {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: backendMessage ?? 'Error al crear el usuario',
+            detail: backendMessage ?? 'Error al crear el trabajador',
             life: 5000,
           });
         }
@@ -265,8 +265,8 @@ export class Users implements OnInit {
     });
   }
 
-  updateUser(): void {
-    if (this.userForm.invalid || !this.selectedUser?.id) {
+  updateWorker(): void {
+    if (this.userForm.invalid || !this.selectedWorker?.id) {
       this.userForm.markAllAsTouched();
       this.messageService.add({
         severity: 'warn',
@@ -279,7 +279,7 @@ export class Users implements OnInit {
 
     this.backendFieldErrors = {};
 
-    const formValue = this.userForm.value as UserFormValue;
+    const formValue = this.userForm.value as WorkerFormValue;
 
     if (this.salaryChanged()) {
       if (!formValue.reason || formValue.reason.trim() === '') {
@@ -293,7 +293,7 @@ export class Users implements OnInit {
       }
     }
 
-    const updateData: UpdateUserRequest = {
+    const updateData: UpdateWorkerRequest = {
       document: formValue.document,
       name: formValue.name,
       email: formValue.email,
@@ -308,19 +308,19 @@ export class Users implements OnInit {
       updateData.observations = formValue.observations ?? null;
     }
 
-    this.userService.updateUser(this.selectedUser.id, updateData).subscribe({
+    this.workerService.updateWorker(this.selectedWorker.id, updateData).subscribe({
       next: () => {
         this.closeModals();
-        this.searchForUsers();
+        this.searchForWorkers();
         this.messageService.add({
           severity: 'success',
           summary: 'Operación exitosa',
-          detail: 'El usuario ha sido actualizado correctamente.',
+          detail: 'El trabajador ha sido actualizado correctamente.',
           life: 5000,
         });
       },
       error: (err: { status?: number; error?: { message?: string } }) => {
-        this.logger.error('Error updating user:', err);
+        this.logger.error('Error updating worker:', err);
         const backendMessage = err.error?.message;
 
         if (err.status === 400 && backendMessage) {
@@ -344,15 +344,15 @@ export class Users implements OnInit {
         } else if (err.status === 404) {
           this.messageService.add({
             severity: 'error',
-            summary: 'Error',
-            detail: 'Usuario no encontrado.',
-            life: 5000,
-          });
-        } else if (err.status === 409) {
+              summary: 'Error',
+              detail: 'Trabajador no encontrado.',
+              life: 5000,
+            });
+          } else if (err.status === 409) {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: backendMessage ?? 'Ya existe un usuario con ese documento o correo',
+            detail: backendMessage ?? 'Ya existe un trabajador con ese documento o correo',
             life: 5000,
           });
         } else if (err.status === 0 || (err.status && err.status >= 500)) {
@@ -366,7 +366,7 @@ export class Users implements OnInit {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: backendMessage ?? 'Error al actualizar el usuario',
+            detail: backendMessage ?? 'Error al actualizar el trabajador',
             life: 5000,
           });
         }
@@ -374,40 +374,40 @@ export class Users implements OnInit {
     });
   }
 
-  deleteUser(user: UserResponse): void {
-    if (!user.id) return;
+  deleteWorker(worker: WorkerResponse): void {
+    if (!worker.id) return;
 
     this.confirmationService.confirm({
-      message: `¿Está seguro que desea eliminar al usuario "${user.name}"? Esta acción no se puede deshacer.`,
+      message: `¿Está seguro que desea eliminar al trabajador "${worker.name}"? Esta acción no se puede deshacer.`,
       header: 'Confirmar eliminación',
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Eliminar',
       rejectLabel: 'Cancelar',
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
-        if (!user.id) {
-          this.logger.error('Cannot delete user without ID');
+        if (!worker.id) {
+          this.logger.error('Cannot delete worker without ID');
           return;
         }
-        this.userService.deleteUser(user.id).subscribe({
+        this.workerService.deleteWorker(worker.id).subscribe({
           next: () => {
-            this.searchForUsers();
+            this.searchForWorkers();
             this.messageService.add({
               severity: 'success',
               summary: 'Operación exitosa',
-              detail: 'El usuario ha sido eliminado correctamente.',
+              detail: 'El trabajador ha sido eliminado correctamente.',
               life: 5000,
             });
           },
           error: (err: { status?: number; error?: { message?: string } }) => {
-            this.logger.error('Error deleting user:', err);
+            this.logger.error('Error deleting worker:', err);
             const backendMessage = err.error?.message;
 
             if (err.status === 404) {
               this.messageService.add({
                 severity: 'error',
                 summary: 'Error',
-                detail: 'Usuario no encontrado.',
+                detail: 'Trabajador no encontrado.',
                 life: 5000,
               });
             } else if (err.status === 0 || (err.status && err.status >= 500)) {
@@ -421,7 +421,7 @@ export class Users implements OnInit {
               this.messageService.add({
                 severity: 'error',
                 summary: 'Error',
-                detail: backendMessage ?? 'Error al eliminar el usuario',
+                detail: backendMessage ?? 'Error al eliminar el trabajador',
                 life: 5000,
               });
             }
@@ -431,28 +431,28 @@ export class Users implements OnInit {
     });
   }
 
-  retryEmail(user: UserResponse): void {
-    if (!user.id) return;
+  retrySetupEmail(worker: WorkerResponse): void {
+    if (!worker.id) return;
 
-    this.userService.retryEmail(user.id).subscribe({
+    this.workerService.retrySetupEmail(worker.id).subscribe({
       next: () => {
-        this.searchForUsers();
+        this.searchForWorkers();
         this.messageService.add({
           severity: 'success',
-          summary: 'Email enviado',
+          summary: 'Correo enviado',
           detail: 'Se ha reenviado la invitación correctamente.',
           life: 5000,
         });
       },
       error: (err: { status?: number; error?: { message?: string } }) => {
-        this.logger.error('Error retrying email:', err);
+        this.logger.error('Error retrying setup email:', err);
         const backendMessage = err.error?.message;
 
         if (err.status === 404) {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Usuario no encontrado.',
+            detail: 'Trabajador no encontrado.',
             life: 5000,
           });
         } else if (err.status === 0 || (err.status && err.status >= 500)) {
@@ -474,7 +474,7 @@ export class Users implements OnInit {
     });
   }
 
-  private fillFormWithData(data: UserResponse): void {
+  private fillFormWithData(data: WorkerResponse): void {
     this.userForm.patchValue({
       document: data.document,
       name: data.name,
@@ -490,8 +490,8 @@ export class Users implements OnInit {
     this.userForm.reset();
   }
 
-  private formToRequest(): CreateUserRequest {
-    const formValue = this.userForm.value as UserFormValue;
+  private formToRequest(): CreateWorkerRequest {
+    const formValue = this.userForm.value as WorkerFormValue;
     return {
       document: formValue.document,
       name: formValue.name,
@@ -503,8 +503,8 @@ export class Users implements OnInit {
     };
   }
 
-  private searchForUsers(): void {
-    this.cache.users.refresh();
+  private searchForWorkers(): void {
+    this.cache.workers.refresh();
   }
 
   private searchForAreas(): void {
@@ -629,7 +629,7 @@ export class Users implements OnInit {
 
   // ── Schedule assignment methods ──
 
-  openScheduleDialog(worker: UserResponse): void {
+  openScheduleDialog(worker: WorkerResponse): void {
     if (!worker.id) return;
     const workerId = worker.id;
     this.selectedWorkerForSchedule.set(worker);

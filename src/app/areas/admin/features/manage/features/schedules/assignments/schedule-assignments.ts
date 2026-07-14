@@ -4,9 +4,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 import { ScheduleAssignment } from '@app/core/services/schedules/schedule-assignment';
 import { Schedule } from '@app/core/services/schedules/schedule';
-import { User } from '@app/core/services/users/user';
+import { Worker } from '@app/core/services/workers/worker';
 import { Logging } from '@app/core/services/logging/logging';
-import { UserResponse } from '@app/shared/models/dto/users/user-response.model';
+import { WorkerResponse } from '@app/shared/models/dto/workers/worker-response.model';
 
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
@@ -31,13 +31,13 @@ export class ScheduleAssignments implements OnInit {
   private route = inject(ActivatedRoute);
   private scheduleAssignmentService = inject(ScheduleAssignment);
   private scheduleService = inject(Schedule);
-  private userService = inject(User);
+  private workerService = inject(Worker);
   private logger = inject(Logging);
   private messageService = inject(MessageService);
 
   scheduleId = signal<number>(0);
   scheduleName = signal<string>('');
-  workers = signal<UserResponse[]>([]);
+  workers = signal<WorkerResponse[]>([]);
   assignedScheduleIds = signal<number[]>([]);
   loading = signal(true);
   assigning = signal<Set<number>>(new Set());
@@ -63,9 +63,9 @@ export class ScheduleAssignments implements OnInit {
       },
     });
 
-    this.userService.getUsers().subscribe({
-      next: (users) => {
-        this.workers.set(users.filter(u => u.role === 'WORKER'));
+    this.workerService.getWorkers().subscribe({
+      next: (workersData) => {
+        this.workers.set(workersData);
         this.loadAssignments();
       },
       error: (err: HttpErrorResponse) => {
@@ -111,7 +111,7 @@ export class ScheduleAssignments implements OnInit {
     return this.assignedScheduleIds().includes(workerId);
   }
 
-  toggleAssignment(worker: UserResponse): void {
+  toggleAssignment(worker: WorkerResponse): void {
     const workerId = worker.id;
     if (workerId == null) return;
     const currentlyAssigned = this.isAssigned(workerId);

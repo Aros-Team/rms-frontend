@@ -1,5 +1,4 @@
 <div class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4 flex flex-col gap-3">
-  <!-- Avatar + Name row -->
   <div class="flex items-center gap-3">
     <div
       class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
@@ -8,13 +7,12 @@
       {{ initials() }}
     </div>
     <div class="min-w-0 flex-1">
-      <h3 class="font-medium text-surface-900 dark:text-surface-0 truncate">{{ user().name }}</h3>
-      <p class="text-sm text-surface-500 truncate">{{ user().email }}</p>
+      <h3 class="font-medium text-surface-900 dark:text-surface-0 truncate">{{ worker().name }}</h3>
+      <p class="text-sm text-surface-500 truncate">{{ worker().email }}</p>
     </div>
     <p-tag [value]="statusLabel()" [severity]="statusSeverity()" />
   </div>
 
-  <!-- Info rows (only what matters) -->
   <div class="flex flex-col gap-2 text-sm">
     <div class="flex justify-between items-center">
       <span class="text-surface-500">Área</span>
@@ -26,13 +24,12 @@
     </div>
   </div>
 
-  <!-- Actions -->
   <div class="flex gap-2 pt-2 border-t border-surface-100 dark:border-surface-700 flex-wrap">
     <p-button severity="info" icon="pi pi-calendar" pTooltip="Asignar horarios" tooltipPosition="top" size="small" styleClass="flex-1" (click)="onAssignSchedule()"></p-button>
-    <p-button severity="warn" icon="pi pi-pencil" pTooltip="Editar usuario" tooltipPosition="top" size="small" styleClass="flex-1" (click)="onEdit()"></p-button>
-    @if (user().status === 'PENDING') {
+    <p-button severity="warn" icon="pi pi-pencil" pTooltip="Editar trabajador" tooltipPosition="top" size="small" styleClass="flex-1" (click)="onEdit()"></p-button>
+    @if (worker().status === 'PENDING') {
       <p-button severity="info" icon="pi pi-envelope" pTooltip="Reenviar invitación" tooltipPosition="top" size="small" styleClass="flex-1" (click)="onRetryEmail()"></p-button>
     }
-    <p-button severity="info" icon="pi pi-history" pTooltip="Ver historial salarial" tooltipPosition="top" size="small" styleClass="flex-1" [routerLink]="['/admin/manage/users', user().id, 'salary-history']"></p-button>
+    <p-button severity="info" icon="pi pi-history" pTooltip="Ver historial salarial" tooltipPosition="top" size="small" styleClass="flex-1" [routerLink]="['/admin/manage/workers', worker().id, 'salary-history']"></p-button>
   </div>
 </div>

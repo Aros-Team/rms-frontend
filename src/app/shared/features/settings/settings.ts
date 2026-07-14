@@ -4,10 +4,10 @@ import { Router } from '@angular/router';
 import { ChangePassword } from '@areas/auth/features/password-recovery/change-password';
 import { Schedules } from '@areas/admin/features/manage/features/schedules/schedules';
 import { Auth } from '@app/core/services/auth/auth';
-import { User } from '@app/core/services/users/user';
+import { Worker } from '@app/core/services/workers/worker';
 import { Accessibility, FontSize, ContrastMode } from '@app/core/services/accessibility/accessibility';
 import { Theme } from '@app/core/services/theme/theme';
-import { SalaryHistoryEntry } from '@app/shared/models/dto/users/salary-history-entry.model';
+import { SalaryHistoryEntry } from '@app/shared/models/dto/workers/salary-history-entry.model';
 
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
@@ -30,7 +30,7 @@ type TabId = 'accesibilidad' | 'horarios' | 'cuenta' | 'cerrar-session';
 })
 export class Settings implements OnInit {
   private authService = inject(Auth);
-  private userService = inject(User);
+  private workerService = inject(Worker);
   private accessibilityService = inject(Accessibility);
   private themeService = inject(Theme);
   private router = inject(Router);
@@ -86,7 +86,7 @@ export class Settings implements OnInit {
   }
 
   loadSalaryHistory(userId: number): void {
-    this.userService.getSalaryHistory(userId).subscribe({
+    this.workerService.getSalaryHistory(userId).subscribe({
       next: (data) => { this.salaryHistory.set(data); },
       error: () => { this.salaryHistory.set([]); },
     });

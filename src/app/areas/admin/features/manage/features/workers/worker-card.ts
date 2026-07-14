@@ -3,17 +3,16 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { RouterModule } from '@angular/router';
-import { UserResponse } from '@app/shared/models/dto/users/user-response.model';
+import { WorkerResponse } from '@app/shared/models/dto/workers/worker-response.model';
 import { AreaResponse } from '@app/shared/models/dto/areas/area.model';
 
 @Component({
   selector: 'app-worker-card',
   imports: [ButtonModule, TagModule, TooltipModule, RouterModule],
   templateUrl: './worker-card.html',
-  styles: ``,
 })
 export class WorkerCard {
-  readonly user = input.required<UserResponse>();
+  readonly worker = input.required<WorkerResponse>();
   readonly areas = input<AreaResponse[]>([]);
   readonly assignedScheduleCount = input<number>(0);
 
@@ -22,7 +21,7 @@ export class WorkerCard {
   readonly retryEmail = output();
 
   avatarColor = computed(() => {
-    const name = this.user().name || '';
+    const name = this.worker().name || '';
     const colors = [
       '#3B82F6', '#10B981', '#F59E0B', '#EF4444',
       '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16',
@@ -35,7 +34,7 @@ export class WorkerCard {
   });
 
   initials = computed(() => {
-    const name = this.user().name || '';
+    const name = this.worker().name || '';
     const parts = name.split(' ').filter(p => p.length > 0);
     if (parts.length >= 2) {
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
@@ -44,24 +43,24 @@ export class WorkerCard {
   });
 
   areaName = computed(() => {
-    const areaId = this.user().assignedAreas?.[0];
+    const areaId = this.worker().assignedAreas?.[0];
     if (areaId == null) return 'Sin área';
     const area = this.areas().find(a => a.id === areaId);
     return area?.name ?? 'Sin área';
   });
 
   statusLabel = computed(() => {
-    switch (this.user().status) {
+    switch (this.worker().status) {
       case 'PENDING': return 'Pendiente';
       case 'ERROR': return 'Error';
       case 'ACTIVE': return 'Activo';
       case 'INACTIVE': return 'Inactivo';
-      default: return this.user().status ?? 'Desconocido';
+      default: return this.worker().status ?? 'Desconocido';
     }
   });
 
   statusSeverity = computed<'warn' | 'danger' | 'success' | 'secondary'>(() => {
-    switch (this.user().status) {
+    switch (this.worker().status) {
       case 'PENDING': return 'warn';
       case 'ERROR': return 'danger';
       case 'ACTIVE': return 'success';

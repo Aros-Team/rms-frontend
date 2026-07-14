@@ -87,12 +87,12 @@ export const routes: Routes = [
             loadComponent: () => import('@shared/features/orders/order-creation/order-creation-form').then(m => m.OrderCreationForm),
           },
           {
-            path: 'users',
-            loadComponent: () => import('@areas/admin/features/manage/features/users/users').then(m => m.Users),
+            path: 'workers',
+            loadComponent: () => import('@areas/admin/features/manage/features/workers/workers').then(m => m.Workers),
           },
           {
-            path: 'users/:id/salary-history',
-            loadComponent: () => import('@areas/admin/features/manage/features/users/salary-history/salary-history').then(m => m.SalaryHistory),
+            path: 'workers/:id/salary-history',
+            loadComponent: () => import('@areas/admin/features/manage/features/workers/salary-history/salary-history').then(m => m.SalaryHistory),
           },
           {
             path: 'inventory',
