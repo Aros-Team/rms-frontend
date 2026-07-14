@@ -16,6 +16,8 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { MessageModule } from 'primeng/message';
 import { MessageService } from 'primeng/api';
 
 import { AbstractControl, FormBuilder, Validators } from '@angular/forms';
@@ -38,6 +40,8 @@ import { of } from 'rxjs';
     InputNumberModule,
     SelectModule,
     ToastModule,
+    ToggleSwitchModule,
+    MessageModule,
   ],
   providers: [MessageService],
   templateUrl: './product-edit-modal.html',
@@ -71,6 +75,9 @@ export class ProductEditModal implements OnInit, OnChanges {
     categoryId: [null as number | null, (control: AbstractControl) => Validators.required(control)],
     areaId: [null as number | null, (control: AbstractControl) => Validators.required(control)],
     active: [true],
+    selectionType: ['STANDARD'],
+    baseRecipeEnabled: [false],
+    schedulingRequired: [false],
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -105,6 +112,9 @@ export class ProductEditModal implements OnInit, OnChanges {
           categoryId: product.categoryId,
           areaId: product.areaId,
           active: product.active,
+          selectionType: product.selectionType ?? 'STANDARD',
+          baseRecipeEnabled: product.baseRecipeEnabled ?? false,
+          schedulingRequired: product.schedulingRequired ?? false,
         });
         this.isLoading.set(false);
         this.loadProductImages(id);
@@ -189,6 +199,10 @@ export class ProductEditModal implements OnInit, OnChanges {
     const productId = formValue.id ?? 0;
 
     this.isSaving.set(true);
+    const selectionType = formValue.selectionType as 'STANDARD' | 'SPECIAL_SELECTION' | undefined;
+    const baseRecipeEnabled = formValue.baseRecipeEnabled as boolean | undefined;
+    const schedulingRequired = formValue.schedulingRequired as boolean | undefined;
+
     this.productService.updateProduct(productId, {
       id: productId,
       name: formValue.name ?? '',
@@ -197,6 +211,9 @@ export class ProductEditModal implements OnInit, OnChanges {
       areaId: formValue.areaId ?? 0,
       recipe: [],
       optionIds: [],
+      selectionType: selectionType !== 'STANDARD' ? selectionType : undefined,
+      baseRecipeEnabled: selectionType === 'SPECIAL_SELECTION' ? baseRecipeEnabled : undefined,
+      schedulingRequired: selectionType === 'SPECIAL_SELECTION' ? schedulingRequired : undefined,
     }).subscribe({
       next: () => {
         this.messageService.add({

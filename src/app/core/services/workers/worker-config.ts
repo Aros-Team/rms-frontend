@@ -58,13 +58,6 @@ export class WorkerConfig {
           command: undefined
         },
         {
-          id: 'day-menu',
-          label: 'Menú del Día',
-          description: 'Ver menú del día',
-          icon: 'pi pi-sun',
-          isActive: false
-        },
-        {
           id: 'today-orders',
           label: 'Órdenes del Día',
           description: 'Ver órdenes del día (solo lectura)',
@@ -86,13 +79,6 @@ export class WorkerConfig {
           icon: 'pi pi-pencil',
           isActive: false,
           command: undefined
-        },
-        {
-          id: 'day-menu',
-          label: 'Menú del Día',
-          description: 'Ver menú del día',
-          icon: 'pi pi-sun',
-          isActive: false
         },
         {
           id: 'today-orders',

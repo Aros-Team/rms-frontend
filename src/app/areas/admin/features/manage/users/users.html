@@ -5,146 +5,181 @@
       <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0 break-words">Administración de usuarios</h1>
       <p class="text-surface-600 dark:text-surface-400 mt-1 text-sm">Gestiona los empleados y sus permisos del restaurante</p>
     </div>
-    <p-button icon="pi pi-user-plus" label="Nuevo empleado" pTooltip="Registrar nuevo empleado" tooltipPosition="bottom" (click)="showCreationModal()" />
+    <div class="flex items-center gap-2">
+      <p-button icon="pi pi-user-plus" label="Nuevo empleado" pTooltip="Registrar nuevo empleado" tooltipPosition="bottom" aria-label="Registrar nuevo empleado" (click)="showCreationModal()" />
+    </div>
   </div>
 
-  <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-0 dark:bg-surface-800 overflow-hidden">
-    <p-table
-      #dt1
-      [value]="users()"
-      [loading]="cache.users.isLoading()"
-      [showLoader]="false"
-      [paginator]="true"
-      [rows]="10"
-      [rowsPerPageOptions]="[10, 25, 50]"
-      [tableStyle]="{ 'background-color': 'unset', 'min-width': '800px' }"
-      [globalFilterFields]="['document', 'name', 'email']"
-      [scrollable]="true"
-      scrollHeight="600px"
-      responsiveLayout="scroll"
-      styleClass="h-full rounded-lg overflow-hidden"
-      sortMode="multiple"
+  <!-- Tab navigation -->
+  <nav aria-label="Navegación de empleados">
+    <div class="flex gap-1 mb-4 border-b border-surface-200 dark:border-surface-700" role="tablist">
+      <button
+        #tabEmpleados
+        role="tab"
+        id="tab-empleados"
+        aria-controls="tabpanel-empleados"
+        [attr.aria-selected]="activeEmployeeTab() === 'list'"
+        class="px-4 py-2 text-sm font-medium rounded-t-lg border border-b-0 transition-colors cursor-pointer"
+        [ngClass]="{
+          'bg-surface-0 dark:bg-surface-800 text-primary border-surface-200 dark:border-surface-700': activeEmployeeTab() === 'list',
+          'bg-transparent text-surface-500 border-transparent hover:text-surface-700 dark:hover:text-surface-300': activeEmployeeTab() !== 'list'
+        }"
+        (click)="switchTab('list')"
+        (keydown.enter)="$event.preventDefault(); switchTab('list')"
+        (keydown.space)="$event.preventDefault(); switchTab('list')"
+      >Empleados</button>
+      <button
+        #tabTimeLogs
+        role="tab"
+        id="tab-time-logs"
+        aria-controls="tabpanel-time-logs"
+        [attr.aria-selected]="activeEmployeeTab() === 'time-logs'"
+        class="px-4 py-2 text-sm font-medium rounded-t-lg border border-b-0 transition-colors cursor-pointer"
+        [ngClass]="{
+          'bg-surface-0 dark:bg-surface-800 text-primary border-surface-200 dark:border-surface-700': activeEmployeeTab() === 'time-logs',
+          'bg-transparent text-surface-500 border-transparent hover:text-surface-700 dark:hover:text-surface-300': activeEmployeeTab() !== 'time-logs'
+        }"
+        (click)="switchTab('time-logs')"
+        (keydown.enter)="$event.preventDefault(); switchTab('time-logs')"
+        (keydown.space)="$event.preventDefault(); switchTab('time-logs')"
+      >Registros de Ingreso</button>
+    </div>
+  </nav>
+
+  @if (activeEmployeeTab() === 'list') {
+  <div
+    id="tabpanel-empleados"
+    role="tabpanel"
+    aria-labelledby="tab-empleados"
+    class="flex-1 min-h-0 overflow-auto"
+  >
+    @if (cache.users.isLoading() && users().length === 0) {
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        @for (skeleton of [1,2,3,4,5,6,7,8]; track skeleton) {
+          <div class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4 flex flex-col gap-3">
+            <div class="flex items-center gap-3">
+              <p-skeleton shape="circle" size="3rem" />
+              <div class="flex-1 space-y-2">
+                <p-skeleton width="80%" height="1rem" />
+                <p-skeleton width="60%" height="0.8rem" />
+              </div>
+            </div>
+            <div class="space-y-2">
+              <p-skeleton width="100%" height="0.8rem" />
+              <p-skeleton width="100%" height="0.8rem" />
+              <p-skeleton width="100%" height="0.8rem" />
+              <p-skeleton width="100%" height="0.8rem" />
+            </div>
+            <p-skeleton width="100%" height="2rem" borderRadius="8px" />
+          </div>
+        }
+      </div>
+    } @else if (users().length === 0) {
+      <div class="flex flex-col items-center justify-center h-full p-8">
+        <i class="pi pi-users text-4xl text-surface-300 mb-4"></i>
+        <p class="text-surface-500 text-lg">No hay usuarios registrados</p>
+      </div>
+    } @else {
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        @for (user of users(); track user.id) {
+          <app-worker-card
+            [user]="user"
+            [areas]="areas()"
+            [assignedScheduleCount]="getScheduleCount(user.id!)"
+            (assignSchedule)="openScheduleDialog(user)"
+            (edit)="showModificationModal(user)"
+            (retryEmail)="retryEmail(user)"
+          />
+        }
+      </div>
+    }
+      </div>
+  }
+
+  @if (activeEmployeeTab() === 'time-logs') {
+  <div
+    id="tabpanel-time-logs"
+    role="tabpanel"
+    aria-labelledby="tab-time-logs"
+    class="flex-1 min-h-0 flex flex-col"
+  >
+    <!-- Filters -->
+    <div class="flex flex-wrap gap-3 mb-4 p-4 border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-100 dark:bg-surface-800">
+      <div class="flex flex-col gap-1">
+        <label class="text-xs text-surface-500" for="filter-worker-id">Worker ID</label>
+        <input pInputText id="filter-worker-id" type="number" [(ngModel)]="filterWorkerId" placeholder="ID del trabajador" class="w-32" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs text-surface-500" for="filter-from">Desde</label>
+        <p-datepicker id="filter-from" [(ngModel)]="filterFrom" [showTime]="true" dateFormat="dd/mm/yy" placeholder="Fecha inicio"></p-datepicker>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs text-surface-500" for="filter-to">Hasta</label>
+        <p-datepicker id="filter-to" [(ngModel)]="filterTo" [showTime]="true" dateFormat="dd/mm/yy" placeholder="Fecha fin"></p-datepicker>
+      </div>
+      <div class="flex items-end gap-2">
+        <p-button label="Filtrar" icon="pi pi-search" aria-label="Filtrar registros de ingreso" (onClick)="loadTimeLogs()"></p-button>
+        <p-button label="Limpiar" severity="secondary" icon="pi pi-times" aria-label="Limpiar filtros de registros de ingreso" (onClick)="clearFilters()"></p-button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div
+      class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast overflow-hidden"
+      aria-live="polite"
+      [attr.aria-busy]="timeLogLoading()"
     >
-      <ng-template #caption>
-        <div class="flex flex-col sm:flex-row gap-2 flex-wrap">
-          <p-iconfield iconPosition="left" class="w-full lg:w-80">
-            <p-inputicon>
-              <i class="pi pi-search"></i>
-            </p-inputicon>
-            <input
-              pInputText
-              type="text"
-              class="w-full"
-              (input)="dt1.filterGlobal($event.target.value, 'contains')"
-              placeholder="Buscar por documento, nombre o correo..."
-            />
-          </p-iconfield>
-          <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="dt1.clear()" />
+      @if (timeLogLoading()) {
+        <app-table-skeleton [rowCount]="5" [colCount]="6" />
+      } @else if (timeLogError()) {
+        <div class="flex flex-col items-center justify-center h-full p-8">
+          <p class="text-surface-500">{{ timeLogError() }}</p>
+          <p-button label="Reintentar" icon="pi pi-refresh" aria-label="Reintentar cargar registros de ingreso" (onClick)="loadTimeLogs()" class="mt-4"></p-button>
         </div>
-      </ng-template>
-      <ng-template #header>
-        <tr>
-          <th class="text-xs md:text-sm" pSortableColumn="document">Doc. <p-sortIcon field="document" /></th>
-          <th class="text-xs md:text-sm" pSortableColumn="name">Nombre <p-sortIcon field="name" /></th>
-          <th class="text-xs md:text-sm hidden lg:table-cell" pSortableColumn="email">Correo <p-sortIcon field="email" /></th>
-          <th class="text-xs md:text-sm hidden md:table-cell">Tel.</th>
-          <th class="text-xs md:text-sm hidden md:table-cell" pSortableColumn="salary">Salario <p-sortIcon field="salary" /></th>
-          <th class="text-xs md:text-sm hidden xl:table-cell">Dirección</th>
-          <th class="text-center text-xs md:text-sm">Status</th>
-          <th class="text-center text-xs md:text-sm">Acc.</th>
-        </tr>
-      </ng-template>
-      <ng-template #body let-user>
-        <tr>
-          <td class="font-mono text-xs">{{ user.document }}</td>
-          <td class="font-medium">{{ user.name }}</td>
-          <td class="hidden lg:table-cell text-sm truncate max-w-[150px]">{{ user.email }}</td>
-          <td class="hidden md:table-cell">{{ user.phone }}</td>
-          <td class="hidden md:table-cell text-sm font-mono">
-            {{ user.salary !== null ? (user.salary | currency:'COP':'symbol-narrow':'1.0-0') : '-' }}
-          </td>
-          <td class="hidden xl:table-cell text-sm truncate max-w-[120px]">{{ user.address }}</td>
-          <td class="text-center">
-            @switch (user.status) {
-              @case ('PENDING') {
-                <p-tag severity="warn" value="Pendiente" />
-              }
-              @case ('ERROR') {
-                <p-tag severity="danger" value="Error" />
-              }
-              @case ('ACTIVE') {
-                <p-tag severity="success" value="Activo" />
-              }
-              @case ('INACTIVE') {
-                <p-tag severity="secondary" value="Inactivo" />
-              }
-              @default {
-                <p-tag severity="secondary" [value]="user.status || 'Desconocido'" />
-              }
-            }
-          </td>
-          <td>
-            <div class="flex gap-1 items-center justify-center">
-              <p-button
-                severity="warn"
-                icon="pi pi-pencil"
-                size="small"
-                [text]="true"
-                class="btn-icon-only-sm"
-                pTooltip="Editar usuario"
-                tooltipPosition="top"
-                (click)="showModificationModal(user)"
-              ></p-button>
-              <p-button
-                severity="info"
-                icon="pi pi-history"
-                size="small"
-                [text]="true"
-                class="btn-icon-only-sm"
-                pTooltip="Ver historial salarial"
-                tooltipPosition="top"
-                [routerLink]="['/admin/manage/users', user.id, 'salary-history']"
-              ></p-button>
-              <p-button
-                severity="danger"
-                icon="pi pi-trash"
-                size="small"
-                [text]="true"
-                class="btn-icon-only-sm"
-                pTooltip="Eliminar usuario"
-                tooltipPosition="top"
-                (click)="deleteUser(user)"
-              ></p-button>
-              @if (user.status === 'PENDING') {
-                <p-button
-                  severity="info"
-                  icon="pi pi-envelope"
-                  size="small"
-                  [text]="true"
-                  class="btn-icon-only-sm"
-                  pTooltip="Reenviar invitación"
-                  tooltipPosition="top"
-                  (click)="retryEmail(user)"
-                ></p-button>
-              }
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-      <ng-template #loadingbody>
-        <tr>
-          <td colspan="8">
-            <div class="min-h-[400px] w-full">
-              <app-table-skeleton [rowCount]="6" [colCount]="8" />
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="emptymessage">
-        <tr><td colspan="8" class="text-center text-surface-500 py-4">No hay usuarios registrados</td></tr>
-      </ng-template>
-    </p-table>
+      } @else if (timeLogs().length === 0) {
+        <div class="flex flex-col items-center justify-center h-full p-8">
+          <i class="pi pi-history text-4xl text-surface-300 mb-4"></i>
+          <p class="text-surface-500 text-lg">Sin registros de ingreso</p>
+        </div>
+      } @else {
+        <p-table [value]="timeLogs()" dataKey="id" [paginator]="true" [rows]="15"
+          [rowsPerPageOptions]="[10, 15, 25, 50]" [loading]="timeLogLoading()" [attr.aria-busy]="timeLogLoading()">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>ID</th>
+              <th>Worker ID</th>
+              <th>Fecha/Hora</th>
+              <th>Tipo</th>
+              <th>Dentro de Turno</th>
+              <th>ID Turno</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-log>
+            <tr>
+              <td>{{ log.id }}</td>
+              <td>{{ log.workerId }}</td>
+              <td>{{ formatTimestamp(log.timestamp) }}</td>
+              <td><p-tag [value]="log.type" severity="info"></p-tag></td>
+              <td>
+                @if (log.withinShift) {
+                  <p-tag value="En turno" severity="success"></p-tag>
+                } @else {
+                  <p-tag value="Fuera de turno" severity="danger"></p-tag>
+                }
+              </td>
+              <td>{{ log.relatedShiftId ?? '-' }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="6" class="text-center p-4 text-surface-400">Sin registros de ingreso</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
+    </div>
   </div>
+  }
 </div>
 
 <p-dialog
@@ -154,6 +189,7 @@
   draggable="false"
   [style]="{ width: '90vw', maxWidth: '500px', padding: '2', 'z-index': '400000' }"
   appendTo="body"
+  (onShow)="focusFirstInput()"
 >
   <div class="p-4">
     @if (editing) {
@@ -186,15 +222,17 @@
       </p-iftalabel>
       <p-iftalabel class="w-full">
         <input
+          #firstInputRef
           pInputText
           id="create.document"
           class="w-full"
           autocomplete="off"
           formControlName="document"
           placeholder="Numero de documento del usuario"
+          aria-describedby="error-document"
         />
         <label for="create.document">Documento *</label>
-        <app-form-validation field="document" [backendError]="getBackendError('document')"></app-form-validation>
+        <app-form-validation id="error-document" field="document" [backendError]="getBackendError('document')"></app-form-validation>
       </p-iftalabel>
       <p-iftalabel class="w-full">
         <input
@@ -204,9 +242,10 @@
           autocomplete="off"
           formControlName="name"
           placeholder="Nombre completo del usuario"
+          aria-describedby="error-name"
         />
         <label for="create.name">Nombre *</label>
-        <app-form-validation field="name" [backendError]="getBackendError('name')"></app-form-validation>
+        <app-form-validation id="error-name" field="name" [backendError]="getBackendError('name')"></app-form-validation>
       </p-iftalabel>
       <p-iftalabel class="w-full">
         <input
@@ -217,9 +256,10 @@
           autocomplete="off"
           formControlName="email"
           placeholder="correo electronico del usuario"
+          aria-describedby="error-email"
         />
         <label for="create.email">Correo electrónico *</label>
-        <app-form-validation field="email" [backendError]="getBackendError('email')"></app-form-validation>
+        <app-form-validation id="error-email" field="email" [backendError]="getBackendError('email')"></app-form-validation>
       </p-iftalabel>
       <p-iftalabel class="w-full">
         <input
@@ -229,9 +269,10 @@
           autocomplete="off"
           formControlName="address"
           placeholder="direccion de residencia del usuario"
+          aria-describedby="error-address"
         />
         <label for="create.address">Dirección</label>
-        <app-form-validation field="address" [backendError]="getBackendError('address')"></app-form-validation>
+        <app-form-validation id="error-address" field="address" [backendError]="getBackendError('address')"></app-form-validation>
       </p-iftalabel>
       <p-iftalabel class="w-full">
         <input
@@ -241,9 +282,10 @@
           autocomplete="off"
           formControlName="phone"
           placeholder="numero de contacto del usuario"
+          aria-describedby="error-phone"
         />
         <label for="create.phone">N# Celular</label>
-        <app-form-validation field="phone" [backendError]="getBackendError('phone')"></app-form-validation>
+        <app-form-validation id="error-phone" field="phone" [backendError]="getBackendError('phone')"></app-form-validation>
       </p-iftalabel>
       <p-iftalabel class="w-full">
         <p-inputnumber
@@ -268,9 +310,10 @@
             autocomplete="off"
             formControlName="reason"
             placeholder="Razón del cambio salarial"
+            aria-describedby="error-reason"
           />
           <label for="edit.reason">Razón *</label>
-          <app-form-validation field="reason" [backendError]="getBackendError('reason')"></app-form-validation>
+          <app-form-validation id="error-reason" field="reason" [backendError]="getBackendError('reason')"></app-form-validation>
         </p-iftalabel>
         <p-iftalabel class="w-full">
           <input
@@ -288,13 +331,67 @@
 
     <div class="flex justify-start gap-2 mt-8">
       @if (editing) {
-      <p-button icon="pi pi-save" label="Actualizar" (click)="updateUser()" />
+      <p-button icon="pi pi-save" label="Actualizar" aria-label="Actualizar usuario" (click)="updateUser()" />
       } @else {
-      <p-button icon="pi pi-save" label="Crear" (click)="createUser()" />
+      <p-button icon="pi pi-save" label="Crear" aria-label="Crear nuevo usuario" (click)="createUser()" />
       }
-      <p-button icon="pi pi-ban" label="Cancelar" severity="secondary" (click)="closeModals()" />
+      <p-button icon="pi pi-ban" label="Cancelar" aria-label="Cancelar y cerrar formulario" severity="secondary" (click)="closeModals()" />
     </div>
   </div>
 </p-dialog>
 
-<p-confirmDialog />;
+<p-confirmDialog />
+
+<p-dialog
+  header="{{ 'Asignar horarios: ' + (selectedWorkerForSchedule()?.name ?? '') }}"
+  [modal]="true"
+  [(visible)]="scheduleDialogVisible"
+  draggable="false"
+  [style]="{ width: '500px', 'z-index': '400000' }"
+  appendTo="body"
+  (onHide)="closeScheduleDialog()"
+>
+  <div class="p-4">
+    @if (scheduleDialogLoading()) {
+      <p-skeleton height="300px" />
+    } @else {
+      <div class="flex flex-col gap-2 max-h-[400px] overflow-y-auto">
+        @for (schedule of allSchedules(); track schedule.id) {
+          <div class="flex items-center justify-between p-3 border border-surface-200 dark:border-surface-700 rounded-lg bg-surface-50 dark:bg-surface-800">
+            <div class="flex flex-col min-w-0">
+              <span class="font-medium text-surface-900 dark:text-surface-0">{{ schedule.name }}</span>
+              @if (schedule.description) {
+                <span class="text-sm text-surface-500">{{ schedule.description }}</span>
+              }
+            </div>
+            @if (isScheduleAssigned(schedule.id)) {
+              <p-button
+                label="Desasignar"
+                severity="danger"
+                [loading]="isScheduleAssigning(schedule.id)"
+                size="small"
+                aria-label="Desasignar horario {{ schedule.name }}"
+                (click)="unassignSchedule(schedule.id)"
+              />
+            } @else {
+              <p-button
+                label="Asignar"
+                severity="success"
+                [loading]="isScheduleAssigning(schedule.id)"
+                size="small"
+                aria-label="Asignar horario {{ schedule.name }}"
+                (click)="assignSchedule(schedule.id)"
+              />
+            }
+          </div>
+        }
+        @empty {
+          <div class="text-center text-surface-500 py-8">
+            <i class="pi pi-calendar text-3xl mb-3 block"></i>
+            <p>No hay horarios disponibles</p>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</p-dialog>

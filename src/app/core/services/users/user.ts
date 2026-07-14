@@ -20,8 +20,8 @@ export class User {
   }
 
   public getEmployees(): Observable<UserResponse[]> {
-    this.logger.debug('User: Calling GET employees');
-    return this.http.get<UserResponse[]>('v1/users/employees');
+    this.logger.debug('User: Calling GET users (employees endpoint does not exist on backend, using all users)');
+    return this.http.get<UserResponse[]>('v1/users');
   }
 
   public createUser(data: CreateUserRequest): Observable<UserResponse> {

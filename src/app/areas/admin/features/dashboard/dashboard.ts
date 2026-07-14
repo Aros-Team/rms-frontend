@@ -11,8 +11,6 @@ import { CommonModule } from '@angular/common';
 import { Order } from '@app/core/services/orders/order';
 import { Table } from '@app/core/services/tables/table';
 import { Product, ProductData } from '@app/core/services/products/product';
-import { DayMenu } from '@app/core/services/daymenu/daymenu';
-import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
 import { OrderDetailDialog } from '@shared/components/order-detail-dialog/order-detail-dialog';
 import { Logging } from '@app/core/services/logging/logging';
 import { WebSocket } from '@app/core/services/websocket/websocket';
@@ -23,13 +21,10 @@ import { TableResponse } from '@app/shared/models/dto/tables/table-response.mode
 import { forkJoin, of, interval, Subscription, EMPTY } from 'rxjs';
 import { catchError, switchMap, finalize } from 'rxjs/operators';
 import { calculateTotalPrice } from '@app/shared/models/dto/orders/order-response.model';
-import { Message } from 'primeng/message';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@environments/environment';
-import { DaymenuSkeleton } from './skeletons/daymenu-skeleton';
 import { ListSkeleton } from '@shared/skeletons/list-skeleton';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton';
-import { DayMenuCacheService } from '../manage/menu/daymenu-cache.service';
 
 const WS_TOPICS = {
   created:     '/topic/orders/created',
@@ -53,9 +48,7 @@ const WS_TOPICS = {
     SkeletonModule,
     TagModule,
     OrderDetailDialog,
-    Message,
     ListSkeleton,
-    DaymenuSkeleton,
     TableSkeleton,
   ],
 })
@@ -63,10 +56,8 @@ export class Dashboard implements OnInit, OnDestroy {
   private orderService = inject(Order);
   private tableService = inject(Table);
   private productService = inject(Product);
-  private dayMenuService = inject(DayMenu);
   private logger = inject(Logging);
   private http = inject(HttpClient);
-  readonly dayMenuCache = inject(DayMenuCacheService);
   private wsService = inject(WebSocket);
   private authService = inject(Auth);
   private destroyRef = inject(DestroyRef);
@@ -81,13 +72,6 @@ export class Dashboard implements OnInit, OnDestroy {
   isStatsLoaded = signal(false);
   orderDetails = signal<OrderDetailsResponse[]>([]);
 
-  // Day menu from cache
-  dayMenu = computed(() => this.dayMenuCache.currentMenu.data());
-  loadingDayMenu = computed(() => this.dayMenuCache.currentMenu.isLoading());
-  dayMenuOptions = computed(() => this.dayMenuCache.currentOptions.data() ?? []);
-  loadingDayMenuOptions = computed(() => this.dayMenuCache.currentOptions.isLoading());
-
-  existDayMenu = computed(() => this.dayMenu() !== null);
   completedOrdersCount = signal(0);
   preparingOrdersCount = signal(0);
   totalSales = signal(0);
@@ -107,10 +91,6 @@ export class Dashboard implements OnInit, OnDestroy {
   showOrderDetail = signal(false);
   selectedOrder = signal<OrderResponse | null>(null);
   selectedProduct = signal<ProductData | null>(null);
-  isSwipedLeft = signal(false);
-  private touchStartX = 0;
-  private touchEndX = 0;
-  private readonly minSwipeDistance = 50;
   private isMobile = signal(false);
 
   ngOnInit(): void {
@@ -118,9 +98,6 @@ export class Dashboard implements OnInit, OnDestroy {
     this.updateDateTime();
     this.loadSalesVisibility();
     this.startHealthCheck();
-
-    // Initialize day menu cache
-    this.dayMenuCache.currentMenu.load();
 
     // Skeletons pintan inmediatamente. Datos cargan en orden estricto.
     setTimeout(() => {
@@ -355,16 +332,6 @@ export class Dashboard implements OnInit, OnDestroy {
     }).format(dateObj);
   }
 
-  groupByCategory(options: ProductOption[]): { category: string; items: ProductOption[] }[] {
-    const map = new Map<string, ProductOption[]>();
-    for (const o of options) {
-      const arr = map.get(o.optionCategoryName) ?? [];
-      arr.push(o);
-      map.set(o.optionCategoryName, arr);
-    }
-    return Array.from(map.entries()).map(([category, items]) => ({ category, items }));
-  }
-
   calcTotal(order: OrderResponse): number {
     return calculateTotalPrice(order);
   }
@@ -444,26 +411,4 @@ export class Dashboard implements OnInit, OnDestroy {
     this.checkScreenSize();
   }
 
-  onTouchStart(event: TouchEvent): void {
-    this.touchStartX = event.touches[0].clientX;
-  }
-
-  onTouchMove(event: TouchEvent): void {
-    this.touchEndX = event.touches[0].clientX;
-  }
-
-  onTouchEnd(): void {
-    const swipeDistance = this.touchEndX - this.touchStartX;
-    if (Math.abs(swipeDistance) > this.minSwipeDistance) {
-      if (swipeDistance < 0 && !this.isSwipedLeft()) {
-        this.isSwipedLeft.set(true);
-      } else if (swipeDistance > 0 && this.isSwipedLeft()) {
-        this.isSwipedLeft.set(false);
-      }
-    }
-  }
-
-  onIndicatorClick(direction: 'left' | 'right'): void {
-    this.isSwipedLeft.set(direction === 'left');
-  }
 }

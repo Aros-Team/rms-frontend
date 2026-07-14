@@ -17,4 +17,7 @@ export interface ProductCreateRequest {
   areaId: number;
   recipe: RecipeItemRequest[];
   optionIds?: number[];
+  selectionType?: 'STANDARD' | 'SPECIAL_SELECTION';
+  baseRecipeEnabled?: boolean;
+  schedulingRequired?: boolean;
 }

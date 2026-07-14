@@ -1,0 +1,6 @@
+export type SelectionType = 'STANDARD' | 'SPECIAL_SELECTION';
+
+export const SELECTION_TYPE = {
+  STANDARD: 'STANDARD',
+  SPECIAL_SELECTION: 'SPECIAL_SELECTION',
+} as const;

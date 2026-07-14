@@ -4,6 +4,24 @@ export interface OrderSelectedOption {
   categoryName: string;
 }
 
+export interface OrderAdditionResolved {
+  id: number;
+  name: string;
+  extraPrice: number;
+  optionName: string;
+}
+
+export interface OrderClarificationResolved {
+  questionId: number;
+  question: string;
+  answer: string;
+}
+
+export interface OrderGroupSelectionResolved {
+  groupName: string;
+  selectedOptions: string[];
+}
+
 export interface OrderDetailItem {
   id: number;
   productId: number;
@@ -11,6 +29,10 @@ export interface OrderDetailItem {
   unitPrice: number;
   instructions: string;
   selectedOptions?: OrderSelectedOption[];
+  selectionType?: 'STANDARD' | 'SPECIAL_SELECTION';
+  groupSelections?: OrderGroupSelectionResolved[];
+  additionsResolved?: OrderAdditionResolved[];
+  clarificationsResolved?: OrderClarificationResolved[];
 }
 
 export interface OrderResponse {

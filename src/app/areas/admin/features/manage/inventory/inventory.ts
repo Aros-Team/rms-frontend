@@ -39,6 +39,8 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TooltipModule } from 'primeng/tooltip';
 import { CheckboxModule } from 'primeng/checkbox';
+import { TagModule } from 'primeng/tag';
+import { MessageModule } from 'primeng/message';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton';
 
 // Wizard step type
@@ -66,6 +68,8 @@ type VariantStep = 'category' | 'supply' | 'variant';
     MultiSelectModule,
     TooltipModule,
     CheckboxModule,
+    TagModule,
+    MessageModule,
     LazyLoadDirective,
     TableSkeleton,
   ],
@@ -130,6 +134,8 @@ export class Inventory implements OnInit {
     return catId === null ? all : all.filter((s) => s.categoryId === catId);
   });
 
+  hasZeroUnitCost = computed(() => (this.supplies() ?? []).some(v => v.unitCost === 0));
+
   loading = computed(() => this.supplies() === undefined);
 
   // --- new variant wizard ---
@@ -185,6 +191,7 @@ export class Inventory implements OnInit {
     unitId: [null, Validators.required],
     // eslint-disable-next-line @typescript-eslint/unbound-method
     quantity: [null, [Validators.required, Validators.min(0)]],
+    unitCost: [null],
   });
 
   get items(): FormArray {
@@ -419,11 +426,13 @@ export class Inventory implements OnInit {
       this.variantSubmitting = false;
       return;
     }
+    const unitCost = this.variantForm.get('unitCost')?.value as number | undefined;
     this.supplyService
       .createVariant({
         supplyId,
         unitId,
         quantity,
+        unitCost: unitCost ?? undefined,
       })
       .subscribe({
         next: (created) => {

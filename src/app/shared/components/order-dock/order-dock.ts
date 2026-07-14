@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { mapHttpError } from '@app/shared/lib/http-error-mapper';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
@@ -258,15 +259,16 @@ export class OrderDock {
         this.dock.loadAvailableTables();
         this.submitting.set(false);
       },
-      error: (err) => {
-        const status = err instanceof HttpErrorResponse ? err.status : 0;
+      error: (err: unknown) => {
+        const httpErr = err instanceof HttpErrorResponse ? err : null;
+        const status = httpErr?.status ?? 0;
         const summary = status === 409 ? 'Conflicto'
                       : status === 400 ? 'Datos inválidos'
                       : 'Error al crear pedido';
         this.messageService.add({
           severity: status === 400 ? 'warn' : 'error',
           summary,
-          detail: extractError(err),
+          detail: httpErr ? mapHttpError(httpErr, 'order') : 'Error al procesar la solicitud',
           life: 6000,
         });
         this.dock.loadAvailableTables();
@@ -318,12 +320,4 @@ export class OrderDock {
   }
 }
 
-function extractError(err: unknown): string {
-  if (err instanceof HttpErrorResponse) {
-    const errorBody: unknown = err.error;
-    const body = errorBody as { message?: string } | null;
-    return body?.message ?? err.message;
-  }
-  if (err instanceof Error) return err.message;
-  return 'Error desconocido';
-}
+

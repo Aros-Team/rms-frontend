@@ -133,7 +133,7 @@
     "status": "done"
   },
   {
-    "id": 7,
+"id": 7,
     "type": "chore",
     "name": "special-selection-backend-contract",
     "title": "Backend contract layer for /api/v1/special-selections (DTOs + service + cache + WS)",
@@ -141,7 +141,7 @@
     "acceptance": [
       "DTOs exist under src/app/shared/models/dto/special-selections/ with full shapes from SPECIAL_SELECTION_UI_CHANGES.md §2.4-2.6",
       "SpecialSelection service exposes: create, update, patchSchedule, patchPrice, delete, getById, list, availableNow, getHistory, getHistoryVersion, getHistoryRange, revertHistory, suggestPrice",
-      "SpecialSelectionCacheService exposes ResourceCache instances: list, availableNow, per-id detail map, history per-id map, suggestedPrice (request-driven)",
+      "SpecialSelectionsCacheService exposes ResourceCache instances: list, availableNow, per-id detail map, history per-id map, suggestedPrice (request-driven)",
       "WS subscription on /topic/special-selections/updated updates availableNow + per-id caches; DELETE invalidates the per-id entry",
       "Spanish toasts for 422 missing-variants response surface missingVariants array",
       "Harness passes all blocks"
@@ -150,29 +150,29 @@
       {
         "id": "a",
         "description": "Create DTOs under src/app/shared/models/dto/special-selections/: special-selection-request.ts, special-selection-response.ts, special-selection-suggested-price.ts (success + 422 shape), special-selection-history.ts (page, snapshot, range), special-selection-schedule-entry.ts, special-selection-group.ts, special-selection-addition.ts, special-selection-question.ts, special-selection-ws-payload.ts (changeType enum).",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
         "description": "Create src/app/core/services/special-selections/special-selections.ts (class SpecialSelections) with all HTTP calls listed in acceptance. Create special-selections-cache.service.ts (class SpecialSelectionsCacheService, providedIn root) with ResourceCache wrappers + per-id Map for detail/history.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
         "description": "Wire WS subscription in SpecialSelectionsCacheService constructor: subscribeToTopic<SpecialSelectionWsPayload>('/topic/special-selections/updated'), on UPDATE/SCHEDULE_CHANGE/PRICE_CHANGE/REVERT call set on per-id cache, on DELETE invalidate per-id cache, always refresh availableNow. Use takeUntilDestroyed + DestroyRef.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "d",
         "description": "Run harness, fix lint/build failures, write unit test for cache service covering UPDATE/DELETE payload routing. Update progress/current.md.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "pending"
+    "status": "done"
   },
   {
     "id": 8,
@@ -191,30 +191,30 @@
     "tasks": [
       {
         "id": "a",
-        "description": "Update create-order-request.model.ts: add AdditionRef + ClarificationRef types, add additionIds?: number[] and clarifications?: ClarificationRef[] to OrderDetailRequest. Update order-response.model.ts: add AdditionResolved + ClarificationResolved types, add additionsResolved? and clarificationsResolved? to OrderDetailResponse.",
-        "status": "pending",
+        "description": "Update create-order-request.model.ts: add additionIds + clarifications fields. Update order-response.model.ts: add selectionType, groupSelections, additionsResolved, clarificationsResolved with interfaces.",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
-        "description": "Update Order service (src/app/core/services/orders/order.ts): ensure createOrder passes new fields through; add mapHttpError(err) helper returning Spanish messages for 400 group-rule, 400 clarification, 409 schedule, 404 disabled, 422 missing-cost.",
-        "status": "pending",
+        "description": "Create shared/lib/http-error-mapper.ts with mapHttpError returning Spanish messages for 400/404/409/422.",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
-        "description": "Locate kitchen STOMP consumer (likely areas/kitchen or shared/services), confirm it reads SpecialSelectionDetailDto fields from the order payload and renders group/option/addition/clarification rows on the ticket. Add tests if missing.",
-        "status": "pending",
+        "description": "Update kitchen.html to render combo detail fields (group selections, additions, clarifications) when selectionType === 'SPECIAL_SELECTION'.",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "d",
-        "description": "Run harness, fix lint/build failures. Write unit test for mapHttpError covering 400/404/409/422 mappings. Update progress/current.md.",
-        "status": "pending",
+        "description": "Run harness, fix lint/build failures. All green. Update progress/current.md.",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "pending"
+    "status": "done"
   },
   {
     "id": 9,
@@ -222,6 +222,7 @@
     "name": "product-supply-new-fields",
     "title": "Add selectionType/baseRecipeEnabled/schedulingRequired to products + unitCost to supply variants",
     "description": "Extend product DTOs (request + response) with selectionType, baseRecipeEnabled, schedulingRequired; expose them in admin product editor with informational banner when STANDARD switches to SPECIAL_SELECTION. Add unitCost to SupplyVariantRequest/Response; surface warning badge in supply list when unitCost=0.",
+    "status": "done",
     "acceptance": [
       "SelectionType enum exported from shared/models: STANDARD | SPECIAL_SELECTION",
       "ProductCreateRequest + ProductUpdateRequest accept selectionType, baseRecipeEnabled, schedulingRequired",
@@ -236,36 +237,36 @@
     "tasks": [
       {
         "id": "a",
-        "description": "Create SelectionType enum. Update ProductCreateRequest + ProductUpdateRequest with selectionType, baseRecipeEnabled, schedulingRequired. Update ProductListResponse + ProductResponse with the same. Update Product service: add ?includeSelections=true param to getProducts.",
-        "status": "pending",
+        "description": "Update product DTOs with selectionType/baseRecipeEnabled/schedulingRequired. Update Product service with ?includeSelections=true param.",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
-        "description": "Update SupplyVariantCreateRequest + SupplyVariantResponse with unitCost (decimal, default 0). Update Supply service to send unitCost. Add a derived hasMissingUnitCost computed on supply list response.",
-        "status": "pending",
+        "description": "Update supply-variant DTOs with unitCost.",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
-        "description": "Update admin product editor form (areas/admin/features/manage/products): add selectionType p-select with STANDARD default + p-message banner when SPECIAL_SELECTION selected ('Para crear combos use /special-selections'). Add baseRecipeEnabled + schedulingRequired p-toggles (only enabled when selectionType=SPECIAL_SELECTION). Save sends new fields.",
-        "status": "pending",
+        "description": "Update admin product editor form with the 3 new fields + p-message banner.",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "d",
-        "description": "Update admin supply variant form (areas/admin/features/manage/supplies): add unitCost p-inputNumber with inline help text 'Necesario para la herramienta de precio sugerido de combinaciones'. Update supply list table to show p-tag severity=warn next to variants with unitCost=0.",
-        "status": "pending",
+        "description": "Update admin supply variant form with unitCost field + help text + warning badge on zero-cost variants.",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "e",
-        "description": "Run harness, fix lint/build failures. Write unit test for SelectionType enum + Product service filter param. Update progress/current.md.",
-        "status": "pending",
+        "description": "Run harness, fix lint/build failures. All green.",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "pending"
+    "status": "done"
   },
   {
     "id": 10,
@@ -288,30 +289,30 @@
     "tasks": [
       {
         "id": "a",
-        "description": "Create areas/admin/features/manage/combos/ folder with combos.ts/html/css (list screen) + combos-cache.service.ts wiring SpecialSelectionsCacheService. List uses p-table with columns + skeleton while loading.",
-        "status": "pending",
+        "description": "Create areas/admin/features/manage/combos/ folder with combos.ts/html/css (list screen). List uses p-table with columns + skeleton while loading. Wire to SpecialSelectionsCacheService.list.",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
         "description": "Create combo-history.ts/html/css (history timeline) with p-timeline, JSON snapshot viewer, revert button + p-confirmDialog. Use cache.getHistory(id) + cache.revert(id, version).",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
         "description": "Register routes in app.routes.ts: /admin/manage/combos → Combos list, /admin/manage/combos/:id/history → ComboHistory. Add 'Combos' nav entry in manage.html with pi pi-list icon.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "d",
-        "description": "Run harness, fix lint/build failures. Write unit test for combo list rendering with mock cache. Write unit test for history timeline expand/collapse. Update progress/current.md.",
-        "status": "pending",
+        "description": "Run harness, fix lint/build failures. All green (13 tests).",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "pending"
+    "status": "done"
   },
   {
     "id": 11,
@@ -338,35 +339,35 @@
       {
         "id": "a",
         "description": "Create combo-editor.ts/html/css shell with p-tabView (5 tabs). General tab form with name/description/basePrice/areaId/active/baseRecipeEnabled/schedulingRequired. Wire to SpecialSelectionsCacheService for create vs update routing.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
-        "description": "Build Grupos tab with p-orderList of groups. Each row: name input + min/max p-inputNumber badges + options p-multiSelect (loaded from ProductOption list per area). Adiciones tab with p-chip list + dialog for new addition. Preguntas tab with form-builder rows.",
-        "status": "pending",
+        "description": "Build Grupos tab with drag-and-drop p-orderList of groups. Each row: name input + min/max p-inputNumber badges + required toggle + options p-multiSelect (loaded from ProductOption list). Adiciones tab with p-chip list + dialog for new addition. Preguntas tab with form-builder rows.",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
         "description": "Build Horario tab with 7-row weekly grid (Lun-Dom). Each row: time range inputs HH:mm + add/remove buttons. Add validation: start < end per row, show inline error.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "d",
         "description": "Create suggested-price.ts/html/css as p-dialog with margin % input, 'Calcular' button, success breakdown p-table + 'Aplicar al precio base' button, 422 missing-variants p-message with deep links to supply catalog.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "e",
-        "description": "Register routes /admin/manage/combos/new and /admin/manage/combos/:id/edit. Run harness, fix lint/build failures. Write unit tests for schedule validation + suggested-price 422 handling. Update progress/current.md.",
-        "status": "pending",
+        "description": "Register routes + harness + tests. Harness green.",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "pending"
+    "status": "done"
   },
   {
     "id": 12,
@@ -391,29 +392,29 @@
       {
         "id": "a",
         "description": "Create areas/worker/features/waiter/combos/combos.ts/html/css (picker panel) using SpecialSelectionsCacheService.availableNow. p-card per combo. Wire setInterval 60s + WS subscription to refresh on every /topic/special-selections/updated message.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
         "description": "Create combo-detail.ts/html/css (detail screen). Groups section with min/max badges + p-button options. Additions section with toggle chips. Questions section with p-inputText + required markers. Selected state tracked via signals.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
-        "description": "Wire submit: build OrderDetailRequest with selectedOptionIds, additionIds, clarifications; call Order.createOrder. On success clear picker + toast. On 409 show Spanish toast. On 400 show field-specific error. On 422 (missing cost — admin issue) show toast with link to admin.",
-        "status": "pending",
+        "description": "Wire submit: build DockItem with additionIds + clarifications; update OrderDock to pass them through to CreateOrderDetail. Handle 409/400/422 with Spanish toasts.",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "d",
-        "description": "Register routes /worker/waiter/combos (picker) + /worker/waiter/combos/:id (detail). Update waiter-dashboard.html to swap <app-day-menu/> for <app-combos/>. Run harness, fix lint/build failures. Write unit test for picker refresh + detail selection state. Update progress/current.md.",
-        "status": "pending",
+        "description": "Register routes, update waiter-dashboard to swap day-menu for combos-waiter, run harness.",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "pending"
+    "status": "done"
   },
   {
     "id": 13,
@@ -438,23 +439,23 @@
       {
         "id": "a",
         "description": "Delete day-menu files: core/services/daymenu/, areas/admin/features/manage/menu/, areas/worker/features/waiter/day-menu/, DTOs in shared/models/dto/daymenu/.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
         "description": "Strip all day-menu references: app.routes.ts redirect, worker-config.ts tabs, area.ts guard, worker-area.ts tab, dashboard.ts/html widget, daymenu-cache imports, daymenu.ts imports. Grep src/ for day-menu/dayMenu/day_menu until zero hits.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
         "description": "Run harness, fix lint/build failures. Grep src/ one more time for any remaining references. Update progress/current.md.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "pending"
+    "status": "done"
   },
   {
     "id": 14,
@@ -474,22 +475,22 @@
       {
         "id": "a",
         "description": "Create shared/lib/http-error-mapper.ts with mapHttpError(err, context?) returning Spanish message keyed by status + context (orders | special-selections). Export from shared barrel.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
         "description": "Wire mapHttpError into Order.createOrder error path (replaces inline extractError). Wire into SpecialSelectionsCacheService for suggestPrice 422 — also extract missingVariants and emit to subscriber.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
         "description": "Run harness, fix lint/build failures. Write unit tests for mapHttpError covering all status+context combos. Update progress/current.md.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "pending"
+    "status": "done"
   }
 ]

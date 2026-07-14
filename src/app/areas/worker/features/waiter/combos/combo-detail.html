@@ -1,0 +1,108 @@
+<div class="flex flex-col items-center justify-center min-h-full p-6">
+  @if (loading()) {
+    <p>Cargando...</p>
+  } @else if (detail(); as combo) {
+    <div class="w-full max-w-xl flex flex-col gap-6">
+      <!-- Header -->
+      <div class="text-center">
+        <p class="text-xs font-semibold text-primary-700 dark:text-primary-300 uppercase tracking-widest mb-1">Combo</p>
+        <h2 class="text-3xl font-black text-surface-900 dark:text-surface-0">{{ combo.name }}</h2>
+        @if (combo.description) {
+          <p class="text-surface-600 dark:text-surface-300 text-sm mt-2">{{ combo.description }}</p>
+        }
+        <p class="text-2xl font-bold text-primary-600 mt-2">{{ currencyFormat.format(combo.basePrice) }}</p>
+      </div>
+
+      <!-- Groups -->
+      @for (group of combo.groups; track group.id) {
+        <div class="bg-primary-contrast dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 overflow-hidden">
+          <div class="bg-surface-50 dark:bg-surface-900/50 px-6 py-3 border-b border-surface-200 dark:border-surface-700">
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-surface-800 dark:text-surface-200">{{ group.name }}</span>
+              @if (group.required) {
+                <i class="pi pi-asterisk text-red-500 text-xs"></i>
+              }
+              <span class="text-xs text-surface-500 ml-auto">
+                @if (group.minSelections === group.maxSelections) {
+                  Elige {{ group.minSelections }}
+                } @else {
+                  {{ group.minSelections }}-{{ group.maxSelections }}
+                }
+              </span>
+            </div>
+          </div>
+          <div class="px-6 py-4">
+            <div class="flex flex-wrap gap-2">
+              @for (opt of group.options; track opt.id) {
+                @let selected = selectedOptions().get(group.id)?.includes(opt.id) ?? false;
+                <p-button
+                  [label]="opt.name + (opt.extraPrice > 0 ? ' (+' + currencyFormat.format(opt.extraPrice) + ')' : '')"
+                  [severity]="selected ? 'primary' : 'secondary'"
+                  [outlined]="!selected"
+                  (onClick)="toggleOption(group.id, opt.id)"
+                  size="small"
+                />
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Additions -->
+      @if (combo.additions.length > 0) {
+        <div class="bg-primary-contrast dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 overflow-hidden">
+          <div class="bg-surface-50 dark:bg-surface-900/50 px-6 py-3 border-b border-surface-200 dark:border-surface-700">
+            <span class="font-semibold text-surface-800 dark:text-surface-200">Adiciones</span>
+          </div>
+          <div class="px-6 py-4 flex flex-wrap gap-2">
+            @for (add of combo.additions; track add.id) {
+              @let selected = selectedAdditionIds().includes(add.id);
+              <p-chip
+                [label]="add.name + ' (+' + currencyFormat.format(add.extraPrice) + ')'"
+                [style]="selected ? 'background: var(--p-primary-100); border: 1px solid var(--p-primary-300);' : ''"
+                (click)="toggleAddition(add.id)"
+              />
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Questions -->
+      @if (combo.questions.length > 0) {
+        <div class="bg-primary-contrast dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 overflow-hidden">
+          <div class="bg-surface-50 dark:bg-surface-900/50 px-6 py-3 border-b border-surface-200 dark:border-surface-700">
+            <span class="font-semibold text-surface-800 dark:text-surface-200">Preguntas</span>
+          </div>
+          <div class="px-6 py-4 flex flex-col gap-4">
+            @for (q of combo.questions; track q.id) {
+              <div>
+                <label [for]="'q-' + q.id" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">
+                  {{ q.question }}
+                  @if (q.required) {
+                    <span class="text-red-500">*</span>
+                  }
+                </label>
+                <input
+                  [id]="'q-' + q.id"
+                  pInputText
+                  class="w-full"
+                  [placeholder]="'Respuesta...'"
+                  [value]="clarifications().get(q.id) ?? ''"
+                  (input)="setClarification(q.id, $any($event.target).value)"
+                />
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Submit button -->
+      <p-button
+        label="Agregar al pedido"
+        icon="pi pi-shopping-cart"
+        styleClass="w-full rounded-2xl py-4 text-lg font-semibold"
+        (onClick)="submitOrder()"
+      />
+    </div>
+  }
+</div>

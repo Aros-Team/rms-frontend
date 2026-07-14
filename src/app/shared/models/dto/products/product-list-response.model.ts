@@ -8,4 +8,7 @@ export interface ProductListResponse {
   categoryName: string;
   areaId: number;
   thumbnailUrl?: string;
+  selectionType?: string;
+  baseRecipeEnabled?: boolean;
+  schedulingRequired?: boolean;
 }

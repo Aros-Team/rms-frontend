@@ -16,4 +16,7 @@ export interface ProductResponse {
   areaName: string;
   recipe: ProductRecipeItem[];
   thumbnailUrl?: string;
+  selectionType?: string;
+  baseRecipeEnabled?: boolean;
+  schedulingRequired?: boolean;
 }

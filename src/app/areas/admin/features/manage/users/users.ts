@@ -1,8 +1,10 @@
-import { CurrencyPipe } from '@angular/common';
-import { Component, OnInit, inject, computed, DestroyRef } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { Component, OnInit, inject, computed, DestroyRef, signal, ViewChild, ElementRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -16,6 +18,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { TagModule } from 'primeng/tag';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DatePickerModule } from 'primeng/datepicker';
 import { UserResponse } from '@app/shared/models/dto/users/user-response.model';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { User } from '@app/core/services/users/user';
@@ -28,8 +31,13 @@ import { UsersCacheService } from './users-cache.service';
 import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
 import { AreaResponse } from '@app/shared/models/dto/areas/area.model';
 import { Area } from '@app/core/services/areas/area';
-import { signal } from '@angular/core';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton';
+import { WorkerCard } from './worker-card';
+import { TimeLog, TimeLogFilterParams } from '@app/core/services/schedules/time-log';
+import { TimeLogEntry } from '@app/shared/models/dto/schedules/time-log-entry.model';
+import { Schedule } from '@app/core/services/schedules/schedule';
+import { ScheduleAssignment } from '@app/core/services/schedules/schedule-assignment';
+import { Schedule as ScheduleModel } from '@app/shared/models/dto/schedules/schedule.model';
 
 interface UserFormValue {
   document: string;
@@ -47,6 +55,7 @@ interface UserFormValue {
   selector: 'app-users',
   imports: [
     RouterModule,
+    FormsModule,
     TableModule,
     ButtonModule,
     DialogModule,
@@ -61,10 +70,12 @@ interface UserFormValue {
     TagModule,
     SkeletonModule,
     ConfirmDialogModule,
+    DatePickerModule,
     FormValidation,
     LazyLoadDirective,
     TableSkeleton,
-    CurrencyPipe,
+    WorkerCard,
+    NgClass,
   ],
   templateUrl: './users.html',
   styles: ``,
@@ -77,11 +88,40 @@ export class Users implements OnInit {
   private confirmationService = inject(ConfirmationService);
   private destroyRef = inject(DestroyRef);
   readonly cache = inject(UsersCacheService);
+  private timeLogService = inject(TimeLog);
+  private scheduleService = inject(Schedule);
+  private scheduleAssignmentService = inject(ScheduleAssignment);
+
+  // Template refs for focus management
+  @ViewChild('tabEmpleados') tabEmpleados?: ElementRef<HTMLButtonElement>;
+  @ViewChild('tabTimeLogs') tabTimeLogs?: ElementRef<HTMLButtonElement>;
+  @ViewChild('firstInputRef') firstInputRef?: ElementRef<HTMLElement>;
+
+  // Tab navigation
+  activeEmployeeTab = signal<'list' | 'time-logs'>('list');
 
   title = 'Administracion de usuarios';
   description = 'Gestión completa de todos los usuarios/empleados del restaurante';
 
-  users = computed(() => this.cache.users.data() ?? []);
+  // Time-log state
+  timeLogs = signal<TimeLogEntry[]>([]);
+  timeLogLoading = signal(false);
+  timeLogError = signal<string | null>(null);
+  filterWorkerId = signal<number | undefined>(undefined);
+  filterFrom = signal<Date | undefined>(undefined);
+  filterTo = signal<Date | undefined>(undefined);
+
+  // Schedule assignment state
+  scheduleDialogVisible = signal(false);
+  selectedWorkerForSchedule = signal<UserResponse | null>(null);
+  allSchedules = signal<ScheduleModel[]>([]);
+  workerAssignedScheduleIds = signal<number[]>([]);
+  assigningScheduleIds = signal<Set<number>>(new Set());
+  scheduleDialogLoading = signal(false);
+  userAssignedSchedules = signal<Map<number, number[]>>(new Map());
+
+  // Filter to show only WORKER role users (employees)
+  users = computed(() => (this.cache.users.data() ?? []).filter(u => u.role === 'WORKER'));
   areas = signal<AreaResponse[]>([]);
   editing = false;
   selectedUser: UserResponse | null = null;
@@ -145,6 +185,11 @@ export class Users implements OnInit {
     this.backendFieldErrors = {};
     this.editing = false;
     this.creationModalVisible = true;
+  }
+
+  /** Focus first input in modal dialog after it opens */
+  focusFirstInput(): void {
+    setTimeout(() => this.firstInputRef?.nativeElement.focus());
   }
 
   createUser(): void {
@@ -511,5 +556,196 @@ export class Users implements OnInit {
         }
       }
     }
+  }
+
+  // ── Time-log methods ──
+
+  switchTab(tab: 'list' | 'time-logs'): void {
+    if (this.activeEmployeeTab() === tab) return;
+    this.activeEmployeeTab.set(tab);
+    if (tab === 'time-logs') {
+      this.loadTimeLogs();
+    }
+    // Focus the active tab for keyboard/AT users
+    setTimeout(() => {
+      if (tab === 'list') {
+        this.tabEmpleados?.nativeElement.focus();
+      } else {
+        this.tabTimeLogs?.nativeElement.focus();
+      }
+    });
+  }
+
+  loadTimeLogs(): void {
+    this.timeLogLoading.set(true);
+    this.timeLogError.set(null);
+
+    const params: TimeLogFilterParams = {};
+    if (this.filterWorkerId() !== undefined) {
+      params.workerId = this.filterWorkerId();
+    }
+    const fromDate = this.filterFrom();
+    if (fromDate) {
+      params.from = fromDate.toISOString();
+    }
+    const toDate = this.filterTo();
+    if (toDate) {
+      params.to = toDate.toISOString();
+    }
+
+    this.timeLogService.getTimeLogs(params).subscribe({
+      next: (data) => {
+        this.timeLogs.set(data);
+        this.timeLogLoading.set(false);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.logger.error('Failed to load time logs', err);
+        if (err.status === 403) {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Acción no disponible fuera de turno' });
+        } else if (err.status === 404) {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se encontraron registros' });
+        } else {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al cargar los registros de ingreso' });
+        }
+        this.timeLogError.set('Error al cargar los registros de ingreso');
+        this.timeLogLoading.set(false);
+      },
+    });
+  }
+
+  clearFilters(): void {
+    this.filterWorkerId.set(undefined);
+    this.filterFrom.set(undefined);
+    this.filterTo.set(undefined);
+    this.loadTimeLogs();
+  }
+
+  formatTimestamp(iso: string): string {
+    return new Date(iso).toLocaleString('es-CO', {
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit',
+    });
+  }
+
+  // ── Schedule assignment methods ──
+
+  openScheduleDialog(worker: UserResponse): void {
+    if (!worker.id) return;
+    const workerId = worker.id;
+    this.selectedWorkerForSchedule.set(worker);
+    this.scheduleDialogVisible.set(true);
+    this.scheduleDialogLoading.set(true);
+    this.workerAssignedScheduleIds.set([]);
+    this.allSchedules.set([]);
+
+    this.scheduleService.getAll().subscribe({
+      next: (schedules) => {
+        this.allSchedules.set(schedules);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.logger.error('Failed to load schedules', err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al cargar horarios' });
+      },
+    });
+
+    this.scheduleAssignmentService.getAssignments(workerId).subscribe({
+      next: (scheduleIds) => {
+        this.workerAssignedScheduleIds.set(scheduleIds);
+        this.userAssignedSchedules.update(map => {
+          const newMap = new Map(map);
+          newMap.set(workerId, scheduleIds);
+          return newMap;
+        });
+      },
+      error: (err: HttpErrorResponse) => {
+        this.logger.error('Failed to load assignments', err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al cargar asignaciones' });
+      },
+      complete: () => {
+        this.scheduleDialogLoading.set(false);
+      },
+    });
+  }
+
+  closeScheduleDialog(): void {
+    this.scheduleDialogVisible.set(false);
+  }
+
+  assignSchedule(scheduleId: number): void {
+    const worker = this.selectedWorkerForSchedule();
+    if (!worker?.id) return;
+    const workerId = worker.id;
+
+    this.assigningScheduleIds.update(s => new Set(s).add(scheduleId));
+
+    this.scheduleAssignmentService.assign(workerId, scheduleId).subscribe({
+      next: () => {
+        this.workerAssignedScheduleIds.update(ids => [...ids, scheduleId]);
+        this.userAssignedSchedules.update(map => {
+          const newMap = new Map(map);
+          const current = newMap.get(workerId) ?? [];
+          newMap.set(workerId, [...current, scheduleId]);
+          return newMap;
+        });
+        this.messageService.add({ severity: 'success', summary: 'Asignado', detail: 'Horario asignado correctamente' });
+        this.assigningScheduleIds.update(s => { const n = new Set(s); n.delete(scheduleId); return n; });
+      },
+      error: (err: HttpErrorResponse) => {
+        if (err.status === 409) {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'El horario se solapa con turnos existentes del trabajador' });
+        } else {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al asignar horario' });
+        }
+        this.assigningScheduleIds.update(s => { const n = new Set(s); n.delete(scheduleId); return n; });
+      },
+    });
+  }
+
+  unassignSchedule(scheduleId: number): void {
+    const worker = this.selectedWorkerForSchedule();
+    if (!worker?.id) return;
+    const workerId = worker.id;
+
+    this.assigningScheduleIds.update(s => new Set(s).add(scheduleId));
+
+    this.scheduleAssignmentService.removeAssignment(workerId, scheduleId).subscribe({
+      next: () => {
+        this.workerAssignedScheduleIds.update(ids => ids.filter(id => id !== scheduleId));
+        this.userAssignedSchedules.update(map => {
+          const newMap = new Map(map);
+          const current = newMap.get(workerId) ?? [];
+          newMap.set(workerId, current.filter(id => id !== scheduleId));
+          return newMap;
+        });
+        this.messageService.add({ severity: 'success', summary: 'Desasignado', detail: 'Horario desasignado correctamente' });
+        this.assigningScheduleIds.update(s => { const n = new Set(s); n.delete(scheduleId); return n; });
+      },
+      error: (err: HttpErrorResponse) => {
+        this.logger.error('Failed to remove assignment', err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al desasignar horario' });
+        this.assigningScheduleIds.update(s => { const n = new Set(s); n.delete(scheduleId); return n; });
+      },
+    });
+  }
+
+  isScheduleAssigned(scheduleId: number): boolean {
+    return this.workerAssignedScheduleIds().includes(scheduleId);
+  }
+
+  isScheduleAssigning(scheduleId: number): boolean {
+    return this.assigningScheduleIds().has(scheduleId);
+  }
+
+  getAssignedScheduleCount(userId: number): string {
+    const count = this.userAssignedSchedules().get(userId)?.length;
+    return count !== undefined ? String(count) : '-';
+  }
+
+  getScheduleCount(userId: number): number {
+    return this.userAssignedSchedules().get(userId)?.length ?? 0;
+  }
+
+  hasScheduleData(userId: number): boolean {
+    return this.userAssignedSchedules().has(userId);
   }
 }

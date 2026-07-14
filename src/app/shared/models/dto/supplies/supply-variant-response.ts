@@ -9,4 +9,5 @@ export interface SupplyVariantResponse {
   quantity: number;
   stockBodega: number;
   stockCocina: number;
+  unitCost: number;
 }

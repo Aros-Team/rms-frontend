@@ -67,8 +67,20 @@ export const routes: Routes = [
             loadComponent: () => import('@areas/admin/features/manage/areas/areas').then(m => m.Areas),
           },
           {
-            path: 'menu',
-            loadComponent: () => import('@areas/admin/features/manage/menu/menu').then(m => m.Menu),
+            path: 'combos',
+            loadComponent: () => import('@areas/admin/features/manage/combos/combos').then(m => m.Combos),
+          },
+          {
+            path: 'combos/new',
+            loadComponent: () => import('@areas/admin/features/manage/combos/combo-editor').then(m => m.ComboEditor),
+          },
+          {
+            path: 'combos/:id/edit',
+            loadComponent: () => import('@areas/admin/features/manage/combos/combo-editor').then(m => m.ComboEditor),
+          },
+          {
+            path: 'combos/:id/history',
+            loadComponent: () => import('@areas/admin/features/manage/combos/combo-history').then(m => m.ComboHistory),
           },
           {
             path: 'orders-create',
@@ -85,18 +97,6 @@ export const routes: Routes = [
           {
             path: 'inventory',
             loadComponent: () => import('@areas/admin/features/manage/inventory/inventory').then(m => m.Inventory),
-          },
-          {
-            path: 'schedules',
-            loadComponent: () => import('@areas/admin/features/manage/schedules/schedules').then(m => m.Schedules),
-          },
-          {
-            path: 'schedules/:scheduleId/assignments',
-            loadComponent: () => import('@areas/admin/features/manage/schedules/assignments/schedule-assignments').then(m => m.ScheduleAssignments),
-          },
-          {
-            path: 'time-logs',
-            loadComponent: () => import('@areas/admin/features/manage/time-logs/time-logs').then(m => m.TimeLogs),
           },
         ]
       },
@@ -122,7 +122,7 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'waiter', pathMatch: 'full' },
       { path: 'waiter', loadComponent: () => import('@areas/worker/features/waiter/waiter-dashboard/waiter-dashboard').then(m => m.WaiterDashboard), canActivate: [AreaGuard] },
-      { path: 'day-menu',   redirectTo: '/worker?tab=menu' },
+      { path: 'combos/:id', loadComponent: () => import('@areas/worker/features/waiter/combos/combo-detail').then(m => m.ComboDetail), canActivate: [AreaGuard] },
       { path: 'take-order', redirectTo: '/worker?tab=carta' },
       { path: 'orders',     redirectTo: '/worker?tab=pedidos' },
       { path: 'kitchen', loadComponent: () => import('@areas/worker/features/kitchen/kitchen').then(m => m.Kitchen), canActivate: [AreaGuard] },

@@ -34,6 +34,31 @@
         <label for="categoryId">Categoría *</label>
       </p-iftalabel>
 
+      <!-- Selection type -->
+      <p-iftalabel>
+        <p-select inputId="selectionType" class="w-full"
+          [options]="['STANDARD', 'SPECIAL_SELECTION']" formControlName="selectionType"
+          appendTo="body" />
+        <label for="selectionType">Tipo de selección</label>
+      </p-iftalabel>
+
+      <!-- Special-selection fields -->
+      @if (editForm.get('selectionType')?.value === 'SPECIAL_SELECTION') {
+        <p-message severity="info" variant="outlined">
+          Para crear combinaciones, usa la sección de Combos especiales en lugar de Productos
+        </p-message>
+
+        <div class="flex items-center gap-2">
+          <p-toggleswitch inputId="baseRecipeEnabled" formControlName="baseRecipeEnabled" />
+          <label for="baseRecipeEnabled" class="text-sm text-surface-700 dark:text-surface-300">Receta base habilitada</label>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <p-toggleswitch inputId="schedulingRequired" formControlName="schedulingRequired" />
+          <label for="schedulingRequired" class="text-sm text-surface-700 dark:text-surface-300">Agendamiento requerido</label>
+        </div>
+      }
+
       <p-iftalabel>
         <p-select [options]="areas()" inputId="areaId" class="w-full"
           optionValue="id" optionLabel="name" formControlName="areaId"

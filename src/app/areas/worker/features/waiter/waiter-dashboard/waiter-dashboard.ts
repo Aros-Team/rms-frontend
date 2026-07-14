@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, DestroyRef, inject, signal } from '
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { DayMenu } from '@areas/worker/features/waiter/day-menu/day-menu';
+import { Combos } from '@areas/worker/features/waiter/combos/combos';
 import { Products } from '@areas/worker/features/waiter/products/products';
 import { TodayOrders } from '@areas/worker/features/waiter/today-orders/today-orders';
 
@@ -24,7 +24,7 @@ interface DashboardTab {
   selector: 'app-waiter-dashboard',
   templateUrl: './waiter-dashboard.html',
   styleUrl: './waiter-dashboard.css',
-  imports: [CommonModule, DayMenu, Products, TodayOrders],
+  imports: [CommonModule, Combos, Products, TodayOrders],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WaiterDashboard {

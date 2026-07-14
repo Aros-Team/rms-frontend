@@ -53,13 +53,13 @@ export class AreaGuard implements CanActivate {
           return new RedirectCommand(this.router.parseUrl('/worker/profile'));
         }
         this.logger.warn(`AreaGuard: User lacks KITCHEN area, redirecting from /worker/kitchen`);
-        return new RedirectCommand(this.router.parseUrl('/worker/day-menu'));
+        return new RedirectCommand(this.router.parseUrl('/worker/waiter'));
       }
       return true;
     }
 
-    // take-order, orders, day-menu require SERVICE area
-    const serviceRoutes = ['take-order', 'orders', 'day-menu'];
+    // take-order, orders require SERVICE area
+    const serviceRoutes = ['take-order', 'orders'];
     if (serviceRoutes.includes(targetRoute)) {
       const hasService = userData?.areas.some(a => a.type === 'SERVICE') ?? false;
       const hasKitchen = userData?.areas.some(a => a.type === 'KITCHEN') ?? false;

@@ -44,7 +44,10 @@ export interface ProductData {
 export class Product {
   private http = inject(HttpClient);
 
-  public getProducts(): Observable<ProductResponse[]> {
+  public getProducts(includeSelections?: boolean): Observable<ProductResponse[]> {
+    if (includeSelections) {
+      return this.http.get<ProductResponse[]>('v1/products', { params: { includeSelections: 'true' } });
+    }
     return this.http.get<ProductResponse[]>('v1/products');
   }
 
@@ -54,7 +57,10 @@ export class Product {
     });
   }
 
-  public getAllProducts(): Observable<ProductListResponse[]> {
+  public getAllProducts(includeSelections?: boolean): Observable<ProductListResponse[]> {
+    if (includeSelections) {
+      return this.http.get<ProductListResponse[]>('v1/products', { params: { includeSelections: 'true' } });
+    }
     return this.http.get<ProductListResponse[]>('v1/products');
   }
 
@@ -101,13 +107,15 @@ export class Product {
     );
   }
 
-  getProductsByCategories(categoryIds: number[]): Observable<ProductResponse[]> {
+  getProductsByCategories(categoryIds: number[], includeSelections?: boolean): Observable<ProductResponse[]> {
     if (categoryIds.length === 0) {
-      return this.getProducts();
+      return this.getProducts(includeSelections);
     }
-    return this.http.get<ProductResponse[]>('v1/products', {
-      params: { categories: categoryIds.join(',') }
-    });
+    const params: Record<string, string> = { categories: categoryIds.join(',') };
+    if (includeSelections) {
+      params['includeSelections'] = 'true';
+    }
+    return this.http.get<ProductResponse[]>('v1/products', { params });
   }
 
   public getOptions(productId: number): Observable<ProductOption[]> {

@@ -12,6 +12,8 @@ export interface DockItem {
   selectedOptionIds: number[];
   optionNames: string[];
   quantity: number;
+  additionIds?: number[];
+  clarifications?: { questionId: number; answer: string }[];
 }
 
 export interface DinerState {
@@ -205,6 +207,8 @@ export class OrderDock {
           productId: item.product.id,
           instructions: item.instructions,
           selectedOptionIds: item.selectedOptionIds,
+          additionIds: item.additionIds,
+          clarifications: item.clarifications,
         }))
       )
     })).filter(d => d.details.length > 0);
@@ -218,6 +222,8 @@ export class OrderDock {
         productId: item.product.id,
         instructions: item.instructions,
         selectedOptionIds: item.selectedOptionIds,
+        additionIds: item.additionIds,
+        clarifications: item.clarifications,
       }))
     );
   }

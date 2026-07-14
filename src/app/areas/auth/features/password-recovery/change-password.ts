@@ -1,7 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, Input, Output, EventEmitter } from '@angular/core';
 
 import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { NgClass } from '@angular/common';
+import { DialogModule } from 'primeng/dialog';
 import { PasswordModule } from 'primeng/password';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
@@ -20,14 +21,14 @@ const passwordMatchValidator: ValidatorFn = (control: AbstractControl): Validati
 @Component({
   selector: 'app-change-password',
   templateUrl: './change-password.html',
-  styleUrls: ['./change-password.css'],
   imports: [
     ReactiveFormsModule,
     NgClass,
+    DialogModule,
     PasswordModule,
     InputTextModule,
     ButtonModule,
-    MessageModule
+    MessageModule,
   ],
 })
 export class ChangePassword {
@@ -35,6 +36,10 @@ export class ChangePassword {
   private authService = inject(Auth);
   private messageService = inject(MessageService);
   private logger = inject(Logging);
+
+  @Input() visible = false;
+  @Output() visibleChange = new EventEmitter<boolean>();
+  @Output() passwordChanged = new EventEmitter<void>();
 
   loading = signal(false);
   error = signal<string | null>(null);
@@ -45,6 +50,15 @@ export class ChangePassword {
     newPassword: new FormControl<string>('', [(control: AbstractControl) => Validators.required(control)]),
     confirmPassword: new FormControl<string>('', [(control: AbstractControl) => Validators.required(control)])
   }, { validators: passwordMatchValidator });
+
+  closeDialog(): void {
+    this.visible = false;
+    this.visibleChange.emit(false);
+  }
+
+  onDialogHide(): void {
+    this.closeDialog();
+  }
 
   checkPasswordRequirement(requirement: string): boolean {
     const password = String(this.form.get('newPassword')?.value ?? '');
@@ -81,6 +95,7 @@ export class ChangePassword {
           detail: 'Tu contraseña ha sido actualizada'
         });
         this.form.reset();
+        this.passwordChanged.emit();
       },
       error: (err: unknown) => {
         this.loading.set(false);

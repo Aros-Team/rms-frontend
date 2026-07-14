@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 
@@ -19,8 +19,8 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
-import { InputNumberModule } from 'primeng/inputnumber';
 import { TooltipModule } from 'primeng/tooltip';
+import { SelectButtonModule } from 'primeng/selectbutton';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton';
 
@@ -30,14 +30,20 @@ const errorTranslations: Record<string, string> = {
   'Cannot delete schedule with active assignments': 'No se puede eliminar: el horario tiene trabajadores asignados',
 };
 
+interface ShiftEntry {
+  days: DayOfWeek[];
+  startTime: string;
+  endTime: string;
+}
+
 @Component({
   selector: 'app-schedules',
   imports: [
     RouterModule,
     ReactiveFormsModule,
     ButtonModule, TableModule, ToastModule, TagModule, SkeletonModule,
-    ConfirmDialogModule, DialogModule, InputTextModule, SelectModule, InputNumberModule,
-    TooltipModule,
+    ConfirmDialogModule, DialogModule, InputTextModule, SelectModule,
+    TooltipModule, SelectButtonModule,
     TableSkeleton,
   ],
   providers: [MessageService, ConfirmationService],
@@ -66,10 +72,20 @@ export class Schedules implements OnInit {
   formSubmitted = signal(false);
   shiftError = signal<string | null>(null);
 
-  // Shift days for dropdown
-  shiftDays = signal<DayOfWeek[]>(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']);
+  // Day options for toggle buttons
+  readonly allDays: DayOfWeek[] = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 
-  dayLabels: Record<string, string> = {
+  readonly dayLabels: Record<DayOfWeek, string> = {
+    MONDAY: 'Lun',
+    TUESDAY: 'Mar',
+    WEDNESDAY: 'Mié',
+    THURSDAY: 'Jue',
+    FRIDAY: 'Vie',
+    SATURDAY: 'Sáb',
+    SUNDAY: 'Dom',
+  };
+
+  readonly dayFullLabels: Record<DayOfWeek, string> = {
     MONDAY: 'Lunes',
     TUESDAY: 'Martes',
     WEDNESDAY: 'Miércoles',
@@ -79,12 +95,11 @@ export class Schedules implements OnInit {
     SUNDAY: 'Domingo',
   };
 
-  dayOptions = computed(() =>
-    this.shiftDays().map((day) => ({
-      label: this.dayLabels[day],
-      value: day,
-    })),
-  );
+  readonly dayOptions = this.allDays.map((day) => ({
+    label: this.dayLabels[day],
+    value: day,
+    title: this.dayFullLabels[day],
+  }));
 
   // Reactive form
   scheduleForm: FormGroup;
@@ -121,78 +136,101 @@ export class Schedules implements OnInit {
     });
   }
 
-  // ---- Shift helpers ----
+  // ---- Shift entry helpers ----
 
-  buildShiftGroup(): FormGroup {
+  /** Build a form group for one shift entry with multi-day selection + one time range */
+  buildShiftEntry(): FormGroup {
     return this.fb.group({
-      dayOfWeek: ['', this.requiredValidator],
+      days: [[] as DayOfWeek[], this.requiredValidator],
       startTime: ['', this.requiredValidator],
       endTime: ['', this.requiredValidator],
     });
   }
 
-  addShift(): void {
-    this.shifts.push(this.buildShiftGroup());
+  addShiftEntry(): void {
+    this.shifts.push(this.buildShiftEntry());
+    this.shiftError.set(null);
   }
 
-  removeShift(index: number): void {
+  removeShiftEntry(index: number): void {
     this.shifts.removeAt(index);
     this.shiftError.set(null);
+  }
+
+  /** Build preview text like "Lun, Mar, Mié · 06:00 - 14:00" */
+  getShiftPreview(index: number): string {
+    const group = this.shifts.at(index) as FormGroup | undefined;
+    if (!group) {
+      return '';
+    }
+    const days = group.get('days')?.value as DayOfWeek[] | undefined;
+    const start = group.get('startTime')?.value as string | undefined;
+    const end = group.get('endTime')?.value as string | undefined;
+
+    const dayStr = days?.length
+      ? days.map((d) => this.dayLabels[d]).join(', ')
+      : '—';
+    const timeStr = start && end ? `${start} - ${end}` : '—';
+    return `${dayStr} · ${timeStr}`;
   }
 
   validateShifts(): boolean {
     this.shiftError.set(null);
     const controls = this.shifts.controls;
 
-    // Check time ordering: startTime < endTime for each shift
     for (let i = 0; i < controls.length; i++) {
       const group = controls[i] as FormGroup;
+      const days = group.get('days')?.value as DayOfWeek[] | undefined;
       const start = group.get('startTime')?.value as string | undefined;
       const end = group.get('endTime')?.value as string | undefined;
 
-      if (start && end && start >= end) {
+      // Check days selected
+      if (!days || days.length === 0) {
+        this.shiftError.set(`Turno #${String(i + 1)}: seleccione al menos un día`);
+        return false;
+      }
+
+      // Check times filled
+      if (!start || !end) {
+        this.shiftError.set(`Turno #${String(i + 1)}: complete las horas de inicio y fin`);
+        return false;
+      }
+
+      // Check time ordering
+      if (start >= end) {
         this.shiftError.set(`Turno #${String(i + 1)}: la hora de inicio debe ser anterior a la de fin`);
         return false;
       }
     }
 
     // Check for overlapping shifts on the same day
-    for (let i = 0; i < controls.length; i++) {
-      const group = controls[i] as FormGroup;
-      const day = group.get('dayOfWeek')?.value as string | undefined;
-      const start = group.get('startTime')?.value as string | undefined;
-      const end = group.get('endTime')?.value as string | undefined;
+    // Expand each entry into individual (day, start, end) tuples
+    const allPairs: { day: DayOfWeek; start: string; end: string }[] = [];
+    for (const control of controls) {
+      const group = control as FormGroup;
+      const days = group.get('days')?.value as DayOfWeek[];
+      const start = group.get('startTime')?.value as string;
+      const end = group.get('endTime')?.value as string;
 
-      if (day && start && end && this.hasOverlap(day, start, end, i)) {
-        this.shiftError.set('Los turnos no pueden superponerse en el mismo día');
-        return false;
+      for (const day of days) {
+        allPairs.push({ day, start, end });
       }
     }
 
-    return true;
-  }
-
-  hasOverlap(day: string, start: string, end: string, excludingIndex: number): boolean {
-    const controls = this.shifts.controls;
-
-    for (let i = 0; i < controls.length; i++) {
-      if (i === excludingIndex) {
-        continue;
-      }
-      const group = controls[i] as FormGroup;
-      const otherDay = group.get('dayOfWeek')?.value as string | undefined;
-      const otherStart = group.get('startTime')?.value as string | undefined;
-      const otherEnd = group.get('endTime')?.value as string | undefined;
-
-      if (day === otherDay && start && end && otherStart && otherEnd) {
-        // Check if intervals overlap: (startA < endB) && (startB < endA)
-        if (start < otherEnd && otherStart < end) {
-          return true;
+    for (let i = 0; i < allPairs.length; i++) {
+      for (let j = i + 1; j < allPairs.length; j++) {
+        const a = allPairs[i];
+        const b = allPairs[j];
+        if (a.day === b.day) {
+          if (a.start < b.end && b.start < a.end) {
+            this.shiftError.set('Los turnos no pueden superponerse en el mismo día');
+            return false;
+          }
         }
       }
     }
 
-    return false;
+    return true;
   }
 
   // ---- Modal handlers ----
@@ -204,7 +242,7 @@ export class Schedules implements OnInit {
     this.scheduleForm.get('name')?.reset('');
     this.scheduleForm.get('description')?.reset('');
     this.shifts.clear();
-    this.addShift();
+    this.addShiftEntry();
     this.modalVisible.set(true);
   }
 
@@ -221,12 +259,24 @@ export class Schedules implements OnInit {
     this.scheduleForm.get('description')?.reset(schedule.description ?? '');
     this.shifts.clear();
 
+    // Group existing shifts by (startTime, endTime) pair
+    const groups = new Map<string, { days: Set<DayOfWeek>; startTime: string; endTime: string }>();
     for (const shift of schedule.shifts) {
+      const key = `${shift.startTime}-${shift.endTime}`;
+      let group = groups.get(key);
+      if (!group) {
+        group = { days: new Set(), startTime: shift.startTime, endTime: shift.endTime };
+        groups.set(key, group);
+      }
+      group.days.add(shift.dayOfWeek);
+    }
+
+    for (const [, group] of groups) {
       this.shifts.push(
         this.fb.group({
-          dayOfWeek: [shift.dayOfWeek, this.requiredValidator],
-          startTime: [shift.startTime, this.requiredValidator],
-          endTime: [shift.endTime, this.requiredValidator],
+          days: [Array.from(group.days), this.requiredValidator],
+          startTime: [group.startTime, this.requiredValidator],
+          endTime: [group.endTime, this.requiredValidator],
         }),
       );
     }
@@ -246,12 +296,20 @@ export class Schedules implements OnInit {
     }
 
     this.saving.set(true);
-    const raw: { name: string; description: string | null; shifts: Omit<ShiftModel, 'id'>[] } =
-      this.scheduleForm.getRawValue() as typeof raw;
+
+    // Expand each shift entry into individual shifts (one per day)
+    const raw = this.scheduleForm.getRawValue() as { name: string; description: string | null; shifts: ShiftEntry[] };
+    const shifts: Omit<ShiftModel, 'id'>[] = [];
+    for (const entry of raw.shifts) {
+      for (const day of entry.days) {
+        shifts.push({ dayOfWeek: day, startTime: entry.startTime, endTime: entry.endTime });
+      }
+    }
+
     const data: CreateScheduleRequest = {
       name: raw.name,
       description: raw.description ?? undefined,
-      shifts: raw.shifts,
+      shifts,
     };
 
     const editing = this.editingSchedule();

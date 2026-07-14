@@ -164,13 +164,6 @@ ngOnDestroy(): void {
         routerLink: '/worker?tab=pedidos'
       },
       {
-        id: 'day-menu',
-        label: 'Menú del día',
-        description: 'Ver menú del día',
-        icon: 'pi pi-calendar',
-        routerLink: '/worker?tab=menu'
-      },
-      {
         id: 'my-schedule',
         label: 'Mi Horario',
         description: 'Ver turnos asignados',
