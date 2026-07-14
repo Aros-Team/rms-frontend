@@ -32,9 +32,9 @@ export class ComboHistory {
   private readonly confirmationService = inject(ConfirmationService);
   private readonly router = inject(Router);
 
-  readonly comboId = input.required<number>();
+  readonly id = input.required<number>();
 
-  private readonly historyRes = computed(() => this.cache.history(this.comboId()));
+  private readonly historyRes = computed(() => this.cache.history(this.id()));
   readonly entries = computed(() => this.historyRes().data()?.content ?? []);
   readonly isLoading = computed(() => this.historyRes().isLoading());
   readonly expandedVersions = signal<Set<number>>(new Set());
@@ -82,7 +82,7 @@ export class ComboHistory {
       header: 'Confirmar reversión',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        this.cache.revert(this.comboId(), entry.version).subscribe({
+        this.cache.revert(this.id(), entry.version).subscribe({
           next: () => {
             this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Combo restaurado a versión anterior' });
             this.historyRes().refresh();

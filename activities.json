@@ -1,1 +1,396 @@
-[]
+[
+  {
+    "id": "combo-builder-01-foundation",
+    "name": "Combo Builder contract and data foundation",
+    "type": "feat",
+    "status": "blocked",
+    "priority": "critical",
+    "description": "Freeze the category-based combo contract, migrate shared DTOs and API services, and provide one canonical cached category/product reference source.",
+    "dependsOn": [],
+    "tasks": [
+      {
+        "id": "CB-01-01",
+        "description": "Produce an authoritative decision register covering new-group id nullability, categoryId/productIds, selectedProductIds separation, suggested-price method/path, wizard category chooser semantics, top-level required behavior, question types and clarifications mapping, includeSelections response/filter/image fields, WebSocket payload completeness, shared cache ownership versus existing caches, active-toggle strategy, canonical waiter route, dock editing, legacy admin orders, local draft scope, and accessibility expectations; assign unresolved items to backend or product owner.",
+        "status": "blocked",
+        "agent": "reviewer"
+      },
+      {
+        "id": "CB-01-02",
+        "description": "Replace combo group name/optionIds DTOs with categoryId/productIds, change suggested-price breakdown to productId, add selectedProductIds to order DTOs, and normalize SelectionType typing.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-01-03",
+        "description": "Align SpecialSelections, Product, and Category HTTP services with confirmed endpoints, request methods, response shapes, and friendly typed errors.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-01-04",
+        "description": "Decide whether the combo reference cache replaces or supplements CategoriesCacheService and ProductCacheService.referenceData; implement the chosen root-scoped five-minute cache with category/product lookups, includeSelections loading, SPECIAL_SELECTION filtering, invalidation/refresh APIs, and migrated admin/waiter consumers without duplicate reference sources.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-01-05",
+        "description": "Add foundation tests for DTO payload shapes, API URLs and methods, cache TTL/filtering/name resolution, stale data, empty categories, and unavailable products.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-01-06",
+        "description": "Verify the CB-01-01 decision register exists and every resolved decision is applied, then review foundation implementation for contract correctness, cache reuse, error handling, and regression risk.",
+        "status": "pending",
+        "agent": "reviewer"
+      }
+    ]
+  },
+  {
+    "id": "combo-builder-02-realtime",
+    "name": "Combo Builder real-time cache synchronization",
+    "type": "feat",
+    "status": "pending",
+    "priority": "high",
+    "description": "Make special-selection updates consistently refresh admin, waiter, detail, and reference data without duplicate subscriptions.",
+    "dependsOn": [
+      "combo-builder-01-foundation"
+    ],
+    "tasks": [
+      {
+        "id": "CB-02-01",
+        "description": "Define reliable application-level WebSocket connection ownership for direct admin and waiter combo routes.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-02-02",
+        "description": "Handle CREATE, UPDATE, SCHEDULE_CHANGE, PRICE_CHANGE, DELETE, and REVERT events by updating or invalidating combo list, available-now, detail, history, and reference caches.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-02-03",
+        "description": "Remove duplicate component-level refresh subscriptions, prevent duplicate refresh requests, expose a modified-combo signal, and connect it to waiter picker stale-state messaging in CB-05-01.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-02-04",
+        "description": "Test topic handling, deletion, reconnect behavior, cache invalidation, and duplicate-request prevention.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-02-05",
+        "description": "Review real-time lifecycle, subscription cleanup, race conditions, and stale-screen behavior.",
+        "status": "pending",
+        "agent": "reviewer"
+      }
+    ]
+  },
+  {
+    "id": "combo-builder-03-admin-wizard",
+    "name": "Admin guided Combo Builder wizard",
+    "type": "feat",
+    "status": "pending",
+    "priority": "critical",
+    "description": "Build the responsive four-stage PrimeNG Timeline creation and editing flow with dynamic category group steps.",
+    "dependsOn": [
+      "combo-builder-01-foundation",
+      "combo-builder-02-realtime"
+    ],
+    "tasks": [
+      {
+        "id": "CB-03-01",
+        "description": "Create centralized signal-based wizard state, create/edit hydration, local-storage draft versioning, restore/discard flow, and cleanup after successful save.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-03-02",
+        "description": "Build PrimeNG vertical Timeline shell with general, dynamic per-category group, optional questions, and pricing stages plus active/completed/inactive markers and guarded navigation.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-03-03",
+        "description": "Implement general information fields for name, description, a UI-only category multi-select that generates one group per chosen category, schedule, and the confirmed Step 1 required/optional control semantics without inventing an unapproved API field.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-03-04",
+        "description": "Create reusable lazy-image product card showing thumbnail, name, and base price with selectable, disabled, keyboard, and unavailable states.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-03-05A",
+        "description": "Build dynamic per-category group step routing with guarded back/forward navigation and state preservation.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-03-05B",
+        "description": "Implement two-sided multi-product selection and drag/drop using the confirmed PrimeNG or Angular CDK pattern with correct transfer behavior.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-03-05C",
+        "description": "Add category-filtered product search with debouncing, multi-select gestures, and clear available/selected states.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-03-05D",
+        "description": "Add keyboard assignment controls and responsive vertical fallback so product selection never depends on pointer drag/drop.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-03-06",
+        "description": "Implement reusable group validation for category membership, required minimum, min/max ordering, selected count bounds, empty eligible-product categories, and progression blocking.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-03-07",
+        "description": "Implement optional combo questions stage with add/remove/edit, confirmed question types, skip behavior, and correct request mapping.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-03-08A",
+        "description": "Implement pricing calculations and API state for selected-product costs, total cost, margin percentage, suggested-price request, final price, and use-suggested-price behavior.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-03-08B",
+        "description": "Render productId-based pricing summary and breakdown with resolved product names, missing-recipe feedback, loading, retry, timeout, and manual-price states.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-03-09",
+        "description": "Wire create/update submission using categoryId/productIds, preserve additions/schedule/history behavior, renumber displayOrder, and map business/network/timeout errors to Spanish messages.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-03-10",
+        "description": "Add wizard state, hydration, validation, drag/drop fallback, pricing, persistence, payload, accessibility, and responsive component tests.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-03-11",
+        "description": "Review wizard UX, PrimeNG usage, WCAG keyboard flow, persistence safety, API mapping, and tablet/desktop layouts.",
+        "status": "pending",
+        "agent": "reviewer"
+      }
+    ]
+  },
+  {
+    "id": "combo-builder-04-admin-quick-editor",
+    "name": "Admin traditional combo group editor",
+    "type": "feat",
+    "status": "pending",
+    "priority": "high",
+    "description": "Retain a compact editing view for fast category, product, constraint, and order changes while sharing wizard state and validation.",
+    "dependsOn": [
+      "combo-builder-03-admin-wizard"
+    ],
+    "tasks": [
+      {
+        "id": "CB-04-01",
+        "description": "Build group list rows with category dropdown, searchable category-filtered product multi-select, min/max inputs, required toggle, add/remove, and category-name headings.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-04-02",
+        "description": "Implement accessible group reorder and consistent displayOrder renumbering after add, remove, category change, and drag operations.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-04-03",
+        "description": "Share state, validation, product availability handling, save mapping, and local drafts with the guided wizard without duplicated business logic.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-04-04",
+        "description": "After CB-01-01 records the endpoint decision, update admin combo list labels, loading/error/empty states, real-time updates, suggested-price action, and active-toggle behavior.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-04-05",
+        "description": "Test quick editing, filtering, reorder, shared draft synchronization, stale products, and save payloads.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-04-06",
+        "description": "Review quick-editor consistency with wizard and guard against divergent validation or payload behavior.",
+        "status": "pending",
+        "agent": "reviewer"
+      }
+    ]
+  },
+  {
+    "id": "combo-builder-05-waiter-picker",
+    "name": "Waiter category-based combo picker",
+    "type": "feat",
+    "status": "pending",
+    "priority": "critical",
+    "description": "Render category groups from cached references and collect valid product selections for orders.",
+    "dependsOn": [
+      "combo-builder-01-foundation",
+      "combo-builder-02-realtime"
+    ],
+    "tasks": [
+      {
+        "id": "CB-05-01",
+        "description": "Fix combo detail routing/navigation and load combo, categories, and includeSelections products with skeleton, empty, retry, timeout, stale-data states, and consumption of the CB-02-03 modified-combo signal.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-05-02",
+        "description": "Render category names and product cards with names/base prices, radio controls for maxSelections=1, checkboxes for multi-select, counters, and responsive accessible layouts.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-05-03",
+        "description": "Enforce required, minimum, maximum, category membership, unavailable-product, and modified-combo rules; disable Add to Order until valid.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-05-04",
+        "description": "Preserve additions and clarifications while flattening selected combo group values into selectedProductIds and keeping selectedOptionIds standard-only.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-05-05",
+        "description": "Add waiter picker tests for name resolution, single/multi selection, bounds, counters, missing products, WebSocket modification, routing, and dock handoff.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-05-06",
+        "description": "Review waiter flow for validation gaps, touch/keyboard usability, race conditions, and payload separation.",
+        "status": "pending",
+        "agent": "reviewer"
+      }
+    ]
+  },
+  {
+    "id": "combo-builder-06-order-pipeline",
+    "name": "Order dock and submission migration",
+    "type": "feat",
+    "status": "pending",
+    "priority": "critical",
+    "description": "Carry selectedProductIds separately through dock state, editing, merging, quantity expansion, and POST v1/orders.",
+    "dependsOn": [
+      "combo-builder-05-waiter-picker"
+    ],
+    "tasks": [
+      {
+        "id": "CB-06-01",
+        "description": "Add selectedProductIds to DockItem and every order-detail construction path while retaining selectedOptionIds for standard options only.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-06-02",
+        "description": "Update dock merge identity to include selected products, selected options, additions, clarifications, and instructions so distinct combo configurations never merge.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-06-03",
+        "description": "Implement confirmed combo edit behavior in the dock and preserve all combo state across edits, diners, quantity changes, and table selection.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-06-04",
+        "description": "Update POST v1/orders serialization and decide whether the legacy admin order-creation route must support selectedProductIds or be explicitly excluded.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-06-05",
+        "description": "Test dock identity, quantity expansion, edit preservation, diner handling, exact order payloads, and 400/404/409/network errors.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-06-06",
+        "description": "Review end-to-end order state integrity and verify combo product IDs never leak into selectedOptionIds.",
+        "status": "pending",
+        "agent": "reviewer"
+      }
+    ]
+  },
+  {
+    "id": "combo-builder-07-downstream-hardening",
+    "name": "Combo Builder downstream verification and release hardening",
+    "type": "chore",
+    "status": "pending",
+    "priority": "high",
+    "description": "Verify order rendering, accessibility, performance, documentation, and full regression coverage before release.",
+    "dependsOn": [
+      "combo-builder-03-admin-wizard",
+      "combo-builder-04-admin-quick-editor",
+      "combo-builder-05-waiter-picker",
+      "combo-builder-06-order-pipeline"
+    ],
+    "tasks": [
+      {
+        "id": "CB-07-01",
+        "description": "Verify and update kitchen, admin order details, and waiter today-orders rendering for resolved category groups, selected products, additions, and clarifications.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-07-02",
+        "description": "Audit lazy image loading, debounced filtering, shared cache use, draft size/versioning, responsive tablet/desktop behavior, contrast, ARIA labels, focus order, and keyboard operation.",
+        "status": "pending",
+        "agent": "reviewer"
+      },
+      {
+        "id": "CB-07-03",
+        "description": "Add integration coverage for admin create/edit, waiter selection, order submission, suggested price, and WebSocket refresh; remove stale name/optionIds combo assumptions.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-07-04",
+        "description": "Update requested usage and API migration documentation, including category/product cache behavior, order field separation, drafts, and real-time updates.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-07-05",
+        "description": "Run the documented verification matrix and mandatory harness; fix lint, build, test, style, accessibility, and regression failures.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "CB-07-06",
+        "description": "Perform final implementation review against every user requirement and release checkpoint before marking the feature done.",
+        "status": "pending",
+        "agent": "reviewer"
+      }
+    ]
+  }
+]

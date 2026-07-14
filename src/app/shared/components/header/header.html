@@ -7,7 +7,7 @@
     <h1 class="flex items-center text-primary-500 font-black text-[1.5rem] min-w-0 shrink-0">
       <app-logo [size]="24"></app-logo><span class="max-md:hidden">RMS</span>
     </h1>
-    <span class="font-bold bg-primary-500 py-1 px-2.5 rounded-md text-primary-contrast break-words shrink-0">{{customer}}</span>
+    <span class="font-regular bg-primary-500 py-1 px-2.5 rounded-md text-surface-800 dark:text-surface-200 break-words shrink-0">{{customer}}</span>
 
     @if (selectedMenuItem) {
     <div class="hidden lg:flex items-center gap-2 ml-4 pl-4 border-l border-surface-200 dark:border-surface-700 shrink-0">
@@ -33,7 +33,7 @@
           <span>{{ item.label }}</span>
         </a>
       }
-      
+
       @if (overflowMenuItems().length > 0) {
         <div class="relative overflow-menu-container">
           <button
@@ -95,10 +95,10 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
     }
 
     @if (workerType === 'kitchen') {
-    <button 
+    <button
       class="p-2 rounded-xl hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer w-10 h-10 flex items-center justify-center shrink-0"
-      (click)="onKitchen()" 
-      aria-label="Ir a cocina" 
+      (click)="onKitchen()"
+      aria-label="Ir a cocina"
       title="Ir a cocina">
       <i class="pi pi-box text-surface-600 dark:text-surface-400"></i>
     </button>
@@ -130,9 +130,9 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
   <app-settings></app-settings>
 </p-dialog>
 
-<p-dialog 
-  [(visible)]="showLogoutDialog" 
-  [modal]="true" 
+<p-dialog
+  [(visible)]="showLogoutDialog"
+  [modal]="true"
   [closable]="true"
   [closeOnEscape]="true"
   [draggable]="false"
@@ -150,13 +150,13 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
   </div>
 
   <div class="flex justify-end gap-2 mt-4">
-    <p-button 
-      label="Cancelar" 
-      severity="secondary" 
+    <p-button
+      label="Cancelar"
+      severity="secondary"
       (onClick)="cancelLogout()"
     ></p-button>
-    <p-button 
-      label="Cerrar Sesión" 
+    <p-button
+      label="Cerrar Sesión"
       (onClick)="confirmLogout()"
     ></p-button>
   </div>

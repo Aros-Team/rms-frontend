@@ -71,6 +71,10 @@ export class Combos {
       .join(', ');
   }
 
+  navigateToNew(): void {
+    void this.router.navigate(['/admin/manage/combos', 'new']);
+  }
+
   navigateToEdit(id: number): void {
     void this.router.navigate(['/admin/manage/combos', id, 'edit']);
   }
