@@ -1,5 +1,51 @@
 # Changelog
 
+## [v3.0.0](https://github.com/Aros-Team/rms-frontend/releases/tag/v3.0.0)
+
+### Features
+
+- handle cancelled orders in WebSocket subscribers
+- enable real-time table and orders sync using WebSocket cache updates
+- **BREAKING**: add basic image support in admin interface
+- add chat button icon state fix for tablet and desktop
+- add delete option for products with confirmation dialog
+- **worker**: separate waiter and kitchen interfaces with area-based guards
+- **worker**: separate waiter and kitchen interfaces with area-based guards
+- **admin**: add description field to products
+- **admin**: dynamic table creation UI
+- **admin**: use GET /api/v1/employees endpoint in manage users
+- **admin**: add pagination to products endpoint
+- **admin**: add pagination to supplies endpoint
+- salary-history
+- workers schedule
+- **worker**: inline-tab waiter dashboard, slate theme, remove shell
+- **waiter**: order dock + product cards + backend error fix
+- **waiter**: add table state signals to OrderDock service
+- **waiter**: add table picker UI to order dock
+- **waiter**: validate table selection before order submit
+- **waiter**: invalidate tables cache after order mutations
+- **waiter**: surface backend 409/400 errors as specific toasts
+- replace AROS logo with project logo, update icons, redesign login page
+- migrate day-menu to special-selections (combos) system
+- **worker-card**: add delete button with confirmation modal, uncolor buttons, accent active status
+
+### Bug Fixes
+
+- remove non-null assertion in websocket subject handling
+- prioritize content loading and add loading skeletons
+- auto-reload product images after upload or delete
+- multiple product management issues
+- **auth**: redirect to login on 401 or logout
+- **admin**: add total column and fix actions position in orders table
+- **api**: use correct /v1/users/employees endpoint path
+- **master-data**: defensive array checks for API responses
+- **api**: extract content from paginated product response
+- **waiter**: hoist order-dock to worker shell + redirect direct routes
+- **waiter**: day-menu options validation, today-orders bugs, carta race, PrimeNG templates, skeletons
+- **waiter**: diner removal safety + stale snapshot on order confirm
+- waiter dock UX, tab bar, header cleanup, and product list rename
+- multiple UI/UX bugs across auth, inventory, and user management
+
 ## [v2.0.0](https://github.com/Aros-Team/rms-frontend/releases/tag/v2.0.0)
 
 ### Features
