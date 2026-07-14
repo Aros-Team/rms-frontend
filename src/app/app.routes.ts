@@ -52,35 +52,35 @@ export const routes: Routes = [
           },
           {
             path: 'products',
-            loadComponent: () => import('@areas/admin/features/manage/products/products').then(m => m.Products),
+            loadComponent: () => import('@areas/admin/features/manage/features/products/products').then(m => m.Products),
           },
           {
             path: 'categories',
-            loadComponent: () => import('@areas/admin/features/manage/categories/categories').then(m => m.Categories),
+            loadComponent: () => import('@areas/admin/features/manage/features/categories/categories').then(m => m.Categories),
           },
           {
             path: 'tables',
-            loadComponent: () => import('@areas/admin/features/manage/tables/tables').then(m => m.Tables),
+            loadComponent: () => import('@areas/admin/features/manage/features/tables/tables').then(m => m.Tables),
           },
           {
             path: 'areas',
-            loadComponent: () => import('@areas/admin/features/manage/areas/areas').then(m => m.Areas),
+            loadComponent: () => import('@areas/admin/features/manage/features/areas/areas').then(m => m.Areas),
           },
           {
             path: 'combos',
-            loadComponent: () => import('@areas/admin/features/manage/combos/combos').then(m => m.Combos),
+            loadComponent: () => import('@areas/admin/features/manage/features/combos/combos').then(m => m.Combos),
           },
           {
             path: 'combos/new',
-            loadComponent: () => import('@areas/admin/features/manage/combos/combo-editor').then(m => m.ComboEditor),
+            loadComponent: () => import('@areas/admin/features/manage/features/combos/combo-editor').then(m => m.ComboEditor),
           },
           {
             path: 'combos/:id/edit',
-            loadComponent: () => import('@areas/admin/features/manage/combos/combo-editor').then(m => m.ComboEditor),
+            loadComponent: () => import('@areas/admin/features/manage/features/combos/combo-editor').then(m => m.ComboEditor),
           },
           {
             path: 'combos/:id/history',
-            loadComponent: () => import('@areas/admin/features/manage/combos/combo-history').then(m => m.ComboHistory),
+            loadComponent: () => import('@areas/admin/features/manage/features/combos/combo-history').then(m => m.ComboHistory),
           },
           {
             path: 'orders-create',
@@ -88,15 +88,15 @@ export const routes: Routes = [
           },
           {
             path: 'users',
-            loadComponent: () => import('@areas/admin/features/manage/users/users').then(m => m.Users),
+            loadComponent: () => import('@areas/admin/features/manage/features/users/users').then(m => m.Users),
           },
           {
             path: 'users/:id/salary-history',
-            loadComponent: () => import('@areas/admin/features/manage/users/salary-history/salary-history').then(m => m.SalaryHistory),
+            loadComponent: () => import('@areas/admin/features/manage/features/users/salary-history/salary-history').then(m => m.SalaryHistory),
           },
           {
             path: 'inventory',
-            loadComponent: () => import('@areas/admin/features/manage/inventory/inventory').then(m => m.Inventory),
+            loadComponent: () => import('@areas/admin/features/manage/features/inventory/inventory').then(m => m.Inventory),
           },
         ]
       },

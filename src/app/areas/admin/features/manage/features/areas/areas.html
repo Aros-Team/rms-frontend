@@ -1,0 +1,95 @@
+<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.areas" (appLazyLoadVisible)="onVisible()">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+    <div>
+      <h2 class="text-xl md:text-2xl font-bold">Áreas de Trabajo</h2>
+      <p class="text-surface-600 dark:text-surface-400 text-sm">Gestiona las áreas donde trabajan los empleados</p>
+    </div>
+    <p-button label="Nueva área" icon="pi pi-plus" class="btn-icon-text-sm" pTooltip="Crear nueva área" tooltipPosition="bottom" (onClick)="showCreateModal()"></p-button>
+  </div>
+
+  <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-0 dark:bg-surface-800 overflow-hidden">
+    <p-table #dt [value]="areas()" [loading]="cache.areas.isLoading()" [showLoader]="false" [paginator]="true" [rows]="10" [scrollable]="true" scrollHeight="flex" responsiveLayout="scroll" styleClass="h-full" sortMode="multiple" [globalFilterFields]="['name', 'type']">
+      <ng-template #caption>
+        <div class="flex flex-col sm:flex-row gap-2 flex-wrap">
+          <p-iconfield iconPosition="left" class="w-full lg:w-80">
+            <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+            <input pInputText type="text" class="w-full" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Buscar por nombre..." />
+          </p-iconfield>
+          <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="dt.clear()" />
+        </div>
+      </ng-template>
+      <ng-template #header>
+        <tr>
+          <th class="text-xs md:text-sm" pSortableColumn="name">Nombre <p-sortIcon field="name" /></th>
+          <th class="text-xs md:text-sm" pSortableColumn="type">Tipo <p-sortIcon field="type" /></th>
+          <th class="text-xs md:text-sm">Estado</th>
+          <th class="text-center text-xs md:text-sm">Acc.</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-area>
+        <tr>
+          <td class="font-medium">{{ area.name }}</td>
+          <td class="text-sm">{{ area.type === 'KITCHEN' ? 'Cocina' : 'Bartender' }}</td>
+          <td>
+            <span [class]="area.enabled ? 'text-green-600' : 'text-red-600'" class="text-sm">
+              {{ area.enabled ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td>
+            <div class="flex gap-1 items-center justify-center">
+              <p-button icon="pi pi-pencil" [text]="true" severity="warn" size="small" class="btn-icon-only-sm" (onClick)="showEditModal(area)"></p-button>
+              <p-button icon="pi pi-power-off" [text]="true" [severity]="area.enabled ? 'danger' : 'success'" size="small" class="btn-icon-only-sm" (onClick)="toggleArea(area)"></p-button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #loadingbody>
+        <tr>
+          <td colspan="4">
+            <div class="min-h-[400px] w-full">
+              <app-table-skeleton [rowCount]="6" [colCount]="4" />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="4" class="text-center">No hay áreas registradas</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<p-dialog 
+  [header]="editMode ? 'Editar Área' : 'Nueva Área'" 
+  [(visible)]="modalVisible" 
+  [modal]="true"
+  [style]="{width: '400px'}"
+>
+  <form [formGroup]="form" class="flex flex-col gap-4">
+    <p-iftalabel>
+      <input pInputText id="name" formControlName="name" class="w-full" />
+      <label for="name">Nombre</label>
+      <app-form-validation field="name"></app-form-validation>
+    </p-iftalabel>
+
+    <p-iftalabel>
+      <p-select
+        [options]="areaTypes"
+        formControlName="type"
+        placeholder="Seleccionar tipo"
+        class="w-full"
+        optionLabel="label"
+        optionValue="value"
+      />
+      <label for="type">Tipo de área</label>
+      <app-form-validation field="type"></app-form-validation>
+    </p-iftalabel>
+  </form>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" severity="secondary" (onClick)="modalVisible = false"></p-button>
+    <p-button [label]="editMode ? 'Actualizar' : 'Crear'" (onClick)="saveArea()"></p-button>
+  </ng-template>
+</p-dialog>

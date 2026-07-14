@@ -63,6 +63,36 @@ feature-name/
 
 ---
 
+### 3.1 Complex Features with Sub-Features
+
+When a feature has multiple sub-sections (CRUD for different entities), organize them with a parent component at the root and a `features/` sub-folder:
+
+```
+feature-name/
+├── feature-name.ts        # Parent component with <router-outlet>
+├── feature-name.html
+├── feature-name.css
+└── features/
+    ├── entity-a/
+    │   ├── entity-a.ts
+    │   ├── entity-a.html
+    │   └── entity-a.css
+    ├── entity-b/
+    │   ├── entity-b.ts
+    │   ├── entity-b.html
+    │   └── entity-b.css
+    └── ....
+```
+
+Example: `features/manage/` has sub-features for `products/`, `categories/`, `tables/`, `areas/`, etc. under `manage/features/`.
+
+Imports from other files use the path alias with `features/`:
+```typescript
+import('@areas/admin/features/manage/features/products/products')
+```
+
+---
+
 ## 4. Core
 
 Singletons registered at root level:
