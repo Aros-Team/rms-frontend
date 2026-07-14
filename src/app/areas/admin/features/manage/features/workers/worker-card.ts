@@ -19,6 +19,7 @@ export class WorkerCard {
   readonly assignSchedule = output();
   readonly edit = output();
   readonly retryEmail = output();
+  readonly delete = output();
 
   avatarColor = computed(() => {
     const name = this.worker().name || '';
@@ -79,5 +80,9 @@ export class WorkerCard {
 
   onRetryEmail(): void {
     this.retryEmail.emit();
+  }
+
+  onDelete(): void {
+    this.delete.emit();
   }
 }

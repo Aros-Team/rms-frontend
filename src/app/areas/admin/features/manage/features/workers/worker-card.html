@@ -10,7 +10,11 @@
       <h3 class="font-medium text-surface-900 dark:text-surface-0 truncate">{{ worker().name }}</h3>
       <p class="text-sm text-surface-500 truncate">{{ worker().email }}</p>
     </div>
-    <p-tag [value]="statusLabel()" [severity]="statusSeverity()" />
+    @if (worker().status === 'ACTIVE') {
+      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-primary text-primary-contrast">{{ statusLabel() }}</span>
+    } @else {
+      <p-tag [value]="statusLabel()" [severity]="statusSeverity()" />
+    }
   </div>
 
   <div class="flex flex-col gap-2 text-sm">
@@ -25,11 +29,12 @@
   </div>
 
   <div class="flex gap-2 pt-2 border-t border-surface-100 dark:border-surface-700 flex-wrap">
-    <p-button severity="info" icon="pi pi-calendar" pTooltip="Asignar horarios" tooltipPosition="top" size="small" styleClass="flex-1" (click)="onAssignSchedule()"></p-button>
-    <p-button severity="warn" icon="pi pi-pencil" pTooltip="Editar trabajador" tooltipPosition="top" size="small" styleClass="flex-1" (click)="onEdit()"></p-button>
+    <p-button severity="secondary" [text]="true" icon="pi pi-calendar" pTooltip="Asignar horarios" tooltipPosition="top" size="small" styleClass="flex-1" (click)="onAssignSchedule()"></p-button>
+    <p-button severity="secondary" [text]="true" icon="pi pi-pencil" pTooltip="Editar trabajador" tooltipPosition="top" size="small" styleClass="flex-1" (click)="onEdit()"></p-button>
     @if (worker().status === 'PENDING') {
-      <p-button severity="info" icon="pi pi-envelope" pTooltip="Reenviar invitación" tooltipPosition="top" size="small" styleClass="flex-1" (click)="onRetryEmail()"></p-button>
+      <p-button severity="secondary" [text]="true" icon="pi pi-envelope" pTooltip="Reenviar invitación" tooltipPosition="top" size="small" styleClass="flex-1" (click)="onRetryEmail()"></p-button>
     }
-    <p-button severity="info" icon="pi pi-history" pTooltip="Ver historial salarial" tooltipPosition="top" size="small" styleClass="flex-1" [routerLink]="['/admin/manage/workers', worker().id, 'salary-history']"></p-button>
+    <p-button severity="secondary" [text]="true" icon="pi pi-history" pTooltip="Ver historial salarial" tooltipPosition="top" size="small" styleClass="flex-1" [routerLink]="['/admin/manage/workers', worker().id, 'salary-history']"></p-button>
+    <p-button severity="danger" [text]="true" icon="pi pi-trash" pTooltip="Eliminar trabajador" tooltipPosition="top" size="small" styleClass="flex-1" (click)="onDelete()"></p-button>
   </div>
 </div>
