@@ -1,5 +1,5 @@
 import { signal, computed, type Signal } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, type Subscription } from 'rxjs';
 
 export interface CacheConfig {
   ttlMs: number;
@@ -23,6 +23,8 @@ export class ResourceCache<T> {
   private readonly _config: CacheConfig;
   private fetchFn: () => Observable<T>;
   private isLoadingFlag = false;
+  private activeRequest: Subscription | undefined;
+  private requestVersion = 0;
 
   readonly data: Signal<T | null> = computed(() => this.entry().data);
   readonly status: Signal<'fresh' | 'stale' | 'loading'> = computed(() => this.entry().status);
@@ -73,15 +75,15 @@ export class ResourceCache<T> {
   }
 
   refresh(): void {
+    this.cancelActiveRequest();
     this.entry.update(current => ({ ...current, status: 'stale' }));
     this.load();
   }
 
   invalidate(): void {
+    this.cancelActiveRequest();
     const current = this.entry();
-    if (current.data !== null) {
-      this.entry.set({ ...current, status: 'stale' });
-    }
+    this.entry.set({ ...current, status: 'stale' });
   }
 
   /**
@@ -96,6 +98,7 @@ export class ResourceCache<T> {
   }
 
   reset(): void {
+    this.cancelActiveRequest();
     this.entry.set({ data: null, timestamp: 0, status: 'stale' });
   }
 
@@ -104,10 +107,13 @@ export class ResourceCache<T> {
   }
 
   private fetchFresh(): void {
+    const requestVersion = ++this.requestVersion;
     this.isLoadingFlag = true;
-    
-    this.fetchFn().subscribe({
+
+    const request = this.fetchFn().subscribe({
       next: (data) => {
+        if (requestVersion !== this.requestVersion) return;
+
         this.entry.set({
           data,
           timestamp: Date.now(),
@@ -116,6 +122,8 @@ export class ResourceCache<T> {
         this.isLoadingFlag = false;
       },
       error: (err) => {
+        if (requestVersion !== this.requestVersion) return;
+
         const current = this.entry();
         this.entry.set({
           ...current,
@@ -123,8 +131,26 @@ export class ResourceCache<T> {
           error: err instanceof Error ? err : new Error(String(err))
         });
         this.isLoadingFlag = false;
+        this.activeRequest = undefined;
+      },
+      complete: () => {
+        if (requestVersion !== this.requestVersion) return;
+
+        this.isLoadingFlag = false;
+        this.activeRequest = undefined;
       }
     });
+
+    if (!request.closed && requestVersion === this.requestVersion) {
+      this.activeRequest = request;
+    }
+  }
+
+  private cancelActiveRequest(): void {
+    this.requestVersion++;
+    this.activeRequest?.unsubscribe();
+    this.activeRequest = undefined;
+    this.isLoadingFlag = false;
   }
 
   private isExpired(entry: CacheEntry<T>): boolean {

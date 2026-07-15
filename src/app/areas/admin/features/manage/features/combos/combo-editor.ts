@@ -172,12 +172,13 @@ export class ComboEditor {
     this.baseRecipeEnabled.set(data.baseRecipeEnabled);
     this.schedulingRequired.set(data.schedulingRequired);
     this.editableGroups.set(data.groups.map(g => ({
-      name: g.name,
+      id: g.id,
+      categoryId: g.categoryId,
       displayOrder: g.displayOrder,
       required: g.required,
       minSelections: g.minSelections,
       maxSelections: g.maxSelections,
-      optionIds: g.options.map(o => o.id),
+      productIds: [...g.productIds],
     })));
     this.editableAdditions.set(data.additions.map(a => ({
       name: a.name,
@@ -262,8 +263,8 @@ export class ComboEditor {
   // ─── Grupo helpers ─────────────────────────────────────────────────────
   addGroup(): void {
     this.editableGroups.update(g => [...g, {
-      name: '', displayOrder: g.length + 1, required: false,
-      minSelections: 1, maxSelections: 1, optionIds: [],
+      categoryId: null, displayOrder: g.length + 1, required: false,
+      minSelections: 1, maxSelections: 1, productIds: [],
     }]);
   }
 

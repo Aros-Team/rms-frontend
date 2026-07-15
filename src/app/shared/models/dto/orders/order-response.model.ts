@@ -1,3 +1,5 @@
+import type { SelectionType } from '@app/shared/models/dto/special-selections/selection-type';
+
 export interface OrderSelectedOption {
   id: number;
   name: string;
@@ -29,7 +31,8 @@ export interface OrderDetailItem {
   unitPrice: number;
   instructions: string;
   selectedOptions?: OrderSelectedOption[];
-  selectionType?: 'STANDARD' | 'SPECIAL_SELECTION';
+  selectedProductIds?: number[];
+  selectionType?: SelectionType;
   groupSelections?: OrderGroupSelectionResolved[];
   additionsResolved?: OrderAdditionResolved[];
   clarificationsResolved?: OrderClarificationResolved[];

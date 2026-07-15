@@ -1,5 +1,5 @@
 export interface SuggestedPriceBreakdownEntry {
-  optionId: number;
+  productId: number;
   name: string;
   cost: number;
 }

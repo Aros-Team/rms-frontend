@@ -18,7 +18,7 @@
         <div class="bg-primary-contrast dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 overflow-hidden">
           <div class="bg-surface-50 dark:bg-surface-900/50 px-6 py-3 border-b border-surface-200 dark:border-surface-700">
             <div class="flex items-center gap-2">
-              <span class="font-semibold text-surface-800 dark:text-surface-200">{{ group.name }}</span>
+              <span class="font-semibold text-surface-800 dark:text-surface-200">{{ group.categoryName ?? 'Grupo' }}</span>
               @if (group.required) {
                 <i class="pi pi-asterisk text-red-500 text-xs"></i>
               }
@@ -33,13 +33,13 @@
           </div>
           <div class="px-6 py-4">
             <div class="flex flex-wrap gap-2">
-              @for (opt of group.options; track opt.id) {
-                @let selected = selectedOptions().get(group.id)?.includes(opt.id) ?? false;
+              @for (productId of group.productIds; track productId) {
+                @let selected = selectedOptions().get(group.id)?.includes(productId) ?? false;
                 <p-button
-                  [label]="opt.name + (opt.extraPrice > 0 ? ' (+' + currencyFormat.format(opt.extraPrice) + ')' : '')"
+                  [label]="'Producto #' + productId"
                   [severity]="selected ? 'primary' : 'secondary'"
                   [outlined]="!selected"
-                  (onClick)="toggleOption(group.id, opt.id)"
+                  (onClick)="toggleOption(group.id, productId)"
                   size="small"
                 />
               }

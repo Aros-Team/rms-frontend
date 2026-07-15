@@ -2,6 +2,7 @@ export interface CreateOrderDetail {
   productId: number;
   instructions: string;
   selectedOptionIds: number[];
+  selectedProductIds?: number[];
   additionIds?: number[];
   clarifications?: ClarificationRef[];
 }

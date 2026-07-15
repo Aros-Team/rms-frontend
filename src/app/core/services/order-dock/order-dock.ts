@@ -10,6 +10,7 @@ export interface DockItem {
   product: ProductListResponse;
   instructions: string;
   selectedOptionIds: number[];
+  selectedProductIds?: number[];
   optionNames: string[];
   quantity: number;
   additionIds?: number[];
