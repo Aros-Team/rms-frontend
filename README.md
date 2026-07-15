@@ -2,6 +2,13 @@
 
 **Frontend repository**
 
+<br>
+<div align="center">
+  <img src="public/icons/Icon.png" width="96" alt="RMS logo">
+</div>
+<br><br>
+
+
 Robust, scalable frontend application that delivers an intuitive and accessible interface for restaurant operations management, enabling real-time data visualization and seamless user interactions.
 
 
