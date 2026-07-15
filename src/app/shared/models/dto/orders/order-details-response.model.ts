@@ -1,3 +1,5 @@
+import type { SelectionType } from '@app/shared/models/dto/special-selections/selection-type';
+
 export interface OrderDetailsResponse {
   id: number;
   status: string; // expecting values like 'PENDING', 'COMPLETED', etc.
@@ -36,7 +38,8 @@ export interface ClientOrderDetail {
   price: number;
   quantity: number;
   observations: string;
-  selectionType?: 'STANDARD' | 'SPECIAL_SELECTION';
+  selectionType?: SelectionType;
+  selectedProductIds?: number[];
   additions?: ClientOrderAddition[];
   clarifications?: ClientOrderClarification[];
   groupSelections?: ClientGroupSelection[];

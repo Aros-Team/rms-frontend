@@ -3,7 +3,7 @@
     "id": "combo-builder-01-foundation",
     "name": "Combo Builder contract and data foundation",
     "type": "feat",
-    "status": "blocked",
+    "status": "done",
     "priority": "critical",
     "description": "Freeze the category-based combo contract, migrate shared DTOs and API services, and provide one canonical cached category/product reference source.",
     "dependsOn": [],
@@ -11,37 +11,37 @@
       {
         "id": "CB-01-01",
         "description": "Produce an authoritative decision register covering new-group id nullability, categoryId/productIds, selectedProductIds separation, suggested-price method/path, wizard category chooser semantics, top-level required behavior, question types and clarifications mapping, includeSelections response/filter/image fields, WebSocket payload completeness, shared cache ownership versus existing caches, active-toggle strategy, canonical waiter route, dock editing, legacy admin orders, local draft scope, and accessibility expectations; assign unresolved items to backend or product owner.",
-        "status": "blocked",
+        "status": "done",
         "agent": "reviewer"
       },
       {
         "id": "CB-01-02",
         "description": "Replace combo group name/optionIds DTOs with categoryId/productIds, change suggested-price breakdown to productId, add selectedProductIds to order DTOs, and normalize SelectionType typing.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "CB-01-03",
         "description": "Align SpecialSelections, Product, and Category HTTP services with confirmed endpoints, request methods, response shapes, and friendly typed errors.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "CB-01-04",
         "description": "Decide whether the combo reference cache replaces or supplements CategoriesCacheService and ProductCacheService.referenceData; implement the chosen root-scoped five-minute cache with category/product lookups, includeSelections loading, SPECIAL_SELECTION filtering, invalidation/refresh APIs, and migrated admin/waiter consumers without duplicate reference sources.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "CB-01-05",
         "description": "Add foundation tests for DTO payload shapes, API URLs and methods, cache TTL/filtering/name resolution, stale data, empty categories, and unavailable products.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "CB-01-06",
         "description": "Verify the CB-01-01 decision register exists and every resolved decision is applied, then review foundation implementation for contract correctness, cache reuse, error handling, and regression risk.",
-        "status": "pending",
+        "status": "done",
         "agent": "reviewer"
       }
     ]
@@ -50,7 +50,7 @@
     "id": "combo-builder-02-realtime",
     "name": "Combo Builder real-time cache synchronization",
     "type": "feat",
-    "status": "pending",
+    "status": "done",
     "priority": "high",
     "description": "Make special-selection updates consistently refresh admin, waiter, detail, and reference data without duplicate subscriptions.",
     "dependsOn": [
@@ -60,31 +60,31 @@
       {
         "id": "CB-02-01",
         "description": "Define reliable application-level WebSocket connection ownership for direct admin and waiter combo routes.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "CB-02-02",
         "description": "Handle CREATE, UPDATE, SCHEDULE_CHANGE, PRICE_CHANGE, DELETE, and REVERT events by updating or invalidating combo list, available-now, detail, history, and reference caches.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "CB-02-03",
         "description": "Remove duplicate component-level refresh subscriptions, prevent duplicate refresh requests, expose a modified-combo signal, and connect it to waiter picker stale-state messaging in CB-05-01.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "CB-02-04",
         "description": "Test topic handling, deletion, reconnect behavior, cache invalidation, and duplicate-request prevention.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "CB-02-05",
         "description": "Review real-time lifecycle, subscription cleanup, race conditions, and stale-screen behavior.",
-        "status": "pending",
+        "status": "done",
         "agent": "reviewer"
       }
     ]

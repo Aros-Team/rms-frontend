@@ -6,8 +6,6 @@ import { interval } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 
 import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
-import { WebSocket } from '@app/core/services/websocket/websocket';
-import { SpecialSelectionWsPayload } from '@app/shared/models/dto/special-selections/special-selection-ws-payload';
 
 @Component({
   selector: 'app-combos-waiter',
@@ -18,7 +16,6 @@ import { SpecialSelectionWsPayload } from '@app/shared/models/dto/special-select
 })
 export class Combos {
   private cache = inject(SpecialSelectionsCacheService);
-  private ws = inject(WebSocket);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
 
@@ -29,12 +26,6 @@ export class Combos {
 
   constructor() {
     this.cache.availableNow.load();
-
-    this.ws.subscribeToTopic<SpecialSelectionWsPayload>('/topic/special-selections/updated')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        this.cache.availableNow.refresh();
-      });
 
     interval(60_000)
       .pipe(takeUntilDestroyed(this.destroyRef))

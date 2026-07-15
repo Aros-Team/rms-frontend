@@ -135,7 +135,7 @@ export class ComboDetail {
       if (group.required) {
         const selected = this.selectedOptions().get(group.id);
         if (!selected || selected.length === 0) {
-          errors.push(`Debes seleccionar una opción para "${group.name}".`);
+          errors.push(`Debes seleccionar un producto para "${group.categoryName ?? 'este grupo'}".`);
         }
       }
     }
@@ -161,18 +161,11 @@ export class ComboDetail {
     }
 
     // ── Build DockItem ──
-    const optionIds: number[] = [];
-    const optionNames: string[] = [];
+    const productIds: number[] = [];
 
-    for (const [groupId, selected] of this.selectedOptions()) {
-      const group = combo.groups.find((g) => g.id === groupId);
-      if (!group) continue;
-      for (const optId of selected) {
-        const opt = group.options.find((o) => o.id === optId);
-        if (opt) {
-          optionIds.push(opt.id);
-          optionNames.push(opt.name);
-        }
+    for (const [, selected] of this.selectedOptions()) {
+      for (const productId of selected) {
+        productIds.push(productId);
       }
     }
 
@@ -187,8 +180,9 @@ export class ComboDetail {
         areaId: combo.areaId,
       },
       instructions: '',
-      selectedOptionIds: optionIds,
-      optionNames,
+      selectedOptionIds: [],
+      selectedProductIds: productIds,
+      optionNames: [],
       quantity: 1,
       additionIds: this.selectedAdditionIds(),
       clarifications: Array.from(this.clarifications().entries()).map(([questionId, answer]) => ({ questionId, answer })),

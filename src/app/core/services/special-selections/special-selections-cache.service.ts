@@ -1,9 +1,10 @@
 import { Injectable, inject, DestroyRef } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ResourceCache } from '@app/core/cache/resource-cache';
-import { WebSocket } from '@app/core/services/websocket/websocket';
 import { SpecialSelections } from './special-selections';
+import { SpecialSelectionsRealtime } from './special-selections-realtime';
+import { ComboReferenceCache } from '@app/core/services/combos/combo-reference-cache';
 import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';
 import { SpecialSelectionRequest } from '@app/shared/models/dto/special-selections/special-selection-request';
 import { ScheduleEntryRequest } from '@app/shared/models/dto/special-selections/schedule-entry';
@@ -11,32 +12,97 @@ import { SpecialSelectionHistoryPage } from '@app/shared/models/dto/special-sele
 import { SpecialSelectionHistoryRangeResponse } from '@app/shared/models/dto/special-selections/special-selection-history';
 import { SpecialSelectionHistoryEntry } from '@app/shared/models/dto/special-selections/special-selection-history';
 import { SuggestedPriceResponse } from '@app/shared/models/dto/special-selections/special-selection-suggested-price';
-import { SpecialSelectionWsPayload } from '@app/shared/models/dto/special-selections/special-selection-ws-payload';
+import { CHANGE_TYPE, SpecialSelectionWsPayload } from '@app/shared/models/dto/special-selections/special-selection-ws-payload';
 
 @Injectable({ providedIn: 'root' })
 export class SpecialSelectionsCacheService {
   private readonly api = inject(SpecialSelections);
-  private readonly ws = inject(WebSocket);
+  private readonly realtime = inject(SpecialSelectionsRealtime);
+  private readonly comboReference = inject(ComboReferenceCache);
   private readonly destroyRef = inject(DestroyRef);
 
+  private readonly modifiedComboSubject = new BehaviorSubject<number | null>(null);
+
+  /**
+   * Latest productId of a combo that was modified (edited, schedule change,
+   * price change or reverted) through the realtime stream. CREATE and DELETE
+   * do not update this value; the previous value stays so consumers can keep
+   * reacting to the most recent in-place modification.
+   *
+   * Replays the last seen value to late subscribers (BehaviorSubject semantics).
+   *
+   * Consumed by CB-05-01 (waiter picker): compare against the loaded combo id
+   * and surface a stale-data hint when they match so the waiter can refresh
+   * before submitting the order.
+   */
+  readonly modifiedCombo$: Observable<number | null> = this.modifiedComboSubject.asObservable();
+
   constructor() {
-    this.ws.subscribeToTopic<SpecialSelectionWsPayload>('/topic/special-selections/updated').pipe(
+    this.realtime.updates$.pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe((payload) => {
-      if (payload.selection) {
-        const sel = payload.selection;
-        const detail = this.detailCaches.get(payload.productId);
-        if (detail) {
-          detail.patchData(() => sel);
-        }
-      } else {
-        this.detailCaches.delete(payload.productId);
-        this.historyCaches.delete(payload.productId);
-        this.historyRangeCaches.delete(payload.productId);
-        this.historyVersionCaches.delete(payload.productId);
-      }
-      this.availableNow.refresh();
+      this.handleRealtimeUpdate(payload);
     });
+  }
+
+  private handleRealtimeUpdate(payload: SpecialSelectionWsPayload): void {
+    const { changeType, productId, selection } = payload;
+
+    switch (changeType) {
+      case CHANGE_TYPE.DELETE: {
+        this.removeCachedSelection(productId);
+        this.invalidateRealtimeSharedCaches(true);
+        return;
+      }
+      case CHANGE_TYPE.CREATE: {
+        const detail = this.detailCaches.get(productId);
+        detail?.invalidate();
+        if (selection) {
+          detail?.patchData(() => selection);
+        }
+        this.invalidateHistory(productId);
+        this.invalidateRealtimeSharedCaches(true);
+        return;
+      }
+      case CHANGE_TYPE.UPDATE:
+      case CHANGE_TYPE.SCHEDULE_CHANGE:
+      case CHANGE_TYPE.PRICE_CHANGE:
+      case CHANGE_TYPE.REVERT: {
+        const detail = this.detailCaches.get(productId);
+        detail?.invalidate();
+        if (selection) {
+          detail?.patchData(() => selection);
+        }
+        this.invalidateHistory(productId);
+        this.invalidateRealtimeSharedCaches(false);
+        this.modifiedComboSubject.next(productId);
+        return;
+      }
+      default: {
+        this.invalidateDetail(productId);
+        this.invalidateHistory(productId);
+        this.invalidateRealtimeSharedCaches(true);
+      }
+    }
+  }
+
+  private invalidateRealtimeSharedCaches(invalidateComboReference: boolean): void {
+    this.list.invalidate();
+    this.availableNow.refresh();
+    if (invalidateComboReference) {
+      this.comboReference.invalidate();
+    }
+  }
+
+  private removeCachedSelection(id: number): void {
+    this.detailCaches.get(id)?.reset();
+    this.historyCaches.get(id)?.reset();
+    this.historyRangeCaches.get(id)?.reset();
+    this.historyVersionCaches.get(id)?.forEach((cache) => { cache.reset(); });
+    this.detailCaches.delete(id);
+    this.historyCaches.delete(id);
+    this.historyRangeCaches.delete(id);
+    this.historyVersionCaches.delete(id);
   }
 
   readonly list = new ResourceCache<SpecialSelectionResponse[]>(
@@ -157,10 +223,7 @@ export class SpecialSelectionsCacheService {
 
   delete(id: number): Observable<object> {
     return this.api.delete(id).pipe(tap(() => {
-      this.detailCaches.delete(id);
-      this.historyCaches.delete(id);
-      this.historyRangeCaches.delete(id);
-      this.historyVersionCaches.delete(id);
+      this.removeCachedSelection(id);
       this.list.invalidate();
       this.availableNow.invalidate();
     }));

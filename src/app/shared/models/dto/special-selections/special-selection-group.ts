@@ -1,26 +1,20 @@
-export interface SpecialSelectionOptionResponse {
-  id: number;
-  name: string;
-  extraPrice: number;
-  displayOrder: number;
-  optionCategoryId: number;
-}
-
 export interface SpecialSelectionGroupRequest {
-  name: string;
+  id?: number | null;
+  categoryId: number | null;
   displayOrder: number;
   required: boolean;
   minSelections: number;
   maxSelections: number;
-  optionIds: number[];
+  productIds: number[];
 }
 
 export interface SpecialSelectionGroupResponse {
   id: number;
-  name: string;
+  categoryId: number | null;
+  categoryName?: string;
+  displayOrder: number;
   required: boolean;
   minSelections: number;
   maxSelections: number;
-  displayOrder: number;
-  options: SpecialSelectionOptionResponse[];
+  productIds: number[];
 }
