@@ -1,6 +1,5 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
 
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
@@ -51,13 +50,11 @@ export class ComboWizardPage {
   private readonly submission = inject(ComboSubmission);
   private readonly route = inject(ActivatedRoute);
 
-  private readonly paramMap = toSignal(this.route.paramMap);
-
-  readonly categoryIds = signal<number[]>([]);
+  readonly categoryIds = computed(() => this.wizard.data().selectedCategoryIds);
   readonly saving = signal(false);
 
   constructor() {
-    const id = this.paramMap()?.get('id');
+    const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       const parsed = Number(id);
       if (!isNaN(parsed)) {
@@ -66,10 +63,6 @@ export class ComboWizardPage {
     } else {
       this.wizard.reset();
     }
-
-    effect(() => {
-      this.categoryIds.set(this.wizard.data().selectedCategoryIds);
-    });
   }
 
   save(): void {
