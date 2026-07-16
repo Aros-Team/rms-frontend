@@ -72,11 +72,11 @@ export const routes: Routes = [
           },
           {
             path: 'combos/new',
-            loadComponent: () => import('@areas/admin/features/manage/features/combos/combo-editor').then(m => m.ComboEditor),
+            loadComponent: () => import('@areas/admin/features/manage/features/combos/combo-wizard-page').then(m => m.ComboWizardPage),
           },
           {
             path: 'combos/:id/edit',
-            loadComponent: () => import('@areas/admin/features/manage/features/combos/combo-editor').then(m => m.ComboEditor),
+            loadComponent: () => import('@areas/admin/features/manage/features/combos/combo-wizard-page').then(m => m.ComboWizardPage),
           },
           {
             path: 'combos/:id/history',
