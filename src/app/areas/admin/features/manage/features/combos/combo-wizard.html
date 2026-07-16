@@ -98,13 +98,16 @@
         [disabled]="!canGoBack()"
         (onClick)="onBack()"
       />
-      <p-button
-        label="Siguiente"
-        icon="pi pi-arrow-right"
-        iconPos="right"
-        [disabled]="!canAdvance()"
-        (onClick)="onNext()"
-      />
+      <div class="flex items-center gap-2">
+        <ng-content select="[footerActions]" />
+        <p-button
+          label="Siguiente"
+          icon="pi pi-arrow-right"
+          iconPos="right"
+          [disabled]="!canAdvance()"
+          (onClick)="onNext()"
+        />
+      </div>
     </footer>
   </div>
 </div>
