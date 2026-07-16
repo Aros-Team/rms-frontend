@@ -15,59 +15,61 @@ import { SuggestedPriceResponse } from '@app/shared/models/dto/special-selection
 export class SpecialSelections {
   private http = inject(HttpClient);
 
+  private base = 'v1/admin/special-selections';
+
   create(req: SpecialSelectionRequest): Observable<SpecialSelectionResponse> {
-    return this.http.post<SpecialSelectionResponse>('v1/special-selections', req);
+    return this.http.post<SpecialSelectionResponse>(this.base, req);
   }
 
   update(id: number, req: SpecialSelectionRequest): Observable<SpecialSelectionResponse> {
-    return this.http.put<SpecialSelectionResponse>('v1/special-selections/' + String(id), req);
+    return this.http.put<SpecialSelectionResponse>(this.base + '/' + String(id), req);
   }
 
   patchSchedule(id: number, body: { entries: ScheduleEntryRequest[] }): Observable<SpecialSelectionResponse> {
-    return this.http.patch<SpecialSelectionResponse>('v1/special-selections/' + String(id) + '/schedule', body);
+    return this.http.patch<SpecialSelectionResponse>(this.base + '/' + String(id) + '/schedule', body);
   }
 
   patchPrice(id: number, body: { basePrice: number }): Observable<SpecialSelectionResponse> {
-    return this.http.patch<SpecialSelectionResponse>('v1/special-selections/' + String(id) + '/price', body);
+    return this.http.patch<SpecialSelectionResponse>(this.base + '/' + String(id) + '/price', body);
   }
 
   delete(id: number): Observable<object> {
-    return this.http.delete('v1/special-selections/' + String(id));
+    return this.http.delete(this.base + '/' + String(id));
   }
 
   getById(id: number): Observable<SpecialSelectionResponse> {
-    return this.http.get<SpecialSelectionResponse>('v1/special-selections/' + String(id));
+    return this.http.get<SpecialSelectionResponse>(this.base + '/' + String(id));
   }
 
   list(): Observable<SpecialSelectionResponse[]> {
-    return this.http.get<SpecialSelectionResponse[]>('v1/special-selections');
+    return this.http.get<SpecialSelectionResponse[]>(this.base);
   }
 
   availableNow(): Observable<SpecialSelectionResponse[]> {
-    return this.http.get<SpecialSelectionResponse[]>('v1/special-selections/available-now');
+    return this.http.get<SpecialSelectionResponse[]>(this.base + '/available-now');
   }
 
   getHistory(id: number, page = 0, size = 10): Observable<SpecialSelectionHistoryPage> {
-    return this.http.get<SpecialSelectionHistoryPage>('v1/special-selections/' + String(id) + '/history', {
+    return this.http.get<SpecialSelectionHistoryPage>(this.base + '/' + String(id) + '/history', {
       params: { page: String(page), size: String(size) }
     });
   }
 
   getHistoryVersion(id: number, version: number): Observable<SpecialSelectionHistoryEntry> {
-    return this.http.get<SpecialSelectionHistoryEntry>('v1/special-selections/' + String(id) + '/history/' + String(version));
+    return this.http.get<SpecialSelectionHistoryEntry>(this.base + '/' + String(id) + '/history/' + String(version));
   }
 
   getHistoryRange(id: number, from: string, to: string): Observable<SpecialSelectionHistoryRangeResponse> {
-    return this.http.get<SpecialSelectionHistoryRangeResponse>('v1/special-selections/' + String(id) + '/history/range', {
+    return this.http.get<SpecialSelectionHistoryRangeResponse>(this.base + '/' + String(id) + '/history/range', {
       params: { from: from, to: to }
     });
   }
 
   revertHistory(id: number, version: number): Observable<SpecialSelectionResponse> {
-    return this.http.post<SpecialSelectionResponse>('v1/special-selections/' + String(id) + '/history/' + String(version) + '/revert', {});
+    return this.http.post<SpecialSelectionResponse>(this.base + '/' + String(id) + '/history/' + String(version) + '/revert', {});
   }
 
   suggestPrice(id: number, body: { marginPercent: number }): Observable<SuggestedPriceResponse> {
-    return this.http.post<SuggestedPriceResponse>('v1/special-selections/' + String(id) + '/suggest-price', body);
+    return this.http.post<SuggestedPriceResponse>(this.base + '/' + String(id) + '/suggest-price', body);
   }
 }

@@ -60,7 +60,7 @@ describe('SpecialSelections service', () => {
       expect(res.id).toBe(7);
     });
 
-    const req = httpMock.expectOne('v1/special-selections/7');
+    const req = httpMock.expectOne('v1/admin/special-selections/7');
     expect(req.request.method).toBe('GET');
     expect(req.request.body).toBeNull();
     req.flush(mockSelection);
@@ -69,7 +69,7 @@ describe('SpecialSelections service', () => {
   it('list hits GET v1/special-selections', () => {
     service.list().subscribe();
 
-    const req = httpMock.expectOne('v1/special-selections');
+    const req = httpMock.expectOne('v1/admin/special-selections');
     expect(req.request.method).toBe('GET');
     req.flush([mockSelection]);
   });
@@ -77,7 +77,7 @@ describe('SpecialSelections service', () => {
   it('availableNow hits GET v1/special-selections/available-now', () => {
     service.availableNow().subscribe();
 
-    const req = httpMock.expectOne('v1/special-selections/available-now');
+    const req = httpMock.expectOne('v1/admin/special-selections/available-now');
     expect(req.request.method).toBe('GET');
     req.flush([mockSelection]);
   });
@@ -109,7 +109,7 @@ describe('SpecialSelections service', () => {
 
     service.create(payload).subscribe();
 
-    const req = httpMock.expectOne('v1/special-selections');
+    const req = httpMock.expectOne('v1/admin/special-selections');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(payload);
     req.flush(mockSelection);
@@ -142,7 +142,7 @@ describe('SpecialSelections service', () => {
 
     service.update(7, payload).subscribe();
 
-    const req = httpMock.expectOne('v1/special-selections/7');
+    const req = httpMock.expectOne('v1/admin/special-selections/7');
     expect(req.request.method).toBe('PUT');
     expect(req.request.body).toEqual(payload);
     req.flush(mockSelection);
@@ -151,7 +151,7 @@ describe('SpecialSelections service', () => {
   it('delete DELETEs v1/special-selections/{id}', () => {
     service.delete(7).subscribe();
 
-    const req = httpMock.expectOne('v1/special-selections/7');
+    const req = httpMock.expectOne('v1/admin/special-selections/7');
     expect(req.request.method).toBe('DELETE');
     req.flush({});
   });
@@ -168,7 +168,7 @@ describe('SpecialSelections service', () => {
       expect(res.breakdown[0].productId).toBe(10);
     });
 
-    const req = httpMock.expectOne('v1/special-selections/7/suggest-price');
+    const req = httpMock.expectOne('v1/admin/special-selections/7/suggest-price');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({ marginPercent: 30 });
     req.flush(response);
@@ -185,7 +185,7 @@ describe('SpecialSelections service', () => {
       },
     });
 
-    const req = httpMock.expectOne('v1/special-selections/7/suggest-price');
+    const req = httpMock.expectOne('v1/admin/special-selections/7/suggest-price');
     expect(req.request.method).toBe('POST');
     req.flush(
       { status: 422, message: 'missing unit_cost', missingVariants },

@@ -90,7 +90,7 @@ describe('SpecialSelectionsCacheService', () => {
   });
   it('list cache fetches from correct endpoint', () => {
     service.list.load();
-    const req = httpMock.expectOne('v1/special-selections');
+    const req = httpMock.expectOne('v1/admin/special-selections');
     expect(req.request.method).toBe('GET');
     req.flush([]);
     expect(service.list.data()).toEqual([]);
@@ -98,7 +98,7 @@ describe('SpecialSelectionsCacheService', () => {
 
   it('availableNow cache fetches from correct endpoint', () => {
     service.availableNow.load();
-    const req = httpMock.expectOne('v1/special-selections/available-now');
+    const req = httpMock.expectOne('v1/admin/special-selections/available-now');
     expect(req.request.method).toBe('GET');
     req.flush([mockSelection]);
     const data = service.availableNow.data();
@@ -109,7 +109,7 @@ describe('SpecialSelectionsCacheService', () => {
   it('detail cache fetches per-id endpoint', () => {
     const cache = service.detail(1);
     cache.load();
-    const req = httpMock.expectOne('v1/special-selections/1');
+    const req = httpMock.expectOne('v1/admin/special-selections/1');
     expect(req.request.method).toBe('GET');
     req.flush(mockSelection);
     expect(cache.data()?.id).toBe(1);
@@ -119,7 +119,7 @@ describe('SpecialSelectionsCacheService', () => {
     let emitted = false;
     service.create({} as unknown as SpecialSelectionRequest).subscribe(() => { emitted = true; });
 
-    const req = httpMock.expectOne('v1/special-selections');
+    const req = httpMock.expectOne('v1/admin/special-selections');
     expect(req.request.method).toBe('POST');
     req.flush(mockSelection);
 
@@ -128,14 +128,14 @@ describe('SpecialSelectionsCacheService', () => {
 
   it('delete removes per-id caches and invalidates list', () => {
     service.detail(1).load();
-    httpMock.expectOne('v1/special-selections/1').flush(mockSelection);
+    httpMock.expectOne('v1/admin/special-selections/1').flush(mockSelection);
 
     service.delete(1).subscribe();
-    const req = httpMock.expectOne('v1/special-selections/1');
+    const req = httpMock.expectOne('v1/admin/special-selections/1');
     expect(req.request.method).toBe('DELETE');    req.flush({});
 
     service.detail(1).load();
-    httpMock.expectOne('v1/special-selections/1');
+    httpMock.expectOne('v1/admin/special-selections/1');
   });
 
   it('suggestPrice propagates HttpErrorResponse on 422', () => {
@@ -149,7 +149,7 @@ describe('SpecialSelectionsCacheService', () => {
       },
     });
 
-    const req = httpMock.expectOne('v1/special-selections/1/suggest-price');
+    const req = httpMock.expectOne('v1/admin/special-selections/1/suggest-price');
     expect(req.request.method).toBe('POST');
     req.flush(
       { status: 422, message: 'missing unit_cost', missingVariants },
@@ -170,14 +170,14 @@ describe('SpecialSelectionsCacheService', () => {
       expect(data.breakdown.length).toBe(1);
     });
 
-    const req = httpMock.expectOne('v1/special-selections/1/suggest-price');
+    const req = httpMock.expectOne('v1/admin/special-selections/1/suggest-price');
     req.flush(response);
   });
 
   it('history cache fetches paginated endpoint', () => {
     const cache = service.history(1);
     cache.load();
-    const req = httpMock.expectOne('v1/special-selections/1/history?page=0&size=10');
+    const req = httpMock.expectOne('v1/admin/special-selections/1/history?page=0&size=10');
     expect(req.request.method).toBe('GET');
     req.flush(mockHistory);
     expect(cache.data()?.content).toEqual([]);
@@ -185,10 +185,10 @@ describe('SpecialSelectionsCacheService', () => {
 
   it('invalidateAll marks all caches stale', () => {
     service.list.load();
-    httpMock.expectOne('v1/special-selections').flush([mockSelection]);
+    httpMock.expectOne('v1/admin/special-selections').flush([mockSelection]);
 
     service.detail(1).load();
-    httpMock.expectOne('v1/special-selections/1').flush(mockSelection);
+    httpMock.expectOne('v1/admin/special-selections/1').flush(mockSelection);
 
     expect(service.list.data()).toBeTruthy();
     expect(service.detail(1).data()).toBeTruthy();
@@ -201,28 +201,28 @@ describe('SpecialSelectionsCacheService', () => {
 
   function primeRealtimeFixtures(): void {
     service.list.load();
-    httpMock.expectOne('v1/special-selections').flush([mockSelection]);
+    httpMock.expectOne('v1/admin/special-selections').flush([mockSelection]);
 
     service.availableNow.load();
-    httpMock.expectOne('v1/special-selections/available-now').flush([mockSelection]);
+    httpMock.expectOne('v1/admin/special-selections/available-now').flush([mockSelection]);
 
     service.detail(1).load();
-    httpMock.expectOne('v1/special-selections/1').flush(mockSelection);
+    httpMock.expectOne('v1/admin/special-selections/1').flush(mockSelection);
 
     service.history(1).load();
-    httpMock.expectOne('v1/special-selections/1/history?page=0&size=10').flush(mockHistory);
+    httpMock.expectOne('v1/admin/special-selections/1/history?page=0&size=10').flush(mockHistory);
 
     service.historyRange(1).load();
-    httpMock.expectOne('v1/special-selections/1/history/range?from=&to=').flush({
+    httpMock.expectOne('v1/admin/special-selections/1/history/range?from=&to=').flush({
       versions: [mockHistoryEntry],
     });
 
     service.historyVersion(1, 1).load();
-    httpMock.expectOne('v1/special-selections/1/history/1').flush(mockHistoryEntry);
+    httpMock.expectOne('v1/admin/special-selections/1/history/1').flush(mockHistoryEntry);
   }
 
   function flushAvailableNowRefresh(selection = mockSelection): void {
-    const refreshReq = httpMock.expectOne('v1/special-selections/available-now');
+    const refreshReq = httpMock.expectOne('v1/admin/special-selections/available-now');
     refreshReq.flush([selection]);
   }
 
@@ -396,26 +396,26 @@ describe('SpecialSelectionsCacheService', () => {
 
     it('supersedes in-flight cache loads when a realtime event arrives', () => {
       service.list.load();
-      const listRequest = httpMock.expectOne('v1/special-selections');
+      const listRequest = httpMock.expectOne('v1/admin/special-selections');
 
       service.availableNow.load();
-      const availableNowRequest = httpMock.expectOne('v1/special-selections/available-now');
+      const availableNowRequest = httpMock.expectOne('v1/admin/special-selections/available-now');
 
       service.detail(1).load();
-      const detailRequest = httpMock.expectOne('v1/special-selections/1');
+      const detailRequest = httpMock.expectOne('v1/admin/special-selections/1');
 
       service.history(1).load();
       const historyRequest = httpMock.expectOne(
-        'v1/special-selections/1/history?page=0&size=10',
+        'v1/admin/special-selections/1/history?page=0&size=10',
       );
 
       service.historyRange(1).load();
       const historyRangeRequest = httpMock.expectOne(
-        'v1/special-selections/1/history/range?from=&to=',
+        'v1/admin/special-selections/1/history/range?from=&to=',
       );
 
       service.historyVersion(1, 1).load();
-      const historyVersionRequest = httpMock.expectOne('v1/special-selections/1/history/1');
+      const historyVersionRequest = httpMock.expectOne('v1/admin/special-selections/1/history/1');
 
       const updated = { ...mockSelection, name: 'Menú en tiempo real' };
       realtimeSubject.next({
@@ -445,21 +445,21 @@ describe('SpecialSelectionsCacheService', () => {
       expect(service.availableNow.data()).toEqual([updated]);
 
       service.list.load();
-      httpMock.expectOne('v1/special-selections').flush([updated]);
+      httpMock.expectOne('v1/admin/special-selections').flush([updated]);
 
       service.detail(1).load();
-      httpMock.expectOne('v1/special-selections/1').flush(updated);
+      httpMock.expectOne('v1/admin/special-selections/1').flush(updated);
 
       service.history(1).load();
-      httpMock.expectOne('v1/special-selections/1/history?page=0&size=10').flush(mockHistory);
+      httpMock.expectOne('v1/admin/special-selections/1/history?page=0&size=10').flush(mockHistory);
 
       service.historyRange(1).load();
-      httpMock.expectOne('v1/special-selections/1/history/range?from=&to=').flush({
+      httpMock.expectOne('v1/admin/special-selections/1/history/range?from=&to=').flush({
         versions: [mockHistoryEntry],
       });
 
       service.historyVersion(1, 1).load();
-      httpMock.expectOne('v1/special-selections/1/history/1').flush(mockHistoryEntry);
+      httpMock.expectOne('v1/admin/special-selections/1/history/1').flush(mockHistoryEntry);
 
       expect(service.list.data()).toEqual([updated]);
       expect(service.detail(1).data()).toEqual(updated);
@@ -470,26 +470,26 @@ describe('SpecialSelectionsCacheService', () => {
 
     it('supersedes in-flight detail/history/range/version loads when a DELETE realtime event arrives', () => {
       service.list.load();
-      const listRequest = httpMock.expectOne('v1/special-selections');
+      const listRequest = httpMock.expectOne('v1/admin/special-selections');
 
       service.availableNow.load();
-      const availableNowRequest = httpMock.expectOne('v1/special-selections/available-now');
+      const availableNowRequest = httpMock.expectOne('v1/admin/special-selections/available-now');
 
       service.detail(1).load();
-      const detailRequest = httpMock.expectOne('v1/special-selections/1');
+      const detailRequest = httpMock.expectOne('v1/admin/special-selections/1');
 
       service.history(1).load();
       const historyRequest = httpMock.expectOne(
-        'v1/special-selections/1/history?page=0&size=10',
+        'v1/admin/special-selections/1/history?page=0&size=10',
       );
 
       service.historyRange(1).load();
       const historyRangeRequest = httpMock.expectOne(
-        'v1/special-selections/1/history/range?from=&to=',
+        'v1/admin/special-selections/1/history/range?from=&to=',
       );
 
       service.historyVersion(1, 1).load();
-      const historyVersionRequest = httpMock.expectOne('v1/special-selections/1/history/1');
+      const historyVersionRequest = httpMock.expectOne('v1/admin/special-selections/1/history/1');
 
       const detail = service.detail(1);
       const history = service.history(1);
@@ -533,18 +533,18 @@ describe('SpecialSelectionsCacheService', () => {
       expect(service.availableNow.status()).toBe('fresh');
 
       service.detail(1).load();
-      httpMock.expectOne('v1/special-selections/1').flush(mockSelection);
+      httpMock.expectOne('v1/admin/special-selections/1').flush(mockSelection);
 
       service.history(1).load();
-      httpMock.expectOne('v1/special-selections/1/history?page=0&size=10').flush(mockHistory);
+      httpMock.expectOne('v1/admin/special-selections/1/history?page=0&size=10').flush(mockHistory);
 
       service.historyRange(1).load();
-      httpMock.expectOne('v1/special-selections/1/history/range?from=&to=').flush({
+      httpMock.expectOne('v1/admin/special-selections/1/history/range?from=&to=').flush({
         versions: [mockHistoryEntry],
       });
 
       service.historyVersion(1, 1).load();
-      httpMock.expectOne('v1/special-selections/1/history/1').flush(mockHistoryEntry);
+      httpMock.expectOne('v1/admin/special-selections/1/history/1').flush(mockHistoryEntry);
 
       expect(service.detail(1).data()).toEqual(mockSelection);
       expect(service.history(1).status()).toBe('fresh');
@@ -766,7 +766,7 @@ describe('SpecialSelectionsCacheService realtime source collapse', () => {
   });
 
   function flushAvailableNow(): void {
-    const req = httpMock.expectOne('v1/special-selections/available-now');
+    const req = httpMock.expectOne('v1/admin/special-selections/available-now');
     req.flush([]);
   }
 
