@@ -17,7 +17,7 @@ describe('SpecialSelections service', () => {
     description: 'Sopa + plato fuerte',
     basePrice: 12.5,
     active: true,
-    areaId: 1,
+    preparationAreaId: 1,
     selectionType: 'SPECIAL_SELECTION',
     baseRecipeEnabled: false,
     schedulingRequired: true,

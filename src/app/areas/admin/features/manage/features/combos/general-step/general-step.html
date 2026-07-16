@@ -1,0 +1,206 @@
+<div class="flex flex-col gap-5 max-w-lg">
+  @if (isLoading()) {
+    <div class="flex flex-col gap-4" data-testid="loading-skeleton">
+      <p-skeleton width="100%" height="2.25rem" borderRadius="8px" />
+      <p-skeleton width="100%" height="4rem" borderRadius="8px" />
+      <p-skeleton width="100%" height="2.25rem" borderRadius="8px" />
+      <p-skeleton width="100%" height="2.25rem" borderRadius="8px" />
+      <p-skeleton width="100%" height="2.25rem" borderRadius="8px" />
+      <p-skeleton width="60%" height="2.25rem" borderRadius="8px" />
+    </div>
+  } @else {
+    <!-- Nombre del combo -->
+    <div class="flex flex-col gap-1">
+      <label for="name" class="text-sm font-medium text-surface-700 dark:text-surface-300">
+        Nombre del combo
+      </label>
+      <input
+        pInputText
+        id="name"
+        [ngModel]="wizardData().name"
+        (ngModelChange)="onNameChange($event)"
+        data-testid="name-input"
+      />
+    </div>
+
+    <!-- Descripción -->
+    <div class="flex flex-col gap-1">
+      <label for="description" class="text-sm font-medium text-surface-700 dark:text-surface-300">
+        Descripción
+      </label>
+      <textarea
+        pTextarea
+        id="description"
+        rows="3"
+        [ngModel]="wizardData().description"
+        (ngModelChange)="onDescriptionChange($event)"
+        data-testid="description-input"
+      ></textarea>
+    </div>
+
+    <!-- Precio base -->
+    <div class="flex flex-col gap-1">
+      <label for="basePrice" class="text-sm font-medium text-surface-700 dark:text-surface-300">
+        Precio base
+      </label>
+      <p-inputNumber
+        inputId="basePrice"
+        [ngModel]="wizardData().basePrice"
+        (ngModelChange)="onBasePriceChange($event)"
+        mode="currency"
+        currency="USD"
+        [minFractionDigits]="2"
+        [maxFractionDigits]="2"
+        data-testid="base-price-input"
+      />
+    </div>
+
+    <!-- Área -->
+    <div class="flex flex-col gap-1">
+      <label for="areaId" class="text-sm font-medium text-surface-700 dark:text-surface-300">
+        Área
+      </label>
+      <p-select
+        inputId="areaId"
+        [ngModel]="wizardData().areaId"
+        (ngModelChange)="onAreaIdChange($event)"
+        [options]="areas()"
+        optionLabel="name"
+        optionValue="id"
+        placeholder="Seleccionar área"
+        class="w-full"
+        data-testid="area-select"
+      />
+    </div>
+
+    <!-- Activo -->
+    <div class="flex flex-col gap-1">
+      <span class="text-sm font-medium text-surface-700 dark:text-surface-300" id="active-label">
+        Activo
+      </span>
+      <p-selectbutton
+        [ngModel]="wizardData().active"
+        (ngModelChange)="onActiveChange($event)"
+        [options]="activeOptions"
+        optionLabel="label"
+        optionValue="value"
+        aria-labelledby="active-label"
+        data-testid="active-selectbutton"
+      />
+    </div>
+
+    <!-- Receta base habilitada -->
+    <div class="flex items-center gap-2">
+      <p-checkbox
+        [ngModel]="wizardData().baseRecipeEnabled"
+        (ngModelChange)="onBaseRecipeChange($event)"
+        [binary]="true"
+        inputId="baseRecipeEnabled"
+        data-testid="base-recipe-checkbox"
+      />
+      <label for="baseRecipeEnabled" class="text-sm text-surface-700 dark:text-surface-300">
+        Receta base habilitada
+      </label>
+    </div>
+
+    <!-- Horario requerido -->
+    <div class="flex items-center gap-2">
+      <p-checkbox
+        [ngModel]="wizardData().schedulingRequired"
+        (ngModelChange)="onSchedulingRequiredChange($event)"
+        [binary]="true"
+        inputId="schedulingRequired"
+        data-testid="scheduling-required-checkbox"
+      />
+      <label for="schedulingRequired" class="text-sm text-surface-700 dark:text-surface-300">
+        Horario requerido
+      </label>
+    </div>
+
+    <!-- Categorías del combo -->
+    <div class="flex flex-col gap-1">
+      <label for="categories" class="text-sm font-medium text-surface-700 dark:text-surface-300">
+        Categorías del combo
+      </label>
+      <p-multiselect
+        inputId="categories"
+        [ngModel]="wizardData().selectedCategoryIds"
+        (ngModelChange)="onCategoriesChange($event)"
+        [options]="ref.categories()"
+        optionLabel="name"
+        optionValue="id"
+        placeholder="Seleccionar categorías"
+        data-testid="category-multiselect"
+      />
+    </div>
+
+    <!-- Schedule editor -->
+    @if (wizardData().schedulingRequired) {
+      <div class="flex flex-col gap-3 border-t border-surface-200 dark:border-surface-700 pt-4" data-testid="schedule-editor">
+        <span class="text-sm font-medium text-surface-700 dark:text-surface-300">
+          Horario
+        </span>
+
+        @for (day of allDays; track day.value) {
+          @let entries = groupedSchedule().get(day.value);
+          @if (entries && entries.length > 0) {
+            <div class="flex flex-col gap-2">
+              <span class="text-sm font-semibold text-surface-700 dark:text-surface-300">
+                {{ day.label }}
+              </span>
+              @for (entry of entries; track entry.id) {
+                <div class="flex items-center gap-2 ml-4">
+                  <p-datepicker
+                    [ngModel]="entry.startTime"
+                    (ngModelChange)="onStartTimeChange(entry.id, $event)"
+                    [timeOnly]="true"
+                    hourFormat="24"
+                    [showIcon]="false"
+                    data-testid="schedule-start-time"
+                  />
+                  <span class="text-surface-400">-</span>
+                  <p-datepicker
+                    [ngModel]="entry.endTime"
+                    (ngModelChange)="onEndTimeChange(entry.id, $event)"
+                    [timeOnly]="true"
+                    hourFormat="24"
+                    [showIcon]="false"
+                    data-testid="schedule-end-time"
+                  />
+                  <p-button
+                    icon="pi pi-trash"
+                    severity="danger"
+                    size="small"
+                    (onClick)="removeScheduleEntry(entry.id)"
+                    data-testid="schedule-remove-btn"
+                  />
+                </div>
+              }
+            </div>
+          }
+        }
+
+        <div class="flex items-center gap-2 mt-1">
+          <p-button
+            label="Agregar horario"
+            icon="pi pi-plus"
+            severity="secondary"
+            size="small"
+            (onClick)="showDaySelector.set(true)"
+            data-testid="add-schedule-btn"
+          />
+          @if (showDaySelector() && unselectedDays().length > 0) {
+            <p-select
+              [options]="unselectedDays()"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Seleccionar día"
+              (onChange)="addScheduleDay($event.value)"
+              data-testid="day-selector-dropdown"
+            />
+          }
+        </div>
+      </div>
+    }
+  }
+</div>

@@ -1,4 +1,4 @@
-<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.products" (appLazyLoadVisible)="onVisible()">
+<div class="flex flex-col  md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.products" (appLazyLoadVisible)="onVisible()">
   <!-- Header -->
   <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 min-w-0 flex-shrink-0">
     <div class="min-w-0">
@@ -17,7 +17,7 @@
       #dt1
       [value]="filteredProducts() ?? []"
       [paginator]="true"
-      [rows]="pageSize()"
+      [rows]="6"
       [totalRecords]="cache.products.data()?.totalElements ?? 0"
       (onPage)="onPage($event)"
       [scrollable]="true"
@@ -42,25 +42,13 @@
               placeholder="Buscar por nombre..."
             />
           </p-iconfield>
-          <p-multiselect
-            [options]="categories()"
-            display="chip"
-            [maxSelectedLabels]="2"
-            class="w-full sm:w-56"
-            optionLabel="name"
-            optionValue="id"
-            placeholder="Filtrar por categoría"
-            [showClear]="true"
-            [formControl]="filterCategories"
-            appendTo="body"
-          />
           <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="dt1.clear()" />
         </div>
       </ng-template>
       <ng-template #header>
         <tr>
           <th pSortableColumn="name">Nombre <p-sortIcon field="name" /></th>
-          <th style="width: 80px">Imagen</th>
+          <th style="width: 100px">Imagen</th>
           <th pSortableColumn="basePrice">Precio <p-sortIcon field="basePrice" /></th>
           <th>Estado</th>
           <th pSortableColumn="areaName">Área <p-sortIcon field="areaName" /></th>

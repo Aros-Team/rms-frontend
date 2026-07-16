@@ -12,6 +12,7 @@ export interface SpecialSelectionPriceRequest {
 }
 
 export interface SpecialSelectionRequest {
+  productId?: number;
   name: string;
   description: string;
   basePrice: number;

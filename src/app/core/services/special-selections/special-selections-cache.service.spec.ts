@@ -33,7 +33,7 @@ describe('SpecialSelectionsCacheService', () => {
     description: 'Sopa + plato fuerte',
     basePrice: 12.50,
     active: true,
-    areaId: 1,
+    preparationAreaId: 1,
     selectionType: 'SPECIAL_SELECTION',
     baseRecipeEnabled: false,
     schedulingRequired: true,

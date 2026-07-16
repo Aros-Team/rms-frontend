@@ -1,0 +1,250 @@
+<div class="flex flex-col gap-5 max-w-lg">
+  <!-- Section 1: Cost Breakdown -->
+  <div class="flex flex-col gap-3">
+    <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-0">
+      Desglose de costos
+    </h2>
+
+    @if (groupCosts().length === 0) {
+      <p class="text-sm text-surface-500 dark:text-surface-400">
+        No hay grupos seleccionados para calcular costos.
+      </p>
+    }
+
+    @for (group of groupCosts(); track group.categoryId) {
+      <p-card [header]="group.categoryName">
+        <div class="flex flex-col gap-2">
+          @if (group.products.length === 0) {
+            <p class="text-sm text-surface-400 italic">
+              Sin productos seleccionados
+            </p>
+          }
+
+          @for (product of group.products; track product.id) {
+            <div
+              class="flex items-center justify-between text-sm"
+              data-testid="cost-product-row"
+            >
+              <span class="text-surface-700 dark:text-surface-300">
+                {{ product.name }}
+              </span>
+              <span class="font-medium text-surface-800 dark:text-surface-200">
+                {{ product.basePrice | currency : 'USD' : 'symbol' : '1.2-2' }}
+              </span>
+            </div>
+          }
+
+          <p-divider />
+
+          <div
+            class="flex items-center justify-between text-sm font-semibold"
+            data-testid="group-subtotal"
+          >
+            <span class="text-surface-600 dark:text-surface-400">
+              Subtotal
+            </span>
+            <span class="text-surface-800 dark:text-surface-200">
+              {{ group.subtotal | currency : 'USD' : 'symbol' : '1.2-2' }}
+            </span>
+          </div>
+        </div>
+      </p-card>
+    }
+
+    @if (groupCosts().length > 0) {
+      <div
+        class="flex items-center justify-between mt-1 pt-3 border-t border-surface-200 dark:border-surface-700"
+        data-testid="total-cost"
+      >
+        <span class="text-base font-bold text-surface-900 dark:text-surface-0">
+          Costo total: {{ totalCost() | currency : 'USD' : 'symbol' : '1.2-2' }}
+        </span>
+        <span class="text-sm text-surface-500 dark:text-surface-400">
+          ({{ productCount() }} {{ productCount() === 1 ? 'producto' : 'productos' }})
+        </span>
+      </div>
+    }
+  </div>
+
+  <!-- Section 2: Suggested Price -->
+  @if (sourceId(); as id) {
+    <div class="flex flex-col gap-3" data-testid="suggested-price-section">
+      <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-0">
+        Precio sugerido
+      </h2>
+
+      <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-1">
+          <label
+            for="margin"
+            class="text-sm font-medium text-surface-700 dark:text-surface-300"
+          >
+            Margen de ganancia (%)
+          </label>
+          <p-inputNumber
+            inputId="margin"
+            [ngModel]="margin()"
+            (ngModelChange)="margin.set($event)"
+            [suffix]="'%'"
+            [minFractionDigits]="0"
+            [maxFractionDigits]="0"
+            data-testid="margin-input"
+          />
+        </div>
+
+        <p-button
+          label="Calcular precio sugerido"
+          icon="pi pi-calculator"
+          [disabled]="suggestedLoading()"
+          (onClick)="calculatePrice()"
+          data-testid="calculate-price-btn"
+        />
+
+        @if (suggestedLoading()) {
+          <div
+            class="flex items-center gap-2 text-sm text-surface-500"
+            data-testid="suggested-loading"
+          >
+            <p-progressSpinner
+              styleClass="w-5 h-5"
+              strokeWidth="4"
+              data-testid="suggested-spinner"
+            />
+            <span>Calculando precio sugerido...</span>
+          </div>
+        }
+
+        @if (suggestedError(); as error) {
+          <p-message
+            severity="error"
+            [text]="error"
+            data-testid="suggested-error"
+          />
+        }
+
+        @if (missingVariants().length > 0) {
+          <p-message
+            severity="warn"
+            [text]="'Faltan variantes para los productos: ' + missingVariants().join(', ')"
+            data-testid="missing-variants-error"
+          />
+        }
+
+        @if (suggestedResult(); as result) {
+          <div
+            class="flex flex-col gap-2 border border-surface-200 dark:border-surface-700 rounded-lg p-3 bg-surface-50 dark:bg-surface-800"
+            data-testid="suggested-result"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-surface-600 dark:text-surface-400">
+                Precio sugerido
+              </span>
+              <span
+                class="text-lg font-bold text-primary"
+                data-testid="suggested-price-value"
+              >
+                {{ result.suggestedPrice | currency : 'USD' : 'symbol' : '1.2-2' }}
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-surface-600 dark:text-surface-400">
+                Costo total
+              </span>
+              <span class="font-medium text-surface-800 dark:text-surface-200">
+                {{ result.totalCost | currency : 'USD' : 'symbol' : '1.2-2' }}
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-surface-600 dark:text-surface-400">
+                Margen
+              </span>
+              <span class="font-medium text-surface-800 dark:text-surface-200">
+                {{ result.marginPercent }}%
+              </span>
+            </div>
+
+            <p-divider />
+
+            @if (result.breakdown.length > 0) {
+              <div class="flex flex-col gap-1">
+                <span
+                  class="text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide"
+                >
+                  Desglose
+                </span>
+                @for (entry of result.breakdown; track entry.productId) {
+                  <div
+                    class="flex items-center justify-between text-sm"
+                    data-testid="breakdown-entry"
+                  >
+                    <span class="text-surface-700 dark:text-surface-300">
+                      {{ entry.name }}
+                    </span>
+                    <span class="text-surface-800 dark:text-surface-200">
+                      {{ entry.cost | currency : 'USD' : 'symbol' : '1.2-2' }}
+                    </span>
+                  </div>
+                }
+              </div>
+            }
+
+            <p-button
+              label="Aplicar precio sugerido"
+              icon="pi pi-check"
+              severity="success"
+              (onClick)="applySuggestedPrice()"
+              data-testid="apply-suggested-price-btn"
+            />
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Section 3: Final Price -->
+  <div class="flex flex-col gap-3">
+    <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-0">
+      Precio final
+    </h2>
+
+    <div class="flex flex-col gap-1">
+      <label
+        for="finalPrice"
+        class="text-sm font-medium text-surface-700 dark:text-surface-300"
+      >
+        Precio final
+      </label>
+      <p-inputNumber
+        inputId="finalPrice"
+        [ngModel]="wizardData().basePrice"
+        (ngModelChange)="onBasePriceChange($event)"
+        mode="currency"
+        currency="USD"
+        [minFractionDigits]="2"
+        [maxFractionDigits]="2"
+        data-testid="final-price-input"
+      />
+    </div>
+  </div>
+
+  <!-- Active toggle -->
+  <div class="flex flex-col gap-1">
+    <span
+      class="text-sm font-medium text-surface-700 dark:text-surface-300"
+      id="active-label"
+    >
+      Activo
+    </span>
+    <p-selectbutton
+      [ngModel]="wizardData().active"
+      (ngModelChange)="onActiveChange($event)"
+      [options]="activeOptions"
+      optionLabel="label"
+      optionValue="value"
+      aria-labelledby="active-label"
+      data-testid="active-selectbutton"
+    />
+  </div>
+</div>

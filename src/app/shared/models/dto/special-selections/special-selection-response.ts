@@ -10,7 +10,7 @@ export interface SpecialSelectionResponse {
   description: string;
   basePrice: number;
   active: boolean;
-  areaId: number;
+  preparationAreaId: number;
   selectionType: SelectionType;
   baseRecipeEnabled: boolean;
   schedulingRequired: boolean;
