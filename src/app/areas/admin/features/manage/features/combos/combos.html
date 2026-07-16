@@ -29,7 +29,6 @@
             <td>{{ combo.basePrice | currency:'USD':'symbol':'1.0-2' }}</td>
             <td>{{ scheduleSummary(combo.schedule) }}</td>
             <td>
-              <!-- TODO-10b: wire active toggle when backend endpoint is available -->
               <p-toggleswitch [ngModel]="combo.active" [disabled]="true" />
             </td>
             <td>

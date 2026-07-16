@@ -93,7 +93,7 @@
     "id": "combo-builder-03-admin-wizard",
     "name": "Admin guided Combo Builder wizard",
     "type": "feat",
-    "status": "pending",
+    "status": "done",
     "priority": "critical",
     "description": "Build the responsive four-stage PrimeNG Timeline creation and editing flow with dynamic category group steps.",
     "dependsOn": [
@@ -104,91 +104,91 @@
       {
         "id": "CB-03-01",
         "description": "Create centralized signal-based wizard state, create/edit hydration, local-storage draft versioning, restore/discard flow, and cleanup after successful save.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "CB-03-02",
         "description": "Build PrimeNG vertical Timeline shell with general, dynamic per-category group, optional questions, and pricing stages plus active/completed/inactive markers and guarded navigation.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "CB-03-03",
         "description": "Implement general information fields for name, description, a UI-only category multi-select that generates one group per chosen category, schedule, and the confirmed Step 1 required/optional control semantics without inventing an unapproved API field.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
-      {
+{
         "id": "CB-03-04",
         "description": "Create reusable lazy-image product card showing thumbnail, name, and base price with selectable, disabled, keyboard, and unavailable states.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "CB-03-05A",
         "description": "Build dynamic per-category group step routing with guarded back/forward navigation and state preservation.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "CB-03-05B",
         "description": "Implement two-sided multi-product selection and drag/drop using the confirmed PrimeNG or Angular CDK pattern with correct transfer behavior.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "CB-03-05C",
         "description": "Add category-filtered product search with debouncing, multi-select gestures, and clear available/selected states.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "CB-03-05D",
         "description": "Add keyboard assignment controls and responsive vertical fallback so product selection never depends on pointer drag/drop.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "CB-03-06",
         "description": "Implement reusable group validation for category membership, required minimum, min/max ordering, selected count bounds, empty eligible-product categories, and progression blocking.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "CB-03-07",
         "description": "Implement optional combo questions stage with add/remove/edit, confirmed question types, skip behavior, and correct request mapping.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "CB-03-08A",
         "description": "Implement pricing calculations and API state for selected-product costs, total cost, margin percentage, suggested-price request, final price, and use-suggested-price behavior.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "CB-03-08B",
         "description": "Render productId-based pricing summary and breakdown with resolved product names, missing-recipe feedback, loading, retry, timeout, and manual-price states.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "CB-03-09",
         "description": "Wire create/update submission using categoryId/productIds, preserve additions/schedule/history behavior, renumber displayOrder, and map business/network/timeout errors to Spanish messages.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "CB-03-10",
         "description": "Add wizard state, hydration, validation, drag/drop fallback, pricing, persistence, payload, accessibility, and responsive component tests.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "CB-03-11",
         "description": "Review wizard UX, PrimeNG usage, WCAG keyboard flow, persistence safety, API mapping, and tablet/desktop layouts.",
-        "status": "pending",
+        "status": "done",
         "agent": "reviewer"
       }
     ]

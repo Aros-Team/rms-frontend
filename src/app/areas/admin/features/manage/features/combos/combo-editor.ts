@@ -167,7 +167,7 @@ export class ComboEditor {
     this.name.set(data.name);
     this.description.set(data.description);
     this.basePrice.set(data.basePrice);
-    this.areaId.set(data.areaId);
+    this.areaId.set(data.preparationAreaId);
     this.active.set(data.active);
     this.baseRecipeEnabled.set(data.baseRecipeEnabled);
     this.schedulingRequired.set(data.schedulingRequired);

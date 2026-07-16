@@ -177,7 +177,7 @@ export class ComboDetail {
         active: true,
         categoryId: 0,
         categoryName: '',
-        areaId: combo.areaId,
+        areaId: combo.preparationAreaId,
       },
       instructions: '',
       selectedOptionIds: [],
