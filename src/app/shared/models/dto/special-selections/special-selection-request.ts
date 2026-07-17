@@ -17,7 +17,6 @@ export interface SpecialSelectionRequest {
   description: string;
   basePrice: number;
   active: boolean;
-  areaId: number;
   baseRecipeEnabled: boolean;
   schedulingRequired: boolean;
   groups: SpecialSelectionGroupRequest[];

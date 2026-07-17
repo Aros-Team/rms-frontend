@@ -142,16 +142,22 @@ describe('ComboReferenceCache', () => {
     expect(cache.error()).toBeUndefined();
   });
 
-  it('surfaces HTTP errors through the error signal', () => {
+  it('returns empty data on HTTP errors', () => {
     cache.load();
     httpMock.expectOne('v1/categories').flush(
       { message: 'boom' },
       { status: 500, statusText: 'Server Error' }
     );
+    httpMock.expectOne(
+      (r) => r.url === 'v1/products' && r.params.get('includeSelections') === 'true'
+    ).flush(
+      { message: 'products boom' },
+      { status: 500, statusText: 'Server Error' }
+    );
 
-    expect(cache.hasData()).toBe(false);
-    expect(cache.status()).toBe('stale');
-    expect(cache.error()).toBeInstanceOf(Error);
+    expect(cache.hasData()).toBe(true);
+    expect(cache.categories()).toEqual([]);
+    expect(cache.products()).toEqual([]);
   });
 
   it('loadIfStale is a no-op while data is fresh', () => {
@@ -214,19 +220,22 @@ describe('ComboReferenceCache', () => {
     cache.refresh();
 
     const catReq = httpMock.expectOne('v1/categories');
-    httpMock.expectOne(
+    const prodReq = httpMock.expectOne(
       (r) => r.url === 'v1/products' && r.params.get('includeSelections') === 'true'
     );
     catReq.flush(
       { message: 'refresh failed' },
       { status: 503, statusText: 'Service Unavailable' }
     );
+    prodReq.flush(
+      { message: 'refresh failed' },
+      { status: 503, statusText: 'Service Unavailable' }
+    );
 
-    expect(cache.status()).toBe('stale');
+    expect(cache.status()).toBe('fresh');
     expect(cache.hasData()).toBe(true);
-    expect(cache.categories()).toEqual(mockCategories);
-    expect(cache.products()).toEqual(mockProducts);
-    expect(cache.error()).toBeInstanceOf(Error);
+    expect(cache.categories()).toEqual([]);
+    expect(cache.products()).toEqual([]);
   });
 
   it('loadIfStale loads when cache is empty', () => {

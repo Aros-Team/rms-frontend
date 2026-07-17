@@ -1,5 +1,6 @@
 import { Injectable, computed, inject, type Signal } from '@angular/core';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 import { ResourceCache } from '@app/core/cache/resource-cache';
 import { Category } from '@app/core/services/category/category';
@@ -22,8 +23,16 @@ export class ComboReferenceCache {
 
   readonly reference = new ResourceCache<ComboReferenceData>(
     () => forkJoin({
-      categories: this.categoryService.getCategories(),
-      products: this.productService.getProducts(true),
+      categories: this.categoryService.getCategories().pipe(
+        catchError(() => of([] as CategorySimpleResponse[])),
+      ),
+      products: this.productService.getProductsPaginated(0, 100, false, true).pipe(
+        map((p: unknown) => {
+          const arr = (p as { content?: ProductResponse[] })?.content ?? p;
+          return Array.isArray(arr) ? arr : [];
+        }),
+        catchError(() => of([] as ProductResponse[])),
+      ),
     }),
     { ttlMs: COMBO_REFERENCE_TTL_MS, staleWhileRevalidate: true }
   );

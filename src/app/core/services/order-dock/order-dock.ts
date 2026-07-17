@@ -210,6 +210,7 @@ export class OrderDock {
           selectedOptionIds: item.selectedOptionIds,
           additionIds: item.additionIds,
           clarifications: item.clarifications,
+          selectedProductIds: item.selectedProductIds,
         }))
       )
     })).filter(d => d.details.length > 0);
@@ -225,6 +226,7 @@ export class OrderDock {
         selectedOptionIds: item.selectedOptionIds,
         additionIds: item.additionIds,
         clarifications: item.clarifications,
+        selectedProductIds: item.selectedProductIds,
       }))
     );
   }

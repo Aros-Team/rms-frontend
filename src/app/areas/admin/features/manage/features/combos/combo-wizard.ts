@@ -5,11 +5,11 @@ import {
   effect,
   ElementRef,
   inject,
+  untracked,
 } from '@angular/core';
 
 import { ButtonModule } from 'primeng/button';
 import { SkeletonModule } from 'primeng/skeleton';
-import { TimelineModule } from 'primeng/timeline';
 
 import { ComboReferenceCache } from '@app/core/services/combos/combo-reference-cache';
 import {
@@ -48,7 +48,7 @@ const STEP_PRICING_LABEL = 'Precio final';
 
 @Component({
   selector: 'app-combo-wizard',
-  imports: [ButtonModule, SkeletonModule, TimelineModule],
+  imports: [ButtonModule, SkeletonModule],
   templateUrl: './combo-wizard.html',
   styleUrl: './combo-wizard.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -59,6 +59,7 @@ export class ComboWizard {
   private readonly hostElement = inject(ElementRef);
 
   readonly sourceId = this.wizard.sourceId;
+  readonly currentStepId = this.wizard.currentStepId;
   readonly canGoBack = this.wizard.canGoBack;
   readonly canAdvance = this.wizard.canAdvance;
 
@@ -73,6 +74,10 @@ export class ComboWizard {
   );
 
   readonly hasNoCategories = computed(() => this.wizard.data().selectedCategoryIds.length === 0);
+
+  isCategoryStep(stepId: WizardStepId | null): boolean {
+    return stepId !== null && isCategoryStepId(stepId);
+  }
 
   hasSlotContent(slotKey: string): boolean {
     return !!(this.hostElement.nativeElement as HTMLElement).querySelector(
@@ -118,7 +123,10 @@ export class ComboWizard {
 
   constructor() {
     effect(() => {
-      this.wizard.setSteps(this.wizardSteps());
+      const steps = this.wizardSteps();
+      untracked(() => {
+        this.wizard.setSteps(steps);
+      });
     });
   }
 

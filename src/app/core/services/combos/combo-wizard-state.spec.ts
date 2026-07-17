@@ -68,7 +68,7 @@ const mockResponse: SpecialSelectionResponse = {
   active: true,
   preparationAreaId: 1,
   selectionType: 'SPECIAL_SELECTION',
-  baseRecipeEnabled: false,
+  baseRecipeEnabled: true,
   schedulingRequired: true,
   groups: [
     makeGroup(10, 1, 0, true, [100]),

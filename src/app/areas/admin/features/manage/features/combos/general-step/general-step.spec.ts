@@ -7,13 +7,10 @@ import {
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { of } from 'rxjs';
 
 import type { WizardFormData, WizardGroupDraft } from '@app/core/services/combos/combo-wizard-state';
 import { ComboReferenceCache } from '@app/core/services/combos/combo-reference-cache';
 import { ComboWizardState } from '@app/core/services/combos/combo-wizard-state';
-import { Area } from '@app/core/services/areas/area';
-import type { AreaResponse } from '@app/shared/models/dto/areas/area.model';
 import type { CategorySimpleResponse } from '@app/shared/models/dto/category/category-simple-response';
 import { GeneralStep } from './general-step';
 import generalStepHtml from './general-step.html?raw';
@@ -94,11 +91,6 @@ function buildReferenceMock(): ReferenceMock {
   };
 }
 
-const mockAreas: AreaResponse[] = [
-  { id: 1, name: 'Cocina', type: 'KITCHEN', enabled: true },
-  { id: 2, name: 'Barra', type: 'BARTENDER', enabled: true },
-];
-
 describe('GeneralStep', () => {
   let fixture: ComponentFixture<GeneralStep>;
   let component: GeneralStep;
@@ -125,7 +117,7 @@ describe('GeneralStep', () => {
         provideRouter([]),
         { provide: ComboWizardState, useValue: wizardMock },
         { provide: ComboReferenceCache, useValue: referenceMock },
-        { provide: Area, useValue: { getAreas: () => of(mockAreas) } },
+
       ],
     });
     fixture = TestBed.createComponent(GeneralStep);
@@ -150,39 +142,15 @@ describe('GeneralStep', () => {
       expect(textarea).toBeTruthy();
     });
 
-    it('renders base price inputnumber', () => {
-      createComponent();
-      const el = getNative().querySelector('[data-testid="base-price-input"]');
-      expect(el).toBeTruthy();
-    });
-
-    it('renders area select', () => {
-      createComponent();
-      const el = getNative().querySelector('[data-testid="area-select"]');
-      expect(el).toBeTruthy();
-    });
-
-    it('renders active selectbutton', () => {
-      createComponent();
-      const el = getNative().querySelector('[data-testid="active-selectbutton"]');
-      expect(el).toBeTruthy();
-    });
-
-    it('renders base recipe checkbox', () => {
-      createComponent();
-      const el = getNative().querySelector('[data-testid="base-recipe-checkbox"]');
-      expect(el).toBeTruthy();
-    });
-
     it('renders scheduling required checkbox', () => {
       createComponent();
       const el = getNative().querySelector('[data-testid="scheduling-required-checkbox"]');
       expect(el).toBeTruthy();
     });
 
-    it('renders category multiselect', () => {
+    it('renders category chips', () => {
       createComponent();
-      const el = getNative().querySelector('[data-testid="category-multiselect"]');
+      const el = getNative().querySelector('[data-testid="category-chips"]');
       expect(el).toBeTruthy();
     });
 
@@ -191,16 +159,6 @@ describe('GeneralStep', () => {
       expect(wizardMock.data().name).toBe('Combo Test');
     });
 
-    it('sets base price from wizard initial data', () => {
-      createComponent({ basePrice: 25.5 });
-      expect(wizardMock.data().basePrice).toBe(25.5);
-    });
-
-    it('renders area options from area service', () => {
-      createComponent();
-      expect(component.areas().length).toBe(2);
-      expect(component.areas()[0]?.name).toBe('Cocina');
-    });
   });
 
   describe('name input updates wizard state', () => {
@@ -216,15 +174,6 @@ describe('GeneralStep', () => {
       fixture.detectChanges();
 
       expect(wizardMock.updateData).toHaveBeenCalledWith({ name: 'Nuevo nombre' });
-    });
-  });
-
-  describe('basePrice input updates wizard state', () => {
-    it('calls updateData on basePrice change', () => {
-      createComponent({ basePrice: 10 });
-      const calls = wizardMock.updateData.mock.calls as [Partial<WizardFormData>][];
-      const hasBasePrice = calls.some(([arg]) => Object.hasOwn(arg, 'basePrice'));
-      expect(hasBasePrice).toBe(false);
     });
   });
 
@@ -287,23 +236,16 @@ describe('GeneralStep', () => {
     });
   });
 
-  describe('step auto-completes when name and basePrice set', () => {
-    it('calls markStepCompleted when both name and basePrice are present', () => {
-      createComponent({ name: 'Mi combo', basePrice: 15 });
+  describe('step auto-completes when name set', () => {
+    it('calls markStepCompleted when name is present', () => {
+      createComponent({ name: 'Mi combo' });
       fixture.detectChanges();
 
       expect(wizardMock.markStepCompleted).toHaveBeenCalledWith('general');
     });
 
     it('calls markStepIncomplete when name is empty', () => {
-      createComponent({ name: '', basePrice: 15 });
-      fixture.detectChanges();
-
-      expect(wizardMock.markStepIncomplete).toHaveBeenCalledWith('general');
-    });
-
-    it('calls markStepIncomplete when basePrice is null', () => {
-      createComponent({ name: 'Mi combo', basePrice: null });
+      createComponent({ name: '' });
       fixture.detectChanges();
 
       expect(wizardMock.markStepIncomplete).toHaveBeenCalledWith('general');
@@ -327,36 +269,43 @@ describe('GeneralStep', () => {
       expect(editor).toBeTruthy();
     });
 
-    it('adds a schedule entry when a day is selected', () => {
+    it('adds a schedule block', () => {
       createComponent({ schedulingRequired: true });
       fixture.detectChanges();
 
-      component.addScheduleDay('MONDAY');
+      component.addScheduleBlock();
       fixture.detectChanges();
 
+      expect(component.scheduleBlocksForDisplay().length).toBe(1);
       expect(wizardMock.updateSchedule).toHaveBeenCalled();
+    });
+
+    it('toggles days in a block and syncs to wizard', () => {
+      createComponent({ schedulingRequired: true });
+      fixture.detectChanges();
+
+      component.addScheduleBlock();
+      const blockId = component.scheduleBlocksForDisplay()[0]!.id;
+      component.toggleBlockDay(blockId, 'MONDAY');
+      fixture.detectChanges();
+
       const schedule = wizardMock.data().schedule;
       expect(schedule.length).toBe(1);
       expect(schedule[0]?.dayOfWeek).toBe('MONDAY');
     });
 
-    it('removes a schedule entry', () => {
+    it('removes a schedule block', () => {
       createComponent({ schedulingRequired: true });
       fixture.detectChanges();
 
-      component.addScheduleDay('MONDAY');
-      component.addScheduleDay('TUESDAY');
+      component.addScheduleBlock();
+      const blockId = component.scheduleBlocksForDisplay()[0]!.id;
+      component.toggleBlockDay(blockId, 'MONDAY');
+      component.toggleBlockDay(blockId, 'TUESDAY');
+      component.removeScheduleBlock(blockId);
       fixture.detectChanges();
 
-      const withSignal = component as { scheduleEntries: () => { id: number }[] };
-      const firstEntry = withSignal.scheduleEntries()[0];
-      expect(firstEntry).toBeDefined();
-      component.removeScheduleEntry(firstEntry.id);
-      fixture.detectChanges();
-
-      const schedule = wizardMock.data().schedule;
-      expect(schedule.length).toBe(1);
-      expect(schedule[0]?.dayOfWeek).toBe('TUESDAY');
+      expect(wizardMock.data().schedule.length).toBe(0);
     });
   });
 
