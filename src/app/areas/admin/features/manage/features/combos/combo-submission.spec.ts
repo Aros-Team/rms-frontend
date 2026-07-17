@@ -9,8 +9,10 @@ import { MessageService } from 'primeng/api';
 
 import { ComboSubmission } from './combo-submission';
 import { ComboWizardState } from '@app/core/services/combos/combo-wizard-state';
+import { Product } from '@app/core/services/products/product';
 import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
 import type { WizardFormData } from '@app/core/services/combos/combo-wizard-state';
+import type { ProductResponse } from '@app/shared/models/dto/products/product-response';
 import type { SpecialSelectionRequest } from '@app/shared/models/dto/special-selections/special-selection-request';
 
 function buildWizardStub(overrides?: Partial<{
@@ -48,6 +50,9 @@ function setupTestBed(wizardStub?: ReturnType<typeof buildWizardStub>) {
     create: vi.fn(),
     update: vi.fn(),
   };
+  const productStub = {
+    createProduct: vi.fn(),
+  };
   const messageStub = { add: vi.fn() };
   const routerStub = { navigate: vi.fn() };
 
@@ -56,12 +61,13 @@ function setupTestBed(wizardStub?: ReturnType<typeof buildWizardStub>) {
       ComboSubmission,
       { provide: ComboWizardState, useValue: ws },
       { provide: SpecialSelectionsCacheService, useValue: cacheStub },
+      { provide: Product, useValue: productStub },
       { provide: MessageService, useValue: messageStub },
       { provide: Router, useValue: routerStub },
     ],
   });
 
-  return { service: TestBed.inject(ComboSubmission), ws, cacheStub, messageStub, routerStub };
+  return { service: TestBed.inject(ComboSubmission), ws, cacheStub, productStub, messageStub, routerStub };
 }
 
 const fullFormData: WizardFormData = {
@@ -104,7 +110,6 @@ describe('ComboSubmission', () => {
       expect(req.name).toBe('Combo Ejecutivo');
       expect(req.description).toBe('Sopa + Plato fuerte + Postre');
       expect(req.basePrice).toBe(15.5);
-      expect(req.areaId).toBe(3);
       expect(req.active).toBe(true);
       expect(req.baseRecipeEnabled).toBe(false);
       expect(req.schedulingRequired).toBe(true);
@@ -136,11 +141,10 @@ describe('ComboSubmission', () => {
       expect(req.groups[1].id).toBeUndefined();
     });
 
-    it('sets null basePrice and areaId to 0', () => {
+    it('sets null basePrice to 0', () => {
       const zeroPriceData: WizardFormData = {
         ...fullFormData,
         basePrice: null,
-        areaId: null,
       };
       const { service } = setupTestBed(
         buildWizardStub({ sourceId: null, data: zeroPriceData }),
@@ -150,7 +154,6 @@ describe('ComboSubmission', () => {
       const req = serviceAny.buildRequest(zeroPriceData);
 
       expect(req.basePrice).toBe(0);
-      expect(req.areaId).toBe(0);
     });
 
     it('maps additions, questions, and schedule', () => {
@@ -177,19 +180,23 @@ describe('ComboSubmission', () => {
   });
 
   describe('submit', () => {
-    it('calls create when sourceId is null', () => {
-      const { service, cacheStub } = setupTestBed(
+    it('creates product then calls create when sourceId is null', () => {
+      const { service, cacheStub, productStub } = setupTestBed(
         buildWizardStub({ sourceId: null, data: fullFormData }),
       );
+      const mockProduct = { id: 99 } as ProductResponse;
+      productStub.createProduct.mockReturnValue(of(mockProduct));
       cacheStub.create.mockReturnValue(of({ id: 1 }));
 
       service.submit().subscribe((success) => {
         expect(success).toBe(true);
       });
 
+      expect(productStub.createProduct).toHaveBeenCalledTimes(1);
       expect(cacheStub.create).toHaveBeenCalledTimes(1);
       expect(cacheStub.update).not.toHaveBeenCalled();
       const req = cacheStub.create.mock.calls[0][0] as SpecialSelectionRequest;
+      expect(req.productId).toBe(99);
       expect(req.name).toBe('Combo Ejecutivo');
     });
 
@@ -209,9 +216,10 @@ describe('ComboSubmission', () => {
     });
 
     it('on success calls markSaved, discardDraft, navigates, and shows success message', () => {
-      const { service, ws, cacheStub, messageStub, routerStub } = setupTestBed(
+      const { service, ws, cacheStub, productStub, messageStub, routerStub } = setupTestBed(
         buildWizardStub({ sourceId: null, data: fullFormData }),
       );
+      productStub.createProduct.mockReturnValue(of({ id: 99 }));
       cacheStub.create.mockReturnValue(of({ id: 1 }));
 
       service.submit().subscribe();
@@ -226,10 +234,11 @@ describe('ComboSubmission', () => {
       });
     });
 
-    it('on HttpErrorResponse shows error message and does not navigate', () => {
-      const { service, cacheStub, messageStub, routerStub } = setupTestBed(
+    it('on HttpErrorResponse from cache.create shows error message and does not navigate', () => {
+      const { service, cacheStub, productStub, messageStub, routerStub } = setupTestBed(
         buildWizardStub({ sourceId: null, data: fullFormData }),
       );
+      productStub.createProduct.mockReturnValue(of({ id: 99 }));
       const httpErr = new HttpErrorResponse({ status: 409, error: { message: 'Conflicto' } });
       cacheStub.create.mockReturnValue(throwError(() => httpErr));
 
@@ -245,10 +254,33 @@ describe('ComboSubmission', () => {
       expect(routerStub.navigate).not.toHaveBeenCalled();
     });
 
-    it('on non-HTTP error shows generic error message', () => {
-      const { service, cacheStub, messageStub, routerStub } = setupTestBed(
+    it('on HttpErrorResponse from product creation shows error message and does not navigate', () => {
+      const { service, cacheStub, productStub, messageStub, routerStub } = setupTestBed(
         buildWizardStub({ sourceId: null, data: fullFormData }),
       );
+      const httpErr = new HttpErrorResponse({ status: 400, error: { message: 'Bad request' } });
+      productStub.createProduct.mockReturnValue(throwError(() => httpErr));
+
+      service.submit().subscribe((success) => {
+        expect(success).toBe(false);
+      });
+
+      expect(productStub.createProduct).toHaveBeenCalledTimes(1);
+      expect(cacheStub.create).not.toHaveBeenCalled();
+      expect(cacheStub.update).not.toHaveBeenCalled();
+      expect(messageStub.add).toHaveBeenCalledWith({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Bad request',
+      });
+      expect(routerStub.navigate).not.toHaveBeenCalled();
+    });
+
+    it('on non-HTTP error shows generic error message', () => {
+      const { service, cacheStub, productStub, messageStub, routerStub } = setupTestBed(
+        buildWizardStub({ sourceId: null, data: fullFormData }),
+      );
+      productStub.createProduct.mockReturnValue(of({ id: 99 }));
       cacheStub.create.mockReturnValue(throwError(() => new Error('Network fail')));
 
       service.submit().subscribe((success) => {
@@ -264,15 +296,17 @@ describe('ComboSubmission', () => {
     });
 
     it('returns Observable<boolean> with true on success and false on error', () => {
-      const { service, cacheStub } = setupTestBed(
+      const { service, cacheStub, productStub } = setupTestBed(
         buildWizardStub({ sourceId: null, data: fullFormData }),
       );
 
+      productStub.createProduct.mockReturnValue(of({ id: 99 }));
       cacheStub.create.mockReturnValue(of({ id: 1 }));
       service.submit().subscribe((success) => {
         expect(success).toBe(true);
       });
 
+      productStub.createProduct.mockReturnValue(of({ id: 99 }));
       cacheStub.create.mockReturnValue(throwError(() => new Error()));
       service.submit().subscribe((success) => {
         expect(success).toBe(false);

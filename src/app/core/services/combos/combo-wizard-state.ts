@@ -94,7 +94,7 @@ function emptyFormData(): WizardFormData {
     basePrice: null,
     areaId: null,
     active: true,
-    baseRecipeEnabled: false,
+    baseRecipeEnabled: true,
     schedulingRequired: false,
     selectedCategoryIds: [],
     groups: [],
@@ -357,9 +357,14 @@ export class ComboWizardState {
 
   setSteps(steps: readonly WizardStep[]): void {
     const next = [...steps];
-    this.stepsState.set(next);
+    const prev = this.stepsState();
+    const changed = prev.length !== next.length
+      || prev.some((s, i) => s.id !== next[i].id || s.label !== next[i].label);
+    if (changed) {
+      this.stepsState.set(next);
+    }
     const currentId = this.currentStepIdState();
-    if (currentId === null || !next.some((step) => step.id === currentId)) {
+    if (currentId === null || changed && !next.some((step) => step.id === currentId)) {
       this.currentStepIdState.set(next.length > 0 ? next[0].id : null);
     }
   }
@@ -394,6 +399,9 @@ export class ComboWizardState {
 
   markStepCompleted(id: WizardStepId): void {
     if (!this.stepsState().some((step) => step.id === id)) {
+      return;
+    }
+    if (this.completedStepsState().has(id)) {
       return;
     }
     const next = new Set(this.completedStepsState());

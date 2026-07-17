@@ -224,7 +224,6 @@ export class ComboEditor {
       description: this.description(),
       basePrice: this.basePrice(),
       active: this.active(),
-      areaId: this.areaId() ?? 0,
       baseRecipeEnabled: this.baseRecipeEnabled(),
       schedulingRequired: this.schedulingRequired(),
       groups: this.editableGroups(),

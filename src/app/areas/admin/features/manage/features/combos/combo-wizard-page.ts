@@ -5,7 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
-import { ComboWizard } from './combo-wizard';
+import { ComboWizard, categoryStepId } from './combo-wizard';
 import { GeneralStep } from './general-step/general-step';
 import { GroupStep } from './group-step/group-step';
 import { QuestionsStep } from './questions-step/questions-step';
@@ -50,7 +50,9 @@ export class ComboWizardPage {
   private readonly submission = inject(ComboSubmission);
   private readonly route = inject(ActivatedRoute);
 
+  readonly currentStepId = this.wizard.currentStepId;
   readonly categoryIds = computed(() => this.wizard.data().selectedCategoryIds);
+  readonly catStepId = categoryStepId;
   readonly saving = signal(false);
 
   constructor() {

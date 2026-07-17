@@ -10,6 +10,8 @@ import type { WizardFormData, WizardGroupDraft } from '@app/core/services/combos
 import { ComboReferenceCache } from '@app/core/services/combos/combo-reference-cache';
 import { ComboWizardState } from '@app/core/services/combos/combo-wizard-state';
 import type { ProductResponse } from '@app/shared/models/dto/products/product-response';
+import { Product } from '@app/core/services/products/product';
+import { of } from 'rxjs';
 
 import { GroupStep } from './group-step';
 import groupStepHtml from './group-step.html?raw';
@@ -19,10 +21,10 @@ import groupStepHtml from './group-step.html?raw';
 const TEST_CATEGORY_ID = 7;
 
 const MOCK_PRODUCTS: ProductResponse[] = [
-  { id: 1, name: 'Hamburguesa', basePrice: 15000, active: true, categoryId: TEST_CATEGORY_ID, categoryName: 'Comidas', areaId: 1, areaName: 'Cocina', recipe: [] },
-  { id: 2, name: 'Papas fritas', basePrice: 8000, active: true, categoryId: TEST_CATEGORY_ID, categoryName: 'Comidas', areaId: 1, areaName: 'Cocina', recipe: [] },
-  { id: 3, name: 'Gaseosa', basePrice: 5000, active: true, categoryId: TEST_CATEGORY_ID, categoryName: 'Comidas', areaId: 1, areaName: 'Cocina', recipe: [] },
-  { id: 4, name: 'Inactivo', basePrice: 10000, active: false, categoryId: TEST_CATEGORY_ID, categoryName: 'Comidas', areaId: 1, areaName: 'Cocina', recipe: [] },
+  { id: 1, name: 'Hamburguesa', basePrice: 15000, active: true, categoryId: TEST_CATEGORY_ID, categoryName: 'Comidas', areaId: 1, areaName: 'Cocina', recipe: [], selectionType: 'SPECIAL_SELECTION' },
+  { id: 2, name: 'Papas fritas', basePrice: 8000, active: true, categoryId: TEST_CATEGORY_ID, categoryName: 'Comidas', areaId: 1, areaName: 'Cocina', recipe: [], selectionType: 'SPECIAL_SELECTION' },
+  { id: 3, name: 'Gaseosa', basePrice: 5000, active: true, categoryId: TEST_CATEGORY_ID, categoryName: 'Comidas', areaId: 1, areaName: 'Cocina', recipe: [], selectionType: 'SPECIAL_SELECTION' },
+  { id: 4, name: 'Inactivo', basePrice: 10000, active: false, categoryId: TEST_CATEGORY_ID, categoryName: 'Comidas', areaId: 1, areaName: 'Cocina', recipe: [], selectionType: 'SPECIAL_SELECTION' },
 ];
 
 const MOCK_CATEGORY_NAME = 'Comidas';
@@ -61,6 +63,7 @@ function mockGroup(overrides?: Partial<WizardGroupDraft>): WizardGroupDraft {
 
 interface WizardMock {
   data: WritableSignal<WizardFormData>;
+  currentStepId: WritableSignal<string | null>;
   updateData: ReturnType<typeof vi.fn>;
   updateSelectedCategoryIds: ReturnType<typeof vi.fn>;
   updateGroups: ReturnType<typeof vi.fn>;
@@ -72,8 +75,10 @@ interface WizardMock {
 
 function buildWizardMock(initial?: Partial<WizardFormData>): WizardMock {
   const data = signal<WizardFormData>({ ...emptyFormData(), ...initial });
+  const currentStepId = signal<string | null>('category:7');
   return {
     data,
+    currentStepId,
     updateData: vi.fn((partial: Partial<WizardFormData>) => {
       data.update((d) => ({ ...d, ...partial }));
     }),
@@ -144,6 +149,7 @@ describe('GroupStep', () => {
       providers: [
         { provide: ComboWizardState, useValue: wizardMock },
         { provide: ComboReferenceCache, useValue: referenceMock },
+        { provide: Product, useValue: { getProductsByCategories: () => of(MOCK_PRODUCTS) } },
       ],
     });
     fixture = TestBed.createComponent(GroupStep);
@@ -191,11 +197,13 @@ describe('GroupStep', () => {
       expect(removeBtns.length).toBe(2);
     });
 
-    it('shows min/max constraint text', () => {
+    it('shows max selection limit for customer', () => {
       createComponent({ groups: [mockGroup({ minSelections: 1, maxSelections: 3 })] });
       fixture.detectChanges();
 
-      expect(getNative().textContent).toContain('Selecciona mínimo 1, máximo 3');
+      const maxInput = getNative().querySelector('[data-testid="max-selections-input"]');
+      expect(maxInput).toBeTruthy();
+      expect(getNative().textContent).toContain('Máximo de productos por cliente');
     });
 
     it('shows required badge when group is required', () => {
@@ -249,7 +257,7 @@ describe('GroupStep', () => {
       expect(group?.productIds).toContain(1);
     });
 
-    it('does not add beyond maxSelections', () => {
+    it('admin can add beyond maxSelections (customer limit)', () => {
       createComponent({ groups: [mockGroup({ maxSelections: 1, productIds: [] })] });
       fixture.detectChanges();
 
@@ -258,7 +266,7 @@ describe('GroupStep', () => {
       fixture.detectChanges();
 
       const group = wizardMock.data().groups.find((g: WizardGroupDraft) => g.categoryId === TEST_CATEGORY_ID);
-      expect(group?.productIds.length).toBe(1);
+      expect(group?.productIds.length).toBe(2);
     });
 
     it('removing a selected product removes it from the group', () => {
@@ -373,22 +381,15 @@ describe('GroupStep', () => {
     });
   });
 
-  describe('disabled state and max reached', () => {
-    it('disables adding when maxSelections reached', () => {
+  describe('admin can always select more', () => {
+    it('canSelectMore is always true for admin', () => {
       createComponent({ groups: [mockGroup({ maxSelections: 1, productIds: [1] })] });
-      fixture.detectChanges();
-
-      expect(component.canSelectMore()).toBe(false);
-    });
-
-    it('allows adding when under maxSelections', () => {
-      createComponent({ groups: [mockGroup({ maxSelections: 3, productIds: [1] })] });
       fixture.detectChanges();
 
       expect(component.canSelectMore()).toBe(true);
     });
 
-    it('blocks addProduct when max reached', () => {
+    it('admin can add beyond maxSelections', () => {
       createComponent({ groups: [mockGroup({ maxSelections: 1, productIds: [1] })] });
       fixture.detectChanges();
 
@@ -396,7 +397,7 @@ describe('GroupStep', () => {
       fixture.detectChanges();
 
       const group = wizardMock.data().groups.find((g: WizardGroupDraft) => g.categoryId === TEST_CATEGORY_ID);
-      expect(group?.productIds).toEqual([1]);
+      expect(group?.productIds).toEqual([1, 2]);
     });
   });
 

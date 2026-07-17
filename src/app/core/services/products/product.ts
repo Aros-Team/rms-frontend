@@ -51,10 +51,16 @@ export class Product {
     return this.http.get<ProductResponse[]>('v1/products');
   }
 
-  public getProductsPaginated(page = 0, size = 20, includeInactive = false): Observable<PaginatedProductsResponse> {
-    return this.http.get<PaginatedProductsResponse>('v1/products', {
-      params: { page: String(page), size: String(size), includeInactive: String(includeInactive) }
-    });
+  public getProductsPaginated(page = 0, size = 20, includeInactive = false, includeSelections?: boolean): Observable<PaginatedProductsResponse> {
+    let params: Record<string, string> = {
+      page: String(page),
+      size: String(size),
+      includeInactive: String(includeInactive),
+    };
+    if (includeSelections) {
+      params = { ...params, includeSelections: 'true' };
+    }
+    return this.http.get<PaginatedProductsResponse>('v1/products', { params });
   }
 
   public getAllProducts(includeSelections?: boolean): Observable<ProductListResponse[]> {

@@ -9,8 +9,28 @@
     }
   </div>
 
-  <!-- Min/max constraint text -->
-  <p class="text-sm text-surface-600 dark:text-surface-400">{{ minMaxText() }}</p>
+  <!-- Customer selection limits: how many products the customer can choose from this category -->
+  <div class="border border-surface-200 dark:border-surface-700 rounded-lg p-3 bg-surface-50 dark:bg-surface-800">
+    <p class="text-xs sm:text-sm text-surface-600 dark:text-surface-400 mb-2">
+      <i class="pi pi-info-circle mr-1"></i>
+      Límites de selección para el cliente — ¿cuántos productos puede escoger el cliente en esta categoría?
+    </p>
+    <div class="flex flex-wrap items-center gap-2">
+      <label class="text-xs sm:text-sm font-medium text-surface-700 dark:text-surface-300">
+        Máximo de productos por cliente
+      </label>
+      <p-inputNumber
+        [ngModel]="groupMaxSelections()"
+        (ngModelChange)="onMaxChange($event)"
+        [min]="1"
+        [max]="99"
+        [showButtons]="true"
+        [style]="{ width: '5rem' }"
+        inputId="max-selections"
+        data-testid="max-selections-input"
+      />
+    </div>
+  </div>
 
   <!-- Search input -->
   <span class="p-input-icon-left w-full max-w-md">
@@ -26,7 +46,7 @@
   </span>
 
   <!-- Two-column layout: available (left) / selected (right) -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
     <!-- Available products -->
     <div class="flex flex-col gap-3">
       <div class="flex items-center justify-between">
@@ -37,10 +57,10 @@
 
       <div
         cdkDropList
-        id="available-list"
-        [cdkDropListConnectedTo]="['selected-list']"
+        [id]="'available-list-' + categoryId"
+        [cdkDropListConnectedTo]="['selected-list-' + categoryId]"
         (cdkDropListDropped)="onDragDrop($event)"
-        class="grid grid-cols-2 sm:grid-cols-3 gap-3 min-h-[200px] border border-dashed border-surface-300 dark:border-surface-600 rounded-xl bg-surface-50 dark:bg-surface-800 p-3"
+        class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 min-h-[160px] sm:min-h-[200px] border border-dashed border-surface-300 dark:border-surface-600 rounded-xl bg-surface-50 dark:bg-surface-800 p-2 sm:p-3"
         data-testid="available-list"
       >
         @for (product of searchFilteredProducts(); track product.id) {
@@ -48,7 +68,7 @@
             <app-product-card
               [product]="product"
               [selected]="false"
-              [disabled]="!canSelectMore()"
+              [disabled]="false"
               (cardToggle)="toggleProduct(product)"
             />
           </div>
@@ -83,8 +103,8 @@
 
       <div
         cdkDropList
-        id="selected-list"
-        [cdkDropListConnectedTo]="['available-list']"
+        [id]="'selected-list-' + categoryId"
+        [cdkDropListConnectedTo]="['available-list-' + categoryId]"
         (cdkDropListDropped)="onDragDrop($event)"
         class="flex flex-col gap-3 min-h-[200px] border border-dashed border-surface-300 dark:border-surface-600 rounded-xl bg-surface-50 dark:bg-surface-800 p-3"
         data-testid="selected-list"
@@ -99,6 +119,7 @@
             <app-product-card
               [product]="product"
               [selected]="true"
+              (cardToggle)="toggleProduct(product)"
             />
             <button
               pButton

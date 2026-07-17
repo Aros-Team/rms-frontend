@@ -11,22 +11,17 @@ import { FormsModule } from '@angular/forms';
 
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
+import { ChipModule } from 'primeng/chip';
 import { DatePickerModule } from 'primeng/datepicker';
-import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
-import { MultiSelectModule } from 'primeng/multiselect';
-import { SelectButtonModule } from 'primeng/selectbutton';
-import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TextareaModule } from 'primeng/textarea';
 
-import { Area } from '@app/core/services/areas/area';
 import { ComboReferenceCache } from '@app/core/services/combos/combo-reference-cache';
 import {
   ComboWizardState,
   type WizardGroupDraft,
 } from '@app/core/services/combos/combo-wizard-state';
-import type { AreaResponse } from '@app/shared/models/dto/areas/area.model';
 import type { DayOfWeek } from '@app/shared/models/dto/special-selections/schedule-entry';
 
 const STEP_GENERAL_ID = 'general';
@@ -51,10 +46,9 @@ const ALL_DAYS: { value: DayOfWeek; label: string }[] = [
   { value: 'SUNDAY', label: 'Domingo' },
 ];
 
-interface ScheduleEntryView {
+interface ScheduleBlock {
   id: number;
-  dayOfWeek: DayOfWeek;
-  dayLabel: string;
+  dayOfWeek: DayOfWeek[];
   startTime: Date;
   endTime: Date;
 }
@@ -64,13 +58,10 @@ interface ScheduleEntryView {
   imports: [
     FormsModule,
     ButtonModule,
-    DatePickerModule,
     CheckboxModule,
-    InputNumberModule,
+    ChipModule,
+    DatePickerModule,
     InputTextModule,
-    MultiSelectModule,
-    SelectButtonModule,
-    SelectModule,
     SkeletonModule,
     TextareaModule,
   ],
@@ -81,74 +72,52 @@ interface ScheduleEntryView {
 export class GeneralStep {
   private readonly wizard = inject(ComboWizardState);
   private readonly reference = inject(ComboReferenceCache);
-  private readonly areaService = inject(Area);
 
   readonly ref = this.reference;
   readonly wizardData = this.wizard.data;
 
-  readonly areas = signal<AreaResponse[]>([]);
   readonly isLoading = computed(() => this.reference.isLoading());
 
   readonly allDays = ALL_DAYS;
 
-  readonly activeOptions = [
-    { label: 'Sí', value: true },
-    { label: 'No', value: false },
-  ];
+
 
   // ── Schedule state ───────────────────────────────────────────────────
   private nextScheduleId = 0;
-  private scheduleEntries = signal<ScheduleEntryView[]>([]);
-
-  readonly groupedSchedule = computed(() => {
-    const map = new Map<DayOfWeek, ScheduleEntryView[]>();
-    for (const entry of this.scheduleEntries()) {
-      const group = map.get(entry.dayOfWeek) ?? [];
-      group.push(entry);
-      map.set(entry.dayOfWeek, group);
-    }
-    return map;
-  });
-
-  readonly unselectedDays = computed(() => {
-    const used = new Set(this.scheduleEntries().map((e) => e.dayOfWeek));
-    return ALL_DAYS.filter((d) => !used.has(d.value));
-  });
-
-  readonly showDaySelector = signal(false);
+  private scheduleBlocks = signal<ScheduleBlock[]>([]);
 
   constructor() {
     this.initScheduleFromWizard();
     this.reference.loadIfStale();
-    this.loadAreas();
 
     effect(() => {
-      const { name, basePrice } = this.wizard.data();
-      if (name.trim().length > 0 && basePrice !== null) {
-        this.wizard.markStepCompleted(STEP_GENERAL_ID);
-      } else {
-        untracked(() => {
+      const name = this.wizard.data().name;
+      const completed = name.trim().length > 0;
+      untracked(() => {
+        if (completed) {
+          this.wizard.markStepCompleted(STEP_GENERAL_ID);
+        } else {
           this.wizard.markStepIncomplete(STEP_GENERAL_ID);
-        });
-      }
-    });
-  }
-
-  private loadAreas(): void {
-    this.areaService.getAreas().subscribe((data) => {
-      this.areas.set(data);
+        }
+      });
     });
   }
 
   onNameChange(value: string): void { this.wizard.updateData({ name: value }); }
   onDescriptionChange(value: string): void { this.wizard.updateData({ description: value }); }
-  onBasePriceChange(value: number | null): void { this.wizard.updateData({ basePrice: value }); }
-  onAreaIdChange(value: number | null): void { this.wizard.updateData({ areaId: value }); }
-  onActiveChange(value: boolean): void { this.wizard.updateData({ active: value }); }
-  onBaseRecipeChange(value: boolean): void { this.wizard.updateData({ baseRecipeEnabled: value }); }
   onSchedulingRequiredChange(value: boolean): void { this.wizard.updateData({ schedulingRequired: value }); }
 
   // ── Categories ───────────────────────────────────────────────────────
+  isCategorySelected(id: number): boolean {
+    return this.wizard.data().selectedCategoryIds.includes(id);
+  }
+
+  toggleCategory(id: number): void {
+    const current = this.wizard.data().selectedCategoryIds;
+    const next = current.includes(id) ? current.filter((c) => c !== id) : [...current, id];
+    this.onCategoriesChange(next);
+  }
+
   onCategoriesChange(selectedIds: number[]): void {
     this.wizard.updateSelectedCategoryIds(selectedIds);
 
@@ -182,58 +151,79 @@ export class GeneralStep {
   }
 
   // ── Schedule ─────────────────────────────────────────────────────────
-  addScheduleDay(dayOfWeek: DayOfWeek): void {
+  readonly scheduleBlocksForDisplay = this.scheduleBlocks.asReadonly();
+
+  addScheduleBlock(): void {
     const now = new Date();
-    this.scheduleEntries.update((entries) => [
-      ...entries,
-      {
-        id: this.nextScheduleId++,
-        dayOfWeek,
-        dayLabel: DAY_LABELS[dayOfWeek],
-        startTime: now,
-        endTime: now,
-      },
+    this.scheduleBlocks.update((blocks) => [
+      ...blocks,
+      { id: this.nextScheduleId++, dayOfWeek: [], startTime: now, endTime: now },
     ]);
-    this.showDaySelector.set(false);
     this.syncScheduleToWizard();
   }
 
-  removeScheduleEntry(id: number): void {
-    this.scheduleEntries.update((entries) => entries.filter((e) => e.id !== id));
+  removeScheduleBlock(id: number): void {
+    this.scheduleBlocks.update((blocks) => blocks.filter((b) => b.id !== id));
     this.syncScheduleToWizard();
   }
 
-  onStartTimeChange(id: number, date: Date): void {
-    this.scheduleEntries.update((entries) =>
-      entries.map((e) => (e.id === id ? { ...e, startTime: date } : e)),
+  isDayInBlock(blockId: number, day: DayOfWeek): boolean {
+    return this.scheduleBlocks().find((b) => b.id === blockId)?.dayOfWeek.includes(day) ?? false;
+  }
+
+  toggleBlockDay(blockId: number, day: DayOfWeek): void {
+    this.scheduleBlocks.update((blocks) =>
+      blocks.map((b) =>
+        b.id === blockId
+          ? { ...b, dayOfWeek: b.dayOfWeek.includes(day) ? b.dayOfWeek.filter((d) => d !== day) : [...b.dayOfWeek, day] }
+          : b,
+      ),
     );
     this.syncScheduleToWizard();
   }
 
-  onEndTimeChange(id: number, date: Date): void {
-    this.scheduleEntries.update((entries) =>
-      entries.map((e) => (e.id === id ? { ...e, endTime: date } : e)),
+  onBlockStartTimeChange(blockId: number, date: Date): void {
+    this.scheduleBlocks.update((blocks) =>
+      blocks.map((b) => (b.id === blockId ? { ...b, startTime: date } : b)),
+    );
+    this.syncScheduleToWizard();
+  }
+
+  onBlockEndTimeChange(blockId: number, date: Date): void {
+    this.scheduleBlocks.update((blocks) =>
+      blocks.map((b) => (b.id === blockId ? { ...b, endTime: date } : b)),
     );
     this.syncScheduleToWizard();
   }
 
   private initScheduleFromWizard(): void {
-    const entries = this.wizard.data().schedule.map((e) => ({
-      id: this.nextScheduleId++,
-      dayOfWeek: e.dayOfWeek,
-      dayLabel: DAY_LABELS[e.dayOfWeek],
-      startTime: this.parseTime(e.startTime),
-      endTime: this.parseTime(e.endTime),
-    }));
-    this.scheduleEntries.set(entries);
+    const entries = this.wizard.data().schedule;
+    const merged = new Map<string, { days: DayOfWeek[]; startTime: string; endTime: string }>();
+    for (const e of entries) {
+      const key = `${e.startTime}-${e.endTime}`;
+      const existing = merged.get(key) ?? { days: [], startTime: e.startTime, endTime: e.endTime };
+      existing.days.push(e.dayOfWeek);
+      merged.set(key, existing);
+    }
+    const blocks: ScheduleBlock[] = [];
+    for (const value of merged.values()) {
+      blocks.push({
+        id: this.nextScheduleId++,
+        dayOfWeek: value.days,
+        startTime: this.parseTime(value.startTime),
+        endTime: this.parseTime(value.endTime),
+      });
+    }
+    this.scheduleBlocks.set(blocks);
   }
 
   private syncScheduleToWizard(): void {
-    const entries = this.scheduleEntries().map((e) => ({
-      dayOfWeek: e.dayOfWeek,
-      startTime: this.formatTime(e.startTime),
-      endTime: this.formatTime(e.endTime),
-    }));
+    const entries: { dayOfWeek: DayOfWeek; startTime: string; endTime: string }[] = [];
+    for (const block of this.scheduleBlocks()) {
+      for (const day of block.dayOfWeek) {
+        entries.push({ dayOfWeek: day, startTime: this.formatTime(block.startTime), endTime: this.formatTime(block.endTime) });
+      }
+    }
     this.wizard.updateSchedule(entries);
   }
 

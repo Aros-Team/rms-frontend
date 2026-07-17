@@ -2,10 +2,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   Input,
+  OnInit,
   computed,
   effect,
   inject,
   signal,
+  untracked,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -13,28 +15,37 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import type { CdkDragDrop } from '@angular/cdk/drag-drop';
 
 import { ButtonModule } from 'primeng/button';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 
 import { ComboReferenceCache } from '@app/core/services/combos/combo-reference-cache';
 import { ComboWizardState } from '@app/core/services/combos/combo-wizard-state';
 import type { WizardGroupDraft } from '@app/core/services/combos/combo-wizard-state';
+import { Product } from '@app/core/services/products/product';
 import { ProductCard } from '@app/shared/components/product-card/product-card';
 import type { ProductResponse } from '@app/shared/models/dto/products/product-response';
+import { catchError, map } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 import { categoryStepId } from '../combo-wizard';
 
 @Component({
   selector: 'app-group-step[comboWizardStep=category]',
-  imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, DragDropModule, ProductCard],
+  imports: [CommonModule, FormsModule, ButtonModule, InputNumberModule, InputTextModule, DragDropModule, ProductCard],
   templateUrl: './group-step.html',
   styleUrl: './group-step.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[style.display]': 'isActiveStep() ? "" : "none"',
+  },
 })
-export class GroupStep {
+export class GroupStep implements OnInit {
   @Input() categoryId = 0;
 
   private readonly wizard = inject(ComboWizardState);
   private readonly reference = inject(ComboReferenceCache);
+  private readonly productService = inject(Product);
+  private readonly categoryProducts = signal<ProductResponse[]>([]);
   private debounceHandle: ReturnType<typeof setTimeout> | null = null;
 
   readonly searchText = signal('');
@@ -60,10 +71,10 @@ export class GroupStep {
 
   readonly isRequired = computed(() => this.currentGroup()?.required ?? false);
 
-  readonly canSelectMore = computed(() => this.selectedCount() < this.groupMaxSelections());
+  readonly canSelectMore = computed(() => true);
 
   private readonly allProducts = computed<ProductResponse[]>(() =>
-    this.reference.specialSelectionProductsByCategory(this.categoryId),
+    this.categoryProducts(),
   );
 
   readonly availableProducts = computed<ProductResponse[]>(() => {
@@ -102,18 +113,38 @@ export class GroupStep {
   });
 
   private readonly currentStepId = computed(() => categoryStepId(this.categoryId));
+  readonly isActiveStep = computed(() => this.wizard.currentStepId() === this.currentStepId());
+
+  ngOnInit(): void {
+    this.loadCategoryProducts();
+  }
 
   constructor() {
     effect(() => {
       const count = this.selectedCount();
       const min = this.groupMinSelections();
       const stepId = this.currentStepId();
+      const completed = count >= min;
 
-      if (count >= min) {
-        this.wizard.markStepCompleted(stepId);
-      } else {
-        this.wizard.markStepIncomplete(stepId);
-      }
+      untracked(() => {
+        if (completed) {
+          this.wizard.markStepCompleted(stepId);
+        } else {
+          this.wizard.markStepIncomplete(stepId);
+        }
+      });
+    });
+  }
+
+  private loadCategoryProducts(): void {
+    this.productService.getProductsByCategories([this.categoryId], true).pipe(
+      map((p: unknown) => {
+        const arr = (p as { content?: ProductResponse[] })?.content ?? p;
+        return Array.isArray(arr) ? arr : [];
+      }),
+      catchError(() => of([] as ProductResponse[])),
+    ).subscribe((products) => {
+      this.categoryProducts.set(products);
     });
   }
 
@@ -164,15 +195,25 @@ export class GroupStep {
     const productId = event.item.data as number;
     const targetId = event.container.id;
 
-    if (targetId === 'selected-list') {
+    if (targetId.startsWith('selected-list-')) {
       this.addProduct(productId);
-    } else if (targetId === 'available-list') {
+    } else if (targetId.startsWith('available-list-')) {
       this.removeProduct(productId);
     }
   }
 
   trackById(_index: number, item: ProductResponse): number {
     return item.id;
+  }
+
+  onMaxChange(value: number): void {
+    const groups = this.wizard.data().groups.map((g) => {
+      if (g.categoryId === this.categoryId) {
+        return { ...g, maxSelections: value };
+      }
+      return g;
+    });
+    this.wizard.updateGroups(groups);
   }
 
   private updateGroup(productIds: number[]): void {

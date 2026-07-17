@@ -4,6 +4,7 @@ import {
   computed,
   effect,
   inject,
+  untracked,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -41,11 +42,14 @@ export class QuestionsStep {
   constructor() {
     effect(() => {
       const qs = this.questions();
-      if (qs.length === 0 || qs.every((q) => q.question.trim().length > 0)) {
-        this.wizard.markStepCompleted(STEP_QUESTIONS_ID);
-      } else {
-        this.wizard.markStepIncomplete(STEP_QUESTIONS_ID);
-      }
+      const completed = qs.length === 0 || qs.every((q) => q.question.trim().length > 0);
+      untracked(() => {
+        if (completed) {
+          this.wizard.markStepCompleted(STEP_QUESTIONS_ID);
+        } else {
+          this.wizard.markStepIncomplete(STEP_QUESTIONS_ID);
+        }
+      });
     });
   }
 

@@ -88,7 +88,6 @@ describe('SpecialSelections service', () => {
       description: 'Sopa + plato fuerte',
       basePrice: 12.5,
       active: true,
-      areaId: 1,
       baseRecipeEnabled: false,
       schedulingRequired: true,
       groups: [
@@ -121,7 +120,6 @@ describe('SpecialSelections service', () => {
       description: 'Sopa + plato fuerte',
       basePrice: 13.0,
       active: true,
-      areaId: 1,
       baseRecipeEnabled: false,
       schedulingRequired: true,
       groups: [
