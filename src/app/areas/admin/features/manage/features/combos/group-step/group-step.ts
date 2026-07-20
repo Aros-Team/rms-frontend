@@ -138,9 +138,9 @@ export class GroupStep implements OnInit {
 
   private loadCategoryProducts(): void {
     this.productService.getProductsByCategories([this.categoryId], true).pipe(
-      map((p: unknown) => {
-        const arr = (p as { content?: ProductResponse[] })?.content ?? p;
-        return Array.isArray(arr) ? arr : [];
+      map((p: unknown): ProductResponse[] => {
+        const arr: unknown = (p as { content?: ProductResponse[] }).content ?? p;
+        return Array.isArray(arr) ? (arr as ProductResponse[]) : [];
       }),
       catchError(() => of([] as ProductResponse[])),
     ).subscribe((products) => {

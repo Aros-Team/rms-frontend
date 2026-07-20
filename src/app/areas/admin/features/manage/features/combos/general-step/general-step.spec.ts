@@ -285,8 +285,11 @@ describe('GeneralStep', () => {
       fixture.detectChanges();
 
       component.addScheduleBlock();
-      const blockId = component.scheduleBlocksForDisplay()[0]!.id;
-      component.toggleBlockDay(blockId, 'MONDAY');
+      const block = component.scheduleBlocksForDisplay().at(0);
+      if (!block) {
+        throw new Error('Expected schedule block to be created');
+      }
+      component.toggleBlockDay(block.id, 'MONDAY');
       fixture.detectChanges();
 
       const schedule = wizardMock.data().schedule;
@@ -299,10 +302,13 @@ describe('GeneralStep', () => {
       fixture.detectChanges();
 
       component.addScheduleBlock();
-      const blockId = component.scheduleBlocksForDisplay()[0]!.id;
-      component.toggleBlockDay(blockId, 'MONDAY');
-      component.toggleBlockDay(blockId, 'TUESDAY');
-      component.removeScheduleBlock(blockId);
+      const block = component.scheduleBlocksForDisplay().at(0);
+      if (!block) {
+        throw new Error('Expected schedule block to be created');
+      }
+      component.toggleBlockDay(block.id, 'MONDAY');
+      component.toggleBlockDay(block.id, 'TUESDAY');
+      component.removeScheduleBlock(block.id);
       fixture.detectChanges();
 
       expect(wizardMock.data().schedule.length).toBe(0);

@@ -98,7 +98,6 @@ describe('PricingStep', () => {
   let component: PricingStep;
   let wizardMock: WizardMock;
   let referenceMock: ReferenceMock;
-  let specialSelectionsMock: SpecialSelectionsMock;
 
   beforeAll(async () => {
     await resolveComponentResources((url: string) => {

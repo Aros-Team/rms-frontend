@@ -26,16 +26,6 @@ import type { DayOfWeek } from '@app/shared/models/dto/special-selections/schedu
 
 const STEP_GENERAL_ID = 'general';
 
-const DAY_LABELS: Record<DayOfWeek, string> = {
-  MONDAY: 'Lunes',
-  TUESDAY: 'Martes',
-  WEDNESDAY: 'Miércoles',
-  THURSDAY: 'Jueves',
-  FRIDAY: 'Viernes',
-  SATURDAY: 'Sábado',
-  SUNDAY: 'Domingo',
-};
-
 const ALL_DAYS: { value: DayOfWeek; label: string }[] = [
   { value: 'MONDAY', label: 'Lunes' },
   { value: 'TUESDAY', label: 'Martes' },

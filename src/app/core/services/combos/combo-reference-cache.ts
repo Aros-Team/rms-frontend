@@ -27,9 +27,9 @@ export class ComboReferenceCache {
         catchError(() => of([] as CategorySimpleResponse[])),
       ),
       products: this.productService.getProductsPaginated(0, 100, false, true).pipe(
-        map((p: unknown) => {
-          const arr = (p as { content?: ProductResponse[] })?.content ?? p;
-          return Array.isArray(arr) ? arr : [];
+        map((p: unknown): ProductResponse[] => {
+          const arr: unknown = (p as { content?: ProductResponse[] }).content ?? p;
+          return Array.isArray(arr) ? (arr as ProductResponse[]) : [];
         }),
         catchError(() => of([] as ProductResponse[])),
       ),
