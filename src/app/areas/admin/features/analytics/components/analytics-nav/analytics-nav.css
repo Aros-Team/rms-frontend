@@ -1,0 +1,44 @@
+@reference "tailwindcss";
+
+:host {
+  display: block;
+}
+
+.analytics-nav-bar {
+  @apply flex-shrink-0;
+  border-bottom-color: var(--p-surface-200);
+  background-color: var(--p-surface-50);
+  border-width: 1px;
+}
+
+.analytics-nav-list {
+  @apply flex flex-nowrap overflow-x-auto gap-1 md:gap-2;
+  scrollbar-width: none;
+}
+
+.analytics-nav-list::-webkit-scrollbar {
+  display: none;
+}
+
+.analytics-nav-item {
+  @apply flex items-center gap-2 px-4 py-3 min-h-[2.5rem] text-sm font-medium border-b-2 border-transparent transition-colors;
+  text-decoration: none;
+  color: var(--p-surface-600);
+}
+
+.analytics-nav-item:hover {
+  color: var(--p-surface-900);
+}
+
+.analytics-nav-item:where(.dark, .dark *) {
+  color: var(--p-surface-300);
+}
+
+.analytics-nav-item:where(.dark, .dark *):hover {
+  color: var(--p-surface-0);
+}
+
+.analytics-nav-item-active {
+  border-color: var(--p-primary-color);
+  color: var(--p-primary-color);
+}

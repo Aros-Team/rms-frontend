@@ -1,0 +1,495 @@
+openapi: 3.1.0
+info:
+  title: RMS Analytics API
+  version: 1.0.0
+  description: |
+    Read-only analytics endpoints for the RMS frontend.
+    Admin role required. See `docs/contracts/analytics.md` for the
+    business narrative and data-source assumptions.
+servers:
+  - url: http://localhost:8080
+    description: Local dev
+  - url: https://api.rms.example.com
+    description: Production (placeholder)
+
+tags:
+  - name: Analytics
+    description: Prime cost, menu engineering, operations, cohort, alerts.
+
+security:
+  - bearerAuth: []
+
+paths:
+
+  /api/v1/analytics/prime-cost:
+    get:
+      tags: [Analytics]
+      operationId: getPrimeCost
+      summary: Prime cost & margins over a time range
+      description: |
+        COGS, labor, and prime cost as % of net sales. Pre-aggregated
+        daily into `monthly_financial_summary`.
+      parameters:
+        - $ref: '#/components/parameters/Bucket'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+      responses:
+        '200':
+          description: Aggregated prime-cost series
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PrimeCostReport' }
+        '400': { $ref: '#/components/responses/InvalidPeriod' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/InvalidRange' }
+
+  /api/v1/analytics/menu-engineering:
+    get:
+      tags: [Analytics]
+      operationId: getMenuEngineering
+      summary: BCG-style menu engineering matrix
+      description: |
+        Classifies SKUs into Stars / Plowhorses / Puzzles / Dogs using
+        median (not mean) thresholds. Served from `menu_performance_cache`.
+      parameters:
+        - $ref: '#/components/parameters/Bucket'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+        - in: query
+          name: categoryId
+          required: false
+          schema: { type: integer, format: int64 }
+          description: Filter SKUs by product category.
+      responses:
+        '200':
+          description: Menu engineering report
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MenuEngineeringReport' }
+        '400': { $ref: '#/components/responses/InvalidPeriod' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/InvalidRange' }
+
+  /api/v1/analytics/operations:
+    get:
+      tags: [Analytics]
+      operationId: getOperations
+      summary: RevPASH & table turnover
+      description: |
+        Revenue per available seat hour and table turnover segmented by
+        day part. Requires orders.open_time/close_time (schema migration
+        planned in A6+).
+      parameters:
+        - $ref: '#/components/parameters/Bucket'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+      responses:
+        '200':
+          description: Operations report
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OperationsReport' }
+        '400': { $ref: '#/components/responses/InvalidPeriod' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/InvalidRange' }
+
+  /api/v1/analytics/cohort:
+    get:
+      tags: [Analytics]
+      operationId: getCohort
+      summary: Customer cohort (new vs recurring) & ticket sizing
+      description: |
+        Per business decision: a client is an order. No `customers`
+        table is created. New = orders first seen in range; recurring
+        = orders whose fingerprint appears ≥ 2× in the previous 90 days.
+      parameters:
+        - $ref: '#/components/parameters/Bucket'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+      responses:
+        '200':
+          description: Cohort report
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CohortReport' }
+        '400': { $ref: '#/components/responses/InvalidPeriod' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/InvalidRange' }
+
+  /api/v1/analytics/alerts:
+    get:
+      tags: [Analytics]
+      operationId: listAlerts
+      summary: List variance alerts
+      parameters:
+        - in: query
+          name: status
+          schema: { $ref: '#/components/schemas/AlertStatus' }
+        - in: query
+          name: severity
+          schema: { $ref: '#/components/schemas/AlertSeverity' }
+        - $ref: '#/components/parameters/Bucket'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        '200':
+          description: Alerts page
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AlertsPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /api/v1/analytics/alerts/{id}/read:
+    patch:
+      tags: [Analytics]
+      operationId: markAlertRead
+      summary: Mark an alert as read
+      description: Idempotent; calling on an already-read alert returns 204.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '204': { description: Marked as read }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/AlertNotFound' }
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Bucket:
+      in: query
+      name: bucket
+      required: true
+      schema: { $ref: '#/components/schemas/TimeBucket' }
+    From:
+      in: query
+      name: from
+      required: true
+      schema: { type: string }
+      description: |
+        Inclusive start. Format must match `bucket`:
+        `YYYY-MM-DD` | `YYYY-Www` | `YYYY-MM` | `YYYY`.
+    To:
+      in: query
+      name: to
+      required: true
+      schema: { type: string }
+      description: Inclusive end. Must be `>= from` and within 366 days.
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid JWT
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetail' }
+    Forbidden:
+      description: Authenticated but not admin
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetail' }
+    InvalidPeriod:
+      description: Period parameter malformed
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetail' }
+    InvalidRange:
+      description: "'to' is less than 'from', or range > 366 days"
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetail' }
+    AlertNotFound:
+      description: Alert id not found
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetail' }
+
+  schemas:
+
+    TimeBucket:
+      type: string
+      enum: [daily, weekly, monthly, yearly]
+
+    DataCompleteness:
+      type: string
+      enum: [FULL, PARTIAL, EMPTY]
+      description: |
+        `FULL` — all source data present.
+        `PARTIAL` — some source data missing; values approximated (see `notes[]`).
+        `EMPTY` — no data in range.
+
+    Money:
+      type: object
+      required: [amount, currency]
+      properties:
+        amount:   { type: string, example: "125000000.00", description: "Decimal string, no thousand separators" }
+        currency: { type: string, example: "COP", minLength: 3, maxLength: 3 }
+
+    MetricValue:
+      type: object
+      description: |
+        Numeric metric value as a decimal string. **Not money** — used for
+        heterogeneous alert metric values (percentages for cost-deviation
+        alerts, currency for SALES_DROP_YOY/REVPASH_DROP, integer units for
+        LOW_MARGIN_SKU_SPIKE). Unit is implied by `Alert.type`.
+      required: [amount]
+      properties:
+        amount: { type: string, example: "28.50" }
+
+    Period:
+      type: object
+      required: [bucket, from, to, keys]
+      properties:
+        bucket: { $ref: '#/components/schemas/TimeBucket' }
+        from:   { type: string, example: "2026-07" }
+        to:     { type: string, example: "2026-07" }
+        keys:
+          type: array
+          items: { type: string }
+          description: Concrete period keys included (e.g. ["2026-07-01", ...]).
+
+    PrimeCostReport:
+      type: object
+      required: [period, series, dataCompleteness]
+      properties:
+        period: { $ref: '#/components/schemas/Period' }
+        series:
+          type: array
+          items: { $ref: '#/components/schemas/PrimeCostPeriod' }
+        dataCompleteness: { $ref: '#/components/schemas/DataCompleteness' }
+        notes:
+          type: array
+          items: { type: string }
+
+    PrimeCostPeriod:
+      type: object
+      required: [key, netSales, grossSales, cogs, labor, primeCost, primeCostPct, dataCompleteness]
+      properties:
+        key:        { type: string, example: "2026-07" }
+        netSales:   { $ref: '#/components/schemas/Money' }
+        grossSales: { $ref: '#/components/schemas/Money' }
+        discounts:  { $ref: '#/components/schemas/Money' }
+        comped:     { $ref: '#/components/schemas/Money' }
+        cogs:
+          type: object
+          required: [total, byCategory]
+          properties:
+            total:      { $ref: '#/components/schemas/Money' }
+            byCategory:
+              type: array
+              items:
+                type: object
+                required: [category, amount, pct]
+                properties:
+                  category:
+                    type: string
+                    enum: [FOOD, BEVERAGE, ALCOHOL, OTHER]
+                  amount: { $ref: '#/components/schemas/Money' }
+                  pct:    { type: number, format: double, description: "0..100" }
+        labor:
+          type: object
+          required: [total, byArea]
+          properties:
+            total:  { $ref: '#/components/schemas/Money' }
+            byArea:
+              type: array
+              items:
+                type: object
+                required: [area, amount, pct]
+                properties:
+                  area:
+                    type: string
+                    enum: [FOH, BOH, OTHER]
+                  amount: { $ref: '#/components/schemas/Money' }
+                  pct:    { type: number, format: double }
+        primeCost:    { $ref: '#/components/schemas/Money' }
+        primeCostPct: { type: number, format: double, description: "0..100" }
+        margins:
+          type: object
+          properties:
+            grossProfitPct: { type: number, format: double }
+            netProfitPct:   { type: number, format: double }
+        dataCompleteness: { $ref: '#/components/schemas/DataCompleteness' }
+
+    MenuEngineeringReport:
+      type: object
+      required: [period, median, items, cacheStatus, dataCompleteness]
+      properties:
+        period: { $ref: '#/components/schemas/Period' }
+        median:
+          type: object
+          required: [volume, margin]
+          properties:
+            volume: { type: integer, example: 142 }
+            margin: { $ref: '#/components/schemas/Money' }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/MenuEngineeringItem' }
+        cacheStatus:
+          type: object
+          required: [lastRefreshedAt, sourceVersion, ttlSeconds]
+          properties:
+            lastRefreshedAt: { type: string, format: date-time }
+            sourceVersion:   { type: string, example: "v17" }
+            ttlSeconds:      { type: integer, example: 86400 }
+        dataCompleteness: { $ref: '#/components/schemas/DataCompleteness' }
+        notes:
+          type: array
+          items: { type: string }
+
+    MenuEngineeringItem:
+      type: object
+      required: [productId, productName, unitsSold, revenue, recipeCost, grossProfitPerUnit, totalContribution, quadrant]
+      properties:
+        productId:           { type: integer, format: int64 }
+        productName:         { type: string }
+        categoryId:          { type: integer, format: int64, nullable: true }
+        categoryName:        { type: string, nullable: true }
+        unitsSold:           { type: integer }
+        revenue:             { $ref: '#/components/schemas/Money' }
+        recipeCost:          { $ref: '#/components/schemas/Money' }
+        grossProfitPerUnit:  { $ref: '#/components/schemas/Money' }
+        totalContribution:   { $ref: '#/components/schemas/Money' }
+        quadrant:
+          type: string
+          enum: [STAR, PLOWHORSE, PUZZLE, DOG]
+
+    OperationsReport:
+      type: object
+      required: [period, revPash, tableTurnover, avgOccupancyMinutes, dataCompleteness]
+      properties:
+        period: { $ref: '#/components/schemas/Period' }
+        revPash:
+          type: object
+          required: [value, totalNetSales, totalAvailableSeatHours]
+          properties:
+            value:                   { $ref: '#/components/schemas/Money' }
+            totalNetSales:           { $ref: '#/components/schemas/Money' }
+            totalAvailableSeatHours: { type: number, format: double, example: 6757.5 }
+        tableTurnover:
+          type: object
+          required: [overall, byDayPart]
+          properties:
+            overall: { type: number, format: double, example: 4.8 }
+            byDayPart:
+              type: array
+              items:
+                type: object
+                required: [dayPart, turns, covers, tables]
+                properties:
+                  dayPart:
+                    type: string
+                    enum: [LUNCH, DINNER, OTHER]
+                  turns:  { type: number, format: double }
+                  covers: { type: integer }
+                  tables: { type: integer }
+        avgOccupancyMinutes: { type: number, format: double, example: 47.3 }
+        dataCompleteness:    { $ref: '#/components/schemas/DataCompleteness' }
+        notes:
+          type: array
+          items: { type: string }
+
+    CohortReport:
+      type: object
+      required: [period, newClients, recurringClients, totalOrders, recurringRatePct, averageTicketPerOrder, averageTicketPerCover, fingerprintStrategy, dataCompleteness]
+      properties:
+        period: { $ref: '#/components/schemas/Period' }
+        newClients:           { type: integer }
+        recurringClients:     { type: integer }
+        totalOrders:          { type: integer }
+        recurringRatePct:     { type: number, format: double, description: "0..100" }
+        averageTicketPerOrder: { $ref: '#/components/schemas/Money' }
+        averageTicketPerCover:  { $ref: '#/components/schemas/Money' }
+        fingerprintStrategy:
+          type: string
+          enum: [PHONE, PHONE_OR_TABLE, TABLE_ONLY]
+        dataCompleteness: { $ref: '#/components/schemas/DataCompleteness' }
+        notes:
+          type: array
+          items: { type: string }
+
+    AlertSeverity:
+      type: string
+      enum: [RED, YELLOW, INFO]
+
+    AlertStatus:
+      type: string
+      enum: [OPEN, READ, DISMISSED]
+
+    AlertType:
+      type: string
+      enum:
+        - FOOD_COST_DEVIATION
+        - LABOR_COST_DEVIATION
+        - SALES_DROP_YOY
+        - LOW_MARGIN_SKU_SPIKE
+        - REVPASH_DROP
+
+    Alert:
+      type: object
+      required: [id, severity, type, message, metric, current, deviationPct, period, detectedAt, status]
+      properties:
+        id:           { type: integer, format: int64 }
+        severity:     { $ref: '#/components/schemas/AlertSeverity' }
+        type:         { $ref: '#/components/schemas/AlertType' }
+        message:      { type: string }
+        metric:       { type: string, example: "food_cost_pct" }
+        baseline:     { $ref: '#/components/schemas/MetricValue' }
+        current:      { $ref: '#/components/schemas/MetricValue' }
+        deviationPct: { type: number, format: double }
+        period:       { type: string, example: "2026-07" }
+        detectedAt:   { type: string, format: date-time }
+        status:       { $ref: '#/components/schemas/AlertStatus' }
+
+    AlertsPage:
+      type: object
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Alert' }
+        page:
+          type: object
+          required: [limit, offset, total]
+          properties:
+            limit:  { type: integer }
+            offset: { type: integer }
+            total:  { type: integer }
+
+    ProblemDetail:
+      type: object
+      description: RFC 7807
+      required: [type, title, status]
+      properties:
+        type:     { type: string, format: uri, example: "/analytics/invalid-period" }
+        title:    { type: string, example: "Invalid period" }
+        status:   { type: integer, example: 400 }
+        detail:   { type: string }
+        instance: { type: string, format: uri }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              parameter: { type: string }
+              value:     { type: string }
+              expected:  { type: string }

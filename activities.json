@@ -1,394 +1,358 @@
 [
   {
-    "id": "combo-builder-01-foundation",
-    "name": "Combo Builder contract and data foundation",
+    "id": "analytics-foundation",
+    "name": "Analytics contract and data foundation",
     "type": "feat",
     "status": "done",
     "priority": "critical",
-    "description": "Freeze the category-based combo contract, migrate shared DTOs and API services, and provide one canonical cached category/product reference source.",
+    "description": "Generate DTOs from OpenAPI, implement Analytics HTTP service + ResourceCache layer, Money pipe, and shared utilities.",
     "dependsOn": [],
     "tasks": [
       {
-        "id": "CB-01-01",
-        "description": "Produce an authoritative decision register covering new-group id nullability, categoryId/productIds, selectedProductIds separation, suggested-price method/path, wizard category chooser semantics, top-level required behavior, question types and clarifications mapping, includeSelections response/filter/image fields, WebSocket payload completeness, shared cache ownership versus existing caches, active-toggle strategy, canonical waiter route, dock editing, legacy admin orders, local draft scope, and accessibility expectations; assign unresolved items to backend or product owner.",
+        "id": "AN-01-01",
+        "description": "Produce a decision register for analytics covering: Money serialization (decimal string + ISO currency) display strategy, bucket-aware period key formatting and validation rules, default period selection per module (monthly last-6 months), cache TTL strategy by module, error mapping for RFC 7807 problem+json, navigation structure (horizontal tabs mirroring manage pattern), shared period store scope, charts library choice (PrimeNG p-chart with chart.js), fallback strategy when dataCompleteness != FULL, accessibility expectations, and screen structure for each module.",
         "status": "done",
         "agent": "reviewer"
       },
       {
-        "id": "CB-01-02",
-        "description": "Replace combo group name/optionIds DTOs with categoryId/productIds, change suggested-price breakdown to productId, add selectedProductIds to order DTOs, and normalize SelectionType typing.",
+        "id": "AN-01-02",
+        "description": "Create TypeScript DTO models under src/app/shared/models/dto/analytics/ matching the analytics.yaml schemas: Money, MetricValue, Period, DataCompleteness, TimeBucket, PrimeCostReport, MenuEngineeringReport, OperationsReport, CohortReport, Alert, AlertsPage, AlertSeverity, AlertStatus, AlertType, ProblemDetail, and sub-types.",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-01-03",
-        "description": "Align SpecialSelections, Product, and Category HTTP services with confirmed endpoints, request methods, response shapes, and friendly typed errors.",
+        "id": "AN-01-03",
+        "description": "Replace existing single-method Analytics service at src/app/core/services/analytics/analytics.ts with full coverage: getPrimeCost, getMenuEngineering, getOperations, getCohort, listAlerts (with filters), markAlertRead, getTopSellingProducts kept for back-compat.",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-01-04",
-        "description": "Decide whether the combo reference cache replaces or supplements CategoriesCacheService and ProductCacheService.referenceData; implement the chosen root-scoped five-minute cache with category/product lookups, includeSelections loading, SPECIAL_SELECTION filtering, invalidation/refresh APIs, and migrated admin/waiter consumers without duplicate reference sources.",
+        "id": "AN-01-04",
+        "description": "Create AnalyticsCacheService with one ResourceCache per module (primeCost, menuEngineering, operations, cohort, alerts) using appropriate TTLs, plus a shared period signal store at src/app/core/services/analytics/analytics-period-state.ts that the shell and sub-pages consume.",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-01-05",
-        "description": "Add foundation tests for DTO payload shapes, API URLs and methods, cache TTL/filtering/name resolution, stale data, empty categories, and unavailable products.",
+        "id": "AN-01-05",
+        "description": "Implement MoneyPipe (displays COP with thousands sep and no decimals) and MetricValuePipe (generic decimal formatting) plus period key utility (formatPeriodKey bucket-aware) at src/app/shared/pipes/ and src/app/core/services/analytics/analytics-utils.ts.",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-01-06",
-        "description": "Verify the CB-01-01 decision register exists and every resolved decision is applied, then review foundation implementation for contract correctness, cache reuse, error handling, and regression risk.",
+        "id": "AN-01-06",
+        "description": "Add foundation tests at src/app/core/services/analytics/ covering HTTP URLs and params (query string, limits, offsets), problem+json error mapping, Money/MetricValue pipe localization, period key formatting, and cache TTL/invalidation.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "AN-01-07",
+        "description": "Review foundation DTO alignment with analytics.yaml, resource/service/cache separation, period state contract, and Money/MetricValue rounding rules.",
         "status": "done",
         "agent": "reviewer"
       }
     ]
   },
   {
-    "id": "combo-builder-02-realtime",
-    "name": "Combo Builder real-time cache synchronization",
+    "id": "analytics-shell",
+    "name": "Analytics shell, navigation, and period selector",
     "type": "feat",
     "status": "done",
     "priority": "high",
-    "description": "Make special-selection updates consistently refresh admin, waiter, detail, and reference data without duplicate subscriptions.",
+    "description": "Refactor existing analytics page into a parent shell with router-outlet, internal sub-routes for the five modules, horizontal tab navigation, and a shared period selector that writes to the period state.",
     "dependsOn": [
-      "combo-builder-01-foundation"
+      "analytics-foundation"
     ],
     "tasks": [
       {
-        "id": "CB-02-01",
-        "description": "Define reliable application-level WebSocket connection ownership for direct admin and waiter combo routes.",
+        "id": "AN-02-01",
+        "description": "Convert src/app/areas/admin/features/analytics/analytics.ts into a parent component with router-outlet and add five child routes (prime-cost, menu-engineering, operations, cohort, alerts) in src/app/app.routes.ts so each module lives at /admin/analytics/<module>; keep top-level redirect to 'prime-cost'.",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-02-02",
-        "description": "Handle CREATE, UPDATE, SCHEDULE_CHANGE, PRICE_CHANGE, DELETE, and REVERT events by updating or invalidating combo list, available-now, detail, history, and reference caches.",
+        "id": "AN-02-02",
+        "description": "Build AnalyticsNav horizontal tab nav at src/app/areas/admin/features/analytics/components/analytics-nav/ mirroring the manage.ts nav style with five tabs (Prime Cost, Menu, Operations, Cohort, Alerts) and active state via routerLinkActive.",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-02-03",
-        "description": "Remove duplicate component-level refresh subscriptions, prevent duplicate refresh requests, expose a modified-combo signal, and connect it to waiter picker stale-state messaging in CB-05-01.",
+        "id": "AN-02-03",
+        "description": "Build PeriodSelectorComponent at src/app/areas/admin/features/analytics/components/period-selector/ with bucket dropdown (daily/weekly/monthly/yearly), from/to inputs, validation (to >= from), and default = last-6-months monthly; bound to AnalyticsPeriodState.",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-02-04",
-        "description": "Test topic handling, deletion, reconnect behavior, cache invalidation, and duplicate-request prevention.",
+        "id": "AN-02-04",
+        "description": "Wire PeriodSelector + AnalyticsNav into the analytics shell; ensure five placeholder module pages (each showing its title and stub skeleton) so navigation lands somewhere useful while modules are built.",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-02-05",
-        "description": "Review real-time lifecycle, subscription cleanup, race conditions, and stale-screen behavior.",
+        "id": "AN-02-05",
+        "description": "Add shell tests covering active-route highlighting, default period initialization, validation error display, and child navigation.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "AN-02-06",
+        "description": "Review shell navigation accessibility (keyboard tab order, ARIA), shared period store reactivity across pages, responsive layout mobile/tablet/desktop, and route guard behavior.",
         "status": "done",
         "agent": "reviewer"
       }
     ]
   },
   {
-    "id": "combo-builder-03-admin-wizard",
-    "name": "Admin guided Combo Builder wizard",
+    "id": "analytics-prime-cost",
+    "name": "Prime Cost and Margins module",
     "type": "feat",
     "status": "done",
-    "priority": "critical",
-    "description": "Build the responsive four-stage PrimeNG Timeline creation and editing flow with dynamic category group steps.",
-    "dependsOn": [
-      "combo-builder-01-foundation",
-      "combo-builder-02-realtime"
-    ],
-    "tasks": [
-      {
-        "id": "CB-03-01",
-        "description": "Create centralized signal-based wizard state, create/edit hydration, local-storage draft versioning, restore/discard flow, and cleanup after successful save.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "CB-03-02",
-        "description": "Build PrimeNG vertical Timeline shell with general, dynamic per-category group, optional questions, and pricing stages plus active/completed/inactive markers and guarded navigation.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "CB-03-03",
-        "description": "Implement general information fields for name, description, a UI-only category multi-select that generates one group per chosen category, schedule, and the confirmed Step 1 required/optional control semantics without inventing an unapproved API field.",
-        "status": "done",
-        "agent": "implementer"
-      },
-{
-        "id": "CB-03-04",
-        "description": "Create reusable lazy-image product card showing thumbnail, name, and base price with selectable, disabled, keyboard, and unavailable states.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "CB-03-05A",
-        "description": "Build dynamic per-category group step routing with guarded back/forward navigation and state preservation.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "CB-03-05B",
-        "description": "Implement two-sided multi-product selection and drag/drop using the confirmed PrimeNG or Angular CDK pattern with correct transfer behavior.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "CB-03-05C",
-        "description": "Add category-filtered product search with debouncing, multi-select gestures, and clear available/selected states.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "CB-03-05D",
-        "description": "Add keyboard assignment controls and responsive vertical fallback so product selection never depends on pointer drag/drop.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "CB-03-06",
-        "description": "Implement reusable group validation for category membership, required minimum, min/max ordering, selected count bounds, empty eligible-product categories, and progression blocking.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "CB-03-07",
-        "description": "Implement optional combo questions stage with add/remove/edit, confirmed question types, skip behavior, and correct request mapping.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "CB-03-08A",
-        "description": "Implement pricing calculations and API state for selected-product costs, total cost, margin percentage, suggested-price request, final price, and use-suggested-price behavior.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "CB-03-08B",
-        "description": "Render productId-based pricing summary and breakdown with resolved product names, missing-recipe feedback, loading, retry, timeout, and manual-price states.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "CB-03-09",
-        "description": "Wire create/update submission using categoryId/productIds, preserve additions/schedule/history behavior, renumber displayOrder, and map business/network/timeout errors to Spanish messages.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "CB-03-10",
-        "description": "Add wizard state, hydration, validation, drag/drop fallback, pricing, persistence, payload, accessibility, and responsive component tests.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "CB-03-11",
-        "description": "Review wizard UX, PrimeNG usage, WCAG keyboard flow, persistence safety, API mapping, and tablet/desktop layouts.",
-        "status": "done",
-        "agent": "reviewer"
-      }
-    ]
-  },
-  {
-    "id": "combo-builder-04-admin-quick-editor",
-    "name": "Admin traditional combo group editor",
-    "type": "feat",
-    "status": "pending",
     "priority": "high",
-    "description": "Retain a compact editing view for fast category, product, constraint, and order changes while sharing wizard state and validation.",
+    "description": "Implement Prime Cost page with time-series chart, COGS-by-category donut, labor-by-area donut, and margins card honoring dataCompleteness banner.",
     "dependsOn": [
-      "combo-builder-03-admin-wizard"
+      "analytics-shell"
     ],
     "tasks": [
       {
-        "id": "CB-04-01",
-        "description": "Build group list rows with category dropdown, searchable category-filtered product multi-select, min/max inputs, required toggle, add/remove, and category-name headings.",
-        "status": "pending",
+        "id": "AN-03-01",
+        "description": "Build Prime Cost page at src/app/areas/admin/features/analytics/features/prime-cost/ with stat cards (net sales, prime cost, primeCost%, grossProfitPct) wired to AnalyticsCacheService.primeCost.",
+        "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-04-02",
-        "description": "Implement accessible group reorder and consistent displayOrder renumbering after add, remove, category change, and drag operations.",
-        "status": "pending",
+        "id": "AN-03-02",
+        "description": "Add a p-chart line/bar chart for primeCostPct over the chosen period keys (x = period key, y = pct) with proper labels, currency tick fallback and skeleton while loading.",
+        "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-04-03",
-        "description": "Share state, validation, product availability handling, save mapping, and local drafts with the guided wizard without duplicated business logic.",
-        "status": "pending",
+        "id": "AN-03-03",
+        "description": "Add COGS-by-category doughnut chart and labor-by-area doughnut chart using the latest period's byCategory/byArea data, plus a sortable breakdown table.",
+        "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-04-04",
-        "description": "After CB-01-01 records the endpoint decision, update admin combo list labels, loading/error/empty states, real-time updates, suggested-price action, and active-toggle behavior.",
-        "status": "pending",
+        "id": "AN-03-04",
+        "description": "Add data-completeness banner that renders the response notes[] when status is PARTIAL/EMPTY, plus empty-state and error-state skeletons matching conventions.md surface layering.",
+        "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-04-05",
-        "description": "Test quick editing, filtering, reorder, shared draft synchronization, stale products, and save payloads.",
-        "status": "pending",
+        "id": "AN-03-05",
+        "description": "Add Prime Cost tests covering chart rendering with mocked service, percent formatting, banner visibility, and PERIOD changes triggering data refresh.",
+        "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-04-06",
-        "description": "Review quick-editor consistency with wizard and guard against divergent validation or payload behavior.",
-        "status": "pending",
+        "id": "AN-03-06",
+        "description": "Review Prime Cost UX against conventions, accessibility, data completeness handling, and number currency/formatter consistency.",
+        "status": "done",
         "agent": "reviewer"
       }
     ]
   },
   {
-    "id": "combo-builder-05-waiter-picker",
-    "name": "Waiter category-based combo picker",
+    "id": "analytics-menu-engineering",
+    "name": "Menu Engineering (BCG matrix) module",
     "type": "feat",
-    "status": "pending",
-    "priority": "critical",
-    "description": "Render category groups from cached references and collect valid product selections for orders.",
+    "status": "done",
+    "priority": "high",
+    "description": "Implement BCG-style menu engineering matrix quadrant visualization, per-item table, median reference, and cacheStatus banner with categoryId filter.",
     "dependsOn": [
-      "combo-builder-01-foundation",
-      "combo-builder-02-realtime"
+      "analytics-shell"
     ],
     "tasks": [
       {
-        "id": "CB-05-01",
-        "description": "Fix combo detail routing/navigation and load combo, categories, and includeSelections products with skeleton, empty, retry, timeout, stale-data states, and consumption of the CB-02-03 modified-combo signal.",
-        "status": "pending",
+        "id": "AN-04-01",
+        "description": "Build Menu Engineering page at src/app/areas/admin/features/analytics/features/menu-engineering/ with stat cards (items count, total contribution, median volume and margin) wired to AnalyticsCacheService.menuEngineering; include category filter.",
+        "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-05-02",
-        "description": "Render category names and product cards with names/base prices, radio controls for maxSelections=1, checkboxes for multi-select, counters, and responsive accessible layouts.",
-        "status": "pending",
+        "id": "AN-04-02",
+        "description": "Add BCG quadrant scatter/bubble chart (x = grossProfitPerUnit, y = unitsSold, color = quadrant) using p-chart and an item table grouped by quadrant with sortable columns (unitsSold, revenue, contribution) and paginator.",
+        "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-05-03",
-        "description": "Enforce required, minimum, maximum, category membership, unavailable-product, and modified-combo rules; disable Add to Order until valid.",
-        "status": "pending",
+        "id": "AN-04-03",
+        "description": "Add cacheStatus banner (lastRefreshedAt, sourceVersion, ttlSeconds) plus notes[] banner for partial data, and skeleton states matching conventions.md.",
+        "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-05-04",
-        "description": "Preserve additions and clarifications while flattening selected combo group values into selectedProductIds and keeping selectedOptionIds standard-only.",
-        "status": "pending",
+        "id": "AN-04-04",
+        "description": "Add Menu Engineering tests covering quadrant math assignment, median reference, category filter trigger, cache status rendering, and skeleton/empty/error states.",
+        "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-05-05",
-        "description": "Add waiter picker tests for name resolution, single/multi selection, bounds, counters, missing products, WebSocket modification, routing, and dock handoff.",
-        "status": "pending",
-        "agent": "implementer"
-      },
-      {
-        "id": "CB-05-06",
-        "description": "Review waiter flow for validation gaps, touch/keyboard usability, race conditions, and payload separation.",
-        "status": "pending",
+        "id": "AN-04-05",
+        "description": "Review Menu Engineering UX for color-blind-safe quadrant palette, accessible table sort, category filter bounds, and performance with many SKUs.",
+        "status": "done",
         "agent": "reviewer"
       }
     ]
   },
   {
-    "id": "combo-builder-06-order-pipeline",
-    "name": "Order dock and submission migration",
+    "id": "analytics-operations",
+    "name": "Operational Efficiency (RevPASH & Turns) module",
     "type": "feat",
-    "status": "pending",
-    "priority": "critical",
-    "description": "Carry selectedProductIds separately through dock state, editing, merging, quantity expansion, and POST v1/orders.",
+    "status": "done",
+    "priority": "medium",
+    "description": "Implement RevPASH stat cards, table-turnover by day-part chart, occupancy minutes display, and notes banner for fallback to created_at/updated_at approximation.",
     "dependsOn": [
-      "combo-builder-05-waiter-picker"
+      "analytics-shell"
     ],
     "tasks": [
       {
-        "id": "CB-06-01",
-        "description": "Add selectedProductIds to DockItem and every order-detail construction path while retaining selectedOptionIds for standard options only.",
-        "status": "pending",
+        "id": "AN-05-01",
+        "description": "Build Operations page at src/app/areas/admin/features/analytics/features/operations/ with RevPASH stat cards (value, totalNetSales, totalAvailableSeatHours) wired to AnalyticsCacheService.operations.",
+        "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-06-02",
-        "description": "Update dock merge identity to include selected products, selected options, additions, clarifications, and instructions so distinct combo configurations never merge.",
-        "status": "pending",
+        "id": "AN-05-02",
+        "description": "Add table-turnover by day-part bar chart (overall + per-dayPart), avgOccupancyMinutes display, and notes[] banner for fallback (orders.open_time/close_time approximation).",
+        "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-06-03",
-        "description": "Implement confirmed combo edit behavior in the dock and preserve all combo state across edits, diners, quantity changes, and table selection.",
-        "status": "pending",
+        "id": "AN-05-03",
+        "description": "Add Operations tests covering day-part segmentation (LUNCH 11-15, DINNER 18-23, OTHER), chart rendering, fallback note visibility, and refresh-on-period-change.",
+        "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-06-04",
-        "description": "Update POST v1/orders serialization and decide whether the legacy admin order-creation route must support selectedProductIds or be explicitly excluded.",
-        "status": "pending",
-        "agent": "implementer"
-      },
-      {
-        "id": "CB-06-05",
-        "description": "Test dock identity, quantity expansion, edit preservation, diner handling, exact order payloads, and 400/404/409/network errors.",
-        "status": "pending",
-        "agent": "implementer"
-      },
-      {
-        "id": "CB-06-06",
-        "description": "Review end-to-end order state integrity and verify combo product IDs never leak into selectedOptionIds.",
-        "status": "pending",
+        "id": "AN-05-04",
+        "description": "Review Operations UX for day-part visualization clarity, accessibility, error handling, and notes section placement.",
+        "status": "done",
         "agent": "reviewer"
       }
     ]
   },
   {
-    "id": "combo-builder-07-downstream-hardening",
-    "name": "Combo Builder downstream verification and release hardening",
+    "id": "analytics-cohort",
+    "name": "Customer Cohort module",
+    "type": "feat",
+    "status": "done",
+    "priority": "medium",
+    "description": "Implement Cohort page with new vs recurring clients KPI cards, recurring rate visualization, and fingerprintStrategy banner.",
+    "dependsOn": [
+      "analytics-shell"
+    ],
+    "tasks": [
+      {
+        "id": "AN-06-01",
+        "description": "Build Cohort page at src/app/areas/admin/features/analytics/features/cohort/ with stat cards (newClients, recurringClients, totalOrders, recurringRatePct, averageTicketPerOrder, averageTicketPerCover) wired to AnalyticsCacheService.cohort.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "AN-06-02",
+        "description": "Add new-vs-recurring doughnut visualization, fingerprintStrategy banner showing PHONE/PHONE_OR_TABLE/TABLE_ONLY with translated label, and notes[] fallback banner.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "AN-06-03",
+        "description": "Add Cohort tests covering stat rendering, fingerprint strategy localized labels, and refresh on period change.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "AN-06-04",
+        "description": "Review Cohort UX for clarity of new vs recurring definitions, ticket size formatting, and fallback messaging.",
+        "status": "done",
+        "agent": "reviewer"
+      }
+    ]
+  },
+  {
+    "id": "analytics-alerts",
+    "name": "Variance Alerts module",
+    "type": "feat",
+    "status": "done",
+    "priority": "medium",
+    "description": "Implement Alerts list with severity/type/status filters, pagination, mark-read action, and RFC 7807 error handling for PATCH endpoint.",
+    "dependsOn": [
+      "analytics-shell"
+    ],
+    "tasks": [
+      {
+        "id": "AN-07-01",
+        "description": "Build Alerts page at src/app/areas/admin/features/analytics/features/alerts/ with filter controls (status, severity, bucket/from/to, limit/offset) wired to AnalyticsCacheService.alerts.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "AN-07-02",
+        "description": "Add alert list rendering (severity color, type icon, message, baseline vs current, deviation%, period, detectedAt) with PrimeNG paginator; wire markRead PATCH endpoint with optimistic update and toast feedback.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "AN-07-03",
+        "description": "Add Alerts tests covering filter application, pagination, mark-read optimistic update, error handling for 404 and network failures, and 204 idempotent behavior.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "AN-07-04",
+        "description": "Review Alerts UX for severity readability, filter clarity, action feedback, and accessibility (announce updated status).",
+        "status": "done",
+        "agent": "reviewer"
+      }
+    ]
+  },
+  {
+    "id": "analytics-pre-harness-chore",
+    "name": "Pre-harness lint cleanup so analytics tasks can be marked done",
     "type": "chore",
-    "status": "pending",
+    "status": "done",
     "priority": "high",
-    "description": "Verify order rendering, accessibility, performance, documentation, and full regression coverage before release.",
+    "description": "Fix the 12 pre-existing lint errors in combo module files so harness is green before declaring analytics tasks done.",
+    "dependsOn": [],
+    "tasks": [
+      {
+        "id": "AN-CH-01",
+        "description": "Fix 12 pre-existing lint errors in combo module files (general-step: unused DAY_LABELS + non-null assertions; group-step: unnecessary optional chains + unsafe any[] return; pricing-step: unused signal + specialSelectionsMock) by removing dead code, replacing non-null assertions with guarded expressions, and tightening types.",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ]
+  },
+  {
+    "id": "analytics-review-hardening",
+    "name": "Final analytics review, harness and doc hardening",
+    "type": "chore",
+    "status": "done",
+    "priority": "high",
+    "description": "Cross-module review of accessibility, performance, docs, and full harness pass.",
     "dependsOn": [
-      "combo-builder-03-admin-wizard",
-      "combo-builder-04-admin-quick-editor",
-      "combo-builder-05-waiter-picker",
-      "combo-builder-06-order-pipeline"
+      "analytics-prime-cost",
+      "analytics-menu-engineering",
+      "analytics-operations",
+      "analytics-cohort",
+      "analytics-alerts",
+      "analytics-pre-harness-chore"
     ],
     "tasks": [
       {
-        "id": "CB-07-01",
-        "description": "Verify and update kitchen, admin order details, and waiter today-orders rendering for resolved category groups, selected products, additions, and clarifications.",
-        "status": "pending",
+        "id": "AN-08-01",
+        "description": "Run node scripts/harness.js end-to-end and ensure exit code 0 across all blocks. Fix any introduced lint errors or failing tests.",
+        "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-07-02",
-        "description": "Audit lazy image loading, debounced filtering, shared cache use, draft size/versioning, responsive tablet/desktop behavior, contrast, ARIA labels, focus order, and keyboard operation.",
-        "status": "pending",
-        "agent": "reviewer"
-      },
-      {
-        "id": "CB-07-03",
-        "description": "Add integration coverage for admin create/edit, waiter selection, order submission, suggested price, and WebSocket refresh; remove stale name/optionIds combo assumptions.",
-        "status": "pending",
+        "id": "AN-08-02",
+        "description": "Update progress/history.md with a summary entry for analytics section work; confirm progress/current.md is reset to template at session close.",
+        "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "CB-07-04",
-        "description": "Update requested usage and API migration documentation, including category/product cache behavior, order field separation, drafts, and real-time updates.",
-        "status": "pending",
-        "agent": "implementer"
-      },
-      {
-        "id": "CB-07-05",
-        "description": "Run the documented verification matrix and mandatory harness; fix lint, build, test, style, accessibility, and regression failures.",
-        "status": "pending",
-        "agent": "implementer"
-      },
-      {
-        "id": "CB-07-06",
-        "description": "Perform final implementation review against every user requirement and release checkpoint before marking the feature done.",
-        "status": "pending",
+        "id": "AN-08-03",
+        "description": "Final implementation review: contract alignment for all five modules, RFC 7807 mapping consistency, palette/legibility across charts, footer/breadcrumb of analytics nav, navigation back behavior and route guard.",
+        "status": "done",
         "agent": "reviewer"
       }
     ]

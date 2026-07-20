@@ -103,6 +103,33 @@ export const routes: Routes = [
       {
         path: 'analytics',
         loadComponent: () => import('@areas/admin/features/analytics/analytics').then(m => m.Analytics),
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            redirectTo: 'prime-cost',
+          },
+          {
+            path: 'prime-cost',
+            loadComponent: () => import('@areas/admin/features/analytics/features/prime-cost/prime-cost').then(m => m.PrimeCost),
+          },
+          {
+            path: 'menu-engineering',
+            loadComponent: () => import('@areas/admin/features/analytics/features/menu-engineering/menu-engineering').then(m => m.MenuEngineering),
+          },
+          {
+            path: 'operations',
+            loadComponent: () => import('@areas/admin/features/analytics/features/operations/operations').then(m => m.Operations),
+          },
+          {
+            path: 'cohort',
+            loadComponent: () => import('@areas/admin/features/analytics/features/cohort/cohort').then(m => m.Cohort),
+          },
+          {
+            path: 'alerts',
+            loadComponent: () => import('@areas/admin/features/analytics/features/alerts/alerts').then(m => m.Alerts),
+          },
+        ],
       },
       {
         path: 'create-product',

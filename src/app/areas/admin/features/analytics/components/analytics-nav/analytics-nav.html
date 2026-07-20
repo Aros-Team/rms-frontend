@@ -1,0 +1,17 @@
+<nav class="analytics-nav-bar" aria-label="Secciones de estadísticas">
+  <ul class="analytics-nav-list">
+    @for (tab of tabs; track tab.id) {
+      <li>
+        <a
+          [routerLink]="tab.link"
+          routerLinkActive="analytics-nav-item-active"
+          [routerLinkActiveOptions]="{ exact: tab.exact }"
+          [attr.aria-label]="tab.label"
+          class="analytics-nav-item">
+          <i [class]="tab.icon" aria-hidden="true"></i>
+          <span class="nav-label">{{ tab.label }}</span>
+        </a>
+      </li>
+    }
+  </ul>
+</nav>
