@@ -4,7 +4,6 @@ import {
   computed,
   effect,
   inject,
-  signal,
   untracked,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
