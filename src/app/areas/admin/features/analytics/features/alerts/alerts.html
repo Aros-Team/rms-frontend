@@ -1,0 +1,120 @@
+<div class="p-4 md:p-6 flex flex-col gap-4 h-full overflow-auto">
+  <header class="flex items-start justify-between gap-2">
+    <div>
+      <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-0">Alertas de variación</h2>
+      <p class="text-sm text-surface-600 dark:text-surface-400">Notificaciones automáticas de desviaciones relevantes.</p>
+    </div>
+    <button
+      type="button"
+      class="text-sm text-surface-600 dark:text-surface-300 px-3 py-2 rounded-lg border border-surface-200 dark:border-surface-700 hover:bg-surface-100 dark:hover:bg-surface-700"
+      (click)="reload()"
+      aria-label="Actualizar">
+      Actualizar
+    </button>
+  </header>
+
+  @if (error(); as err) {
+    <p-message severity="error" [text]="'No se pudieron cargar las alertas: ' + err.message" />
+  }
+
+  <section class="grid grid-cols-2 md:grid-cols-4 gap-3" aria-label="Resumen de alertas">
+    <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-3">
+      <p class="text-xs text-surface-600 dark:text-surface-400">Abiertas</p>
+      <p class="text-xl font-bold mt-1">{{ summary().open }}</p>
+    </article>
+    <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-3">
+      <p class="text-xs text-surface-600 dark:text-surface-400">Rojas</p>
+      <p class="text-xl font-bold mt-1">{{ summary().red }}</p>
+    </article>
+    <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-3">
+      <p class="text-xs text-surface-600 dark:text-surface-400">Amarillas</p>
+      <p class="text-xl font-bold mt-1">{{ summary().yellow }}</p>
+    </article>
+    <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-3">
+      <p class="text-xs text-surface-600 dark:text-surface-400">Info</p>
+      <p class="text-xl font-bold mt-1">{{ summary().info }}</p>
+    </article>
+  </section>
+
+  <div class="flex flex-wrap items-end gap-3" role="group" aria-label="Filtros de alertas">
+    <div class="flex flex-col gap-1 min-w-[9rem]">
+      <label for="alerts-status-filter" class="text-xs text-surface-600 dark:text-surface-400">Estado</label>
+      <p-select
+        inputId="alerts-status-filter"
+        [options]="statusOptions"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="statusFilter()"
+        (ngModelChange)="onStatusFilter($event)"
+        appendTo="body"
+        ariaLabel="Filtrar por estado" />
+    </div>
+    <div class="flex flex-col gap-1 min-w-[9rem]">
+      <label for="alerts-severity-filter" class="text-xs text-surface-600 dark:text-surface-400">Severidad</label>
+      <p-select
+        inputId="alerts-severity-filter"
+        [options]="severityOptions"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="severityFilter()"
+        (ngModelChange)="onSeverityFilter($event)"
+        appendTo="body"
+        ariaLabel="Filtrar por severidad" />
+    </div>
+  </div>
+
+  @if (isLoading() && !page()) {
+    <div role="status" aria-live="polite">
+      <p-skeleton height="20rem" borderRadius="0.75rem" />
+    </div>
+  } @else if (items().length === 0) {
+    <p class="text-surface-600 dark:text-surface-400">No hay alertas para los filtros seleccionados.</p>
+  } @else {
+    <section class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast overflow-hidden">
+      <p-table [value]="items()" [paginator]="true" [rows]="limit()" [first]="offset()" [rowsPerPageOptions]="[25, 50, 100]" [totalRecords]="total()" [lazy]="true" (onPage)="onPage($event)" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th pSortableColumn="severity">Severidad <p-sortIcon field="severity" /></th>
+            <th pSortableColumn="type">Tipo <p-sortIcon field="type" /></th>
+            <th>Mensaje</th>
+            <th class="text-right">Línea base</th>
+            <th class="text-right">Actual</th>
+            <th class="text-right">Desviación</th>
+            <th>Periodo</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-alert>
+          <tr>
+            <td><p-tag [value]="severityLabel(alert.severity)" [severity]="severityColor(alert.severity)" /></td>
+            <td>
+              <span class="inline-flex items-center gap-2">
+                <i [class]="typeIcon(alert.type)" aria-hidden="true"></i>
+                <span>{{ typeLabel(alert.type) }}</span>
+              </span>
+            </td>
+            <td>{{ alert.message }}</td>
+            <td class="text-right">{{ metricFmt(alert.baseline) }}</td>
+            <td class="text-right">{{ alert.current.amount | metricValue }}</td>
+            <td class="text-right">{{ deviationFmt(alert.deviationPct) }}</td>
+            <td>{{ alert.period }}</td>
+            <td><p-tag [value]="statusLabel(alert.status)" [severity]="statusColor(alert.status)" /></td>
+            <td>
+              @if (alert.status === 'OPEN') {
+                <p-button
+                  label="Marcar leída"
+                  icon="pi pi-check"
+                  severity="secondary"
+                  size="small"
+                  (click)="markRead(alert.id)"
+                  [loading]="marking() === alert.id"
+                  [disabled]="marking() !== null" />
+              }
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </section>
+  }
+</div>

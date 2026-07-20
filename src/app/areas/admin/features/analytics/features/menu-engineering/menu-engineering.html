@@ -1,0 +1,176 @@
+<div class="p-4 md:p-6 flex flex-col gap-4 h-full overflow-auto">
+  <header class="flex items-start justify-between gap-2">
+    <div>
+      <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-0">Ingeniería de menú (BCG)</h2>
+      <p class="text-sm text-surface-600 dark:text-surface-400">Clasificación de productos según margen y volumen.</p>
+    </div>
+    <button
+      type="button"
+      class="pi pi-refresh text-sm text-surface-600 dark:text-surface-300 px-3 py-2 rounded-lg border border-surface-200 dark:border-surface-700 hover:bg-surface-100 dark:hover:bg-surface-700"
+      (click)="reload()"
+      aria-label="Actualizar">
+      Actualizar
+    </button>
+  </header>
+
+  @if (error(); as err) {
+    <p-message severity="error" [text]="'No se pudieron cargar los datos: ' + err.message" />
+  }
+
+  @if (cacheStatus(); as cs) {
+    <div class="text-xs text-surface-500 dark:text-surface-400">
+      Caché actualizado: {{ cs.lastRefreshedAt }} · versión {{ cs.sourceVersion }} · TTL {{ cs.ttlSeconds }} s
+    </div>
+  }
+
+  @if (completeness() !== 'FULL') {
+    <div
+      data-testid="me-data-banner"
+      [class.rounded-lg]="true"
+      [class.border]="true"
+      [class.p-3]="true"
+      [class.text-sm]="true"
+      [class.border-amber-300]="completeness() === 'PARTIAL'"
+      [class.dark:border-amber-700]="completeness() === 'PARTIAL'"
+      [class.bg-amber-50]="completeness() === 'PARTIAL'"
+      [class.dark:bg-amber-900\/30]="completeness() === 'PARTIAL'"
+      [class.border-blue-300]="completeness() === 'EMPTY'"
+      [class.dark:border-blue-700]="completeness() === 'EMPTY'"
+      [class.bg-blue-50]="completeness() === 'EMPTY'"
+      [class.dark:bg-blue-900\/30]="completeness() === 'EMPTY'"
+      role="status"
+      aria-live="polite"
+    >
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          @if (completeness() === 'PARTIAL') {
+            <p class="font-semibold text-amber-900 dark:text-amber-200">Datos parciales</p>
+          } @else if (completeness() === 'EMPTY') {
+            <p class="font-semibold text-blue-900 dark:text-blue-200">Sin datos en el periodo</p>
+          }
+          @if (notes().length > 0) {
+            <ul class="mt-1 list-disc list-inside text-amber-800 dark:text-amber-300">
+              @for (note of notes(); track note) {
+                <li>{{ note }}</li>
+              }
+            </ul>
+          } @else if (completeness() === 'EMPTY') {
+            <p class="mt-1 text-blue-800 dark:text-blue-300">No hay registros en el rango seleccionado.</p>
+          }
+        </div>
+        <button
+          type="button"
+          class="px-3 py-1.5 rounded-md border border-surface-200 dark:border-surface-700 text-xs text-surface-700 dark:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700"
+          (click)="reload()"
+          aria-label="Reintentar carga"
+        >
+          Reintentar
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (isLoading() && !report()) {
+    <div role="status" aria-live="polite" class="flex flex-col gap-4">
+      <p-skeleton height="5rem" borderRadius="0.75rem" />
+      <p-skeleton height="20rem" borderRadius="0.75rem" />
+      <p-skeleton height="20rem" borderRadius="0.75rem" />
+    </div>
+  } @else if (median(); as m) {
+    <section
+      aria-labelledby="me-stats-heading"
+      class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3"
+    >
+      <h3 id="me-stats-heading" class="sr-only">Resumen de ingeniería de menú</h3>
+      <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
+        <p class="text-xs text-surface-600 dark:text-surface-400">Productos</p>
+        <p class="text-2xl font-bold mt-1" data-testid="me-stat-count">{{ stats().count }}</p>
+      </article>
+      <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
+        <p class="text-xs text-surface-600 dark:text-surface-400">Contribución total</p>
+        <p class="text-2xl font-bold mt-1" data-testid="me-stat-total-contribution">
+          {{ totalContributionMoney() | money }}
+        </p>
+      </article>
+      <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
+        <p class="text-xs text-surface-600 dark:text-surface-400">Volumen mediana</p>
+        <p class="text-2xl font-bold mt-1" data-testid="me-stat-median-volume">{{ stats().medianVolume }}</p>
+      </article>
+      <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
+        <p class="text-xs text-surface-600 dark:text-surface-400">Margen mediana</p>
+        <p class="text-2xl font-bold mt-1" data-testid="me-stat-median-margin">
+          {{ medianMarginMoney() | money }}
+        </p>
+      </article>
+    </section>
+
+    <figure class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
+      <figcaption class="text-sm font-semibold mb-2">Matriz BCG (margen × volumen)</figcaption>
+      <div class="h-96">
+        <p-chart type="bubble" [data]="quadrantChartData()" [options]="quadrantChartOptions" />
+      </div>
+      <figcaption class="sr-only">
+        Matriz BCG de {{ stats().count }} productos. Eje X: margen por unidad. Eje Y: unidades vendidas.
+      </figcaption>
+    </figure>
+
+    <section class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast overflow-hidden">
+      <p-table
+        [value]="items()"
+        [paginator]="true"
+        [rows]="15"
+        [rowsPerPageOptions]="[10, 15, 25, 50]"
+        styleClass="p-datatable-sm"
+        [customSort]="true"
+        (sortFunction)="onSort($event)"
+        aria-label="Tabla de productos clasificados en cuadrantes BCG"
+      >
+        <ng-template pTemplate="caption">
+          <div class="flex flex-col sm:flex-row sm:items-center gap-2 p-2">
+            <p-select
+              [options]="categories()"
+              optionLabel="name"
+              optionValue="id"
+              placeholder="Filtrar por categoría"
+              [showClear]="true"
+              [ngModel]="categoryId()"
+              (onChange)="onCategoryChange($event.value)"
+              (onClear)="clearCategory()"
+              appendTo="body"
+              class="w-full sm:w-64"
+              data-testid="me-category-filter"
+            />
+            <span class="sr-only">Filtro de categoría para la tabla de productos</span>
+          </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+          <tr>
+            <th pSortableColumn="productName">Producto <p-sortIcon field="productName" /></th>
+            <th pSortableColumn="categoryName">Categoría <p-sortIcon field="categoryName" /></th>
+            <th pSortableColumn="unitsSold" class="text-right">Unidades <p-sortIcon field="unitsSold" /></th>
+            <th pSortableColumn="revenue" class="text-right">Ingresos <p-sortIcon field="revenue" /></th>
+            <th pSortableColumn="grossProfitPerUnit" class="text-right">Margen / unidad <p-sortIcon field="grossProfitPerUnit" /></th>
+            <th pSortableColumn="totalContribution" class="text-right">Contribución <p-sortIcon field="totalContribution" /></th>
+            <th pSortableColumn="quadrant">Cuadrante <p-sortIcon field="quadrant" /></th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item>
+          <tr>
+            <td>{{ item.productName }}</td>
+            <td>{{ item.categoryName ?? '—' }}</td>
+            <td class="text-right">{{ item.unitsSold }}</td>
+            <td class="text-right">{{ item.revenue | money }}</td>
+            <td class="text-right">{{ item.grossProfitPerUnit | money }}</td>
+            <td class="text-right">{{ item.totalContribution | money }}</td>
+            <td><p-tag [value]="quadrantLabel(item.quadrant)" [severity]="quadrantSeverity(item.quadrant)" /></td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="7" class="text-center py-4 text-surface-500">No hay SKUs para mostrar.</td></tr>
+        </ng-template>
+      </p-table>
+    </section>
+  } @else {
+    <p class="text-surface-600 dark:text-surface-400">No hay datos en el periodo seleccionado.</p>
+  }
+</div>
