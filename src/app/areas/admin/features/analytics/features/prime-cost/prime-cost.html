@@ -1,8 +1,10 @@
 <div class="p-4 md:p-6 flex flex-col gap-4 h-full overflow-auto">
   <header class="flex items-start justify-between gap-2">
     <div>
-      <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-0">Costo primo y márgenes</h2>
-      <p class="text-sm text-surface-600 dark:text-surface-400">Composición de costos COGS + laboral sobre las ventas netas.</p>
+      <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-0">Rentabilidad por periodo</h2>
+      <p class="text-sm text-surface-600 dark:text-surface-400">
+        Cuánto vendes, cuánto te costó producir y operar, y cuánto te quedó.
+      </p>
     </div>
     <button
       type="button"
@@ -17,6 +19,15 @@
     <p-message severity="error" [text]="'No se pudieron cargar los datos: ' + err.message" />
   }
 
+  @if (completeness() === 'EMPTY' && !isLoading()) {
+    <div class="rounded-lg border border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 p-4 text-sm" role="status" aria-live="polite">
+      <p class="font-semibold text-blue-900 dark:text-blue-200">Aún no hay cierres mensuales registrados</p>
+      <p class="mt-1 text-blue-800 dark:text-blue-300">
+        Los datos de rentabilidad se generan cuando se corre el cierre mensual. Si acabas de configurar el sistema, espera al primer cierre o revisa la configuración de la tarea programada.
+      </p>
+    </div>
+  }
+
   @if (completeness() === 'PARTIAL' && notes().length > 0) {
     <div class="rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 p-3 text-sm" role="status" aria-live="polite">
       <p class="font-semibold text-amber-900 dark:text-amber-200">Datos parciales</p>
@@ -25,12 +36,6 @@
           <li>{{ note }}</li>
         }
       </ul>
-      <button type="button" class="mt-2 text-xs underline" (click)="reload()">Reintentar</button>
-    </div>
-  } @else if (completeness() === 'EMPTY') {
-    <div class="rounded-lg border border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 p-3 text-sm" role="status" aria-live="polite">
-      <p class="font-semibold text-blue-900 dark:text-blue-200">Sin datos en el periodo</p>
-      <button type="button" class="mt-2 text-xs underline" (click)="reload()">Reintentar</button>
     </div>
   }
 
@@ -42,43 +47,66 @@
       <p-skeleton height="5rem" borderRadius="0.75rem" />
     </div>
     <p-skeleton height="18rem" borderRadius="0.75rem" />
+    <p-skeleton height="18rem" borderRadius="0.75rem" />
   } @else if (latest(); as latest) {
-    <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3" aria-label="Indicadores clave de costo primo">
+    <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3" aria-label="Indicadores clave">
       <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
         <p class="text-xs text-surface-600 dark:text-surface-400">Ventas netas</p>
         <p class="text-2xl font-bold mt-1">{{ latest.netSales | money }}</p>
       </article>
       <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-        <p class="text-xs text-surface-600 dark:text-surface-400">Costo primo</p>
+        <p class="text-xs text-surface-600 dark:text-surface-400">Costo operativo</p>
         <p class="text-2xl font-bold mt-1">{{ latest.primeCost | money }}</p>
+        <p class="text-xs text-surface-500 mt-1">{{ fmtPercent(latest.primeCostPct) }} de las ventas</p>
       </article>
       <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-        <p class="text-xs text-surface-600 dark:text-surface-400">Costo primo %</p>
-        <p class="text-2xl font-bold mt-1">{{ fmtPercent(latest.primeCostPct) }}</p>
-      </article>
-      <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-        <p class="text-xs text-surface-600 dark:text-surface-400">Margen bruto</p>
+        <p class="text-xs text-surface-600 dark:text-surface-400">Ganancia bruta</p>
         <p class="text-2xl font-bold mt-1">{{ fmtPercent(latest.margins?.grossProfitPct) }}</p>
+      </article>
+      <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
+        <p class="text-xs text-surface-600 dark:text-surface-400">Ganancia neta</p>
+        <p class="text-2xl font-bold mt-1">{{ fmtPercent(latest.margins?.netProfitPct) }}</p>
       </article>
     </section>
 
     <figure class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-      <figcaption class="sr-only">Tendencia del costo primo como porcentaje sobre las ventas netas en el periodo seleccionado.</figcaption>
-      <h3 class="text-sm font-semibold mb-2">Tendencia del costo primo</h3>
+      <figcaption class="text-sm font-semibold mb-1">Ventas en el tiempo</figcaption>
+      <p class="text-xs text-surface-500 mb-2">Brutas vs netas. La diferencia es lo que se va en descuentos y consumo del personal.</p>
       <div class="h-72">
-        <p-chart type="line" [data]="trendChartData()" [options]="trendChartOptions" />
+        <p-chart type="line" [data]="salesTrendData()" [options]="lineOptions" />
       </div>
     </figure>
 
-    <section class="grid grid-cols-1 lg:grid-cols-2 gap-3" aria-label="Desglose de costos">
+    <figure class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
+      <figcaption class="text-sm font-semibold mb-1">Evolución de márgenes</figcaption>
+      <p class="text-xs text-surface-500 mb-2">Si el costo operativo sube y la ganancia baja, hay que revisar.</p>
+      <div class="h-72">
+        <p-chart type="line" [data]="marginTrendData()" [options]="percentLineOptions" />
+      </div>
+    </figure>
+
+    <figure class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
+      <figcaption class="text-sm font-semibold mb-1">Composición del costo de lo que vendes</figcaption>
+      <p class="text-xs text-surface-500 mb-2">En qué se va cada peso del costo de producción (sin contar nómina).</p>
+      <div class="h-72">
+        <p-chart type="bar" [data]="cogsStackData()" [options]="percentStackOptions" />
+      </div>
+    </figure>
+
+    <figure class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
+      <figcaption class="text-sm font-semibold mb-1">Descuentos y consumo del personal</figcaption>
+      <p class="text-xs text-surface-500 mb-2">Lo que se "regala" o se consume del inventario sin facturar.</p>
+      <div class="h-60">
+        <p-chart type="bar" [data]="discountTrendData()" [options]="percentStackOptions" />
+      </div>
+    </figure>
+
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-3" aria-label="Detalle del último periodo">
       <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-        <h3 class="text-sm font-semibold mb-2">COGS por categoría</h3>
-        <figure>
-          <figcaption class="sr-only">Distribución del costo de bienes vendidos por categoría en el último periodo.</figcaption>
-          <div class="h-72">
-            <p-chart type="doughnut" [data]="cogsChartData()" [options]="doughnutOptions" />
-          </div>
-        </figure>
+        <h3 class="text-sm font-semibold mb-2">Costo de lo vendido por tipo</h3>
+        <div class="h-56">
+          <p-chart type="doughnut" [data]="cogsChartData()" [options]="doughnutOptions" />
+        </div>
         <table class="w-full mt-3 text-sm">
           <thead>
             <tr class="text-left text-xs text-surface-600 dark:text-surface-400">
@@ -90,7 +118,7 @@
           <tbody>
             @for (row of cogsRows(); track row.category) {
               <tr class="border-t border-surface-200 dark:border-surface-700">
-                <td class="py-1">{{ row.category }}</td>
+                <td class="py-1">{{ cogsLabel(row.category) }}</td>
                 <td class="py-1 text-right">{{ row.amount | money }}</td>
                 <td class="py-1 text-right">{{ fmtPercent(row.pct) }}</td>
               </tr>
@@ -99,13 +127,10 @@
         </table>
       </article>
       <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-        <h3 class="text-sm font-semibold mb-2">Labor por área</h3>
-        <figure>
-          <figcaption class="sr-only">Distribución del costo laboral por área en el último periodo.</figcaption>
-          <div class="h-72">
-            <p-chart type="doughnut" [data]="laborChartData()" [options]="doughnutOptions" />
-          </div>
-        </figure>
+        <h3 class="text-sm font-semibold mb-2">Costo de nómina por área</h3>
+        <div class="h-56">
+          <p-chart type="doughnut" [data]="laborChartData()" [options]="doughnutOptions" />
+        </div>
         <table class="w-full mt-3 text-sm">
           <thead>
             <tr class="text-left text-xs text-surface-600 dark:text-surface-400">
@@ -117,7 +142,7 @@
           <tbody>
             @for (row of laborRows(); track row.area) {
               <tr class="border-t border-surface-200 dark:border-surface-700">
-                <td class="py-1">{{ row.area }}</td>
+                <td class="py-1">{{ laborLabel(row.area) }}</td>
                 <td class="py-1 text-right">{{ row.amount | money }}</td>
                 <td class="py-1 text-right">{{ fmtPercent(row.pct) }}</td>
               </tr>

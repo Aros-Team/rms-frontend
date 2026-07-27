@@ -18,10 +18,7 @@ interface Tab {
 })
 export class AnalyticsNav {
   readonly tabs: readonly Tab[] = [
-    { id: 'prime-cost', label: 'Costo primo', icon: 'pi pi-chart-line', link: '/admin/analytics/prime-cost', exact: false },
-    { id: 'menu-engineering', label: 'Carta', icon: 'pi pi-th-large', link: '/admin/analytics/menu-engineering', exact: false },
-    { id: 'operations', label: 'Operaciones', icon: 'pi pi-stopwatch', link: '/admin/analytics/operations', exact: false },
-    { id: 'cohort', label: 'Cohorte', icon: 'pi pi-users', link: '/admin/analytics/cohort', exact: false },
-    { id: 'alerts', label: 'Alertas', icon: 'pi pi-bell', link: '/admin/analytics/alerts', exact: false },
+    { id: 'prime-cost', label: 'Rentabilidad', icon: 'pi pi-chart-line', link: '/admin/analytics/prime-cost', exact: false },
+    { id: 'menu-engineering', label: 'Tu carta', icon: 'pi pi-th-large', link: '/admin/analytics/menu-engineering', exact: false },
   ];
 }

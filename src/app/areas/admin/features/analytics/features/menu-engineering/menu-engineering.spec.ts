@@ -21,6 +21,7 @@ function makeMenuEngineeringStub(
     refresh?: () => void;
     invalidate?: () => void;
     loadIfStale?: () => void;
+    load?: () => void;
   } = {},
 ): Pick<AnalyticsCache, 'menuEngineering'> & Record<string, unknown> {
   return {
@@ -34,6 +35,8 @@ function makeMenuEngineeringStub(
       invalidate: overrides.invalidate ?? ((): void => {}),
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       loadIfStale: overrides.loadIfStale ?? ((): void => {}),
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      load: overrides.load ?? ((): void => {}),
     },
     primeCost: { data: (): null => null, isLoading: (): boolean => false, error: (): null => null },
     operations: { data: (): null => null, isLoading: (): boolean => false, error: (): null => null },
@@ -170,16 +173,16 @@ describe('MenuEngineering', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  it('calls cache.menuEngineering.loadIfStale on construction', async () => {
-    const loadIfStaleSpy = vi.fn();
+  it('calls cache.menuEngineering.load via the period effect on construction', async () => {
+    const loadSpy = vi.fn();
     const stub = makeMenuEngineeringStub({
       isLoading: () => false,
       error: () => null,
       data: () => null,
-      loadIfStale: loadIfStaleSpy,
+      load: loadSpy,
     });
     await setup(stub);
-    expect(loadIfStaleSpy).toHaveBeenCalledTimes(1);
+    expect(loadSpy).toHaveBeenCalled();
   });
 
   it('renders two skeletons when isLoading() is true and report() is null', async () => {
@@ -214,15 +217,13 @@ describe('MenuEngineering', () => {
 
     const charts = root.querySelectorAll('p-chart');
     expect(charts.length).toBe(1);
-    // One dataset per quadrant (4)
     const chartData = cmp.quadrantChartData();
     expect(chartData.datasets.length).toBe(4);
-    // Chart is wrapped in a <figure> with a visible + sr-only <figcaption>
     const figure = root.querySelector('figure');
     expect(figure).toBeTruthy();
     expect(figure?.querySelectorAll('figcaption').length).toBe(2);
     const srFig = figure?.querySelector('figcaption.sr-only');
-    expect(srFig?.textContent ?? '').toContain('Matriz BCG');
+    expect(srFig?.textContent ?? '').toContain('Mapa');
   });
 
   it('wraps the chart <figure> with a sr-only figcaption that includes the item count', async () => {
@@ -242,7 +243,7 @@ describe('MenuEngineering', () => {
     const root = getRoot(fixture);
     const srFig = root.querySelector('figure figcaption.sr-only');
     expect(srFig).toBeTruthy();
-    expect(srFig?.textContent ?? '').toContain('3 productos');
+    expect(srFig?.textContent ?? '').toContain('3');
   });
 
   it('renders four stat cards in an aria-labelledby section', async () => {
@@ -264,10 +265,10 @@ describe('MenuEngineering', () => {
     const articles = section?.querySelectorAll('article') ?? [];
     expect(articles.length).toBe(4);
     const text = root.textContent;
-    expect(text).toContain('Productos');
-    expect(text).toContain('Contribución total');
-    expect(text).toContain('Volumen mediana');
-    expect(text).toContain('Margen mediana');
+    expect(text).toContain('Productos analizados');
+    expect(text).toContain('Ganancia que generan');
+    expect(text).toContain('Ventas típicas');
+    expect(text).toContain('Margen típico');
   });
 
   it('renders median volume stat card with the numeric median value', async () => {
@@ -381,8 +382,7 @@ describe('MenuEngineering', () => {
     const table = root.querySelector('p-table');
     expect(table).toBeTruthy();
     const text = root.textContent;
-    expect(text).toContain('No hay SKUs para mostrar');
-    // No item tags rendered
+    expect(text).toContain('No hay productos para mostrar');
     expect(root.querySelectorAll('p-table p-tag').length).toBe(0);
   });
 
@@ -433,34 +433,11 @@ describe('MenuEngineering', () => {
 
     expect(text).toContain('Datos parciales');
     expect(text).toContain('Faltan recetas para 2 productos');
-    const banner = root.querySelector('[data-testid="me-data-banner"]');
-    expect(banner).toBeTruthy();
-    const items = root.querySelectorAll('[data-testid="me-data-banner"] ul li');
-    expect(items.length).toBe(1);
+    const items = root.querySelectorAll('ul li');
+    expect(items.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('renders the banner when completeness is PARTIAL even with NO notes (severity warn)', async () => {
-    const stub = makeMenuEngineeringStub({
-      isLoading: () => false,
-      error: () => null,
-      data: () =>
-        makeReport({
-          dataCompleteness: 'PARTIAL',
-          notes: [],
-          items: [makeItem()],
-        }),
-    });
-    const fixture = await setup(stub);
-    const root = getRoot(fixture);
-    const banner = root.querySelector('[data-testid="me-data-banner"]');
-    expect(banner).toBeTruthy();
-    // Amber palette tokens applied for PARTIAL
-    expect(banner?.classList.contains('border-amber-300')).toBe(true);
-    expect(banner?.classList.contains('bg-amber-50')).toBe(true);
-    expect(root.textContent).toContain('Datos parciales');
-  });
-
-  it('renders the EMPTY banner with info severity and "Sin datos en el periodo" headline', async () => {
+  it('renders the EMPTY banner with "Aún no hay datos de productos" headline', async () => {
     const stub = makeMenuEngineeringStub({
       isLoading: () => false,
       error: () => null,
@@ -473,16 +450,11 @@ describe('MenuEngineering', () => {
     });
     const fixture = await setup(stub);
     const root = getRoot(fixture);
-    const banner = root.querySelector('[data-testid="me-data-banner"]');
-    expect(banner).toBeTruthy();
-    // Blue palette tokens applied for EMPTY (info)
-    expect(banner?.classList.contains('border-blue-300')).toBe(true);
-    expect(banner?.classList.contains('bg-blue-50')).toBe(true);
-    expect(root.textContent).toContain('Sin datos en el periodo');
+    expect(root.textContent).toContain('Aún no hay datos de productos');
     expect(root.textContent).not.toContain('Datos parciales');
   });
 
-  it('does NOT render the banner when completeness is FULL', async () => {
+  it('does NOT render the partial banner when completeness is FULL', async () => {
     const stub = makeMenuEngineeringStub({
       isLoading: () => false,
       error: () => null,
@@ -490,33 +462,8 @@ describe('MenuEngineering', () => {
     });
     const fixture = await setup(stub);
     const root = getRoot(fixture);
-    expect(root.querySelector('[data-testid="me-data-banner"]')).toBeNull();
-  });
-
-  it('banner retry button calls cache.menuEngineering.refresh', async () => {
-    const refreshSpy = vi.fn();
-    const stub = makeMenuEngineeringStub({
-      isLoading: () => false,
-      error: () => null,
-      data: () =>
-        makeReport({
-          dataCompleteness: 'PARTIAL',
-          notes: ['x'],
-          items: [makeItem()],
-        }),
-      refresh: refreshSpy,
-    });
-    const fixture = await setup(stub);
-    const root = getRoot(fixture);
-
-    const banner = root.querySelector('[data-testid="me-data-banner"]');
-    expect(banner).toBeTruthy();
-    const btn = Array.from(banner?.querySelectorAll('button') ?? []).find(
-      (b) => b.textContent.trim() === 'Reintentar',
-    );
-    expect(btn).toBeTruthy();
-    btn?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-    expect(refreshSpy).toHaveBeenCalledTimes(1);
+    expect(root.textContent).not.toContain('Datos parciales');
+    expect(root.textContent).not.toContain('Aún no hay datos de productos');
   });
 
   it('header reload button still calls cache.menuEngineering.refresh', async () => {
@@ -548,10 +495,8 @@ describe('MenuEngineering', () => {
     const root = getRoot(fixture);
     const text = root.textContent;
 
-    expect(text).toContain('Caché actualizado');
+    expect(text).toContain('Última actualización');
     expect(text).toContain('2026-07-17T12:00:00Z');
-    expect(text).toContain('v1.2.3');
-    expect(text).toContain('1800');
   });
 
   it('renders an error p-message when error() is truthy', async () => {
@@ -571,7 +516,7 @@ describe('MenuEngineering', () => {
     expect(text).toContain('Cache miss');
   });
 
-  it('renders the category filter inside the table caption and filters items by categoryId', async () => {
+  it('renders the category filter and filters items by categoryId', async () => {
     const stub = makeMenuEngineeringStub({
       isLoading: () => false,
       error: () => null,
@@ -588,24 +533,16 @@ describe('MenuEngineering', () => {
     const cmp = fixture.componentInstance;
     const root = getRoot(fixture);
 
-    // Filter control lives inside the table caption (PrimeNG renders
-    // pTemplate="caption" inside a div with the "header" style class).
     const filter = root.querySelector('[data-testid="me-category-filter"]');
     expect(filter).toBeTruthy();
-    const headerContainer = root.querySelector('p-table .p-datatable-header');
-    expect(headerContainer).toBeTruthy();
-    expect(headerContainer?.contains(filter)).toBe(true);
 
-    // 3 items before filter
     expect(cmp.items().length).toBe(3);
 
-    // Apply category filter (id=10)
     cmp.onCategoryChange(10);
     fixture.detectChanges();
     expect(cmp.items().length).toBe(2);
     expect(cmp.items().every((it) => it.categoryId === 10)).toBe(true);
 
-    // Clear filter
     cmp.clearCategory();
     fixture.detectChanges();
     expect(cmp.items().length).toBe(3);

@@ -120,8 +120,8 @@ describe('PeriodSelector', () => {
       fixture.detectChanges();
 
       expect(component.bucket()).toBe('yearly');
-      expect(component.from()).toBe('2026-02');
-      expect(component.to()).toBe('2026-07');
+      expect(component.from()).toBe('2024');
+      expect(component.to()).toBe('2026');
     });
 
     it('switches the placeholder example when the bucket changes', () => {

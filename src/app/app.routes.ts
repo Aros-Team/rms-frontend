@@ -119,15 +119,15 @@ export const routes: Routes = [
           },
           {
             path: 'operations',
-            loadComponent: () => import('@areas/admin/features/analytics/features/operations/operations').then(m => m.Operations),
+            redirectTo: 'prime-cost',
           },
           {
             path: 'cohort',
-            loadComponent: () => import('@areas/admin/features/analytics/features/cohort/cohort').then(m => m.Cohort),
+            redirectTo: 'menu-engineering',
           },
           {
             path: 'alerts',
-            loadComponent: () => import('@areas/admin/features/analytics/features/alerts/alerts').then(m => m.Alerts),
+            redirectTo: 'prime-cost',
           },
         ],
       },

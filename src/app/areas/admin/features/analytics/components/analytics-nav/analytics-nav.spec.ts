@@ -38,16 +38,16 @@ describe('AnalyticsNav', () => {
     expect(nav?.getAttribute('aria-label')).toBe('Secciones de estadísticas');
   });
 
-  it('renders exactly five tab links', () => {
+  it('renders exactly two tab links', () => {
     const links = getRoot().querySelectorAll('nav a');
-    expect(links).toHaveLength(5);
+    expect(links).toHaveLength(2);
   });
 
-  it('renders the five Spanish labels in order: Costo primo, Carta, Operaciones, Cohorte, Alertas', () => {
+  it('renders the two Spanish labels in order: Rentabilidad, Tu carta', () => {
     const labels = Array.from(getRoot().querySelectorAll('nav a .nav-label')).map(
       (el) => el.textContent.trim(),
     );
-    expect(labels).toEqual(['Costo primo', 'Carta', 'Operaciones', 'Cohorte', 'Alertas']);
+    expect(labels).toEqual(['Rentabilidad', 'Tu carta']);
   });
 
   it('points each tab to its /admin/analytics/<module> route via href', () => {
@@ -57,9 +57,6 @@ describe('AnalyticsNav', () => {
     expect(hrefs).toEqual([
       '/admin/analytics/prime-cost',
       '/admin/analytics/menu-engineering',
-      '/admin/analytics/operations',
-      '/admin/analytics/cohort',
-      '/admin/analytics/alerts',
     ]);
   });
 
@@ -67,13 +64,7 @@ describe('AnalyticsNav', () => {
     const ariaLabels = Array.from(getRoot().querySelectorAll('nav a')).map((el) =>
       el.getAttribute('aria-label'),
     );
-    expect(ariaLabels).toEqual([
-      'Costo primo',
-      'Carta',
-      'Operaciones',
-      'Cohorte',
-      'Alertas',
-    ]);
+    expect(ariaLabels).toEqual(['Rentabilidad', 'Tu carta']);
   });
 
   it('renders the icon for each tab', () => {
@@ -82,9 +73,6 @@ describe('AnalyticsNav', () => {
     expect(classes).toEqual([
       'pi pi-chart-line',
       'pi pi-th-large',
-      'pi pi-stopwatch',
-      'pi pi-users',
-      'pi pi-bell',
     ]);
   });
 });

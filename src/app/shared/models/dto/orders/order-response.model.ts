@@ -28,6 +28,8 @@ export interface OrderDetailItem {
   id: number;
   productId: number;
   productName: string;
+  categoryId?: number | null;
+  categoryName?: string | null;
   unitPrice: number;
   instructions: string;
   selectedOptions?: OrderSelectedOption[];

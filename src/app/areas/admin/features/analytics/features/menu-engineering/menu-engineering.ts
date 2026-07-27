@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -10,6 +10,7 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 
 import { AnalyticsCache } from '@app/core/services/analytics/analytics-cache';
+import { AnalyticsPeriodState } from '@app/core/services/analytics/analytics-period-state';
 import { MoneyPipe } from '@app/shared/pipes/money';
 import { DataCompleteness } from '@app/shared/models/dto/analytics/data-completeness';
 import { Money } from '@app/shared/models/dto/analytics/money';
@@ -17,6 +18,14 @@ import {
   MenuEngineeringItem,
   MenuQuadrant,
 } from '@app/shared/models/dto/analytics/menu-engineering-report';
+
+interface QuadrantSummary {
+  quadrant: MenuQuadrant;
+  label: string;
+  count: number;
+  action: string;
+  topItems: string[];
+}
 
 interface MenuEngineeringCategoryOption {
   id: number;
@@ -67,6 +76,26 @@ export class MenuEngineering {
     const cat = this.categoryId();
     if (cat === undefined) return all;
     return all.filter((i) => i.categoryId === cat);
+  });
+
+  readonly quadrantSummary = computed<readonly QuadrantSummary[]>(() => {
+    const items = this.report()?.items ?? [];
+    const counts: Record<MenuQuadrant, MenuEngineeringItem[]> = {
+      STAR: [], PLOWHORSE: [], PUZZLE: [], DOG: [],
+    };
+    for (const item of items) counts[item.quadrant].push(item);
+    const sortedByContribution = (a: MenuEngineeringItem, b: MenuEngineeringItem): number =>
+      Number.parseFloat(b.totalContribution.amount) - Number.parseFloat(a.totalContribution.amount);
+    return (['STAR', 'PLOWHORSE', 'PUZZLE', 'DOG'] as const).map((q) => {
+      const list = [...counts[q]].sort(sortedByContribution);
+      return {
+        quadrant: q,
+        label: this.quadrantLabel(q),
+        count: list.length,
+        action: this.quadrantAction(q),
+        topItems: list.slice(0, 3).map((i) => i.productName),
+      };
+    });
   });
 
   readonly categories = computed<MenuEngineeringCategoryOption[]>(() => {
@@ -137,11 +166,25 @@ export class MenuEngineering {
   };
 
   constructor() {
-    this.cache.menuEngineering.loadIfStale();
+    effect(() => {
+      this.period.period();
+      this.cache.menuEngineering.load();
+    });
   }
+
+  private readonly period = inject(AnalyticsPeriodState);
 
   quadrantLabel(q: MenuQuadrant): string {
     return { STAR: 'Estrella', PLOWHORSE: 'Caballo', PUZZLE: 'Rompecabezas', DOG: 'Perro' }[q];
+  }
+
+  quadrantAction(q: MenuQuadrant): string {
+    return {
+      STAR: 'Venden bien y dejan buena ganancia. Protégelos: evita cambiarlos.',
+      PLOWHORSE: 'Venden mucho pero dejan poca ganancia. Súbele el precio o reduce el costo.',
+      PUZZLE: 'Dejan ganancia pero no se venden. Púlsalos en el menú o promuévelos.',
+      DOG: 'No venden ni dejan ganancia. Candidato a salir de la carta.',
+    }[q];
   }
 
   quadrantSeverity(q: MenuQuadrant): 'success' | 'warn' | 'info' | 'danger' {

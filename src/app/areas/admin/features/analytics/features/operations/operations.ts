@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChartModule } from 'primeng/chart';
 import { SkeletonModule } from 'primeng/skeleton';
 import { MessageModule } from 'primeng/message';
 
 import { AnalyticsCache } from '@app/core/services/analytics/analytics-cache';
+import { AnalyticsPeriodState } from '@app/core/services/analytics/analytics-period-state';
 import { MoneyPipe } from '@app/shared/pipes/money';
 import { DataCompleteness } from '@app/shared/models/dto/analytics/data-completeness';
 import { DayPart } from '@app/shared/models/dto/analytics/operations-report';
@@ -20,8 +21,13 @@ export class Operations {
   private readonly cache = inject(AnalyticsCache);
 
   constructor() {
-    this.cache.operations.loadIfStale();
+    effect(() => {
+      this.period.period();
+      this.cache.operations.load();
+    });
   }
+
+  private readonly period = inject(AnalyticsPeriodState);
 
   readonly isLoading = computed(() => this.cache.operations.isLoading());
   readonly error = computed(() => this.cache.operations.error());

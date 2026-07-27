@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy, effect, inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 
 import { ResourceCache } from '@app/core/cache/resource-cache';
 import { Analytics } from '@app/core/services/analytics/analytics';
@@ -11,7 +11,7 @@ import { OperationsReport } from '@app/shared/models/dto/analytics/operations-re
 import { PrimeCostReport } from '@app/shared/models/dto/analytics/prime-cost-report';
 
 @Injectable({ providedIn: 'root' })
-export class AnalyticsCache implements OnDestroy {
+export class AnalyticsCache {
   private readonly api = inject(Analytics);
   private readonly period = inject(AnalyticsPeriodState);
 
@@ -51,23 +51,6 @@ export class AnalyticsCache implements OnDestroy {
     () => this.api.listAlerts(),
     { ttlMs: 120_000, staleWhileRevalidate: true },
   );
-
-  private readonly periodEffectRef: { destroy(): void };
-
-  constructor() {
-    const ref = effect(() => {
-      this.period.period();
-      this.primeCost.invalidate();
-      this.menuEngineering.invalidate();
-      this.operations.invalidate();
-      this.cohort.invalidate();
-    });
-    this.periodEffectRef = { destroy: (): void => { ref.destroy(); } };
-  }
-
-  ngOnDestroy(): void {
-    this.periodEffectRef.destroy();
-  }
 
   markAlertReadLocal(alertId: number): void {
     this.alerts.patchData((current) => {

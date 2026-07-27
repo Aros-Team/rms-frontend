@@ -28,6 +28,8 @@ function makePrimeCostStub(
       invalidate: (): void => {},
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       loadIfStale: (): void => {},
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      load: (): void => {},
     },
     menuEngineering: { data: (): null => null, isLoading: (): boolean => false, error: (): null => null },
     operations: { data: (): null => null, isLoading: (): boolean => false, error: (): null => null },
@@ -152,12 +154,12 @@ describe('PrimeCost', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  it('invokes cache.primeCost.loadIfStale on construction', async () => {
-    const loadIfStale = vi.fn();
+  it('invokes cache.primeCost.load via the period effect on construction', async () => {
+    const load = vi.fn();
     const stub = makePrimeCostStub();
-    (stub.primeCost as { loadIfStale: () => void }).loadIfStale = loadIfStale;
+    (stub.primeCost as { load: () => void }).load = load;
     await setup(stub);
-    expect(loadIfStale).toHaveBeenCalledTimes(1);
+    expect(load).toHaveBeenCalled();
   });
 
   it('renders the page skeleton when isLoading() is true and report() is null', async () => {
@@ -170,8 +172,8 @@ describe('PrimeCost', () => {
     const root = getRoot(fixture);
 
     const skeletons = root.querySelectorAll('p-skeleton');
-    // 4 stat-card skeletons + 1 chart skeleton = 5
-    expect(skeletons.length).toBe(5);
+    // 4 stat-card skeletons + 2 chart skeletons = 6
+    expect(skeletons.length).toBe(6);
     expect(root.querySelector('p-chart')).toBeNull();
     expect(root.textContent).not.toContain('No hay datos en el periodo seleccionado');
   });
@@ -195,9 +197,9 @@ describe('PrimeCost', () => {
     expect(statCards.length).toBe(4);
     // Card labels
     expect(text).toContain('Ventas netas');
-    expect(text).toContain('Costo primo');
-    expect(text).toContain('Costo primo %');
-    expect(text).toContain('Margen bruto');
+    expect(text).toContain('Costo operativo');
+    expect(text).toContain('Ganancia bruta');
+    expect(text).toContain('Ganancia neta');
   });
 
   it('renders primeCostPct formatted as XX.XX%', async () => {
@@ -231,8 +233,8 @@ describe('PrimeCost', () => {
     const root = getRoot(fixture);
 
     const charts = root.querySelectorAll('p-chart');
-    // 1 line chart (trend) + 2 doughnut (cogs + labor) = 3
-    expect(charts.length).toBe(3);
+    // 2 lines (sales, margins) + 1 stacked bar (cogs) + 1 bar (discounts) + 2 doughnut (cogs, labor) = 6
+    expect(charts.length).toBe(6);
   });
 
   it('renders the notes banner when dataCompleteness === "PARTIAL" and notes is non-empty', async () => {

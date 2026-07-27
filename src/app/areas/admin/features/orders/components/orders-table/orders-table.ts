@@ -183,7 +183,10 @@ export class OrdersTable implements OnInit, OnDestroy {
       status = this.selectedStatus as OrderStatus;
     }
 
-    this.orderService.getOrdersByStatusOrAll(status).subscribe({
+    // Use date‑range query (the backend filters by date, much faster than
+    // loading everything and filtering client‑side)
+    const date = this.selectedDate ?? new Date();
+    this.orderService.getOrdersByDateRange(date, date, status).subscribe({
       next: (res: OrderResponse[]) => {
         this.allOrders = res;
         this.originalOrders.clear();

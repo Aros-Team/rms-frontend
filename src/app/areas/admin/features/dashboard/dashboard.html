@@ -4,8 +4,17 @@
 
       <div class="w-full h-full flex-shrink-0">
         <div class="flex flex-col gap-4 h-full p-4">
-          <header class="border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-100 dark:bg-surface-800 overflow-hidden flex-shrink-0">
-            <div class="flex flex-col p-4 gap-2">
+          <header class="border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-100 dark:bg-surface-800 overflow-hidden flex-shrink-0 relative">
+            <div class="absolute inset-x-0 bottom-0 h-20 pointer-events-none flex items-end px-2" style="gap: 2px;">
+              @for (b of hourlyRhythm(); track b.hour) {
+                <div class="flex-1 min-w-0 rounded-t-sm transition-all duration-300"
+                     [style.height.%]="barHeightPercent(b.delivered)"
+                     [style.background]="b.isCurrent ? 'rgba(99, 102, 241, 0.35)' : 'rgba(148, 163, 184, 0.4)'">
+                </div>
+              }
+            </div>
+
+            <div class="relative z-10 flex flex-col p-4 gap-2">
               <div class="flex justify-between items-center">
                 <div>
                   <h2 class="text-base font-bold text-surface-700 dark:text-surface-300">{{ currentDate() }}</h2>
@@ -79,6 +88,57 @@
             </div>
           </header>
 
+          <section class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast flex flex-col overflow-hidden flex-shrink-0">
+            <header class="flex justify-between items-center p-3 border-b border-surface-200 dark:border-surface-700 flex-shrink-0">
+              <div class="flex flex-col">
+                <h2 class="text-base font-bold text-surface-700 dark:text-surface-300">Composición de ventas</h2>
+                <p class="text-xs text-surface-500">Top productos y distribución por categoría</p>
+              </div>
+              <span class="text-xs text-surface-500">$ {{ formatMoney(topProductsTotal()) }}</span>
+            </header>
+
+            <div class="flex-1 grid grid-cols-1 lg:grid-cols-5 gap-3 p-3 min-h-0">
+              <div class="lg:col-span-3 flex flex-col min-h-0">
+                <h3 class="text-xs font-semibold text-surface-500 uppercase tracking-wide mb-2">Top 8 productos</h3>
+                @if (topProductsBySales().length === 0) {
+                  <div class="flex-1 flex items-center justify-center text-xs text-surface-500">
+                    Aún no hay pedidos servidos hoy
+                  </div>
+                } @else {
+                  <ol class="flex-1 space-y-1.5 overflow-auto pr-1">
+                    @for (item of topProductsBySales(); track item.product; let i = $index) {
+                      <li class="flex items-center gap-2 text-sm">
+                        <span class="w-5 h-5 flex-shrink-0 flex items-center justify-center rounded-full bg-surface-200 dark:bg-surface-700 text-xs font-semibold text-surface-700 dark:text-surface-300">
+                          {{ i + 1 }}
+                        </span>
+                        <div class="flex-1 min-w-0">
+                          <p class="truncate font-medium text-surface-800 dark:text-surface-100">{{ item.product }}</p>
+                          <p class="text-xs text-surface-500 truncate">{{ item.category }} · {{ item.units }} {{ item.units === 1 ? 'unidad' : 'unidades' }}</p>
+                        </div>
+                        <span class="text-sm font-semibold text-surface-700 dark:text-surface-200 whitespace-nowrap">
+                          $ {{ formatMoney(item.total) }}
+                        </span>
+                      </li>
+                    }
+                  </ol>
+                }
+              </div>
+
+              <div class="lg:col-span-2 flex flex-col min-h-0 lg:border-l lg:border-surface-200 lg:dark:border-surface-700 lg:pl-3">
+                <h3 class="text-xs font-semibold text-surface-500 uppercase tracking-wide mb-2">Por categoría</h3>
+                @if (salesByCategory().length === 0) {
+                  <div class="flex-1 flex items-center justify-center text-xs text-surface-500">
+                    Sin datos
+                  </div>
+                } @else {
+                  <div class="flex-1 min-h-0 relative">
+                    <p-chart type="doughnut" [data]="salesByCategoryChartData()" [options]="salesByCategoryChartOptions" />
+                  </div>
+                }
+              </div>
+            </div>
+          </section>
+
           <section class="flex-1 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast flex flex-col min-h-0 overflow-hidden">
             <header class="flex justify-between items-center p-3 border-b border-surface-200 dark:border-surface-700 flex-shrink-0">
               <h2 class="text-base font-bold text-surface-700 dark:text-surface-300">Pedidos del Día</h2>
@@ -130,8 +190,17 @@
   </div>
 
   <div class="hidden md:flex lg:hidden flex-col gap-4 h-full">
-    <header class="border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-100 dark:bg-surface-800 overflow-hidden flex-shrink-0">
-      <div class="flex flex-col p-10 gap-6">
+    <header class="border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-100 dark:bg-surface-800 overflow-hidden flex-shrink-0 relative">
+      <div class="absolute inset-x-0 bottom-0 h-24 pointer-events-none flex items-end px-4" style="gap: 3px;">
+          @for (b of hourlyRhythm(); track b.hour) {
+            <div class="flex-1 min-w-0 rounded-t-sm transition-all duration-300"
+                 [style.height.%]="barHeightPercent(b.delivered)"
+                 [style.background]="b.isCurrent ? 'rgba(99, 102, 241, 0.35)' : 'rgba(148, 163, 184, 0.4)'">
+            </div>
+          }
+        </div>
+
+      <div class="relative z-10 flex flex-col p-10 gap-6">
         <div class="flex justify-between items-start">
           <div>
             <h2 class="text-xl font-bold text-surface-700 dark:text-surface-300">{{ currentDate() }}</h2>
@@ -213,6 +282,57 @@
       </div>
     </header>
 
+    <section class="flex-shrink-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast flex flex-col overflow-hidden">
+      <header class="flex justify-between items-center p-3 border-b border-surface-200 dark:border-surface-700 flex-shrink-0">
+        <div class="flex flex-col">
+          <h2 class="text-base font-bold text-surface-700 dark:text-surface-300">Composición de ventas</h2>
+          <p class="text-xs text-surface-500">Top productos y distribución por categoría</p>
+        </div>
+        <span class="text-xs text-surface-500">$ {{ formatMoney(topProductsTotal()) }}</span>
+      </header>
+
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-3 p-3 min-h-0">
+        <div class="lg:col-span-3 flex flex-col min-h-0">
+          <h3 class="text-xs font-semibold text-surface-500 uppercase tracking-wide mb-2">Top 8 productos</h3>
+          @if (topProductsBySales().length === 0) {
+            <div class="flex-1 flex items-center justify-center text-xs text-surface-500">
+              Aún no hay pedidos servidos hoy
+            </div>
+          } @else {
+            <ol class="flex-1 space-y-1.5 overflow-auto pr-1">
+              @for (item of topProductsBySales(); track item.product; let i = $index) {
+                <li class="flex items-center gap-2 text-sm">
+                  <span class="w-5 h-5 flex-shrink-0 flex items-center justify-center rounded-full bg-surface-200 dark:bg-surface-700 text-xs font-semibold text-surface-700 dark:text-surface-300">
+                    {{ i + 1 }}
+                  </span>
+                  <div class="flex-1 min-w-0">
+                    <p class="truncate font-medium text-surface-800 dark:text-surface-100">{{ item.product }}</p>
+                    <p class="text-xs text-surface-500 truncate">{{ item.category }} · {{ item.units }} {{ item.units === 1 ? 'unidad' : 'unidades' }}</p>
+                  </div>
+                  <span class="text-sm font-semibold text-surface-700 dark:text-surface-200 whitespace-nowrap">
+                    $ {{ formatMoney(item.total) }}
+                  </span>
+                </li>
+              }
+            </ol>
+          }
+        </div>
+
+        <div class="lg:col-span-2 flex flex-col min-h-0 lg:border-l lg:border-surface-200 lg:dark:border-surface-700 lg:pl-3">
+          <h3 class="text-xs font-semibold text-surface-500 uppercase tracking-wide mb-2">Por categoría</h3>
+          @if (salesByCategory().length === 0) {
+            <div class="flex-1 flex items-center justify-center text-xs text-surface-500">
+              Sin datos
+            </div>
+          } @else {
+            <div class="flex-1 min-h-0 relative">
+              <p-chart type="doughnut" [data]="salesByCategoryChartData()" [options]="salesByCategoryChartOptions" />
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+
     <div class="flex-1 flex gap-4 min-h-0">
       <section class="w-full border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast flex flex-col overflow-hidden">
         <header class="flex justify-between items-center p-3 border-b border-surface-200 dark:border-surface-700 flex-shrink-0">
@@ -268,10 +388,19 @@
     </div>
   </div>
 
-  <div class="hidden lg:flex gap-6 min-w-0 h-full">
-    <div class="w-full flex flex-col gap-4">
-      <header class="h-[40%] border border-surface-200 dark:border-surface-700 rounded-2xl bg-surface-100 dark:bg-surface-800 overflow-hidden flex flex-col">
-        <div class="flex flex-row justify-between items-center px-4 py-2 border-b border-surface-200 dark:border-surface-700">
+  <div class="hidden lg:grid lg:grid-cols-5 gap-6 min-w-0 h-full">
+    <div class="col-span-3 flex flex-col gap-4 min-h-0">
+      <header class="border border-surface-200 dark:border-surface-700 rounded-2xl bg-surface-100 dark:bg-surface-800 overflow-hidden relative">
+        <div class="absolute inset-x-0 bottom-0 h-28 pointer-events-none flex items-end px-4" style="gap: 3px;">
+          @for (b of hourlyRhythm(); track b.hour) {
+            <div class="flex-1 min-w-0 rounded-t-sm transition-all duration-300"
+                 [style.height.%]="barHeightPercent(b.delivered)"
+                 [style.background]="b.isCurrent ? 'rgba(99, 102, 241, 0.35)' : 'rgba(148, 163, 184, 0.4)'">
+            </div>
+          }
+        </div>
+
+        <div class="relative z-10 flex flex-row justify-between items-center px-4 py-2 border-b border-surface-200 dark:border-surface-700">
           <div class="flex flex-col">
             <h2 class="text-xl font-bold text-surface-700 dark:text-surface-300">{{ currentDate() }}</h2>
             <p class="text-base text-surface-600 dark:text-surface-400">{{ currentTime() }}</p>
@@ -308,7 +437,7 @@
           </button>
         </div>
 
-        <section class="flex-1 flex flex-row px-4 py-2 gap-2">
+        <section class="relative z-10 flex-1 flex flex-row px-4 py-2 gap-2 min-h-[6.5rem]">
           @if (!isStatsLoaded()) {
             <div class="flex-1 text-center border-r border-surface-200 dark:border-surface-700 flex flex-col justify-center">
               <p-skeleton width="100px" height="28px" styleClass="mx-auto" />
@@ -369,72 +498,123 @@
         </section>
       </header>
 
-      <section class="h-[60%] border border-surface-200 dark:border-surface-700 rounded-2xl bg-primary-contrast flex flex-col overflow-hidden">
-        <header class="flex justify-between items-center p-4 flex-shrink-0">
-          <h2 class="text-lg font-bold text-surface-700 dark:text-surface-300 break-words">
-            Pedidos del Día
-          </h2>
-          <span class="rounded-full bg-primary-500 py-1 px-2.5 text-primary-contrast text-sm">{{orders().length}}</span>
+      <section class="flex-shrink-0 border border-surface-200 dark:border-surface-700 rounded-2xl bg-primary-contrast flex flex-col overflow-hidden">
+        <header class="flex flex-wrap justify-between items-center gap-2 p-4 border-b border-surface-200 dark:border-surface-700 flex-shrink-0">
+          <div class="flex flex-col">
+            <h2 class="text-lg font-bold text-surface-700 dark:text-surface-300">Composición de ventas</h2>
+            <p class="text-xs text-surface-500">Top productos y distribución por categoría</p>
+          </div>
+          <span class="text-sm text-surface-600 dark:text-surface-400">$ {{ formatMoney(topProductsTotal()) }}</span>
         </header>
 
-        <div class="p-4 pt-0 flex-1 min-h-0 overflow-hidden">
-          <p-table [value]="orders()" size="small" selectionMode="single" [scrollable]="true" scrollHeight="flex"
-            scrollWidth="flex" responsiveLayout="scroll" styleClass="h-full"
-            [tableStyle]="{'min-width': '20rem'}"
-            [stripedRows]="true" [loading]="isOrdersLoading()" [showLoader]="false">
-            <ng-template pTemplate="header">
-              <tr>
-                <th class="text-left">ID</th>
-                <th class="text-left">Mesa</th>
-                <th class="text-left">Fecha</th>
-                <th class="text-left">Estado</th>
-                <th class="text-right">Total</th>
-                <th class="text-center">Detalles</th>
-              </tr>
-            </ng-template>
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 p-4 min-h-0">
+          <div class="lg:col-span-3 flex flex-col min-h-0">
+            <h3 class="text-xs font-semibold text-surface-500 uppercase tracking-wide mb-3">Top 8 productos</h3>
+            @if (topProductsBySales().length === 0) {
+              <div class="flex-1 flex items-center justify-center text-sm text-surface-500">
+                Aún no hay pedidos servidos hoy
+              </div>
+            } @else {
+              <ol class="flex-1 space-y-2 overflow-auto pr-1">
+                @for (item of topProductsBySales(); track item.product; let i = $index) {
+                  <li class="flex items-center gap-3 text-sm">
+                    <span class="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-full bg-surface-200 dark:bg-surface-700 text-xs font-semibold text-surface-700 dark:text-surface-300">
+                      {{ i + 1 }}
+                    </span>
+                    <div class="flex-1 min-w-0">
+                      <p class="truncate font-medium text-surface-800 dark:text-surface-100">{{ item.product }}</p>
+                      <p class="text-xs text-surface-500 truncate">{{ item.category }} · {{ item.units }} {{ item.units === 1 ? 'unidad' : 'unidades' }}</p>
+                    </div>
+                    <span class="text-sm font-semibold text-surface-700 dark:text-surface-200 whitespace-nowrap">
+                      $ {{ formatMoney(item.total) }}
+                    </span>
+                  </li>
+                }
+              </ol>
+            }
+          </div>
 
-            <ng-template pTemplate="body" let-order>
-              <tr>
-                <td class="font-mono text-sm">{{ order.id }}</td>
-                <td class="font-medium">{{ order.table }}</td>
-                <td class="text-sm text-surface-600 dark:text-surface-400">
-                  {{ formatDate(order.date) }}
-                </td>
-                <td>
-                  <p-tag [value]="getStatusText(order.status)" [severity]="getStatusSeverity(order.status)" />
-                </td>
-                <td class="text-right font-semibold">
-                  $ {{ calcTotal(order) | number:'1.0-0' }}
-                </td>
-                <td class="text-center">
-                  <p-button icon="pi pi-ellipsis-h" size="small" [text]="true" [rounded]="true" severity="secondary"
-                    (onClick)="viewOrderDetails(order)" title="Ver detalle del pedido">
-                  </p-button>
-                </td>
-              </tr>
-            </ng-template>
-
-            <ng-template pTemplate="loadingbody">
-              <tr>
-                <td colspan="6" class="p-0">
-                  <div class="min-h-[300px] w-full">
-                    <app-table-skeleton [colCount]="6" />
-                  </div>
-                </td>
-              </tr>
-            </ng-template>
-
-            <ng-template pTemplate="emptymessage">
-              <tr>
-                <td colspan="6" class="text-center text-surface-500 py-4">
-                  No hay pedidos para mostrar
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
+          <div class="lg:col-span-2 flex flex-col min-h-0 lg:border-l lg:border-surface-200 lg:dark:border-surface-700 lg:pl-4">
+            <h3 class="text-xs font-semibold text-surface-500 uppercase tracking-wide mb-3">Por categoría</h3>
+            @if (salesByCategory().length === 0) {
+              <div class="flex-1 flex items-center justify-center text-sm text-surface-500">
+                Sin datos
+              </div>
+            } @else {
+              <div class="flex-1 min-h-0 relative">
+                <p-chart type="doughnut" [data]="salesByCategoryChartData()" [options]="salesByCategoryChartOptions" />
+              </div>
+            }
+          </div>
         </div>
       </section>
     </div>
+
+    <section class="col-span-2 border border-surface-200 dark:border-surface-700 rounded-2xl bg-primary-contrast flex flex-col overflow-hidden min-h-0">
+      <header class="flex justify-between items-center p-4 flex-shrink-0">
+        <h2 class="text-lg font-bold text-surface-700 dark:text-surface-300 break-words">
+          Pedidos del Día
+        </h2>
+        <span class="rounded-full bg-primary-500 py-1 px-2.5 text-primary-contrast text-sm">{{orders().length}}</span>
+      </header>
+
+      <div class="p-4 pt-0 flex-1 min-h-0 overflow-hidden">
+        <p-table [value]="orders()" size="small" selectionMode="single" [scrollable]="true" scrollHeight="flex"
+          scrollWidth="flex" responsiveLayout="scroll" styleClass="h-full"
+          [tableStyle]="{'min-width': '20rem'}"
+          [stripedRows]="true" [loading]="isOrdersLoading()" [showLoader]="false">
+          <ng-template pTemplate="header">
+            <tr>
+              <th class="text-left">ID</th>
+              <th class="text-left">Mesa</th>
+              <th class="text-left">Fecha</th>
+              <th class="text-left">Estado</th>
+              <th class="text-right">Total</th>
+              <th class="text-center">Detalles</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-order>
+            <tr>
+              <td class="font-mono text-sm">{{ order.id }}</td>
+              <td class="font-medium">{{ order.table }}</td>
+              <td class="text-sm text-surface-600 dark:text-surface-400">
+                {{ formatDate(order.date) }}
+              </td>
+              <td>
+                <p-tag [value]="getStatusText(order.status)" [severity]="getStatusSeverity(order.status)" />
+              </td>
+              <td class="text-right font-semibold">
+                $ {{ calcTotal(order) | number:'1.0-0' }}
+              </td>
+              <td class="text-center">
+                <p-button icon="pi pi-ellipsis-h" size="small" [text]="true" [rounded]="true" severity="secondary"
+                  (onClick)="viewOrderDetails(order)" title="Ver detalle del pedido">
+                </p-button>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="loadingbody">
+            <tr>
+              <td colspan="6" class="p-0">
+                <div class="min-h-[300px] w-full">
+                  <app-table-skeleton [colCount]="6" />
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="6" class="text-center text-surface-500 py-4">
+                No hay pedidos para mostrar
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </section>
   </div>
 </div>
 

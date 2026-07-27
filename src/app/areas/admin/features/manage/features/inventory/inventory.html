@@ -20,7 +20,7 @@
   }
 
   <!-- Supplies table -->
-  <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-0 dark:bg-surface-800 overflow-hidden">
+  <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 overflow-hidden">
     <p-table
       #dt
       [value]="filteredSupplies() ?? []"
@@ -612,7 +612,7 @@
               />
               <input
                 type="number"
-                class="w-20 text-center border border-surface-300 dark:border-surface-600 rounded-md px-2 py-1 text-sm bg-surface-0 dark:bg-surface-900"
+                class="w-20 text-center border border-surface-300 dark:border-surface-600 rounded-md px-2 py-1 text-sm bg-primary-contrast dark:bg-surface-900"
                 [ngModel]="getTransferQty(supply.id)"
                 (ngModelChange)="setTransferQty(supply.id, +$event)"
                 [min]="0.001"

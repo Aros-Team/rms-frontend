@@ -21,7 +21,7 @@
         [attr.aria-selected]="activeEmployeeTab() === 'list'"
         class="px-4 py-2 text-sm font-medium rounded-t-lg border border-b-0 transition-colors cursor-pointer"
         [ngClass]="{
-          'bg-surface-0 dark:bg-surface-800 text-primary border-surface-200 dark:border-surface-700': activeEmployeeTab() === 'list',
+          'bg-primary-contrast dark:bg-surface-800 text-primary border-surface-200 dark:border-surface-700': activeEmployeeTab() === 'list',
           'bg-transparent text-surface-500 border-transparent hover:text-surface-700 dark:hover:text-surface-300': activeEmployeeTab() !== 'list'
         }"
         (click)="switchTab('list')"
@@ -36,7 +36,7 @@
         [attr.aria-selected]="activeEmployeeTab() === 'time-logs'"
         class="px-4 py-2 text-sm font-medium rounded-t-lg border border-b-0 transition-colors cursor-pointer"
         [ngClass]="{
-          'bg-surface-0 dark:bg-surface-800 text-primary border-surface-200 dark:border-surface-700': activeEmployeeTab() === 'time-logs',
+          'bg-primary-contrast dark:bg-surface-800 text-primary border-surface-200 dark:border-surface-700': activeEmployeeTab() === 'time-logs',
           'bg-transparent text-surface-500 border-transparent hover:text-surface-700 dark:hover:text-surface-300': activeEmployeeTab() !== 'time-logs'
         }"
         (click)="switchTab('time-logs')"

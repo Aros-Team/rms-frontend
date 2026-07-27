@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChartModule } from 'primeng/chart';
 import { SkeletonModule } from 'primeng/skeleton';
 import { MessageModule } from 'primeng/message';
 
 import { AnalyticsCache } from '@app/core/services/analytics/analytics-cache';
+import { AnalyticsPeriodState } from '@app/core/services/analytics/analytics-period-state';
 import { MoneyPipe } from '@app/shared/pipes/money';
 import { DataCompleteness } from '@app/shared/models/dto/analytics/data-completeness';
 import { FingerprintStrategy } from '@app/shared/models/dto/analytics/cohort-report';
@@ -19,7 +20,14 @@ import { FingerprintStrategy } from '@app/shared/models/dto/analytics/cohort-rep
 export class Cohort {
   private readonly cache = inject(AnalyticsCache);
 
-  constructor() { this.cache.cohort.loadIfStale(); }
+  constructor() {
+    effect(() => {
+      this.period.period();
+      this.cache.cohort.load();
+    });
+  }
+
+  private readonly period = inject(AnalyticsPeriodState);
 
   readonly isLoading = computed(() => this.cache.cohort.isLoading());
   readonly error = computed(() => this.cache.cohort.error());

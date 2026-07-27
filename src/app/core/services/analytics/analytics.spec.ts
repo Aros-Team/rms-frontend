@@ -23,12 +23,12 @@ describe('Analytics service', () => {
   });
 
   describe('getPrimeCost', () => {
-    it('GETs api/v1/analytics/prime-cost with bucket/from/to query params', () => {
+    it('GETs v1/analytics/prime-cost with bucket/from/to query params', () => {
       service.getPrimeCost('monthly', '2026-01', '2026-07').subscribe();
 
       const req = httpMock.expectOne(
         (r) =>
-          r.url === 'api/v1/analytics/prime-cost' &&
+          r.url === 'v1/analytics/prime-cost' &&
           r.params.get('bucket') === 'monthly' &&
           r.params.get('from') === '2026-01' &&
           r.params.get('to') === '2026-07',
@@ -39,12 +39,12 @@ describe('Analytics service', () => {
   });
 
   describe('getMenuEngineering', () => {
-    it('GETs api/v1/analytics/menu-engineering without categoryId when omitted', () => {
+    it('GETs v1/analytics/menu-engineering without categoryId when omitted', () => {
       service.getMenuEngineering('monthly', '2026-01', '2026-07').subscribe();
 
       const req = httpMock.expectOne(
         (r) =>
-          r.url === 'api/v1/analytics/menu-engineering' &&
+          r.url === 'v1/analytics/menu-engineering' &&
           r.params.get('bucket') === 'monthly' &&
           r.params.get('from') === '2026-01' &&
           r.params.get('to') === '2026-07',
@@ -53,12 +53,12 @@ describe('Analytics service', () => {
       req.flush({});
     });
 
-    it('GETs api/v1/analytics/menu-engineering with categoryId when provided', () => {
+    it('GETs v1/analytics/menu-engineering with categoryId when provided', () => {
       service.getMenuEngineering('monthly', '2026-01', '2026-07', 42).subscribe();
 
       const req = httpMock.expectOne(
         (r) =>
-          r.url === 'api/v1/analytics/menu-engineering' &&
+          r.url === 'v1/analytics/menu-engineering' &&
           r.params.get('categoryId') === '42',
       );
       expect(req.request.method).toBe('GET');
@@ -67,12 +67,12 @@ describe('Analytics service', () => {
   });
 
   describe('listAlerts', () => {
-    it('GETs api/v1/analytics/alerts with default limit=50 offset=0 when no filters', () => {
+    it('GETs v1/analytics/alerts with default limit=50 offset=0 when no filters', () => {
       service.listAlerts().subscribe();
 
       const req = httpMock.expectOne(
         (r) =>
-          r.url === 'api/v1/analytics/alerts' &&
+          r.url === 'v1/analytics/alerts' &&
           r.params.get('limit') === '50' &&
           r.params.get('offset') === '0',
       );
@@ -89,7 +89,7 @@ describe('Analytics service', () => {
 
       const req = httpMock.expectOne(
         (r) =>
-          r.url === 'api/v1/analytics/alerts' &&
+          r.url === 'v1/analytics/alerts' &&
           r.params.get('status') === 'OPEN' &&
           r.params.get('severity') === 'RED' &&
           r.params.get('limit') === '10' &&
@@ -101,10 +101,10 @@ describe('Analytics service', () => {
   });
 
   describe('markAlertRead', () => {
-    it('PATCHes api/v1/analytics/alerts/{id}/read with empty body', () => {
+    it('PATCHes v1/analytics/alerts/{id}/read with empty body', () => {
       service.markAlertRead(17).subscribe();
 
-      const req = httpMock.expectOne('api/v1/analytics/alerts/17/read');
+      const req = httpMock.expectOne('v1/analytics/alerts/17/read');
       expect(req.request.method).toBe('PATCH');
       expect(req.request.body).toEqual({});
       req.flush(null);

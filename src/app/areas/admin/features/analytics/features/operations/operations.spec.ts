@@ -21,6 +21,7 @@ function makeOperationsStub(
     refresh?: () => void;
     invalidate?: () => void;
     loadIfStale?: () => void;
+    load?: () => void;
   } = {},
 ): Pick<AnalyticsCache, 'operations'> & Record<string, unknown> {
   return {
@@ -34,6 +35,8 @@ function makeOperationsStub(
       invalidate: overrides.invalidate ?? ((): void => {}),
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       loadIfStale: overrides.loadIfStale ?? ((): void => {}),
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      load: overrides.load ?? ((): void => {}),
     },
     primeCost: { data: (): null => null, isLoading: (): boolean => false, error: (): null => null },
     menuEngineering: { data: (): null => null, isLoading: (): boolean => false, error: (): null => null },
@@ -159,16 +162,16 @@ describe('Operations', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  it('calls cache.operations.loadIfStale on construction', async () => {
-    const loadIfStaleSpy = vi.fn();
+  it('calls cache.operations.load via the period effect on construction', async () => {
+    const loadSpy = vi.fn();
     const stub = makeOperationsStub({
       isLoading: () => false,
       error: () => null,
       data: () => null,
-      loadIfStale: loadIfStaleSpy,
+      load: loadSpy,
     });
     await setup(stub);
-    expect(loadIfStaleSpy).toHaveBeenCalledTimes(1);
+    expect(loadSpy).toHaveBeenCalled();
   });
 
   it('renders the skeleton (4 stat + 1 chart = 5) when isLoading() is true and report() is null', async () => {

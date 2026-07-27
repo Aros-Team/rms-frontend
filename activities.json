@@ -252,16 +252,16 @@
       {
         "id": "a",
         "description": "Reemplazar bg-black/50 por bg-surface-900/50 en tables.html:78 (modal overlay)",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
         "description": "Reemplazar bg-surface-0 por bg-primary-contrast en 7 archivos: areas.html, inventory.html (2 occ), products.html, tables.html (2 occ), salary-history.html, workers.html (2 occ), chat.html, orders-table.html",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "pending"
+    "status": "done"
   }
 ]

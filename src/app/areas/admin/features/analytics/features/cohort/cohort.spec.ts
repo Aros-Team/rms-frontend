@@ -34,6 +34,7 @@ interface CohortStub {
   error: () => Error | null;
   refresh: () => void;
   loadIfStale: () => void;
+  load: () => void;
   invalidate: () => void;
 }
 
@@ -46,6 +47,8 @@ function makeCacheStub(cohortOverrides: Partial<CohortStub> = {}) {
     refresh: (): void => {},
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     loadIfStale: (): void => {},
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    load: (): void => {},
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     invalidate: (): void => {},
     ...cohortOverrides,

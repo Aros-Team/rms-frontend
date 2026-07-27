@@ -41,14 +41,32 @@ describe('AnalyticsPeriodState', () => {
       expect(state.bucket()).toBe('yearly');
     });
 
-    it('updates from/to to the current 6-month range when bucket changes', () => {
+    it('updates from/to to the 3-year range when bucket changes to yearly', () => {
       const state = new AnalyticsPeriodState();
 
       state.setRange('2020-01', '2020-12');
       state.setBucket('yearly');
 
-      expect(state.from()).toBe('2026-02');
-      expect(state.to()).toBe('2026-07');
+      expect(state.from()).toBe('2024');
+      expect(state.to()).toBe('2026');
+    });
+
+    it('updates from/to to the 30-day ISO date range when bucket changes to daily', () => {
+      const state = new AnalyticsPeriodState();
+
+      state.setBucket('daily');
+
+      expect(state.from()).toBe('2026-06-18');
+      expect(state.to()).toBe('2026-07-17');
+    });
+
+    it('updates from/to to the 12-week ISO week range when bucket changes to weekly', () => {
+      const state = new AnalyticsPeriodState();
+
+      state.setBucket('weekly');
+
+      expect(state.from()).toMatch(/^\d{4}-W\d{2}$/);
+      expect(state.to()).toMatch(/^\d{4}-W\d{2}$/);
     });
   });
 
