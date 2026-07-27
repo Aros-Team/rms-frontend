@@ -1,7 +1,7 @@
 import { Injectable, inject, OnDestroy } from '@angular/core';
 import { forkJoin, Subscription } from 'rxjs';
 
-import { ResourceCache } from '@app/core/cache/resource-cache';
+import { ResourceCache } from '@app/core/cache/resource-cache/resource-cache';
 import { Table } from '@app/core/services/tables/table';
 import { Area } from '@app/core/services/areas/area';
 import { WebSocket } from '@app/core/services/websocket/websocket';

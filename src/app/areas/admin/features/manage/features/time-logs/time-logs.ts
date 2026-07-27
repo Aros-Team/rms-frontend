@@ -14,7 +14,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
-import { TableSkeleton } from '@shared/skeletons/table-skeleton';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 
 @Component({
   selector: 'app-time-logs',

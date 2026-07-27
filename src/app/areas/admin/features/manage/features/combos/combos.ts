@@ -11,7 +11,7 @@ import { ToastModule } from 'primeng/toast';
 import { SkeletonModule } from 'primeng/skeleton';
 import { MessageService } from 'primeng/api';
 
-import { TableSkeleton } from '@shared/skeletons/table-skeleton';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
 import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';
 

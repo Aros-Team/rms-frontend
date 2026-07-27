@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Product } from '@app/core/services/products/product';
 import { MasterData } from '@app/core/services/master-data/master-data';
 import { Logging } from '@app/core/services/logging/logging';
-import { ProductImage } from '@app/core/services/product-image';
+import { ProductImage } from '@app/core/services/product-image/product-image';
 import { ProductImageResponse } from '@app/shared/models/dto/products/product-image-response';
 import { ProductResponse } from '@app/shared/models/dto/products/product-response';
 import { ProductOption as ProductOptionDTO } from '@app/shared/models/dto/products/product-option.model';

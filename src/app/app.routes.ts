@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
-import { AreaGuard } from '@core/guards/area';
-import { AuthGuard } from '@core/guards/auth';
-import { RoleGuard } from '@core/guards/role';
-import { RedirectGuard } from '@app/core/guards/redirect-guard';
+import { AreaGuard } from '@core/guards/area/area';
+import { AuthGuard } from '@core/guards/auth/auth';
+import { RoleGuard } from '@core/guards/role/role';
+import { RedirectGuard } from '@app/core/guards/redirect-guard/redirect-guard';
 
 
 export const routes: Routes = [

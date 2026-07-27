@@ -14,59 +14,59 @@
       {
         "id": "a",
         "description": "Mover core/services/product-image.ts → core/services/product-image/product-image.ts y actualizar imports",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
         "description": "Mover shared/pipes/*.ts a subcarpetas (option-names/, table-number/, metric-value/, money/) y actualizar imports",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
         "description": "Mover shared/lib/http-error-mapper.ts → shared/lib/http-error-mapper/http-error-mapper.ts y actualizar imports",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "d",
         "description": "Mover core/directives/lazy-load.directive.ts → core/directives/lazy-load/lazy-load.ts y actualizar imports",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "e",
         "description": "Mover core/cache/resource-cache.ts → core/cache/resource-cache/resource-cache.ts y actualizar imports",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "f",
         "description": "Mover core/guards/*.ts a subcarpetas (area/, auth/, redirect-guard/, role/) y actualizar imports",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "g",
         "description": "Mover core/interceptors/*.ts a subcarpetas (url-interceptor/, error/, jwt/) y actualizar imports",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "h",
         "description": "Mover shared/skeletons/*.ts a subcarpetas (list-skeleton/, table-skeleton/) y actualizar imports",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "i",
         "description": "Mover shared/layout/*.ts a subcarpetas (layout/, worker-layout/) y actualizar imports",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "pending"
+    "status": "done"
   },
   {
     "id": 2,
@@ -155,7 +155,7 @@
         "agent": "implementer"
       }
     ],
-    "status": "in_progress"
+    "status": "done"
   },
   {
     "id": 5,

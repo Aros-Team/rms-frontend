@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Subject } from 'rxjs';
 
-import { ResourceCache } from './resource-cache';
+import { ResourceCache } from './resource-cache/resource-cache';
 
 // These tests guard against the bug where the AnalyticsCache service constructor
 // ran an `effect()` that called `invalidate()` on every cache, which cancelled

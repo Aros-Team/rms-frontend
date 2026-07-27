@@ -24,8 +24,8 @@ import { catchError, finalize } from 'rxjs/operators';
 import { calculateTotalPrice } from '@app/shared/models/dto/orders/order-response.model';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@environments/environment';
-import { ListSkeleton } from '@shared/skeletons/list-skeleton';
-import { TableSkeleton } from '@shared/skeletons/table-skeleton';
+import { ListSkeleton } from '@shared/skeletons/list-skeleton/list-skeleton';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 
 const RHYTHM_START_HOUR = 8;
 const RHYTHM_END_HOUR = 23;

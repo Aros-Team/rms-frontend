@@ -1,7 +1,7 @@
 import { Injectable, inject, DestroyRef } from '@angular/core';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ResourceCache } from '@app/core/cache/resource-cache';
+import { ResourceCache } from '@app/core/cache/resource-cache/resource-cache';
 import { SpecialSelections } from './special-selections';
 import { SpecialSelectionsRealtime } from './special-selections-realtime';
 import { ComboReferenceCache } from '@app/core/services/combos/combo-reference-cache';

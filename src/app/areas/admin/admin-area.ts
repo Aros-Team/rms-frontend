@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, ChangeDetectionStrategy, ViewChild, signal, ChangeDetectorRef } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
-import { Layout } from '@app/shared/layout/layout';
+import { Layout } from '@app/shared/layout/layout/layout';
 import { Chat } from '@app/areas/admin/features/chat/chat';
 import { Menu, MenuItem } from '@app/core/services/menu/menu';
 

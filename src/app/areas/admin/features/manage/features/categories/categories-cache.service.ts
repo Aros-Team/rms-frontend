@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { forkJoin } from 'rxjs';
-import { ResourceCache } from '@app/core/cache/resource-cache';
+import { ResourceCache } from '@app/core/cache/resource-cache/resource-cache';
 import { Category } from '@app/core/services/category/category';
 import { OptionCategory } from '@app/core/services/option-category/option-category';
 import { CategorySimpleResponse } from '@app/shared/models/dto/category/category-simple-response';

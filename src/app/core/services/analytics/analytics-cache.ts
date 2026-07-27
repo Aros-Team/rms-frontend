@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 
-import { ResourceCache } from '@app/core/cache/resource-cache';
+import { ResourceCache } from '@app/core/cache/resource-cache/resource-cache';
 import { Analytics } from '@app/core/services/analytics/analytics';
 import { AnalyticsPeriodState } from '@app/core/services/analytics/analytics-period-state';
 

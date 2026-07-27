@@ -21,7 +21,7 @@ import { Auth } from '@services/auth/auth';
 import { environment } from '@environments/environment';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { TableSkeleton } from '@shared/skeletons/table-skeleton';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 
 const WS_TOPICS = {
   created:   '/topic/orders/created',

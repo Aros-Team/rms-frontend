@@ -12,7 +12,7 @@ import { MessageService } from 'primeng/api';
 
 import { Analytics } from '@app/core/services/analytics/analytics';
 import { AnalyticsCache } from '@app/core/services/analytics/analytics-cache';
-import { MetricValuePipe } from '@app/shared/pipes/metric-value';
+import { MetricValuePipe } from '@app/shared/pipes/metric-value/metric-value';
 import { Alert, AlertSeverity, AlertStatus, AlertType, AlertsPage, ALERT_SEVERITIES, ALERT_STATUSES, ALERT_TYPES } from '@app/shared/models/dto/analytics/alert';
 
 interface StatusOption { label: string; value: AlertStatus | null }

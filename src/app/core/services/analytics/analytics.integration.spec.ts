@@ -3,9 +3,9 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
 import { Analytics } from './analytics';
-import { urlInterceptor } from '@app/core/interceptors/url-interceptor';
-import { jwtInterceptor } from '@app/core/interceptors/jwt';
-import { errorInterceptor } from '@app/core/interceptors/error';
+import { urlInterceptor } from '@app/core/interceptors/url-interceptor/url-interceptor';
+import { jwtInterceptor } from '@app/core/interceptors/jwt/jwt';
+import { errorInterceptor } from '@app/core/interceptors/error/error';
 
 // These tests guard against the api/api/... double-prefix bug (the original 404).
 // They verify that the final URL has /api/v1/... and NOT /api/api/v1/... regardless of

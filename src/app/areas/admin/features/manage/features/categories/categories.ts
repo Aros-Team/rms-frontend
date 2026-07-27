@@ -5,7 +5,7 @@ import { Category } from '@app/core/services/category/category';
 import { OptionCategory } from '@app/core/services/option-category/option-category';
 import { Logging } from '@app/core/services/logging/logging';
 import { CategoriesCacheService } from './categories-cache.service';
-import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
+import { LazyLoadDirective } from '@app/core/directives/lazy-load/lazy-load.directive';
 
 import { FormValidation } from '@app/shared/components/form/form-validation';
 

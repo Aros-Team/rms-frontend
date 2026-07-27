@@ -22,7 +22,7 @@ import { SelectModule } from 'primeng/select';
 import { TooltipModule } from 'primeng/tooltip';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { MessageService, ConfirmationService } from 'primeng/api';
-import { TableSkeleton } from '@shared/skeletons/table-skeleton';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 
 const errorTranslations: Record<string, string> = {
   'Schedule name already exists': 'El nombre del horario ya existe',

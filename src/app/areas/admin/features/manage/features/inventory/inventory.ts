@@ -11,7 +11,7 @@ import { Logging } from '@services/logging/logging';
 import { WebSocket } from '@services/websocket/websocket';
 import { environment } from '@environments/environment';
 import { InventoryCacheService } from './inventory-cache.service';
-import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
+import { LazyLoadDirective } from '@app/core/directives/lazy-load/lazy-load.directive';
 
 import { SupplyVariantResponse } from '@models/dto/supplies/supply-variant-response';
 import { SupplyCategoryResponse } from '@models/dto/supplies/supply-category-response';
@@ -41,7 +41,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TagModule } from 'primeng/tag';
 import { MessageModule } from 'primeng/message';
-import { TableSkeleton } from '@shared/skeletons/table-skeleton';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 
 // Wizard step type
 type VariantStep = 'category' | 'supply' | 'variant';

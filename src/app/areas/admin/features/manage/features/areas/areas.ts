@@ -14,8 +14,8 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { FormValidation } from '@app/shared/components/form/form-validation';
 import { TablesCacheService } from '../tables/tables-cache.service';
-import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
-import { TableSkeleton } from '@shared/skeletons/table-skeleton';
+import { LazyLoadDirective } from '@app/core/directives/lazy-load/lazy-load.directive';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 
 @Component({
   selector: 'app-areas',

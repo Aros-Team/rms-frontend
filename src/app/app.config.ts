@@ -14,9 +14,9 @@ import {
   provideHttpClient,
   withInterceptors,
 } from '@angular/common/http';
-import { jwtInterceptor } from '@core/interceptors/jwt';
-import { urlInterceptor } from '@core/interceptors/url-interceptor';
-import { errorInterceptor } from '@core/interceptors/error';
+import { jwtInterceptor } from '@core/interceptors/jwt/jwt';
+import { urlInterceptor } from '@core/interceptors/url-interceptor/url-interceptor';
+import { errorInterceptor } from '@core/interceptors/error/error';
 import { routes } from './app.routes';
 
 /**

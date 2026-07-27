@@ -10,7 +10,7 @@ import { Logging } from '@app/core/services/logging/logging';
 import { Menu, MenuItem } from '@app/core/services/menu/menu';
 import { Notification } from '@app/core/services/notifications/notification';
 import { OrderDock } from '@app/core/services/order-dock/order-dock';
-import { WorkerLayout } from '@app/shared/layout/worker-layout';
+import { WorkerLayout } from '@app/shared/layout/worker-layout/worker-layout';
 import { OrderDock as OrderDockPanel } from '@app/shared/components/order-dock/order-dock';
 
 @Component({

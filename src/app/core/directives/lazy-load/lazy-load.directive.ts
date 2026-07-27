@@ -1,5 +1,5 @@
 import { Directive, ElementRef, Input, Output, EventEmitter, OnInit, OnDestroy, inject } from '@angular/core';
-import { ResourceCache } from '../cache/resource-cache';
+import { ResourceCache } from '../../cache/resource-cache/resource-cache';
 
 @Directive({
   selector: '[appLazyLoad]',

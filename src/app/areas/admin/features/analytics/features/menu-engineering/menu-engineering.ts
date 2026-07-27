@@ -11,7 +11,7 @@ import { TagModule } from 'primeng/tag';
 
 import { AnalyticsCache } from '@app/core/services/analytics/analytics-cache';
 import { AnalyticsPeriodState } from '@app/core/services/analytics/analytics-period-state';
-import { MoneyPipe } from '@app/shared/pipes/money';
+import { MoneyPipe } from '@app/shared/pipes/money/money';
 import { DataCompleteness } from '@app/shared/models/dto/analytics/data-completeness';
 import { Money } from '@app/shared/models/dto/analytics/money';
 import {

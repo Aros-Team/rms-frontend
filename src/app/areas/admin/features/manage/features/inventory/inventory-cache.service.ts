@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { forkJoin } from 'rxjs';
-import { ResourceCache } from '@app/core/cache/resource-cache';
+import { ResourceCache } from '@app/core/cache/resource-cache/resource-cache';
 import { InventoryService } from '@app/core/services/inventory/inventory';
 import { Supplier } from '@app/core/services/suppliers/supplier';
 import { Supply } from '@app/core/services/supplies/supply';

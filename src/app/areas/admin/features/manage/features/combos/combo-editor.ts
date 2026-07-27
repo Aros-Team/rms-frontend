@@ -22,7 +22,7 @@ import { ChipModule } from 'primeng/chip';
 import { MessageService } from 'primeng/api';
 
 import { HttpErrorResponse } from '@angular/common/http';
-import { mapHttpError } from '@app/shared/lib/http-error-mapper';
+import { mapHttpError } from '@app/shared/lib/http-error-mapper/http-error-mapper';
 import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
 import { SpecialSelectionRequest } from '@app/shared/models/dto/special-selections/special-selection-request';
 import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';

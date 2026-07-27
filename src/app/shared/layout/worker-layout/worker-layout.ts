@@ -1,7 +1,7 @@
 import { Component, Input, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { Header } from '../components/header/header';
+import { Header } from '../../components/header/header';
 
 export interface TabItem {
   id: string;

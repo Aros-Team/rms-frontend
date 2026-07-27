@@ -1,6 +1,6 @@
 import { Injectable, inject, OnDestroy } from '@angular/core';
 import { forkJoin, map, Subscription } from 'rxjs';
-import { ResourceCache } from '@app/core/cache/resource-cache';
+import { ResourceCache } from '@app/core/cache/resource-cache/resource-cache';
 import { Product } from '@app/core/services/products/product';
 import { Area } from '@app/core/services/areas/area';
 import { Category } from '@app/core/services/category/category';

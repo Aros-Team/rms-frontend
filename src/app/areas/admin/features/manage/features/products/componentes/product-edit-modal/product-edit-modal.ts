@@ -4,7 +4,7 @@ import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Product } from '@app/core/services/products/product';
 import { Logging } from '@app/core/services/logging/logging';
 import { ProductCacheService } from '../../product-cache.service';
-import { ProductImage } from '@app/core/services/product-image';
+import { ProductImage } from '@app/core/services/product-image/product-image';
 import { ProductImageResponse } from '@app/shared/models/dto/products/product-image-response';
 
 import { ButtonModule } from 'primeng/button';

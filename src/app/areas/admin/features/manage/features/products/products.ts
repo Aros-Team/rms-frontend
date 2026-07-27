@@ -8,7 +8,7 @@ import { Product } from '@app/core/services/products/product';
 import { MasterData } from '@app/core/services/master-data/master-data';
 import { Logging } from '@app/core/services/logging/logging';
 import { ProductCacheService } from './product-cache.service';
-import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
+import { LazyLoadDirective } from '@app/core/directives/lazy-load/lazy-load.directive';
 import { ProductOptionService } from '@app/core/services/product-option/product-option';
 import { WebSocket } from '@app/core/services/websocket/websocket';
 
@@ -16,7 +16,7 @@ import { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-va
 import { ProductRecipeItem, ProductResponse } from '@app/shared/models/dto/products/product-response';
 import { ProductOption as ProductOptionDTO, ProductOptionResponse } from '@app/shared/models/dto/products/product-option.model';
 import { ProductOptionCreateRequest, RecipeItemRequest } from '@app/shared/models/dto/products/product-create-request';
-import { ProductImage } from '@app/core/services/product-image';
+import { ProductImage } from '@app/core/services/product-image/product-image';
 import { ProductImageResponse } from '@app/shared/models/dto/products/product-image-response';
 
 import { ButtonModule } from 'primeng/button';
@@ -42,7 +42,7 @@ import { DividerModule } from 'primeng/divider';
 import { SkeletonModule } from 'primeng/skeleton';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { CurrencyPipe } from '@angular/common';
-import { TableSkeleton } from '@shared/skeletons/table-skeleton';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 import { ProductEditModal } from './componentes/product-edit-modal/product-edit-modal';
 import { NewOptionDialog } from './componentes/new-option-dialog/new-option-dialog';
 import { ProductDetailDialog } from './componentes/product-detail-dialog/product-detail-dialog';

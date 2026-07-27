@@ -12,7 +12,7 @@ import { SpecialSelectionsCacheService } from '@app/core/services/special-select
 import type { ProductCreateRequest } from '@app/shared/models/dto/products/product-create-request';
 import { SpecialSelectionRequest } from '@app/shared/models/dto/special-selections/special-selection-request';
 import type { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';
-import { mapHttpError } from '@app/shared/lib/http-error-mapper';
+import { mapHttpError } from '@app/shared/lib/http-error-mapper/http-error-mapper';
 
 @Injectable({ providedIn: 'root' })
 export class ComboSubmission {

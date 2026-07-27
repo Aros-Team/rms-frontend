@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { HttpClient, provideHttpClient } from '@angular/common/http';
 import { Subject } from 'rxjs';
 
-import { ResourceCache } from './resource-cache';
+import { ResourceCache } from './resource-cache/resource-cache';
 
 describe('ResourceCache', () => {
   let httpMock: HttpTestingController;

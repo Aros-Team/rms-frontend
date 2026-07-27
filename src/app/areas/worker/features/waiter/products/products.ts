@@ -11,7 +11,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { MasterData } from '@app/core/services/master-data/master-data';
 import { OrderDock, DockItem } from '@app/core/services/order-dock/order-dock';
 import { Logging } from '@app/core/services/logging/logging';
-import { ProductImage } from '@app/core/services/product-image';
+import { ProductImage } from '@app/core/services/product-image/product-image';
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
 import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
 

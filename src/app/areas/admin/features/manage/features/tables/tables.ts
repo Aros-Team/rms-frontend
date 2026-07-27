@@ -17,7 +17,7 @@ import { Table } from '@app/core/services/tables/table';
 import { MessageService } from 'primeng/api';
 import { TableResponse } from '@app/shared/models/dto/tables/table-response.model';
 import { TablesCacheService } from './tables-cache.service';
-import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
+import { LazyLoadDirective } from '@app/core/directives/lazy-load/lazy-load.directive';
 import { WebSocket } from '@app/core/services/websocket/websocket';
 import { Auth } from '@app/core/services/auth/auth';
 import { environment } from '@environments/environment';

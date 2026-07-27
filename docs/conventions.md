@@ -317,10 +317,16 @@ shared/
 │   ├── sidebar/
 │   └── waiter-status-badge/
 ├── pipes/               # Pipes reutilizables
-│   ├── money.ts
-│   ├── metric-value.ts
-│   ├── option-names.pipe.ts
-│   └── table-number.pipe.ts
+│   ├── money/
+│   │   ├── money.ts
+│   │   └── money.spec.ts
+│   ├── metric-value/
+│   │   ├── metric-value.ts
+│   │   └── metric-value.spec.ts
+│   ├── option-names/
+│   │   └── option-names.pipe.ts
+│   └── table-number/
+│       └── table-number.pipe.ts
 ├── lib/                 # Utilidades puras
 │   └── http-error-mapper.ts
 ├── features/            # Features compartidas (con estado o lógica propia)
