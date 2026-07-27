@@ -7,6 +7,7 @@ import { BadgeModule } from 'primeng/badge';
 import { CardModule } from 'primeng/card';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
+import { ChartModule } from 'primeng/chart';
 import { CommonModule } from '@angular/common';
 import { Order } from '@app/core/services/orders/order';
 import { Table } from '@app/core/services/tables/table';
@@ -18,13 +19,16 @@ import { Auth } from '@app/core/services/auth/auth';
 import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
 import { OrderDetailsResponse } from '@app/shared/models/dto/orders/order-details-response.model';
 import { TableResponse } from '@app/shared/models/dto/tables/table-response.model';
-import { forkJoin, of, interval, Subscription, EMPTY } from 'rxjs';
-import { catchError, switchMap, finalize } from 'rxjs/operators';
+import { of, interval, Subscription } from 'rxjs';
+import { catchError, finalize } from 'rxjs/operators';
 import { calculateTotalPrice } from '@app/shared/models/dto/orders/order-response.model';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@environments/environment';
 import { ListSkeleton } from '@shared/skeletons/list-skeleton';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton';
+
+const RHYTHM_START_HOUR = 8;
+const RHYTHM_END_HOUR = 23;
 
 const WS_TOPICS = {
   created:     '/topic/orders/created',
@@ -47,6 +51,7 @@ const WS_TOPICS = {
     CardModule,
     SkeletonModule,
     TagModule,
+    ChartModule,
     OrderDetailDialog,
     ListSkeleton,
     TableSkeleton,
@@ -72,10 +77,17 @@ export class Dashboard implements OnInit, OnDestroy {
   isStatsLoaded = signal(false);
   orderDetails = signal<OrderDetailsResponse[]>([]);
 
-  completedOrdersCount = signal(0);
-  preparingOrdersCount = signal(0);
-  totalSales = signal(0);
-  isLoading = signal(false);
+  completedOrdersCount = computed(() =>
+    this.orders().filter(o => o.status === 'DELIVERED').length
+  );
+  preparingOrdersCount = computed(() =>
+    this.orders().filter(o => o.status === 'PREPARING').length
+  );
+  totalSales = computed(() =>
+    this.orders()
+      .filter(o => o.status === 'DELIVERED')
+      .reduce((sum, o) => sum + calculateTotalPrice(o), 0)
+  );
 
   // Tables — kept in sync via WebSocket events
   private allTables = signal<TableResponse[]>([]);
@@ -92,6 +104,160 @@ export class Dashboard implements OnInit, OnDestroy {
   selectedOrder = signal<OrderResponse | null>(null);
   selectedProduct = signal<ProductData | null>(null);
   private isMobile = signal(false);
+
+  // ─── Hourly rhythm chart ──────────────────────────────────────────────────
+  // Computed from today's orders. The WebSocket subscriptions keep `orders()`
+  // in sync, so this chart updates live as orders are delivered.
+  readonly rhythmRange = computed(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today.getTime();
+  });
+
+  readonly hourlyRhythm = computed<{ hour: number; label: string; delivered: number; isCurrent: boolean }[]>(() => {
+    const now = new Date();
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(todayStart);
+    todayEnd.setDate(todayEnd.getDate() + 1);
+    const todayStartMs = todayStart.getTime();
+    const todayEndMs = todayEnd.getTime();
+    const currentHour = now.getHours();
+
+    const buckets: { delivered: number }[] = [];
+    for (let h = RHYTHM_START_HOUR; h <= RHYTHM_END_HOUR; h++) {
+      buckets.push({ delivered: 0 });
+    }
+
+    for (const order of this.orders()) {
+      const orderDate = new Date(order.date);
+      const ms = orderDate.getTime();
+      if (ms < todayStartMs || ms >= todayEndMs) continue;
+      const hour = orderDate.getHours();
+      if (hour < RHYTHM_START_HOUR || hour > RHYTHM_END_HOUR) continue;
+      if (order.status === 'DELIVERED') {
+        buckets[hour - RHYTHM_START_HOUR].delivered++;
+      }
+    }
+
+    return buckets.map((b, idx) => {
+      const hour = idx + RHYTHM_START_HOUR;
+      return {
+        hour,
+        label: `${String(hour).padStart(2, '0')}:00`,
+        delivered: b.delivered,
+        isCurrent: hour === currentHour,
+      };
+    });
+  });
+
+  readonly rhythmPeak = computed(() => {
+    const rhythm = this.hourlyRhythm();
+    return rhythm.reduce((max, b) => (b.delivered > max.delivered ? b : max), rhythm[0] ?? { hour: 0, label: '—', delivered: 0, isCurrent: false });
+  });
+
+  readonly rhythmTotalToday = computed(() =>
+    this.hourlyRhythm().reduce((sum, b) => sum + b.delivered, 0),
+  );
+
+  /** Returns a percentage height (5%–90%) for a CSS bar proportional to the peak. */
+  barHeightPercent(delivered: number): number {
+    const peak = this.rhythmPeak().delivered;
+    if (peak <= 0) return 5;
+    return 5 + (delivered / peak) * 85;
+  }
+
+  // ─── Sales by category + top products (composed in one rectangle) ───────
+  // categoryName comes from OrderDetailResponse.categoryName (added on the
+  // backend). When null, the detail falls into "Sin categoría".
+  readonly topProductsBySales = computed<{ product: string; category: string; total: number; units: number }[]>(() => {
+    const map = new Map<string, { category: string; total: number; units: number }>();
+    for (const order of this.orders()) {
+      if (order.status !== 'DELIVERED') continue;
+      for (const detail of order.details) {
+        const productName = detail.productName.trim() || 'Sin nombre';
+        const categoryName = detail.categoryName?.trim() ?? 'Sin categoría';
+        const current = map.get(productName) ?? { category: categoryName, total: 0, units: 0 };
+        current.total += calculateTotalPrice({ ...order, details: [detail] });
+        current.units += 1;
+        current.category = categoryName;
+        map.set(productName, current);
+      }
+    }
+    return Array.from(map, ([product, v]) => ({ product, category: v.category, total: v.total, units: v.units }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 8);
+  });
+
+  readonly salesByCategory = computed<{ category: string; total: number; units: number }[]>(() => {
+    const map = new Map<string, { total: number; units: number }>();
+    for (const order of this.orders()) {
+      if (order.status !== 'DELIVERED') continue;
+      for (const detail of order.details) {
+        const categoryName = detail.categoryName?.trim() ?? 'Sin categoría';
+        const current = map.get(categoryName) ?? { total: 0, units: 0 };
+        current.total += calculateTotalPrice({ ...order, details: [detail] });
+        current.units += 1;
+        map.set(categoryName, current);
+      }
+    }
+    return Array.from(map, ([category, v]) => ({ category, total: v.total, units: v.units }))
+      .sort((a, b) => b.total - a.total);
+  });
+
+  readonly salesByCategoryTotal = computed(() =>
+    this.salesByCategory().reduce((sum, c) => sum + c.total, 0),
+  );
+
+  readonly salesByCategoryChartData = computed(() => {
+    const rows = this.salesByCategory();
+    const palette = [
+      '#F9BB0B', '#42A5F5', '#26A69A', '#AB47BC', '#FFA726',
+      '#EC407A', '#78909C', '#66BB6A', '#5C6BC0', '#8D6E63',
+    ];
+    return {
+      labels: rows.map(r => r.category),
+      datasets: [
+        {
+          data: rows.map(r => r.total),
+          backgroundColor: rows.map((_, i) => palette[i % palette.length]),
+          hoverOffset: 6,
+          borderWidth: 0,
+        },
+      ],
+    };
+  });
+
+  readonly salesByCategoryChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '55%',
+    animation: { duration: 250 },
+    plugins: {
+      legend: {
+        position: 'bottom' as const,
+        labels: {
+          font: { size: 11 },
+          boxWidth: 10,
+          boxHeight: 10,
+          padding: 8,
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: (ctx: { label: string; parsed: number }): string => {
+            const total = this.salesByCategoryTotal();
+            const pct = total > 0 ? (ctx.parsed / total) * 100 : 0;
+            return ` ${ctx.label}: $ ${this.formatMoney(ctx.parsed)} (${pct.toFixed(1)}%)`;
+          },
+        },
+      },
+    },
+  };
+
+  readonly topProductsTotal = computed(() =>
+    this.topProductsBySales().reduce((sum, p) => sum + p.total, 0),
+  );
 
   ngOnInit(): void {
     this.checkScreenSize();
@@ -170,48 +336,6 @@ export class Dashboard implements OnInit, OnDestroy {
       });
   }
 
-  // ─── Initial data load ─────────────────────────────────────────────────────
-
-  private loadDashboardData(): void {
-    this.isLoading.set(true);
-
-    // Load today's orders — metrics are derived via computed() from this signal
-    this.orderService.getTodayOrders().subscribe({
-      next: (orders) => {
-        this.logger.debug('Dashboard: orders loaded', orders.length);
-        this.orders.set(orders);
-        this.isLoading.set(false);
-        this.cdr.markForCheck();
-      },
-      error: (error) => {
-        this.logger.error('Dashboard: error loading orders, trying fallback', error);
-        this.orderService.getOrdersByStatusOrAll().subscribe({
-          next: (allOrders) => {
-            this.orders.set(allOrders);
-            this.isLoading.set(false);
-            this.cdr.markForCheck();
-          },
-          error: (fallbackError) => {
-            this.logger.error('Dashboard: fallback also failed', fallbackError);
-            this.isLoading.set(false);
-            this.cdr.markForCheck();
-          }
-        });
-      }
-    });
-
-    // Load tables — occupied count is derived via computed() from this signal
-    this.tableService.getTables().subscribe({
-      next: (tables) => {
-        this.allTables.set(tables);
-        this.cdr.markForCheck();
-      },
-      error: (error) => {
-        this.logger.error('Dashboard: error loading tables', error);
-      }
-    });
-  }
-
   // ─── Health check ──────────────────────────────────────────────────────────
 
   private startHealthCheck(): void {
@@ -237,66 +361,20 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   private loadStatsThenOrders() {
-    const stats$ = forkJoin({
-      completedOrders: this.orderService.getCompletedOrdersCount().pipe(
-        catchError(error => {
-          this.logger.error('Error loading completed orders count:', error);
-          return of(0);
-        })
-      ),
-      preparingOrders: this.orderService.getPreparingOrdersCount().pipe(
-        catchError(error => {
-          this.logger.error('Error loading preparing orders count:', error);
-          return of(0);
-        })
-      ),
-      occupiedTables: this.tableService.getOccupiedTablesCount().pipe(
-        catchError(error => {
-          this.logger.error('Error loading occupied tables count:', error);
-          return of(0);
-        })
-      ),
-      totalTables: this.tableService.getTotalTablesCount().pipe(
-        catchError(error => {
-          this.logger.error('Error loading tables count:', error);
-          return of(0);
-        })
-      ),
-      totalSales: this.orderService.getTotalSales().pipe(
-        catchError(error => {
-          this.logger.error('Error loading total sales:', error);
-          return of(0);
-        })
-      ),
-    }).pipe(
-      finalize(() => { this.isStatsLoaded.set(true); })
-    );
-
-    const orders$ = this.orderService.getTodayOrders().pipe(
-      catchError(error => {
-        this.logger.error('Error loading orders:', error);
-        return this.orderService.getOrdersByStatusOrAll().pipe(
-          catchError(fallbackError => {
-            this.logger.error('Error loading fallback orders:', fallbackError);
-            return of([] as OrderResponse[]);
-          })
-        );
-      }),
+    // Only 2 API calls — everything else is derived via computed() from orders()
+    this.orderService.getTodayOrders().pipe(
+      catchError(() => of([] as OrderResponse[])),
       finalize(() => { this.isOrdersLoading.set(false); })
-    );
+    ).subscribe(orders => {
+      this.orders.set(orders);
+      this.isStatsLoaded.set(true);
+    });
 
-    stats$.pipe(
-      switchMap(stats => {
-        this.completedOrdersCount.set(stats.completedOrders);
-        this.preparingOrdersCount.set(stats.preparingOrders);
-        this.totalSales.set(stats.totalSales);
-        return orders$;
-      }),
-      switchMap(orders => {
-        this.orders.set(orders);
-        return EMPTY;
-      })
-    ).subscribe();
+    this.tableService.getTables().pipe(
+      catchError(() => of([] as TableResponse[]))
+    ).subscribe(tables => {
+      this.allTables.set(tables);
+    });
   }
 
   private updateDateTime(): void {
@@ -334,6 +412,20 @@ export class Dashboard implements OnInit, OnDestroy {
 
   calcTotal(order: OrderResponse): number {
     return calculateTotalPrice(order);
+  }
+
+  formatMoney(value: number): string {
+    return new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 }).format(value);
+  }
+
+  shortMoney(value: number | string): string {
+    const n = typeof value === 'string' ? Number.parseFloat(value) : value;
+    if (Number.isNaN(n)) return String(value);
+    const abs = Math.abs(n);
+    if (abs >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`;
+    if (abs >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+    if (abs >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
+    return String(n);
   }
 
   getStatusBadgeClass(status: string): string {

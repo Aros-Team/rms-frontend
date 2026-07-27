@@ -1,360 +1,267 @@
 [
   {
-    "id": "analytics-foundation",
-    "name": "Analytics contract and data foundation",
-    "type": "feat",
-    "status": "done",
-    "priority": "critical",
-    "description": "Generate DTOs from OpenAPI, implement Analytics HTTP service + ResourceCache layer, Money pipe, and shared utilities.",
-    "dependsOn": [],
-    "tasks": [
-      {
-        "id": "AN-01-01",
-        "description": "Produce a decision register for analytics covering: Money serialization (decimal string + ISO currency) display strategy, bucket-aware period key formatting and validation rules, default period selection per module (monthly last-6 months), cache TTL strategy by module, error mapping for RFC 7807 problem+json, navigation structure (horizontal tabs mirroring manage pattern), shared period store scope, charts library choice (PrimeNG p-chart with chart.js), fallback strategy when dataCompleteness != FULL, accessibility expectations, and screen structure for each module.",
-        "status": "done",
-        "agent": "reviewer"
-      },
-      {
-        "id": "AN-01-02",
-        "description": "Create TypeScript DTO models under src/app/shared/models/dto/analytics/ matching the analytics.yaml schemas: Money, MetricValue, Period, DataCompleteness, TimeBucket, PrimeCostReport, MenuEngineeringReport, OperationsReport, CohortReport, Alert, AlertsPage, AlertSeverity, AlertStatus, AlertType, ProblemDetail, and sub-types.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-01-03",
-        "description": "Replace existing single-method Analytics service at src/app/core/services/analytics/analytics.ts with full coverage: getPrimeCost, getMenuEngineering, getOperations, getCohort, listAlerts (with filters), markAlertRead, getTopSellingProducts kept for back-compat.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-01-04",
-        "description": "Create AnalyticsCacheService with one ResourceCache per module (primeCost, menuEngineering, operations, cohort, alerts) using appropriate TTLs, plus a shared period signal store at src/app/core/services/analytics/analytics-period-state.ts that the shell and sub-pages consume.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-01-05",
-        "description": "Implement MoneyPipe (displays COP with thousands sep and no decimals) and MetricValuePipe (generic decimal formatting) plus period key utility (formatPeriodKey bucket-aware) at src/app/shared/pipes/ and src/app/core/services/analytics/analytics-utils.ts.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-01-06",
-        "description": "Add foundation tests at src/app/core/services/analytics/ covering HTTP URLs and params (query string, limits, offsets), problem+json error mapping, Money/MetricValue pipe localization, period key formatting, and cache TTL/invalidation.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-01-07",
-        "description": "Review foundation DTO alignment with analytics.yaml, resource/service/cache separation, period state contract, and Money/MetricValue rounding rules.",
-        "status": "done",
-        "agent": "reviewer"
-      }
-    ]
-  },
-  {
-    "id": "analytics-shell",
-    "name": "Analytics shell, navigation, and period selector",
-    "type": "feat",
-    "status": "done",
-    "priority": "high",
-    "description": "Refactor existing analytics page into a parent shell with router-outlet, internal sub-routes for the five modules, horizontal tab navigation, and a shared period selector that writes to the period state.",
-    "dependsOn": [
-      "analytics-foundation"
-    ],
-    "tasks": [
-      {
-        "id": "AN-02-01",
-        "description": "Convert src/app/areas/admin/features/analytics/analytics.ts into a parent component with router-outlet and add five child routes (prime-cost, menu-engineering, operations, cohort, alerts) in src/app/app.routes.ts so each module lives at /admin/analytics/<module>; keep top-level redirect to 'prime-cost'.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-02-02",
-        "description": "Build AnalyticsNav horizontal tab nav at src/app/areas/admin/features/analytics/components/analytics-nav/ mirroring the manage.ts nav style with five tabs (Prime Cost, Menu, Operations, Cohort, Alerts) and active state via routerLinkActive.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-02-03",
-        "description": "Build PeriodSelectorComponent at src/app/areas/admin/features/analytics/components/period-selector/ with bucket dropdown (daily/weekly/monthly/yearly), from/to inputs, validation (to >= from), and default = last-6-months monthly; bound to AnalyticsPeriodState.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-02-04",
-        "description": "Wire PeriodSelector + AnalyticsNav into the analytics shell; ensure five placeholder module pages (each showing its title and stub skeleton) so navigation lands somewhere useful while modules are built.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-02-05",
-        "description": "Add shell tests covering active-route highlighting, default period initialization, validation error display, and child navigation.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-02-06",
-        "description": "Review shell navigation accessibility (keyboard tab order, ARIA), shared period store reactivity across pages, responsive layout mobile/tablet/desktop, and route guard behavior.",
-        "status": "done",
-        "agent": "reviewer"
-      }
-    ]
-  },
-  {
-    "id": "analytics-prime-cost",
-    "name": "Prime Cost and Margins module",
-    "type": "feat",
-    "status": "done",
-    "priority": "high",
-    "description": "Implement Prime Cost page with time-series chart, COGS-by-category donut, labor-by-area donut, and margins card honoring dataCompleteness banner.",
-    "dependsOn": [
-      "analytics-shell"
-    ],
-    "tasks": [
-      {
-        "id": "AN-03-01",
-        "description": "Build Prime Cost page at src/app/areas/admin/features/analytics/features/prime-cost/ with stat cards (net sales, prime cost, primeCost%, grossProfitPct) wired to AnalyticsCacheService.primeCost.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-03-02",
-        "description": "Add a p-chart line/bar chart for primeCostPct over the chosen period keys (x = period key, y = pct) with proper labels, currency tick fallback and skeleton while loading.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-03-03",
-        "description": "Add COGS-by-category doughnut chart and labor-by-area doughnut chart using the latest period's byCategory/byArea data, plus a sortable breakdown table.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-03-04",
-        "description": "Add data-completeness banner that renders the response notes[] when status is PARTIAL/EMPTY, plus empty-state and error-state skeletons matching conventions.md surface layering.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-03-05",
-        "description": "Add Prime Cost tests covering chart rendering with mocked service, percent formatting, banner visibility, and PERIOD changes triggering data refresh.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-03-06",
-        "description": "Review Prime Cost UX against conventions, accessibility, data completeness handling, and number currency/formatter consistency.",
-        "status": "done",
-        "agent": "reviewer"
-      }
-    ]
-  },
-  {
-    "id": "analytics-menu-engineering",
-    "name": "Menu Engineering (BCG matrix) module",
-    "type": "feat",
-    "status": "done",
-    "priority": "high",
-    "description": "Implement BCG-style menu engineering matrix quadrant visualization, per-item table, median reference, and cacheStatus banner with categoryId filter.",
-    "dependsOn": [
-      "analytics-shell"
-    ],
-    "tasks": [
-      {
-        "id": "AN-04-01",
-        "description": "Build Menu Engineering page at src/app/areas/admin/features/analytics/features/menu-engineering/ with stat cards (items count, total contribution, median volume and margin) wired to AnalyticsCacheService.menuEngineering; include category filter.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-04-02",
-        "description": "Add BCG quadrant scatter/bubble chart (x = grossProfitPerUnit, y = unitsSold, color = quadrant) using p-chart and an item table grouped by quadrant with sortable columns (unitsSold, revenue, contribution) and paginator.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-04-03",
-        "description": "Add cacheStatus banner (lastRefreshedAt, sourceVersion, ttlSeconds) plus notes[] banner for partial data, and skeleton states matching conventions.md.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-04-04",
-        "description": "Add Menu Engineering tests covering quadrant math assignment, median reference, category filter trigger, cache status rendering, and skeleton/empty/error states.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-04-05",
-        "description": "Review Menu Engineering UX for color-blind-safe quadrant palette, accessible table sort, category filter bounds, and performance with many SKUs.",
-        "status": "done",
-        "agent": "reviewer"
-      }
-    ]
-  },
-  {
-    "id": "analytics-operations",
-    "name": "Operational Efficiency (RevPASH & Turns) module",
-    "type": "feat",
-    "status": "done",
-    "priority": "medium",
-    "description": "Implement RevPASH stat cards, table-turnover by day-part chart, occupancy minutes display, and notes banner for fallback to created_at/updated_at approximation.",
-    "dependsOn": [
-      "analytics-shell"
-    ],
-    "tasks": [
-      {
-        "id": "AN-05-01",
-        "description": "Build Operations page at src/app/areas/admin/features/analytics/features/operations/ with RevPASH stat cards (value, totalNetSales, totalAvailableSeatHours) wired to AnalyticsCacheService.operations.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-05-02",
-        "description": "Add table-turnover by day-part bar chart (overall + per-dayPart), avgOccupancyMinutes display, and notes[] banner for fallback (orders.open_time/close_time approximation).",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-05-03",
-        "description": "Add Operations tests covering day-part segmentation (LUNCH 11-15, DINNER 18-23, OTHER), chart rendering, fallback note visibility, and refresh-on-period-change.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-05-04",
-        "description": "Review Operations UX for day-part visualization clarity, accessibility, error handling, and notes section placement.",
-        "status": "done",
-        "agent": "reviewer"
-      }
-    ]
-  },
-  {
-    "id": "analytics-cohort",
-    "name": "Customer Cohort module",
-    "type": "feat",
-    "status": "done",
-    "priority": "medium",
-    "description": "Implement Cohort page with new vs recurring clients KPI cards, recurring rate visualization, and fingerprintStrategy banner.",
-    "dependsOn": [
-      "analytics-shell"
-    ],
-    "tasks": [
-      {
-        "id": "AN-06-01",
-        "description": "Build Cohort page at src/app/areas/admin/features/analytics/features/cohort/ with stat cards (newClients, recurringClients, totalOrders, recurringRatePct, averageTicketPerOrder, averageTicketPerCover) wired to AnalyticsCacheService.cohort.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-06-02",
-        "description": "Add new-vs-recurring doughnut visualization, fingerprintStrategy banner showing PHONE/PHONE_OR_TABLE/TABLE_ONLY with translated label, and notes[] fallback banner.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-06-03",
-        "description": "Add Cohort tests covering stat rendering, fingerprint strategy localized labels, and refresh on period change.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-06-04",
-        "description": "Review Cohort UX for clarity of new vs recurring definitions, ticket size formatting, and fallback messaging.",
-        "status": "done",
-        "agent": "reviewer"
-      }
-    ]
-  },
-  {
-    "id": "analytics-alerts",
-    "name": "Variance Alerts module",
-    "type": "feat",
-    "status": "done",
-    "priority": "medium",
-    "description": "Implement Alerts list with severity/type/status filters, pagination, mark-read action, and RFC 7807 error handling for PATCH endpoint.",
-    "dependsOn": [
-      "analytics-shell"
-    ],
-    "tasks": [
-      {
-        "id": "AN-07-01",
-        "description": "Build Alerts page at src/app/areas/admin/features/analytics/features/alerts/ with filter controls (status, severity, bucket/from/to, limit/offset) wired to AnalyticsCacheService.alerts.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-07-02",
-        "description": "Add alert list rendering (severity color, type icon, message, baseline vs current, deviation%, period, detectedAt) with PrimeNG paginator; wire markRead PATCH endpoint with optimistic update and toast feedback.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-07-03",
-        "description": "Add Alerts tests covering filter application, pagination, mark-read optimistic update, error handling for 404 and network failures, and 204 idempotent behavior.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-07-04",
-        "description": "Review Alerts UX for severity readability, filter clarity, action feedback, and accessibility (announce updated status).",
-        "status": "done",
-        "agent": "reviewer"
-      }
-    ]
-  },
-  {
-    "id": "analytics-pre-harness-chore",
-    "name": "Pre-harness lint cleanup so analytics tasks can be marked done",
+    "id": 1,
     "type": "chore",
-    "status": "done",
-    "priority": "high",
-    "description": "Fix the 12 pre-existing lint errors in combo module files so harness is green before declaring analytics tasks done.",
-    "dependsOn": [],
-    "tasks": [
-      {
-        "id": "AN-CH-01",
-        "description": "Fix 12 pre-existing lint errors in combo module files (general-step: unused DAY_LABELS + non-null assertions; group-step: unnecessary optional chains + unsafe any[] return; pricing-step: unused signal + specialSelectionsMock) by removing dead code, replacing non-null assertions with guarded expressions, and tightening types.",
-        "status": "done",
-        "agent": "implementer"
-      }
-    ]
-  },
-  {
-    "id": "analytics-review-hardening",
-    "name": "Final analytics review, harness and doc hardening",
-    "type": "chore",
-    "status": "done",
-    "priority": "high",
-    "description": "Cross-module review of accessibility, performance, docs, and full harness pass.",
-    "dependsOn": [
-      "analytics-prime-cost",
-      "analytics-menu-engineering",
-      "analytics-operations",
-      "analytics-cohort",
-      "analytics-alerts",
-      "analytics-pre-harness-chore"
+    "name": "fix-loose-files",
+    "title": "Mover archivos sueltos a sus propias carpetas",
+    "description": "Todo archivo .ts debe estar dentro de una carpeta con su mismo nombre. Hay 19 archivos sueltos en core/ y shared/ que deben moverse a subcarpetas y actualizar sus imports.",
+    "acceptance": [
+      "No existe ningún archivo .ts suelto fuera de subcarpetas en core/services/, core/cache/, core/directives/, core/guards/, core/interceptors/, shared/pipes/, shared/lib/, shared/skeletons/, shared/layout/",
+      "Todos los imports que referencian los archivos movidos están actualizados",
+      "Harness pasa verde (lint, build, tests)"
     ],
     "tasks": [
       {
-        "id": "AN-08-01",
-        "description": "Run node scripts/harness.js end-to-end and ensure exit code 0 across all blocks. Fix any introduced lint errors or failing tests.",
-        "status": "done",
+        "id": "a",
+        "description": "Mover core/services/product-image.ts → core/services/product-image/product-image.ts y actualizar imports",
+        "status": "pending",
         "agent": "implementer"
       },
       {
-        "id": "AN-08-02",
-        "description": "Update progress/history.md with a summary entry for analytics section work; confirm progress/current.md is reset to template at session close.",
-        "status": "done",
+        "id": "b",
+        "description": "Mover shared/pipes/*.ts a subcarpetas (option-names/, table-number/, metric-value/, money/) y actualizar imports",
+        "status": "pending",
         "agent": "implementer"
       },
       {
-        "id": "AN-08-03",
-        "description": "Final implementation review: contract alignment for all five modules, RFC 7807 mapping consistency, palette/legibility across charts, footer/breadcrumb of analytics nav, navigation back behavior and route guard.",
-        "status": "done",
-        "agent": "reviewer"
+        "id": "c",
+        "description": "Mover shared/lib/http-error-mapper.ts → shared/lib/http-error-mapper/http-error-mapper.ts y actualizar imports",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Mover core/directives/lazy-load.directive.ts → core/directives/lazy-load/lazy-load.ts y actualizar imports",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Mover core/cache/resource-cache.ts → core/cache/resource-cache/resource-cache.ts y actualizar imports",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Mover core/guards/*.ts a subcarpetas (area/, auth/, redirect-guard/, role/) y actualizar imports",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Mover core/interceptors/*.ts a subcarpetas (url-interceptor/, error/, jwt/) y actualizar imports",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "h",
+        "description": "Mover shared/skeletons/*.ts a subcarpetas (list-skeleton/, table-skeleton/) y actualizar imports",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "i",
+        "description": "Mover shared/layout/*.ts a subcarpetas (layout/, worker-layout/) y actualizar imports",
+        "status": "pending",
+        "agent": "implementer"
       }
-    ]
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 2,
+    "type": "chore",
+    "name": "fix-file-suffixes",
+    "title": "Renombrar archivos con sufijos prohibidos (.service.ts, .model.ts)",
+    "description": "Los sufijos .service.ts y .model.ts están prohibidos. 33 archivos deben renombrarse (quitar el sufijo) y actualizar todos los imports y clases asociadas.",
+    "acceptance": [
+      "No existe ningún archivo *.service.ts ni *.model.ts en src/",
+      "Todos los imports actualizados apuntan a los nuevos nombres",
+      "Clases renombradas acorde (XxxService → Xxx, XxxModel → Xxx)",
+      "Harness pasa verde (lint, build, tests)"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Renombrar 7 archivos *.service.ts → *.ts en features manage/ y shared/ (categories-cache, inventory-cache, product-cache, tables-cache, workers-cache, special-selections-cache, habeas-data). Actualizar clases e imports.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Renombrar 26 archivos *.model.ts → *.ts en shared/models/ (todos los DTOs). Actualizar clases e imports.",
+        "status": "pending",
+        "agent": "implementer"
+      }
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 3,
+    "type": "chore",
+    "name": "fix-class-suffixes",
+    "title": "Renombrar clases con sufijos prohibidos (Service, Directive, Pipe)",
+    "description": "15 clases usan sufijos prohibidos: 10 *Service, 1 *Directive, 4 *Pipe. Deben renombrarse (ChatService → Chat, LazyLoadDirective → LazyLoad, MoneyPipe → Money, etc.) y actualizar todas las referencias.",
+    "acceptance": [
+      "No existe ninguna clase con sufijo Service, Directive o Pipe (excepto casos ya corregidos en actividad 2)",
+      "Todas las referencias a las clases renombradas están actualizadas",
+      "Harness pasa verde (lint, build, tests)"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Renombrar clases con sufijo Service: ChatService → Chat, InventoryService → Inventory, ProductOptionService → ProductOption, HabeasDataService → HabeasData. Actualizar referencias.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Renombrar LazyLoadDirective → LazyLoad en core/directives/lazy-load/. Actualizar referencias.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Renombrar clases Pipe: MoneyPipe → Money, MetricValuePipe → MetricValue, OptionNamesPipe → OptionNames, TableNumberPipe → TableNumber. Actualizar referencias.",
+        "status": "pending",
+        "agent": "implementer"
+      }
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 4,
+    "type": "chore",
+    "name": "fix-inline-components",
+    "title": "Migrar componentes inline a archivos separados",
+    "description": "1 componente usa template: inline en vez de templateUrl:, y 7 componentes tienen styles: vacío en vez de styleUrl:. Deben crearse los archivos .html y .css faltantes.",
+    "acceptance": [
+      "combo-wizard-page.ts migra de template: inline a templateUrl: + .html externo",
+      "Los 7 componentes con styles: vacío ahora usan styleUrl: o se elimina la propiedad si no hay estilos",
+      "Harness pasa verde (lint, build, tests)"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Migrar combo-wizard-page.ts: extraer template inline a combo-wizard-page.html, usar templateUrl",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Eliminar styles: vacío de 7 componentes: workers.ts, orders.ts, dark-mode-button.ts, header.ts, logo.ts, layout.ts, worker-layout.ts. Crear .css si es necesario o quitar la propiedad.",
+        "status": "pending",
+        "agent": "implementer"
+      }
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 5,
+    "type": "fix",
+    "name": "fix-user-facing-text",
+    "title": "Corregir texto de usuario en inglés a español",
+    "description": "Hay 9 ocurrencias de texto en inglés o con acentos faltantes en interfaces de usuario. Deben reemplazarse con español correcto.",
+    "acceptance": [
+      "'Error de upload' reemplazado por 'Error de carga' o 'Error al subir imagen' en 3 archivos de productos",
+      "'Worker ID' reemplazado por 'ID del trabajador' en workers.html y time-logs.html",
+      "'Min'/'Max'/'Option ID' reemplazado por 'Mín'/'Máx'/'ID de opción' en combo-editor.html",
+      "'menu del dia' corregido a 'menú del día' en order-creation-form.html",
+      "Harness pasa verde (lint, build, tests)"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Reemplazar 'Error de upload' por 'Error de carga' en product-detail-dialog.ts, product-edit-modal.ts, products.ts",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Reemplazar 'Worker ID' por 'ID del trabajador' en workers.html y time-logs.html (labels + th)",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Reemplazar placeholders 'Min'/'Max'/'Option ID' por 'Mín'/'Máx'/'ID de opción' en combo-editor.html",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Corregir 'menu del dia' → 'menú del día' en order-creation-form.html",
+        "status": "pending",
+        "agent": "implementer"
+      }
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 6,
+    "type": "chore",
+    "name": "fix-inline-styles",
+    "title": "Migrar estilos inline estáticos a clases CSS",
+    "description": "31 ocurrencias de estilos inline estáticos (style=\"\" y [style]=\"{}\") deben migrarse a clases CSS o usar clases utilitarias de Tailwind/design tokens.",
+    "acceptance": [
+      "No hay style=\"\" con valores estáticos en HTML (solo dinámicos/token-based)",
+      "No hay [style]=\"{}\" bindings con valores fijos (solo dinámicos/token-based)",
+      "Todos los estilos migrados usan clases CSS, clases utilitarias o design tokens",
+      "Harness pasa verde (lint, build, tests)"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Migrar style=\"\" estáticos en auth area: auth.html (width/max-width), login.html (width/padding), forgot-password.html, reset-password.html, setup-account.html",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Migrar style=\"\" estáticos en dashboard.html (gap) y products.html (width)",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Migrar [style] bindings estáticos en manage features: areas.html, categories.html, combo-editor.html, group-step.html, inventory.html (5 ocurrencias), new-option-dialog.html, product-detail-dialog.html, product-edit-modal.html, products.html, schedules.html, workers.html",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Migrar [style] bindings estáticos en orders-table.html (2 ocurrencias) y change-password.html",
+        "status": "pending",
+        "agent": "implementer"
+      }
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 7,
+    "type": "fix",
+    "name": "fix-bg-black-and-surface",
+    "title": "Corregir bg-black/50 y bg-surface-0 a tokens del diseño",
+    "description": "1 ocurrencia de bg-black/50 (prohibido) y 11 ocurrencias de bg-surface-0 (debe ser bg-primary-contrast).",
+    "acceptance": [
+      "No existe bg-black/50 en ningún HTML (solo en high-contrast en styles.css)",
+      "No existe bg-surface-0 en ningún HTML (todos reemplazados por bg-primary-contrast)",
+      "Harness pasa verde (lint, build, tests)"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Reemplazar bg-black/50 por bg-surface-900/50 en tables.html:78 (modal overlay)",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Reemplazar bg-surface-0 por bg-primary-contrast en 7 archivos: areas.html, inventory.html (2 occ), products.html, tables.html (2 occ), salary-history.html, workers.html (2 occ), chat.html, orders-table.html",
+        "status": "pending",
+        "agent": "implementer"
+      }
+    ],
+    "status": "pending"
   }
 ]

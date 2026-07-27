@@ -6,15 +6,51 @@
 
 ## 1. File Naming (kebab-case everywhere)
 
-| Element | File Name | Example |
-|---------|-----------|---------|
-| Component | `feature-name.ts` | `login-form.ts` |
-| Service | `feature-name.ts` | `auth.ts` |
-| Guard | `feature-name.ts` | `auth.ts` (guard suffix allowed) |
-| Model/DTO | `dto-name.ts` | `user-response.ts` |
-| Component folder | `feature-name/` | `login-form/` |
+### 1.1 Todo archivo dentro de una carpeta
 
-**No `*.component.ts`, `*.service.ts`, `*.model.ts` suffixes in file names.**
+**No existen archivos sueltos.** Cada archivo `.ts` debe estar dentro de su propia carpeta:
+
+```
+✅ Correcto:
+services/products/get-all.ts
+services/products/create.ts
+components/login-form/login-form.ts
+
+❌ Incorrecto:
+services/product-image.ts          # Suelto, sin carpeta
+services/products/product.ts       # Correcto en carpeta pero nombre genérico
+```
+
+### 1.2 Naming por tipo
+
+| Element | Folder | File Name | Example |
+|---------|--------|-----------|---------|
+| Component | `nombre/` | `nombre.ts` | `login-form/login-form.ts` |
+| Service (use case) | `entidad/` | `verbo-entidad.ts` | `products/get-all.ts`, `products/create.ts` |
+| Guard | `nombre/` | `nombre.ts` | `auth/auth.ts` (guard suffix allowed) |
+| Model/DTO | `nombre/` | `nombre.ts` | `orders/order-response.ts` |
+| Pipe | `nombre/` | `nombre.ts` | `money/money.ts` |
+| Skeleton | `nombre/` | `nombre.ts` | `table-skeleton/table-skeleton.ts` |
+
+### 1.3 Sufijos prohibidos
+
+**No usar** `*.component.ts`, `*.service.ts`, `*.model.ts` en nombres de archivo.
+
+### 1.4 Servicios: nombrar por caso de uso
+
+Los archivos de servicio **declaran en su nombre qué hacen**, usando el patrón `verbo-que-hace`:
+
+```
+services/products/
+├── get-all.ts          # class GetAll  — obtener todos los productos
+├── get-by-id.ts        # class GetById — obtener un producto por ID
+├── create.ts           # class Create  — crear un producto
+├── update.ts           # class Update  — actualizar un producto
+├── delete.ts           # class Delete  — eliminar un producto
+└── upload-image.ts     # class UploadImage — subir imagen de producto
+```
+
+Cada archivo contiene **una sola clase** que hace **una sola cosa**.
 
 ---
 
@@ -127,16 +163,50 @@ Elements should NOT feel flat. Use different surface tones to create visual dept
 
 ---
 
-## 6. Service Naming
+## 6. Service Naming (Use-Case Pattern)
 
-One file per domain, class name matches file name:
+### 6.1 Principio
+
+Los servicios se agrupan por **entidad** (carpeta) y se nombran por **caso de uso** (archivo). Cada servicio hace **una sola cosa**.
 
 ```
 core/services/
-├── auth.ts           class Auth
-├── order.ts          class Order
-├── product.ts        class Product
+├── products/              # Entidad: productos
+│   ├── get-all.ts         #   class GetAll     — listar productos
+│   ├── get-by-id.ts       #   class GetById    — obtener uno
+│   ├── create.ts          #   class Create     — crear producto
+│   ├── update.ts          #   class Update     — actualizar producto
+│   ├── delete.ts          #   class Delete     — eliminar producto
+│   └── upload-image.ts    #   class UploadImage— subir imagen
+├── orders/                # Entidad: órdenes
+│   ├── get-all.ts         #   class GetAll     — listar órdenes
+│   ├── get-by-id.ts       #   class GetById    — obtener una
+│   ├── create.ts          #   class Create     — crear orden
+│   └── update-status.ts   #   class UpdateStatus— cambiar estado
+├── auth/                  # Entidad: autenticación
+│   ├── login.ts           #   class Login      — iniciar sesión
+│   ├── logout.ts          #   class Logout     — cerrar sesión
+│   ├── change-password.ts #   class ChangePassword— cambiar contraseña
+│   └── verify-2fa.ts      #   class Verify2fa  — verificar 2FA
+└── inventory/
+    ├── get-all.ts         #   class GetAll     — listar inventario
+    └── adjust-stock.ts    #   class AdjustStock— ajustar stock
 ```
+
+### 6.2 Convención de nombres
+
+| Parte | Regla | Ejemplo |
+|-------|-------|---------|
+| Carpeta | Nombre de la entidad en plural o singular (`products/`, `auth/`) | `products/` |
+| Archivo | `verbo-[que-hace].ts` en kebab-case | `get-all.ts`, `upload-image.ts` |
+| Clase | PascalCase del archivo | `GetAll`, `UploadImage` |
+
+### 6.3 Reglas
+
+- **Un archivo = una clase = una responsabilidad**
+- **No mezclar** queries (lectura) con commands (escritura) en el mismo archivo
+- Si un caso de uso crece demasiado, se divide en más archivos (nunca se fusionan)
+- Los servicios que son solo cache (`*-cache`) se consideran un caso de uso aparte y van en su propio archivo (ej. `get-cached.ts`)
 
 ---
 
@@ -206,17 +276,75 @@ this.messageService.add({
 
 ---
 
-## 12. Skeleton Components
+## 12. Reutilización antes de implementar
+
+> **Regla de oro: antes de crear cualquier componente, verifica si ya existe.**
+
+### 12.1 Paso obligatorio antes de implementar
+
+Siempre que necesites crear un componente, directiva, pipe o servicio:
+
+1. **Busca en `shared/`** — Revisa `shared/components/`, `shared/pipes/`, `shared/lib/` para ver si lo que necesitas ya existe.
+2. **Busca en otras features** — Un componente similar puede estar en otra área o feature y ser reusable.
+3. **Si existe pero no es exacto** — Evalúa extraerlo a `shared/` con `Input()`/`Output()` para hacerlo genérico, en lugar de duplicarlo.
+4. **Si podría servir a otra área** — Crea el componente en `shared/`, no dentro de una feature específica.
+
+### 12.2 Criterios para decidir
+
+| Pregunta | Decisión |
+|----------|----------|
+| ¿Es específico de una sola vista? | Queda en la feature |
+| ¿Podría usarlo otra feature o área? | Va a `shared/components/` o `shared/lib/` |
+| ¿Ya existe algo similar? | Extiéndelo, no lo dupliques |
+| ¿Es un patrón visual/técnico genérico? | Crea componente genérico en `shared/` |
+
+### 12.3 Shared directory map
+
+```
+shared/
+├── components/          # Componentes reutilizables (13 actuales)
+│   ├── current-date/
+│   ├── dark-mode-button/
+│   ├── datepicker/
+│   ├── form/
+│   ├── header/
+│   ├── logo/
+│   ├── order-detail-dialog/
+│   ├── order-dock/
+│   ├── product-card/
+│   ├── product-options-modal/
+│   ├── restricted-banner/
+│   ├── sidebar/
+│   └── waiter-status-badge/
+├── pipes/               # Pipes reutilizables
+│   ├── money.ts
+│   ├── metric-value.ts
+│   ├── option-names.pipe.ts
+│   └── table-number.pipe.ts
+├── lib/                 # Utilidades puras
+│   └── http-error-mapper.ts
+├── features/            # Features compartidas (con estado o lógica propia)
+│   ├── habeas-data/
+│   ├── orders/
+│   └── settings/
+├── skeletons/           # Skeleton loaders genéricos
+├── layout/              # Layouts reutilizables
+└── models/              # DTOs y modelos compartidos
+```
+
+---
+
+## 13. Skeleton Components
 
 Skeleton loaders display while data is loading. Every interface that fetches from an API should use skeletons during loading state.
 
-### 12.1 When to Use Skeletons
+### 13.1 When to Use Skeletons
 
 - Any component that loads data from an API on init or via service call
 - Lists, tables, stats panels, detail views
 - Use `@if (isLoading()) { <app-xxx-skeleton /> }` pattern
 
-### 12.2 Skeleton Architecture
+### 13.2 Skeleton Architecture
 
 ```
 shared/skeletons/          # Reusable across features
@@ -227,7 +355,7 @@ features/*/skeletons/      # Feature-specific skeletons
 └── feature-skeleton.ts    # Matches exact layout of feature
 ```
 
-### 12.3 Skeleton Naming
+### 13.3 Skeleton Naming
 
 | Skeleton | Selector | File |
 |----------|----------|------|
@@ -235,7 +363,7 @@ features/*/skeletons/      # Feature-specific skeletons
 | Orders List | `app-orders-list-skeleton` | `orders-list-skeleton.ts` |
 | Day Menu | `app-daymenu-skeleton` | `daymenu-skeleton.ts` |
 
-### 12.4 Responsive Variants
+### 13.4 Responsive Variants
 
 Feature-specific skeletons must support `variant` input:
 
@@ -247,7 +375,7 @@ variant = input<'mobile' | 'tablet' | 'desktop'>('desktop');
 - **tablet** — Intermediate sizing, side-by-side when needed
 - **desktop** — Full density, table-friendly sizing
 
-### 12.5 Template Usage
+### 13.5 Template Usage
 
 ```html
 @if (isLoading()) {
@@ -257,7 +385,7 @@ variant = input<'mobile' | 'tablet' | 'desktop'>('desktop');
 }
 ```
 
-### 12.6 Skeleton Design Rules
+### 13.6 Skeleton Design Rules
 
 - Use `p-skeleton` from PrimeNG
 - Match exact dimensions of real content (width, height)
