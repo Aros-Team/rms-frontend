@@ -7,7 +7,6 @@ import { ButtonModule } from 'primeng/button';
   selector: 'app-dark-mode-button',
   imports: [ButtonModule],
   templateUrl: './dark-mode-button.html',
-  styles: ``,
 })
 
 export class DarkModeButton {

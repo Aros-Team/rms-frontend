@@ -5,7 +5,6 @@ import { theme } from '@environments/theme';
   selector: 'app-logo',
   imports: [],
   templateUrl: './logo.html',
-  styles: ``,
 })
 export class Logo {
   @Input() color: string = theme.primary[500];

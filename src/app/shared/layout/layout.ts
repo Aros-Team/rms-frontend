@@ -14,7 +14,6 @@ import { Subscription } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [Header, Sidebar, RestrictedBanner, CommonModule],
   templateUrl: './layout.html',
-  styles: ``
 })
 export class Layout implements OnInit, OnDestroy {
   @Input() workerType?: string;

@@ -14,7 +14,6 @@ export interface TabItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [Header, CommonModule],
   templateUrl: './worker-layout.html',
-  styles: ``
 })
 export class WorkerLayout {
   @Input() workerType?: string;

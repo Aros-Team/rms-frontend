@@ -133,6 +133,7 @@
     "id": 4,
     "type": "chore",
     "name": "fix-inline-components",
+    "status": "in_progress",
     "title": "Migrar componentes inline a archivos separados",
     "description": "1 componente usa template: inline en vez de templateUrl:, y 7 componentes tienen styles: vacío en vez de styleUrl:. Deben crearse los archivos .html y .css faltantes.",
     "acceptance": [
@@ -144,17 +145,17 @@
       {
         "id": "a",
         "description": "Migrar combo-wizard-page.ts: extraer template inline a combo-wizard-page.html, usar templateUrl",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
         "description": "Eliminar styles: vacío de 7 componentes: workers.ts, orders.ts, dark-mode-button.ts, header.ts, logo.ts, layout.ts, worker-layout.ts. Crear .css si es necesario o quitar la propiedad.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "pending"
+    "status": "in_progress"
   },
   {
     "id": 5,

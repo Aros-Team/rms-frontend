@@ -78,7 +78,6 @@ interface WorkerFormValue {
     NgClass,
   ],
   templateUrl: './workers.html',
-  styles: ``,
 })
 export class Workers implements OnInit {
   private workerService = inject(Worker);

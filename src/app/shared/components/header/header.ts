@@ -14,7 +14,6 @@ import { Settings } from '@shared/features/settings/settings';
   selector: 'app-header',
   imports: [CommonModule, Logo, RouterModule, ButtonModule, DialogModule, Settings],
   templateUrl: './header.html',
-  styles: ``
 })
 export class Header implements OnInit, OnDestroy {
   @Output() toggleMenu = new EventEmitter<void>();
