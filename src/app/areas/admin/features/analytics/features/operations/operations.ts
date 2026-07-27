@@ -6,13 +6,13 @@ import { MessageModule } from 'primeng/message';
 
 import { AnalyticsCache } from '@app/core/services/analytics/analytics-cache';
 import { AnalyticsPeriodState } from '@app/core/services/analytics/analytics-period-state';
-import { MoneyPipe } from '@app/shared/pipes/money/money';
+import { Money } from '@app/shared/pipes/money/money';
 import { DataCompleteness } from '@app/shared/models/dto/analytics/data-completeness';
 import { DayPart } from '@app/shared/models/dto/analytics/operations-report';
 
 @Component({
   selector: 'app-analytics-operations',
-  imports: [CommonModule, ChartModule, SkeletonModule, MessageModule, MoneyPipe],
+  imports: [CommonModule, ChartModule, SkeletonModule, MessageModule, Money],
   templateUrl: './operations.html',
   styleUrl: './operations.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

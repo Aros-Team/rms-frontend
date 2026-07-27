@@ -11,9 +11,9 @@ import { TagModule } from 'primeng/tag';
 
 import { AnalyticsCache } from '@app/core/services/analytics/analytics-cache';
 import { AnalyticsPeriodState } from '@app/core/services/analytics/analytics-period-state';
-import { MoneyPipe } from '@app/shared/pipes/money/money';
+import { Money } from '@app/shared/pipes/money/money';
 import { DataCompleteness } from '@app/shared/models/dto/analytics/data-completeness';
-import { Money } from '@app/shared/models/dto/analytics/money';
+import { Money as MoneyModel } from '@app/shared/models/dto/analytics/money';
 import {
   MenuEngineeringItem,
   MenuQuadrant,
@@ -51,7 +51,7 @@ interface MenuEngineeringStats {
     SelectModule,
     TableModule,
     TagModule,
-    MoneyPipe,
+    Money,
   ],
   templateUrl: './menu-engineering.html',
   styleUrl: './menu-engineering.css',
@@ -202,14 +202,14 @@ export class MenuEngineering {
   }
 
   /** Money wrapper for the total contribution stat card (Money pipe input). */
-  totalContributionMoney(): Money {
+  totalContributionMoney(): MoneyModel {
     const items = this.items();
     const currency = items[0]?.totalContribution.currency ?? 'COP';
     return { amount: this.stats().totalContribution.toFixed(2), currency };
   }
 
   /** Money wrapper for the median margin stat card (Money pipe input). */
-  medianMarginMoney(): Money | null {
+  medianMarginMoney(): MoneyModel | null {
     const m = this.median();
     return m ? m.margin : null;
   }

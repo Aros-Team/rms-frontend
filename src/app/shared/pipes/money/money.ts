@@ -1,9 +1,9 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { Money } from '@app/shared/models/dto/analytics/money';
+import { Money as MoneyModel } from '@app/shared/models/dto/analytics/money';
 
 @Pipe({ name: 'money', standalone: true })
-export class MoneyPipe implements PipeTransform {
-  transform(value: Money | null | undefined, locale = 'es-CO'): string {
+export class Money implements PipeTransform {
+  transform(value: MoneyModel | null | undefined, locale = 'es-CO'): string {
     if (!value) return '—';
     const amount = Number.parseFloat(value.amount);
     if (Number.isNaN(amount)) return '—';

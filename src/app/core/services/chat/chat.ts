@@ -6,7 +6,7 @@ import { environment } from '@environments/environment';
 @Injectable({
   providedIn: 'root',
 })
-export class ChatService {
+export class Chat {
   private logger = inject(Logging);
 
   async streamMessage(request: ChatRequest, callbacks: ChatStreamCallbacks): Promise<void> {

@@ -12,7 +12,7 @@ import { MessageService } from 'primeng/api';
 
 import { Analytics } from '@app/core/services/analytics/analytics';
 import { AnalyticsCache } from '@app/core/services/analytics/analytics-cache';
-import { MetricValuePipe } from '@app/shared/pipes/metric-value/metric-value';
+import { MetricValue } from '@app/shared/pipes/metric-value/metric-value';
 import { Alert, AlertSeverity, AlertStatus, AlertType, AlertsPage, ALERT_SEVERITIES, ALERT_STATUSES, ALERT_TYPES } from '@app/shared/models/dto/analytics/alert';
 
 interface StatusOption { label: string; value: AlertStatus | null }
@@ -20,7 +20,7 @@ interface SeverityOption { label: string; value: AlertSeverity | null }
 
 @Component({
   selector: 'app-analytics-alerts',
-  imports: [CommonModule, FormsModule, SkeletonModule, MessageModule, TableModule, TagModule, ButtonModule, SelectModule, PaginatorModule, MetricValuePipe],
+  imports: [CommonModule, FormsModule, SkeletonModule, MessageModule, TableModule, TagModule, ButtonModule, SelectModule, PaginatorModule, MetricValue],
   providers: [MessageService],
   templateUrl: './alerts.html',
   styleUrl: './alerts.css',

@@ -6,13 +6,13 @@ import { MessageModule } from 'primeng/message';
 
 import { AnalyticsCache } from '@app/core/services/analytics/analytics-cache';
 import { AnalyticsPeriodState } from '@app/core/services/analytics/analytics-period-state';
-import { MoneyPipe } from '@app/shared/pipes/money/money';
+import { Money } from '@app/shared/pipes/money/money';
 import { DataCompleteness } from '@app/shared/models/dto/analytics/data-completeness';
 import { FingerprintStrategy } from '@app/shared/models/dto/analytics/cohort-report';
 
 @Component({
   selector: 'app-analytics-cohort',
-  imports: [CommonModule, ChartModule, SkeletonModule, MessageModule, MoneyPipe],
+  imports: [CommonModule, ChartModule, SkeletonModule, MessageModule, Money],
   templateUrl: './cohort.html',
   styleUrl: './cohort.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

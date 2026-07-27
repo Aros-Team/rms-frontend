@@ -4,7 +4,7 @@ import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { AbstractControl, FormBuilder, FormArray, Validators } from '@angular/forms';
 import { switchMap, catchError, EMPTY } from 'rxjs';
 import { Product } from '@app/core/services/products/product';
-import { ProductOptionService } from '@app/core/services/product-option/product-option';
+import { ProductOption } from '@app/core/services/product-option/product-option';
 import { Logging } from '@app/core/services/logging/logging';
 import { ProductCache, ProductReferenceData } from '../../product-cache';
 import { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
@@ -47,7 +47,7 @@ export class NewOptionDialog implements OnInit {
 
   private fb = inject(FormBuilder);
   private productService = inject(Product);
-  private productOptionService = inject(ProductOptionService);
+  private productOptionService = inject(ProductOption);
   private logger = inject(Logging);
   private messageService = inject(MessageService);
   readonly cache = inject(ProductCache);

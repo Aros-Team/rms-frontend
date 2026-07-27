@@ -6,7 +6,7 @@ import { ProductOptionRequest, ProductOptionResponse } from '@app/shared/models/
 @Injectable({
   providedIn: 'root',
 })
-export class ProductOptionService {
+export class ProductOption {
   private http = inject(HttpClient);
 
   public getOptions(): Observable<ProductOptionResponse[]> {

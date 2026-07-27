@@ -5,7 +5,7 @@ import { Category } from '@app/core/services/category/category';
 import { OptionCategory } from '@app/core/services/option-category/option-category';
 import { Logging } from '@app/core/services/logging/logging';
 import { CategoriesCache } from './categories-cache';
-import { LazyLoadDirective } from '@app/core/directives/lazy-load/lazy-load.directive';
+import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 
 import { FormValidation } from '@app/shared/components/form/form-validation';
 
@@ -33,7 +33,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
     DialogModule,
     ConfirmDialogModule,
     ToastModule,
-    LazyLoadDirective,
+    LazyLoad,
   ],
   templateUrl: './categories.html',
   providers: [MessageService],

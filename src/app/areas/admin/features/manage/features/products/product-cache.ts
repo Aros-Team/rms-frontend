@@ -6,7 +6,7 @@ import { Area } from '@app/core/services/areas/area';
 import { Category } from '@app/core/services/category/category';
 import { OptionCategory } from '@app/core/services/option-category/option-category';
 import { Supply } from '@app/core/services/supplies/supply';
-import { ProductOptionService } from '@app/core/services/product-option/product-option';
+import { ProductOption } from '@app/core/services/product-option/product-option';
 import { ProductResponse } from '@app/shared/models/dto/products/product-response';
 import { PaginatedProductsResponse } from '@app/core/services/products/product';
 import { AreaSimpleResponse } from '@app/shared/models/dto/areas/area-simple-response';
@@ -31,7 +31,7 @@ export class ProductCache implements OnDestroy {
   private readonly categoryService = inject(Category);
   private readonly optionCategoryService = inject(OptionCategory);
   private readonly supplyService = inject(Supply);
-  private readonly productOptionService = inject(ProductOptionService);
+  private readonly productOptionService = inject(ProductOption);
   private readonly wsService = inject(WebSocket);
 
   private cacheInvalidationSubscription: Subscription;

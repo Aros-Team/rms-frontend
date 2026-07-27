@@ -17,7 +17,7 @@ import { Table } from '@app/core/services/tables/table';
 import { MessageService } from 'primeng/api';
 import { TableResponse } from '@app/shared/models/dto/tables/table-response';
 import { TablesCache } from './tables-cache';
-import { LazyLoadDirective } from '@app/core/directives/lazy-load/lazy-load.directive';
+import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 import { WebSocket } from '@app/core/services/websocket/websocket';
 import { Auth } from '@app/core/services/auth/auth';
 import { environment } from '@environments/environment';
@@ -42,7 +42,7 @@ const WS_TOPICS = {
     SkeletonModule,
     IconFieldModule,
     InputIconModule,
-    LazyLoadDirective,
+    LazyLoad,
   ],
   templateUrl: './tables.html',
 })

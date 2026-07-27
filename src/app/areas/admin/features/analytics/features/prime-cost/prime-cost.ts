@@ -6,7 +6,7 @@ import { MessageModule } from 'primeng/message';
 
 import { AnalyticsCache } from '@app/core/services/analytics/analytics-cache';
 import { AnalyticsPeriodState } from '@app/core/services/analytics/analytics-period-state';
-import { MoneyPipe } from '@app/shared/pipes/money/money';
+import { Money } from '@app/shared/pipes/money/money';
 import { DataCompleteness } from '@app/shared/models/dto/analytics/data-completeness';
 
 const COGS_LABEL: Record<string, string> = {
@@ -35,7 +35,7 @@ const LABOR_COLOR: Record<string, string> = {
 
 @Component({
   selector: 'app-analytics-prime-cost',
-  imports: [CommonModule, ChartModule, SkeletonModule, MessageModule, MoneyPipe],
+  imports: [CommonModule, ChartModule, SkeletonModule, MessageModule, Money],
   templateUrl: './prime-cost.html',
   styleUrl: './prime-cost.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

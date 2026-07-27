@@ -302,7 +302,7 @@ describe('MenuEngineering', () => {
     const cell = root.querySelector('[data-testid="me-stat-median-margin"]');
     expect(cell).toBeTruthy();
     const text = cell?.textContent ?? '';
-    // MoneyPipe on 9000.00 COP renders "$ 9.000" or similar localized
+    // Money on 9000.00 COP renders "$ 9.000" or similar localized
     expect(text).toMatch(/9[.,\s]000/);
   });
 

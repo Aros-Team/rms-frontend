@@ -5,7 +5,7 @@ import { ResourceCache } from '../../cache/resource-cache/resource-cache';
   selector: '[appLazyLoad]',
   standalone: true
 })
-export class LazyLoadDirective implements OnInit, OnDestroy {
+export class LazyLoad implements OnInit, OnDestroy {
   @Input() appLazyLoad!: ResourceCache<unknown>;
   @Input() appLazyLoadRoot: HTMLElement | null = null;
   @Input() appLazyLoadMargin = '200px';

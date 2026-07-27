@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { Money } from '@app/shared/models/dto/analytics/money';
-import { MoneyPipe } from './money';
+import { Money as MoneyModel } from '@app/shared/models/dto/analytics/money';
+import { Money } from './money';
 
-describe('MoneyPipe', () => {
-  const pipe = new MoneyPipe();
+describe('Money', () => {
+  const pipe = new Money();
 
   it('returns em dash for null value', () => {
     expect(pipe.transform(null)).toBe('—');
@@ -15,7 +15,7 @@ describe('MoneyPipe', () => {
   });
 
   it('formats COP with currency symbol and no decimal places', () => {
-    const value: Money = { amount: '1234.40', currency: 'COP' };
+    const value: MoneyModel = { amount: '1234.40', currency: 'COP' };
     const result = pipe.transform(value);
 
     expect(result).toContain('$');
@@ -25,7 +25,7 @@ describe('MoneyPipe', () => {
   });
 
   it('formats USD with currency symbol and 2 decimal places', () => {
-    const value: Money = { amount: '1000.00', currency: 'USD' };
+    const value: MoneyModel = { amount: '1000.00', currency: 'USD' };
     const result = pipe.transform(value);
 
     expect(result).toContain('1.000');
@@ -33,12 +33,12 @@ describe('MoneyPipe', () => {
   });
 
   it('returns em dash when amount is not a valid number', () => {
-    const value: Money = { amount: 'notanumber', currency: 'COP' };
+    const value: MoneyModel = { amount: 'notanumber', currency: 'COP' };
     expect(pipe.transform(value)).toBe('—');
   });
 
   it('formats zero COP as COP currency with no decimals', () => {
-    const value: Money = { amount: '0', currency: 'COP' };
+    const value: MoneyModel = { amount: '0', currency: 'COP' };
     const result = pipe.transform(value);
 
     expect(result).toContain('$');
@@ -46,7 +46,7 @@ describe('MoneyPipe', () => {
   });
 
   it('falls back to currency-prefixed raw amount when locale formatting fails', () => {
-    const value: Money = { amount: '7', currency: 'XYZ' };
+    const value: MoneyModel = { amount: '7', currency: 'XYZ' };
     const result = pipe.transform(value);
 
     expect(result).toContain('XYZ');

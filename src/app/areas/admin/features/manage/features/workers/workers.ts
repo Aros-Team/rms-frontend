@@ -28,7 +28,7 @@ import { FormValidation } from '@app/shared/components/form/form-validation';
 import { Logging } from '@app/core/services/logging/logging';
 import { UpdateWorkerRequest } from '@app/shared/models/dto/workers/worker-response';
 import { WorkersCache } from './workers-cache';
-import { LazyLoadDirective } from '@app/core/directives/lazy-load/lazy-load.directive';
+import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 import { AreaResponse } from '@app/shared/models/dto/areas/area';
 import { Area } from '@app/core/services/areas/area';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
@@ -72,7 +72,7 @@ interface WorkerFormValue {
     ConfirmDialogModule,
     DatePickerModule,
     FormValidation,
-    LazyLoadDirective,
+    LazyLoad,
     TableSkeleton,
     WorkerCard,
     NgClass,

@@ -3,7 +3,7 @@ import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators, For
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { Auth } from '@services/auth/auth';
-import { InventoryService } from '@services/inventory/inventory';
+import { Inventory as InventoryApi } from '@services/inventory/inventory';
 import { Purchase } from '@services/purchases/purchase';
 import { Supplier } from '@services/suppliers/supplier';
 import { Supply } from '@services/supplies/supply';
@@ -11,7 +11,7 @@ import { Logging } from '@services/logging/logging';
 import { WebSocket } from '@services/websocket/websocket';
 import { environment } from '@environments/environment';
 import { InventoryCache } from './inventory-cache';
-import { LazyLoadDirective } from '@app/core/directives/lazy-load/lazy-load.directive';
+import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 
 import { SupplyVariantResponse } from '@models/dto/supplies/supply-variant-response';
 import { SupplyCategoryResponse } from '@models/dto/supplies/supply-category-response';
@@ -70,7 +70,7 @@ type VariantStep = 'category' | 'supply' | 'variant';
     CheckboxModule,
     TagModule,
     MessageModule,
-    LazyLoadDirective,
+    LazyLoad,
     TableSkeleton,
   ],
   providers: [MessageService],
@@ -79,7 +79,7 @@ type VariantStep = 'category' | 'supply' | 'variant';
 export class Inventory implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private authService = inject(Auth);
-  private inventoryService = inject(InventoryService);
+  private inventoryService = inject(InventoryApi);
   private purchaseService = inject(Purchase);
   private supplierService = inject(Supplier);
   private supplyService = inject(Supply);

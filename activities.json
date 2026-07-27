@@ -111,23 +111,23 @@
       {
         "id": "a",
         "description": "Renombrar clases con sufijo Service: ChatService → Chat, InventoryService → Inventory, ProductOptionService → ProductOption, HabeasDataService → HabeasData. Actualizar referencias.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
         "description": "Renombrar LazyLoadDirective → LazyLoad en core/directives/lazy-load/. Actualizar referencias.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
         "description": "Renombrar clases Pipe: MoneyPipe → Money, MetricValuePipe → MetricValue, OptionNamesPipe → OptionNames, TableNumberPipe → TableNumber. Actualizar referencias.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "pending"
+    "status": "done"
   },
   {
     "id": 4,

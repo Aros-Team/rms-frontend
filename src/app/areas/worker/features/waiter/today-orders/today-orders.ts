@@ -14,7 +14,7 @@ import { Order } from '@app/core/services/orders/order';
 import { OrderDock as OrderDockSvc } from '@app/core/services/order-dock/order-dock';
 import { Logging } from '@app/core/services/logging/logging';
 import { OrderResponse } from '@app/shared/models/dto/orders/order-response';
-import { OptionNamesPipe } from '@app/shared/pipes/option-names/option-names.pipe';
+import { OptionNames } from '@app/shared/pipes/option-names/option-names.pipe';
 
 import { TodayOrdersSkeleton } from './skeletons/today-orders-skeleton';
 
@@ -22,7 +22,7 @@ import { TodayOrdersSkeleton } from './skeletons/today-orders-skeleton';
   selector: 'app-today-orders',
   templateUrl: './today-orders.html',
   styleUrl: './today-orders.css',
-  imports: [RouterModule, FormsModule, OptionNamesPipe, TodayOrdersSkeleton, DatePickerModule, SelectModule, ButtonModule],
+  imports: [RouterModule, FormsModule, OptionNames, TodayOrdersSkeleton, DatePickerModule, SelectModule, ButtonModule],
 })
 export class TodayOrders implements OnInit {
   private orderService = inject(Order);

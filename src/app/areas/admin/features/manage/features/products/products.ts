@@ -8,8 +8,8 @@ import { Product } from '@app/core/services/products/product';
 import { MasterData } from '@app/core/services/master-data/master-data';
 import { Logging } from '@app/core/services/logging/logging';
 import { ProductCache } from './product-cache';
-import { LazyLoadDirective } from '@app/core/directives/lazy-load/lazy-load.directive';
-import { ProductOptionService } from '@app/core/services/product-option/product-option';
+import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
+import { ProductOption } from '@app/core/services/product-option/product-option';
 import { WebSocket } from '@app/core/services/websocket/websocket';
 
 import { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
@@ -81,7 +81,7 @@ interface OptionFormValue {
     TagModule,
     DividerModule,
     SkeletonModule,
-    LazyLoadDirective,
+    LazyLoad,
     TableSkeleton,
     FileUploadModule,
     ProgressBarModule,
@@ -99,7 +99,7 @@ interface OptionFormValue {
 export class Products implements OnInit {
   private fb = inject(FormBuilder);
   private productService = inject(Product);
-  private productOptionService = inject(ProductOptionService);
+  private productOptionService = inject(ProductOption);
   private masterDataService = inject(MasterData);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);

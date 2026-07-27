@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs';
 
 import { Order } from '@app/core/services/orders/order';
 import { OrderResponse } from '@app/shared/models/dto/orders/order-response';
-import { OptionNamesPipe } from '@app/shared/pipes/option-names/option-names.pipe';
+import { OptionNames } from '@app/shared/pipes/option-names/option-names.pipe';
 import { WebSocket } from '@app/core/services/websocket/websocket';
 import { Auth } from '@app/core/services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
@@ -22,7 +22,7 @@ const WS_TOPICS = {
 
 @Component({
   selector: 'app-kitchen',
-  imports: [RouterModule, OptionNamesPipe],
+  imports: [RouterModule, OptionNames],
   templateUrl: './kitchen.html',
 })
 export class Kitchen implements OnInit, OnDestroy {
