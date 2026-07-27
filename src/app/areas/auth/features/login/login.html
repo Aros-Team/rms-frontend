@@ -1,5 +1,5 @@
 
-<form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5" style="width: 100%;">
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5 w-full">
   <!-- Email -->
   <div class="flex flex-col gap-1.5">
     <label for="username" class="text-sm font-medium text-surface-700">Correo electrónico</label>
@@ -12,7 +12,7 @@
         formControlName="username"
         [invalid]="isInvalid('username')"
         placeholder="usuario@dominio.com"
-        style="width: 100%; padding-left: 2.5rem;"
+        class="w-full pl-10"
       />
     </div>
     @if (isInvalid('username')) {

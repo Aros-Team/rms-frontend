@@ -96,7 +96,7 @@
                 placeholder="Cambiar estado" 
                 optionLabel="label" 
                 optionValue="value" 
-                [style]="{'width': '100%'}" 
+                class="w-full" 
                 size="small"
                 appendTo="body"
               />
@@ -173,7 +173,7 @@
 <p-dialog 
   [(visible)]="detailsDialogVisible" 
   [modal]="true" 
-  [style]="{width: '90vw', maxWidth: '700px'}"
+  styleClass="w-[90vw] max-w-[700px]"
   [header]="selectedOrder ? 'Pedido #' + selectedOrder.id : 'Detalles del Pedido'"
   [draggable]="false"
 >

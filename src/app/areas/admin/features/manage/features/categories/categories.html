@@ -98,7 +98,7 @@
 <!-- ══ DIALOG: Nueva categoría de producto ══ -->
 <p-dialog [modal]="true" [(visible)]="productCategoryDialogOpen"
   header="Nueva categoría de producto"
-  draggable="false" [style]="{ width: '28rem' }" appendTo="body">
+  draggable="false" styleClass="w-[28rem]" appendTo="body">
 
   <form [formGroup]="productCategoryForm" class="flex flex-col gap-4 pt-2">
     <p-iftalabel>
@@ -124,7 +124,7 @@
 <!-- ══ DIALOG: Nueva categoría de opción ══ -->
 <p-dialog [modal]="true" [(visible)]="optionCategoryDialogOpen"
   header="Nueva categoría de opción"
-  draggable="false" [style]="{ width: '28rem' }" appendTo="body">
+  draggable="false" styleClass="w-[28rem]" appendTo="body">
 
   <form [formGroup]="optionCategoryForm" class="flex flex-col gap-4 pt-2">
     <p-iftalabel>

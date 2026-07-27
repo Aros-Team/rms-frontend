@@ -188,7 +188,7 @@
   [modal]="true"
   [(visible)]="creationModalVisible"
   draggable="false"
-  [style]="{ width: '90vw', maxWidth: '500px', padding: '2', 'z-index': '400000' }"
+  styleClass="w-[90vw] max-w-[500px] p-2 z-[400000]"
   appendTo="body"
   (onShow)="focusFirstInput()"
 >
@@ -348,7 +348,7 @@
   [modal]="true"
   [(visible)]="scheduleDialogVisible"
   draggable="false"
-  [style]="{ width: '500px', 'z-index': '400000' }"
+  styleClass="w-[500px] z-[400000]"
   appendTo="body"
   (onHide)="closeScheduleDialog()"
 >

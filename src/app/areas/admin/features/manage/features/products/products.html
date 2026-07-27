@@ -48,7 +48,7 @@
       <ng-template #header>
         <tr>
           <th pSortableColumn="name">Nombre <p-sortIcon field="name" /></th>
-          <th style="width: 100px">Imagen</th>
+          <th class="w-[100px]">Imagen</th>
           <th pSortableColumn="basePrice">Precio <p-sortIcon field="basePrice" /></th>
           <th>Estado</th>
           <th pSortableColumn="areaName">Área <p-sortIcon field="areaName" /></th>
@@ -114,7 +114,7 @@
 ════════════════════════════════════════════════ -->
 <p-dialog [modal]="true" [(visible)]="modalIsOpen"
   [header]="modalMode() === 'edit' ? 'Editar producto' : 'Crear producto'"
-  draggable="false" [style]="{ width: '90vw', maxWidth: '700px' }" appendTo="body">
+  draggable="false" styleClass="w-[90vw] max-w-[700px]" appendTo="body">
 
   <!-- Indicador de pasos -->
   <div class="flex items-center mb-6">

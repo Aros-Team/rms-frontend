@@ -5,7 +5,7 @@
       <div class="w-full h-full flex-shrink-0">
         <div class="flex flex-col gap-4 h-full p-4">
           <header class="border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-100 dark:bg-surface-800 overflow-hidden flex-shrink-0 relative">
-            <div class="absolute inset-x-0 bottom-0 h-20 pointer-events-none flex items-end px-2" style="gap: 2px;">
+            <div class="absolute inset-x-0 bottom-0 h-20 pointer-events-none flex items-end px-2 gap-[2px]">
               @for (b of hourlyRhythm(); track b.hour) {
                 <div class="flex-1 min-w-0 rounded-t-sm transition-all duration-300"
                      [style.height.%]="barHeightPercent(b.delivered)"
@@ -191,7 +191,7 @@
 
   <div class="hidden md:flex lg:hidden flex-col gap-4 h-full">
     <header class="border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-100 dark:bg-surface-800 overflow-hidden flex-shrink-0 relative">
-      <div class="absolute inset-x-0 bottom-0 h-24 pointer-events-none flex items-end px-4" style="gap: 3px;">
+      <div class="absolute inset-x-0 bottom-0 h-24 pointer-events-none flex items-end px-4 gap-[3px]">
           @for (b of hourlyRhythm(); track b.hour) {
             <div class="flex-1 min-w-0 rounded-t-sm transition-all duration-300"
                  [style.height.%]="barHeightPercent(b.delivered)"
@@ -391,7 +391,7 @@
   <div class="hidden lg:grid lg:grid-cols-5 gap-6 min-w-0 h-full">
     <div class="col-span-3 flex flex-col gap-4 min-h-0">
       <header class="border border-surface-200 dark:border-surface-700 rounded-2xl bg-surface-100 dark:bg-surface-800 overflow-hidden relative">
-        <div class="absolute inset-x-0 bottom-0 h-28 pointer-events-none flex items-end px-4" style="gap: 3px;">
+        <div class="absolute inset-x-0 bottom-0 h-28 pointer-events-none flex items-end px-4 gap-[3px]">
           @for (b of hourlyRhythm(); track b.hour) {
             <div class="flex-1 min-w-0 rounded-t-sm transition-all duration-300"
                  [style.height.%]="barHeightPercent(b.delivered)"

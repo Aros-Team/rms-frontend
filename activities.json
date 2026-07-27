@@ -213,29 +213,29 @@
       {
         "id": "a",
         "description": "Migrar style=\"\" estáticos en auth area: auth.html (width/max-width), login.html (width/padding), forgot-password.html, reset-password.html, setup-account.html",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
         "description": "Migrar style=\"\" estáticos en dashboard.html (gap) y products.html (width)",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
         "description": "Migrar [style] bindings estáticos en manage features: areas.html, categories.html, combo-editor.html, group-step.html, inventory.html (5 ocurrencias), new-option-dialog.html, product-detail-dialog.html, product-edit-modal.html, products.html, schedules.html, workers.html",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "d",
         "description": "Migrar [style] bindings estáticos en orders-table.html (2 ocurrencias) y change-password.html",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "pending"
+    "status": "done"
   },
   {
     "id": 7,

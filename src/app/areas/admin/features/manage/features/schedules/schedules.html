@@ -63,7 +63,7 @@
 </div>
 
 <!-- Schedule form modal -->
-<p-dialog [(visible)]="modalVisible" [header]="editingSchedule() ? 'Editar Horario' : 'Crear Horario'" [modal]="true" [style]="{ width: '700px' }" [closable]="!saving()">
+<p-dialog [(visible)]="modalVisible" [header]="editingSchedule() ? 'Editar Horario' : 'Crear Horario'" [modal]="true" styleClass="w-[700px]" [closable]="!saving()">
   <div [formGroup]="scheduleForm" class="flex flex-col gap-4 p-4">
     <!-- Name -->
     <div class="flex flex-col gap-1">
