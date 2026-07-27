@@ -10,7 +10,7 @@
   <!-- Filters -->
   <div class="flex flex-wrap gap-3 mb-4 p-4 border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-100 dark:bg-surface-800">
     <div class="flex flex-col gap-1">
-      <label class="text-xs text-surface-500" for="filter-worker-id">Worker ID</label>
+      <label class="text-xs text-surface-500" for="filter-worker-id">ID del trabajador</label>
       <input pInputText id="filter-worker-id" type="number" [(ngModel)]="filterWorkerId" placeholder="ID del trabajador" class="w-32" />
     </div>
     <div class="flex flex-col gap-1">
@@ -47,7 +47,7 @@
         <ng-template pTemplate="header">
           <tr>
             <th>ID</th>
-            <th>Worker ID</th>
+            <th>ID del trabajador</th>
             <th>Fecha/Hora</th>
             <th>Tipo</th>
             <th>Dentro de Turno</th>

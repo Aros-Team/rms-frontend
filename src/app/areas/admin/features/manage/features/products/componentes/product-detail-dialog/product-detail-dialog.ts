@@ -158,7 +158,7 @@ export class ProductDetailDialog implements OnChanges {
         this.logger.error('Error uploading image', err);
         this.messageService.add({
           severity: 'error',
-          summary: 'Error de upload',
+          summary: 'Error de carga',
           detail: 'No se pudo subir la imagen'
         });
         this.isUploadingImage.set(false);

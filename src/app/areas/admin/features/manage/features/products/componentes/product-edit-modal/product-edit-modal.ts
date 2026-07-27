@@ -162,7 +162,7 @@ export class ProductEditModal implements OnInit, OnChanges {
         this.logger.error('Error uploading image', err);
         this.messageService.add({
           severity: 'error',
-          summary: 'Error de upload',
+          summary: 'Error de carga',
           detail: 'No se pudo subir la imagen'
         });
         this.isUploadingImage.set(false);

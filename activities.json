@@ -173,29 +173,29 @@
       {
         "id": "a",
         "description": "Reemplazar 'Error de upload' por 'Error de carga' en product-detail-dialog.ts, product-edit-modal.ts, products.ts",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
         "description": "Reemplazar 'Worker ID' por 'ID del trabajador' en workers.html y time-logs.html (labels + th)",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
         "description": "Reemplazar placeholders 'Min'/'Max'/'Option ID' por 'Mín'/'Máx'/'ID de opción' en combo-editor.html",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "d",
         "description": "Corregir 'menu del dia' → 'menú del día' en order-creation-form.html",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "pending"
+    "status": "done"
   },
   {
     "id": 6,
