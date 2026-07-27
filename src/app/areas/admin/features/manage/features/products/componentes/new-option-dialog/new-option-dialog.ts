@@ -6,7 +6,7 @@ import { switchMap, catchError, EMPTY } from 'rxjs';
 import { Product } from '@app/core/services/products/product';
 import { ProductOptionService } from '@app/core/services/product-option/product-option';
 import { Logging } from '@app/core/services/logging/logging';
-import { ProductCacheService, ProductReferenceData } from '../../product-cache.service';
+import { ProductCache, ProductReferenceData } from '../../product-cache';
 import { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
 import { RecipeItemRequest } from '@app/shared/models/dto/products/product-create-request';
 
@@ -50,7 +50,7 @@ export class NewOptionDialog implements OnInit {
   private productOptionService = inject(ProductOptionService);
   private logger = inject(Logging);
   private messageService = inject(MessageService);
-  readonly cache = inject(ProductCacheService);
+  readonly cache = inject(ProductCache);
 
   optionCategories = signal<{ id: number; name: string }[]>([]);
   supplyVariantOptions = signal<(SupplyVariantResponse & { displayName: string })[]>([]);

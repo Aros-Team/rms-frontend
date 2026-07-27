@@ -8,7 +8,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 
-import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
+import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import { OrderDock, DockItem } from '@app/core/services/order-dock/order-dock';
 import { MasterData } from '@app/core/services/master-data/master-data';
 
@@ -20,7 +20,7 @@ import { MasterData } from '@app/core/services/master-data/master-data';
   imports: [ButtonModule, ChipModule, InputTextModule, ToastModule],
 })
 export class ComboDetail {
-  private cache = inject(SpecialSelectionsCacheService);
+  private cache = inject(SpecialSelectionsCache);
   private dock = inject(OrderDock);
   private route = inject(ActivatedRoute);
   private router = inject(Router);

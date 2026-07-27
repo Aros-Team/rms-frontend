@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { OrderSelectedOption } from '@app/shared/models/dto/orders/order-response.model';
+import { OrderSelectedOption } from '@app/shared/models/dto/orders/order-response';
 
 @Pipe({ name: 'optionNames' })
 export class OptionNamesPipe implements PipeTransform {

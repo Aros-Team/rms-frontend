@@ -1,4 +1,4 @@
-import { Shift } from './shift.model';
+import { Shift } from './shift';
 
 export interface CreateScheduleRequest {
   name: string;

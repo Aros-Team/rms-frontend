@@ -3,9 +3,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Order } from '@app/core/services/orders/order';
 import { Logging } from '@app/core/services/logging/logging';
 import { MasterData } from '@app/core/services/master-data/master-data';
-import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
-import { CreateOrderDetail } from '@app/shared/models/dto/orders/create-order-request.model';
-import { TableResponse } from '@app/shared/models/dto/tables/table-response.model';
+import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
+import { CreateOrderDetail } from '@app/shared/models/dto/orders/create-order-request';
+import { TableResponse } from '@app/shared/models/dto/tables/table-response';
 export interface DockItem {
   product: ProductListResponse;
   instructions: string;

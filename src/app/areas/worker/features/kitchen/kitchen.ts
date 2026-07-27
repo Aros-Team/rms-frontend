@@ -5,7 +5,7 @@ import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { Order } from '@app/core/services/orders/order';
-import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
+import { OrderResponse } from '@app/shared/models/dto/orders/order-response';
 import { OptionNamesPipe } from '@app/shared/pipes/option-names/option-names.pipe';
 import { WebSocket } from '@app/core/services/websocket/websocket';
 import { Auth } from '@app/core/services/auth/auth';

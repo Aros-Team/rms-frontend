@@ -2,9 +2,9 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { ProductCreateRequest, ProductOptionCreateRequest } from '@app/shared/models/dto/products/product-create-request';
 import { ProductResponse } from '@app/shared/models/dto/products/product-response';
-import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
+import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
 import { ProductUpdateRequest } from '@app/shared/models/dto/products/product-update-request';
-import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
+import { ProductOption } from '@app/shared/models/dto/products/product-option';
 import { Observable, catchError, map, of } from 'rxjs';
 
 export interface PaginatedProductsResponse {

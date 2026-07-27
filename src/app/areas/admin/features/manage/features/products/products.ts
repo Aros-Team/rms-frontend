@@ -7,14 +7,14 @@ import { catchError, switchMap, map } from 'rxjs/operators';
 import { Product } from '@app/core/services/products/product';
 import { MasterData } from '@app/core/services/master-data/master-data';
 import { Logging } from '@app/core/services/logging/logging';
-import { ProductCacheService } from './product-cache.service';
+import { ProductCache } from './product-cache';
 import { LazyLoadDirective } from '@app/core/directives/lazy-load/lazy-load.directive';
 import { ProductOptionService } from '@app/core/services/product-option/product-option';
 import { WebSocket } from '@app/core/services/websocket/websocket';
 
 import { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
 import { ProductRecipeItem, ProductResponse } from '@app/shared/models/dto/products/product-response';
-import { ProductOption as ProductOptionDTO, ProductOptionResponse } from '@app/shared/models/dto/products/product-option.model';
+import { ProductOption as ProductOptionDTO, ProductOptionResponse } from '@app/shared/models/dto/products/product-option';
 import { ProductOptionCreateRequest, RecipeItemRequest } from '@app/shared/models/dto/products/product-create-request';
 import { ProductImage } from '@app/core/services/product-image/product-image';
 import { ProductImageResponse } from '@app/shared/models/dto/products/product-image-response';
@@ -105,7 +105,7 @@ export class Products implements OnInit {
   private confirmationService = inject(ConfirmationService);
   private logger = inject(Logging);
   private wsService = inject(WebSocket);
-  readonly cache = inject(ProductCacheService);
+  readonly cache = inject(ProductCache);
   readonly imageService = inject(ProductImage);
 
   title = 'Carta de Productos';

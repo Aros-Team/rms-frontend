@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Product } from '@app/core/services/products/product';
 import { Logging } from '@app/core/services/logging/logging';
-import { ProductCacheService } from '../../product-cache.service';
+import { ProductCache } from '../../product-cache';
 import { ProductImage } from '@app/core/services/product-image/product-image';
 import { ProductImageResponse } from '@app/shared/models/dto/products/product-image-response';
 
@@ -58,7 +58,7 @@ export class ProductEditModal implements OnInit, OnChanges {
   private logger = inject(Logging);
   private messageService = inject(MessageService);
   private imageService = inject(ProductImage);
-  readonly cache = inject(ProductCacheService);
+  readonly cache = inject(ProductCache);
 
   categories = signal<{ id: number; name: string }[]>([]);
   areas = signal<{ id: number; name: string }[]>([]);

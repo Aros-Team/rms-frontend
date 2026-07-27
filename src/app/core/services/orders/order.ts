@@ -3,9 +3,9 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 
 import { Logging } from '@app/core/services/logging/logging';
-import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
-import { UpdateOrderRequest } from '@app/shared/models/dto/orders/update-order-status.model';
-import { CreateOrderRequest } from '@app/shared/models/dto/orders/create-order-request.model';
+import { OrderResponse } from '@app/shared/models/dto/orders/order-response';
+import { UpdateOrderRequest } from '@app/shared/models/dto/orders/update-order-status';
+import { CreateOrderRequest } from '@app/shared/models/dto/orders/create-order-request';
 
 export type OrderStatus = 'QUEUE' | 'PREPARING' | 'READY' | 'DELIVERED' | 'CANCELLED';
 

@@ -10,7 +10,7 @@ import { MessageService } from 'primeng/api';
 import { ComboSubmission } from './combo-submission';
 import { ComboWizardState } from '@app/core/services/combos/combo-wizard-state';
 import { Product } from '@app/core/services/products/product';
-import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
+import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import type { WizardFormData } from '@app/core/services/combos/combo-wizard-state';
 import type { ProductResponse } from '@app/shared/models/dto/products/product-response';
 import type { SpecialSelectionRequest } from '@app/shared/models/dto/special-selections/special-selection-request';
@@ -60,7 +60,7 @@ function setupTestBed(wizardStub?: ReturnType<typeof buildWizardStub>) {
     providers: [
       ComboSubmission,
       { provide: ComboWizardState, useValue: ws },
-      { provide: SpecialSelectionsCacheService, useValue: cacheStub },
+      { provide: SpecialSelectionsCache, useValue: cacheStub },
       { provide: Product, useValue: productStub },
       { provide: MessageService, useValue: messageStub },
       { provide: Router, useValue: routerStub },

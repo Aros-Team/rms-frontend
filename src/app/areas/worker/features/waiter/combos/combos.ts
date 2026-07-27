@@ -5,7 +5,7 @@ import { interval } from 'rxjs';
 
 import { ButtonModule } from 'primeng/button';
 
-import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
+import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 
 @Component({
   selector: 'app-combos-waiter',
@@ -15,7 +15,7 @@ import { SpecialSelectionsCacheService } from '@app/core/services/special-select
   imports: [ButtonModule],
 })
 export class Combos {
-  private cache = inject(SpecialSelectionsCacheService);
+  private cache = inject(SpecialSelectionsCache);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
 

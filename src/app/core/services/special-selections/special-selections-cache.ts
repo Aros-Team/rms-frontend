@@ -15,7 +15,7 @@ import { SuggestedPriceResponse } from '@app/shared/models/dto/special-selection
 import { CHANGE_TYPE, SpecialSelectionWsPayload } from '@app/shared/models/dto/special-selections/special-selection-ws-payload';
 
 @Injectable({ providedIn: 'root' })
-export class SpecialSelectionsCacheService {
+export class SpecialSelectionsCache {
   private readonly api = inject(SpecialSelections);
   private readonly realtime = inject(SpecialSelectionsRealtime);
   private readonly comboReference = inject(ComboReferenceCache);

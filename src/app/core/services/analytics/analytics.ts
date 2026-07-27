@@ -8,7 +8,7 @@ import { MenuEngineeringReport } from '@app/shared/models/dto/analytics/menu-eng
 import { OperationsReport } from '@app/shared/models/dto/analytics/operations-report';
 import { PrimeCostReport } from '@app/shared/models/dto/analytics/prime-cost-report';
 import { TimeBucket } from '@app/shared/models/dto/analytics/time-bucket';
-import { TopSellingProduct } from '@app/shared/models/dto/analytics/top-selling-product.model';
+import { TopSellingProduct } from '@app/shared/models/dto/analytics/top-selling-product';
 
 interface ListAlertsFilters {
   status?: AlertStatus;

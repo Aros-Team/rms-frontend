@@ -4,8 +4,8 @@ import { TestBed } from '@angular/core/testing';
 
 import { Logging } from '@app/core/services/logging/logging';
 import { Order } from '@app/core/services/orders/order';
-import type { CreateOrderRequest } from '@app/shared/models/dto/orders/create-order-request.model';
-import type { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
+import type { CreateOrderRequest } from '@app/shared/models/dto/orders/create-order-request';
+import type { OrderResponse } from '@app/shared/models/dto/orders/order-response';
 
 describe('Order', () => {
   let service: Order;

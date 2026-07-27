@@ -3,7 +3,7 @@ import { effect, signal } from '@angular/core';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ComboWizardState, COMBO_WIZARD_DRAFT_STORAGE_KEY } from './combo-wizard-state';
-import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
+import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';
 import { SpecialSelectionGroupResponse } from '@app/shared/models/dto/special-selections/special-selection-group';
 import { SpecialSelectionAdditionResponse } from '@app/shared/models/dto/special-selections/special-selection-addition';
@@ -102,7 +102,7 @@ function setupTestBed(cacheStub?: ReturnType<typeof buildCacheStub>): ComboWizar
   TestBed.configureTestingModule({
     providers: [
       ComboWizardState,
-      { provide: SpecialSelectionsCacheService, useValue: stub },
+      { provide: SpecialSelectionsCache, useValue: stub },
     ],
   });
   return TestBed.inject(ComboWizardState);

@@ -15,8 +15,8 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { Table } from '@app/core/services/tables/table';
 import { MessageService } from 'primeng/api';
-import { TableResponse } from '@app/shared/models/dto/tables/table-response.model';
-import { TablesCacheService } from './tables-cache.service';
+import { TableResponse } from '@app/shared/models/dto/tables/table-response';
+import { TablesCache } from './tables-cache';
 import { LazyLoadDirective } from '@app/core/directives/lazy-load/lazy-load.directive';
 import { WebSocket } from '@app/core/services/websocket/websocket';
 import { Auth } from '@app/core/services/auth/auth';
@@ -52,7 +52,7 @@ export class Tables implements OnInit {
   private wsService = inject(WebSocket);
   private authService = inject(Auth);
   private destroyRef = inject(DestroyRef);
-  readonly cache = inject(TablesCacheService);
+  readonly cache = inject(TablesCache);
 
   title = 'Gestión de Mesas';
   description = 'Configura las mesas del restaurante';
@@ -230,14 +230,14 @@ export class Tables implements OnInit {
 
     this.wsService.connect(environment.wsUrl, token);
 
-    // TablesCacheService already patches the cache; subscribing here is only
+    // TablesCache already patches the cache; subscribing here is only
     // needed so the component re-renders when the computed() signal changes.
-    // The actual data update is handled centrally in TablesCacheService.
+    // The actual data update is handled centrally in TablesCache.
     this.wsService
       .subscribeToTopic<TableResponse>(WS_TOPICS.tableStatus)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((updated) => {
-        // Cache is already patched by TablesCacheService constructor subscription.
+        // Cache is already patched by TablesCache constructor subscription.
         // This subscription ensures the component's computed() re-evaluates
         // and Angular's OnPush CD picks up the change.
         this.cache.applyTableUpdate(updated);

@@ -12,7 +12,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { MessageService } from 'primeng/api';
 
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
-import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
+import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';
 
 @Component({
@@ -33,7 +33,7 @@ import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selecti
   styleUrl: './combos.css',
 })
 export class Combos {
-  readonly cache = inject(SpecialSelectionsCacheService);
+  readonly cache = inject(SpecialSelectionsCache);
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
 

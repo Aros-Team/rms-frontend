@@ -4,7 +4,7 @@ import { switchMap } from 'rxjs/operators';
 
 import { Order } from '@app/core/services/orders/order';
 import { Logging } from '@app/core/services/logging/logging';
-import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
+import { OrderResponse } from '@app/shared/models/dto/orders/order-response';
 
 @Injectable({ providedIn: 'root' })
 export class Notification implements OnDestroy {

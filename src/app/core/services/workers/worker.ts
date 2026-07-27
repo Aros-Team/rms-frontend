@@ -1,8 +1,8 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable, inject } from "@angular/core";
-import { CreateWorkerRequest } from "@app/shared/models/dto/workers/create-worker-request.model";
-import { SalaryHistoryEntry } from "@app/shared/models/dto/workers/salary-history-entry.model";
-import { UpdateWorkerRequest, WorkerResponse } from "@app/shared/models/dto/workers/worker-response.model";
+import { CreateWorkerRequest } from "@app/shared/models/dto/workers/create-worker-request";
+import { SalaryHistoryEntry } from "@app/shared/models/dto/workers/salary-history-entry";
+import { UpdateWorkerRequest, WorkerResponse } from "@app/shared/models/dto/workers/worker-response";
 import { Observable } from "rxjs";
 import { Logging } from '@app/core/services/logging/logging';
 

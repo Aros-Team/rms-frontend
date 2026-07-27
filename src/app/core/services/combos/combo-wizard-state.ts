@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
-import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
+import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';
 import type { DayOfWeek } from '@app/shared/models/dto/special-selections/schedule-entry';
 
@@ -188,7 +188,7 @@ function isPersistedDraft(value: unknown): value is PersistedWizardDraft {
 @Injectable({ providedIn: 'root' })
 export class ComboWizardState {
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly cache = inject(SpecialSelectionsCacheService);
+  private readonly cache = inject(SpecialSelectionsCache);
 
   private readonly draftState: WritableSignal<ComboWizardDraft>;
   private readonly dirtyFlag: WritableSignal<boolean>;

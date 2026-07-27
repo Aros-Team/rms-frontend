@@ -7,7 +7,7 @@ import { Logging } from '@app/core/services/logging/logging';
 import { ProductImage } from '@app/core/services/product-image/product-image';
 import { ProductImageResponse } from '@app/shared/models/dto/products/product-image-response';
 import { ProductResponse } from '@app/shared/models/dto/products/product-response';
-import { ProductOption as ProductOptionDTO } from '@app/shared/models/dto/products/product-option.model';
+import { ProductOption as ProductOptionDTO } from '@app/shared/models/dto/products/product-option';
 
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';

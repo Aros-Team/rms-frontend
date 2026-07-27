@@ -4,7 +4,7 @@ import { Injectable, inject } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, GuardResult, MaybeAsync, RedirectCommand, Router } from '@angular/router';
 import { Auth } from '@services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
-import { UserInfo } from '@models/domain/user/user-info.model';
+import { UserInfo } from '@models/domain/user/user-info';
 
 @Injectable({
   providedIn: 'root',

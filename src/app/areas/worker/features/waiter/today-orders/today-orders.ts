@@ -13,7 +13,7 @@ import { ButtonModule } from 'primeng/button';
 import { Order } from '@app/core/services/orders/order';
 import { OrderDock as OrderDockSvc } from '@app/core/services/order-dock/order-dock';
 import { Logging } from '@app/core/services/logging/logging';
-import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
+import { OrderResponse } from '@app/shared/models/dto/orders/order-response';
 import { OptionNamesPipe } from '@app/shared/pipes/option-names/option-names.pipe';
 
 import { TodayOrdersSkeleton } from './skeletons/today-orders-skeleton';

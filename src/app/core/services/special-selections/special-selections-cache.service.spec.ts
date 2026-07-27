@@ -6,7 +6,7 @@ import { Observable, Subject } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Auth } from '@app/core/services/auth/auth';
 import { WebSocket } from '@app/core/services/websocket/websocket';
-import { SpecialSelectionsCacheService } from './special-selections-cache.service';
+import { SpecialSelectionsCache } from './special-selections-cache';
 import { SpecialSelections } from './special-selections';
 import { SpecialSelectionsRealtime } from './special-selections-realtime';
 import { ComboReferenceCache } from '@app/core/services/combos/combo-reference-cache';
@@ -19,7 +19,7 @@ import {
 } from '@app/shared/models/dto/special-selections/special-selection-history';
 
 describe('SpecialSelectionsCacheService', () => {
-  let service: SpecialSelectionsCacheService;
+  let service: SpecialSelectionsCache;
   let httpMock: HttpTestingController;
   let realtimeSubject: Subject<SpecialSelectionWsPayload>;
   let realtimeMock: Pick<SpecialSelectionsRealtime, 'updates$'>;
@@ -74,14 +74,14 @@ describe('SpecialSelectionsCacheService', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
-        SpecialSelectionsCacheService,
+        SpecialSelectionsCache,
         SpecialSelections,
         { provide: SpecialSelectionsRealtime, useValue: realtimeMock },
         { provide: ComboReferenceCache, useValue: comboReferenceStub },
       ],
     });
 
-    service = TestBed.inject(SpecialSelectionsCacheService);
+    service = TestBed.inject(SpecialSelectionsCache);
     httpMock = TestBed.inject(HttpTestingController);
   });
 
@@ -713,7 +713,7 @@ describe('SpecialSelectionsCacheService realtime source collapse', () => {
   let sourceSubscriptions: number;
   let topicSubscribeCalls: number;
   let realtime: SpecialSelectionsRealtime;
-  let cache: SpecialSelectionsCacheService;
+  let cache: SpecialSelectionsCache;
   let httpMock: HttpTestingController;
 
   beforeEach(() => {
@@ -728,7 +728,7 @@ describe('SpecialSelectionsCacheService realtime source collapse', () => {
         provideHttpClientTesting(),
         SpecialSelections,
         SpecialSelectionsRealtime,
-        SpecialSelectionsCacheService,
+        SpecialSelectionsCache,
         ComboReferenceCache,
         {
           provide: WebSocket,
@@ -757,7 +757,7 @@ describe('SpecialSelectionsCacheService realtime source collapse', () => {
     });
 
     realtime = TestBed.inject(SpecialSelectionsRealtime);
-    cache = TestBed.inject(SpecialSelectionsCacheService);
+    cache = TestBed.inject(SpecialSelectionsCache);
     httpMock = TestBed.inject(HttpTestingController);
   });
 

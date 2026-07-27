@@ -4,7 +4,7 @@ import { AbstractControl, ReactiveFormsModule, FormBuilder, FormGroup, Validator
 import { Category } from '@app/core/services/category/category';
 import { OptionCategory } from '@app/core/services/option-category/option-category';
 import { Logging } from '@app/core/services/logging/logging';
-import { CategoriesCacheService } from './categories-cache.service';
+import { CategoriesCache } from './categories-cache';
 import { LazyLoadDirective } from '@app/core/directives/lazy-load/lazy-load.directive';
 
 import { FormValidation } from '@app/shared/components/form/form-validation';
@@ -48,7 +48,7 @@ export class Categories implements OnInit {
   private messageService = inject(MessageService);
   private confirmService = inject(ConfirmationService);
   private logger = inject(Logging);
-  readonly cache = inject(CategoriesCacheService);
+  readonly cache = inject(CategoriesCache);
 
   // ── Product categories ───────────────────────────────────────────
   productCategories = computed(() => this.cache.productCategories.data() ?? []);

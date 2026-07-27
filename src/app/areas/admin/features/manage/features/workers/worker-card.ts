@@ -3,8 +3,8 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { RouterModule } from '@angular/router';
-import { WorkerResponse } from '@app/shared/models/dto/workers/worker-response.model';
-import { AreaResponse } from '@app/shared/models/dto/areas/area.model';
+import { WorkerResponse } from '@app/shared/models/dto/workers/worker-response';
+import { AreaResponse } from '@app/shared/models/dto/areas/area';
 
 @Component({
   selector: 'app-worker-card',

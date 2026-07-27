@@ -4,7 +4,7 @@ import { ResourceCache } from '@app/core/cache/resource-cache/resource-cache';
 import { Category } from '@app/core/services/category/category';
 import { OptionCategory } from '@app/core/services/option-category/option-category';
 import { CategorySimpleResponse } from '@app/shared/models/dto/category/category-simple-response';
-import { OptionCategoryResponse } from '@app/shared/models/dto/category/option-category.model';
+import { OptionCategoryResponse } from '@app/shared/models/dto/category/option-category';
 
 export interface CategoriesData {
   productCategories: CategorySimpleResponse[];
@@ -12,7 +12,7 @@ export interface CategoriesData {
 }
 
 @Injectable({ providedIn: 'root' })
-export class CategoriesCacheService {
+export class CategoriesCache {
   private readonly categoryService = inject(Category);
   private readonly optionCategoryService = inject(OptionCategory);
 

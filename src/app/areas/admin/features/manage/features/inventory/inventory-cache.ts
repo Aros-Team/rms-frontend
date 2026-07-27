@@ -20,7 +20,7 @@ export interface InventoryReferenceData {
 }
 
 @Injectable({ providedIn: 'root' })
-export class InventoryCacheService {
+export class InventoryCache {
   private readonly inventoryService = inject(InventoryService);
   private readonly supplierService = inject(Supplier);
   private readonly supplyService = inject(Supply);

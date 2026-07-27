@@ -84,17 +84,17 @@
       {
         "id": "a",
         "description": "Renombrar 7 archivos *.service.ts → *.ts en features manage/ y shared/ (categories-cache, inventory-cache, product-cache, tables-cache, workers-cache, special-selections-cache, habeas-data). Actualizar clases e imports.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
         "description": "Renombrar 26 archivos *.model.ts → *.ts en shared/models/ (todos los DTOs). Actualizar clases e imports.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "pending"
+    "status": "done"
   },
   {
     "id": 3,

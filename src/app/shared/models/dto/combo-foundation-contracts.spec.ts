@@ -1,16 +1,16 @@
 import type { DockItem } from '@app/core/services/order-dock/order-dock';
 import type {
   ClientOrderDetail,
-} from '@app/shared/models/dto/orders/order-details-response.model';
+} from '@app/shared/models/dto/orders/order-details-response';
 import type {
   OrderDetailItem,
-} from '@app/shared/models/dto/orders/order-response.model';
+} from '@app/shared/models/dto/orders/order-response';
 import type {
   CreateOrderDetail,
   CreateOrderRequest,
-} from '@app/shared/models/dto/orders/create-order-request.model';
+} from '@app/shared/models/dto/orders/create-order-request';
 import type { ProductCreateRequest } from '@app/shared/models/dto/products/product-create-request';
-import type { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
+import type { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
 import type { ProductResponse } from '@app/shared/models/dto/products/product-response';
 import type { ProductUpdateRequest } from '@app/shared/models/dto/products/product-update-request';
 import type {

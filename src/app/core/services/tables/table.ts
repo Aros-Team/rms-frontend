@@ -1,8 +1,8 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { Observable, map } from "rxjs";
-import { TableRequest, ChangeStatusRequest } from "@app/shared/models/dto/tables/table.model";
-import { TableResponse } from "@app/shared/models/dto/tables/table-response.model";
+import { TableRequest, ChangeStatusRequest } from "@app/shared/models/dto/tables/table";
+import { TableResponse } from "@app/shared/models/dto/tables/table-response";
 
 @Injectable({
   providedIn: 'root',

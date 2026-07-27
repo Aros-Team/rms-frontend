@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { OptionCategoryRequest, OptionCategoryResponse } from '@app/shared/models/dto/category/option-category.model';
+import { OptionCategoryRequest, OptionCategoryResponse } from '@app/shared/models/dto/category/option-category';
 
 @Injectable({
   providedIn: 'root',

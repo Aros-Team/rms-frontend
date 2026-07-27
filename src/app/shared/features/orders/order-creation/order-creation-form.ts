@@ -4,10 +4,10 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 import { Order } from '@core/services/orders/order';
-import { CreateOrderRequest } from '@app/shared/models/dto/orders/create-order-request.model';
+import { CreateOrderRequest } from '@app/shared/models/dto/orders/create-order-request';
 import { MessageService } from 'primeng/api';
 import { Product } from '@core/services/products/product';
-import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
+import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Logging } from '@core/services/logging/logging';
 

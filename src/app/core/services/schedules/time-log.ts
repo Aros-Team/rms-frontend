@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Logging } from '@app/core/services/logging/logging';
-import { TimeLogEntry } from '@app/shared/models/dto/schedules/time-log-entry.model';
+import { TimeLogEntry } from '@app/shared/models/dto/schedules/time-log-entry';
 
 export interface TimeLogFilterParams {
   workerId?: number;

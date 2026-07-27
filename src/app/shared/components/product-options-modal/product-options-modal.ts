@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 
 import { DialogModule } from 'primeng/dialog';
 
-import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
-import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
+import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
+import { ProductOption } from '@app/shared/models/dto/products/product-option';
 
 export interface SelectedOption {
   optionId: number;

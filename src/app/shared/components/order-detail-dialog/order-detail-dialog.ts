@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DialogModule } from 'primeng/dialog';
-import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
+import { OrderResponse } from '@app/shared/models/dto/orders/order-response';
 
 @Component({
   selector: 'app-order-detail-dialog',

@@ -6,8 +6,8 @@ import { Table } from '@app/core/services/tables/table';
 import { Area } from '@app/core/services/areas/area';
 import { WebSocket } from '@app/core/services/websocket/websocket';
 import { Auth } from '@app/core/services/auth/auth';
-import { TableResponse } from '@app/shared/models/dto/tables/table-response.model';
-import { AreaResponse } from '@app/shared/models/dto/areas/area.model';
+import { TableResponse } from '@app/shared/models/dto/tables/table-response';
+import { AreaResponse } from '@app/shared/models/dto/areas/area';
 import { environment } from '@environments/environment';
 
 export interface TablesAndAreasData {
@@ -20,7 +20,7 @@ const WS_TOPICS = {
 } as const;
 
 @Injectable({ providedIn: 'root' })
-export class TablesCacheService implements OnDestroy {
+export class TablesCache implements OnDestroy {
   private readonly tableService = inject(Table);
   private readonly areaService = inject(Area);
   private readonly wsService = inject(WebSocket);

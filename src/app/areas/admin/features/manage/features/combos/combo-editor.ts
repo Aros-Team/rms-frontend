@@ -23,7 +23,7 @@ import { MessageService } from 'primeng/api';
 
 import { HttpErrorResponse } from '@angular/common/http';
 import { mapHttpError } from '@app/shared/lib/http-error-mapper/http-error-mapper';
-import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
+import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import { SpecialSelectionRequest } from '@app/shared/models/dto/special-selections/special-selection-request';
 import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';
 import { SpecialSelectionGroupRequest } from '@app/shared/models/dto/special-selections/special-selection-group';
@@ -32,7 +32,7 @@ import { SpecialSelectionQuestionRequest } from '@app/shared/models/dto/special-
 import { ScheduleEntryRequest } from '@app/shared/models/dto/special-selections/schedule-entry';
 import { SuggestedPriceResponse } from '@app/shared/models/dto/special-selections/special-selection-suggested-price';
 import { Area } from '@app/core/services/areas/area';
-import { AreaResponse } from '@app/shared/models/dto/areas/area.model';
+import { AreaResponse } from '@app/shared/models/dto/areas/area';
 
 // ─── Schedule UI types ──────────────────────────────────────────────────────
 interface ScheduleEntry {
@@ -71,7 +71,7 @@ interface ScheduleDay {
   styleUrl: './combo-editor.css',
 })
 export class ComboEditor {
-  private readonly cache = inject(SpecialSelectionsCacheService);
+  private readonly cache = inject(SpecialSelectionsCache);
   private readonly areaService = inject(Area);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);

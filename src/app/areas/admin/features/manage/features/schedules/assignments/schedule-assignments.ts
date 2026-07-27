@@ -6,7 +6,7 @@ import { ScheduleAssignment } from '@app/core/services/schedules/schedule-assign
 import { Schedule } from '@app/core/services/schedules/schedule';
 import { Worker } from '@app/core/services/workers/worker';
 import { Logging } from '@app/core/services/logging/logging';
-import { WorkerResponse } from '@app/shared/models/dto/workers/worker-response.model';
+import { WorkerResponse } from '@app/shared/models/dto/workers/worker-response';
 
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';

@@ -8,7 +8,7 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
-import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
+import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import type { SpecialSelectionHistoryEntry } from '@app/shared/models/dto/special-selections/special-selection-history';
 import type { ChangeType } from '@app/shared/models/dto/special-selections/special-selection-ws-payload';
 
@@ -27,7 +27,7 @@ import type { ChangeType } from '@app/shared/models/dto/special-selections/speci
   styleUrl: './combo-history.css',
 })
 export class ComboHistory {
-  private readonly cache = inject(SpecialSelectionsCacheService);
+  private readonly cache = inject(SpecialSelectionsCache);
   private readonly messageService = inject(MessageService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly router = inject(Router);

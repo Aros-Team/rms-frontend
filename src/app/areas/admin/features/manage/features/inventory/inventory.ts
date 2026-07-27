@@ -10,7 +10,7 @@ import { Supply } from '@services/supplies/supply';
 import { Logging } from '@services/logging/logging';
 import { WebSocket } from '@services/websocket/websocket';
 import { environment } from '@environments/environment';
-import { InventoryCacheService } from './inventory-cache.service';
+import { InventoryCache } from './inventory-cache';
 import { LazyLoadDirective } from '@app/core/directives/lazy-load/lazy-load.directive';
 
 import { SupplyVariantResponse } from '@models/dto/supplies/supply-variant-response';
@@ -89,7 +89,7 @@ export class Inventory implements OnInit {
   private wsService = inject(WebSocket);
   private destroyRef = inject(DestroyRef);
   private ngZone = inject(NgZone);
-  readonly cache = inject(InventoryCacheService);
+  readonly cache = inject(InventoryCache);
 
   readonly wizardSteps = [
     { key: 'category' as VariantStep, label: 'Categoría' },

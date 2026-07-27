@@ -14,7 +14,7 @@ import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { ComboReferenceCache } from '@app/core/services/combos/combo-reference-cache';
 import { ComboWizardState } from '@app/core/services/combos/combo-wizard-state';
-import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
+import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import type { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';
 
 import comboWizardHtml from './combo-wizard.html?raw';
@@ -75,7 +75,7 @@ async function setupWizardTestBed(initialCategories: CategoryStub[] = []): Promi
       provideHttpClient(),
       MessageService,
       { provide: ComboReferenceCache, useValue: reference },
-      { provide: SpecialSelectionsCacheService, useValue: specialSelectionsCacheStub() },
+      { provide: SpecialSelectionsCache, useValue: specialSelectionsCacheStub() },
     ],
   }).compileComponents();
   const fixture = TestBed.createComponent(ComboWizard);
@@ -107,7 +107,7 @@ async function setupHostTestBed<T extends object>(host: Type<T>): Promise<HostEn
       provideHttpClient(),
       MessageService,
       { provide: ComboReferenceCache, useValue: buildReferenceStub() },
-      { provide: SpecialSelectionsCacheService, useValue: specialSelectionsCacheStub() },
+      { provide: SpecialSelectionsCache, useValue: specialSelectionsCacheStub() },
     ],
   }).compileComponents();
   const fixture = TestBed.createComponent(host);

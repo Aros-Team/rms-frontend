@@ -7,7 +7,7 @@ import { ButtonModule } from 'primeng/button';
 import { SkeletonModule } from 'primeng/skeleton';
 
 import { Worker } from '@app/core/services/workers/worker';
-import { SalaryHistoryEntry } from '@app/shared/models/dto/workers/salary-history-entry.model';
+import { SalaryHistoryEntry } from '@app/shared/models/dto/workers/salary-history-entry';
 import { Logging } from '@app/core/services/logging/logging';
 
 @Component({

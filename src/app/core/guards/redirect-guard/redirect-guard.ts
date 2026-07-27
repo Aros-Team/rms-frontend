@@ -3,7 +3,7 @@ import { CanActivate, GuardResult, MaybeAsync, Router, RedirectCommand } from '@
 import { map, catchError, of } from 'rxjs';
 import { Auth } from '@services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
-import { UserInfo } from '@models/domain/user/user-info.model';
+import { UserInfo } from '@models/domain/user/user-info';
 
 @Injectable({
   providedIn: 'root',

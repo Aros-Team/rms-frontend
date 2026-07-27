@@ -7,7 +7,7 @@ import { Auth } from '@app/core/services/auth/auth';
 import { Worker } from '@app/core/services/workers/worker';
 import { Accessibility, FontSize, ContrastMode } from '@app/core/services/accessibility/accessibility';
 import { Theme } from '@app/core/services/theme/theme';
-import { SalaryHistoryEntry } from '@app/shared/models/dto/workers/salary-history-entry.model';
+import { SalaryHistoryEntry } from '@app/shared/models/dto/workers/salary-history-entry';
 
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';

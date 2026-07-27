@@ -8,7 +8,7 @@ import { MessageModule } from 'primeng/message';
 import { MessageService } from 'primeng/api';
 import { Auth } from '@services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
-import { UserInfo } from '@models/domain/user/user-info.model';
+import { UserInfo } from '@models/domain/user/user-info';
 
 @Component({
   selector: 'app-two-factor-verify',

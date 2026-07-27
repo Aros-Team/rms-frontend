@@ -3,9 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { forkJoin, Observable, BehaviorSubject } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 
-import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
-import { ProductOption, OptionCategory } from '@app/shared/models/dto/products/product-option.model';
-import { TableResponse } from '@app/shared/models/dto/tables/table-response.model';
+import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
+import { ProductOption, OptionCategory } from '@app/shared/models/dto/products/product-option';
+import { TableResponse } from '@app/shared/models/dto/tables/table-response';
 
 interface PageResponse<T> {
   content?: T[];

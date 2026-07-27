@@ -10,8 +10,8 @@ import { ButtonModule } from 'primeng/button'
 import { MessageService } from 'primeng/api';
 import { Logging } from '@app/core/services/logging/logging';
 import { CheckboxModule } from 'primeng/checkbox';
-import { HabeasDataService } from '@shared/features/habeas-data/habeas-data.service';
-import { UserInfo } from '@models/domain/user/user-info.model';
+import { HabeasDataEvents } from '@shared/features/habeas-data/habeas-data-events';
+import { UserInfo } from '@models/domain/user/user-info';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -26,7 +26,7 @@ export class LoginForm implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private messageService = inject(MessageService);
   private logger = inject(Logging);
-  private habeasDataService = inject(HabeasDataService);
+  private habeasDataService = inject(HabeasDataEvents);
   private subs: Subscription[] = [];
 
   form: FormGroup = new FormGroup({

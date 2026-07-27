@@ -11,9 +11,9 @@ import { ProductResponse } from '@app/shared/models/dto/products/product-respons
 import { PaginatedProductsResponse } from '@app/core/services/products/product';
 import { AreaSimpleResponse } from '@app/shared/models/dto/areas/area-simple-response';
 import { CategorySimpleResponse } from '@app/shared/models/dto/category/category-simple-response';
-import { OptionCategoryResponse } from '@app/shared/models/dto/category/option-category.model';
+import { OptionCategoryResponse } from '@app/shared/models/dto/category/option-category';
 import { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
-import { ProductOptionResponse } from '@app/shared/models/dto/products/product-option.model';
+import { ProductOptionResponse } from '@app/shared/models/dto/products/product-option';
 import { WebSocket } from '@app/core/services/websocket/websocket';
 
 export interface ProductReferenceData {
@@ -25,7 +25,7 @@ export interface ProductReferenceData {
 }
 
 @Injectable({ providedIn: 'root' })
-export class ProductCacheService implements OnDestroy {
+export class ProductCache implements OnDestroy {
   private readonly productService = inject(Product);
   private readonly areaService = inject(Area);
   private readonly categoryService = inject(Category);

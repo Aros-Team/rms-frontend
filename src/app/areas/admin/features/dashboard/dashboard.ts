@@ -16,12 +16,12 @@ import { OrderDetailDialog } from '@shared/components/order-detail-dialog/order-
 import { Logging } from '@app/core/services/logging/logging';
 import { WebSocket } from '@app/core/services/websocket/websocket';
 import { Auth } from '@app/core/services/auth/auth';
-import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
-import { OrderDetailsResponse } from '@app/shared/models/dto/orders/order-details-response.model';
-import { TableResponse } from '@app/shared/models/dto/tables/table-response.model';
+import { OrderResponse } from '@app/shared/models/dto/orders/order-response';
+import { OrderDetailsResponse } from '@app/shared/models/dto/orders/order-details-response';
+import { TableResponse } from '@app/shared/models/dto/tables/table-response';
 import { of, interval, Subscription } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
-import { calculateTotalPrice } from '@app/shared/models/dto/orders/order-response.model';
+import { calculateTotalPrice } from '@app/shared/models/dto/orders/order-response';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@environments/environment';
 import { ListSkeleton } from '@shared/skeletons/list-skeleton/list-skeleton';

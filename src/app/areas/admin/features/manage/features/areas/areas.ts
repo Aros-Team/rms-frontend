@@ -13,7 +13,7 @@ import { SelectModule } from 'primeng/select';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { FormValidation } from '@app/shared/components/form/form-validation';
-import { TablesCacheService } from '../tables/tables-cache.service';
+import { TablesCache } from '../tables/tables-cache';
 import { LazyLoadDirective } from '@app/core/directives/lazy-load/lazy-load.directive';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 
@@ -40,7 +40,7 @@ export class Areas implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private authService = inject(Auth);
   private areasSubscription: Subscription | null = null;
-  readonly cache = inject(TablesCacheService);
+  readonly cache = inject(TablesCache);
 
   areas = computed(() => this.cache.areas.data() ?? []);
   modalVisible = false;

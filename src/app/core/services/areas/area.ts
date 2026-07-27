@@ -1,7 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable, inject } from "@angular/core";
 import { Observable } from "rxjs";
-import { AreaRequest, AreaResponse } from "@app/shared/models/dto/areas/area.model";
+import { AreaRequest, AreaResponse } from "@app/shared/models/dto/areas/area";
 
 @Injectable({
   providedIn: 'root',

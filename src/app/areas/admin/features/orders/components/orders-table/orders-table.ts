@@ -14,7 +14,7 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { Subscription } from 'rxjs';
 import { Order, OrderStatus } from '@app/core/services/orders/order';
-import { OrderResponse, OrderDetailItem } from '@models/dto/orders/order-response.model';
+import { OrderResponse, OrderDetailItem } from '@models/dto/orders/order-response';
 import { SharedDatepicker } from '@app/shared/components/datepicker/datepicker';
 import { WebSocket } from '@services/websocket/websocket';
 import { Auth } from '@services/auth/auth';

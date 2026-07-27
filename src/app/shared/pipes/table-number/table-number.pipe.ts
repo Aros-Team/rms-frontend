@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { TableResponse } from '@app/shared/models/dto/tables/table-response.model';
+import { TableResponse } from '@app/shared/models/dto/tables/table-response';
 
 @Pipe({ name: 'tableNumber' })
 export class TableNumberPipe implements PipeTransform {

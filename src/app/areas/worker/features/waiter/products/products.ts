@@ -12,8 +12,8 @@ import { MasterData } from '@app/core/services/master-data/master-data';
 import { OrderDock, DockItem } from '@app/core/services/order-dock/order-dock';
 import { Logging } from '@app/core/services/logging/logging';
 import { ProductImage } from '@app/core/services/product-image/product-image';
-import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
-import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
+import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
+import { ProductOption } from '@app/shared/models/dto/products/product-option';
 
 import { CartaSkeleton } from './skeletons/carta-skeleton';
 import { ProductOptionsModal, ProductOptionsConfirmEvent } from '@app/shared/components/product-options-modal/product-options-modal';
