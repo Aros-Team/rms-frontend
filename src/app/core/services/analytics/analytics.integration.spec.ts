@@ -29,7 +29,7 @@ describe('Analytics service — full interceptor chain (regression for the api/a
   });
 
   it('reaches /api/v1/analytics/prime-cost (no /api/api/... double prefix)', () => {
-    TestBed.inject(Analytics).getPrimeCost('monthly', '2026-01', '2026-07').subscribe();
+    TestBed.inject(Analytics).getPrimeCost('2026-01', '2026-07').subscribe();
 
     const req = httpMock.expectOne((r) => /\/api\/v1\/analytics\/prime-cost(\?|$)/.test(r.url));
     expect(req.request.method).toBe('GET');
@@ -42,7 +42,7 @@ describe('Analytics service — full interceptor chain (regression for the api/a
   });
 
   it('reaches /api/v1/analytics/menu-engineering (no double prefix)', () => {
-    TestBed.inject(Analytics).getMenuEngineering('monthly', '2026-01', '2026-07').subscribe();
+    TestBed.inject(Analytics).getMenuEngineering('2026-01', '2026-07').subscribe();
 
     const req = httpMock.expectOne(
       (r) => /\/api\/v1\/analytics\/menu-engineering(\?|$)/.test(r.url),
@@ -52,7 +52,7 @@ describe('Analytics service — full interceptor chain (regression for the api/a
   });
 
   it('does NOT issue a request to /api/api/v1/... (the original double-prefix bug)', () => {
-    TestBed.inject(Analytics).getPrimeCost('monthly', '2026-01', '2026-07').subscribe();
+    TestBed.inject(Analytics).getPrimeCost('2026-01', '2026-07').subscribe();
 
     const doublePrefixed = httpMock.match((r) => r.url.includes('/api/api/'));
     expect(doublePrefixed).toHaveLength(0);

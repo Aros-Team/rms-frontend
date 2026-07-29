@@ -4,13 +4,6 @@
   display: block;
 }
 
-.analytics-nav-bar {
-  @apply flex-shrink-0;
-  border-bottom-color: var(--p-surface-200);
-  background-color: var(--p-surface-50);
-  border-width: 1px;
-}
-
 .analytics-nav-list {
   @apply flex flex-nowrap overflow-x-auto gap-1 md:gap-2;
   scrollbar-width: none;

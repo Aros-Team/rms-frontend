@@ -342,23 +342,12 @@ describe('Operations', () => {
     expect(text).toContain('Falló la consulta');
   });
 
-  it('calls cache.operations.refresh when the Actualizar header button is clicked', async () => {
-    const refreshSpy = vi.fn();
-    const stub = makeOperationsStub({
-      isLoading: () => false,
-      error: () => null,
-      data: () => makeReport(),
-      refresh: refreshSpy,
-    });
-    const fixture = await setup(stub);
-    const root = getRoot(fixture);
-
-    const btn = Array.from(root.querySelectorAll('button')).find(
+  it('does not render the per-feature Actualizar button (lives in the shared dock now)', async () => {
+    const fixture = await setup(makeOperationsStub({ data: () => makeReport() }));
+    const btn = Array.from(getRoot(fixture).querySelectorAll('button')).find(
       (b) => b.textContent.trim() === 'Actualizar',
     );
-    expect(btn).toBeTruthy();
-    btn?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-    expect(refreshSpy).toHaveBeenCalledTimes(1);
+    expect(btn).toBeUndefined();
   });
 
   it('calls cache.operations.refresh when the PARTIAL banner Reintentar button is clicked', async () => {

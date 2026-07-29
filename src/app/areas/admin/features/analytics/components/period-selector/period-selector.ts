@@ -1,26 +1,21 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 
 import { AnalyticsPeriodState } from '@app/core/services/analytics/analytics-period-state';
-import { TimeBucket } from '@app/shared/models/dto/analytics/time-bucket';
 import {
   isValidPeriodKey,
   isValidRange,
   titleForKey,
 } from '@app/core/services/analytics/analytics-utils';
 
-interface BucketOption {
-  readonly label: string;
-  readonly value: TimeBucket;
-}
+export type PeriodSelectorVariant = 'inline' | 'docked';
 
 @Component({
   selector: 'app-period-selector',
-  imports: [FormsModule, SelectModule, InputTextModule, ButtonModule, MessageModule],
+  imports: [FormsModule, InputTextModule, ButtonModule, MessageModule],
   templateUrl: './period-selector.html',
   styleUrl: './period-selector.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,51 +23,44 @@ interface BucketOption {
 export class PeriodSelector {
   private readonly state = inject(AnalyticsPeriodState);
 
-  readonly bucketOptions: BucketOption[] = [
-    { label: 'Diario', value: 'daily' },
-    { label: 'Semanal', value: 'weekly' },
-    { label: 'Mensual', value: 'monthly' },
-    { label: 'Anual', value: 'yearly' },
-  ];
+  readonly refresh = output();
 
-  bucket = this.state.bucket;
+  private readonly variantSignal = signal<PeriodSelectorVariant>('inline');
+
+  setVariant(value: PeriodSelectorVariant): void {
+    this.variantSignal.set(value);
+  }
+  readonly variant = this.variantSignal.asReadonly();
+
   from = signal<string>(this.state.from());
   to = signal<string>(this.state.to());
 
-  readonly fromValid = computed(() => isValidPeriodKey(this.from(), this.bucket()));
-  readonly toValid = computed(() => isValidPeriodKey(this.to(), this.bucket()));
-  readonly rangeValid = computed(() => isValidRange(this.from(), this.to(), this.bucket()));
+  readonly fromValid = computed(() => isValidPeriodKey(this.from()));
+  readonly toValid = computed(() => isValidPeriodKey(this.to()));
+  readonly rangeValid = computed(() => isValidRange(this.from(), this.to()));
   readonly errorMessage = computed(() => {
-    if (!this.fromValid() || !this.toValid()) return 'Formato de fecha inválido para el bucket seleccionado';
+    if (!this.fromValid() || !this.toValid()) return 'Formato de fecha inválido. Use AAAA-MM';
     if (!this.rangeValid()) return 'La fecha final debe ser igual o posterior a la inicial';
     return null;
   });
 
-  readonly placeholderExample = computed(() => {
-    const bucket = this.bucket();
-    switch (bucket) {
-      case 'daily':   return 'AAAA-MM-DD';
-      case 'weekly':  return 'AAAA-Www';
-      case 'monthly': return 'AAAA-MM';
-      case 'yearly':  return 'AAAA';
-    }
-  });
+  readonly placeholderExample = 'AAAA-MM';
 
-  fromTitle = computed(() => titleForKey(this.from(), this.bucket()));
-  toTitle = computed(() => titleForKey(this.to(), this.bucket()));
+  fromTitle = computed(() => titleForKey(this.from()));
+  toTitle = computed(() => titleForKey(this.to()));
+
+  readonly expanded = signal(false);
+  readonly currentRangeLabel = computed(() => {
+    const fromLabel = this.fromTitle();
+    const toLabel = this.toTitle();
+    return `${fromLabel} – ${toLabel}`;
+  });
 
   constructor() {
     queueMicrotask(() => {
       this.from.set(this.state.from());
       this.to.set(this.state.to());
     });
-  }
-
-  onBucketChange(bucket: TimeBucket): void {
-    this.state.setBucket(bucket);
-    this.from.set(this.state.from());
-    this.to.set(this.state.to());
-    this.commit();
   }
 
   onFromChange(value: string): void {
@@ -83,15 +71,29 @@ export class PeriodSelector {
     this.to.set(value);
   }
 
+  toggle(): void {
+    this.expanded.update((v) => !v);
+  }
+
+  collapse(): void {
+    this.expanded.set(false);
+  }
+
   apply(): void {
     if (!this.rangeValid() || !this.fromValid() || !this.toValid()) return;
     this.commit();
+    if (this.variant() === 'docked') this.collapse();
   }
 
   reset(): void {
     this.state.reset();
     this.from.set(this.state.from());
     this.to.set(this.state.to());
+    if (this.variant() === 'docked') this.collapse();
+  }
+
+  refreshActive(): void {
+    this.refresh.emit();
   }
 
   private commit(): void {

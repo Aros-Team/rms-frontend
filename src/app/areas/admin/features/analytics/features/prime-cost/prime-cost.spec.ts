@@ -306,23 +306,11 @@ describe('PrimeCost', () => {
     expect(root.querySelector('p-message')).toBeNull();
   });
 
-  it('calls refresh on the cache when the reload button is clicked', async () => {
-    const refreshSpy = vi.fn();
-    const stub = makePrimeCostStub({
-      isLoading: () => false,
-      error: () => null,
-      data: () => makeReport(),
-    });
-    stub.primeCost.refresh = refreshSpy;
-    const fixture = await setup(stub);
-    const root = getRoot(fixture);
-
-    const btn = Array.from(root.querySelectorAll('button')).find(
+  it('does not render the per-feature Actualizar button (lives in the shared dock now)', async () => {
+    const fixture = await setup(makePrimeCostStub({ data: () => makeReport() }));
+    const btn = Array.from(getRoot(fixture).querySelectorAll('button')).find(
       (b) => b.textContent.trim() === 'Actualizar',
     );
-    expect(btn).toBeTruthy();
-    btn?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-
-    expect(refreshSpy).toHaveBeenCalledTimes(1);
+    expect(btn).toBeUndefined();
   });
 });

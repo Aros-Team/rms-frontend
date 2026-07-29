@@ -1,6 +1,6 @@
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 import { AnalyticsCache } from '@app/core/services/analytics/analytics-cache';
 import { CohortReport } from '@app/shared/models/dto/analytics/cohort-report';
@@ -198,19 +198,11 @@ describe('Cohort', () => {
     expect(getRoot(fixture).querySelector('p-message')).toBeTruthy();
   });
 
-  it('invokes cache.cohort.refresh on reload click', async () => {
-    const refresh = vi.fn();
-    const fixture = await setup({
-      data: () => makeReport(),
-      isLoading: () => false,
-      error: () => null,
-      refresh,
-    });
+  it('does not render the per-feature Actualizar button (lives in the shared dock now)', async () => {
+    const fixture = await setup({ data: () => makeReport() });
     const btn = Array.from(getRoot(fixture).querySelectorAll('button')).find(
       (b: HTMLButtonElement) => b.textContent.includes('Actualizar'),
     );
-    expect(btn).toBeTruthy();
-    btn?.click();
-    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(btn).toBeUndefined();
   });
 });

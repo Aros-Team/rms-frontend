@@ -23,8 +23,8 @@ describe('Analytics service', () => {
   });
 
   describe('getPrimeCost', () => {
-    it('GETs v1/analytics/prime-cost with bucket/from/to query params', () => {
-      service.getPrimeCost('monthly', '2026-01', '2026-07').subscribe();
+    it('GETs v1/analytics/prime-cost with bucket=monthly/from/to query params', () => {
+      service.getPrimeCost('2026-01', '2026-07').subscribe();
 
       const req = httpMock.expectOne(
         (r) =>
@@ -40,7 +40,7 @@ describe('Analytics service', () => {
 
   describe('getMenuEngineering', () => {
     it('GETs v1/analytics/menu-engineering without categoryId when omitted', () => {
-      service.getMenuEngineering('monthly', '2026-01', '2026-07').subscribe();
+      service.getMenuEngineering('2026-01', '2026-07').subscribe();
 
       const req = httpMock.expectOne(
         (r) =>
@@ -54,7 +54,7 @@ describe('Analytics service', () => {
     });
 
     it('GETs v1/analytics/menu-engineering with categoryId when provided', () => {
-      service.getMenuEngineering('monthly', '2026-01', '2026-07', 42).subscribe();
+      service.getMenuEngineering('2026-01', '2026-07', 42).subscribe();
 
       const req = httpMock.expectOne(
         (r) =>

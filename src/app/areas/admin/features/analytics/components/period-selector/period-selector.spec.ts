@@ -5,7 +5,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 
 import { AnalyticsPeriodState } from '@app/core/services/analytics/analytics-period-state';
 
-import { PeriodSelector } from './period-selector';
+import { PeriodSelector, type PeriodSelectorVariant } from './period-selector';
 import periodSelectorHtml from './period-selector.html?raw';
 
 function setInputValue(input: HTMLInputElement, value: string): void {
@@ -34,6 +34,30 @@ function clickButton(button: HTMLButtonElement): void {
   button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
 }
 
+async function configure(variant: PeriodSelectorVariant): Promise<{
+  fixture: ComponentFixture<PeriodSelector>;
+  component: PeriodSelector;
+  state: AnalyticsPeriodState;
+}> {
+  TestBed.resetTestingModule();
+  await TestBed.configureTestingModule({
+    imports: [PeriodSelector],
+    providers: [provideRouter([]), AnalyticsPeriodState],
+  }).compileComponents();
+
+  const fixture = TestBed.createComponent(PeriodSelector);
+  fixture.componentInstance.setVariant(variant);
+  fixture.detectChanges();
+  await Promise.resolve();
+  fixture.detectChanges();
+
+  return {
+    fixture,
+    component: fixture.componentInstance,
+    state: TestBed.inject(AnalyticsPeriodState),
+  };
+}
+
 describe('PeriodSelector', () => {
   beforeAll(async () => {
     await resolveComponentResources((url: string) => {
@@ -44,118 +68,77 @@ describe('PeriodSelector', () => {
     });
   });
 
-  let fixture: ComponentFixture<PeriodSelector>;
-  let component: PeriodSelector;
-  let state: AnalyticsPeriodState;
-
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(Date.UTC(2026, 6, 17)));
-
-    TestBed.resetTestingModule();
-    await TestBed.configureTestingModule({
-      imports: [PeriodSelector],
-      providers: [provideRouter([]), AnalyticsPeriodState],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(PeriodSelector);
-    component = fixture.componentInstance;
-    state = TestBed.inject(AnalyticsPeriodState);
-    fixture.detectChanges();
-    // Flush the queueMicrotask in the constructor so from/to are settled.
-    await Promise.resolve();
-    fixture.detectChanges();
   });
 
   afterEach(() => {
     vi.useRealTimers();
   });
 
-  function getRoot(): HTMLElement {
+  function getRoot(fixture: ComponentFixture<PeriodSelector>): HTMLElement {
     return fixture.nativeElement as HTMLElement;
   }
 
-  describe('default state', () => {
-    it('exposes bucket=monthly and the last-6-month range ending at the current month', () => {
-      expect(component.bucket()).toBe('monthly');
+  describe('inline variant', () => {
+    it('exposes the last-6-month range ending at the current month', async () => {
+      const { component } = await configure('inline');
       expect(component.from()).toBe('2026-02');
       expect(component.to()).toBe('2026-07');
     });
 
-    it('renders the resolved from/to values in the native inputs', () => {
-      const fromInput = getInputById(getRoot(), 'period-from');
-      const toInput = getInputById(getRoot(), 'period-to');
+    it('renders the resolved from/to values in the native inputs', async () => {
+      const { fixture } = await configure('inline');
+      const root = getRoot(fixture);
+      const fromInput = getInputById(root, 'period-from');
+      const toInput = getInputById(root, 'period-to');
       expect(fromInput.value).toBe('2026-02');
       expect(toInput.value).toBe('2026-07');
     });
 
-    it('exposes no errorMessage on a fresh mount', () => {
+    it('exposes no errorMessage on a fresh mount', async () => {
+      const { component } = await configure('inline');
       expect(component.errorMessage()).toBeNull();
     });
 
-    it('renders the monthly bucket placeholder example "AAAA-MM" on the from/to inputs', () => {
-      const fromInput = getInputById(getRoot(), 'period-from');
-      const toInput = getInputById(getRoot(), 'period-to');
+    it('renders the monthly placeholder example "AAAA-MM" on the from/to inputs', async () => {
+      const { fixture } = await configure('inline');
+      const root = getRoot(fixture);
+      const fromInput = getInputById(root, 'period-from');
+      const toInput = getInputById(root, 'period-to');
       expect(fromInput.getAttribute('placeholder')).toBe('AAAA-MM');
       expect(toInput.getAttribute('placeholder')).toBe('AAAA-MM');
     });
 
-    it('does not render any p-message warning on a valid initial range', () => {
-      expect(getRoot().querySelector('p-message')).toBeNull();
-    });
-  });
-
-  describe('bucket change', () => {
-    it('calls AnalyticsPeriodState.setBucket when the bucket changes', () => {
-      const setBucketSpy = vi.spyOn(state, 'setBucket');
-
-      component.onBucketChange('yearly');
-      fixture.detectChanges();
-
-      expect(setBucketSpy).toHaveBeenCalledWith('yearly');
+    it('does not render any p-message warning on a valid initial range', async () => {
+      const { fixture } = await configure('inline');
+      expect(getRoot(fixture).querySelector('p-message')).toBeNull();
     });
 
-    it('re-reads the from/to range from the state after a bucket change', () => {
-      component.onBucketChange('yearly');
-      fixture.detectChanges();
-
-      expect(component.bucket()).toBe('yearly');
-      expect(component.from()).toBe('2024');
-      expect(component.to()).toBe('2026');
-    });
-
-    it('switches the placeholder example when the bucket changes', () => {
-      component.onBucketChange('daily');
-      fixture.detectChanges();
-
-      const fromInput = getInputById(getRoot(), 'period-from');
-      expect(fromInput.getAttribute('placeholder')).toBe('AAAA-MM-DD');
-    });
-  });
-
-  describe('from input', () => {
-    it('updates the from signal when the input emits a change', () => {
-      const fromInput = getInputById(getRoot(), 'period-from');
+    it('updates the from signal when the input emits a change', async () => {
+      const { fixture, component } = await configure('inline');
+      const fromInput = getInputById(getRoot(fixture), 'period-from');
       setInputValue(fromInput, '2026-05');
       fixture.detectChanges();
 
       expect(component.from()).toBe('2026-05');
     });
 
-    it('shows a format-error message when from is not a valid monthly key', () => {
-      const fromInput = getInputById(getRoot(), 'period-from');
+    it('shows a format-error message when from is not a valid monthly key', async () => {
+      const { fixture, component } = await configure('inline');
+      const fromInput = getInputById(getRoot(fixture), 'period-from');
       setInputValue(fromInput, '2026-1');
       fixture.detectChanges();
 
       expect(component.fromValid()).toBe(false);
-      expect(component.errorMessage()).toBe('Formato de fecha inválido para el bucket seleccionado');
-      expect(getRoot().querySelector('p-message')).toBeTruthy();
+      expect(component.errorMessage()).toBe('Formato de fecha inválido. Use AAAA-MM');
+      expect(getRoot(fixture).querySelector('p-message')).toBeTruthy();
     });
-  });
 
-  describe('range validation', () => {
-    it('shows a range error message when to < from on a monthly bucket', () => {
-      const toInput = getInputById(getRoot(), 'period-to');
+    it('shows a range error message when to < from', async () => {
+      const { fixture, component } = await configure('inline');
+      const toInput = getInputById(getRoot(fixture), 'period-to');
       setInputValue(toInput, '2026-01');
       fixture.detectChanges();
 
@@ -166,9 +149,10 @@ describe('PeriodSelector', () => {
       );
     });
 
-    it('clears the errorMessage when both endpoints are valid and ordered', () => {
-      const fromInput = getInputById(getRoot(), 'period-from');
-      const toInput = getInputById(getRoot(), 'period-to');
+    it('clears the errorMessage when both endpoints are valid and ordered', async () => {
+      const { fixture, component } = await configure('inline');
+      const fromInput = getInputById(getRoot(fixture), 'period-from');
+      const toInput = getInputById(getRoot(fixture), 'period-to');
       setInputValue(fromInput, '2026-03');
       setInputValue(toInput, '2026-06');
       fixture.detectChanges();
@@ -178,96 +162,200 @@ describe('PeriodSelector', () => {
       expect(component.rangeValid()).toBe(true);
       expect(component.errorMessage()).toBeNull();
     });
-  });
 
-  describe('apply button', () => {
-    it('is enabled when the range is valid and ordered', () => {
-      const applyBtn = getButtonByLabel(getRoot(), 'Aplicar');
+    it('apply button is enabled when the range is valid and ordered', async () => {
+      const { fixture } = await configure('inline');
+      const applyBtn = getButtonByLabel(getRoot(fixture), 'Aplicar');
       expect(applyBtn.disabled).toBe(false);
     });
 
-    it('is disabled while the format is invalid (from="2026-1")', () => {
-      const fromInput = getInputById(getRoot(), 'period-from');
+    it('apply button is disabled while the format is invalid (from="2026-1")', async () => {
+      const { fixture } = await configure('inline');
+      const fromInput = getInputById(getRoot(fixture), 'period-from');
       setInputValue(fromInput, '2026-1');
       fixture.detectChanges();
 
-      const applyBtn = getButtonByLabel(getRoot(), 'Aplicar');
+      const applyBtn = getButtonByLabel(getRoot(fixture), 'Aplicar');
       expect(applyBtn.disabled).toBe(true);
     });
 
-    it('is disabled when to < from', () => {
-      const toInput = getInputById(getRoot(), 'period-to');
+    it('apply button is disabled when to < from', async () => {
+      const { fixture } = await configure('inline');
+      const toInput = getInputById(getRoot(fixture), 'period-to');
       setInputValue(toInput, '2026-01');
       fixture.detectChanges();
 
-      const applyBtn = getButtonByLabel(getRoot(), 'Aplicar');
+      const applyBtn = getButtonByLabel(getRoot(fixture), 'Aplicar');
       expect(applyBtn.disabled).toBe(true);
     });
 
-    it('commits the range to the shared state on click', () => {
+    it('commits the range to the shared state when apply is clicked', async () => {
+      const { fixture, state } = await configure('inline');
       const setRangeSpy = vi.spyOn(state, 'setRange');
-
-      const fromInput = getInputById(getRoot(), 'period-from');
-      const toInput = getInputById(getRoot(), 'period-to');
+      const fromInput = getInputById(getRoot(fixture), 'period-from');
+      const toInput = getInputById(getRoot(fixture), 'period-to');
       setInputValue(fromInput, '2026-03');
       setInputValue(toInput, '2026-06');
       fixture.detectChanges();
 
-      const applyBtn = getButtonByLabel(getRoot(), 'Aplicar');
+      const applyBtn = getButtonByLabel(getRoot(fixture), 'Aplicar');
       clickButton(applyBtn);
       fixture.detectChanges();
 
       expect(setRangeSpy).toHaveBeenCalledWith('2026-03', '2026-06');
-      expect(state.period()).toEqual({ bucket: 'monthly', from: '2026-03', to: '2026-06' });
+      expect(state.period()).toEqual({ from: '2026-03', to: '2026-06' });
     });
 
-    it('does not commit when apply is clicked while errorMessage is set', () => {
+    it('does not commit when apply is clicked while errorMessage is set', async () => {
+      const { fixture, state } = await configure('inline');
       const setRangeSpy = vi.spyOn(state, 'setRange');
-
-      const fromInput = getInputById(getRoot(), 'period-from');
+      const fromInput = getInputById(getRoot(fixture), 'period-from');
       setInputValue(fromInput, '2026-1');
       fixture.detectChanges();
 
-      const applyBtn = getButtonByLabel(getRoot(), 'Aplicar');
+      const applyBtn = getButtonByLabel(getRoot(fixture), 'Aplicar');
       expect(applyBtn.disabled).toBe(true);
       clickButton(applyBtn);
       fixture.detectChanges();
 
       expect(setRangeSpy).not.toHaveBeenCalled();
     });
-  });
 
-  describe('reset button', () => {
-    it('returns bucket, from, and to to the defaults', () => {
-      const fromInput = getInputById(getRoot(), 'period-from');
-      const toInput = getInputById(getRoot(), 'period-to');
+    it('reset returns from and to to the defaults', async () => {
+      const { fixture, state, component } = await configure('inline');
+      const fromInput = getInputById(getRoot(fixture), 'period-from');
+      const toInput = getInputById(getRoot(fixture), 'period-to');
       setInputValue(fromInput, '2025-01');
       setInputValue(toInput, '2025-05');
       fixture.detectChanges();
 
-      const resetBtn = getButtonByLabel(getRoot(), 'Restablecer');
+      const resetBtn = getButtonByLabel(getRoot(fixture), 'Restablecer');
       clickButton(resetBtn);
       fixture.detectChanges();
 
-      expect(state.bucket()).toBe('monthly');
       expect(state.from()).toBe('2026-02');
       expect(state.to()).toBe('2026-07');
       expect(component.from()).toBe('2026-02');
       expect(component.to()).toBe('2026-07');
     });
 
-    it('clears any displayed warning after reset', () => {
-      const fromInput = getInputById(getRoot(), 'period-from');
+    it('reset clears any displayed warning', async () => {
+      const { fixture, component } = await configure('inline');
+      const fromInput = getInputById(getRoot(fixture), 'period-from');
       setInputValue(fromInput, '2026-1');
       fixture.detectChanges();
       expect(component.errorMessage()).not.toBeNull();
 
-      const resetBtn = getButtonByLabel(getRoot(), 'Restablecer');
+      const resetBtn = getButtonByLabel(getRoot(fixture), 'Restablecer');
       clickButton(resetBtn);
       fixture.detectChanges();
 
       expect(component.errorMessage()).toBeNull();
-      expect(getRoot().querySelector('p-message')).toBeNull();
+      expect(getRoot(fixture).querySelector('p-message')).toBeNull();
+    });
+  });
+
+  describe('docked variant', () => {
+    it('shows the collapsed pill with the current range on mount', async () => {
+      const { fixture, component } = await configure('docked');
+      const root = getRoot(fixture);
+      expect(component.expanded()).toBe(false);
+      expect(root.querySelector('.period-dock')).toBeTruthy();
+      expect(root.textContent).toContain('Periodo');
+      expect(root.textContent).toContain(component.currentRangeLabel());
+    });
+
+    it('does not render the from/to inputs while collapsed', async () => {
+      const { fixture } = await configure('docked');
+      expect(getRoot(fixture).querySelector('#period-from')).toBeNull();
+      expect(getRoot(fixture).querySelector('#period-to')).toBeNull();
+    });
+
+    it('toggle() expands the dock to show the form', async () => {
+      const { fixture, component } = await configure('docked');
+      component.toggle();
+      fixture.detectChanges();
+
+      expect(component.expanded()).toBe(true);
+      expect(getRoot(fixture).querySelector('#period-from')).toBeTruthy();
+      expect(getRoot(fixture).querySelector('#period-to')).toBeTruthy();
+    });
+
+    it('toggle() collapses the dock when it is already expanded', async () => {
+      const { fixture, component } = await configure('docked');
+      component.toggle();
+      fixture.detectChanges();
+      component.toggle();
+      fixture.detectChanges();
+
+      expect(component.expanded()).toBe(false);
+    });
+
+    it('apply commits the range and auto-collapses the dock', async () => {
+      const { fixture, component, state } = await configure('docked');
+      component.toggle();
+      fixture.detectChanges();
+
+      const fromInput = getInputById(getRoot(fixture), 'period-from');
+      const toInput = getInputById(getRoot(fixture), 'period-to');
+      setInputValue(fromInput, '2026-03');
+      setInputValue(toInput, '2026-06');
+      fixture.detectChanges();
+
+      const applyBtn = getButtonByLabel(getRoot(fixture), 'Aplicar');
+      clickButton(applyBtn);
+      fixture.detectChanges();
+
+      expect(state.period()).toEqual({ from: '2026-03', to: '2026-06' });
+      expect(component.expanded()).toBe(false);
+    });
+
+    it('reset restores defaults and auto-collapses the dock', async () => {
+      const { fixture, component, state } = await configure('docked');
+      component.toggle();
+      fixture.detectChanges();
+
+      const fromInput = getInputById(getRoot(fixture), 'period-from');
+      const toInput = getInputById(getRoot(fixture), 'period-to');
+      setInputValue(fromInput, '2025-01');
+      setInputValue(toInput, '2025-05');
+      fixture.detectChanges();
+
+      const resetBtn = getButtonByLabel(getRoot(fixture), 'Restablecer');
+      clickButton(resetBtn);
+      fixture.detectChanges();
+
+      expect(state.period()).toEqual({ from: '2026-02', to: '2026-07' });
+      expect(component.expanded()).toBe(false);
+    });
+
+    it('collapse() hides the form and returns to the pill', async () => {
+      const { fixture, component } = await configure('docked');
+      component.toggle();
+      fixture.detectChanges();
+      expect(component.expanded()).toBe(true);
+
+      component.collapse();
+      fixture.detectChanges();
+
+      expect(component.expanded()).toBe(false);
+      expect(getRoot(fixture).querySelector('#period-from')).toBeNull();
+    });
+
+    it('refresh button emits the refresh event when clicked', async () => {
+      const { fixture, component } = await configure('docked');
+      const refreshSpy = vi.fn();
+      component.refresh.subscribe(refreshSpy);
+
+      const refreshBtn = getRoot(fixture).querySelector<HTMLButtonElement>(
+        'button[aria-label="Actualizar datos"]',
+      );
+      if (!refreshBtn) throw new Error('Refresh button not found');
+      expect(refreshBtn).toBeTruthy();
+      clickButton(refreshBtn);
+      fixture.detectChanges();
+
+      expect(refreshSpy).toHaveBeenCalled();
     });
   });
 });

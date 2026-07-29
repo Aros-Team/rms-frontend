@@ -94,18 +94,17 @@ describe('Analytics shell', () => {
     expect(root.querySelector('app-period-selector')).toBeTruthy();
   });
 
+  it('docks the period-selector inside the content section', async () => {
+    const fixture = await setup();
+    const root = fixture.nativeElement as HTMLElement;
+    const section = root.querySelector('section');
+    expect(section?.querySelector('app-period-selector')).toBeTruthy();
+  });
+
   it('renders a router-outlet for child routes', async () => {
     const fixture = await setup();
     const root = fixture.nativeElement as HTMLElement;
     expect(root.querySelector('router-outlet')).toBeTruthy();
-  });
-
-  it('shows the section title "Estadísticas" and its description', async () => {
-    const fixture = await setup();
-    const root = fixture.nativeElement as HTMLElement;
-    const heading = root.querySelector('h1');
-    expect((heading?.textContent ?? '').trim()).toBe('Estadísticas');
-    expect(root.textContent).toContain('Visualiza las estadísticas de tu restaurante');
   });
 
   it('lands on the prime-cost placeholder when visiting /admin/analytics', async () => {

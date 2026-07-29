@@ -18,7 +18,7 @@ export class AnalyticsCache {
   readonly primeCost = new ResourceCache<PrimeCostReport>(
     () => {
       const p = this.period.period();
-      return this.api.getPrimeCost(p.bucket, p.from, p.to);
+      return this.api.getPrimeCost(p.from, p.to);
     },
     { ttlMs: 600_000, staleWhileRevalidate: true },
   );
@@ -26,7 +26,7 @@ export class AnalyticsCache {
   readonly menuEngineering = new ResourceCache<MenuEngineeringReport>(
     () => {
       const p = this.period.period();
-      return this.api.getMenuEngineering(p.bucket, p.from, p.to);
+      return this.api.getMenuEngineering(p.from, p.to);
     },
     { ttlMs: 1_800_000, staleWhileRevalidate: true },
   );
@@ -34,7 +34,7 @@ export class AnalyticsCache {
   readonly operations = new ResourceCache<OperationsReport>(
     () => {
       const p = this.period.period();
-      return this.api.getOperations(p.bucket, p.from, p.to);
+      return this.api.getOperations(p.from, p.to);
     },
     { ttlMs: 300_000, staleWhileRevalidate: true },
   );
@@ -42,7 +42,7 @@ export class AnalyticsCache {
   readonly cohort = new ResourceCache<CohortReport>(
     () => {
       const p = this.period.period();
-      return this.api.getCohort(p.bucket, p.from, p.to);
+      return this.api.getCohort(p.from, p.to);
     },
     { ttlMs: 600_000, staleWhileRevalidate: true },
   );

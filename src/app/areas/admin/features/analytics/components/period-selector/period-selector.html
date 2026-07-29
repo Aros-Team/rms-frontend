@@ -1,41 +1,105 @@
-<div class="flex flex-wrap items-end gap-3 w-full md:w-auto" role="group" aria-label="Selector de periodo">
-  <div class="flex flex-col gap-1 min-w-[7rem]">
-    <label for="period-bucket" class="text-xs text-surface-600 dark:text-surface-400">Bucket</label>
-    <p-select
-      inputId="period-bucket"
-      [options]="bucketOptions"
-      optionLabel="label"
-      optionValue="value"
-      [ngModel]="bucket()"
-      (ngModelChange)="onBucketChange($event)"
-      appendTo="body"
-      ariaLabel="Bucket de periodo" />
+@if (variant() === 'docked') {
+  <div class="period-dock border-t border-surface-200 dark:border-surface-700 bg-surface-100 dark:bg-surface-800">
+    @if (expanded()) {
+      <div class="flex flex-wrap items-end gap-3 p-3 md:p-4">
+        <div class="flex flex-col gap-1 min-w-[8rem]">
+          <label for="period-from" class="text-xs text-surface-600 dark:text-surface-400">Desde</label>
+          <input
+            id="period-from"
+            pInputText
+            [ngModel]="from()"
+            (ngModelChange)="onFromChange($event)"
+            [placeholder]="placeholderExample"
+            [attr.aria-invalid]="!fromValid()" />
+        </div>
+        <div class="flex flex-col gap-1 min-w-[8rem]">
+          <label for="period-to" class="text-xs text-surface-600 dark:text-surface-400">Hasta</label>
+          <input
+            id="period-to"
+            pInputText
+            [ngModel]="to()"
+            (ngModelChange)="onToChange($event)"
+            [placeholder]="placeholderExample"
+            [attr.aria-invalid]="!toValid()" />
+        </div>
+        <div class="flex gap-2">
+          <p-button label="Aplicar" icon="pi pi-check" severity="secondary" (click)="apply()" [disabled]="!!errorMessage()" />
+          <p-button label="Restablecer" icon="pi pi-refresh" severity="secondary" [outlined]="true" (click)="reset()" />
+        </div>
+        <button
+          type="button"
+          class="ml-auto p-2 rounded-lg text-surface-500 hover:bg-surface-200 dark:hover:bg-surface-700 inline-flex items-center gap-2"
+          (click)="collapse()"
+          aria-label="Cerrar selector de periodo">
+          <i class="pi pi-chevron-up" aria-hidden="true"></i>
+          <span class="text-xs hidden sm:inline">Cerrar</span>
+        </button>
+      </div>
+      @if (errorMessage(); as msg) {
+        <div class="px-3 pb-3 md:px-4 md:pb-4">
+          <p-message severity="warn" [text]="msg" styleClass="w-full" />
+        </div>
+      }
+    } @else {
+      <div class="flex items-center gap-2 p-3 md:p-4">
+        <button
+          type="button"
+          class="flex items-center gap-2 min-w-0 flex-1 text-left rounded-lg p-1.5 hover:bg-surface-200/50 dark:hover:bg-surface-700/50 transition-colors"
+          (click)="toggle()"
+          [attr.aria-expanded]="false"
+          aria-controls="period-dock-form"
+          aria-label="Cambiar periodo de análisis">
+          <i class="pi pi-calendar text-primary-500 dark:text-primary-400" aria-hidden="true"></i>
+          <span class="text-xs text-surface-600 dark:text-surface-400">Periodo</span>
+          <span class="text-sm font-semibold text-surface-900 dark:text-surface-0 truncate">
+            {{ currentRangeLabel() }}
+          </span>
+        </button>
+        <button
+          type="button"
+          class="p-2 rounded-lg text-surface-600 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 inline-flex items-center gap-2"
+          (click)="refreshActive()"
+          aria-label="Actualizar datos">
+          <i class="pi pi-refresh" aria-hidden="true"></i>
+        </button>
+        <button
+          type="button"
+          class="p-2 rounded-lg text-surface-500 hover:bg-surface-200 dark:hover:bg-surface-700"
+          (click)="toggle()"
+          aria-label="Expandir selector de periodo">
+          <i class="pi pi-chevron-down" aria-hidden="true"></i>
+        </button>
+      </div>
+    }
   </div>
-  <div class="flex flex-col gap-1 min-w-[8rem]">
-    <label for="period-from" class="text-xs text-surface-600 dark:text-surface-400">Desde</label>
-    <input
-      id="period-from"
-      pInputText
-      [ngModel]="from()"
-      (ngModelChange)="onFromChange($event)"
-      [placeholder]="placeholderExample()"
-      [attr.aria-invalid]="!fromValid()" />
+} @else {
+  <div class="flex flex-wrap items-end gap-3 w-full md:w-auto" role="group" aria-label="Selector de periodo">
+    <div class="flex flex-col gap-1 min-w-[8rem]">
+      <label for="period-from" class="text-xs text-surface-600 dark:text-surface-400">Desde</label>
+      <input
+        id="period-from"
+        pInputText
+        [ngModel]="from()"
+        (ngModelChange)="onFromChange($event)"
+        [placeholder]="placeholderExample"
+        [attr.aria-invalid]="!fromValid()" />
+    </div>
+    <div class="flex flex-col gap-1 min-w-[8rem]">
+      <label for="period-to" class="text-xs text-surface-600 dark:text-surface-400">Hasta</label>
+      <input
+        id="period-to"
+        pInputText
+        [ngModel]="to()"
+        (ngModelChange)="onToChange($event)"
+        [placeholder]="placeholderExample"
+        [attr.aria-invalid]="!toValid()" />
+    </div>
+    <div class="flex gap-2">
+      <p-button label="Aplicar" icon="pi pi-check" severity="secondary" (click)="apply()" [disabled]="!!errorMessage()" />
+      <p-button label="Restablecer" icon="pi pi-refresh" severity="secondary" [outlined]="true" (click)="reset()" />
+    </div>
+    @if (errorMessage(); as msg) {
+      <p-message severity="warn" [text]="msg" styleClass="basis-full" />
+    }
   </div>
-  <div class="flex flex-col gap-1 min-w-[8rem]">
-    <label for="period-to" class="text-xs text-surface-600 dark:text-surface-400">Hasta</label>
-    <input
-      id="period-to"
-      pInputText
-      [ngModel]="to()"
-      (ngModelChange)="onToChange($event)"
-      [placeholder]="placeholderExample()"
-      [attr.aria-invalid]="!toValid()" />
-  </div>
-  <div class="flex gap-2">
-    <p-button label="Aplicar" icon="pi pi-check" severity="secondary" (click)="apply()" [disabled]="!!errorMessage()" />
-    <p-button label="Restablecer" icon="pi pi-refresh" severity="secondary" [outlined]="true" (click)="reset()" />
-  </div>
-  @if (errorMessage(); as msg) {
-    <p-message severity="warn" [text]="msg" styleClass="basis-full" />
-  }
-</div>
+}

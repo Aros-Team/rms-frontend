@@ -1,18 +1,9 @@
 <div class="p-4 md:p-6 flex flex-col gap-4 h-full overflow-auto">
-  <header class="flex items-start justify-between gap-2">
-    <div>
-      <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-0">Rentabilidad por periodo</h2>
-      <p class="text-sm text-surface-600 dark:text-surface-400">
-        Cuánto vendes, cuánto te costó producir y operar, y cuánto te quedó.
-      </p>
-    </div>
-    <button
-      type="button"
-      class="pi pi-refresh text-sm text-surface-600 dark:text-surface-300 px-3 py-2 rounded-lg border border-surface-200 dark:border-surface-700 hover:bg-surface-100 dark:hover:bg-surface-700"
-      (click)="reload()"
-      aria-label="Actualizar datos">
-      Actualizar
-    </button>
+  <header>
+    <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-0">Rentabilidad por periodo</h2>
+    <p class="text-sm text-surface-600 dark:text-surface-400">
+      Cuánto vendes, cuánto te costó producir y operar, y cuánto te quedó.
+    </p>
   </header>
 
   @if (error(); as err) {
@@ -88,16 +79,8 @@
     <figure class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
       <figcaption class="text-sm font-semibold mb-1">Composición del costo de lo que vendes</figcaption>
       <p class="text-xs text-surface-500 mb-2">En qué se va cada peso del costo de producción (sin contar nómina).</p>
-      <div class="h-72">
+      <div class="h-42">
         <p-chart type="bar" [data]="cogsStackData()" [options]="percentStackOptions" />
-      </div>
-    </figure>
-
-    <figure class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-      <figcaption class="text-sm font-semibold mb-1">Descuentos y consumo del personal</figcaption>
-      <p class="text-xs text-surface-500 mb-2">Lo que se "regala" o se consume del inventario sin facturar.</p>
-      <div class="h-60">
-        <p-chart type="bar" [data]="discountTrendData()" [options]="percentStackOptions" />
       </div>
     </figure>
 
@@ -128,10 +111,10 @@
       </article>
       <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
         <h3 class="text-sm font-semibold mb-2">Costo de nómina por área</h3>
-        <div class="h-56">
+        <div class="h-42">
           <p-chart type="doughnut" [data]="laborChartData()" [options]="doughnutOptions" />
         </div>
-        <table class="w-full mt-3 text-sm">
+        <table class="w-full mt-6 text-sm">
           <thead>
             <tr class="text-left text-xs text-surface-600 dark:text-surface-400">
               <th class="py-1">Área</th>
