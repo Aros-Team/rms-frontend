@@ -4,7 +4,6 @@
   <div class="flex flex-col gap-1.5">
     <label for="username" class="text-sm font-medium text-surface-700">Correo electrónico</label>
     <div class="relative">
-      <i class="pi pi-envelope absolute left-3 top-1/2 -translate-y-1/2 text-surface-400 text-sm z-10"></i>
       <input
         pInputText
         id="username"
@@ -14,6 +13,7 @@
         placeholder="usuario@dominio.com"
         class="w-full pl-10"
       />
+
     </div>
     @if (isInvalid('username')) {
       <small class="text-red-500">Campo requerido</small>

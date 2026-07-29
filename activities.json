@@ -264,5 +264,127 @@
       }
     ],
     "status": "done"
+  },
+  {
+    "id": 8,
+    "type": "chore",
+    "name": "restrict-time-bucket-to-monthly",
+    "title": "Restringir bucket de fechas en analítica a solo mensual",
+    "description": "En estadísticas, los buckets diario/semanal/anual no tienen sentido: el cálculo de rentabilidad (prime cost, márgenes) y el menu engineering se estudian a largo plazo. Solo debe quedar 'monthly' como bucket en la UI y el estado de periodo. El backend sigue aceptando bucket=monthly por query param.",
+    "acceptance": [
+      "TimeBucket exporta solo 'monthly' (sin 'daily' | 'weekly' | 'yearly')",
+      "AnalyticsPeriodState no expone bucket ni setBucket (siempre mensual)",
+      "PeriodSelector no muestra el selector de bucket; solo Desde/Hasta en formato AAAA-MM",
+      "Analytics service envía bucket=monthly fijo en todas las requests",
+      "analytics-utils.ts ya no recibe bucket en isValidPeriodKey / isValidRange / comparePeriodKeys / titleForKey",
+      "Helpers lastNDaysKey / lastNWeeksKey / lastNYearsKey eliminados (solo queda lastNMonthsKey)",
+      "Especs actualizados: eliminados los tests de daily/weekly/yearly, conservados los de monthly",
+      "Harness pasa verde (lint, build, tests)"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Reducir TimeBucket a 'monthly' en shared/models/dto/analytics/time-bucket.ts",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Simplificar analytics-utils.ts: quitar param bucket de isValidPeriodKey/isValidRange/comparePeriodKeys/titleForKey, eliminar RE_DAILY/RE_WEEKLY/RE_YEARLY, defaultPeriod devuelve solo from/to",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Simplificar analytics-period-state.ts: eliminar bucket signal / setBucket, eliminar lastNDaysKey/lastNWeeksKey/lastNYearsKey, defaultRangeFor solo con meses",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Quitar el selector de bucket del period-selector (ts + html). Conservar Desde/Hasta en formato AAAA-MM",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Hacer que Analytics.getPrimeCost/MenuEngineering/Operations/Cohort/listAlerts envíen bucket=monthly fijo (sin param bucket)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Actualizar specs: analytics-utils.spec.ts, analytics-period-state.spec.ts, analytics-period-state.format.spec.ts, period-selector.spec.ts. Eliminar tests de daily/weekly/yearly",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Reubicar period-selector al dock inferior (variant=docked) dentro de la section, con pill colapsable en lugar del header. Limpiar title/description y mover boton Actualizar al dock",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 9,
+    "type": "feat",
+    "name": "me-quadrant-ux",
+    "title": "Cuadrantes clickeables con labels descriptivos e iconos",
+    "description": "En Menu Engineering, los 4 cuadrantes BCG (STAR/PLOWHORSE/PUZZLE/DOG) deben usar nombres en español que expliquen su significado (no 'Estrella/Caballo/Rompecabezas/Perro'), acompañados de un icono. Las cards de cuadrante deben ser clickeables: al hacer click se filtra la tabla de detalle a solo los productos de ese cuadrante. La tabla debe mostrar columnas de unidades, costo por unidad, precio de venta, margen % y ganancia total.",
+    "acceptance": [
+      "Quadrants usan labels descriptivos: STAR=Excelente, PLOWHORSE=Populares, PUZZLE=Oportunidad, DOG=A revisar — cada uno con un icono (pi-star-fill, pi-thumbs-up, pi-lightbulb, pi-flag)",
+      "Las cards de cuadrante son botones clickeables con estado hover y estado activo (ring/border marcado)",
+      "Click en un cuadrante filtra la tabla para mostrar solo los productos de ese cuadrante; click de nuevo en el mismo cuadrante limpia el filtro",
+      "Cuando hay filtro activo, la tabla muestra un chip con el cuadrante seleccionado + botón 'Limpiar'",
+      "La tabla de detalle muestra: Producto, Categoría, Unidades, Costo por unidad, Precio de venta, Margen %, Ganancia total, Cuadrante (icono + label)",
+      "Los tests cubren: nuevo label, click filtra, doble click limpia, columnas nuevas computan correctamente",
+      "Harness pasa verde (lint, build, tests)"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Definir QUADRANT_META (label, icon, action) y helper quadrantMeta(q) en menu-engineering.ts. Reemplazar quadrantLabel/quadrantAction con la nueva API.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Agregar signal selectedQuadrant (MenuQuadrant | null). Actualizar items() para que filtre también por selectedQuadrant. Mantener el filtro por categoría intacto.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Convertir las quadrant cards en botones clickeables: (click)=onQuadrantClick, estado activo cuando selectedQuadrant === q.quadrant, cursor-pointer, hover:bg, aria-pressed. Toggle: si clickeas el mismo, lo deselecciona.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d", "description": "Encima de la tabla de detalle, cuando hay selectedQuadrant, mostrar un chip con el icono+label del cuadrante activo y un bot\u00f3n 'Limpiar' que llama a clearQuadrantFilter().",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Reemplazar columnas de la tabla: añadir Costo por unidad (recipeCost), Precio de venta (revenue/unitsSold), Margen % ((gpPerUnit/sellPrice)*100). Quitar Ingresos y Ganancia por unidad. Mantener Ganancia total y Cuadrante. Computar precio/margen con guards para unitsSold=0.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Cambiar la columna Cuadrante: en vez de p-tag, mostrar un span con icono + label según QUADRANT_META. Mismo color de fondo por cuadrante para que sea identificable.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Actualizar/añadir tests en menu-engineering.spec.ts: nuevos labels (reemplazar Estrella/Caballo/Rompecabezas/Perro), click filtra items, doble click limpia, columnas precio/margen computan correctamente, división por 0 no rompe.",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
   }
 ]
