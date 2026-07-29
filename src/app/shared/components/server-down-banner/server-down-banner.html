@@ -1,0 +1,11 @@
+@if (serverStatus.isOffline()) {
+  <div class="bg-red-500 text-white px-4 py-3 flex items-center justify-center gap-3 text-sm font-medium">
+    <i class="pi pi-exclamation-triangle text-base flex-shrink-0"></i>
+    <span>El servidor está presentando inconvenientes. Estamos trabajando para restablecerlo. Los datos mostrados pueden no estar actualizados.</span>
+    <button
+      class="ml-auto flex-shrink-0 px-3 py-1 rounded-md bg-red-700 hover:bg-red-600 text-white text-xs font-semibold transition-colors cursor-pointer"
+      (click)="serverStatus.check()">
+      Reintentar
+    </button>
+  </div>
+}

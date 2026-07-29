@@ -29,6 +29,10 @@ export const routes: Routes = [
     loadComponent: () => import('@areas/auth/features/setup-account/setup-account').then(m => m.SetupAccount),
   },
   {
+    path: 'server-error',
+    loadComponent: () => import('@shared/components/server-error-page/server-error-page').then(m => m.ServerErrorPage),
+  },
+  {
     path: 'admin',
     loadComponent: () => import('@areas/admin/admin-area').then(m => m.AdminArea),
     canActivate: [AuthGuard, RoleGuard],

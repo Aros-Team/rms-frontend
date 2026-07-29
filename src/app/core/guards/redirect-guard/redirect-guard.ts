@@ -29,7 +29,9 @@ export class RedirectGuard implements CanActivate {
 
     return this.authService.loadUserInfo().pipe(
       map((u) => this.redirectFor(u)),
-      catchError(() => of<RedirectCommand>(new RedirectCommand(this.router.parseUrl('/login')))),
+      catchError(() => {
+        return of(new RedirectCommand(this.router.parseUrl('/server-error')));
+      }),
     );
   }
 

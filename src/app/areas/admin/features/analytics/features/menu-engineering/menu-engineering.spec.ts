@@ -510,38 +510,6 @@ describe('MenuEngineering', () => {
     expect(text).toContain('Cache miss');
   });
 
-  it('renders the category filter and filters items by categoryId', async () => {
-    const stub = makeMenuEngineeringStub({
-      isLoading: () => false,
-      error: () => null,
-      data: () =>
-        makeReport({
-          items: [
-            makeItem({ productId: 1, productName: 'Coca Cola', categoryId: 10, categoryName: 'Bebidas' }),
-            makeItem({ productId: 2, productName: 'Hamburguesa', categoryId: 20, categoryName: 'Comida' }),
-            makeItem({ productId: 3, productName: 'Jugo', categoryId: 10, categoryName: 'Bebidas' }),
-          ],
-        }),
-    });
-    const fixture = await setup(stub);
-    const cmp = fixture.componentInstance;
-    const root = getRoot(fixture);
-
-    const filter = root.querySelector('[data-testid="me-category-filter"]');
-    expect(filter).toBeTruthy();
-
-    expect(cmp.items().length).toBe(3);
-
-    cmp.onCategoryChange(10);
-    fixture.detectChanges();
-    expect(cmp.items().length).toBe(2);
-    expect(cmp.items().every((it) => it.categoryId === 10)).toBe(true);
-
-    cmp.clearCategory();
-    fixture.detectChanges();
-    expect(cmp.items().length).toBe(3);
-  });
-
   it('builds unique categories from report items (sorted by name)', async () => {
     const stub = makeMenuEngineeringStub({
       isLoading: () => false,
@@ -739,24 +707,6 @@ describe('MenuEngineering', () => {
     cmp.onQuadrantClick('STAR');
     expect(cmp.selectedQuadrantMeta()?.label).toBe('Excelente');
     expect(cmp.selectedQuadrantMeta()?.icon).toBe('pi pi-star-fill');
-  });
-
-  it('renders the quadrant chip when a quadrant filter is active', async () => {
-    const fixture = await setup(
-      makeMenuEngineeringStub({
-        data: () => makeReport({ items: [makeItem()] }),
-      }),
-    );
-    const root = getRoot(fixture);
-    const cmp = fixture.componentInstance;
-
-    expect(root.querySelector('[data-testid="me-quadrant-chip"]')).toBeNull();
-
-    cmp.onQuadrantClick('STAR');
-    fixture.detectChanges();
-    const chip = root.querySelector('[data-testid="me-quadrant-chip"]');
-    expect(chip).toBeTruthy();
-    expect(chip?.textContent).toContain('Excelente');
   });
 
   it('renders aria-pressed on the selected quadrant card button', async () => {

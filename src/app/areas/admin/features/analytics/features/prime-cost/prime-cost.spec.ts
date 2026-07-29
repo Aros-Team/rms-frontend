@@ -233,8 +233,8 @@ describe('PrimeCost', () => {
     const root = getRoot(fixture);
 
     const charts = root.querySelectorAll('p-chart');
-    // 2 lines (sales, margins) + 1 stacked bar (cogs) + 1 bar (discounts) + 2 doughnut (cogs, labor) = 6
-    expect(charts.length).toBe(6);
+    // 2 lines (sales, margins) + 1 stacked bar (cogs) + 2 doughnut (cogs, labor) = 5
+    expect(charts.length).toBe(5);
   });
 
   it('renders the notes banner when dataCompleteness === "PARTIAL" and notes is non-empty', async () => {

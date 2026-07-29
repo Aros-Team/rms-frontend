@@ -1,3 +1,6 @@
+@if (orders().length === 0 && isStatsLoaded() && serverStatus() !== 'online') {
+  <app-server-down-page />
+} @else {
 <div class="p-4 lg:pr-4 lg:pt-4 min-w-0 overflow-hidden h-full">
   <div class="md:hidden relative h-full overflow-hidden">
     <div class="flex h-full">
@@ -617,6 +620,7 @@
     </section>
   </div>
 </div>
+}
 
 <app-order-detail-dialog [(visible)]="showOrderDetail" [order]="selectedOrder()"
   (closed)="closeOrderDetail()">

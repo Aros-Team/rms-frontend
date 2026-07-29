@@ -25,13 +25,13 @@ export class AuthGuard implements CanActivate, CanActivateChild {
       }
       return this.authService.loadUserInfo().pipe(
         map(() => true as GuardResult),
-        catchError(() => of<RedirectCommand>(new RedirectCommand(this.router.parseUrl('/login')))),
+        catchError(() => of<RedirectCommand>(new RedirectCommand(this.router.parseUrl('/server-error')))),
       );
     }
 
     return this.authService.refresh().pipe(
       map(() => true as GuardResult),
-      catchError(() => of<RedirectCommand>(new RedirectCommand(this.router.parseUrl('/login')))),
+      catchError(() => of<RedirectCommand>(new RedirectCommand(this.router.parseUrl('/server-error')))),
     );
   }
 

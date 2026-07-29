@@ -2,6 +2,7 @@ import { Component, Input, inject, ChangeDetectionStrategy } from '@angular/core
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Header } from '../../components/header/header';
+import { ServerDownBanner } from '../../components/server-down-banner/server-down-banner';
 
 export interface TabItem {
   id: string;
@@ -12,7 +13,7 @@ export interface TabItem {
 @Component({
   selector: 'app-worker-layout',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Header, CommonModule],
+  imports: [Header, CommonModule, ServerDownBanner],
   templateUrl: './worker-layout.html',
 })
 export class WorkerLayout {
