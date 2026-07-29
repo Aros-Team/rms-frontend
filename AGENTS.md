@@ -10,7 +10,8 @@
 2. If harness detects missing files (AGENTS.md, docs/, activities.json, etc.), run `node scripts/build_harness.js` to create them.
 3. Read `progress/current.md` — understand state from last session.
 4. Read `activities.json` — identify pending activities and their tasks.
-5. Assign ONE task from ONE pending activity to a sub-agent via delegation. **Never work directly — always delegate.**
+5. **Check `http://localhost:8080/v3/api-docs` before modifying or consuming any service.** Fetch the OpenAPI spec to understand available endpoints, request/response shapes, and field semantics.
+6. Assign ONE task from ONE pending activity to a sub-agent via delegation. **Never work directly — always delegate.**
 
 ## 2. Repo Map
 
