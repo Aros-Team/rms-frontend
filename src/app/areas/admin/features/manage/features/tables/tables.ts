@@ -55,7 +55,6 @@ export class Tables implements OnInit {
   readonly cache = inject(TablesCache);
 
   title = 'Gestión de Mesas';
-  description = 'Configura las mesas del restaurante';
 
   tables = computed(() => this.cache.tables.data() ?? []);
   loading = computed(() => this.cache.tables.isLoading());

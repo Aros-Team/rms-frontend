@@ -99,9 +99,6 @@ export class Workers implements OnInit {
   // Tab navigation
   activeEmployeeTab = signal<'list' | 'time-logs'>('list');
 
-  title = 'Administración de trabajadores';
-  description = 'Gestión completa de todos los trabajadores del restaurante';
-
   // Time-log state
   timeLogs = signal<TimeLogEntry[]>([]);
   timeLogLoading = signal(false);

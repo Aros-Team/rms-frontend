@@ -774,16 +774,16 @@
       {
         "id": "a",
         "description": "Editar HTML/TS de los 7 m\u00f3dulos manage (categories, products, tables, workers, time-logs, areas, schedules): quitar las l\u00edneas <p> de subt\u00edtulo y los campos description/title no usados del .ts seg\u00fan la matriz en la descripci\u00f3n de la actividad. NO tocar schedules/assignments/schedule-assignments.html ni el campo description de combos/combo-editor.ts (es form state).",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
         "description": "Correr node scripts/harness.js y dejar lint, build y tests en verde. Confirmar que no quedan <p> de subt\u00edtulo descriptivo en los HTML de manage (excepto schedule-assignments.html) y que ning\u00fan spec usa los campos eliminados.",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "pending"
+    "status": "done"
   }
 ]
