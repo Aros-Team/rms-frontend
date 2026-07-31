@@ -177,6 +177,17 @@ describe('Product service', () => {
     req.flush({});
   });
 
+  describe('enableProduct', () => {
+    it('PUTs empty body to v1/products/{id}/enable', () => {
+      service.enableProduct(7).subscribe();
+
+      const req = httpMock.expectOne('v1/products/7/enable');
+      expect(req.request.method).toBe('PUT');
+      expect(req.request.body).toEqual({});
+      req.flush({});
+    });
+  });
+
   it('deleteProduct DELETEs v1/products/{id}', () => {
     service.deleteProduct(7).subscribe();
 

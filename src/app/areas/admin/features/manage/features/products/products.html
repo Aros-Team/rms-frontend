@@ -43,13 +43,18 @@
             />
           </p-iconfield>
           <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="dt1.clear()" />
+          <div class="flex items-center gap-2 ml-auto">
+            <div class="flex items-center gap-2">
+              <label for="includeInactive" class="text-sm text-surface-600 dark:text-surface-400 cursor-pointer select-none">Mostrar inactivos</label>
+              <p-toggleswitch [ngModel]="includeInactive()" (ngModelChange)="setIncludeInactive($event)" inputId="includeInactive" />
+            </div>
+          </div>
         </div>
       </ng-template>
       <ng-template #header>
         <tr>
           <th>Nombre</th>
           <th>Precio</th>
-          <th>Estado</th>
           <th>Área</th>
           <th>Categoría</th>
           <th>Acciones</th>
@@ -74,7 +79,6 @@
             </div>
           </td>
           <td>{{ currencyFormat.format(product.basePrice) }}</td>
-          <td><span [class]="product.active ? 'text-green-600' : 'text-red-600'">{{ product.active ? 'Activo' : 'Inactivo' }}</span></td>
           <td>{{ product.areaName }}</td>
           <td>{{ product.categoryName }}</td>
           <td>
@@ -83,24 +87,30 @@
                 pTooltip="Ver detalles" tooltipPosition="top" (click)="showDetailDialog(product)" />
               <p-button icon="pi pi-pencil" severity="warn" size="small" [text]="true"
                 pTooltip="Editar" tooltipPosition="top" (click)="showModificationModal(product.id)" />
-              <p-button icon="pi pi-trash" severity="danger" size="small" [text]="true"
-                pTooltip="Eliminar" tooltipPosition="top"
-                (click)="confirmDeleteProduct($event, product)" />
+              @if (includeInactive()) {
+                <p-button icon="pi pi-check-circle" severity="success" size="small" [text]="true"
+                  pTooltip="Activar" tooltipPosition="top"
+                  (click)="confirmEnableProduct($event, product)" />
+              } @else {
+                <p-button icon="pi pi-trash" severity="danger" size="small" [text]="true"
+                  pTooltip="Eliminar" tooltipPosition="top"
+                  (click)="confirmDeleteProduct($event, product)" />
+              }
             </div>
           </td>
         </tr>
       </ng-template>
       <ng-template #loadingbody>
         <tr>
-          <td colspan="6">
+          <td colspan="5">
             <div class="min-h-[400px] w-full">
-              <app-table-skeleton [rowCount]="6" [colCount]="6" />
+              <app-table-skeleton [rowCount]="6" [colCount]="5" />
             </div>
           </td>
         </tr>
       </ng-template>
       <ng-template pTemplate="emptymessage">
-        <tr><td colspan="6" class="text-center text-surface-500 py-4">No hay productos registrados</td></tr>
+        <tr><td colspan="5" class="text-center text-surface-500 py-4">{{ includeInactive() ? 'No hay productos inactivos' : 'No hay productos registrados' }}</td></tr>
       </ng-template>
     </p-table>
   </div>

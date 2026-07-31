@@ -36,6 +36,7 @@ import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
+import { ToggleSwitch } from 'primeng/toggleswitch';
 import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
 import { SkeletonModule } from 'primeng/skeleton';
@@ -85,6 +86,7 @@ interface RecipeCostRow {
     DialogModule,
     InputNumberModule,
     ToastModule,
+    ToggleSwitch,
     TagModule,
     DividerModule,
     SkeletonModule,
@@ -116,7 +118,6 @@ export class Products implements OnInit {
   readonly imageService = inject(ProductImage);
 
   title = 'Carta de Productos';
-  description = 'Gestión completa de todos los productos del restaurante';
   currencyFormat = Intl.NumberFormat('es-Co', { style: 'currency', currency: 'COP' });
 
   // Table - usando cache service
@@ -144,8 +145,11 @@ export class Products implements OnInit {
   referenceDataLoading = computed(() => this.cache.referenceData.isLoading());
 
   filteredProducts = computed(() => {
-    const all = this.products();
+    let all = this.products();
     if (all === undefined) return undefined;
+    if (this.includeInactive()) {
+      all = all.filter((p) => !p.active);
+    }
     const search = this.tableSearch().toLowerCase().trim();
     if (!search) return all;
     return all.filter((p) => p.name.toLowerCase().includes(search));
@@ -358,6 +362,11 @@ export class Products implements OnInit {
 
   onVisible(): void {
     this.cache.products.loadIfStale();
+  }
+
+  setIncludeInactive(value: boolean): void {
+    this.includeInactive.set(value);
+    this.cache.setProductListParams({ includeInactive: value, page: 0 });
   }
 
   // ── Table ────────────────────────────────────────────────────────
@@ -1008,13 +1017,27 @@ export class Products implements OnInit {
   confirmDeleteProduct(event: Event, product: ProductResponse): void {
     this.confirmationService.confirm({
       target: event.target as HTMLElement,
-      message: `¿Estás seguro de eliminar "${product.name}"? Esta acción no se puede deshacer.`,
+      message: `¿Estás seguro de desactivar "${product.name}"?`,
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Eliminar',
       rejectLabel: 'Cancelar',
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
         this.disableProduct(product.id);
+      }
+    });
+  }
+
+  confirmEnableProduct(event: Event, product: ProductResponse): void {
+    this.confirmationService.confirm({
+      target: event.target as HTMLElement,
+      message: `¿Estás seguro de activar "${product.name}"?`,
+      icon: 'pi pi-check-circle',
+      acceptLabel: 'Activar',
+      rejectLabel: 'Cancelar',
+      acceptButtonStyleClass: 'p-button-success',
+      accept: () => {
+        this.enableProduct(product.id);
       }
     });
   }
@@ -1038,8 +1061,33 @@ export class Products implements OnInit {
     ).subscribe(() => {
       this.messageService.add({
         severity: 'success',
-        summary: 'Producto eliminado',
-        detail: 'El producto fue eliminado correctamente'
+        summary: 'Producto desactivado',
+        detail: 'El producto fue desactivado correctamente'
+      });
+    });
+  }
+
+  private enableProduct(productId: number): void {
+    this.productService.enableProduct(productId).pipe(
+      switchMap(() => {
+        this.wsService.emitCacheInvalidation('products', 'update');
+        this.refreshProducts();
+        return of(null);
+      }),
+      catchError(err => {
+        this.logger.error('Error enabling product', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo activar el producto'
+        });
+        return of(null);
+      })
+    ).subscribe(() => {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Producto activado',
+        detail: 'El producto fue activado correctamente'
       });
     });
   }

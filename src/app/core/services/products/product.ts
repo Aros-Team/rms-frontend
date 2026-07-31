@@ -114,6 +114,10 @@ export class Product {
     return this.http.put('v1/products/' + String(id) + '/disable', {});
   }
 
+  public enableProduct(id: number): Observable<object> {
+    return this.http.put('v1/products/' + String(id) + '/enable', {});
+  }
+
   getProductById(id: number): Observable<ProductData | undefined> {
     return this.findProduct(id).pipe(
       map((product: ProductResponse) => ({

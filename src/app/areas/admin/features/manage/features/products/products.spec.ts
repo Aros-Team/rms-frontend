@@ -49,6 +49,7 @@ function setupComponent() {
     filterByCategories: vi.fn(),
     disableProduct: vi.fn(),
     deleteProduct: vi.fn(),
+    enableProduct: vi.fn().mockReturnValue(of(null)),
     getCost: vi.fn().mockReturnValue(of(null)),
   };
   const masterDataStub = {
@@ -72,6 +73,7 @@ function setupComponent() {
       loadIfStale: vi.fn(),
       invalidate: vi.fn(),
     },
+    setProductListParams: vi.fn(),
   };
   const imageStub = {
     getImages: vi.fn().mockReturnValue(of([])),
@@ -821,6 +823,93 @@ describe('Products wizard — existing recipe rows', () => {
       const total = (1 + 2) * 100;
       expect(total).toBe(300);
       expect(env.component.recipeCost()).toBe(200);
+    });
+  });
+
+  describe('Mostrar inactivos toggle', () => {
+    it('setIncludeInactive(true) flips the signal and propagates includeInactive=true with page=0 to the cache', () => {
+      const env = setupComponent();
+
+      env.component.setIncludeInactive(true);
+
+      expect(env.component.includeInactive()).toBe(true);
+      expect(env.cacheStub.setProductListParams).toHaveBeenCalledWith({ includeInactive: true, page: 0 });
+    });
+
+    it('setIncludeInactive(false) flips the signal and propagates includeInactive=false with page=0 to the cache', () => {
+      const env = setupComponent();
+
+      env.component.setIncludeInactive(true);
+      env.component.setIncludeInactive(false);
+
+      expect(env.component.includeInactive()).toBe(false);
+      expect(env.cacheStub.setProductListParams).toHaveBeenLastCalledWith({ includeInactive: false, page: 0 });
+    });
+
+    it('filteredProducts returns only inactive products when includeInactive() is true', () => {
+      const env = setupComponent();
+      const fixture: ProductResponse[] = [
+        { id: 1, name: 'Activo', basePrice: 5, active: true, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
+        { id: 2, name: 'Inactivo', basePrice: 5, active: false, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
+        { id: 3, name: 'Otro inactivo', basePrice: 5, active: false, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
+      ];
+      env.cacheStub.products.data = vi.fn().mockReturnValue({
+        content: fixture,
+        totalPages: 1,
+        totalElements: fixture.length,
+        page: 0,
+        size: 6,
+      });
+
+      env.component.setIncludeInactive(true);
+
+      const filtered = env.component.filteredProducts();
+      expect(filtered).toHaveLength(2);
+      expect(filtered?.map((p) => p.id)).toEqual([2, 3]);
+    });
+  });
+
+  describe('Activar inactivos', () => {
+    it('confirmEnableProduct abre un popup de confirmación con acceptLabel "Activar" y al aceptar llama productService.enableProduct', () => {
+      const env = setupComponent();
+      const confirmationService = TestBed.inject(ConfirmationService);
+      const confirmSpy = vi.spyOn(confirmationService, 'confirm');
+      const product = buildProductFixture();
+
+      env.component.confirmEnableProduct(new Event('click'), product);
+
+      expect(confirmSpy).toHaveBeenCalledTimes(1);
+      const config = confirmSpy.mock.calls[0][0] as { acceptLabel: string; accept: () => void };
+      expect(config.acceptLabel).toBe('Activar');
+
+      config.accept();
+      expect(env.productStub.enableProduct).toHaveBeenCalledWith(product.id);
+    });
+
+    it('enableProduct emite invalidación WebSocket "products/update" y llama refreshProducts en éxito', () => {
+      const env = setupComponent();
+      const product = buildProductFixture();
+
+      (env.component as unknown as { enableProduct: (id: number) => void }).enableProduct(product.id);
+
+      expect(env.wsStub.emitCacheInvalidation).toHaveBeenCalledWith('products', 'update');
+      expect(env.cacheStub.products.refresh).toHaveBeenCalled();
+    });
+
+    it('enableProduct muestra toast "No se pudo activar el producto" en error', () => {
+      const env = setupComponent();
+      const product = buildProductFixture();
+      env.productStub.enableProduct.mockReturnValue(throwError(() => ({ status: 500 })));
+      const messageService = TestBed.inject(MessageService);
+      const addSpy = vi.spyOn(messageService, 'add');
+
+      (env.component as unknown as { enableProduct: (id: number) => void }).enableProduct(product.id);
+
+      const errorCalls = addSpy.mock.calls.filter(
+        ([msg]: [{ severity: string; detail: string }]) =>
+          msg.severity === 'error' && msg.detail === 'No se pudo activar el producto'
+      );
+      expect(errorCalls.length).toBeGreaterThanOrEqual(1);
     });
   });
 });
