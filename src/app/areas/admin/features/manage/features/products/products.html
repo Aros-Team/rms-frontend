@@ -17,7 +17,7 @@
       #dt1
       [value]="filteredProducts() ?? []"
       [paginator]="true"
-      [rows]="6"
+      [rows]="pageSize()"
       [totalRecords]="cache.products.data()?.totalElements ?? 0"
       (onPage)="onPage($event)"
       [scrollable]="true"
@@ -26,7 +26,7 @@
       sortMode="multiple"
       styleClass="h-full"
       [tableStyle]="{'min-width': '800px'}"
-      [loading]="productsLoading()"
+      [loading]="productsLoading() && !cache.products.hasData()"
       [showLoader]="false"
     >
       <ng-template #caption>
@@ -48,44 +48,41 @@
       <ng-template #header>
         <tr>
           <th pSortableColumn="name">Nombre <p-sortIcon field="name" /></th>
-          <th class="w-[100px]">Imagen</th>
           <th pSortableColumn="basePrice">Precio <p-sortIcon field="basePrice" /></th>
           <th>Estado</th>
           <th pSortableColumn="areaName">Área <p-sortIcon field="areaName" /></th>
           <th pSortableColumn="categoryName">Categoría <p-sortIcon field="categoryName" /></th>
-          <th>Tipo</th>
           <th>Acciones</th>
         </tr>
       </ng-template>
       <ng-template #body let-product>
         <tr>
-          <td>{{ product.name }}</td>
           <td>
-            @if (thumbnailsLoading() && !getThumbnailUrl(product.id)) {
-              <p-skeleton width="48px" height="48px" />
-            } @else if (getThumbnailUrl(product.id)) {
-              <img
-                [src]="getThumbnailUrl(product.id)"
-                [alt]="product.name"
-                class="w-12 h-12 object-cover rounded"
-              />
-            } @else {
-              <div class="w-12 h-12 bg-surface-200 dark:bg-surface-700 rounded flex items-center justify-center">
-                <i class="pi pi-image text-surface-400 text-sm"></i>
-              </div>
-            }
+            <div class="flex items-center gap-3">
+              @if (product.imageUrl) {
+                <img
+                  [src]="product.imageUrl"
+                  [alt]="product.name"
+                  class="w-12 h-12 object-cover rounded shrink-0"
+                />
+              } @else {
+                <div class="w-12 h-12 bg-surface-200 dark:bg-surface-700 rounded flex items-center justify-center shrink-0">
+                  <i class="pi pi-image text-surface-400 text-sm"></i>
+                </div>
+              }
+              <span>{{ product.name }}</span>
+            </div>
           </td>
           <td>{{ currencyFormat.format(product.basePrice) }}</td>
           <td><span [class]="product.active ? 'text-green-600' : 'text-red-600'">{{ product.active ? 'Activo' : 'Inactivo' }}</span></td>
           <td>{{ product.areaName }}</td>
           <td>{{ product.categoryName }}</td>
-          <td><p-tag value="Producto" severity="secondary" /></td>
           <td>
             <div class="flex gap-1 items-center justify-center">
               <p-button icon="pi pi-eye" severity="secondary" size="small" [text]="true"
                 pTooltip="Ver detalles" tooltipPosition="top" (click)="showDetailDialog(product)" />
               <p-button icon="pi pi-pencil" severity="warn" size="small" [text]="true"
-                pTooltip="Editar" tooltipPosition="top" (click)="openEditModal(product.id)" />
+                pTooltip="Editar" tooltipPosition="top" (click)="showModificationModal(product.id)" />
               <p-button icon="pi pi-trash" severity="danger" size="small" [text]="true"
                 pTooltip="Eliminar" tooltipPosition="top"
                 (click)="confirmDeleteProduct($event, product)" />
@@ -95,15 +92,15 @@
       </ng-template>
       <ng-template #loadingbody>
         <tr>
-          <td colspan="8">
+          <td colspan="6">
             <div class="min-h-[400px] w-full">
-              <app-table-skeleton [rowCount]="6" [colCount]="8" />
+              <app-table-skeleton [rowCount]="6" [colCount]="6" />
             </div>
           </td>
         </tr>
       </ng-template>
       <ng-template pTemplate="emptymessage">
-        <tr><td colspan="8" class="text-center text-surface-500 py-4">No hay productos registrados</td></tr>
+        <tr><td colspan="6" class="text-center text-surface-500 py-4">No hay productos registrados</td></tr>
       </ng-template>
     </p-table>
   </div>
@@ -118,7 +115,7 @@
 
   <!-- Indicador de pasos -->
   <div class="flex items-center mb-6">
-    @for (step of [1,2,3,4]; track step; let i = $index; let last = $last) {
+    @for (step of [1,2,3,4,5]; track step; let i = $index; let last = $last) {
       <div class="flex items-center flex-1">
         <div class="flex flex-col items-center gap-1">
           <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors"
@@ -131,7 +128,8 @@
               @case (1) { Datos básicos }
               @case (2) { Insumos }
               @case (3) { Opciones }
-              @case (4) { Finalizar }
+              @case (4) { Precio }
+              @case (5) { Confirmar }
             }
           </span>
         </div>
@@ -156,12 +154,27 @@
           <label for="name">Nombre del producto *</label>
         </p-iftalabel>
 
-        <p-iftalabel>
-          <p-inputnumber formControlName="basePrice" inputId="basePrice"
-            mode="currency" currency="COP" locale="es-CO" class="w-full"
-            [invalid]="isInvalid(baseForm, 'basePrice')" />
-          <label for="basePrice">Precio base *</label>
+        <p-iftalabel class="md:col-span-2">
+          <textarea pTextarea id="description" class="w-full" formControlName="description"
+            rows="3" autoResize="true"
+            placeholder="Descripción opcional del producto"></textarea>
+          <label for="description">Descripción</label>
         </p-iftalabel>
+
+        <div>
+          <span class="text-xs text-surface-500 block mb-1">Tiempo estimado de preparación</span>
+          <div class="flex items-center gap-3">
+            <p-button label="Estimar tiempo" icon="pi pi-stopwatch" [outlined]="true"
+              (click)="openPrepTimeDialog()" />
+            @if (baseForm.get('estimatedPrepMinutes')?.value !== null) {
+              <span class="text-sm font-medium text-surface-800 dark:text-surface-200">
+                {{ baseForm.get('estimatedPrepMinutes')?.value }} min
+              </span>
+            } @else {
+              <span class="text-sm text-surface-400 italic">Sin estimar</span>
+            }
+          </div>
+        </div>
 
         <p-iftalabel>
           <p-select [options]="categories()" inputId="categoryId" class="w-full"
@@ -238,26 +251,33 @@
       </div>
 
       <!-- Insumos existentes (modo edición) -->
-      @if (modalMode() === 'edit' && existingRecipe().length > 0) {
+      @if (modalMode() === 'edit' && existingRecipe.controls.length > 0) {
         <div class="flex flex-col gap-2">
           <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Insumos actuales</span>
-          @for (item of existingRecipe(); track item.supplyVariantId) {
-            <div class="flex items-center justify-between px-3 py-2 bg-surface-100 dark:bg-surface-800 rounded-lg text-sm border border-surface-200 dark:border-surface-700">
-              <span class="font-medium">{{ getVariantDisplayName(item.supplyVariantId) }}</span>
-              <div class="flex items-center gap-2">
-                <span class="text-surface-400 text-xs px-2 py-0.5 bg-surface-200 dark:bg-surface-700 rounded">
-                  {{ item.requiredQuantity }}
-                </span>
-                <p-button
-                  icon="pi pi-trash"
-                  severity="danger"
-                  [text]="true"
-                  size="small"
-                  pTooltip="Quitar insumo"
-                  tooltipPosition="top"
-                  [attr.aria-label]="'Quitar insumo ' + getVariantDisplayName(item.supplyVariantId)"
-                  (click)="removeExistingRecipeItem(item.supplyVariantId)" />
+          @for (item of existingRecipe.controls; track $index; let i = $index) {
+            <div>
+              <div [formGroup]="$any(item)" class="flex gap-2 items-end bg-surface-100 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-3">
+                <div class="flex-1">
+                  <label class="text-xs text-surface-500 mb-1 block" [attr.for]="'existing-recipe-supply-' + i">Insumo *</label>
+                  <p-select [attr.id]="'existing-recipe-supply-' + i" [options]="supplyVariantOptions()" optionLabel="displayName" optionValue="id"
+                    formControlName="supplyVariantId" placeholder="Seleccionar insumo"
+                    class="w-full" [filter]="true" filterBy="displayName" appendTo="body" />
+                </div>
+                <div class="w-24">
+                  <label class="text-xs text-surface-500 mb-1 block" [attr.for]="'existing-recipe-quantity-' + i">Cantidad *</label>
+                  <p-inputnumber [attr.id]="'existing-recipe-quantity-' + i" formControlName="requiredQuantity" [min]="0.001"
+                    [minFractionDigits]="0" [maxFractionDigits]="3" class="w-full" />
+                </div>
+                <p-button icon="pi pi-trash" severity="danger" [text]="true" (click)="removeExistingRecipeItem(i)" />
               </div>
+              @if (findVariantById($any(item).get('supplyVariantId')?.value); as v) {
+                <p class="text-xs text-surface-400 mt-1 px-1">
+                  {{ v.quantity }} {{ v.unitAbbreviation }} = {{ currencyFormat.format(v.unitCost) }} por unidad
+                  @if (v.unitCost === 0) {
+                    <span class="text-amber-600 dark:text-amber-400"> · sin costo definido</span>
+                  }
+                </p>
+              }
             </div>
           }
         </div>
@@ -266,40 +286,99 @@
         }
       }
 
-      @if (existingRecipe().length === 0 && baseRecipe.length === 0) {
+      @if (existingRecipe.controls.length === 0 && baseRecipe.length === 0) {
         <p class="text-sm text-surface-400 italic">Sin insumos — el producto no descuenta stock</p>
       }
 
       <div class="flex flex-col gap-2">
         @for (item of baseRecipe.controls; track $index; let i = $index) {
-          <div [formGroup]="$any(item)" class="flex gap-2 items-end bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-3">
-            <div class="w-44">
-              <label class="text-xs text-surface-500 mb-1 block" for="base-recipe-category">Categoría</label>
-              <p-select id="base-recipe-category" [options]="supplyCategories()" optionLabel="name" optionValue="id"
-                [ngModel]="getBaseRecipeCategory(i)" [ngModelOptions]="{ standalone: true }"
-                (ngModelChange)="setBaseRecipeCategory(i, $event)"
-                placeholder="Todas" [showClear]="true"
-                class="w-full" appendTo="body" />
+          <div>
+            <div [formGroup]="$any(item)" class="flex gap-2 items-end bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-3">
+              <div class="flex-1">
+                <label class="text-xs text-surface-500 mb-1 block" for="base-recipe-supply">Insumo *</label>
+                <p-select id="base-recipe-supply" [options]="supplyVariantOptions()" optionLabel="displayName" optionValue="id"
+                  formControlName="supplyVariantId" placeholder="Seleccionar insumo"
+                  class="w-full" [filter]="true" filterBy="displayName" appendTo="body" />
+              </div>
+              <div class="w-24">
+                <label class="text-xs text-surface-500 mb-1 block" for="base-recipe-quantity">Cantidad *</label>
+                <p-inputnumber id="base-recipe-quantity" formControlName="requiredQuantity" [min]="0.001"
+                  [minFractionDigits]="0" [maxFractionDigits]="3" class="w-full" />
+              </div>
+              <p-button icon="pi pi-trash" severity="danger" [text]="true" (click)="removeBaseRecipeItem(i)" />
             </div>
-            <div class="flex-1">
-              <label class="text-xs text-surface-500 mb-1 block" for="base-recipe-supply">Insumo *</label>
-              <p-select id="base-recipe-supply" [options]="filteredVariantsForBaseRecipe(i)" optionLabel="displayName" optionValue="id"
-                formControlName="supplyVariantId" placeholder="Seleccionar insumo"
-                class="w-full" [filter]="true" filterBy="displayName" appendTo="body" />
+            @if (findVariantById($any(item).get('supplyVariantId')?.value); as v) {
+              <p class="text-xs text-surface-400 mt-1 px-1">
+                {{ v.quantity }} {{ v.unitAbbreviation }} = {{ currencyFormat.format(v.unitCost) }} por unidad
+                @if (v.unitCost === 0) {
+                  <span class="text-amber-600 dark:text-amber-400"> · sin costo definido</span>
+                }
+              </p>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="border border-surface-200 dark:border-surface-700 rounded-lg p-4 flex flex-col gap-2 text-sm">
+        <div class="flex items-center gap-2" pTooltip="Costo calculado en vivo según los insumos de la receta" tooltipPosition="top">
+          <i class="pi pi-calculator text-primary-500"></i>
+          <span class="font-medium">Costo de producción</span>
+          <i class="pi pi-bolt text-xs text-primary-400" pTooltip="Se actualiza automáticamente al editar la receta" tooltipPosition="top"></i>
+        </div>
+
+        @if (recipeBreakdown().length > 0) {
+          <div class="flex flex-col gap-2 mt-1">
+            @for (row of recipeBreakdown(); track $index) {
+              <div class="flex justify-between gap-2 items-start">
+                <span class="flex-1 min-w-0">
+                  <span class="font-medium">{{ row.supplyName }}</span>
+                  <span class="text-xs text-surface-400 block">{{ row.unitLabel }} = {{ currencyFormat.format(row.unitCost ?? 0) }}</span>
+                </span>
+                <span class="text-right shrink-0">
+                  <span class="block text-surface-500">{{ row.requiredQuantity }} × {{ currencyFormat.format(row.unitCost ?? 0) }}</span>
+                  <span class="block font-semibold">{{ currencyFormat.format(row.partial) }}</span>
+                </span>
+              </div>
+              @if (row.unitCost === null || row.unitCost === 0) {
+                <div class="flex items-center gap-1 text-amber-600 dark:text-amber-400 text-xs -mt-1">
+                  <i class="pi pi-exclamation-triangle"></i>
+                  <span>Sin costo unitario — no aporta al total. Configúralo en Inventario.</span>
+                </div>
+              }
+            }
+          </div>
+
+          <div class="border-t border-surface-200 dark:border-surface-700 my-1"></div>
+          <div class="flex justify-between items-center bg-primary-50 dark:bg-primary-900/20 -mx-4 px-4 py-3 rounded-b-lg">
+            <span class="font-semibold">Total</span>
+            <span class="font-semibold text-base">{{ currencyFormat.format(recipeCost()) }}</span>
+          </div>
+        } @else {
+          <p class="text-sm text-surface-400 italic">Agrega insumos para calcular el costo de producción</p>
+        }
+
+        @if (cost(); as c) {
+          <div class="flex flex-col gap-1 mt-1 pt-2 border-t border-surface-200 dark:border-surface-700">
+            <span class="text-xs text-surface-400">Costo registrado (al guardar se recalcula)</span>
+            <div class="flex justify-between text-xs">
+              <span class="text-surface-500">Materiales</span>
+              <span>{{ currencyFormat.format(c.materialCost) }}</span>
             </div>
-            <div class="w-36">
-              <label class="text-xs text-surface-500 mb-1 block" for="base-recipe-quantity">Cantidad *</label>
-              <p-inputnumber id="base-recipe-quantity" formControlName="requiredQuantity" [min]="0.001"
-                [minFractionDigits]="0" [maxFractionDigits]="3" class="w-full" />
+            <div class="flex justify-between text-xs">
+              <span class="text-surface-500">Mano de obra</span>
+              <span>{{ currencyFormat.format(c.laborCost) }}</span>
             </div>
-            <p-button icon="pi pi-trash" severity="danger" [text]="true" (click)="removeBaseRecipeItem(i)" />
+            <div class="flex justify-between text-xs font-semibold">
+              <span>Total registrado</span>
+              <span>{{ currencyFormat.format(c.totalCost) }}</span>
+            </div>
           </div>
         }
       </div>
     </div>
 
     <div class="flex justify-between mt-6">
-      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="backToStep2()" />
+      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="goToStep1()" />
       <p-button label="Siguiente"
         icon="pi pi-arrow-right"
         iconPos="right"
@@ -423,27 +502,29 @@
 
               <div class="flex flex-col gap-2">
                 @for (recipeItem of getOptionRecipe(i).controls; track $index; let ri = $index) {
-                  <div [formGroup]="$any(recipeItem)" class="flex gap-2 items-end bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-3">
-                    <div class="w-44">
-                      <label class="text-xs text-surface-500 mb-1 block" for="option-recipe-category-{{i}}-{{ri}}">Categoría</label>
-                      <p-select id="option-recipe-category-{{i}}-{{ri}}" [options]="supplyCategories()" optionLabel="name" optionValue="id"
-                        [ngModel]="getOptionRecipeCategory(i, ri)" [ngModelOptions]="{ standalone: true }"
-                        (ngModelChange)="setOptionRecipeCategory(i, ri, $event)"
-                        placeholder="Todas" [showClear]="true"
-                        class="w-full" appendTo="body" />
+                  <div>
+                    <div [formGroup]="$any(recipeItem)" class="flex gap-2 items-end bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-3">
+                      <div class="flex-1">
+                        <label class="text-xs text-surface-500 mb-1 block" for="option-recipe-supply-{{i}}-{{ri}}">Insumo *</label>
+                        <p-select id="option-recipe-supply-{{i}}-{{ri}}" [options]="supplyVariantOptions()" optionLabel="displayName" optionValue="id"
+                          formControlName="supplyVariantId" placeholder="Seleccionar insumo"
+                          class="w-full" [filter]="true" filterBy="displayName" appendTo="body" />
+                      </div>
+                      <div class="w-24">
+                        <label class="text-xs text-surface-500 mb-1 block" for="option-recipe-quantity-{{i}}-{{ri}}">Cantidad *</label>
+                        <p-inputnumber id="option-recipe-quantity-{{i}}-{{ri}}" formControlName="requiredQuantity" [min]="0.001"
+                          [minFractionDigits]="0" [maxFractionDigits]="3" class="w-full" />
+                      </div>
+                      <p-button icon="pi pi-trash" severity="danger" [text]="true" (click)="removeOptionRecipeItem(i, ri)" />
                     </div>
-                    <div class="flex-1">
-                      <label class="text-xs text-surface-500 mb-1 block" for="option-recipe-supply-{{i}}-{{ri}}">Insumo *</label>
-                      <p-select id="option-recipe-supply-{{i}}-{{ri}}" [options]="filteredVariantsForOptionRecipe(i, ri)" optionLabel="displayName" optionValue="id"
-                        formControlName="supplyVariantId" placeholder="Seleccionar insumo"
-                        class="w-full" [filter]="true" filterBy="displayName" appendTo="body" />
-                    </div>
-                    <div class="w-36">
-                      <label class="text-xs text-surface-500 mb-1 block" for="option-recipe-quantity-{{i}}-{{ri}}">Cantidad *</label>
-                      <p-inputnumber id="option-recipe-quantity-{{i}}-{{ri}}" formControlName="requiredQuantity" [min]="0.001"
-                        [minFractionDigits]="0" [maxFractionDigits]="3" class="w-full" />
-                    </div>
-                    <p-button icon="pi pi-trash" severity="danger" [text]="true" (click)="removeOptionRecipeItem(i, ri)" />
+                    @if (findVariantById($any(recipeItem).get('supplyVariantId')?.value); as v) {
+                      <p class="text-xs text-surface-400 mt-1 px-1">
+                        {{ v.quantity }} {{ v.unitAbbreviation }} = {{ currencyFormat.format(v.unitCost) }} por unidad
+                        @if (v.unitCost === 0) {
+                          <span class="text-amber-600 dark:text-amber-400"> · sin costo definido</span>
+                        }
+                      </p>
+                    }
                   </div>
                 }
               </div>
@@ -457,7 +538,7 @@
     </div>
 
     <div class="flex justify-between mt-6">
-      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="backToStep3()" />
+      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="goToStep2()" />
       <div class="flex gap-2">
         <p-button label="Cancelar" severity="secondary" (click)="closeModal()" />
         <p-button [label]="modalMode() === 'create' ? 'Crear producto' : 'Guardar cambios'"
@@ -469,8 +550,86 @@
     </div>
   }
 
-  <!-- ══ PASO 4: Finalizar ══ -->
+  <!-- ══ PASO 4: Precio de venta ══ -->
   @if (currentStep() === 4) {
+    <div class="flex flex-col gap-4">
+      <div class="flex items-center gap-2 px-4 py-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+        <i class="pi pi-calculator text-blue-500 text-lg"></i>
+        <span class="text-sm text-blue-800 dark:text-blue-200">Define el precio de venta basado en el costo de producción</span>
+      </div>
+
+      @if (cost(); as c) {
+        <div class="border border-surface-200 dark:border-surface-700 rounded-lg p-4 flex flex-col gap-2 text-sm">
+          <h4 class="text-sm font-medium flex items-center gap-2 mb-1">
+            <i class="pi pi-receipt text-primary-500"></i>
+            Costo de producción oficial
+          </h4>
+          <div class="flex justify-between">
+            <span class="text-surface-500">Materiales</span>
+            <span class="font-medium">{{ currencyFormat.format(c.materialCost) }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-surface-500">Mano de obra</span>
+            <span class="font-medium">{{ currencyFormat.format(c.laborCost) }}</span>
+          </div>
+          <div class="flex justify-between bg-primary-50 dark:bg-primary-900/20 -mx-4 -mb-4 px-4 py-3 mt-2 rounded-b-lg">
+            <span class="font-semibold">Costo total</span>
+            <span class="font-semibold text-base">{{ currencyFormat.format(c.totalCost) }}</span>
+          </div>
+        </div>
+      } @else if (costLoading()) {
+        <p-progressBar mode="indeterminate" styleClass="h-2" />
+      } @else if (costError()) {
+        <p-message severity="error" [text]="costError()!" />
+      }
+
+      @if (recipeCost() > 0) {
+        <div class="border border-dashed border-surface-300 dark:border-surface-600 rounded-lg p-3 flex items-center justify-between text-sm bg-surface-50 dark:bg-surface-800">
+          <span class="flex items-center gap-2 text-surface-500">
+            <i class="pi pi-bolt text-xs"></i>
+            Materiales estimado (receta actual)
+          </span>
+          <span class="font-medium italic">{{ currencyFormat.format(recipeCost()) }}</span>
+        </div>
+      }
+
+      <div class="border border-surface-200 dark:border-surface-700 rounded-lg p-4 flex flex-col gap-3">
+        <h4 class="text-sm font-medium flex items-center gap-2">
+          <i class="pi pi-tag text-green-500"></i>
+          Precio de venta
+        </h4>
+
+        @if (cost(); as c) {
+          <div class="bg-green-50 dark:bg-green-900/20 rounded-lg px-4 py-3 flex items-center justify-between border border-green-200 dark:border-green-800">
+            <div class="flex flex-col gap-1">
+              <span class="text-xs text-green-700 dark:text-green-300 font-medium">Precio sugerido</span>
+              <span class="text-lg font-bold text-green-600 dark:text-green-400">{{ currencyFormat.format(suggestedSalePrice()) }}</span>
+              <span class="text-xs text-green-600/70 dark:text-green-400/70">Costo oficial + 30% de margen</span>
+            </div>
+            <p-button label="Usar este precio" severity="success" [outlined]="true" size="small"
+              (click)="salePrice.set(suggestedSalePrice())" [disabled]="salePrice() === suggestedSalePrice()" />
+          </div>
+        }
+
+        <p-iftalabel class="mt-1">
+          <p-inputnumber [ngModel]="salePrice()" (ngModelChange)="salePrice.set($event)"
+            inputId="salePrice" mode="currency" currency="COP" locale="es-CO" class="w-full" />
+          <label for="salePrice">Precio de venta *</label>
+        </p-iftalabel>
+      </div>
+    </div>
+
+    <div class="flex justify-between mt-6">
+      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="goToStep3()" />
+      <div class="flex gap-2">
+        <p-button label="Cancelar" severity="secondary" (click)="closeModal()" />
+        <p-button label="Confirmar precio" icon="pi pi-check" [loading]="isSubmitting()" (click)="confirmPrice()" />
+      </div>
+    </div>
+  }
+
+  <!-- ══ PASO 5: Confirmar ══ -->
+  @if (currentStep() === 5) {
     <div class="flex flex-col gap-4">
       <div class="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
         <i class="pi pi-check-circle text-green-500 text-2xl"></i>
@@ -487,8 +646,52 @@
             <span class="font-medium">{{ createdProduct()!.name }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-surface-500">Precio base</span>
-            <span class="font-medium">{{ createdProduct()!.basePrice | currency:'COP':'symbol':'1.0-0':'es-CO' }}</span>
+            <span class="text-surface-500">Descripción</span>
+            <span class="text-right max-w-[60%]">{{ createdProduct()!.description || 'Sin descripción' }}</span>
+          </div>
+          @if (cost() !== null) {
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2" pTooltip="Calculado por el servidor con base en la receta e insumos" tooltipPosition="top">
+                <i class="pi pi-calculator text-primary-500"></i>
+                <span class="font-medium">Costo de producción</span>
+              </div>
+              @if (costLoading()) {
+                <p-progressBar mode="indeterminate" styleClass="h-2" />
+              } @else if (costError()) {
+                <p-message severity="error" [text]="costError()!" />
+              } @else if (cost(); as c) {
+                <div class="flex justify-between">
+                  <span class="text-surface-500">Materiales</span>
+                  <span class="font-medium">{{ currencyFormat.format(c.materialCost) }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-surface-500">Mano de obra</span>
+                  <span class="font-medium">{{ currencyFormat.format(c.laborCost) }}</span>
+                </div>
+                <div class="flex justify-between items-center bg-primary-50 dark:bg-primary-900/20 -mx-4 -mb-4 px-4 py-3 mt-2 rounded-b-lg">
+                  <span class="font-semibold">Total</span>
+                  <span class="font-semibold text-base">{{ currencyFormat.format(c.totalCost) }}</span>
+                </div>
+                @if (c.breakdown.length > 0) {
+                  <div class="flex flex-col gap-2 mt-3 pt-3 border-t border-surface-200 dark:border-surface-700">
+                    <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Desglose</span>
+                    @for (item of c.breakdown; track $index) {
+                      <div class="flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                          <i [class]="item.type === 'MATERIAL' ? 'pi pi-box' : 'pi pi-clock'" class="text-surface-500"></i>
+                          <span>{{ item.description }}</span>
+                        </span>
+                        <span class="font-medium">{{ currencyFormat.format(item.amount) }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              }
+            </div>
+          }
+          <div class="flex justify-between">
+            <span class="text-surface-500">Precio de venta</span>
+            <span class="font-medium">{{ currencyFormat.format(createdProduct()!.basePrice) }}</span>
           </div>
           <div class="flex justify-between">
             <span class="text-surface-500">Tipo</span>
@@ -503,10 +706,10 @@
             <span class="text-surface-500">Área</span>
             <span>{{ createdProduct()!.areaName }}</span>
           </div>
-          @if (baseRecipe.length > 0) {
+          @if (existingRecipe.controls.length + baseRecipe.length > 0) {
             <div class="flex justify-between">
               <span class="text-surface-500">Insumos base</span>
-              <span>{{ baseRecipe.length }}</span>
+              <span>{{ existingRecipe.controls.length + baseRecipe.length }}</span>
             </div>
           }
         </div>
@@ -567,7 +770,8 @@
       }
     </div>
 
-    <div class="flex justify-end mt-6">
+    <div class="flex justify-between mt-6">
+      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="goToStep4()" />
       <p-button label="Finalizar" icon="pi pi-check" (click)="finish()" />
     </div>
   }
@@ -580,6 +784,13 @@
   (optionCreated)="cache.referenceData.refresh()"
 />
 
+<app-prep-time-dialog
+  [visible]="prepTimeDialogOpen"
+  [initialEstimate]="prepTimeInitialEstimate()"
+  (visibleChange)="prepTimeDialogOpen.set($event)"
+  (estimateApplied)="applyPrepTime($event)"
+/>
+
 <!-- ════════════════════════════════════════════════
      DIALOG DETALLES DE PRODUCTO
 ════════════════════════════════════════════════ -->
@@ -587,17 +798,7 @@
   [product]="detailProduct()"
   [visible]="detailDialogOpen"
   (visibleChange)="detailDialogOpen.set($event)"
-  (editProduct)="openEditModal($event)"
-  (productUpdated)="onProductUpdated()"
-/>
-
-<!-- ════════════════════════════════════════════════
-     SIMPLE EDIT MODAL
-════════════════════════════════════════════════ -->
-<app-product-edit-modal
-  [productId]="editingProductId()"
-  [visible]="editModalVisible"
-  (visibleChange)="editModalVisible.set($event)"
+  (editProduct)="showModificationModal($event)"
   (productUpdated)="onProductUpdated()"
 />
 

@@ -4,21 +4,16 @@ import { FormsModule } from '@angular/forms';
 import { Product } from '@app/core/services/products/product';
 import { MasterData } from '@app/core/services/master-data/master-data';
 import { Logging } from '@app/core/services/logging/logging';
-import { ProductImage } from '@app/core/services/product-image/product-image';
-import { ProductImageResponse } from '@app/shared/models/dto/products/product-image-response';
 import { ProductResponse } from '@app/shared/models/dto/products/product-response';
 import { ProductOption as ProductOptionDTO } from '@app/shared/models/dto/products/product-option';
+import { ProductCostResponse } from '@app/shared/models/dto/products/product-cost-response';
 
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
-import { GalleriaModule } from 'primeng/galleria';
-import { ImageModule } from 'primeng/image';
-import { FileUploadModule } from 'primeng/fileupload';
+import { MessageModule } from 'primeng/message';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
 
 import { catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -31,15 +26,11 @@ import { of } from 'rxjs';
     FormsModule,
     DialogModule,
     ButtonModule,
-    GalleriaModule,
-    ImageModule,
-    FileUploadModule,
+    MessageModule,
     ProgressBarModule,
     SkeletonModule,
     TagModule,
-    ToastModule,
   ],
-  providers: [MessageService],
   templateUrl: './product-detail-dialog.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -53,34 +44,29 @@ export class ProductDetailDialog implements OnChanges {
   private productService = inject(Product);
   private masterDataService = inject(MasterData);
   private logger = inject(Logging);
-  private imageService = inject(ProductImage);
-  private messageService = inject(MessageService);
 
   detailOptions = signal<ProductOptionDTO[]>([]);
   detailOptionsLoading = signal(false);
-  productImages = signal<ProductImageResponse[]>([]);
-  imagesLoading = signal(false);
-  selectedImageIndex = signal(0);
-  galleriaVisible = signal(false);
-  isUploadingImage = signal(false);
-  localUploadProgress = signal(0);
   currencyFormat = Intl.NumberFormat('es-Co', { style: 'currency', currency: 'COP' });
 
-  galleriaResponsiveOptions = [
-    { breakpoint: '1024px', numVisible: 5 },
-    { breakpoint: '768px', numVisible: 3 }
-  ];
+  cost = signal<ProductCostResponse | null>(null);
+  costLoading = signal(false);
+  costError = signal<string | null>(null);
 
   ngOnChanges(): void {
-    if (this.product && this.visible()) {
-      this.loadProductDetails();
+    if (!this.product || !this.visible()) {
+      this.cost.set(null);
+      this.costLoading.set(false);
+      this.costError.set(null);
+      return;
     }
+    this.loadProductDetails();
+    this.loadProductCost(this.product.id);
   }
 
   private loadProductDetails(): void {
     if (!this.product) return;
     this.detailOptionsLoading.set(true);
-    this.loadProductImages(this.product.id);
     this.productService.getOptions(this.product.id).pipe(
       catchError(() => of([] as ProductOptionDTO[]))
     ).subscribe(opts => {
@@ -89,18 +75,19 @@ export class ProductDetailDialog implements OnChanges {
     });
   }
 
-  loadProductImages(productId: number): void {
-    this.imagesLoading.set(true);
-    this.imageService.getImages(productId).pipe(
+  loadProductCost(productId: number): void {
+    if (!productId) { this.cost.set(null); return; }
+    this.costLoading.set(true);
+    this.costError.set(null);
+    this.productService.getCost(productId).pipe(
       catchError(err => {
-        this.logger.error('Error loading product images', err);
-        this.imagesLoading.set(false);
-        // On 404 (product deleted), return empty but mark as handled
-        return of([]);
+        this.logger.error('Error loading product cost', err);
+        this.costError.set('No se pudo calcular el costo de producción');
+        return of(null);
       })
-    ).subscribe(images => {
-      this.productImages.set(images);
-      this.imagesLoading.set(false);
+    ).subscribe(c => {
+      if (c) this.cost.set(c);
+      this.costLoading.set(false);
     });
   }
 
@@ -124,72 +111,5 @@ export class ProductDetailDialog implements OnChanges {
       map.set(o.optionCategoryName, arr);
     }
     return Array.from(map.entries()).map(([category, items]) => ({ category, items }));
-  }
-
-  openGalleria(index: number): void {
-    this.selectedImageIndex.set(index);
-    this.galleriaVisible.set(true);
-  }
-
-  closeGalleria(): void {
-    this.galleriaVisible.set(false);
-  }
-
-  getImageUrl(image: ProductImageResponse, type: 'mobile' | 'tablet' | 'desktop' = 'desktop'): string {
-    return type === 'mobile' ? image.mobileUrl : type === 'tablet' ? image.tabletUrl : image.desktopUrl;
-  }
-
-  onImageSelect(event: { files: File[] }): void {
-    const files: File[] = event.files;
-    if (files.length === 0 || !this.product) return;
-
-    this.isUploadingImage.set(true);
-    this.localUploadProgress.set(0);
-
-    this.imageService.uploadImage(this.product.id, files[0]).subscribe({
-      next: (result) => {
-        this.localUploadProgress.set(result.progress);
-        const image = result.image;
-        if (image != null) {
-          this.productImages.update(imgs => [...imgs, image]);
-        }
-      },
-      error: (err) => {
-        this.logger.error('Error uploading image', err);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error de carga',
-          detail: 'No se pudo subir la imagen'
-        });
-        this.isUploadingImage.set(false);
-      },
-      complete: () => {
-        this.isUploadingImage.set(false);
-        this.localUploadProgress.set(0);
-        // Reload to ensure UI shows complete data
-        if (this.product) {
-          this.loadProductImages(this.product.id);
-        }
-      }
-    });
-  }
-
-  confirmDeleteImage(event: Event, image: ProductImageResponse): void {
-    if (!this.product) return;
-    this.imageService.deleteImage(this.product.id, image.id).pipe(
-      catchError(err => {
-        this.logger.error('Error deleting image', err);
-        return of(false);
-      })
-    ).subscribe(result => {
-      if (result && this.product) {
-        this.loadProductImages(this.product.id);
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Imagen eliminada',
-          detail: 'La imagen fue eliminada correctamente'
-        });
-      }
-    });
   }
 }

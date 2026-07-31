@@ -1,8 +1,9 @@
-import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy, effect } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, effect, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, FormArray, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { of, EMPTY, forkJoin } from 'rxjs';
-import { catchError, switchMap, map } from 'rxjs/operators';
+import { of, EMPTY, forkJoin, merge } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
 
 import { Product } from '@app/core/services/products/product';
 import { MasterData } from '@app/core/services/master-data/master-data';
@@ -13,26 +14,24 @@ import { ProductOption } from '@app/core/services/product-option/product-option'
 import { WebSocket } from '@app/core/services/websocket/websocket';
 
 import { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
-import { ProductRecipeItem, ProductResponse } from '@app/shared/models/dto/products/product-response';
+import { ProductResponse } from '@app/shared/models/dto/products/product-response';
 import { ProductOption as ProductOptionDTO, ProductOptionResponse } from '@app/shared/models/dto/products/product-option';
 import { ProductOptionCreateRequest, RecipeItemRequest } from '@app/shared/models/dto/products/product-create-request';
 import { ProductImage } from '@app/core/services/product-image/product-image';
 import { ProductImageResponse } from '@app/shared/models/dto/products/product-image-response';
+import { ProductCostResponse } from '@app/shared/models/dto/products/product-cost-response';
 
 import { ButtonModule } from 'primeng/button';
 import { FileUploadModule } from 'primeng/fileupload';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ImageModule } from 'primeng/image';
-import { GalleriaModule } from 'primeng/galleria';
 import { ConfirmPopupModule } from 'primeng/confirmpopup';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
-import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TextareaModule } from 'primeng/textarea';
@@ -40,15 +39,16 @@ import { ToastModule } from 'primeng/toast';
 import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
 import { SkeletonModule } from 'primeng/skeleton';
+import { MessageModule } from 'primeng/message';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService, ConfirmationService } from 'primeng/api';
-import { CurrencyPipe } from '@angular/common';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
-import { ProductEditModal } from './componentes/product-edit-modal/product-edit-modal';
 import { NewOptionDialog } from './componentes/new-option-dialog/new-option-dialog';
+import { PrepTimeDialog, type PrepTimeEstimate } from './componentes/prep-time-dialog/prep-time-dialog';
 import { ProductDetailDialog } from './componentes/product-detail-dialog/product-detail-dialog';
 
 // Wizard steps: 1=basic data+image, 2=insumos, 3=options, 4=finalize
-type WizardStep = 1 | 2 | 3 | 4;
+type WizardStep = 1 | 2 | 3 | 4 | 5;
 
 interface OptionFormValue {
   id?: number | null;
@@ -58,6 +58,15 @@ interface OptionFormValue {
   isExisting?: boolean;
 }
 
+interface RecipeCostRow {
+  supplyVariantId: number | null;
+  supplyName: string;
+  unitLabel: string;
+  unitCost: number | null;
+  requiredQuantity: number;
+  partial: number;
+}
+
 @Component({
   selector: 'app-products',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -65,7 +74,6 @@ interface OptionFormValue {
     RouterModule,
     ReactiveFormsModule,
     FormsModule,
-    CurrencyPipe,
     TableModule,
     ButtonModule,
     IconFieldModule,
@@ -73,7 +81,6 @@ interface OptionFormValue {
     InputIconModule,
     TextareaModule,
     SelectModule,
-    MultiSelectModule,
     IftaLabelModule,
     DialogModule,
     InputNumberModule,
@@ -81,16 +88,16 @@ interface OptionFormValue {
     TagModule,
     DividerModule,
     SkeletonModule,
+    MessageModule,
+    TooltipModule,
     LazyLoad,
     TableSkeleton,
     FileUploadModule,
     ProgressBarModule,
     ImageModule,
-    GalleriaModule,
     ConfirmPopupModule,
-    ConfirmDialogModule,
-    ProductEditModal,
     NewOptionDialog,
+    PrepTimeDialog,
     ProductDetailDialog,
   ],
   templateUrl: './products.html',
@@ -116,27 +123,14 @@ export class Products implements OnInit {
   filterCategories = new FormControl<number[]>([], []);
   tableSearch = signal('');
 
-  // Thumbnails map (productId -> first image url)
-  productThumbnails = signal<Map<number, string>>(new Map());
-  thumbnailsLoading = signal(false);
-  private failedThumbnailProductIds = signal<Set<number>>(new Set());
-
   // Table data - computed from cache with override support
   private _productsOverride = signal<ProductResponse[] | undefined>(undefined);
   products = computed(() => this._productsOverride() ?? this.cache.products.data()?.content ?? undefined);
   totalPages = computed(() => this.cache.products.data()?.totalPages ?? 0);
   currentPage = signal(0);
-  pageSize = signal(20);
+  pageSize = signal(6);
   includeInactive = signal(false);
 
-  // Effect to load thumbnails when products are loaded
-  private readonly thumbnailsEffect = effect(() => {
-    const prods = this.products();
-    if (prods && prods.length > 0) {
-      this.ensureThumbnails();
-    }
-  });
-  
   // Reference data - computed from cache with override support
   private _allProductOptionsOverride = signal<ProductOptionResponse[] | undefined>(undefined);
   areas = computed(() => this.cache.referenceData.data()?.areas ?? []);
@@ -196,6 +190,23 @@ export class Products implements OnInit {
     return catId ? this.supplyVariantOptions().filter(v => v.categoryId === catId) : this.supplyVariantOptions();
   }
 
+  getExistingRecipeCategory(i: number): number | null {
+    const rowId = this.existingRecipeRowIds[i];
+    return this.existingRecipeCategoryMap.get(rowId) ?? null;
+  }
+
+  setExistingRecipeCategory(i: number, catId: number | null): void {
+    const rowId = this.existingRecipeRowIds[i];
+    this.existingRecipeCategoryMap.set(rowId, catId);
+    this.existingRecipe.at(i).get('supplyVariantId')?.setValue(null);
+  }
+
+  filteredVariantsForExistingRecipe(i: number): (SupplyVariantResponse & { displayName: string })[] {
+    const rowId = this.existingRecipeRowIds[i];
+    const catId = this.existingRecipeCategoryMap.get(rowId) ?? null;
+    return catId ? this.supplyVariantOptions().filter(v => v.categoryId === catId) : this.supplyVariantOptions();
+  }
+
   // Modal state
   modalIsOpen = signal(false);
   modalMode = signal<'create' | 'edit'>('create');
@@ -203,48 +214,122 @@ export class Products implements OnInit {
   isSubmitting = signal(false);
   createdProduct = signal<ProductResponse | null>(null);
   existingOptions = signal<ProductOptionDTO[]>([]);
-  existingRecipe = signal<ProductRecipeItem[]>([]);
+  existingRecipe: FormArray = this.fb.array([]);
+  private existingRecipeCategoryMap = new Map<number, number | null>();
+  private existingRecipeRowIds: number[] = [];
+  private nextExistingRecipeRowId = 1;
 
   // Detail dialog
   detailDialogOpen = signal(false);
   detailProduct = signal<ProductResponse | null>(null);
-  detailOptions = signal<ProductOptionDTO[]>([]);
-  detailOptionsLoading = signal(false);
-
-  // Image gallery state
-  productImages = signal<ProductImageResponse[]>([]);
-  imagesLoading = signal(false);
-  selectedImageIndex = signal(0);
-  galleriaVisible = signal(false);
 
   // Wizard images state
   wizardProductImages = signal<ProductImageResponse[]>([]);
   wizardImagesLoading = signal(false);
 
+  // Cost panel state
+  cost = signal<ProductCostResponse | null>(null);
+  costLoading = signal(false);
+  costError = signal<string | null>(null);
+
+  // Sale price (set in step 4 after seeing production cost)
+  salePrice = signal<number>(0);
+
+  // Prep time estimation dialog (step 1)
+  prepTimeDialogOpen = signal(false);
+  prepTimeEstimate = signal<PrepTimeEstimate | null>(null);
+
+  // When editing, seed the dialog from the stored single estimate so the
+  // admin can split it across the three scenarios.
+  prepTimeInitialEstimate = computed<PrepTimeEstimate | null>(() => {
+    const stored = this.prepTimeEstimate();
+    if (stored) return stored;
+    const current = this.baseForm.get('estimatedPrepMinutes')?.value as number | null;
+    if (current == null) return null;
+    return { calmMinutes: current, peakMinutes: current, interruptionMinutes: current, estimatedPrepMinutes: current };
+  });
+
   // Upload state
-  localUploadProgress = signal(0);
   isUploadingImage = signal(false);
-
-  // Edit modal state
-  editModalVisible = signal(false);
-  editingProductId = signal<number | null>(null);
-
-  // Galleria responsive options
-  galleriaResponsiveOptions = [
-    { breakpoint: '1024px', numVisible: 5 },
-    { breakpoint: '768px', numVisible: 3 }
-  ];
 
   // ── Step 1: product base + base recipe ──────────────────────────
   baseForm: FormGroup = this.fb.group({
     id: [null],
     name: ['', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.minLength(2)(control)]],
-    basePrice: [null, [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.min(0)(control)]],
+    description: [''],
+    estimatedPrepMinutes: [null, (control: AbstractControl) => Validators.min(0)(control)],
     categoryId: [null, (control: AbstractControl) => Validators.required(control)],
     areaId: [null, (control: AbstractControl) => Validators.required(control)],
   });
 
   baseRecipe: FormArray = this.fb.array([]);
+
+  private destroyRef = inject(DestroyRef);
+
+  recipeCost = signal(0);
+  recipeBreakdown = signal<RecipeCostRow[]>([]);
+
+  private readonly variantsEffect = effect(() => {
+    this.supplyVariantOptions();
+    this.updateRecipeCost();
+  });
+
+  private recipeCostSub = merge(
+    this.existingRecipe.valueChanges,
+    this.baseRecipe.valueChanges,
+  ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => { this.updateRecipeCost(); });
+
+  findVariantById(id: number | null): (SupplyVariantResponse & { displayName: string }) | undefined {
+    if (id == null) return undefined;
+    return this.supplyVariantOptions().find(v => v.id === id);
+  }
+
+  private updateRecipeCost(): void {
+    const variants = this.supplyVariantOptions();
+    const variantById = new Map(variants.map(v => [v.id, v]));
+
+    const rows: RecipeCostRow[] = [];
+    const merged = new Map<number, number>();
+
+    const collect = (groups: FormArray): void => {
+      for (const group of groups.controls) {
+        const v = group.value as { supplyVariantId: number | null; requiredQuantity: number | null };
+        const variant = v.supplyVariantId != null ? variantById.get(v.supplyVariantId) : undefined;
+        const qty = v.requiredQuantity ?? 0;
+        rows.push({
+          supplyVariantId: v.supplyVariantId,
+          supplyName: variant?.supplyName ?? 'Insumo desconocido',
+          unitLabel: variant ? `${String(variant.quantity)} ${variant.unitAbbreviation}` : '—',
+          unitCost: variant?.unitCost ?? null,
+          requiredQuantity: qty,
+          partial: variant?.unitCost != null && qty > 0 ? variant.unitCost * qty : 0,
+        });
+        if (v.supplyVariantId != null && qty > 0) {
+          merged.set(v.supplyVariantId, qty);
+        }
+      }
+    };
+
+    collect(this.existingRecipe);
+    collect(this.baseRecipe);
+
+    let total = 0;
+    for (const [variantId, qty] of merged) {
+      const variant = variantById.get(variantId);
+      if (variant?.unitCost != null) {
+        total += variant.unitCost * qty;
+      }
+    }
+
+    this.recipeBreakdown.set(rows);
+    this.recipeCost.set(total);
+  }
+
+  suggestedSalePrice = computed(() => {
+    const c = this.cost();
+    if (!c) return 0;
+    return Math.round(c.totalCost * 1.3);
+  });
 
   // ── Step 2: product options, each with its own recipe ───────────
   optionsArray: FormArray = this.fb.array([]);
@@ -265,14 +350,14 @@ export class Products implements OnInit {
 
   loadPage(page: number): void {
     this.currentPage.set(page);
-    this.cache.products.refresh();
+    this.cache.setProductListParams({ page });
   }
 
   onPage(event: { first: number; rows: number }): void {
     const page = Math.floor(event.first / event.rows);
     this.currentPage.set(page);
     this.pageSize.set(event.rows);
-    this.cache.products.refresh();
+    this.cache.setProductListParams({ page, size: event.rows });
   }
 
   onVisible(): void {
@@ -295,14 +380,19 @@ export class Products implements OnInit {
   showCreationModal(): void {
     this.cache.referenceData.loadIfStale();
     this.baseForm.reset();
+    this.prepTimeEstimate.set(null);
     this.baseRecipe.clear();
     this.optionsArray.clear();
     this.createdProduct.set(null);
     this.existingOptions.set([]);
-    this.existingRecipe.set([]);
+    this.existingRecipe.clear();
+    this.existingRecipeCategoryMap.clear();
+    this.existingRecipeRowIds = [];
+    this.nextExistingRecipeRowId = 1;
     this.selectedOptionIds.set([]);
     this.baseRecipeCategoryMap.clear();
     this.optionRecipeCategoryMap.clear();
+    this.salePrice.set(0);
     this.currentStep.set(1);
     this.modalMode.set('create');
     this.wizardProductImages.set([]);
@@ -310,13 +400,21 @@ export class Products implements OnInit {
   }
 
   showModificationModal(id: number): void {
+    this.cost.set(null);
+    this.costLoading.set(false);
+    this.costError.set(null);
+    this.salePrice.set(0);
+    this.prepTimeEstimate.set(null);
     this.cache.referenceData.loadIfStale();
     this.baseForm.reset();
     this.baseRecipe.clear();
     this.optionsArray.clear();
     this.createdProduct.set(null);
     this.existingOptions.set([]);
-    this.existingRecipe.set([]);
+    this.existingRecipe.clear();
+    this.existingRecipeCategoryMap.clear();
+    this.existingRecipeRowIds = [];
+    this.nextExistingRecipeRowId = 1;
     this.selectedOptionIds.set([]);
     this.baseRecipeCategoryMap.clear();
     this.optionRecipeCategoryMap.clear();
@@ -324,16 +422,28 @@ export class Products implements OnInit {
     this.modalMode.set('edit');
     this.productService.findProduct(id).pipe(
       switchMap(p => {
+        this.salePrice.set(p.basePrice);
         this.baseForm.patchValue({
-          id: p.id, name: p.name, basePrice: p.basePrice,
+          id: p.id, name: p.name, description: p.description ?? '',
+          estimatedPrepMinutes: p.estimatedPrepMinutes ?? null,
           categoryId: p.categoryId, areaId: p.areaId,
         });
-        this.existingRecipe.set(p.recipe);
+        for (const item of p.recipe) {
+          const rowId = this.nextExistingRecipeRowId++;
+          this.existingRecipeRowIds.push(rowId);
+          this.existingRecipe.push(this.fb.group({
+            supplyVariantId: [item.supplyVariantId, (control: AbstractControl) => Validators.required(control)],
+            requiredQuantity: [item.requiredQuantity, [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.min(0.001)(control)]],
+          }));
+          const variant = this.supplyVariantOptions().find(v => v.id === item.supplyVariantId);
+          this.existingRecipeCategoryMap.set(rowId, variant ? variant.categoryId : null);
+        }
         this.baseRecipe.clear();
         this.baseRecipeCategoryMap.clear();
         this.createdProduct.set(p);
         if (p.id) {
           this.loadWizardProductImages(p.id);
+          this.loadProductCost(p.id);
         }
         return this.masterDataService.getProductOptions(p.id).pipe(
           catchError(() => of([]))
@@ -351,6 +461,17 @@ export class Products implements OnInit {
     this.wizardProductImages.set([]);
   }
 
+  // ── Prep time estimation dialog ──────────────────────────────────
+
+  openPrepTimeDialog(): void {
+    this.prepTimeDialogOpen.set(true);
+  }
+
+  applyPrepTime(estimate: PrepTimeEstimate): void {
+    this.prepTimeEstimate.set(estimate);
+    this.baseForm.patchValue({ estimatedPrepMinutes: estimate.estimatedPrepMinutes });
+  }
+
   // ── Base recipe rows ─────────────────────────────────────────────
 
   addBaseRecipeItem(): void {
@@ -362,13 +483,11 @@ export class Products implements OnInit {
 
   removeBaseRecipeItem(i: number): void { this.baseRecipe.removeAt(i); }
 
-  removeExistingRecipeItem(variantId: number): void {
-    this.existingRecipe.update(items => items.filter(item => item.supplyVariantId !== variantId));
-  }
-
-  /** Nombre para mostrar de un insumo existente dado su supplyVariantId */
-  getVariantDisplayName(variantId: number): string {
-    return this.supplyVariantOptions().find(v => v.id === variantId)?.displayName ?? `Insumo #${String(variantId)}`;
+  removeExistingRecipeItem(i: number): void {
+    const rowId = this.existingRecipeRowIds[i];
+    this.existingRecipeCategoryMap.delete(rowId);
+    this.existingRecipeRowIds.splice(i, 1);
+    this.existingRecipe.removeAt(i);
   }
 
   // ── Option rows ──────────────────────────────────────────────────
@@ -542,7 +661,6 @@ export class Products implements OnInit {
     const v = this.baseForm.value as {
       id?: number | null;
       name: string;
-      basePrice: number;
       categoryId: number;
       areaId: number;
     };
@@ -553,7 +671,7 @@ export class Products implements OnInit {
       // Create product first before proceeding to step 2 (insumos)
       this.productService.createProduct({
         name: v.name,
-        basePrice: v.basePrice,
+        basePrice: this.salePrice(),
         categoryId: v.categoryId,
         areaId: v.areaId,
         recipe: [],
@@ -589,12 +707,23 @@ export class Products implements OnInit {
     this.currentStep.set(3);
   }
 
-  backToStep2(): void {
+  goToStep1(): void {
+    this.currentStep.set(1);
+  }
+
+  goToStep2(): void {
     this.currentStep.set(2);
   }
 
-  backToStep3(): void {
+  goToStep3(): void {
     this.currentStep.set(3);
+  }
+
+  goToStep4(): void {
+    if (this.salePrice() === 0 && this.cost()) {
+      this.salePrice.set(this.suggestedSalePrice());
+    }
+    this.currentStep.set(4);
   }
 
   submitStep3(): void {
@@ -660,33 +789,64 @@ export class Products implements OnInit {
         const v = this.baseForm.value as {
           id?: number | null;
           name: string;
-          basePrice: number;
           categoryId: number;
           areaId: number;
+          description: string;
+          estimatedPrepMinutes: number | null;
         };
-        const existing = this.existingRecipe();
-        const baseItems = this.baseRecipe.value as RecipeItemRequest[];
-        const recipeItems: RecipeItemRequest[] = [];
-        Object.assign(recipeItems, existing);
-        Object.assign(recipeItems, baseItems);
+        const merged = new Map<number, RecipeItemRequest>();
+        for (const r of this.existingRecipe.value as RecipeItemRequest[]) {
+          merged.set(r.supplyVariantId, r);
+        }
+        for (const r of this.baseRecipe.value as RecipeItemRequest[]) {
+          merged.set(r.supplyVariantId, r);
+        }
+        const recipeItems = Array.from(merged.values());
 
         const productId = this.createdProduct()?.id ?? 0;
         return this.productService.updateProduct(productId, {
-          id: productId,
           name: v.name,
-          basePrice: v.basePrice,
+          description: v.description || undefined,
+          basePrice: this.salePrice(),
           categoryId: v.categoryId,
           areaId: v.areaId,
+          estimatedPrepMinutes: v.estimatedPrepMinutes ?? undefined,
           recipe: recipeItems,
           optionIds: allOptionIds,
         }).pipe(
-          switchMap(() => this.productService.findProduct(productId))
+          catchError(err => {
+            this.logger.error('Error saving product with options', err);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'No se pudo guardar el producto con sus opciones'
+            });
+            this.isSubmitting.set(false);
+            return EMPTY;
+          }),
+          switchMap(() => this.productService.findProduct(productId).pipe(
+            catchError(err => {
+              this.logger.error('Could not refetch updated product', err);
+              this.messageService.add({
+                severity: 'warn',
+                summary: 'Guardado con observaciones',
+                detail: 'Los cambios se guardaron, pero no se pudo recargar el detalle. Recarga la página si ves datos desactualizados.'
+              });
+              return of(null);
+            }),
+          )),
+          switchMap((product: ProductResponse | null) => {
+            if (!product) {
+              this.isSubmitting.set(false);
+              this.wsService.emitCacheInvalidation('products', 'update');
+              this.refreshProducts();
+              this.currentStep.set(4);
+              return of(null);
+            }
+            this.createdProduct.set(product);
+            return this.masterDataService.getProductOptions(product.id);
+          }),
         );
-      }),
-      switchMap((product: ProductResponse) => {
-        this.createdProduct.set(product);
-        // Load the associated options for display in step 4
-        return this.masterDataService.getProductOptions(product.id);
       }),
       catchError(err => {
         this.logger.error('Error saving product with options', err);
@@ -699,11 +859,57 @@ export class Products implements OnInit {
         return EMPTY;
       })
     ).subscribe(savedOptions => {
+      if (savedOptions === null) return;
       this.existingOptions.set(savedOptions);
       this.isSubmitting.set(false);
-      this.refreshProducts();
       this.wsService.emitCacheInvalidation('products', 'update');
+      this.refreshProducts();
       this.currentStep.set(4);
+      this.loadProductCost(this.createdProduct()?.id ?? 0);
+    });
+  }
+
+  confirmPrice(): void {
+    if (this.salePrice() <= 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Precio inválido',
+        detail: 'Debes definir un precio de venta válido'
+      });
+      return;
+    }
+    const saved = this.createdProduct();
+    if (!saved) return;
+    const v = this.baseForm.value as { name: string; description: string | null; categoryId: number; areaId: number; estimatedPrepMinutes: number | null };
+    const merged = new Map<number, RecipeItemRequest>();
+    for (const r of this.existingRecipe.value as RecipeItemRequest[]) {
+      merged.set(r.supplyVariantId, r);
+    }
+    for (const r of this.baseRecipe.value as RecipeItemRequest[]) {
+      merged.set(r.supplyVariantId, r);
+    }
+    this.productService.updateProduct(saved.id, {
+      name: v.name,
+      description: v.description ?? undefined,
+      basePrice: this.salePrice(),
+      categoryId: v.categoryId,
+      areaId: v.areaId,
+      estimatedPrepMinutes: v.estimatedPrepMinutes ?? undefined,
+      recipe: Array.from(merged.values()),
+      optionIds: this.selectedOptionIds(),
+    }).subscribe({
+      next: () => {
+        this.wsService.emitCacheInvalidation('products', 'update');
+        this.refreshProducts();
+        this.currentStep.set(5);
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo guardar el precio de venta'
+        });
+      }
     });
   }
 
@@ -719,21 +925,7 @@ export class Products implements OnInit {
   }
 
   private refreshProducts(): void {
-    this.failedThumbnailProductIds.set(new Set());
     this.cache.products.refresh();
-  }
-
-  loadProductImages(productId: number): void {
-    this.imagesLoading.set(true);
-    this.imageService.getImages(productId).pipe(
-      catchError(err => {
-        this.logger.error('Error loading product images', err);
-        return of([]);
-      })
-    ).subscribe(images => {
-      this.productImages.set(images);
-      this.imagesLoading.set(false);
-    });
   }
 
   loadWizardProductImages(productId: number): void {
@@ -746,55 +938,25 @@ export class Products implements OnInit {
     });
   }
 
-  loadProductThumbnails(productIds: number[]): void {
-    if (productIds.length === 0) return;
-
-    // Filter out IDs we've already tried and failed for
-    const failedIds = this.failedThumbnailProductIds();
-    const idsToLoad = productIds.filter(id => !failedIds.has(id));
-    if (idsToLoad.length === 0) return;
-
-    this.thumbnailsLoading.set(true);
-
-    forkJoin(
-      idsToLoad.map(id =>
-        this.imageService.getImages(id).pipe(
-          map(images => ({ productId: id, thumbnail: images[0]?.desktopUrl ?? null })),
-          catchError(() => of({ productId: id, thumbnail: null }))
-        )
-      )
-    ).subscribe(results => {
-      const map = new Map<number, string>();
-      results.forEach(r => {
-        if (r.thumbnail) {
-          map.set(r.productId, r.thumbnail);
+  loadProductCost(productId: number): void {
+    if (!productId) { this.cost.set(null); return; }
+    this.costLoading.set(true);
+    this.costError.set(null);
+    this.productService.getCost(productId).pipe(
+      catchError(err => {
+        this.logger.error('Error loading product cost', err);
+        this.costError.set('No se pudo calcular el costo de producción');
+        return of(null);
+      })
+    ).subscribe(c => {
+      if (c) {
+        this.cost.set(c);
+        if (this.salePrice() === 0) {
+          this.salePrice.set(this.suggestedSalePrice());
         }
-      });
-      this.productThumbnails.set(map);
-      this.thumbnailsLoading.set(false);
-
-      // If ALL thumbnails are null (map is empty), mark these IDs as permanently failed
-      if (map.size === 0) {
-        const newFailed = new Set(failedIds);
-        results.forEach(r => newFailed.add(r.productId));
-        this.failedThumbnailProductIds.set(newFailed);
       }
+      this.costLoading.set(false);
     });
-  }
-
-  getThumbnailUrl(productId: number): string | null {
-    return this.productThumbnails().get(productId) ?? null;
-  }
-
-  private ensureThumbnails(): void {
-    const products = this.products();
-    if (!products || products.length === 0) return;
-
-    const currentThumbs = this.productThumbnails();
-    if (currentThumbs.size === 0 && !this.thumbnailsLoading()) {
-      const ids = products.map(p => p.id);
-      this.loadProductThumbnails(ids);
-    }
   }
 
   onWizardImageSelect(event: { files: File[] }): void {
@@ -823,7 +985,7 @@ export class Products implements OnInit {
   deleteWizardImage(image: ProductImageResponse): void {
     const productId = this.createdProduct()?.id;
     if (!productId) return;
-    this.imageService.deleteImage(productId, image.id).pipe(
+    this.imageService.deleteImage(image.id).pipe(
       catchError(() => of(false))
     ).subscribe(result => {
       if (result) {
@@ -835,95 +997,16 @@ export class Products implements OnInit {
 
   showDetailDialog(product: ProductResponse): void {
     this.detailProduct.set(product);
-    this.detailOptions.set([]);
     this.detailDialogOpen.set(true);
-    this.detailOptionsLoading.set(true);
-    this.loadProductImages(product.id);
-    this.productService.getOptions(product.id).pipe(
-      catchError(() => of([] as ProductOptionDTO[]))
-    ).subscribe(opts => {
-      this.detailOptions.set(opts);
-      this.detailOptionsLoading.set(false);
-    });
   }
 
   closeDetailDialog(): void {
     this.detailDialogOpen.set(false);
     this.detailProduct.set(null);
-    this.detailOptions.set([]);
-    this.productImages.set([]);
-  }
-
-  // ── Image gallery methods ───────────────────────────────────────
-
-  openGalleria(index: number): void {
-    this.selectedImageIndex.set(index);
-    this.galleriaVisible.set(true);
-  }
-
-  closeGalleria(): void {
-    this.galleriaVisible.set(false);
   }
 
   getImageUrl(image: ProductImageResponse, type: 'mobile' | 'tablet' | 'desktop' = 'desktop'): string {
     return type === 'mobile' ? image.mobileUrl : type === 'tablet' ? image.tabletUrl : image.desktopUrl;
-  }
-
-  onImageSelect(event: { files: File[] }): void {
-    const files: File[] = event.files;
-    if (files.length === 0) return;
-
-    const productId = this.detailProduct()?.id;
-    if (!productId) return;
-
-    this.isUploadingImage.set(true);
-    this.localUploadProgress.set(0);
-
-    this.imageService.uploadImage(productId, files[0]).subscribe({
-      next: (result) => {
-        this.localUploadProgress.set(result.progress);
-        const image = result.image;
-        if (image != null) {
-          this.productImages.update(imgs => [...imgs, image]);
-        }
-      },
-      error: (err) => {
-        this.logger.error('Error uploading image', err);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error de carga',
-          detail: 'No se pudo subir la imagen'
-        });
-        this.isUploadingImage.set(false);
-      },
-      complete: () => {
-        this.isUploadingImage.set(false);
-        this.localUploadProgress.set(0);
-        // Reload to ensure UI shows complete image data
-        this.loadProductImages(productId);
-      }
-    });
-  }
-
-  confirmDeleteImage(event: Event, image: ProductImageResponse): void {
-    const productId = this.detailProduct()?.id;
-    if (!productId) return;
-    this.imageService.deleteImage(productId, image.id).pipe(
-      catchError(err => {
-        this.logger.error('Error deleting image', err);
-        return of(false);
-      })
-    ).subscribe(result => {
-      if (result) {
-        // Reload to ensure UI matches server state after delete
-        this.loadProductImages(productId);
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Imagen eliminada',
-          detail: 'La imagen fue eliminada correctamente'
-        });
-      }
-    });
   }
 
   confirmDeleteProduct(event: Event, product: ProductResponse): void {
@@ -943,8 +1026,8 @@ export class Products implements OnInit {
   private disableProduct(productId: number): void {
     this.productService.disableProduct(productId).pipe(
       switchMap(() => {
-        this.refreshProducts();
         this.wsService.emitCacheInvalidation('products', 'delete');
+        this.refreshProducts();
         return of(null);
       }),
       catchError(err => {
@@ -963,16 +1046,6 @@ export class Products implements OnInit {
         detail: 'El producto fue eliminado correctamente'
       });
     });
-  }
-
-  groupByCategory(options: ProductOptionDTO[]): { category: string; items: ProductOptionDTO[] }[] {
-    const map = new Map<string, ProductOptionDTO[]>();
-    for (const o of options) {
-      const arr = map.get(o.optionCategoryName) ?? [];
-      arr.push(o);
-      map.set(o.optionCategoryName, arr);
-    }
-    return Array.from(map.entries()).map(([category, items]) => ({ category, items }));
   }
 
   // ── Nueva opción de producto (dialog independiente) ──────────────
@@ -1048,13 +1121,6 @@ export class Products implements OnInit {
       this.newOptionDialogOpen.set(false);
       this.messageService.add({ severity: 'success', summary: 'Opción creada', detail: `"${name}" agregada correctamente` });
     });
-  }
-
-  // ── Edit modal methods ─────────────────────────────────────────
-
-  openEditModal(productId: number): void {
-    this.editingProductId.set(productId);
-    this.editModalVisible.set(true);
   }
 
   onProductUpdated(): void {

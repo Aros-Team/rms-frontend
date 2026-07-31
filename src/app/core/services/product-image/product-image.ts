@@ -66,7 +66,7 @@ export class ProductImage {
     return this.http.get<ProductImageResponse[]>(`v1/products/${String(productId)}/images`);
   }
 
-  deleteImage(productId: number, imageId: number): Observable<unknown> {
-    return this.http.delete<unknown>(`v1/products/${String(productId)}/images/${String(imageId)}`);
+  deleteImage(imageId: number): Observable<unknown> {
+    return this.http.delete<unknown>(`v1/images/${String(imageId)}`);
   }
 }

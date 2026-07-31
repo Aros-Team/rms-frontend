@@ -11,6 +11,4 @@ export interface ProductListResponse {
   areaId: number;
   thumbnailUrl?: string;
   selectionType?: SelectionType;
-  baseRecipeEnabled?: boolean;
-  schedulingRequired?: boolean;
 }

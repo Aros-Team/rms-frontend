@@ -5,6 +5,7 @@ import { ProductResponse } from '@app/shared/models/dto/products/product-respons
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
 import { ProductUpdateRequest } from '@app/shared/models/dto/products/product-update-request';
 import { ProductOption } from '@app/shared/models/dto/products/product-option';
+import { ProductCostResponse } from '@app/shared/models/dto/products/product-cost-response';
 import { Observable, catchError, map, of } from 'rxjs';
 
 export interface PaginatedProductsResponse {
@@ -90,6 +91,10 @@ export class Product {
 
   public findProduct(id: number): Observable<ProductResponse> {
     return this.http.get<ProductResponse>('v1/products/' + String(id));
+  }
+
+  public getCost(productId: number): Observable<ProductCostResponse> {
+    return this.http.get<ProductCostResponse>('v1/products/' + String(productId) + '/cost');
   }
 
   public disableProduct(id: number): Observable<object> {

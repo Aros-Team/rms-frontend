@@ -133,7 +133,7 @@
     "id": 4,
     "type": "chore",
     "name": "fix-inline-components",
-    "status": "in_progress",
+    "status": "done",
     "title": "Migrar componentes inline a archivos separados",
     "description": "1 componente usa template: inline en vez de templateUrl:, y 7 componentes tienen styles: vacío en vez de styleUrl:. Deben crearse los archivos .html y .css faltantes.",
     "acceptance": [
@@ -154,8 +154,7 @@
         "status": "done",
         "agent": "implementer"
       }
-    ],
-    "status": "done"
+    ]
   },
   {
     "id": 5,
@@ -362,7 +361,8 @@
         "agent": "implementer"
       },
       {
-        "id": "d", "description": "Encima de la tabla de detalle, cuando hay selectedQuadrant, mostrar un chip con el icono+label del cuadrante activo y un bot\u00f3n 'Limpiar' que llama a clearQuadrantFilter().",
+        "id": "d",
+        "description": "Encima de la tabla de detalle, cuando hay selectedQuadrant, mostrar un chip con el icono+label del cuadrante activo y un botón 'Limpiar' que llama a clearQuadrantFilter().",
         "status": "done",
         "agent": "implementer"
       },
@@ -381,6 +381,157 @@
       {
         "id": "g",
         "description": "Actualizar/añadir tests en menu-engineering.spec.ts: nuevos labels (reemplazar Estrella/Caballo/Rompecabezas/Perro), click filtra items, doble click limpia, columnas precio/margen computan correctamente, división por 0 no rompe.",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 10,
+    "type": "feat",
+    "name": "product-deep-edit",
+    "title": "Edición profunda de productos: receta + costo + opciones",
+    "description": "Desde la tabla de productos en admin, el lápiz debe abrir un wizard de edición profunda que permita: editar la receta en su lugar (no solo borrar/añadir), ver el cálculo de costo de producción (material + mano de obra + desglose), y gestionar las opciones asociadas al producto. Eliminar el ProductEditModal pequeño (que enviaba recipe:[] y optionIds:[] en save, perdiendo datos). Backend ya soporta GET /v1/products/{id}/cost y ProductRequest incluye description + estimatedPrepMinutes.",
+    "acceptance": [
+      "Existen DTOs ProductCostResponse y CostItem en shared/models/dto/products/ que coinciden con el schema del backend (productId, totalCost, materialCost, laborCost, breakdown[].{description, amount, type})",
+      "El servicio Product expone getCost(id) que llama GET /v1/products/{id}/cost",
+      "El botón de lápiz de la tabla y el botón Editar del ProductDetailDialog abren showModificationModal(id) en lugar del modal pequeño",
+      "openEditModal() ya no existe (eliminado)",
+      "En el wizard paso 2 (Insumos), las filas existentes muestran input de cantidad editable y selector de insumo editable (no solo texto + botón borrar). Cambiar cantidad o insumo actualiza existingRecipe[] al hacer clic en Siguiente",
+      "En el wizard paso 1 hay campo descripción (textarea) y estimatedPrepMinutes (inputnumérico). Se envían en submitStep3",
+      "submitStep3 envía el ProductRequest completo: name, description, basePrice, categoryId, areaId, recipe, optionIds, estimatedPrepMinutes. NO envía recipe:[] ni optionIds:[] vacíos",
+      "El wizard tiene un panel/sección de costo de producción que llama Product.getCost(id) tras guardar la receta y muestra: Costo materiales, Costo mano de obra, Costo total (en COP) y la lista breakdown con type MATERIAL/LABOR",
+      "El componente ProductEditModal y su carpeta componentes/product-edit-modal/ están eliminados. products.ts/products.html ya no lo importan ni lo renderizan",
+      "Harness pasa verde (lint, build, tests). Especs cubren: DTOs del costo, getCost, edición de receta existente, panel de costo"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Crear shared/models/dto/products/product-cost-response.ts con ProductCostResponse (productId, totalCost, materialCost, laborCost, breakdown) y CostItem (description, amount, type: 'MATERIAL'|'LABOR'). Agregar getCost(id): Observable<ProductCostResponse> en core/services/products/product.ts que llama GET v1/products/{id}/cost",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "En products.html cambiar los (click)='openEditModal(...)' del lápiz de la tabla y del botón Editar del ProductDetailDialog por showModificationModal(product.id). Eliminar el método openEditModal() de products.ts y sus event handlers asociados",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Convertir las filas existentes del paso 2 (existingRecipe) en inputs editables: p-inputnumber para requiredQuantity y p-select para supplyVariantId (con filtrado por categoría como las nuevas). Agregar un signal existenteRecipe (FormArray) o un mecanismo que sincronice cambios en el HTML con existingRecipe para que submitStep3 los recoja. Mantener el botón de borrar fila",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Agregar campos 'description' (textarea, p-textarea) y 'estimatedPrepMinutes' (p-inputnumber) al baseForm en products.ts y renderizarlos en el paso 1 del wizard (products.html). En submitStep3 enviar ambos campos en el ProductRequest (junto con recipe, optionIds, name, basePrice, categoryId, areaId)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Agregar un panel de costo en el wizard (paso 2 o paso 4): tras guardar la receta exitosamente en submitStep3, llamar a Product.getCost(createdProduct.id) y mostrar totalCost, materialCost, laborCost formateados como COP, más la lista breakdown con icono/badge según type (MATERIAL/LABOR). Manejar loading y error",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Eliminar el componente ProductEditModal: borrar src/app/areas/admin/features/manage/features/products/componentes/product-edit-modal/ (archivos .ts y .html). Quitar el import en products.ts:92 y la referencia <app-product-edit-modal> en products.html (junto con sus bindings @Output productUpdated). Confirmar que el detail dialog ya no tiene un botón Editar que invoque el modal",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Actualizar/añadir tests: spec para los DTOs nuevos (product-cost-response.spec.ts), spec para Product.getCost, spec para la edición de receta existente en el wizard, spec para el panel de costo. Eliminar cualquier spec que dependa de ProductEditModal. Correr node scripts/harness.js y verificar que lint, build y tests pasan en verde",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 11,
+    "type": "chore",
+    "name": "product-deep-edit-followups",
+    "title": "Limpiezas LOW post product-deep-edit",
+    "description": "Aplica los 5 follow-ups LOW del review de activity 10 (excluyendo thumbnailUrl, que es un bug pre-existente distinto).",
+    "acceptance": [
+      "loadProductCost rastrea productId solicitado y solo aplica la respuesta si coincide (evita race condition al cambiar de producto)",
+      "showModificationModal resetea cost, costLoading, costError al inicio (evita mostrar datos del producto anterior mientras llega el nuevo)",
+      "submitStep3 distingue errores: si updateProduct tuvo exito pero findProduct falla, muestra mensaje distinto (no \"No se pudo guardar el producto\")",
+      "ProductUpdateRequest ya no tiene id, selectionType?, baseRecipeEnabled?, schedulingRequired?",
+      "ProductCreateRequest ya no tiene selectionType?, baseRecipeEnabled?, schedulingRequired?",
+      "ProductListResponse y ProductResponse ya no tienen baseRecipeEnabled? ni schedulingRequired? (selectionType se queda, lo retorna el backend)",
+      "products.ts no importa MultiSelectModule, ConfirmDialogModule, GalleriaModule si no se usan en el template",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Guard contra race en loadProductCost + reset de cost/costLoading/costError al abrir showModificationModal",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Mensaje de error distinguido en submitStep3: si updateProduct tuvo exito pero findProduct falla, mostrar mensaje separado. Renombrar el catchError exterior para que aplique solo a updateProduct",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Quitar dead fields: ProductUpdateRequest pierde id, selectionType?, baseRecipeEnabled?, schedulingRequired?. ProductCreateRequest, ProductListResponse, ProductResponse pierden baseRecipeEnabled? y schedulingRequired? (NO selectionType porque backend lo retorna). En products.ts submitStep3 ya no enviar id en el body. Verificar que ningun test/spec/mock usa estos campos en product DTOs (SpecialSelectionRequest/Response no se tocan)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Quitar imports no usados en products.ts: MultiSelectModule, ConfirmDialogModule, GalleriaModule. Verificar con grep en products.html que no existen p-multiselect, p-confirmDialog, p-galleria. Si existen, dejarlos. Si no, remover del array imports",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 12,
+    "type": "fix",
+    "name": "product-deep-edit-polish",
+    "title": "Pulir UX de edición profunda de productos",
+    "description": "6 correcciones UX reportadas tras probar activity 10/11.",
+    "acceptance": [
+      "Botón Atrás del wizard: step 2 Atrás → step 1; step 3 Atrás → step 2 (funciones renombradas y bindings actualizados)",
+      "existingRecipeCategoryMap se puebla con la categoria de cada variante al cargar producto en showModificationModal (los ingredientes existentes muestran su categoria real en el filtro, no Todas)",
+      "step 4 muestra la descripción del producto bajo la tarjeta de resumen (cuando no está vacia)",
+      "step 4 reordenado: tarjeta de Costo de producción aparece ANTES de la fila Precio base",
+      "ProductDetailDialog (eye) muestra panel de costo de producción llamando Product.getCost, igual al wizard",
+      "Step 2 muestra costo material estimado mientras se edita (computed desde existingRecipe + baseRecipe × unitCost de supplyVariantOptions). Se distingue visualmente del oficial y se actualiza al cambiar cantidad, variante o agregar/quitar filas",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Bundle wizard polish: (1) fix back button (renombrar backToStep2→goToStep1 que setea 1; backToStep3→goToStep2 que setea 2; actualizar bindings en html). (2) Poblar existingRecipeCategoryMap al cargar: en showModificationModal por cada item de p.recipe, encontrar supplyVariantOptions().find(v=>v.id===item.supplyVariantId)?.categoryId y setear en existingRecipeCategoryMap con la row id. (3) Step 4 muestra descripción (no vacía + Sin descripción). (4) Step 4 reordena: mover la tarjeta de Costo de producción ANTES de la fila Precio base",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "ProductDetailDialog: agregar panel de costo de producción usando Product.getCost. Mostrar material/labor/total + breakdown igual al wizard. Cargar al abrir el dialog (ngOnChanges ya dispara loadProductDetails). Añadir signal cost/costLoading/costError + método loadProductCost similar al wizard",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Costo material estimado en vivo: agregar computed estimatedMaterialCost que suma requiredQuantity × supplyVariant.unitCost sobre existingRecipe.value + baseRecipe.value (con dedupe por supplyVariantId). Renderizar en el panel de costo del paso 2 con estilo italic/diferenciado. Actualización automática al cambiar filas",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Correr node scripts/harness.js. Lint, build, tests y DESIGN.md en verde. Cualquier test que rompa debe arreglarse. Actualizar progreso",
         "status": "done",
         "agent": "implementer"
       }

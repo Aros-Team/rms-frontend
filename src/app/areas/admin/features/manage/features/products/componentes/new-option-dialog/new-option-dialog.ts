@@ -56,6 +56,7 @@ export class NewOptionDialog implements OnInit {
   supplyVariantOptions = signal<(SupplyVariantResponse & { displayName: string })[]>([]);
   supplyCategories = signal<{ id: number; name: string }[]>([]);
   newOptionSubmitting = signal(false);
+  currencyFormat = Intl.NumberFormat('es-Co', { style: 'currency', currency: 'COP' });
 
   newOptionForm = this.fb.group({
     optionCategoryId: [null as number | null, (control: AbstractControl) => Validators.required(control)],
@@ -70,15 +71,17 @@ export class NewOptionDialog implements OnInit {
     this.loadReferenceData();
   }
 
+  // Field initializers run in an injection context; lifecycle hooks do not,
+  // so effect() must be created here (not in ngOnInit) or it throws NG0203.
+  private readonly referenceDataEffect = effect(() => {
+    const refData = this.cache.referenceData.data();
+    if (refData) {
+      this.applyReferenceData(refData);
+    }
+  });
+
   private loadReferenceData(): void {
     this.cache.referenceData.loadIfStale();
-    // Watch for reference data changes using effect
-    effect(() => {
-      const refData = this.cache.referenceData.data();
-      if (refData) {
-        this.applyReferenceData(refData);
-      }
-    }, { this: undefined } as Parameters<typeof effect>[1]);
   }
 
   private applyReferenceData(ref: ProductReferenceData): void {
@@ -106,6 +109,11 @@ export class NewOptionDialog implements OnInit {
   filteredVariantsForNewOptionRecipe(i: number): (SupplyVariantResponse & { displayName: string })[] {
     const catId = this.newOptionRecipeCategoryMap.get(i) ?? null;
     return catId ? this.supplyVariantOptions().filter(v => v.categoryId === catId) : this.supplyVariantOptions();
+  }
+
+  findVariantById(id: number | null): (SupplyVariantResponse & { displayName: string }) | undefined {
+    if (id == null) return undefined;
+    return this.supplyVariantOptions().find(v => v.id === id);
   }
 
   addNewOptionRecipeItem(): void {

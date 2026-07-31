@@ -56,9 +56,6 @@ export class ComboSubmission {
       categoryId: data.selectedCategoryIds[0] ?? 1,
       areaId: data.areaId ?? 1,
       recipe: [],
-      selectionType: 'SPECIAL_SELECTION',
-      baseRecipeEnabled: data.baseRecipeEnabled,
-      schedulingRequired: data.schedulingRequired,
     };
 
     return this.productService.createProduct(createReq).pipe(

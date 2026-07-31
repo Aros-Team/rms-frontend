@@ -1,5 +1,3 @@
-import type { SelectionType } from '@app/shared/models/dto/special-selections/selection-type';
-
 export interface RecipeItemRequest {
   supplyVariantId: number;
   requiredQuantity: number;
@@ -19,7 +17,4 @@ export interface ProductCreateRequest {
   areaId: number;
   recipe: RecipeItemRequest[];
   optionIds?: number[];
-  selectionType?: SelectionType;
-  baseRecipeEnabled?: boolean;
-  schedulingRequired?: boolean;
 }

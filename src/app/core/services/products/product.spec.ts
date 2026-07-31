@@ -6,6 +6,7 @@ import { Product } from './product';
 import { ProductCreateRequest } from '@app/shared/models/dto/products/product-create-request';
 import { ProductUpdateRequest } from '@app/shared/models/dto/products/product-update-request';
 import { ProductResponse } from '@app/shared/models/dto/products/product-response';
+import { ProductCostResponse } from '@app/shared/models/dto/products/product-cost-response';
 
 describe('Product service', () => {
   let service: Product;
@@ -22,8 +23,6 @@ describe('Product service', () => {
     areaName: 'Cocina',
     recipe: [],
     selectionType: 'SPECIAL_SELECTION',
-    baseRecipeEnabled: false,
-    schedulingRequired: true,
   };
 
   beforeEach(() => {
@@ -123,7 +122,6 @@ describe('Product service', () => {
 
   it('updateProduct PUTs payload with categoryId to v1/products/{id}', () => {
     const payload: ProductUpdateRequest = {
-      id: 7,
       name: 'Lentejas',
       basePrice: 8.5,
       categoryId: 3,
@@ -144,6 +142,29 @@ describe('Product service', () => {
     const req = httpMock.expectOne('v1/products/7');
     expect(req.request.method).toBe('GET');
     req.flush(mockProduct);
+  });
+
+  it('getCost hits GET v1/products/{id}/cost and emits payload', () => {
+    const mockCost: ProductCostResponse = {
+      productId: 1,
+      totalCost: 25.75,
+      materialCost: 15.5,
+      laborCost: 10.25,
+      breakdown: [
+        { description: 'Material: variant 3', amount: 15.5, type: 'MATERIAL' },
+      ],
+    };
+
+    let emitted: ProductCostResponse | undefined;
+    service.getCost(1).subscribe(value => {
+      emitted = value;
+    });
+
+    const req = httpMock.expectOne('v1/products/1/cost');
+    expect(req.request.method).toBe('GET');
+    req.flush(mockCost);
+
+    expect(emitted).toEqual(mockCost);
   });
 
   it('disableProduct PUTs empty body to v1/products/{id}/disable', () => {

@@ -9,10 +9,8 @@ import type {
   CreateOrderDetail,
   CreateOrderRequest,
 } from '@app/shared/models/dto/orders/create-order-request';
-import type { ProductCreateRequest } from '@app/shared/models/dto/products/product-create-request';
 import type { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
 import type { ProductResponse } from '@app/shared/models/dto/products/product-response';
-import type { ProductUpdateRequest } from '@app/shared/models/dto/products/product-update-request';
 import type {
   SpecialSelectionGroupRequest,
   SpecialSelectionGroupResponse,
@@ -144,12 +142,6 @@ describe('Combo foundation DTO contracts', () => {
 
     expect(values).toEqual(['STANDARD', 'SPECIAL_SELECTION']);
     expectTypeOf<SelectionType>().toEqualTypeOf<'STANDARD' | 'SPECIAL_SELECTION'>();
-    expectTypeOf<ProductCreateRequest['selectionType']>().toEqualTypeOf<
-      SelectionType | undefined
-    >();
-    expectTypeOf<ProductUpdateRequest['selectionType']>().toEqualTypeOf<
-      SelectionType | undefined
-    >();
     expectTypeOf<ProductResponse['selectionType']>().toEqualTypeOf<
       SelectionType | undefined
     >();
