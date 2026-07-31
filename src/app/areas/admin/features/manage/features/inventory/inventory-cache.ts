@@ -3,7 +3,7 @@ import { forkJoin } from 'rxjs';
 import { ResourceCache } from '@app/core/cache/resource-cache/resource-cache';
 import { Inventory } from '@app/core/services/inventory/inventory';
 import { Supplier } from '@app/core/services/suppliers/supplier';
-import { Supply } from '@app/core/services/supplies/supply';
+import { Supply, PaginatedSuppliesResponse } from '@app/core/services/supplies/supply';
 import { Purchase } from '@app/core/services/purchases/purchase';
 import { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
 import { SupplyCategoryResponse } from '@app/shared/models/dto/supplies/supply-category-response';
@@ -26,9 +26,21 @@ export class InventoryCache {
   private readonly supplyService = inject(Supply);
   private readonly purchaseService = inject(Purchase);
 
+  // Lista completa de insumos (para warning de costo cero, picker de compra y transferencia)
   readonly supplies = new ResourceCache<SupplyVariantResponse[]>(
     () => this.supplyService.getSupplyVariants(),
     { ttlMs: 2 * 60 * 1000, staleWhileRevalidate: true }
+  );
+
+  // Lista paginada de insumos - la página/tamaño se configuran por componente
+  private supplyListParams: { page: number; size: number } = { page: 0, size: 20 };
+
+  readonly suppliesPage = new ResourceCache<PaginatedSuppliesResponse>(
+    () => this.supplyService.getSupplyVariantsPaginated(
+      this.supplyListParams.page,
+      this.supplyListParams.size,
+    ),
+    { ttlMs: 10 * 60 * 1000, staleWhileRevalidate: true }
   );
 
   // Purchases - TTL medio (5 min)
@@ -48,12 +60,21 @@ export class InventoryCache {
     { ttlMs: 30 * 60 * 1000, staleWhileRevalidate: true }
   );
 
+  /** Cambia la página/tamaño de la lista de insumos y vuelve a consultarla al servidor. */
+  setSuppliesListParams(params: { page?: number; size?: number }): void {
+    this.supplyListParams = { ...this.supplyListParams, ...params };
+    this.suppliesPage.reset();
+    this.suppliesPage.load();
+  }
+
   invalidateSupplies(): void {
     this.supplies.invalidate();
+    this.suppliesPage.invalidate();
   }
 
   invalidateAll(): void {
     this.supplies.invalidate();
+    this.suppliesPage.invalidate();
     this.purchases.invalidate();
     this.referenceData.invalidate();
   }

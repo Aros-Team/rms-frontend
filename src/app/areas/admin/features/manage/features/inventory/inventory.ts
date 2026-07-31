@@ -104,7 +104,9 @@ export class Inventory implements OnInit {
   categories = signal<SupplyCategoryResponse[]>([]);
   units = signal<SupplyUnitResponse[]>([]);
   allSupplies = signal<SupplyResponse[]>([]);
-  selectedCategoryId = signal<number | null>(null);
+  currentPage = signal(0);
+  pageSize = signal(20);
+  tableSearch = signal('');
 
   // Efecto para sincronizar automáticamente cuando el cache cambie
   private syncEffect = effect(() => {
@@ -127,16 +129,22 @@ export class Inventory implements OnInit {
     }
   });
 
+  // Fila actual de la tabla - proviene de la página consultada al servidor
+  pageSupplies = computed(() => this.cache.suppliesPage.data()?.content ?? undefined);
+  totalElements = computed(() => this.cache.suppliesPage.data()?.totalElements ?? 0);
+
+  // Búsqueda client-side sobre la página actual (la categoría se filtra en el servidor)
   filteredSupplies = computed(() => {
-    const all = this.supplies();
+    const all = this.pageSupplies();
     if (all === undefined) return undefined;
-    const catId = this.selectedCategoryId();
-    return catId === null ? all : all.filter((s) => s.categoryId === catId);
+    const search = this.tableSearch().toLowerCase().trim();
+    if (!search) return all;
+    return all.filter((s) => s.supplyName.toLowerCase().includes(search));
   });
 
   hasZeroUnitCost = computed(() => (this.supplies() ?? []).some(v => v.unitCost === 0));
 
-  loading = computed(() => this.supplies() === undefined);
+  loading = computed(() => this.cache.suppliesPage.isLoading() && !this.cache.suppliesPage.hasData());
 
   // --- new variant wizard ---
   variantModalIsOpen = false;
@@ -258,15 +266,8 @@ export class Inventory implements OnInit {
 
   ngOnInit(): void {
     // Force load on first visit if no data
-    if (this.cache.supplies.data() === null) {
-      this.cache.supplies.refresh();
-    }
-    if (this.cache.purchases.data() === null) {
-      this.cache.purchases.refresh();
-    }
-    // Load reference data (categories, suppliers, units) for filters
-    if (this.cache.referenceData.data() === null) {
-      this.cache.referenceData.refresh();
+    if (this.cache.suppliesPage.data() === null) {
+      this.cache.suppliesPage.refresh();
     }
     // With OnPush, form status changes don't trigger CD automatically.
     // Subscribe so the template re-evaluates [invalid] bindings when fields become valid.
@@ -276,8 +277,23 @@ export class Inventory implements OnInit {
   }
 
   onVisible(): void {
+    this.cache.suppliesPage.loadIfStale();
     this.cache.supplies.loadIfStale();
     this.cache.purchases.loadIfStale();
+    this.cache.referenceData.loadIfStale();
+  }
+
+  onPage(event: { first: number; rows: number }): void {
+    const page = Math.floor(event.first / event.rows);
+    this.currentPage.set(page);
+    this.pageSize.set(event.rows);
+    this.cache.setSuppliesListParams({ page, size: event.rows });
+  }
+
+  clearFilters(): void {
+    this.tableSearch.set('');
+    this.currentPage.set(0);
+    this.cache.setSuppliesListParams({ page: 0 });
   }
 
   private syncFromCache(): void {
@@ -314,10 +330,6 @@ export class Inventory implements OnInit {
     this.wsService.subscribeToTopic<InventoryStockUpdatedEvent>('/topic/inventory/updates')
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((event) => { this.ngZone.run(() => { this.applyInventoryUpdate(event); }); });
-  }
-
-  filterByCategory(categoryId: number | null): void {
-    this.selectedCategoryId.set(categoryId);
   }
 
   openPurchaseModal(): void {
@@ -768,6 +780,7 @@ export class Inventory implements OnInit {
 
   private loadSupplies(): void {
     this.cache.supplies.refresh();
+    this.cache.suppliesPage.refresh();
   }
 
   private loadPurchases(): void {

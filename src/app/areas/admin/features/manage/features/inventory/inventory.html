@@ -1,6 +1,6 @@
 <p-toast />
 
-<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.supplies" (appLazyLoadVisible)="onVisible()">
+<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.suppliesPage" (appLazyLoadVisible)="onVisible()">
   <!-- Header -->
   <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 min-w-0 flex-shrink-0">
     <div class="min-w-0">
@@ -22,15 +22,18 @@
   <!-- Supplies table -->
   <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 overflow-hidden">
     <p-table
-      #dt
       [value]="filteredSupplies() ?? []"
+      [paginator]="true"
+      [rows]="pageSize()"
+      [totalRecords]="totalElements()"
+      (onPage)="onPage($event)"
+      [lazy]="true"
+      [first]="currentPage() * pageSize()"
       [scrollable]="true"
       scrollHeight="600px"
       responsiveLayout="scroll"
-      sortMode="multiple"
       styleClass="h-full"
       [tableStyle]="{'min-width': '700px'}"
-      [globalFilterFields]="['supplyName', 'categoryName', 'unitAbbreviation']"
       [loading]="loading()"
       [showLoader]="false"
     >
@@ -42,23 +45,12 @@
               pInputText
               type="text"
               class="w-full"
-              (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+              [ngModel]="tableSearch()"
+              (ngModelChange)="tableSearch.set($event)"
               placeholder="Buscar por nombre..."
             />
           </p-iconfield>
-          <p-select
-            [options]="categories()"
-            optionLabel="name"
-            optionValue="id"
-            placeholder="Filtrar por categoría"
-            [showClear]="true"
-            class="w-full sm:w-48"
-            [ngModel]="selectedCategoryId()"
-            (onChange)="filterByCategory($event.value)"
-            (onClear)="filterByCategory(null)"
-            appendTo="body"
-          />
-          <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="dt.clear()" />
+          <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="clearFilters()" />
           <div class="flex gap-2 sm:ml-auto flex-wrap">
             <p-button icon="pi pi-plus" label="Nuevo insumo" severity="secondary" size="small" pTooltip="Registrar nuevo insumo" tooltipPosition="bottom" (click)="openVariantModal()" />
             <p-button icon="pi pi-tag" label="Nueva categoría" severity="secondary" size="small" pTooltip="Crear categoría de insumo" tooltipPosition="bottom" (click)="openCategoryDialog()" />
@@ -69,12 +61,12 @@
 
       <ng-template pTemplate="header">
         <tr>
-          <th pSortableColumn="supplyName" class="text-xs md:text-sm">Insumo <p-sortIcon field="supplyName" /></th>
-          <th pSortableColumn="categoryName" class="text-xs md:text-sm hidden sm:table-cell">Categoría <p-sortIcon field="categoryName" /></th>
-          <th pSortableColumn="quantity" class="text-xs md:text-sm">Presentación <p-sortIcon field="quantity" /></th>
-          <th pSortableColumn="unitCost" class="text-xs md:text-sm">Costo uni. <p-sortIcon field="unitCost" /></th>
-          <th pSortableColumn="stockBodega" class="text-xs md:text-sm">Bod. <p-sortIcon field="stockBodega" /></th>
-          <th pSortableColumn="stockCocina" class="text-xs md:text-sm">Coc. <p-sortIcon field="stockCocina" /></th>
+          <th class="text-xs md:text-sm">Insumo</th>
+          <th class="text-xs md:text-sm hidden sm:table-cell">Categoría</th>
+          <th class="text-xs md:text-sm">Presentación</th>
+          <th class="text-xs md:text-sm">Costo uni.</th>
+          <th class="text-xs md:text-sm">Bod.</th>
+          <th class="text-xs md:text-sm">Coc.</th>
         </tr>
       </ng-template>
 

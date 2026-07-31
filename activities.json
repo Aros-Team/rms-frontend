@@ -655,5 +655,54 @@
       }
     ],
     "status": "done"
+  },
+  {
+    "id": 17,
+    "type": "fix",
+    "name": "fix-inventory-pagination",
+    "title": "Inventario: paginación server-side + lazy loading en la tabla de insumos",
+    "description": "La tabla de inventario renderiza filteredSupplies() (lista completa filtrada en cliente) sin paginador, con scroll fijo de 600px. Aplicar el mismo patrón de la tabla de products (activities 13-16): endpoint paginado, flattening de { content, page }, p-table [lazy]+[first]+(onPage), y cargar reference data on-demand. Backend (desarrollado por el usuario): GET /api/v1/supplies/variants SIEMPRE devuelve PagedModelSupplyVariantResponse { content, page: { size, number, totalElements, totalPages } } (sin fallback a array), con params page (default 0) y size (default 20, max 100); soporta ademas supplyId. Como no hay array sin params, getSupplyVariants() (consumido por product-cache.ts referenceData.variants y los pickers de modales) pide size=100 y desempaqueta content.",
+    "acceptance": [
+      "Supply.getSupplyVariantsPaginated(page, size) mapea { content, page } anidado a PaginatedSuppliesResponse plano (content, totalElements, totalPages, page, size), con fallback a 0 cuando page falta",
+      "InventoryCache tiene un caché paginado suppliesPage (ResourceCache<PaginatedSuppliesResponse>) con setSuppliesListParams({page, size}) que hace reset+load (patrón setProductListParams); supplies (lista completa) se mantiene para warning de costo cero, picker de compra y dialog de transferencia",
+      "inventory.ts expone currentPage/pageSize/totalElements; onPage(event) calcula page=floor(first/rows) y llama setSuppliesListParams; la búsqueda por nombre es client-side sobre la página actual (patrón products)",
+      "inventory.html p-table usa [paginator]=true [rows]=pageSize() [totalRecords]=totalElements [lazy]=true [first]=currentPage()*pageSize() (onPage)=onPage($event); se quitan sortMode=\"multiple\" y pSortableColumn/p-sortIcon (backend no soporta sort en variants); se elimina el filtro por categoría del caption",
+      "ngOnInit ya no fuerza referenceData.refresh() ni purchases; onVisible() llama loadIfStale() de suppliesPage, supplies, referenceData y purchases; [loading] de la tabla refleja suppliesPage",
+      "Los modales (compra, transferencia, variante) siguen usando la lista completa supplies() (loadIfStale al abrir) para que el picker de variantes y el dialog de transferencia no se limiten a la página actual",
+      "Specs: test en supply.spec.ts para getSupplyVariantsPaginated (flattening + query params page/size). Harness verde (lint, build, tests)"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "En core/services/supplies/supply.ts: definir PaginatedSuppliesResponse (plano) y PagedSuppliesApiResponse (raw { content?, page? }). Añadir getSupplyVariantsPaginated(page=0, size=20) que llama GET v1/supplies/variants con params page/size y aplica map() aplanando page (fallback 0). Adaptar getSupplyVariants() al backend siempre-paginado: pide size=100 (max) y desempaqueta content (fallback []) para que product-cache.ts y los pickers sigan recibiendo array. Eliminar getVariantsByCategory() (dead code, backend no soporta categoryId).",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "En inventory-cache.ts: añadir suppliesPage = ResourceCache<PaginatedSuppliesResponse> con params {page, size} + setSuppliesListParams({page?, size?}) (reset + load). invalidateSupplies() invalida ambos (supplies y suppliesPage). Mantener supplies (lista completa), purchases y referenceData.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "En inventory.ts: añadir currentPage/pageSize signals; tableRows computado desde cache.suppliesPage.data()?.content; filteredSupplies ya no filtra la lista completa sino la página actual (buscar en cliente sobre la página, como products). onPage(event) → setSuppliesListParams. ngOnInit: quitar referenceData.refresh() y purchases.refresh() forzados (dejar solo suppliesPage si data null). onVisible(): loadIfStale de suppliesPage, supplies, purchases, referenceData. Mantener supplies (lista completa) para warning/compra/transferencia y WS (applyInventoryUpdate sigue mutando supplies completo). Eliminar el filtro por categoría de la tabla (selectedCategoryId/filterByCategory) porque el endpoint /variants no lo soporta.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "En inventory.html: p-table de insumos añadir [paginator]=true [rows]=pageSize() [totalRecords]=totalElements [lazy]=true [first]=currentPage()*pageSize() (onPage)=onPage($event); quitar sortMode=\"multiple\" y pSortableColumn/p-sortIcon de las 6 columnas; [value] usa la página actual (con búsqueda client-side); [loading] de la tabla = suppliesPage loading sin data. Quitar el p-select de categoría del caption.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Especs: añadir test en core/services/supplies/supply.spec.ts para getSupplyVariantsPaginated que verifique flattening del payload anidado { content, page } y query params (page, size), y para getSupplyVariants que pida size=100 y desempaquete content. Correr node scripts/harness.js y dejar lint, build y tests en verde.",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "pending"
   }
 ]
