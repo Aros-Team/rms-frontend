@@ -16,6 +16,11 @@ export interface PaginatedProductsResponse {
   size: number;
 }
 
+export interface PagedProductsApiResponse {
+  content?: ProductResponse[];
+  page?: { size: number; number: number; totalElements: number; totalPages: number };
+}
+
 export interface PreparationArea {
   id: number;
   name: string;
@@ -61,7 +66,15 @@ export class Product {
     if (includeSelections) {
       params = { ...params, includeSelections: 'true' };
     }
-    return this.http.get<PaginatedProductsResponse>('v1/products', { params });
+    return this.http.get<PagedProductsApiResponse>('v1/products', { params }).pipe(
+      map((res) => ({
+        content: res.content ?? [],
+        totalElements: res.page?.totalElements ?? 0,
+        totalPages: res.page?.totalPages ?? 0,
+        page: res.page?.number ?? 0,
+        size: res.page?.size ?? 0,
+      }))
+    );
   }
 
   public getAllProducts(includeSelections?: boolean): Observable<ProductListResponse[]> {

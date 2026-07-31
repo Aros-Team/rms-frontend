@@ -342,10 +342,6 @@ export class Products implements OnInit {
     if (this.cache.products.data() === null) {
       this.cache.products.refresh();
     }
-    // Load reference data (categories, areas) for filters
-    if (this.cache.referenceData.data() === null) {
-      this.cache.referenceData.refresh();
-    }
   }
 
   loadPage(page: number): void {
@@ -1081,6 +1077,7 @@ export class Products implements OnInit {
   }
 
   openNewOptionDialog(): void {
+    this.cache.referenceData.loadIfStale();
     this.newOptionForm.reset();
     this.newOptionRecipe.clear();
     this.newOptionRecipeCategoryMap.clear();

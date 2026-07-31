@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient } from '@angular/common/http';
 
 import { Product } from './product';
+import { PaginatedProductsResponse } from './product';
 import { ProductCreateRequest } from '@app/shared/models/dto/products/product-create-request';
 import { ProductUpdateRequest } from '@app/shared/models/dto/products/product-update-request';
 import { ProductResponse } from '@app/shared/models/dto/products/product-response';
@@ -182,5 +183,70 @@ describe('Product service', () => {
     const req = httpMock.expectOne('v1/products/7');
     expect(req.request.method).toBe('DELETE');
     req.flush({});
+  });
+
+  describe('getProductsPaginated', () => {
+    it('flattens nested page metadata into flat paginated response', () => {
+      let emitted: PaginatedProductsResponse | undefined;
+      service.getProductsPaginated(1, 6, false, true).subscribe(value => {
+        emitted = value;
+      });
+
+      const req = httpMock.expectOne(r =>
+        r.url === 'v1/products' &&
+        r.params.get('page') === '1' &&
+        r.params.get('size') === '6' &&
+        r.params.get('includeInactive') === 'false' &&
+        r.params.get('includeSelections') === 'true'
+      );
+      expect(req.request.method).toBe('GET');
+
+      const lentejas: ProductResponse = {
+        id: 7,
+        name: 'Lentejas',
+        basePrice: 12.5,
+        active: true,
+        categoryId: 2,
+        categoryName: 'Comidas',
+        areaId: 1,
+        areaName: 'Cocina',
+        recipe: [],
+      };
+
+      req.flush({
+        content: [lentejas],
+        page: { size: 6, number: 1, totalElements: 42, totalPages: 7 },
+      });
+
+      expect(emitted).toEqual({
+        content: [lentejas],
+        totalElements: 42,
+        totalPages: 7,
+        page: 1,
+        size: 6,
+      });
+    });
+
+    it('falls back to empty defaults when page metadata is missing', () => {
+      let emitted: PaginatedProductsResponse | undefined;
+      service.getProductsPaginated(1, 6, false, true).subscribe(value => {
+        emitted = value;
+      });
+
+      const req = httpMock.expectOne(r =>
+        r.url === 'v1/products' &&
+        r.params.get('page') === '1' &&
+        r.params.get('size') === '6'
+      );
+      req.flush({});
+
+      expect(emitted).toEqual({
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
+        page: 0,
+        size: 0,
+      });
+    });
   });
 });

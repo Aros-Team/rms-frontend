@@ -537,5 +537,123 @@
       }
     ],
     "status": "done"
+  },
+  {
+    "id": 13,
+    "type": "fix",
+    "name": "fix-products-pagination",
+    "title": "La tabla de productos solo muestra una página (totalPages/totalElements no llegan al paginator)",
+    "description": "El backend GET /api/v1/products devuelve PagedModelProductResponse con forma { content, page: { size, number, totalElements, totalPages } } (metadatos anidados en page). El frontend declara PaginatedProductsResponse con totalElements/totalPages en la raíz y Product.getProductsPaginated NO mapea la respuesta. En runtime data.totalPages y data.totalElements son undefined, así que el p-paginator recibe totalRecords=0 y totalPages=0 → solo muestra una página.",
+    "acceptance": [
+      "Product.getProductsPaginated mapea la respuesta del backend de { content, page: { size, number, totalElements, totalPages } } a la forma plana PaginatedProductsResponse (content, totalElements, totalPages, page, size)",
+      "El tipo del response del servicio refleja la forma real del backend (raw response tipada) y el mapeo cubre el caso page ausente/undefined sin romper",
+      "products.html totalRecords y products.ts totalPages ahora reciben valores reales (no 0)",
+      "Los consumidores existentes siguen funcionando: product-cache.ts (.content/.totalPages/.totalElements) y combo-reference-cache.ts (.content)",
+      "Specs: agregar test en product.spec.ts para getProductsPaginated que verifique el flattening del payload anidado y los query params (page, size, includeInactive, includeSelections)",
+      "Harness verde (lint, build, tests)"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "En core/services/products/product.ts: definir interfaz raw (p.ej. PagedProductsApiResponse { content, page?: { size, number, totalElements, totalPages } }) y en getProductsPaginated añadir map() que aplana page → PaginatedProductsResponse. page: page?.number ?? 0, size: page?.size ?? 0, totalElements: page?.totalElements ?? 0, totalPages: page?.totalPages ?? 0",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Agregar test en core/services/products/product.spec.ts para getProductsPaginated: flush payload { content: [...], page: { size, number, totalElements, totalPages } } y verificar que el emit tiene totalPages/totalElements/page/size aplanados, y que los query params page/size/includeInactive/includeSelections se envían. Correr node scripts/harness.js y dejar lint, build y tests en verde",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 14,
+    "type": "fix",
+    "name": "fix-products-page-display",
+    "title": "Al cambiar de página en la tabla de productos no se ve ningún producto",
+    "description": "Después del fix de paginación (activity 13) el paginator ya muestra varias páginas, pero al pasar a la página 2+ la tabla queda vacía aunque la consulta retorna productos. Root cause: PrimeNG p-table con [paginator] y lazy=false renderiza value.slice(first, first + rows) (primeng-table.mjs dataToRender). Como value solo contiene la página actual (6 items) y en la página 2 first=6, slice(6,12) sobre un array de 6 elementos devuelve vacío. Fix: activar modo servidor-side pagination [lazy]=true (patrón ya usado en alerts.html: [lazy]+[first]+(onPage)) — en lazy, dataToRender usa first=0 y renderiza value directo. En lazy el sort client-side queda deshabilitado (el backend no soporta sort param), así que se eliminan sortMode=\"multiple\" y los pSortableColumn/p-sortIcon de las 4 columnas para evitar un no-op que además resetea la página.",
+    "acceptance": [
+      "p-table de products.html usa [lazy]=true y [first]=currentPage() * pageSize() (patrón de alerts.html)",
+      "Se eliminan sortMode=\"multiple\" y las directivas pSortableColumn / p-sortIcon de las columnas name, basePrice, areaName, categoryName (el backend no soporta sort en GET /api/v1/products)",
+      "onPage sigue calculando page=floor(first/rows), actualiza currentPage/pageSize y cache.setProductListParams (sin cambios)",
+      "Al navegar a la página 2+ la tabla renderiza los productos de esa página (value se renderiza sin slice)",
+      "Harness verde (lint, build, tests)"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Editar products.html: en p-table añadir [lazy]=true y [first]=\"currentPage() * pageSize()\"; quitar sortMode=\"multiple\"; quitar pSortableColumn/p-sortIcon de las 4 columnas sortables. No tocar onPage ni product-cache.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Verificar que products.spec.ts no dependa de sort (grep pSortableColumn/sortMode en specs) y correr node scripts/harness.js dejando lint, build y tests en verde. Actualizar progreso.",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 15,
+    "type": "fix",
+    "name": "fix-products-excess-requests",
+    "title": "Reducir consultas al cargar la página de productos (eliminar 5 llamadas de reference data)",
+    "description": "Al cargar la página de productos se disparan 7 consultas: auth + products (esperadas) y 5 de reference data (areas, categories, option-categories, variants, product-options) que la tabla no necesita: products ya devuelve areaName/categoryName, y option-categories/variants/product-options solo se usan al abrir el wizard de edición o dialogs. Root cause: products.ts ngOnInit fuerza cache.referenceData.refresh() al montar el componente. Fix: quitar la carga eager; el reference data ya se carga on-demand vía loadIfStale() en showCreationModal, showModificationModal y NewOptionDialog. Además, como la primera apertura del wizard ahora carga reference data lazy, añadir [loading]=referenceDataLoading() a los p-select del wizard que dependen de reference data para dar feedback mientras carga.",
+    "acceptance": [
+      "Al cargar la página de productos solo se hacen 2 consultas: auth y products (no areas, categories, option-categories, variants, product-options)",
+      "Reference data se carga on-demand al abrir el wizard de creación/edición (loadIfStale) o el NewOptionDialog",
+      "Los p-select del wizard que usan categories(), areas(), supplyVariantOptions(), optionCategories(), optionsByCategory() muestran [loading]=\"referenceDataLoading()\" para la primera carga lazy",
+      "El refresh de reference data tras crear una opción (products.ts:1119 y new-option-dialog.ts:161) se mantiene",
+      "products.ts ngOnInit ya no llama referenceData.refresh() (solo carga la lista de products)",
+      "Harness verde (lint, build, tests)"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "En products.ts ngOnInit: eliminar el bloque 'if (this.cache.referenceData.data() === null) { this.cache.referenceData.refresh(); }' (mantener la carga de products). En products.html: añadir [loading]=\"referenceDataLoading()\" a los p-select del wizard que usan categories() (~L181), areas() (~L189), supplyVariantOptions() (~L263, ~L300, ~L510), optionCategories() (~L450) y optionsByCategory() (~L461). No tocar nada más.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Verificar con grep que ngOnInit de products.ts no referencia referenceData.refresh y que los 7 p-select tienen el binding [loading]. Correr node scripts/harness.js dejando lint, build y tests en verde. Actualizar progreso.",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 16,
+    "type": "fix",
+    "name": "fix-new-option-dialog-eager-load",
+    "title": "NewOptionDialog sigue cargando reference data (5 consultas) al montar la página",
+    "description": "Después del activity 15 la página carga rápido, pero las 5 consultas de reference data (areas, categories, option-categories, variants, product-options) aún se disparan al cargar la página. Root cause: <app-new-option-dialog> se renderiza SIEMPRE en products.html (sin @if), y NewOptionDialog.ngOnInit() llama loadReferenceData() → cache.referenceData.loadIfStale() al instanciarse, aunque el dialog nunca se abra. Fix: quitar la carga en ngOnInit del dialog y hacer que el padre (Products.openNewOptionDialog) cargue reference data al abrir el dialog, mismo patrón que showCreationModal/showModificationModal. El referenceDataEffect del dialog (que aplica la data cuando llega) se mantiene.",
+    "acceptance": [
+      "Al cargar la página de productos solo se hacen 2 consultas: auth y products (ni siquiera al instanciar NewOptionDialog)",
+      "NewOptionDialog ya no tiene ngOnInit ni loadReferenceData (no carga reference data al montarse)",
+      "Products.openNewOptionDialog() llama cache.referenceData.loadIfStale() antes de abrir el dialog (patrón consistente con showCreationModal/showModificationModal)",
+      "Al abrir el NewOptionDialog, los selects se llenan vía referenceDataEffect cuando la data llega",
+      "Harness verde (lint, build, tests)"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "En componentes/new-option-dialog/new-option-dialog.ts: quitar OnInit del import y de implements, eliminar el método ngOnInit() y el método loadReferenceData() (mantener referenceDataEffect). En products.ts openNewOptionDialog(): añadir this.cache.referenceData.loadIfStale(); antes de newOptionDialogOpen.set(true).",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Verificar con grep que new-option-dialog.ts no tiene ngOnInit/loadReferenceData y que products.ts openNewOptionDialog llama loadIfStale. Correr node scripts/harness.js dejando lint, build y tests en verde. Actualizar progreso.",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
   }
 ]

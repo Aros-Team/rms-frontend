@@ -106,7 +106,10 @@ describe('ComboReferenceCache', () => {
       (r) => r.url === 'v1/products' && r.params.get('includeSelections') === 'true'
     );
     expect(prodReq.request.method).toBe('GET');
-    prodReq.flush(products);
+    prodReq.flush({
+      content: products,
+      page: { size: 100, number: 0, totalElements: products.length, totalPages: 1 },
+    });
   }
 
   it('load fetches categories and products with includeSelections in parallel', () => {
@@ -120,7 +123,10 @@ describe('ComboReferenceCache', () => {
       (r) => r.url === 'v1/products' && r.params.get('includeSelections') === 'true'
     );
     expect(prodReq.request.method).toBe('GET');
-    prodReq.flush(mockProducts);
+    prodReq.flush({
+      content: mockProducts,
+      page: { size: 100, number: 0, totalElements: mockProducts.length, totalPages: 1 },
+    });
 
     expect(cache.categories()).toEqual(mockCategories);
     expect(cache.products()).toEqual(mockProducts);
@@ -244,7 +250,10 @@ describe('ComboReferenceCache', () => {
     httpMock.expectOne('v1/categories').flush(mockCategories);
     httpMock.expectOne(
       (r) => r.url === 'v1/products' && r.params.get('includeSelections') === 'true'
-    ).flush(mockProducts);
+    ).flush({
+      content: mockProducts,
+      page: { size: 100, number: 0, totalElements: mockProducts.length, totalPages: 1 },
+    });
 
     expect(cache.hasData()).toBe(true);
   });

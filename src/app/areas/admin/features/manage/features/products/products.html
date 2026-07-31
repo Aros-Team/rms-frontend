@@ -20,10 +20,11 @@
       [rows]="pageSize()"
       [totalRecords]="cache.products.data()?.totalElements ?? 0"
       (onPage)="onPage($event)"
+      [lazy]="true"
+      [first]="currentPage() * pageSize()"
       [scrollable]="true"
       scrollHeight="600px"
       responsiveLayout="scroll"
-      sortMode="multiple"
       styleClass="h-full"
       [tableStyle]="{'min-width': '800px'}"
       [loading]="productsLoading() && !cache.products.hasData()"
@@ -47,11 +48,11 @@
       </ng-template>
       <ng-template #header>
         <tr>
-          <th pSortableColumn="name">Nombre <p-sortIcon field="name" /></th>
-          <th pSortableColumn="basePrice">Precio <p-sortIcon field="basePrice" /></th>
+          <th>Nombre</th>
+          <th>Precio</th>
           <th>Estado</th>
-          <th pSortableColumn="areaName">Área <p-sortIcon field="areaName" /></th>
-          <th pSortableColumn="categoryName">Categoría <p-sortIcon field="categoryName" /></th>
+          <th>Área</th>
+          <th>Categoría</th>
           <th>Acciones</th>
         </tr>
       </ng-template>
@@ -177,7 +178,7 @@
         </div>
 
         <p-iftalabel>
-          <p-select [options]="categories()" inputId="categoryId" class="w-full"
+          <p-select [options]="categories()" [loading]="referenceDataLoading()" inputId="categoryId" class="w-full"
             optionValue="id" optionLabel="name" formControlName="categoryId"
             appendTo="body"
             [invalid]="isInvalid(baseForm, 'categoryId')" />
@@ -185,7 +186,7 @@
         </p-iftalabel>
 
         <p-iftalabel>
-          <p-select [options]="areas()" inputId="areaId" class="w-full"
+          <p-select [options]="areas()" [loading]="referenceDataLoading()" inputId="areaId" class="w-full"
             optionValue="id" optionLabel="name" formControlName="areaId"
             appendTo="body"
             [invalid]="isInvalid(baseForm, 'areaId')" />
@@ -259,7 +260,7 @@
               <div [formGroup]="$any(item)" class="flex gap-2 items-end bg-surface-100 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-3">
                 <div class="flex-1">
                   <label class="text-xs text-surface-500 mb-1 block" [attr.for]="'existing-recipe-supply-' + i">Insumo *</label>
-                  <p-select [attr.id]="'existing-recipe-supply-' + i" [options]="supplyVariantOptions()" optionLabel="displayName" optionValue="id"
+                  <p-select [attr.id]="'existing-recipe-supply-' + i" [options]="supplyVariantOptions()" [loading]="referenceDataLoading()" optionLabel="displayName" optionValue="id"
                     formControlName="supplyVariantId" placeholder="Seleccionar insumo"
                     class="w-full" [filter]="true" filterBy="displayName" appendTo="body" />
                 </div>
@@ -296,7 +297,7 @@
             <div [formGroup]="$any(item)" class="flex gap-2 items-end bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-3">
               <div class="flex-1">
                 <label class="text-xs text-surface-500 mb-1 block" for="base-recipe-supply">Insumo *</label>
-                <p-select id="base-recipe-supply" [options]="supplyVariantOptions()" optionLabel="displayName" optionValue="id"
+                <p-select id="base-recipe-supply" [options]="supplyVariantOptions()" [loading]="referenceDataLoading()" optionLabel="displayName" optionValue="id"
                   formControlName="supplyVariantId" placeholder="Seleccionar insumo"
                   class="w-full" [filter]="true" filterBy="displayName" appendTo="body" />
               </div>
@@ -446,7 +447,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div class="flex flex-col gap-1">
                 <p-iftalabel>
-                  <p-select [options]="optionCategories()" [inputId]="'opt-cat-' + i"
+                  <p-select [options]="optionCategories()" [loading]="referenceDataLoading()" [inputId]="'opt-cat-' + i"
                     optionLabel="name" optionValue="id" formControlName="optionCategoryId"
                     placeholder="Seleccionar" class="w-full" appendTo="body"
                     (onChange)="$any(opt).get('id').setValue(null); $any(opt).get('name').setValue(''); $any(opt).get('isExisting').setValue(false)" />
@@ -458,6 +459,7 @@
                 <p-iftalabel>
                   <p-select
                     [options]="optionsByCategory($any(opt).get('optionCategoryId')?.value)"
+                    [loading]="referenceDataLoading()"
                     [inputId]="'opt-name-' + i"
                     optionLabel="name" optionValue="name"
                     formControlName="name"
@@ -506,7 +508,7 @@
                     <div [formGroup]="$any(recipeItem)" class="flex gap-2 items-end bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-3">
                       <div class="flex-1">
                         <label class="text-xs text-surface-500 mb-1 block" for="option-recipe-supply-{{i}}-{{ri}}">Insumo *</label>
-                        <p-select id="option-recipe-supply-{{i}}-{{ri}}" [options]="supplyVariantOptions()" optionLabel="displayName" optionValue="id"
+                        <p-select id="option-recipe-supply-{{i}}-{{ri}}" [options]="supplyVariantOptions()" [loading]="referenceDataLoading()" optionLabel="displayName" optionValue="id"
                           formControlName="supplyVariantId" placeholder="Seleccionar insumo"
                           class="w-full" [filter]="true" filterBy="displayName" appendTo="body" />
                       </div>

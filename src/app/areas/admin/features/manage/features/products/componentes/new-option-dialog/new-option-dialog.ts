@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, Output, EventEmitter, Input, ChangeDetectionStrategy, effect } from '@angular/core';
+import { Component, inject, signal, Output, EventEmitter, Input, ChangeDetectionStrategy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { AbstractControl, FormBuilder, FormArray, Validators } from '@angular/forms';
@@ -40,7 +40,7 @@ import { MessageService } from 'primeng/api';
   templateUrl: './new-option-dialog.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class NewOptionDialog implements OnInit {
+export class NewOptionDialog {
   @Input() visible = signal(false);
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() optionCreated = new EventEmitter<void>();
@@ -67,10 +67,6 @@ export class NewOptionDialog implements OnInit {
 
   private readonly newOptionRecipeCategoryMap = new Map<number, number | null>();
 
-  ngOnInit(): void {
-    this.loadReferenceData();
-  }
-
   // Field initializers run in an injection context; lifecycle hooks do not,
   // so effect() must be created here (not in ngOnInit) or it throws NG0203.
   private readonly referenceDataEffect = effect(() => {
@@ -79,10 +75,6 @@ export class NewOptionDialog implements OnInit {
       this.applyReferenceData(refData);
     }
   });
-
-  private loadReferenceData(): void {
-    this.cache.referenceData.loadIfStale();
-  }
 
   private applyReferenceData(ref: ProductReferenceData): void {
     this.optionCategories.set(ref.optionCategories);
