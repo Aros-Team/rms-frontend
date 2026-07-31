@@ -234,14 +234,6 @@ export class Inventory implements OnInit {
     contact: ['', Validators.maxLength(255)],
   });
 
-  // --- new category dialog ---
-  newCategoryDialogOpen = false;
-  newCategorySubmitting = signal(false);
-  newCategoryForm: FormGroup = this.fb.group({
-    /* eslint-disable-next-line @typescript-eslint/unbound-method */
-    name: ['', [Validators.required, Validators.maxLength(255)]],
-  });
-
   // --- transfer to kitchen dialog ---
   transferDialogOpen = false;
   transferSubmitting = signal(false);
@@ -477,45 +469,6 @@ export class Inventory implements OnInit {
 
   closeNewSupplierDialog(): void {
     this.newSupplierDialogOpen = false;
-  }
-
-  openCategoryDialog(): void {
-    this.newCategoryForm.reset();
-    this.newCategoryDialogOpen = true;
-  }
-
-  closeCategoryDialog(): void {
-    this.newCategoryDialogOpen = false;
-  }
-
-  submitNewCategory(): void {
-    if (this.newCategoryForm.invalid) {
-      this.newCategoryForm.markAllAsTouched();
-      return;
-    }
-    this.newCategorySubmitting.set(true);
-    const { name } = this.newCategoryForm.value as { name: string };
-    this.supplyService.createCategory({ name: name.trim() }).subscribe({
-      next: (created) => {
-        this.newCategorySubmitting.set(false);
-        this.categories.update((list) => [...list, created]);
-        this.closeCategoryDialog();
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Categoría creada',
-          detail: created.name,
-        });
-      },
-      error: (err: { status?: number; error?: { message?: string } }) => {
-        this.newCategorySubmitting.set(false);
-        const errorMessage = err.error?.message;
-        const detail = err.status === 409
-          ? errorMessage ?? 'Ya existe una categoría con ese nombre.'
-          : errorMessage ?? 'No se pudo crear la categoría.';
-        this.messageService.add({ severity: 'error', summary: 'Error', detail });
-        this.logger.error('Error creating supply category', err);
-      },
-    });
   }
 
   submitNewSupplier(): void {

@@ -4,6 +4,7 @@ import { AbstractControl, ReactiveFormsModule, FormBuilder, FormGroup, Validator
 import { Category } from '@app/core/services/category/category';
 import { OptionCategory } from '@app/core/services/option-category/option-category';
 import { Logging } from '@app/core/services/logging/logging';
+import { Supply } from '@app/core/services/supplies/supply';
 import { CategoriesCache } from './categories-cache';
 import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 
@@ -40,11 +41,11 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 })
 export class Categories implements OnInit {
   title = 'Categorías';
-  description = 'Gestiona las categorías de productos del restaurante';
 
   private fb = inject(FormBuilder);
   private categoryService = inject(Category);
   private optionCategoryService = inject(OptionCategory);
+  private supplyService = inject(Supply);
   private messageService = inject(MessageService);
   private confirmService = inject(ConfirmationService);
   private logger = inject(Logging);
@@ -73,6 +74,16 @@ export class Categories implements OnInit {
   optionCategorySaved = signal(false);
   optionCategoryError = signal<string | null>(null);
 
+  // ── Supply categories ─────────────────────────────────────────────
+  supplyCategories = computed(() => this.cache.supplyCategories.data() ?? []);
+  supplyCategoryDialogOpen = signal(false);
+
+  supplyCategoryForm: FormGroup = this.fb.group({
+    name: ['', (control: AbstractControl) => Validators.required(control)],
+  });
+  supplyCategorySaved = signal(false);
+  supplyCategoryError = signal<string | null>(null);
+
   ngOnInit(): void {
     // Force load on first visit if no data
     if (this.cache.productCategories.data() === null) {
@@ -81,11 +92,15 @@ export class Categories implements OnInit {
     if (this.cache.optionCategories.data() === null) {
       this.cache.optionCategories.refresh();
     }
+    if (this.cache.supplyCategories.data() === null) {
+      this.cache.supplyCategories.refresh();
+    }
   }
 
   onVisible(): void {
     this.cache.productCategories.loadIfStale();
     this.cache.optionCategories.loadIfStale();
+    this.cache.supplyCategories.loadIfStale();
   }
 
   // ── Product category actions ─────────────────────────────────────
@@ -180,5 +195,41 @@ export class Categories implements OnInit {
 
   private refreshOptionCategories(): void {
     this.cache.optionCategories.refresh();
+  }
+
+  // ── Supply category actions ───────────────────────────────────────
+
+  openSupplyCategoryDialog(): void {
+    this.supplyCategoryForm.reset();
+    this.supplyCategorySaved.set(false);
+    this.supplyCategoryError.set(null);
+    this.supplyCategoryDialogOpen.set(true);
+  }
+
+  saveSupplyCategory(): void {
+    this.supplyCategorySaved.set(false);
+    if (this.supplyCategoryForm.invalid) {
+      this.supplyCategoryForm.markAllAsTouched();
+      return;
+    }
+    const nameControl = this.supplyCategoryForm.get('name');
+    const name: string = (nameControl?.value as string | null | undefined) ?? '';
+    this.supplyService.createCategory({ name }).subscribe({
+      next: () => {
+        this.supplyCategorySaved.set(true);
+        this.supplyCategoryForm.reset();
+        this.refreshSupplyCategories();
+        this.messageService.add({ severity: 'success', summary: 'Categoría creada', detail: 'Categoría de insumo guardada.' });
+        this.supplyCategoryDialogOpen.set(false);
+      },
+      error: () => {
+        this.supplyCategoryError.set('No se pudo guardar la categoría de insumo');
+        this.logger.error('Error creating supply category');
+      },
+    });
+  }
+
+  private refreshSupplyCategories(): void {
+    this.cache.supplyCategories.refresh();
   }
 }

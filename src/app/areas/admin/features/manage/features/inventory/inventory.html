@@ -53,7 +53,6 @@
           <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="clearFilters()" />
           <div class="flex gap-2 sm:ml-auto flex-wrap">
             <p-button icon="pi pi-plus" label="Nuevo insumo" severity="secondary" size="small" pTooltip="Registrar nuevo insumo" tooltipPosition="bottom" (click)="openVariantModal()" />
-            <p-button icon="pi pi-tag" label="Nueva categoría" severity="secondary" size="small" pTooltip="Crear categoría de insumo" tooltipPosition="bottom" (click)="openCategoryDialog()" />
             <p-button icon="pi pi-arrow-right-arrow-left" label="Transferir a cocina" severity="secondary" size="small" pTooltip="Mover insumos de bodega a cocina" tooltipPosition="bottom" (click)="openTransferDialog()" />
           </div>
         </div>
@@ -443,39 +442,6 @@
   <div class="flex justify-start gap-2 mt-6">
     <p-button icon="pi pi-save" label="Registrar compra" [loading]="submitting" (click)="submitPurchase()" />
     <p-button icon="pi pi-ban" label="Cancelar" severity="secondary" (click)="closeModal()" />
-  </div>
-</p-dialog>
-
-<!-- ===== New category dialog ===== -->
-<p-dialog
-  [modal]="true"
-  [(visible)]="newCategoryDialogOpen"
-  header="Nueva categoría de insumo"
-  draggable="false"
-  styleClass="w-[90vw] max-w-[400px]"
-  appendTo="body"
->
-  <form [formGroup]="newCategoryForm" class="flex flex-col gap-4 pt-2">
-    <p-iftalabel>
-      <input
-        pInputText
-        id="categoryName"
-        formControlName="name"
-        class="w-full"
-        placeholder="Nombre de la categoría"
-        [class.ng-invalid]="isInvalid(newCategoryForm, 'name')"
-        [class.ng-dirty]="isInvalid(newCategoryForm, 'name')"
-      />
-      <label for="categoryName">Nombre *</label>
-    </p-iftalabel>
-    @if (isInvalid(newCategoryForm, 'name')) {
-      <small class="text-red-500 -mt-3">El nombre es requerido</small>
-    }
-  </form>
-
-  <div class="flex justify-end gap-2 mt-6">
-    <p-button label="Cancelar" severity="secondary" icon="pi pi-times" (click)="closeCategoryDialog()" />
-    <p-button label="Crear" icon="pi pi-check" [loading]="newCategorySubmitting()" (click)="submitNewCategory()" />
   </div>
 </p-dialog>
 

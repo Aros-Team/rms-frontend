@@ -6,14 +6,14 @@
     "title": "Mover archivos sueltos a sus propias carpetas",
     "description": "Todo archivo .ts debe estar dentro de una carpeta con su mismo nombre. Hay 19 archivos sueltos en core/ y shared/ que deben moverse a subcarpetas y actualizar sus imports.",
     "acceptance": [
-      "No existe ningún archivo .ts suelto fuera de subcarpetas en core/services/, core/cache/, core/directives/, core/guards/, core/interceptors/, shared/pipes/, shared/lib/, shared/skeletons/, shared/layout/",
-      "Todos los imports que referencian los archivos movidos están actualizados",
+      "No existe ning\u00fan archivo .ts suelto fuera de subcarpetas en core/services/, core/cache/, core/directives/, core/guards/, core/interceptors/, shared/pipes/, shared/lib/, shared/skeletons/, shared/layout/",
+      "Todos los imports que referencian los archivos movidos est\u00e1n actualizados",
       "Harness pasa verde (lint, build, tests)"
     ],
     "tasks": [
       {
         "id": "a",
-        "description": "Mover core/services/product-image.ts → core/services/product-image/product-image.ts y actualizar imports",
+        "description": "Mover core/services/product-image.ts \u2192 core/services/product-image/product-image.ts y actualizar imports",
         "status": "done",
         "agent": "implementer"
       },
@@ -25,19 +25,19 @@
       },
       {
         "id": "c",
-        "description": "Mover shared/lib/http-error-mapper.ts → shared/lib/http-error-mapper/http-error-mapper.ts y actualizar imports",
+        "description": "Mover shared/lib/http-error-mapper.ts \u2192 shared/lib/http-error-mapper/http-error-mapper.ts y actualizar imports",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "d",
-        "description": "Mover core/directives/lazy-load.directive.ts → core/directives/lazy-load/lazy-load.ts y actualizar imports",
+        "description": "Mover core/directives/lazy-load.directive.ts \u2192 core/directives/lazy-load/lazy-load.ts y actualizar imports",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "e",
-        "description": "Mover core/cache/resource-cache.ts → core/cache/resource-cache/resource-cache.ts y actualizar imports",
+        "description": "Mover core/cache/resource-cache.ts \u2192 core/cache/resource-cache/resource-cache.ts y actualizar imports",
         "status": "done",
         "agent": "implementer"
       },
@@ -73,23 +73,23 @@
     "type": "chore",
     "name": "fix-file-suffixes",
     "title": "Renombrar archivos con sufijos prohibidos (.service.ts, .model.ts)",
-    "description": "Los sufijos .service.ts y .model.ts están prohibidos. 33 archivos deben renombrarse (quitar el sufijo) y actualizar todos los imports y clases asociadas.",
+    "description": "Los sufijos .service.ts y .model.ts est\u00e1n prohibidos. 33 archivos deben renombrarse (quitar el sufijo) y actualizar todos los imports y clases asociadas.",
     "acceptance": [
-      "No existe ningún archivo *.service.ts ni *.model.ts en src/",
+      "No existe ning\u00fan archivo *.service.ts ni *.model.ts en src/",
       "Todos los imports actualizados apuntan a los nuevos nombres",
-      "Clases renombradas acorde (XxxService → Xxx, XxxModel → Xxx)",
+      "Clases renombradas acorde (XxxService \u2192 Xxx, XxxModel \u2192 Xxx)",
       "Harness pasa verde (lint, build, tests)"
     ],
     "tasks": [
       {
         "id": "a",
-        "description": "Renombrar 7 archivos *.service.ts → *.ts en features manage/ y shared/ (categories-cache, inventory-cache, product-cache, tables-cache, workers-cache, special-selections-cache, habeas-data). Actualizar clases e imports.",
+        "description": "Renombrar 7 archivos *.service.ts \u2192 *.ts en features manage/ y shared/ (categories-cache, inventory-cache, product-cache, tables-cache, workers-cache, special-selections-cache, habeas-data). Actualizar clases e imports.",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
-        "description": "Renombrar 26 archivos *.model.ts → *.ts en shared/models/ (todos los DTOs). Actualizar clases e imports.",
+        "description": "Renombrar 26 archivos *.model.ts \u2192 *.ts en shared/models/ (todos los DTOs). Actualizar clases e imports.",
         "status": "done",
         "agent": "implementer"
       }
@@ -101,28 +101,28 @@
     "type": "chore",
     "name": "fix-class-suffixes",
     "title": "Renombrar clases con sufijos prohibidos (Service, Directive, Pipe)",
-    "description": "15 clases usan sufijos prohibidos: 10 *Service, 1 *Directive, 4 *Pipe. Deben renombrarse (ChatService → Chat, LazyLoadDirective → LazyLoad, MoneyPipe → Money, etc.) y actualizar todas las referencias.",
+    "description": "15 clases usan sufijos prohibidos: 10 *Service, 1 *Directive, 4 *Pipe. Deben renombrarse (ChatService \u2192 Chat, LazyLoadDirective \u2192 LazyLoad, MoneyPipe \u2192 Money, etc.) y actualizar todas las referencias.",
     "acceptance": [
       "No existe ninguna clase con sufijo Service, Directive o Pipe (excepto casos ya corregidos en actividad 2)",
-      "Todas las referencias a las clases renombradas están actualizadas",
+      "Todas las referencias a las clases renombradas est\u00e1n actualizadas",
       "Harness pasa verde (lint, build, tests)"
     ],
     "tasks": [
       {
         "id": "a",
-        "description": "Renombrar clases con sufijo Service: ChatService → Chat, InventoryService → Inventory, ProductOptionService → ProductOption, HabeasDataService → HabeasData. Actualizar referencias.",
+        "description": "Renombrar clases con sufijo Service: ChatService \u2192 Chat, InventoryService \u2192 Inventory, ProductOptionService \u2192 ProductOption, HabeasDataService \u2192 HabeasData. Actualizar referencias.",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
-        "description": "Renombrar LazyLoadDirective → LazyLoad en core/directives/lazy-load/. Actualizar referencias.",
+        "description": "Renombrar LazyLoadDirective \u2192 LazyLoad en core/directives/lazy-load/. Actualizar referencias.",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
-        "description": "Renombrar clases Pipe: MoneyPipe → Money, MetricValuePipe → MetricValue, OptionNamesPipe → OptionNames, TableNumberPipe → TableNumber. Actualizar referencias.",
+        "description": "Renombrar clases Pipe: MoneyPipe \u2192 Money, MetricValuePipe \u2192 MetricValue, OptionNamesPipe \u2192 OptionNames, TableNumberPipe \u2192 TableNumber. Actualizar referencias.",
         "status": "done",
         "agent": "implementer"
       }
@@ -135,10 +135,10 @@
     "name": "fix-inline-components",
     "status": "done",
     "title": "Migrar componentes inline a archivos separados",
-    "description": "1 componente usa template: inline en vez de templateUrl:, y 7 componentes tienen styles: vacío en vez de styleUrl:. Deben crearse los archivos .html y .css faltantes.",
+    "description": "1 componente usa template: inline en vez de templateUrl:, y 7 componentes tienen styles: vac\u00edo en vez de styleUrl:. Deben crearse los archivos .html y .css faltantes.",
     "acceptance": [
       "combo-wizard-page.ts migra de template: inline a templateUrl: + .html externo",
-      "Los 7 componentes con styles: vacío ahora usan styleUrl: o se elimina la propiedad si no hay estilos",
+      "Los 7 componentes con styles: vac\u00edo ahora usan styleUrl: o se elimina la propiedad si no hay estilos",
       "Harness pasa verde (lint, build, tests)"
     ],
     "tasks": [
@@ -150,7 +150,7 @@
       },
       {
         "id": "b",
-        "description": "Eliminar styles: vacío de 7 componentes: workers.ts, orders.ts, dark-mode-button.ts, header.ts, logo.ts, layout.ts, worker-layout.ts. Crear .css si es necesario o quitar la propiedad.",
+        "description": "Eliminar styles: vac\u00edo de 7 componentes: workers.ts, orders.ts, dark-mode-button.ts, header.ts, logo.ts, layout.ts, worker-layout.ts. Crear .css si es necesario o quitar la propiedad.",
         "status": "done",
         "agent": "implementer"
       }
@@ -160,13 +160,13 @@
     "id": 5,
     "type": "fix",
     "name": "fix-user-facing-text",
-    "title": "Corregir texto de usuario en inglés a español",
-    "description": "Hay 9 ocurrencias de texto en inglés o con acentos faltantes en interfaces de usuario. Deben reemplazarse con español correcto.",
+    "title": "Corregir texto de usuario en ingl\u00e9s a espa\u00f1ol",
+    "description": "Hay 9 ocurrencias de texto en ingl\u00e9s o con acentos faltantes en interfaces de usuario. Deben reemplazarse con espa\u00f1ol correcto.",
     "acceptance": [
       "'Error de upload' reemplazado por 'Error de carga' o 'Error al subir imagen' en 3 archivos de productos",
       "'Worker ID' reemplazado por 'ID del trabajador' en workers.html y time-logs.html",
-      "'Min'/'Max'/'Option ID' reemplazado por 'Mín'/'Máx'/'ID de opción' en combo-editor.html",
-      "'menu del dia' corregido a 'menú del día' en order-creation-form.html",
+      "'Min'/'Max'/'Option ID' reemplazado por 'M\u00edn'/'M\u00e1x'/'ID de opci\u00f3n' en combo-editor.html",
+      "'menu del dia' corregido a 'men\u00fa del d\u00eda' en order-creation-form.html",
       "Harness pasa verde (lint, build, tests)"
     ],
     "tasks": [
@@ -184,13 +184,13 @@
       },
       {
         "id": "c",
-        "description": "Reemplazar placeholders 'Min'/'Max'/'Option ID' por 'Mín'/'Máx'/'ID de opción' en combo-editor.html",
+        "description": "Reemplazar placeholders 'Min'/'Max'/'Option ID' por 'M\u00edn'/'M\u00e1x'/'ID de opci\u00f3n' en combo-editor.html",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "d",
-        "description": "Corregir 'menu del dia' → 'menú del día' en order-creation-form.html",
+        "description": "Corregir 'menu del dia' \u2192 'men\u00fa del d\u00eda' en order-creation-form.html",
         "status": "done",
         "agent": "implementer"
       }
@@ -201,36 +201,36 @@
     "id": 6,
     "type": "chore",
     "name": "fix-inline-styles",
-    "title": "Migrar estilos inline estáticos a clases CSS",
-    "description": "31 ocurrencias de estilos inline estáticos (style=\"\" y [style]=\"{}\") deben migrarse a clases CSS o usar clases utilitarias de Tailwind/design tokens.",
+    "title": "Migrar estilos inline est\u00e1ticos a clases CSS",
+    "description": "31 ocurrencias de estilos inline est\u00e1ticos (style=\"\" y [style]=\"{}\") deben migrarse a clases CSS o usar clases utilitarias de Tailwind/design tokens.",
     "acceptance": [
-      "No hay style=\"\" con valores estáticos en HTML (solo dinámicos/token-based)",
-      "No hay [style]=\"{}\" bindings con valores fijos (solo dinámicos/token-based)",
+      "No hay style=\"\" con valores est\u00e1ticos en HTML (solo din\u00e1micos/token-based)",
+      "No hay [style]=\"{}\" bindings con valores fijos (solo din\u00e1micos/token-based)",
       "Todos los estilos migrados usan clases CSS, clases utilitarias o design tokens",
       "Harness pasa verde (lint, build, tests)"
     ],
     "tasks": [
       {
         "id": "a",
-        "description": "Migrar style=\"\" estáticos en auth area: auth.html (width/max-width), login.html (width/padding), forgot-password.html, reset-password.html, setup-account.html",
+        "description": "Migrar style=\"\" est\u00e1ticos en auth area: auth.html (width/max-width), login.html (width/padding), forgot-password.html, reset-password.html, setup-account.html",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
-        "description": "Migrar style=\"\" estáticos en dashboard.html (gap) y products.html (width)",
+        "description": "Migrar style=\"\" est\u00e1ticos en dashboard.html (gap) y products.html (width)",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
-        "description": "Migrar [style] bindings estáticos en manage features: areas.html, categories.html, combo-editor.html, group-step.html, inventory.html (5 ocurrencias), new-option-dialog.html, product-detail-dialog.html, product-edit-modal.html, products.html, schedules.html, workers.html",
+        "description": "Migrar [style] bindings est\u00e1ticos en manage features: areas.html, categories.html, combo-editor.html, group-step.html, inventory.html (5 ocurrencias), new-option-dialog.html, product-detail-dialog.html, product-edit-modal.html, products.html, schedules.html, workers.html",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "d",
-        "description": "Migrar [style] bindings estáticos en orders-table.html (2 ocurrencias) y change-password.html",
+        "description": "Migrar [style] bindings est\u00e1ticos en orders-table.html (2 ocurrencias) y change-password.html",
         "status": "done",
         "agent": "implementer"
       }
@@ -241,11 +241,11 @@
     "id": 7,
     "type": "fix",
     "name": "fix-bg-black-and-surface",
-    "title": "Corregir bg-black/50 y bg-surface-0 a tokens del diseño",
+    "title": "Corregir bg-black/50 y bg-surface-0 a tokens del dise\u00f1o",
     "description": "1 ocurrencia de bg-black/50 (prohibido) y 11 ocurrencias de bg-surface-0 (debe ser bg-primary-contrast).",
     "acceptance": [
-      "No existe bg-black/50 en ningún HTML (solo en high-contrast en styles.css)",
-      "No existe bg-surface-0 en ningún HTML (todos reemplazados por bg-primary-contrast)",
+      "No existe bg-black/50 en ning\u00fan HTML (solo en high-contrast en styles.css)",
+      "No existe bg-surface-0 en ning\u00fan HTML (todos reemplazados por bg-primary-contrast)",
       "Harness pasa verde (lint, build, tests)"
     ],
     "tasks": [
@@ -268,13 +268,13 @@
     "id": 8,
     "type": "chore",
     "name": "restrict-time-bucket-to-monthly",
-    "title": "Restringir bucket de fechas en analítica a solo mensual",
-    "description": "En estadísticas, los buckets diario/semanal/anual no tienen sentido: el cálculo de rentabilidad (prime cost, márgenes) y el menu engineering se estudian a largo plazo. Solo debe quedar 'monthly' como bucket en la UI y el estado de periodo. El backend sigue aceptando bucket=monthly por query param.",
+    "title": "Restringir bucket de fechas en anal\u00edtica a solo mensual",
+    "description": "En estad\u00edsticas, los buckets diario/semanal/anual no tienen sentido: el c\u00e1lculo de rentabilidad (prime cost, m\u00e1rgenes) y el menu engineering se estudian a largo plazo. Solo debe quedar 'monthly' como bucket en la UI y el estado de periodo. El backend sigue aceptando bucket=monthly por query param.",
     "acceptance": [
       "TimeBucket exporta solo 'monthly' (sin 'daily' | 'weekly' | 'yearly')",
       "AnalyticsPeriodState no expone bucket ni setBucket (siempre mensual)",
       "PeriodSelector no muestra el selector de bucket; solo Desde/Hasta en formato AAAA-MM",
-      "Analytics service envía bucket=monthly fijo en todas las requests",
+      "Analytics service env\u00eda bucket=monthly fijo en todas las requests",
       "analytics-utils.ts ya no recibe bucket en isValidPeriodKey / isValidRange / comparePeriodKeys / titleForKey",
       "Helpers lastNDaysKey / lastNWeeksKey / lastNYearsKey eliminados (solo queda lastNMonthsKey)",
       "Especs actualizados: eliminados los tests de daily/weekly/yearly, conservados los de monthly",
@@ -307,7 +307,7 @@
       },
       {
         "id": "e",
-        "description": "Hacer que Analytics.getPrimeCost/MenuEngineering/Operations/Cohort/listAlerts envíen bucket=monthly fijo (sin param bucket)",
+        "description": "Hacer que Analytics.getPrimeCost/MenuEngineering/Operations/Cohort/listAlerts env\u00eden bucket=monthly fijo (sin param bucket)",
         "status": "done",
         "agent": "implementer"
       },
@@ -331,13 +331,13 @@
     "type": "feat",
     "name": "me-quadrant-ux",
     "title": "Cuadrantes clickeables con labels descriptivos e iconos",
-    "description": "En Menu Engineering, los 4 cuadrantes BCG (STAR/PLOWHORSE/PUZZLE/DOG) deben usar nombres en español que expliquen su significado (no 'Estrella/Caballo/Rompecabezas/Perro'), acompañados de un icono. Las cards de cuadrante deben ser clickeables: al hacer click se filtra la tabla de detalle a solo los productos de ese cuadrante. La tabla debe mostrar columnas de unidades, costo por unidad, precio de venta, margen % y ganancia total.",
+    "description": "En Menu Engineering, los 4 cuadrantes BCG (STAR/PLOWHORSE/PUZZLE/DOG) deben usar nombres en espa\u00f1ol que expliquen su significado (no 'Estrella/Caballo/Rompecabezas/Perro'), acompa\u00f1ados de un icono. Las cards de cuadrante deben ser clickeables: al hacer click se filtra la tabla de detalle a solo los productos de ese cuadrante. La tabla debe mostrar columnas de unidades, costo por unidad, precio de venta, margen % y ganancia total.",
     "acceptance": [
-      "Quadrants usan labels descriptivos: STAR=Excelente, PLOWHORSE=Populares, PUZZLE=Oportunidad, DOG=A revisar — cada uno con un icono (pi-star-fill, pi-thumbs-up, pi-lightbulb, pi-flag)",
+      "Quadrants usan labels descriptivos: STAR=Excelente, PLOWHORSE=Populares, PUZZLE=Oportunidad, DOG=A revisar \u2014 cada uno con un icono (pi-star-fill, pi-thumbs-up, pi-lightbulb, pi-flag)",
       "Las cards de cuadrante son botones clickeables con estado hover y estado activo (ring/border marcado)",
       "Click en un cuadrante filtra la tabla para mostrar solo los productos de ese cuadrante; click de nuevo en el mismo cuadrante limpia el filtro",
-      "Cuando hay filtro activo, la tabla muestra un chip con el cuadrante seleccionado + botón 'Limpiar'",
-      "La tabla de detalle muestra: Producto, Categoría, Unidades, Costo por unidad, Precio de venta, Margen %, Ganancia total, Cuadrante (icono + label)",
+      "Cuando hay filtro activo, la tabla muestra un chip con el cuadrante seleccionado + bot\u00f3n 'Limpiar'",
+      "La tabla de detalle muestra: Producto, Categor\u00eda, Unidades, Costo por unidad, Precio de venta, Margen %, Ganancia total, Cuadrante (icono + label)",
       "Los tests cubren: nuevo label, click filtra, doble click limpia, columnas nuevas computan correctamente",
       "Harness pasa verde (lint, build, tests)"
     ],
@@ -350,7 +350,7 @@
       },
       {
         "id": "b",
-        "description": "Agregar signal selectedQuadrant (MenuQuadrant | null). Actualizar items() para que filtre también por selectedQuadrant. Mantener el filtro por categoría intacto.",
+        "description": "Agregar signal selectedQuadrant (MenuQuadrant | null). Actualizar items() para que filtre tambi\u00e9n por selectedQuadrant. Mantener el filtro por categor\u00eda intacto.",
         "status": "done",
         "agent": "implementer"
       },
@@ -362,25 +362,25 @@
       },
       {
         "id": "d",
-        "description": "Encima de la tabla de detalle, cuando hay selectedQuadrant, mostrar un chip con el icono+label del cuadrante activo y un botón 'Limpiar' que llama a clearQuadrantFilter().",
+        "description": "Encima de la tabla de detalle, cuando hay selectedQuadrant, mostrar un chip con el icono+label del cuadrante activo y un bot\u00f3n 'Limpiar' que llama a clearQuadrantFilter().",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "e",
-        "description": "Reemplazar columnas de la tabla: añadir Costo por unidad (recipeCost), Precio de venta (revenue/unitsSold), Margen % ((gpPerUnit/sellPrice)*100). Quitar Ingresos y Ganancia por unidad. Mantener Ganancia total y Cuadrante. Computar precio/margen con guards para unitsSold=0.",
+        "description": "Reemplazar columnas de la tabla: a\u00f1adir Costo por unidad (recipeCost), Precio de venta (revenue/unitsSold), Margen % ((gpPerUnit/sellPrice)*100). Quitar Ingresos y Ganancia por unidad. Mantener Ganancia total y Cuadrante. Computar precio/margen con guards para unitsSold=0.",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "f",
-        "description": "Cambiar la columna Cuadrante: en vez de p-tag, mostrar un span con icono + label según QUADRANT_META. Mismo color de fondo por cuadrante para que sea identificable.",
+        "description": "Cambiar la columna Cuadrante: en vez de p-tag, mostrar un span con icono + label seg\u00fan QUADRANT_META. Mismo color de fondo por cuadrante para que sea identificable.",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "g",
-        "description": "Actualizar/añadir tests en menu-engineering.spec.ts: nuevos labels (reemplazar Estrella/Caballo/Rompecabezas/Perro), click filtra items, doble click limpia, columnas precio/margen computan correctamente, división por 0 no rompe.",
+        "description": "Actualizar/a\u00f1adir tests en menu-engineering.spec.ts: nuevos labels (reemplazar Estrella/Caballo/Rompecabezas/Perro), click filtra items, doble click limpia, columnas precio/margen computan correctamente, divisi\u00f3n por 0 no rompe.",
         "status": "done",
         "agent": "implementer"
       }
@@ -391,19 +391,19 @@
     "id": 10,
     "type": "feat",
     "name": "product-deep-edit",
-    "title": "Edición profunda de productos: receta + costo + opciones",
-    "description": "Desde la tabla de productos en admin, el lápiz debe abrir un wizard de edición profunda que permita: editar la receta en su lugar (no solo borrar/añadir), ver el cálculo de costo de producción (material + mano de obra + desglose), y gestionar las opciones asociadas al producto. Eliminar el ProductEditModal pequeño (que enviaba recipe:[] y optionIds:[] en save, perdiendo datos). Backend ya soporta GET /v1/products/{id}/cost y ProductRequest incluye description + estimatedPrepMinutes.",
+    "title": "Edici\u00f3n profunda de productos: receta + costo + opciones",
+    "description": "Desde la tabla de productos en admin, el l\u00e1piz debe abrir un wizard de edici\u00f3n profunda que permita: editar la receta en su lugar (no solo borrar/a\u00f1adir), ver el c\u00e1lculo de costo de producci\u00f3n (material + mano de obra + desglose), y gestionar las opciones asociadas al producto. Eliminar el ProductEditModal peque\u00f1o (que enviaba recipe:[] y optionIds:[] en save, perdiendo datos). Backend ya soporta GET /v1/products/{id}/cost y ProductRequest incluye description + estimatedPrepMinutes.",
     "acceptance": [
       "Existen DTOs ProductCostResponse y CostItem en shared/models/dto/products/ que coinciden con el schema del backend (productId, totalCost, materialCost, laborCost, breakdown[].{description, amount, type})",
       "El servicio Product expone getCost(id) que llama GET /v1/products/{id}/cost",
-      "El botón de lápiz de la tabla y el botón Editar del ProductDetailDialog abren showModificationModal(id) en lugar del modal pequeño",
+      "El bot\u00f3n de l\u00e1piz de la tabla y el bot\u00f3n Editar del ProductDetailDialog abren showModificationModal(id) en lugar del modal peque\u00f1o",
       "openEditModal() ya no existe (eliminado)",
-      "En el wizard paso 2 (Insumos), las filas existentes muestran input de cantidad editable y selector de insumo editable (no solo texto + botón borrar). Cambiar cantidad o insumo actualiza existingRecipe[] al hacer clic en Siguiente",
-      "En el wizard paso 1 hay campo descripción (textarea) y estimatedPrepMinutes (inputnumérico). Se envían en submitStep3",
-      "submitStep3 envía el ProductRequest completo: name, description, basePrice, categoryId, areaId, recipe, optionIds, estimatedPrepMinutes. NO envía recipe:[] ni optionIds:[] vacíos",
-      "El wizard tiene un panel/sección de costo de producción que llama Product.getCost(id) tras guardar la receta y muestra: Costo materiales, Costo mano de obra, Costo total (en COP) y la lista breakdown con type MATERIAL/LABOR",
-      "El componente ProductEditModal y su carpeta componentes/product-edit-modal/ están eliminados. products.ts/products.html ya no lo importan ni lo renderizan",
-      "Harness pasa verde (lint, build, tests). Especs cubren: DTOs del costo, getCost, edición de receta existente, panel de costo"
+      "En el wizard paso 2 (Insumos), las filas existentes muestran input de cantidad editable y selector de insumo editable (no solo texto + bot\u00f3n borrar). Cambiar cantidad o insumo actualiza existingRecipe[] al hacer clic en Siguiente",
+      "En el wizard paso 1 hay campo descripci\u00f3n (textarea) y estimatedPrepMinutes (inputnum\u00e9rico). Se env\u00edan en submitStep3",
+      "submitStep3 env\u00eda el ProductRequest completo: name, description, basePrice, categoryId, areaId, recipe, optionIds, estimatedPrepMinutes. NO env\u00eda recipe:[] ni optionIds:[] vac\u00edos",
+      "El wizard tiene un panel/secci\u00f3n de costo de producci\u00f3n que llama Product.getCost(id) tras guardar la receta y muestra: Costo materiales, Costo mano de obra, Costo total (en COP) y la lista breakdown con type MATERIAL/LABOR",
+      "El componente ProductEditModal y su carpeta componentes/product-edit-modal/ est\u00e1n eliminados. products.ts/products.html ya no lo importan ni lo renderizan",
+      "Harness pasa verde (lint, build, tests). Especs cubren: DTOs del costo, getCost, edici\u00f3n de receta existente, panel de costo"
     ],
     "tasks": [
       {
@@ -414,13 +414,13 @@
       },
       {
         "id": "b",
-        "description": "En products.html cambiar los (click)='openEditModal(...)' del lápiz de la tabla y del botón Editar del ProductDetailDialog por showModificationModal(product.id). Eliminar el método openEditModal() de products.ts y sus event handlers asociados",
+        "description": "En products.html cambiar los (click)='openEditModal(...)' del l\u00e1piz de la tabla y del bot\u00f3n Editar del ProductDetailDialog por showModificationModal(product.id). Eliminar el m\u00e9todo openEditModal() de products.ts y sus event handlers asociados",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
-        "description": "Convertir las filas existentes del paso 2 (existingRecipe) en inputs editables: p-inputnumber para requiredQuantity y p-select para supplyVariantId (con filtrado por categoría como las nuevas). Agregar un signal existenteRecipe (FormArray) o un mecanismo que sincronice cambios en el HTML con existingRecipe para que submitStep3 los recoja. Mantener el botón de borrar fila",
+        "description": "Convertir las filas existentes del paso 2 (existingRecipe) en inputs editables: p-inputnumber para requiredQuantity y p-select para supplyVariantId (con filtrado por categor\u00eda como las nuevas). Agregar un signal existenteRecipe (FormArray) o un mecanismo que sincronice cambios en el HTML con existingRecipe para que submitStep3 los recoja. Mantener el bot\u00f3n de borrar fila",
         "status": "done",
         "agent": "implementer"
       },
@@ -432,19 +432,19 @@
       },
       {
         "id": "e",
-        "description": "Agregar un panel de costo en el wizard (paso 2 o paso 4): tras guardar la receta exitosamente en submitStep3, llamar a Product.getCost(createdProduct.id) y mostrar totalCost, materialCost, laborCost formateados como COP, más la lista breakdown con icono/badge según type (MATERIAL/LABOR). Manejar loading y error",
+        "description": "Agregar un panel de costo en el wizard (paso 2 o paso 4): tras guardar la receta exitosamente en submitStep3, llamar a Product.getCost(createdProduct.id) y mostrar totalCost, materialCost, laborCost formateados como COP, m\u00e1s la lista breakdown con icono/badge seg\u00fan type (MATERIAL/LABOR). Manejar loading y error",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "f",
-        "description": "Eliminar el componente ProductEditModal: borrar src/app/areas/admin/features/manage/features/products/componentes/product-edit-modal/ (archivos .ts y .html). Quitar el import en products.ts:92 y la referencia <app-product-edit-modal> en products.html (junto con sus bindings @Output productUpdated). Confirmar que el detail dialog ya no tiene un botón Editar que invoque el modal",
+        "description": "Eliminar el componente ProductEditModal: borrar src/app/areas/admin/features/manage/features/products/componentes/product-edit-modal/ (archivos .ts y .html). Quitar el import en products.ts:92 y la referencia <app-product-edit-modal> en products.html (junto con sus bindings @Output productUpdated). Confirmar que el detail dialog ya no tiene un bot\u00f3n Editar que invoque el modal",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "g",
-        "description": "Actualizar/añadir tests: spec para los DTOs nuevos (product-cost-response.spec.ts), spec para Product.getCost, spec para la edición de receta existente en el wizard, spec para el panel de costo. Eliminar cualquier spec que dependa de ProductEditModal. Correr node scripts/harness.js y verificar que lint, build y tests pasan en verde",
+        "description": "Actualizar/a\u00f1adir tests: spec para los DTOs nuevos (product-cost-response.spec.ts), spec para Product.getCost, spec para la edici\u00f3n de receta existente en el wizard, spec para el panel de costo. Eliminar cualquier spec que dependa de ProductEditModal. Correr node scripts/harness.js y verificar que lint, build y tests pasan en verde",
         "status": "done",
         "agent": "implementer"
       }
@@ -499,33 +499,33 @@
     "id": 12,
     "type": "fix",
     "name": "product-deep-edit-polish",
-    "title": "Pulir UX de edición profunda de productos",
+    "title": "Pulir UX de edici\u00f3n profunda de productos",
     "description": "6 correcciones UX reportadas tras probar activity 10/11.",
     "acceptance": [
-      "Botón Atrás del wizard: step 2 Atrás → step 1; step 3 Atrás → step 2 (funciones renombradas y bindings actualizados)",
+      "Bot\u00f3n Atr\u00e1s del wizard: step 2 Atr\u00e1s \u2192 step 1; step 3 Atr\u00e1s \u2192 step 2 (funciones renombradas y bindings actualizados)",
       "existingRecipeCategoryMap se puebla con la categoria de cada variante al cargar producto en showModificationModal (los ingredientes existentes muestran su categoria real en el filtro, no Todas)",
-      "step 4 muestra la descripción del producto bajo la tarjeta de resumen (cuando no está vacia)",
-      "step 4 reordenado: tarjeta de Costo de producción aparece ANTES de la fila Precio base",
-      "ProductDetailDialog (eye) muestra panel de costo de producción llamando Product.getCost, igual al wizard",
-      "Step 2 muestra costo material estimado mientras se edita (computed desde existingRecipe + baseRecipe × unitCost de supplyVariantOptions). Se distingue visualmente del oficial y se actualiza al cambiar cantidad, variante o agregar/quitar filas",
+      "step 4 muestra la descripci\u00f3n del producto bajo la tarjeta de resumen (cuando no est\u00e1 vacia)",
+      "step 4 reordenado: tarjeta de Costo de producci\u00f3n aparece ANTES de la fila Precio base",
+      "ProductDetailDialog (eye) muestra panel de costo de producci\u00f3n llamando Product.getCost, igual al wizard",
+      "Step 2 muestra costo material estimado mientras se edita (computed desde existingRecipe + baseRecipe \u00d7 unitCost de supplyVariantOptions). Se distingue visualmente del oficial y se actualiza al cambiar cantidad, variante o agregar/quitar filas",
       "Harness verde"
     ],
     "tasks": [
       {
         "id": "a",
-        "description": "Bundle wizard polish: (1) fix back button (renombrar backToStep2→goToStep1 que setea 1; backToStep3→goToStep2 que setea 2; actualizar bindings en html). (2) Poblar existingRecipeCategoryMap al cargar: en showModificationModal por cada item de p.recipe, encontrar supplyVariantOptions().find(v=>v.id===item.supplyVariantId)?.categoryId y setear en existingRecipeCategoryMap con la row id. (3) Step 4 muestra descripción (no vacía + Sin descripción). (4) Step 4 reordena: mover la tarjeta de Costo de producción ANTES de la fila Precio base",
+        "description": "Bundle wizard polish: (1) fix back button (renombrar backToStep2\u2192goToStep1 que setea 1; backToStep3\u2192goToStep2 que setea 2; actualizar bindings en html). (2) Poblar existingRecipeCategoryMap al cargar: en showModificationModal por cada item de p.recipe, encontrar supplyVariantOptions().find(v=>v.id===item.supplyVariantId)?.categoryId y setear en existingRecipeCategoryMap con la row id. (3) Step 4 muestra descripci\u00f3n (no vac\u00eda + Sin descripci\u00f3n). (4) Step 4 reordena: mover la tarjeta de Costo de producci\u00f3n ANTES de la fila Precio base",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
-        "description": "ProductDetailDialog: agregar panel de costo de producción usando Product.getCost. Mostrar material/labor/total + breakdown igual al wizard. Cargar al abrir el dialog (ngOnChanges ya dispara loadProductDetails). Añadir signal cost/costLoading/costError + método loadProductCost similar al wizard",
+        "description": "ProductDetailDialog: agregar panel de costo de producci\u00f3n usando Product.getCost. Mostrar material/labor/total + breakdown igual al wizard. Cargar al abrir el dialog (ngOnChanges ya dispara loadProductDetails). A\u00f1adir signal cost/costLoading/costError + m\u00e9todo loadProductCost similar al wizard",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
-        "description": "Costo material estimado en vivo: agregar computed estimatedMaterialCost que suma requiredQuantity × supplyVariant.unitCost sobre existingRecipe.value + baseRecipe.value (con dedupe por supplyVariantId). Renderizar en el panel de costo del paso 2 con estilo italic/diferenciado. Actualización automática al cambiar filas",
+        "description": "Costo material estimado en vivo: agregar computed estimatedMaterialCost que suma requiredQuantity \u00d7 supplyVariant.unitCost sobre existingRecipe.value + baseRecipe.value (con dedupe por supplyVariantId). Renderizar en el panel de costo del paso 2 con estilo italic/diferenciado. Actualizaci\u00f3n autom\u00e1tica al cambiar filas",
         "status": "done",
         "agent": "implementer"
       },
@@ -542,8 +542,8 @@
     "id": 13,
     "type": "fix",
     "name": "fix-products-pagination",
-    "title": "La tabla de productos solo muestra una página (totalPages/totalElements no llegan al paginator)",
-    "description": "El backend GET /api/v1/products devuelve PagedModelProductResponse con forma { content, page: { size, number, totalElements, totalPages } } (metadatos anidados en page). El frontend declara PaginatedProductsResponse con totalElements/totalPages en la raíz y Product.getProductsPaginated NO mapea la respuesta. En runtime data.totalPages y data.totalElements son undefined, así que el p-paginator recibe totalRecords=0 y totalPages=0 → solo muestra una página.",
+    "title": "La tabla de productos solo muestra una p\u00e1gina (totalPages/totalElements no llegan al paginator)",
+    "description": "El backend GET /api/v1/products devuelve PagedModelProductResponse con forma { content, page: { size, number, totalElements, totalPages } } (metadatos anidados en page). El frontend declara PaginatedProductsResponse con totalElements/totalPages en la ra\u00edz y Product.getProductsPaginated NO mapea la respuesta. En runtime data.totalPages y data.totalElements son undefined, as\u00ed que el p-paginator recibe totalRecords=0 y totalPages=0 \u2192 solo muestra una p\u00e1gina.",
     "acceptance": [
       "Product.getProductsPaginated mapea la respuesta del backend de { content, page: { size, number, totalElements, totalPages } } a la forma plana PaginatedProductsResponse (content, totalElements, totalPages, page, size)",
       "El tipo del response del servicio refleja la forma real del backend (raw response tipada) y el mapeo cubre el caso page ausente/undefined sin romper",
@@ -555,13 +555,13 @@
     "tasks": [
       {
         "id": "a",
-        "description": "En core/services/products/product.ts: definir interfaz raw (p.ej. PagedProductsApiResponse { content, page?: { size, number, totalElements, totalPages } }) y en getProductsPaginated añadir map() que aplana page → PaginatedProductsResponse. page: page?.number ?? 0, size: page?.size ?? 0, totalElements: page?.totalElements ?? 0, totalPages: page?.totalPages ?? 0",
+        "description": "En core/services/products/product.ts: definir interfaz raw (p.ej. PagedProductsApiResponse { content, page?: { size, number, totalElements, totalPages } }) y en getProductsPaginated a\u00f1adir map() que aplana page \u2192 PaginatedProductsResponse. page: page?.number ?? 0, size: page?.size ?? 0, totalElements: page?.totalElements ?? 0, totalPages: page?.totalPages ?? 0",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
-        "description": "Agregar test en core/services/products/product.spec.ts para getProductsPaginated: flush payload { content: [...], page: { size, number, totalElements, totalPages } } y verificar que el emit tiene totalPages/totalElements/page/size aplanados, y que los query params page/size/includeInactive/includeSelections se envían. Correr node scripts/harness.js y dejar lint, build y tests en verde",
+        "description": "Agregar test en core/services/products/product.spec.ts para getProductsPaginated: flush payload { content: [...], page: { size, number, totalElements, totalPages } } y verificar que el emit tiene totalPages/totalElements/page/size aplanados, y que los query params page/size/includeInactive/includeSelections se env\u00edan. Correr node scripts/harness.js y dejar lint, build y tests en verde",
         "status": "done",
         "agent": "implementer"
       }
@@ -572,19 +572,19 @@
     "id": 14,
     "type": "fix",
     "name": "fix-products-page-display",
-    "title": "Al cambiar de página en la tabla de productos no se ve ningún producto",
-    "description": "Después del fix de paginación (activity 13) el paginator ya muestra varias páginas, pero al pasar a la página 2+ la tabla queda vacía aunque la consulta retorna productos. Root cause: PrimeNG p-table con [paginator] y lazy=false renderiza value.slice(first, first + rows) (primeng-table.mjs dataToRender). Como value solo contiene la página actual (6 items) y en la página 2 first=6, slice(6,12) sobre un array de 6 elementos devuelve vacío. Fix: activar modo servidor-side pagination [lazy]=true (patrón ya usado en alerts.html: [lazy]+[first]+(onPage)) — en lazy, dataToRender usa first=0 y renderiza value directo. En lazy el sort client-side queda deshabilitado (el backend no soporta sort param), así que se eliminan sortMode=\"multiple\" y los pSortableColumn/p-sortIcon de las 4 columnas para evitar un no-op que además resetea la página.",
+    "title": "Al cambiar de p\u00e1gina en la tabla de productos no se ve ning\u00fan producto",
+    "description": "Despu\u00e9s del fix de paginaci\u00f3n (activity 13) el paginator ya muestra varias p\u00e1ginas, pero al pasar a la p\u00e1gina 2+ la tabla queda vac\u00eda aunque la consulta retorna productos. Root cause: PrimeNG p-table con [paginator] y lazy=false renderiza value.slice(first, first + rows) (primeng-table.mjs dataToRender). Como value solo contiene la p\u00e1gina actual (6 items) y en la p\u00e1gina 2 first=6, slice(6,12) sobre un array de 6 elementos devuelve vac\u00edo. Fix: activar modo servidor-side pagination [lazy]=true (patr\u00f3n ya usado en alerts.html: [lazy]+[first]+(onPage)) \u2014 en lazy, dataToRender usa first=0 y renderiza value directo. En lazy el sort client-side queda deshabilitado (el backend no soporta sort param), as\u00ed que se eliminan sortMode=\"multiple\" y los pSortableColumn/p-sortIcon de las 4 columnas para evitar un no-op que adem\u00e1s resetea la p\u00e1gina.",
     "acceptance": [
-      "p-table de products.html usa [lazy]=true y [first]=currentPage() * pageSize() (patrón de alerts.html)",
+      "p-table de products.html usa [lazy]=true y [first]=currentPage() * pageSize() (patr\u00f3n de alerts.html)",
       "Se eliminan sortMode=\"multiple\" y las directivas pSortableColumn / p-sortIcon de las columnas name, basePrice, areaName, categoryName (el backend no soporta sort en GET /api/v1/products)",
       "onPage sigue calculando page=floor(first/rows), actualiza currentPage/pageSize y cache.setProductListParams (sin cambios)",
-      "Al navegar a la página 2+ la tabla renderiza los productos de esa página (value se renderiza sin slice)",
+      "Al navegar a la p\u00e1gina 2+ la tabla renderiza los productos de esa p\u00e1gina (value se renderiza sin slice)",
       "Harness verde (lint, build, tests)"
     ],
     "tasks": [
       {
         "id": "a",
-        "description": "Editar products.html: en p-table añadir [lazy]=true y [first]=\"currentPage() * pageSize()\"; quitar sortMode=\"multiple\"; quitar pSortableColumn/p-sortIcon de las 4 columnas sortables. No tocar onPage ni product-cache.",
+        "description": "Editar products.html: en p-table a\u00f1adir [lazy]=true y [first]=\"currentPage() * pageSize()\"; quitar sortMode=\"multiple\"; quitar pSortableColumn/p-sortIcon de las 4 columnas sortables. No tocar onPage ni product-cache.",
         "status": "done",
         "agent": "implementer"
       },
@@ -601,20 +601,20 @@
     "id": 15,
     "type": "fix",
     "name": "fix-products-excess-requests",
-    "title": "Reducir consultas al cargar la página de productos (eliminar 5 llamadas de reference data)",
-    "description": "Al cargar la página de productos se disparan 7 consultas: auth + products (esperadas) y 5 de reference data (areas, categories, option-categories, variants, product-options) que la tabla no necesita: products ya devuelve areaName/categoryName, y option-categories/variants/product-options solo se usan al abrir el wizard de edición o dialogs. Root cause: products.ts ngOnInit fuerza cache.referenceData.refresh() al montar el componente. Fix: quitar la carga eager; el reference data ya se carga on-demand vía loadIfStale() en showCreationModal, showModificationModal y NewOptionDialog. Además, como la primera apertura del wizard ahora carga reference data lazy, añadir [loading]=referenceDataLoading() a los p-select del wizard que dependen de reference data para dar feedback mientras carga.",
+    "title": "Reducir consultas al cargar la p\u00e1gina de productos (eliminar 5 llamadas de reference data)",
+    "description": "Al cargar la p\u00e1gina de productos se disparan 7 consultas: auth + products (esperadas) y 5 de reference data (areas, categories, option-categories, variants, product-options) que la tabla no necesita: products ya devuelve areaName/categoryName, y option-categories/variants/product-options solo se usan al abrir el wizard de edici\u00f3n o dialogs. Root cause: products.ts ngOnInit fuerza cache.referenceData.refresh() al montar el componente. Fix: quitar la carga eager; el reference data ya se carga on-demand v\u00eda loadIfStale() en showCreationModal, showModificationModal y NewOptionDialog. Adem\u00e1s, como la primera apertura del wizard ahora carga reference data lazy, a\u00f1adir [loading]=referenceDataLoading() a los p-select del wizard que dependen de reference data para dar feedback mientras carga.",
     "acceptance": [
-      "Al cargar la página de productos solo se hacen 2 consultas: auth y products (no areas, categories, option-categories, variants, product-options)",
-      "Reference data se carga on-demand al abrir el wizard de creación/edición (loadIfStale) o el NewOptionDialog",
+      "Al cargar la p\u00e1gina de productos solo se hacen 2 consultas: auth y products (no areas, categories, option-categories, variants, product-options)",
+      "Reference data se carga on-demand al abrir el wizard de creaci\u00f3n/edici\u00f3n (loadIfStale) o el NewOptionDialog",
       "Los p-select del wizard que usan categories(), areas(), supplyVariantOptions(), optionCategories(), optionsByCategory() muestran [loading]=\"referenceDataLoading()\" para la primera carga lazy",
-      "El refresh de reference data tras crear una opción (products.ts:1119 y new-option-dialog.ts:161) se mantiene",
+      "El refresh de reference data tras crear una opci\u00f3n (products.ts:1119 y new-option-dialog.ts:161) se mantiene",
       "products.ts ngOnInit ya no llama referenceData.refresh() (solo carga la lista de products)",
       "Harness verde (lint, build, tests)"
     ],
     "tasks": [
       {
         "id": "a",
-        "description": "En products.ts ngOnInit: eliminar el bloque 'if (this.cache.referenceData.data() === null) { this.cache.referenceData.refresh(); }' (mantener la carga de products). En products.html: añadir [loading]=\"referenceDataLoading()\" a los p-select del wizard que usan categories() (~L181), areas() (~L189), supplyVariantOptions() (~L263, ~L300, ~L510), optionCategories() (~L450) y optionsByCategory() (~L461). No tocar nada más.",
+        "description": "En products.ts ngOnInit: eliminar el bloque 'if (this.cache.referenceData.data() === null) { this.cache.referenceData.refresh(); }' (mantener la carga de products). En products.html: a\u00f1adir [loading]=\"referenceDataLoading()\" a los p-select del wizard que usan categories() (~L181), areas() (~L189), supplyVariantOptions() (~L263, ~L300, ~L510), optionCategories() (~L450) y optionsByCategory() (~L461). No tocar nada m\u00e1s.",
         "status": "done",
         "agent": "implementer"
       },
@@ -631,19 +631,19 @@
     "id": 16,
     "type": "fix",
     "name": "fix-new-option-dialog-eager-load",
-    "title": "NewOptionDialog sigue cargando reference data (5 consultas) al montar la página",
-    "description": "Después del activity 15 la página carga rápido, pero las 5 consultas de reference data (areas, categories, option-categories, variants, product-options) aún se disparan al cargar la página. Root cause: <app-new-option-dialog> se renderiza SIEMPRE en products.html (sin @if), y NewOptionDialog.ngOnInit() llama loadReferenceData() → cache.referenceData.loadIfStale() al instanciarse, aunque el dialog nunca se abra. Fix: quitar la carga en ngOnInit del dialog y hacer que el padre (Products.openNewOptionDialog) cargue reference data al abrir el dialog, mismo patrón que showCreationModal/showModificationModal. El referenceDataEffect del dialog (que aplica la data cuando llega) se mantiene.",
+    "title": "NewOptionDialog sigue cargando reference data (5 consultas) al montar la p\u00e1gina",
+    "description": "Despu\u00e9s del activity 15 la p\u00e1gina carga r\u00e1pido, pero las 5 consultas de reference data (areas, categories, option-categories, variants, product-options) a\u00fan se disparan al cargar la p\u00e1gina. Root cause: <app-new-option-dialog> se renderiza SIEMPRE en products.html (sin @if), y NewOptionDialog.ngOnInit() llama loadReferenceData() \u2192 cache.referenceData.loadIfStale() al instanciarse, aunque el dialog nunca se abra. Fix: quitar la carga en ngOnInit del dialog y hacer que el padre (Products.openNewOptionDialog) cargue reference data al abrir el dialog, mismo patr\u00f3n que showCreationModal/showModificationModal. El referenceDataEffect del dialog (que aplica la data cuando llega) se mantiene.",
     "acceptance": [
-      "Al cargar la página de productos solo se hacen 2 consultas: auth y products (ni siquiera al instanciar NewOptionDialog)",
+      "Al cargar la p\u00e1gina de productos solo se hacen 2 consultas: auth y products (ni siquiera al instanciar NewOptionDialog)",
       "NewOptionDialog ya no tiene ngOnInit ni loadReferenceData (no carga reference data al montarse)",
-      "Products.openNewOptionDialog() llama cache.referenceData.loadIfStale() antes de abrir el dialog (patrón consistente con showCreationModal/showModificationModal)",
-      "Al abrir el NewOptionDialog, los selects se llenan vía referenceDataEffect cuando la data llega",
+      "Products.openNewOptionDialog() llama cache.referenceData.loadIfStale() antes de abrir el dialog (patr\u00f3n consistente con showCreationModal/showModificationModal)",
+      "Al abrir el NewOptionDialog, los selects se llenan v\u00eda referenceDataEffect cuando la data llega",
       "Harness verde (lint, build, tests)"
     ],
     "tasks": [
       {
         "id": "a",
-        "description": "En componentes/new-option-dialog/new-option-dialog.ts: quitar OnInit del import y de implements, eliminar el método ngOnInit() y el método loadReferenceData() (mantener referenceDataEffect). En products.ts openNewOptionDialog(): añadir this.cache.referenceData.loadIfStale(); antes de newOptionDialogOpen.set(true).",
+        "description": "En componentes/new-option-dialog/new-option-dialog.ts: quitar OnInit del import y de implements, eliminar el m\u00e9todo ngOnInit() y el m\u00e9todo loadReferenceData() (mantener referenceDataEffect). En products.ts openNewOptionDialog(): a\u00f1adir this.cache.referenceData.loadIfStale(); antes de newOptionDialogOpen.set(true).",
         "status": "done",
         "agent": "implementer"
       },
@@ -657,49 +657,130 @@
     "status": "done"
   },
   {
-    "id": 17,
+    "id": 18,
     "type": "fix",
     "name": "fix-inventory-pagination",
-    "title": "Inventario: paginación server-side + lazy loading en la tabla de insumos",
-    "description": "La tabla de inventario renderiza filteredSupplies() (lista completa filtrada en cliente) sin paginador, con scroll fijo de 600px. Aplicar el mismo patrón de la tabla de products (activities 13-16): endpoint paginado, flattening de { content, page }, p-table [lazy]+[first]+(onPage), y cargar reference data on-demand. Backend (desarrollado por el usuario): GET /api/v1/supplies/variants SIEMPRE devuelve PagedModelSupplyVariantResponse { content, page: { size, number, totalElements, totalPages } } (sin fallback a array), con params page (default 0) y size (default 20, max 100); soporta ademas supplyId. Como no hay array sin params, getSupplyVariants() (consumido por product-cache.ts referenceData.variants y los pickers de modales) pide size=100 y desempaqueta content.",
+    "title": "Inventario: paginaci\u00f3n server-side + lazy loading en la tabla de insumos",
+    "description": "La tabla de inventario renderiza filteredSupplies() (lista completa filtrada en cliente) sin paginador, con scroll fijo de 600px. Aplicar el mismo patr\u00f3n de la tabla de products (activities 13-16): endpoint paginado, flattening de { content, page }, p-table [lazy]+[first]+(onPage), y cargar reference data on-demand. Backend (desarrollado por el usuario): GET /api/v1/supplies/variants SIEMPRE devuelve PagedModelSupplyVariantResponse { content, page: { size, number, totalElements, totalPages } } (sin fallback a array), con params page (default 0) y size (default 20, max 100); soporta ademas supplyId. Como no hay array sin params, getSupplyVariants() (consumido por product-cache.ts referenceData.variants y los pickers de modales) pide size=100 y desempaqueta content.",
     "acceptance": [
       "Supply.getSupplyVariantsPaginated(page, size) mapea { content, page } anidado a PaginatedSuppliesResponse plano (content, totalElements, totalPages, page, size), con fallback a 0 cuando page falta",
-      "InventoryCache tiene un caché paginado suppliesPage (ResourceCache<PaginatedSuppliesResponse>) con setSuppliesListParams({page, size}) que hace reset+load (patrón setProductListParams); supplies (lista completa) se mantiene para warning de costo cero, picker de compra y dialog de transferencia",
-      "inventory.ts expone currentPage/pageSize/totalElements; onPage(event) calcula page=floor(first/rows) y llama setSuppliesListParams; la búsqueda por nombre es client-side sobre la página actual (patrón products)",
-      "inventory.html p-table usa [paginator]=true [rows]=pageSize() [totalRecords]=totalElements [lazy]=true [first]=currentPage()*pageSize() (onPage)=onPage($event); se quitan sortMode=\"multiple\" y pSortableColumn/p-sortIcon (backend no soporta sort en variants); se elimina el filtro por categoría del caption",
+      "InventoryCache tiene un cach\u00e9 paginado suppliesPage (ResourceCache<PaginatedSuppliesResponse>) con setSuppliesListParams({page, size}) que hace reset+load (patr\u00f3n setProductListParams); supplies (lista completa) se mantiene para warning de costo cero, picker de compra y dialog de transferencia",
+      "inventory.ts expone currentPage/pageSize/totalElements; onPage(event) calcula page=floor(first/rows) y llama setSuppliesListParams; la b\u00fasqueda por nombre es client-side sobre la p\u00e1gina actual (patr\u00f3n products)",
+      "inventory.html p-table usa [paginator]=true [rows]=pageSize() [totalRecords]=totalElements [lazy]=true [first]=currentPage()*pageSize() (onPage)=onPage($event); se quitan sortMode=\"multiple\" y pSortableColumn/p-sortIcon (backend no soporta sort en variants); se elimina el filtro por categor\u00eda del caption",
       "ngOnInit ya no fuerza referenceData.refresh() ni purchases; onVisible() llama loadIfStale() de suppliesPage, supplies, referenceData y purchases; [loading] de la tabla refleja suppliesPage",
-      "Los modales (compra, transferencia, variante) siguen usando la lista completa supplies() (loadIfStale al abrir) para que el picker de variantes y el dialog de transferencia no se limiten a la página actual",
+      "Los modales (compra, transferencia, variante) siguen usando la lista completa supplies() (loadIfStale al abrir) para que el picker de variantes y el dialog de transferencia no se limiten a la p\u00e1gina actual",
       "Specs: test en supply.spec.ts para getSupplyVariantsPaginated (flattening + query params page/size). Harness verde (lint, build, tests)"
     ],
     "tasks": [
       {
         "id": "a",
-        "description": "En core/services/supplies/supply.ts: definir PaginatedSuppliesResponse (plano) y PagedSuppliesApiResponse (raw { content?, page? }). Añadir getSupplyVariantsPaginated(page=0, size=20) que llama GET v1/supplies/variants con params page/size y aplica map() aplanando page (fallback 0). Adaptar getSupplyVariants() al backend siempre-paginado: pide size=100 (max) y desempaqueta content (fallback []) para que product-cache.ts y los pickers sigan recibiendo array. Eliminar getVariantsByCategory() (dead code, backend no soporta categoryId).",
+        "description": "En core/services/supplies/supply.ts: definir PaginatedSuppliesResponse (plano) y PagedSuppliesApiResponse (raw { content?, page? }). A\u00f1adir getSupplyVariantsPaginated(page=0, size=20) que llama GET v1/supplies/variants con params page/size y aplica map() aplanando page (fallback 0). Adaptar getSupplyVariants() al backend siempre-paginado: pide size=100 (max) y desempaqueta content (fallback []) para que product-cache.ts y los pickers sigan recibiendo array. Eliminar getVariantsByCategory() (dead code, backend no soporta categoryId).",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
-        "description": "En inventory-cache.ts: añadir suppliesPage = ResourceCache<PaginatedSuppliesResponse> con params {page, size} + setSuppliesListParams({page?, size?}) (reset + load). invalidateSupplies() invalida ambos (supplies y suppliesPage). Mantener supplies (lista completa), purchases y referenceData.",
+        "description": "En inventory-cache.ts: a\u00f1adir suppliesPage = ResourceCache<PaginatedSuppliesResponse> con params {page, size} + setSuppliesListParams({page?, size?}) (reset + load). invalidateSupplies() invalida ambos (supplies y suppliesPage). Mantener supplies (lista completa), purchases y referenceData.",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
-        "description": "En inventory.ts: añadir currentPage/pageSize signals; tableRows computado desde cache.suppliesPage.data()?.content; filteredSupplies ya no filtra la lista completa sino la página actual (buscar en cliente sobre la página, como products). onPage(event) → setSuppliesListParams. ngOnInit: quitar referenceData.refresh() y purchases.refresh() forzados (dejar solo suppliesPage si data null). onVisible(): loadIfStale de suppliesPage, supplies, purchases, referenceData. Mantener supplies (lista completa) para warning/compra/transferencia y WS (applyInventoryUpdate sigue mutando supplies completo). Eliminar el filtro por categoría de la tabla (selectedCategoryId/filterByCategory) porque el endpoint /variants no lo soporta.",
+        "description": "En inventory.ts: a\u00f1adir currentPage/pageSize signals; tableRows computado desde cache.suppliesPage.data()?.content; filteredSupplies ya no filtra la lista completa sino la p\u00e1gina actual (buscar en cliente sobre la p\u00e1gina, como products). onPage(event) \u2192 setSuppliesListParams. ngOnInit: quitar referenceData.refresh() y purchases.refresh() forzados (dejar solo suppliesPage si data null). onVisible(): loadIfStale de suppliesPage, supplies, purchases, referenceData. Mantener supplies (lista completa) para warning/compra/transferencia y WS (applyInventoryUpdate sigue mutando supplies completo). Eliminar el filtro por categor\u00eda de la tabla (selectedCategoryId/filterByCategory) porque el endpoint /variants no lo soporta.",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "d",
-        "description": "En inventory.html: p-table de insumos añadir [paginator]=true [rows]=pageSize() [totalRecords]=totalElements [lazy]=true [first]=currentPage()*pageSize() (onPage)=onPage($event); quitar sortMode=\"multiple\" y pSortableColumn/p-sortIcon de las 6 columnas; [value] usa la página actual (con búsqueda client-side); [loading] de la tabla = suppliesPage loading sin data. Quitar el p-select de categoría del caption.",
+        "description": "En inventory.html: p-table de insumos a\u00f1adir [paginator]=true [rows]=pageSize() [totalRecords]=totalElements [lazy]=true [first]=currentPage()*pageSize() (onPage)=onPage($event); quitar sortMode=\"multiple\" y pSortableColumn/p-sortIcon de las 6 columnas; [value] usa la p\u00e1gina actual (con b\u00fasqueda client-side); [loading] de la tabla = suppliesPage loading sin data. Quitar el p-select de categor\u00eda del caption.",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "e",
-        "description": "Especs: añadir test en core/services/supplies/supply.spec.ts para getSupplyVariantsPaginated que verifique flattening del payload anidado { content, page } y query params (page, size), y para getSupplyVariants que pida size=100 y desempaquete content. Correr node scripts/harness.js y dejar lint, build y tests en verde.",
+        "description": "Especs: a\u00f1adir test en core/services/supplies/supply.spec.ts para getSupplyVariantsPaginated que verifique flattening del payload anidado { content, page } y query params (page, size), y para getSupplyVariants que pida size=100 y desempaquete content. Correr node scripts/harness.js y dejar lint, build y tests en verde.",
         "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 20,
+    "type": "feat",
+    "name": "products-toggle-inactive",
+    "title": "Toggle 'Mostrar inactivos' en la Carta de Productos",
+    "description": "La Carta de Productos (/admin/manage/products) hoy muestra una columna 'Estado' con badge Activo/Inactivo y un bot\u00f3n 'Eliminar' que en realidad llama a productService.disableProduct (soft-delete: PUT /api/v1/products/{id}/disable). El usuario quiere: 1) quitar la columna Estado, 2) agregar un toggle 'Mostrar inactivos' en el caption de la tabla \u2014 cuando est\u00e1 apagado muestra solo productos activos (includeInactive=false, comportamiento actual); cuando est\u00e1 encendido filtra el resultado del backend para mostrar SOLO los desactivados, 3) el bot\u00f3n 'Eliminar' sigue llam\u00e1ndose as\u00ed pero su confirmaci\u00f3n y el toast pasan a decir 'desactivar'/'desactivado' para que coincidan con la acci\u00f3n real.",
+    "acceptance": [
+      "products.html ya no tiene <th>Estado</th> ni la celda <td> con Activo/Inactivo; los colspan de loadingbody y emptymessage pasan de 6 a 5",
+      "products.html tiene un p-toggleswitch en el caption con label 'Mostrar inactivos' que controla qu\u00e9 productos se muestran (off = solo activos, on = solo inactivos)",
+      "Cuando el toggle est\u00e1 ON, el componente filtra client-side para mostrar SOLO productos con active=false (filteredProducts computed); las filas se renderizan con estilo normal (sin opacidad/tachado) para que sean f\u00e1ciles de leer y operar",
+      "El mensaje del empty message cambia seg\u00fan el estado del toggle: 'No hay productos registrados' cuando est\u00e1 OFF, 'No hay productos inactivos' cuando est\u00e1 ON",
+      "product-cache.ts: productListParams incluye includeInactive: boolean (default false); setProductListParams acepta includeInactive; getProductsPaginated recibe el valor (no m\u00e1s hardcode `false`)",
+      "products.ts: el signal includeInactive queda conectado al cache v\u00eda setProductListParams({ includeInactive, page: 0 }) \u2014 toggle OFF resetea a p\u00e1gina 0; toggle ON igual resetea a p\u00e1gina 0; el m\u00e9todo p\u00fablico setIncludeInactive(value) se usa en el template v\u00eda (ngModelChange)",
+      "products.ts: confirmDeleteProduct muestra el mensaje '\u00bfEst\u00e1s seguro de desactivar \"<nombre>\"?' y el toast de \u00e9xito dice 'Producto desactivado' (en lugar de 'eliminado'); el bot\u00f3n de la fila sigue llam\u00e1ndose 'Eliminar' (icono pi-trash, pTooltip 'Eliminar')",
+      "Cuando includeInactive() es true (vista de inactivos), el bot\u00f3n de trash en Acciones se reemplaza por un bot\u00f3n de 'Activar' (icon pi-check o pi-refresh, severity success, pTooltip 'Activar', click \u2192 confirmEnableProduct \u2192 Product.enableProduct \u2192 PUT /api/v1/products/{id}/enable, toast 'Producto activado'). Cuando includeInactive() es false, el bot\u00f3n trash 'Eliminar' sigue como antes.",
+      "El backend PUT /api/v1/products/{id}/enable es la nueva\u5951\u7ea6 a usar (confirmado por el usuario; pendiente de despliegue en backend \u2014 el c\u00f3digo fallar\u00e1 en runtime hasta que est\u00e9 expuesto).",
+      "Product service (core/services/products/product.ts) a\u00f1ade enableProduct(id): Observable<object> = this.http.put('v1/products/' + id + '/enable', {}) \u2014 espejado de disableProduct.",
+      "Specs: a\u00f1adir tests para Product.enableProduct (en product.spec.ts) cubriendo el PUT a v1/products/{id}/enable con body vac\u00edo; a\u00f1adir tests para confirmEnableProduct / enableProduct en products.spec.ts verificando que emite invalidaci\u00f3n WebSocket + refreshProducts + toast de \u00e9xito. Harness verde (lint, build, tests).",
+      "Verificaci\u00f3n manual: con toggle OFF solo se ven productos activos; al hacer 'Eliminar' el producto desaparece (porque ahora est\u00e1 inactivo y includeInactive=false); al activar el toggle SOLO aparecen los productos desactivados (filtrados client-side); al pulsar 'Activar' en una fila de inactivo, el producto se reactiva y desaparece de la vista (queda active=true y el filtro client-side lo oculta)."
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Editar product-cache.ts (plumbing includeInactive en productListParams + setProductListParams + getProductsPaginated), products.ts (wire includeInactive signal al cache via setIncludeInactive, filteredProducts filtra client-side a inactivos cuando includeInactive() es true, ajustar textos del confirm + toast), y products.html (quitar <th>Estado</th> + <td>, agregar p-toggleswitch 'Mostrar inactivos' en caption, ajustar colspans, empty message contextual, sin estilo opaco/tachado).",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Tests: a\u00f1adir un test a products.spec.ts (o product-cache.spec.ts si existe) que cubra setProductListParams({ includeInactive: true }) propague includeInactive al Product.getProductsPaginated y que filteredProducts filtra a inactivos cuando includeInactive() es true. Crear product-cache.spec.ts siguiendo el patr\u00f3n de combo-reference-cache.spec.ts si no existe (cubre el nuevo comportamiento del cache). Confirmar que ning\u00fan spec usa los textos viejos 'eliminado' como aserci\u00f3n r\u00edgida. Correr node scripts/harness.js y dejar lint, build y tests en verde.",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "A\u00f1adir bot\u00f3n 'Activar' en productos.html cuando includeInactive() es true: el bot\u00f3n de trash se reemplaza por uno con icon pi-check o pi-refresh, severity success, pTooltip 'Activar', (click)='confirmEnableProduct($event, product)'. En products.ts: a\u00f1adir confirmEnableProduct (popup de confirmaci\u00f3n con mensaje '\u00bfEst\u00e1s seguro de activar \"<nombre>\"?' y accept \u2192 enableProduct(id)) y enableProduct privado que llama productService.enableProduct(id) + wsService.emitCacheInvalidation('products', 'update') + refreshProducts() + toast 'Producto activado'. En product.ts (service): a\u00f1adir enableProduct(id): Observable<object> = http.put('v1/products/' + id + '/enable', {}).",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Tests: a\u00f1adir a product.spec.ts un test para enableProduct verificando PUT a 'v1/products/{id}/enable' con body {}; a\u00f1adir a products.spec.ts tests para confirmEnableProduct y el flujo enableProduct (verifica que emite invalidaci\u00f3n WebSocket + refreshProducts + toast). Confirmar que ning\u00fan spec rompe. Correr node scripts/harness.js \u2014 lint, build, tests verdes.",
+        "status": "pending",
+        "agent": "implementer"
+      }
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 19,
+    "type": "chore",
+    "name": "remove-manage-section-subtitles",
+    "title": "Quitar subt\u00edtulos descriptivos en los m\u00f3dulos de manage",
+    "description": "Cada m\u00f3dulo del feature /admin/manage muestra actualmente un subt\u00edtulo descriptivo bajo el t\u00edtulo de secci\u00f3n (ej. 'Carta de Productos / Gesti\u00f3n completa de todos los productos del restaurante'). Algunos lo hacen con campos description del componente renderizados v\u00eda {{ description }}, otros con un <p> hardcoded. Se pide dejar SOLO el t\u00edtulo de secci\u00f3n.",
+    "acceptance": [
+      "categories.html ya no muestra <p>...{{ description }}...</p> y categories.ts ya no tiene el campo description = '...' (title se mantiene porque {{ title }} sigue us\u00e1ndose)",
+      "products.html ya no muestra <p>...{{ description }}...</p> y products.ts ya no tiene description = '...' (title se mantiene)",
+      "tables.html no muestra subt\u00edtulo (ya no lo mostraba) y tables.ts pierde los campos title y description que nunca se usaban en el template",
+      "workers.html pierde el <p> hardcoded con el subt\u00edtulo (l\u00ednea ~6); workers.ts pierde los campos title y description no usados",
+      "time-logs.html pierde el <p> hardcoded con el subt\u00edtulo (l\u00ednea ~6)",
+      "areas.html pierde el <p> hardcoded con el subt\u00edtulo (l\u00ednea ~6)",
+      "schedules.html pierde el <p> hardcoded 'Gestiona las plantillas de turnos'; schedules/assignments/schedule-assignments.html se preserva intacto (su <p> muestra el nombre din\u00e1mico del horario seleccionado, no es un subt\u00edtulo de secci\u00f3n)",
+      "Ning\u00fan template renderiza {{ description }} de los componentes afectados; ning\u00fan spec depende de los campos eliminados",
+      "Harness verde (lint, build, tests). Sin commits autom\u00e1ticos."
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Editar HTML/TS de los 7 m\u00f3dulos manage (categories, products, tables, workers, time-logs, areas, schedules): quitar las l\u00edneas <p> de subt\u00edtulo y los campos description/title no usados del .ts seg\u00fan la matriz en la descripci\u00f3n de la actividad. NO tocar schedules/assignments/schedule-assignments.html ni el campo description de combos/combo-editor.ts (es form state).",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Correr node scripts/harness.js y dejar lint, build y tests en verde. Confirmar que no quedan <p> de subt\u00edtulo descriptivo en los HTML de manage (excepto schedule-assignments.html) y que ning\u00fan spec usa los campos eliminados.",
+        "status": "pending",
         "agent": "implementer"
       }
     ],

@@ -5,6 +5,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { Supply } from './supply';
 import { PaginatedSuppliesResponse } from './supply';
 import { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
+import { SupplyCategoryResponse } from '@app/shared/models/dto/supplies/supply-category-response';
 
 describe('Supply service', () => {
   let service: Supply;
@@ -138,6 +139,39 @@ describe('Supply service', () => {
       );
       expect(req.request.method).toBe('GET');
       req.flush({});
+    });
+  });
+
+  describe('getCategories', () => {
+    it('requests supply categories and emits the response', () => {
+      let emitted: SupplyCategoryResponse[] | undefined;
+      service.getCategories().subscribe(value => {
+        emitted = value;
+      });
+
+      const req = httpMock.expectOne('v1/supplies/categories');
+      expect(req.request.method).toBe('GET');
+
+      req.flush([{ id: 1, name: 'Proteínas' }]);
+
+      expect(emitted).toEqual([{ id: 1, name: 'Proteínas' }]);
+    });
+  });
+
+  describe('createCategory', () => {
+    it('posts the new category and emits the created response', () => {
+      let emitted: SupplyCategoryResponse | undefined;
+      service.createCategory({ name: 'Lácteos' }).subscribe(value => {
+        emitted = value;
+      });
+
+      const req = httpMock.expectOne('v1/supplies/categories');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ name: 'Lácteos' });
+
+      req.flush({ id: 2, name: 'Lácteos' });
+
+      expect(emitted).toEqual({ id: 2, name: 'Lácteos' });
     });
   });
 });
