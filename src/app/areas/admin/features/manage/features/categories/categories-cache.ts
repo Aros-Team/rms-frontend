@@ -19,15 +19,18 @@ export class CategoriesCache {
   private readonly optionCategoryService = inject(OptionCategory);
   private readonly supplyService = inject(Supply);
 
+  private categoriesListParams: { search?: string } = {};
+  private optionCategoriesListParams: { search?: string } = {};
+
   // Product categories - TTL largo (30 min)
   readonly productCategories = new ResourceCache<CategorySimpleResponse[]>(
-    () => this.categoryService.getCategories(),
+    () => this.categoryService.getCategories(this.categoriesListParams.search),
     { ttlMs: 30 * 60 * 1000, staleWhileRevalidate: true }
   );
 
   // Option categories - TTL largo (30 min)
   readonly optionCategories = new ResourceCache<OptionCategoryResponse[]>(
-    () => this.optionCategoryService.getOptionCategories(),
+    () => this.optionCategoryService.getOptionCategories(this.optionCategoriesListParams.search),
     { ttlMs: 30 * 60 * 1000, staleWhileRevalidate: true }
   );
 
@@ -45,6 +48,18 @@ export class CategoriesCache {
     }),
     { ttlMs: 30 * 60 * 1000, staleWhileRevalidate: true }
   );
+
+  setCategoriesListParams(params: { search?: string }): void {
+    this.categoriesListParams = { ...this.categoriesListParams, ...params };
+    this.productCategories.reset();
+    this.productCategories.load();
+  }
+
+  setOptionCategoriesListParams(params: { search?: string }): void {
+    this.optionCategoriesListParams = { ...this.optionCategoriesListParams, ...params };
+    this.optionCategories.reset();
+    this.optionCategories.load();
+  }
 
   invalidateAll(): void {
     this.productCategories.invalidate();

@@ -9,8 +9,12 @@ import { AreaRequest, AreaResponse } from "@app/shared/models/dto/areas/area";
 export class Area {
   private http = inject(HttpClient);
 
-  public getAreas(): Observable<AreaResponse[]> {
-    return this.http.get<AreaResponse[]>('v1/areas');
+  public getAreas(search?: string): Observable<AreaResponse[]> {
+    let params: Record<string, string> = {};
+    if (search) {
+      params = { ...params, search };
+    }
+    return this.http.get<AreaResponse[]>('v1/areas', { params });
   }
 
   public getArea(id: number): Observable<AreaResponse> {

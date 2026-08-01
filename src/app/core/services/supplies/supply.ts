@@ -37,9 +37,13 @@ export class Supply {
 
   public getSupplyVariantsPaginated(
     page = 0,
-    size = 20
+    size = 20,
+    search?: string,
   ): Observable<PaginatedSuppliesResponse> {
     const params: Record<string, string> = { page: String(page), size: String(size) };
+    if (search) {
+      params['search'] = search;
+    }
     return this.http.get<PagedSuppliesApiResponse>('v1/supplies/variants', { params }).pipe(
       map((res) => ({
         content: res.content ?? [],

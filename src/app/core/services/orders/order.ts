@@ -74,7 +74,7 @@ export class Order {
    * (e.g. the user picked today) the endDate is capped to the current time
    * so the backend doesn't reject it.
    */
-  getOrdersByDateRange(startDate: Date, endDate: Date, status?: string): Observable<OrderResponse[]> {
+  getOrdersByDateRange(startDate: Date, endDate: Date, status?: string, search?: string): Observable<OrderResponse[]> {
     const now = new Date();
     const endOfDay = new Date(endDate);
     endOfDay.setHours(23, 59, 59, 999);
@@ -87,6 +87,7 @@ export class Order {
       sort: 'date,desc',
     };
     if (status) params['status'] = status;
+    if (search) params['search'] = search;
     return this.queryOrders(params);
   }
 

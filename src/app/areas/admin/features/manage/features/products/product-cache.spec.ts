@@ -62,7 +62,7 @@ describe('ProductCache', () => {
   it('setProductListParams({ includeInactive: true }) calls Product.getProductsPaginated with includeInactive=true', () => {
     cache.setProductListParams({ includeInactive: true });
 
-    expect(productStub.getProductsPaginated).toHaveBeenCalledWith(0, 6, true);
+    expect(productStub.getProductsPaginated).toHaveBeenCalledWith(0, 6, true, undefined, undefined);
     expect(cache.products.hasData()).toBe(true);
     httpMock.expectNone('v1/products');
   });
@@ -70,7 +70,7 @@ describe('ProductCache', () => {
   it('setProductListParams({ includeInactive: false }) calls Product.getProductsPaginated with includeInactive=false', () => {
     cache.setProductListParams({ includeInactive: false });
 
-    expect(productStub.getProductsPaginated).toHaveBeenCalledWith(0, 6, false);
+    expect(productStub.getProductsPaginated).toHaveBeenCalledWith(0, 6, false, undefined, undefined);
     expect(cache.products.hasData()).toBe(true);
     httpMock.expectNone('v1/products');
   });
@@ -78,7 +78,15 @@ describe('ProductCache', () => {
   it('setProductListParams({ page: 2, size: 10, includeInactive: true }) propagates all three args', () => {
     cache.setProductListParams({ page: 2, size: 10, includeInactive: true });
 
-    expect(productStub.getProductsPaginated).toHaveBeenCalledWith(2, 10, true);
+    expect(productStub.getProductsPaginated).toHaveBeenCalledWith(2, 10, true, undefined, undefined);
+    expect(cache.products.hasData()).toBe(true);
+    httpMock.expectNone('v1/products');
+  });
+
+  it('setProductListParams({ search: "foo" }) calls Product.getProductsPaginated with search: "foo"', () => {
+    cache.setProductListParams({ search: 'foo' });
+
+    expect(productStub.getProductsPaginated).toHaveBeenCalledWith(0, 6, false, undefined, 'foo');
     expect(cache.products.hasData()).toBe(true);
     httpMock.expectNone('v1/products');
   });

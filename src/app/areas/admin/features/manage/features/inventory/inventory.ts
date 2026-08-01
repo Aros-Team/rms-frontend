@@ -42,6 +42,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { TagModule } from 'primeng/tag';
 import { MessageModule } from 'primeng/message';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
+import { SearchInput } from '@shared/components/search-input/search-input';
 
 // Wizard step type
 type VariantStep = 'category' | 'supply' | 'variant';
@@ -72,6 +73,7 @@ type VariantStep = 'category' | 'supply' | 'variant';
     MessageModule,
     LazyLoad,
     TableSkeleton,
+    SearchInput,
   ],
   providers: [MessageService],
   templateUrl: './inventory.html',
@@ -106,7 +108,6 @@ export class Inventory implements OnInit {
   allSupplies = signal<SupplyResponse[]>([]);
   currentPage = signal(0);
   pageSize = signal(20);
-  tableSearch = signal('');
 
   // Efecto para sincronizar automáticamente cuando el cache cambie
   private syncEffect = effect(() => {
@@ -120,9 +121,13 @@ export class Inventory implements OnInit {
       this.purchases.set(cachedPurchases);
     }
 
+    const cachedSuppliers = this.cache.suppliers.data();
+    if (cachedSuppliers !== null) {
+      this.suppliers.set(cachedSuppliers);
+    }
+
     const refData = this.cache.referenceData.data();
     if (refData !== null) {
-      this.suppliers.set(refData.suppliers);
       this.categories.set(refData.categories);
       this.units.set(refData.units);
       this.allSupplies.set(refData.allSupplies);
@@ -132,15 +137,6 @@ export class Inventory implements OnInit {
   // Fila actual de la tabla - proviene de la página consultada al servidor
   pageSupplies = computed(() => this.cache.suppliesPage.data()?.content ?? undefined);
   totalElements = computed(() => this.cache.suppliesPage.data()?.totalElements ?? 0);
-
-  // Búsqueda client-side sobre la página actual (la categoría se filtra en el servidor)
-  filteredSupplies = computed(() => {
-    const all = this.pageSupplies();
-    if (all === undefined) return undefined;
-    const search = this.tableSearch().toLowerCase().trim();
-    if (!search) return all;
-    return all.filter((s) => s.supplyName.toLowerCase().includes(search));
-  });
 
   hasZeroUnitCost = computed(() => (this.supplies() ?? []).some(v => v.unitCost === 0));
 
@@ -272,6 +268,7 @@ export class Inventory implements OnInit {
     this.cache.suppliesPage.loadIfStale();
     this.cache.supplies.loadIfStale();
     this.cache.purchases.loadIfStale();
+    this.cache.suppliers.loadIfStale();
     this.cache.referenceData.loadIfStale();
   }
 
@@ -283,9 +280,21 @@ export class Inventory implements OnInit {
   }
 
   clearFilters(): void {
-    this.tableSearch.set('');
     this.currentPage.set(0);
-    this.cache.setSuppliesListParams({ page: 0 });
+    this.cache.setSuppliesListParams({ page: 0, search: '' });
+  }
+
+  onSearchSupply(value: string): void {
+    this.currentPage.set(0);
+    this.cache.setSuppliesListParams({ search: value, page: 0 });
+  }
+
+  onSearchSuppliers(value: string): void {
+    this.cache.setSuppliersListParams({ search: value });
+  }
+
+  onSearchPurchases(value: string): void {
+    this.cache.setPurchasesListParams({ search: value });
   }
 
   private syncFromCache(): void {
@@ -299,9 +308,13 @@ export class Inventory implements OnInit {
       this.purchases.set(cachedPurchases);
     }
 
+    const cachedSuppliers = this.cache.suppliers.data();
+    if (cachedSuppliers !== null) {
+      this.suppliers.set(cachedSuppliers);
+    }
+
     const refData = this.cache.referenceData.data();
     if (refData !== null) {
-      this.suppliers.set(refData.suppliers);
       this.categories.set(refData.categories);
       this.units.set(refData.units);
       this.allSupplies.set(refData.allSupplies);
@@ -741,9 +754,9 @@ export class Inventory implements OnInit {
   }
 
   private loadSuppliers(): void {
-    const refData = this.cache.referenceData.data();
-    if (refData !== null) {
-      this.suppliers.set(refData.suppliers);
+    const cachedSuppliers = this.cache.suppliers.data();
+    if (cachedSuppliers !== null) {
+      this.suppliers.set(cachedSuppliers);
     }
   }
 

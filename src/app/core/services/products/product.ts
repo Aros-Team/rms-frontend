@@ -57,7 +57,7 @@ export class Product {
     return this.http.get<ProductResponse[]>('v1/products');
   }
 
-  public getProductsPaginated(page = 0, size = 20, includeInactive = false, includeSelections?: boolean): Observable<PaginatedProductsResponse> {
+  public getProductsPaginated(page = 0, size = 20, includeInactive = false, includeSelections?: boolean, search?: string): Observable<PaginatedProductsResponse> {
     let params: Record<string, string> = {
       page: String(page),
       size: String(size),
@@ -65,6 +65,9 @@ export class Product {
     };
     if (includeSelections) {
       params = { ...params, includeSelections: 'true' };
+    }
+    if (search) {
+      params = { ...params, search };
     }
     return this.http.get<PagedProductsApiResponse>('v1/products', { params }).pipe(
       map((res) => ({

@@ -28,15 +28,18 @@ export class TablesCache implements OnDestroy {
 
   private wsSub?: Subscription;
 
+  private tablesListParams: { search?: string } = {};
+  private areasListParams: { search?: string } = {};
+
   // Tables - TTL medio (5 min)
   readonly tables = new ResourceCache<TableResponse[]>(
-    () => this.tableService.getTables(),
+    () => this.tableService.getTables(this.tablesListParams.search),
     { ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true }
   );
 
   // Areas - TTL largo (30 min)
   readonly areas = new ResourceCache<AreaResponse[]>(
-    () => this.areaService.getAreas(),
+    () => this.areaService.getAreas(this.areasListParams.search),
     { ttlMs: 30 * 60 * 1000, staleWhileRevalidate: true }
   );
 
@@ -78,6 +81,18 @@ export class TablesCache implements OnDestroy {
     this.tables.invalidate();
     this.areas.invalidate();
     this.tablesAndAreas.invalidate();
+  }
+
+  setTablesListParams(params: { search?: string }): void {
+    this.tablesListParams = { ...this.tablesListParams, ...params };
+    this.tables.reset();
+    this.tables.load();
+  }
+
+  setAreasListParams(params: { search?: string }): void {
+    this.areasListParams = { ...this.areasListParams, ...params };
+    this.areas.reset();
+    this.areas.load();
   }
 
   ngOnDestroy(): void {

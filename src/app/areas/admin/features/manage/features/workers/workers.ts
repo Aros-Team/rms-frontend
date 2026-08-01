@@ -54,6 +54,7 @@ interface WorkerFormValue {
 @Component({
   selector: 'app-workers',
   imports: [
+    NgClass,
     RouterModule,
     FormsModule,
     TableModule,
@@ -75,7 +76,6 @@ interface WorkerFormValue {
     LazyLoad,
     TableSkeleton,
     WorkerCard,
-    NgClass,
   ],
   templateUrl: './workers.html',
 })

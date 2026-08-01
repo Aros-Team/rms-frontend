@@ -1,0 +1,22 @@
+<div class="flex gap-2 items-center w-full lg:w-80">
+  <p-iconfield iconPosition="left" class="flex-1">
+    <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+    <input
+      pInputText
+      type="text"
+      class="w-full"
+      [ngModel]="value()"
+      (ngModelChange)="onInput($event)"
+      [placeholder]="placeholder"
+    />
+  </p-iconfield>
+  @if (value()) {
+    <p-button
+      icon="pi pi-times"
+      severity="secondary"
+      [text]="true"
+      size="small"
+      (click)="clear()"
+    />
+  }
+</div>

@@ -29,9 +29,9 @@ import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
     SelectModule,
     IconFieldModule,
     InputIconModule,
-FormValidation,
+    FormValidation,
     LazyLoad,
-    TableSkeleton
+    TableSkeleton,
   ],
   templateUrl: './areas.html'
 })

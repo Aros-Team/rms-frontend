@@ -5,13 +5,10 @@ import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
-import { IconFieldModule } from 'primeng/iconfield';
-import { InputIconModule } from 'primeng/inputicon';
 import { Subscription } from 'rxjs';
 import { Order, OrderStatus } from '@app/core/services/orders/order';
 import { OrderResponse, OrderDetailItem } from '@models/dto/orders/order-response';
@@ -41,13 +38,10 @@ const WS_TOPICS = {
     SelectModule,
     FormsModule,
     ButtonModule,
-    InputTextModule,
     SkeletonModule,
     TagModule,
     DialogModule,
     TooltipModule,
-    IconFieldModule,
-    InputIconModule,
     SlicePipe,
     TableSkeleton
   ],
@@ -63,7 +57,7 @@ export class OrdersTable implements OnInit, OnDestroy {
   saving = false;
   error: string | null = null;
 
-  searchQuery = '';
+  search = '';
   selectedOrder: OrderResponse | null = null;
   detailsDialogVisible = false;
 
@@ -97,11 +91,6 @@ export class OrdersTable implements OnInit, OnDestroy {
     this.connectWebSocket();
   }
 
-  onSearchChange(query: string): void {
-    this.searchQuery = query.toLowerCase();
-    this.applyFilters();
-  }
-
   getOrderTotal(order: OrderResponse): number {
     if (order.details.length === 0) return 0;
     return order.details.reduce((sum: number, detail: OrderDetailItem) =>
@@ -115,7 +104,7 @@ export class OrdersTable implements OnInit, OnDestroy {
   }
 
   clearFilters(): void {
-    this.searchQuery = '';
+    this.search = '';
     this.selectedStatus = 'ALL';
     this.selectedDate = new Date();
     this.table.clear();
@@ -186,7 +175,7 @@ export class OrdersTable implements OnInit, OnDestroy {
     // Use date‑range query (the backend filters by date, much faster than
     // loading everything and filtering client‑side)
     const date = this.selectedDate ?? new Date();
-    this.orderService.getOrdersByDateRange(date, date, status).subscribe({
+    this.orderService.getOrdersByDateRange(date, date, status, this.search || undefined).subscribe({
       next: (res: OrderResponse[]) => {
         this.allOrders = res;
         this.originalOrders.clear();
@@ -251,18 +240,6 @@ export class OrdersTable implements OnInit, OnDestroy {
       filtered = filtered.filter((o) => {
         const d = new Date(o.date);
         return d >= start && d <= end;
-      });
-    }
-
-    if (this.searchQuery.trim()) {
-      const query = this.searchQuery.toLowerCase();
-      filtered = filtered.filter((o) => {
-        const matchesId = o.id.toString().includes(query);
-        const matchesTable = o.tableId.toString().includes(query);
-        const matchesProducts = o.details.some((d: OrderDetailItem) =>
-          d.productName.toLowerCase().includes(query)
-        );
-        return matchesId || matchesTable || matchesProducts;
       });
     }
 

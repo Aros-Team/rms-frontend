@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { OptionCategoryRequest, OptionCategoryResponse } from '@app/shared/models/dto/category/option-category';
@@ -9,8 +9,12 @@ import { OptionCategoryRequest, OptionCategoryResponse } from '@app/shared/model
 export class OptionCategory {
   private http = inject(HttpClient);
 
-  public getOptionCategories(): Observable<OptionCategoryResponse[]> {
-    return this.http.get<OptionCategoryResponse[]>('v1/option-categories');
+  public getOptionCategories(search?: string): Observable<OptionCategoryResponse[]> {
+    let params = new HttpParams();
+    if (search) {
+      params = params.set('search', search);
+    }
+    return this.http.get<OptionCategoryResponse[]>('v1/option-categories', { params });
   }
 
   public getOptionCategory(id: number): Observable<OptionCategoryResponse> {

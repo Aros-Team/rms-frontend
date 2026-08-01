@@ -14,7 +14,6 @@ import { SupplyResponse } from '@app/shared/models/dto/supplies/supply-response'
 
 export interface InventoryReferenceData {
   categories: SupplyCategoryResponse[];
-  suppliers: SupplierResponse[];
   units: SupplyUnitResponse[];
   allSupplies: SupplyResponse[];
 }
@@ -33,19 +32,28 @@ export class InventoryCache {
   );
 
   // Lista paginada de insumos - la página/tamaño se configuran por componente
-  private supplyListParams: { page: number; size: number } = { page: 0, size: 20 };
+  private supplyListParams: { page: number; size: number; search?: string } = { page: 0, size: 20 };
+  private suppliersParams: { search?: string } = {};
+  private purchasesParams: { search?: string } = {};
 
   readonly suppliesPage = new ResourceCache<PaginatedSuppliesResponse>(
     () => this.supplyService.getSupplyVariantsPaginated(
       this.supplyListParams.page,
       this.supplyListParams.size,
+      this.supplyListParams.search,
     ),
     { ttlMs: 10 * 60 * 1000, staleWhileRevalidate: true }
   );
 
-  // Purchases - TTL medio (5 min)
+  // Suppliers - TTL largo (30 min), con búsqueda server-side
+  readonly suppliers = new ResourceCache<SupplierResponse[]>(
+    () => this.supplierService.getSuppliers(this.suppliersParams.search),
+    { ttlMs: 30 * 60 * 1000, staleWhileRevalidate: true }
+  );
+
+  // Purchases - TTL medio (5 min), con búsqueda server-side
   readonly purchases = new ResourceCache<PurchaseResponse[]>(
-    () => this.purchaseService.getPurchases(),
+    () => this.purchaseService.getPurchases(this.purchasesParams.search),
     { ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true }
   );
 
@@ -53,7 +61,6 @@ export class InventoryCache {
   readonly referenceData = new ResourceCache<InventoryReferenceData>(
     () => forkJoin({
       categories: this.supplyService.getCategories(),
-      suppliers: this.supplierService.getSuppliers(),
       units: this.supplyService.getUnits(),
       allSupplies: this.supplyService.getSupplies()
     }),
@@ -61,10 +68,22 @@ export class InventoryCache {
   );
 
   /** Cambia la página/tamaño de la lista de insumos y vuelve a consultarla al servidor. */
-  setSuppliesListParams(params: { page?: number; size?: number }): void {
+  setSuppliesListParams(params: { page?: number; size?: number; search?: string }): void {
     this.supplyListParams = { ...this.supplyListParams, ...params };
     this.suppliesPage.reset();
     this.suppliesPage.load();
+  }
+
+  setSuppliersListParams(params: { search?: string }): void {
+    this.suppliersParams = { ...this.suppliersParams, ...params };
+    this.suppliers.reset();
+    this.suppliers.load();
+  }
+
+  setPurchasesListParams(params: { search?: string }): void {
+    this.purchasesParams = { ...this.purchasesParams, ...params };
+    this.purchases.reset();
+    this.purchases.load();
   }
 
   invalidateSupplies(): void {
@@ -76,6 +95,7 @@ export class InventoryCache {
     this.supplies.invalidate();
     this.suppliesPage.invalidate();
     this.purchases.invalidate();
+    this.suppliers.invalidate();
     this.referenceData.invalidate();
   }
 }

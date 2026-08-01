@@ -1,4 +1,4 @@
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { Injectable, inject } from "@angular/core";
 import { CreateWorkerRequest } from "@app/shared/models/dto/workers/create-worker-request";
 import { SalaryHistoryEntry } from "@app/shared/models/dto/workers/salary-history-entry";
@@ -14,9 +14,13 @@ export class Worker {
   private http = inject(HttpClient);
   private logger = inject(Logging);
 
-  public getWorkers(): Observable<WorkerResponse[]> {
+  public getWorkers(search?: string): Observable<WorkerResponse[]> {
     this.logger.debug('Worker: Calling GET workers');
-    return this.http.get<WorkerResponse[]>('v1/workers');
+    let params = new HttpParams();
+    if (search && search.trim() !== '') {
+      params = params.set('search', search.trim());
+    }
+    return this.http.get<WorkerResponse[]>('v1/workers', { params });
   }
 
   public createWorker(data: CreateWorkerRequest): Observable<WorkerResponse> {

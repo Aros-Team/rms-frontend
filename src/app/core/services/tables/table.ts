@@ -10,8 +10,12 @@ import { TableResponse } from "@app/shared/models/dto/tables/table-response";
 export class Table {
   private http = inject(HttpClient);
 
-  public getTables(): Observable<TableResponse[]> {
-    return this.http.get<TableResponse[]>('v1/tables');
+  public getTables(search?: string): Observable<TableResponse[]> {
+    let params: Record<string, string> = {};
+    if (search) {
+      params = { ...params, search };
+    }
+    return this.http.get<TableResponse[]>('v1/tables', { params });
   }
 
   public getTableById(id: number): Observable<TableResponse> {

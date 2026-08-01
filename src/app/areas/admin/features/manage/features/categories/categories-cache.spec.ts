@@ -69,4 +69,24 @@ describe('CategoriesCache', () => {
     expect(cache.optionCategories.status()).toBe('stale');
     expect(cache.allCategories.status()).toBe('stale');
   });
+
+  it('setCategoriesListParams passes search to getCategories', () => {
+    cache.setCategoriesListParams({ search: 'beb' });
+
+    const req = httpMock.expectOne((r) => r.url === 'v1/categories' && r.params.get('search') === 'beb');
+    expect(req.request.method).toBe('GET');
+    req.flush([]);
+
+    expect(cache.productCategories.data()).toEqual([]);
+  });
+
+  it('setOptionCategoriesListParams passes search to getOptionCategories', () => {
+    cache.setOptionCategoriesListParams({ search: 'tamaño' });
+
+    const req = httpMock.expectOne((r) => r.url === 'v1/option-categories' && r.params.get('search') === 'tamaño');
+    expect(req.request.method).toBe('GET');
+    req.flush([]);
+
+    expect(cache.optionCategories.data()).toEqual([]);
+  });
 });

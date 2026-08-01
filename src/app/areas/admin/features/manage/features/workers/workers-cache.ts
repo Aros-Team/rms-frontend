@@ -7,12 +7,20 @@ import { WorkerResponse } from '@app/shared/models/dto/workers/worker-response';
 export class WorkersCache {
   private readonly workerService = inject(Worker);
 
+  private workersListParams: { search?: string } = {};
+
   readonly workers = new ResourceCache<WorkerResponse[]>(
-    () => this.workerService.getWorkers(),
+    () => this.workerService.getWorkers(this.workersListParams.search),
     { ttlMs: 2 * 60 * 1000, staleWhileRevalidate: true }
   );
 
   invalidateWorkers(): void {
     this.workers.invalidate();
+  }
+
+  setWorkersListParams(params: { search?: string }): void {
+    this.workersListParams = { ...this.workersListParams, ...params };
+    this.workers.reset();
+    this.workers.load();
   }
 }

@@ -1,46 +1,42 @@
 [
   {
-    "id": 20,
+    "id": 21,
     "type": "feat",
-    "name": "products-toggle-inactive",
-    "title": "Toggle 'Mostrar inactivos' en la Carta de Productos",
-    "description": "La Carta de Productos (/admin/manage/products) hoy muestra una columna 'Estado' con badge Activo/Inactivo y un botón 'Eliminar' que en realidad llama a productService.disableProduct (soft-delete: PUT /api/v1/products/{id}/disable). El usuario quiere: 1) quitar la columna Estado, 2) agregar un toggle 'Mostrar inactivos' en el caption de la tabla — cuando está apagado muestra solo productos activos (includeInactive=false, comportamiento actual); cuando está encendido filtra el resultado del backend para mostrar SOLO los desactivados, 3) el botón 'Eliminar' sigue llamándose así pero su confirmación y el toast pasan a decir 'desactivar'/'desactivado' para que coincidan con la acción real.",
+    "name": "search-input-component",
+    "title": "Componente compartido SearchInput con debounce de 500ms",
+    "description": "Crear un Input component reutilizable con debounce de 500ms que estandarice los buscadores de las páginas de manage (products, inventory, tables, workers, areas, categories, suppliers, etc.). Hoy cada página tiene un `signal<string>` + filtro client-side sobre la página actual; el nuevo componente emite el valor debounced y cada consumidor decide cómo conectarlo al backend (cuando el backend exponga el parámetro de búsqueda). El componente es el primer paso de la migración a búsqueda server-side; la conexión al cache de cada módulo se hará en actividades posteriores cuando el backend agregue el parámetro `search` (o equivalente) en cada endpoint.",
     "acceptance": [
-      "products.html ya no tiene <th>Estado</th> ni la celda <td> con Activo/Inactivo; los colspan de loadingbody y emptymessage pasan de 6 a 5",
-      "products.html tiene un p-toggleswitch en el caption con label 'Mostrar inactivos' que controla qué productos se muestran (off = solo activos, on = solo inactivos)",
-      "Cuando el toggle está ON, el componente filtra client-side para mostrar SOLO productos con active=false (filteredProducts computed); las filas se renderizan con estilo normal (sin opacidad/tachado) para que sean fáciles de leer y operar",
-      "El mensaje del empty message cambia según el estado del toggle: 'No hay productos registrados' cuando está OFF, 'No hay productos inactivos' cuando está ON",
-      "product-cache.ts: productListParams incluye includeInactive: boolean (default false); setProductListParams acepta includeInactive; getProductsPaginated recibe el valor (no más hardcode `false`)",
-      "products.ts: el signal includeInactive queda conectado al cache vía setProductListParams({ includeInactive, page: 0 }) — toggle OFF resetea a página 0; toggle ON igual resetea a página 0; el método público setIncludeInactive(value) se usa en el template vía (ngModelChange)",
-      "products.ts: confirmDeleteProduct muestra el mensaje '¿Estás seguro de desactivar \"<nombre>\"?' y el toast de éxito dice 'Producto desactivado' (en lugar de 'eliminado'); el botón de la fila sigue llamándose 'Eliminar' (icono pi-trash, pTooltip 'Eliminar')",
-      "Cuando includeInactive() es true (vista de inactivos), el botón de trash en Acciones se reemplaza por un botón de 'Activar' (icon pi-check o pi-refresh, severity success, pTooltip 'Activar', click → confirmEnableProduct → Product.enableProduct → PUT /api/v1/products/{id}/enable, toast 'Producto activado'). Cuando includeInactive() es false, el botón trash 'Eliminar' sigue como antes.",
-      "El backend PUT /api/v1/products/{id}/enable es la nueva契约 a usar (confirmado por el usuario; pendiente de despliegue en backend — el código fallará en runtime hasta que esté expuesto).",
-      "Product service (core/services/products/product.ts) añade enableProduct(id): Observable<object> = this.http.put('v1/products/' + id + '/enable', {}) — espejado de disableProduct.",
-      "Specs: añadir tests para Product.enableProduct (en product.spec.ts) cubriendo el PUT a v1/products/{id}/enable con body vacío; añadir tests para confirmEnableProduct / enableProduct en products.spec.ts verificando que emite invalidación WebSocket + refreshProducts + toast de éxito. Harness verde (lint, build, tests).",
-      "Verificación manual: con toggle OFF solo se ven productos activos; al hacer 'Eliminar' el producto desaparece (porque ahora está inactivo y includeInactive=false); al activar el toggle SOLO aparecen los productos desactivados (filtrados client-side); al pulsar 'Activar' en una fila de inactivo, el producto se reactiva y desaparece de la vista (queda active=true y el filtro client-side lo oculta)."
+      "Existe src/app/shared/components/search-input/search-input.ts + search-input.html, sin estilos inline ni template inline",
+      "Selector: app-search-input. Inputs: placeholder (default 'Buscar...'), debounceMs (default 500). Output: searchChange (string ya trimmed y puede ser '').",
+      "El componente emite searchChange solo tras el debounceMs de inactividad. No emite valores repetidos (distinctUntilChanged).",
+      "Internamente usa un signal `value` enlazado vía ngModel al input y un subject pipeado con debounceTime + distinctUntilChanged + map(trim) y emitido vía searchChange. takeUntilDestroyed para limpiar.",
+      "Visual: input con icono pi-search a la izquierda (p-iconfield) y botón de limpiar (pi-times) a la derecha cuando hay valor. Mantén estilo consistente con los buscadores actuales de manage (full width con lg:w-80).",
+      "Spec: src/app/shared/components/search-input/search-input.spec.ts con TestHost que verifica: (1) emite tras ~debounceMs, (2) no emite cuando el valor no cambia, (3) trimea espacios, (4) el subject se completa en destroy (no leak).",
+      "ng lint limpio, build OK, harness verde (lint + build + tests).",
+      "Doc docs/server-side-search.md: patrón de uso, contrato esperado del backend, checklist de endpoints pendientes de soportar search."
     ],
     "tasks": [
       {
         "id": "a",
-        "description": "Editar product-cache.ts (plumbing includeInactive en productListParams + setProductListParams + getProductsPaginated), products.ts (wire includeInactive signal al cache via setIncludeInactive, filteredProducts filtra client-side a inactivos cuando includeInactive() es true, ajustar textos del confirm + toast), y products.html (quitar <th>Estado</th> + <td>, agregar p-toggleswitch 'Mostrar inactivos' en caption, ajustar colspans, empty message contextual, sin estilo opaco/tachado).",
+        "description": "Crear src/app/shared/components/search-input/search-input.ts + search-input.html. Componente standalone con ChangeDetectionStrategy.OnPush, imports (FormsModule, IconFieldModule, InputIconModule, InputTextModule, ButtonModule). Inputs: placeholder (default 'Buscar...'), debounceMs (default 500). Output: searchChange (string). Usa signal interno + Subject pipeado (debounceTime + distinctUntilChanged + map(trim)). Emite searchChange. Plantilla con p-iconfield + pi-search + input + botón limpiar condicional.",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
-        "description": "Tests: añadir un test a products.spec.ts (o product-cache.spec.ts si existe) que cubra setProductListParams({ includeInactive: true }) propague includeInactive al Product.getProductsPaginated y que filteredProducts filtra a inactivos cuando includeInactive() es true. Crear product-cache.spec.ts siguiendo el patrón de combo-reference-cache.spec.ts si no existe (cubre el nuevo comportamiento del cache). Confirmar que ningún spec usa los textos viejos 'eliminado' como aserción rígida. Correr node scripts/harness.js y dejar lint, build y tests en verde.",
+        "description": "Spec src/app/shared/components/search-input/search-input.spec.ts con TestHost siguiendo el patrón de product-card.spec.ts. Cubrir: (1) emite value tras debounceMs, (2) no emite cuando value no cambia, (3) trimea espacios, (4) destroy limpia el subject.",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
-        "description": "Añadir botón 'Activar' en productos.html cuando includeInactive() es true: el botón de trash se reemplaza por uno con icon pi-check o pi-refresh, severity success, pTooltip 'Activar', (click)='confirmEnableProduct($event, product)'. En products.ts: añadir confirmEnableProduct (popup de confirmación con mensaje '¿Estás seguro de activar \"<nombre>\"?' y accept → enableProduct(id)) y enableProduct privado que llama productService.enableProduct(id) + wsService.emitCacheInvalidation('products', 'update') + refreshProducts() + toast 'Producto activado'. En product.ts (service): añadir enableProduct(id): Observable<object> = http.put('v1/products/' + id + '/enable', {}).",
+        "description": "Doc docs/server-side-search.md: (1) contrato backend esperado (parámetro search/name string, parcial, case-insensitive, paginado, totalElements), (2) patrón de uso del componente SearchInput, (3) checklist de endpoints pendientes (los 10 que no soportan search hoy), (4) ejemplo de migración de un módulo cuando el backend esté listo.",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "d",
-        "description": "Tests: añadir a product.spec.ts un test para enableProduct verificando PUT a 'v1/products/{id}/enable' con body {}; añadir a products.spec.ts tests para confirmEnableProduct y el flujo enableProduct (verifica que emite invalidación WebSocket + refreshProducts + toast). Confirmar que ningún spec rompe. Correr node scripts/harness.js — lint, build, tests verdes.",
+        "description": "Harness: node scripts/harness.js — lint, build, tests verdes. Sin commits automáticos.",
         "status": "done",
         "agent": "implementer"
       }
@@ -48,88 +44,76 @@
     "status": "done"
   },
   {
-    "id": 19,
-    "type": "chore",
-    "name": "remove-manage-section-subtitles",
-    "title": "Quitar subtítulos descriptivos en los módulos de manage",
-    "description": "Cada módulo del feature /admin/manage muestra actualmente un subtítulo descriptivo bajo el título de sección (ej. 'Carta de Productos / Gestión completa de todos los productos del restaurante'). Algunos lo hacen con campos description del componente renderizados vía {{ description }}, otros con un <p> hardcoded. Se pide dejar SOLO el título de sección.",
-    "acceptance": [
-      "categories.html ya no muestra <p>...{{ description }}...</p> y categories.ts ya no tiene el campo description = '...' (title se mantiene porque {{ title }} sigue usándose)",
-      "products.html ya no muestra <p>...{{ description }}...</p> y products.ts ya no tiene description = '...' (title se mantiene)",
-      "tables.html no muestra subtítulo (ya no lo mostraba) y tables.ts pierde los campos title y description que nunca se usaban en el template",
-      "workers.html pierde el <p> hardcoded con el subtítulo (línea ~6); workers.ts pierde los campos title y description no usados",
-      "time-logs.html pierde el <p> hardcoded con el subtítulo (línea ~6)",
-      "areas.html pierde el <p> hardcoded con el subtítulo (línea ~6)",
-      "schedules.html pierde el <p> hardcoded 'Gestiona las plantillas de turnos'; schedules/assignments/schedule-assignments.html se preserva intacto (su <p> muestra el nombre dinámico del horario seleccionado, no es un subtítulo de sección)",
-      "Ningún template renderiza {{ description }} de los componentes afectados; ningún spec depende de los campos eliminados",
-      "Harness verde (lint, build, tests). Sin commits automáticos."
-    ],
-    "tasks": [
-      {
-        "id": "a",
-        "description": "Editar HTML/TS de los 7 módulos manage (categories, products, tables, workers, time-logs, areas, schedules): quitar las líneas <p> de subtítulo y los campos description/title no usados del .ts según la matriz en la descripción de la actividad. NO tocar schedules/assignments/schedule-assignments.html ni el campo description de combos/combo-editor.ts (es form state).",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "b",
-        "description": "Correr node scripts/harness.js y dejar lint, build y tests en verde. Confirmar que no quedan <p> de subtítulo descriptivo en los HTML de manage (excepto schedule-assignments.html) y que ningún spec usa los campos eliminados.",
-        "status": "done",
-        "agent": "implementer"
-      }
-    ],
-    "status": "done"
-  },
-  {
-    "id": 18,
+    "id": 22,
     "type": "feat",
-    "name": "supply-categories-to-categories-module",
-    "title": "Mover la gestión de categorías de insumo al módulo Categorías",
-    "description": "Actualmente la gestión de categorías de insumo (supply categories) vive dentro del módulo de Inventario: un botón 'Nueva categoría' en el caption de la tabla (inventory.html:56) abre un dialog 'Nueva categoría de insumo' (inventory.html:449-480) manejado por inventory.ts (newCategoryDialogOpen/newCategorySubmitting/newCategoryForm/openCategoryDialog/closeCategoryDialog/submitNewCategory). Debe trasladarse al módulo Categorías (/admin/manage/categories), que hoy solo gestiona categorías de producto y de opción, agregando una tercera sección 'Categorías de insumo' con listado + creación. Backend (GET/POST /api/v1/supplies/categories) devuelve SupplyCategoryResponse { id, name } — NO hay endpoint de toggle/delete para supply categories (a diferencia de product categories que tienen /toggle), así que la sección solo lista y crea.",
+    "name": "migrate-server-side-search",
+    "title": "Migrar manage modules a búsqueda server-side",
+    "description": "Migrar los 10 módulos de manage del filtro client-side a la búsqueda server-side usando el componente `<app-search-input>` y el parámetro `search` (o `name`) que el backend ya expone en todos los endpoints. Cada módulo sigue el mismo patrón: (1) service acepta `search?: string`, (2) cache propaga `search` al service y siempre llama con `page: 0` al buscar, (3) componente reemplaza el `<input>` por `<app-search-input>` y conecta `(searchChange)` al cache, (4) eliminar la computed `filtered*` que hacía filtro en cliente, (5) spec verifica que el cache envía `search` al service.",
     "acceptance": [
-      "categories.ts expone supplyCategories (computed desde un ResourceCache<SupplyCategoryResponse[]> en CategoriesCache que llama Supply.getCategories()); ngOnInit y onVisible cargan/refrescan supplyCategories como lo hacen con productCategories/optionCategories",
-      "categories.html tiene una tercera card 'Categorías de insumo' (agrupan los insumos de la cocina) con listado de chips (icono pi-tag + nombre, sin toggle/eliminar porque el backend no lo soporta) y botón '+' que abre un dialog 'Nueva categoría de insumo' con campo nombre",
-      "categories.ts implementa openSupplyCategoryDialog/saveSupplyCategory (llama Supply.createCategory), con estados saved/error y refresh del caché tras crear; patrón idéntico a saveProductCategory",
-      "CategoriesCache.invalidateAll() también invalida supplyCategories",
-      "inventory.ts ya no tiene newCategoryDialogOpen/newCategorySubmitting/newCategoryForm/openCategoryDialog/closeCategoryDialog/submitNewCategory",
-      "inventory.html ya no tiene el botón 'Nueva categoría' del caption ni el dialog 'Nueva categoría de insumo' (inventory.html:449-480)",
-      "El wizard de variantes de inventario sigue permitiendo crear una categoría inline en su paso 1 (confirmCategory → Supply.createCategory) y las categorías siguen llegando a la señal categories() vía referenceData (el inventario sigue consumiendo la lista, solo deja de gestionarla)",
-      "Especs: test en categories.spec.ts (o supply.spec.ts) que cubra el nuevo caché/creación de supply categories; verificar que ningún spec existente dependa del dialog de inventario. Harness verde (lint, build, tests)"
+      "Cada módulo: service acepta `search?: string` como parámetro, cache lo propaga, componente usa `<app-search-input>`, no existe `filtered*` computed para búsqueda de texto.",
+      "Harness verde: lint, build, tests pasan (todos los specs existentes + nuevos).",
+      "El input de búsqueda emite al backend (verificable en Network tab), no filtra en cliente.",
+      "Al escribir en el buscador, la paginación se reinicia a página 0 (si el módulo tiene paginación).",
+      "Docs/server-side-search.md actualizado con tabla de estado (todos los endpoints en 'Listo')."
     ],
     "tasks": [
       {
         "id": "a",
-        "description": "CategoriesCache: añadir supplyCategories = ResourceCache<SupplyCategoryResponse[]>(() => supplyService.getCategories(), { ttlMs: 30*60*1000, staleWhileRevalidate: true }) e incluirla en invalidateAll(). Inyectar Supply en CategoriesCache.",
+        "description": "Products: (1) product.ts: añadir `search?: string` al 4to parámetro de `getProductsPaginated`, incluirlo en HttpParams si no vacío. (2) product-cache.ts: añadir `search?: string` al type de `productListParams` y a `setProductListParams`, propagar al service call. (3) products.ts: reemplazar `<input>` por `<app-search-input>`, conectar `(searchChange)` a handler que llame `cache.setProductListParams({ search, page: 0 })`, eliminar `filteredProducts` computed y `tableSearch` signal. (4) product-cache.spec.ts: añadir test que verifique que `setProductListParams({ search: 'foo' })` pasa `search: 'foo'` al service.",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
-        "description": "categories.ts: computed supplyCategories = cache.supplyCategories.data() ?? []; signal supplyCategoryDialogOpen; form supplyCategoryForm (name required); openSupplyCategoryDialog/saveSupplyCategory (Supply.createCategory, estados saved/error, refresh del caché, toast 'Categoría creada'); ngOnInit/onVisible cargan supplyCategories con el mismo patrón que productCategories/optionCategories.",
+        "description": "Inventory/Supplies: (1) supply.ts: añadir `search?: string` a `getSupplyVariantsPaginated`, incluirlo en HttpParams. (2) inventory-cache.ts: añadir `search?: string` al type de `supplyListParams` y a `setSuppliesListParams`, propagar al service call. (3) inventory.ts: reemplazar el `<input>` de búsqueda por `<app-search-input>`, conectar `(searchChange)` al cache, eliminar `filteredSupplies` computed y `tableSearch` signal. (4) inventory-cache.spec.ts: añadir test de propagación de search.",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
-        "description": "categories.html: añadir la tercera card 'Categorías de insumo' (grid de chips con pi-tag + nombre, sin toggle; botón '+' para abrir el dialog) y el p-dialog 'Nueva categoría de insumo' (input nombre + footer Cancelar/Guardar), clonando el patrón de la card de categorías de opción.",
+        "description": "Tables: (1) table.ts: añadir `search?: string` a `getTables`, incluirlo en HttpParams. (2) tables-cache.ts: añadir `search?: string` al type de params y a `setTablesListParams` (o crear el método si no existe), propagar al service. (3) tables.ts: añadir `<app-search-input>` en el template, conectar `(searchChange)` al cache. tables-cache.ts ya usa ResourceCache; necesito ver cómo maneja los params.",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "d",
-        "description": "inventory.ts: eliminar newCategoryDialogOpen, newCategorySubmitting, newCategoryForm, openCategoryDialog(), closeCategoryDialog(), submitNewCategory(). Mantener confirmCategory() del wizard (crea categoría inline) y la señal categories().",
+        "description": "Workers: (1) worker.ts: añadir `search?: string` a `getWorkers`, incluirlo en HttpParams. (2) workers-cache.ts: añadir search al type de params y a `setWorkersListParams`, propagar al service. (3) workers.ts: añadir `<app-search-input>` en el template, conectar `(searchChange)` al cache.",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "e",
-        "description": "inventory.html: quitar el p-button 'Nueva categoría' del caption y todo el bloque '<!-- ===== New category dialog ===== -->' (inventory.html:449-480). Verificar que los botones restantes del caption quedan bien alineados.",
+        "description": "Areas: (1) area.ts: añadir `search?: string` a `getAreas`, incluirlo en HttpParams. (2) areas.ts (que reusa TablesCache): ver cómo se propagan los params de areas. Puede necesitar un método propio en TablesCache o un AreasCache. (3) areas.ts: añadir `<app-search-input>` en el template, conectar `(searchChange)`.",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "f",
-        "description": "Especs: añadir tests para CategoriesCache.supplyCategories y saveSupplyCategory (o al menos para Supply.getCategories/createCategory si no existen); confirmar que ningún spec depende del dialog de inventario eliminado. Correr node scripts/harness.js y dejar lint, build y tests en verde.",
+        "description": "Categories: (1) category.ts: añadir `search?: string` a `getCategories`, incluirlo en HttpParams. (2) categories-cache.ts: añadir search al type de params y a `setCategoriesListParams`, propagar al service. (3) categories.ts: añadir `<app-search-input>` en el template, conectar `(searchChange)` al cache.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Option Categories: (1) option-category.ts: añadir `search?: string` a `getOptionCategories`, incluirlo en HttpParams. (2) categories-cache.ts: añadir search a `setOptionCategoriesListParams` (o método equivalente), propagar al service. (3) categories.ts: añadir `<app-search-input>` en la sección de Option Categories, conectar `(searchChange)` al cache.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "h",
+        "description": "Suppliers: (1) supplier.ts: añadir `search?: string` a `getSuppliers`, incluirlo en HttpParams. (2) inventory-cache.ts: añadir search a `setSuppliersListParams` (o método equivalente para suppliers), propagar al service. (3) inventory.ts: añadir `<app-search-input>` en la sección de Suppliers, conectar `(searchChange)` al cache.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+"id": "i",
+        "description": "Purchases: (1) purchase.ts: añadir `search?: string` a `getPurchases`, incluirlo en HttpParams. (2) inventory-cache.ts: añadir search a `setPurchasesListParams` (o método equivalente para purchases), propagar al service. (3) inventory.ts: añadir `<app-search-input>` en la sección de Purchases, conectar `(searchChange)` al cache.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "j",
+        "description": "Orders: (1) order.ts: añadir `search?: string` a `queryOrders` o `getOrders`, incluirlo en HttpParams. (2) orders-table.ts: reemplazar el input de búsqueda por `<app-search-input>`, conectar `(searchChange)` al handler que llame `fetchOrders` con `search`, eliminar el filtro client-side `applyFilters` que busca por id/tableId/productName.",
         "status": "done",
         "agent": "implementer"
       }

@@ -846,7 +846,7 @@ describe('Products wizard — existing recipe rows', () => {
       expect(env.cacheStub.setProductListParams).toHaveBeenLastCalledWith({ includeInactive: false, page: 0 });
     });
 
-    it('filteredProducts returns only inactive products when includeInactive() is true', () => {
+    it('setIncludeInactive propagates includeInactive to cache params', () => {
       const env = setupComponent();
       const fixture: ProductResponse[] = [
         { id: 1, name: 'Activo', basePrice: 5, active: true, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
@@ -863,9 +863,10 @@ describe('Products wizard — existing recipe rows', () => {
 
       env.component.setIncludeInactive(true);
 
-      const filtered = env.component.filteredProducts();
-      expect(filtered).toHaveLength(2);
-      expect(filtered?.map((p) => p.id)).toEqual([2, 3]);
+      expect(env.cacheStub.setProductListParams).toHaveBeenLastCalledWith({ includeInactive: true, page: 0 });
+      const products = env.component.products();
+      expect(products).toHaveLength(3);
+      expect(products?.map((p) => p.id)).toEqual([1, 2, 3]);
     });
   });
 

@@ -37,10 +37,10 @@ export class ProductCache implements OnDestroy {
   private cacheInvalidationSubscription: Subscription;
 
   // Lista de productos - ahora paginada (la página/tamaño se configuran por componente)
-  private productListParams: { page: number; size: number; includeInactive: boolean } = { page: 0, size: 6, includeInactive: false };
+  private productListParams: { page: number; size: number; includeInactive: boolean; search?: string } = { page: 0, size: 6, includeInactive: false };
 
   readonly products = new ResourceCache<PaginatedProductsResponse>(
-    () => this.productService.getProductsPaginated(this.productListParams.page, this.productListParams.size, this.productListParams.includeInactive),
+    () => this.productService.getProductsPaginated(this.productListParams.page, this.productListParams.size, this.productListParams.includeInactive, undefined, this.productListParams.search),
     { ttlMs: 10 * 60 * 1000, staleWhileRevalidate: true }
   );
 
@@ -91,7 +91,7 @@ export class ProductCache implements OnDestroy {
   }
 
   /** Cambia la página/tamaño de la lista de productos y vuelve a consultarla al servidor. */
-  setProductListParams(params: { page?: number; size?: number; includeInactive?: boolean }): void {
+  setProductListParams(params: { page?: number; size?: number; includeInactive?: boolean; search?: string }): void {
     this.productListParams = { ...this.productListParams, ...params };
     this.products.reset();
     this.products.load();

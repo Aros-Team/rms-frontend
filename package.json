@@ -63,6 +63,7 @@
     "@types/dompurify": "^3.0.5",
     "angular-eslint": "21.3.1",
     "eslint": "^9.38.0",
+    "hyperframes": "^0.7.87",
     "jsdom": "^29.1.1",
     "postcss": "^8.5.3",
     "typescript": "~5.9.2",

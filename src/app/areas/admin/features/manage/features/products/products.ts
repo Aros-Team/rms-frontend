@@ -21,15 +21,14 @@ import { ProductImage } from '@app/core/services/product-image/product-image';
 import { ProductImageResponse } from '@app/shared/models/dto/products/product-image-response';
 import { ProductCostResponse } from '@app/shared/models/dto/products/product-cost-response';
 
+import { SearchInput as SearchInputComponent } from '@app/shared/components/search-input/search-input';
 import { ButtonModule } from 'primeng/button';
 import { FileUploadModule } from 'primeng/fileupload';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ImageModule } from 'primeng/image';
 import { ConfirmPopupModule } from 'primeng/confirmpopup';
 import { DialogModule } from 'primeng/dialog';
-import { IconFieldModule } from 'primeng/iconfield';
 import { IftaLabelModule } from 'primeng/iftalabel';
-import { InputIconModule } from 'primeng/inputicon';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
@@ -77,9 +76,7 @@ interface RecipeCostRow {
     FormsModule,
     TableModule,
     ButtonModule,
-    IconFieldModule,
     InputTextModule,
-    InputIconModule,
     TextareaModule,
     SelectModule,
     IftaLabelModule,
@@ -101,6 +98,7 @@ interface RecipeCostRow {
     NewOptionDialog,
     PrepTimeDialog,
     ProductDetailDialog,
+    SearchInputComponent,
   ],
   templateUrl: './products.html',
   providers: [MessageService, ConfirmationService],
@@ -122,7 +120,6 @@ export class Products implements OnInit {
 
   // Table - usando cache service
   filterCategories = new FormControl<number[]>([], []);
-  tableSearch = signal('');
 
   // Table data - computed from cache with override support
   private _productsOverride = signal<ProductResponse[] | undefined>(undefined);
@@ -143,17 +140,6 @@ export class Products implements OnInit {
   // Estados de carga
   productsLoading = computed(() => this.cache.products.isLoading());
   referenceDataLoading = computed(() => this.cache.referenceData.isLoading());
-
-  filteredProducts = computed(() => {
-    let all = this.products();
-    if (all === undefined) return undefined;
-    if (this.includeInactive()) {
-      all = all.filter((p) => !p.active);
-    }
-    const search = this.tableSearch().toLowerCase().trim();
-    if (!search) return all;
-    return all.filter((p) => p.name.toLowerCase().includes(search));
-  });
 
   // Supply category filter maps (per recipe row)
   private baseRecipeCategoryMap = new Map<number, number | null>();
@@ -367,6 +353,10 @@ export class Products implements OnInit {
   setIncludeInactive(value: boolean): void {
     this.includeInactive.set(value);
     this.cache.setProductListParams({ includeInactive: value, page: 0 });
+  }
+
+  onSearch(value: string): void {
+    this.cache.setProductListParams({ search: value, page: 0 });
   }
 
   // ── Table ────────────────────────────────────────────────────────

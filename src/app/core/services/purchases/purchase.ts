@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -9,8 +9,12 @@ import { PurchaseCreateRequest } from '@models/dto/purchases/purchase-create-req
 export class Purchase {
   private http = inject(HttpClient);
 
-  public getPurchases(): Observable<PurchaseResponse[]> {
-    return this.http.get<PurchaseResponse[]>('v1/purchases');
+  public getPurchases(search?: string): Observable<PurchaseResponse[]> {
+    let params = new HttpParams();
+    if (search) {
+      params = params.set('search', search);
+    }
+    return this.http.get<PurchaseResponse[]>('v1/purchases', { params });
   }
 
   public getPurchaseById(id: number): Observable<PurchaseResponse> {

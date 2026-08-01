@@ -14,7 +14,7 @@
   <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 overflow-hidden">
     <p-table
       #dt1
-      [value]="filteredProducts() ?? []"
+      [value]="products() ?? []"
       [paginator]="true"
       [rows]="pageSize()"
       [totalRecords]="cache.products.data()?.totalElements ?? 0"
@@ -31,17 +31,10 @@
     >
       <ng-template #caption>
         <div class="flex flex-col sm:flex-row gap-2 flex-wrap">
-          <p-iconfield iconPosition="left" class="w-full lg:w-80">
-            <p-inputicon><i class="pi pi-search"></i></p-inputicon>
-            <input
-              pInputText
-              type="text"
-              class="w-full"
-              [ngModel]="tableSearch()"
-              (ngModelChange)="tableSearch.set($event)"
-              placeholder="Buscar por nombre..."
-            />
-          </p-iconfield>
+          <app-search-input
+            placeholder="Buscar por nombre..."
+            (searchChange)="onSearch($event)"
+          />
           <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="dt1.clear()" />
           <div class="flex items-center gap-2 ml-auto">
             <div class="flex items-center gap-2">
