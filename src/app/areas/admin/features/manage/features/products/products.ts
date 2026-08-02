@@ -1,9 +1,9 @@
 import { Component, inject, OnInit, signal, computed, effect, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, FormArray, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { of, EMPTY, forkJoin, merge } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { of, EMPTY, forkJoin, merge, Observable } from 'rxjs';
+import { catchError, switchMap, tap } from 'rxjs/operators';
 
 import { Product } from '@app/core/services/products/product';
 import { MasterData } from '@app/core/services/master-data/master-data';
@@ -49,6 +49,26 @@ import { ProductDetailDialog } from './componentes/product-detail-dialog/product
 
 // Wizard steps: 1=basic data+image, 2=insumos, 3=options, 4=finalize
 type WizardStep = 1 | 2 | 3 | 4 | 5;
+
+/** A new image held in memory until the user clicks Finalizar. */
+interface StagedImage {
+  file: File;
+  previewUrl: string;
+}
+
+/** UI-facing image representation. Existing images carry the server id;
+ *  staged new images use a negative synthetic id so the template can
+ *  distinguish them. */
+interface PreviewImage {
+  id: number;
+  mobileUrl: string;
+  tabletUrl: string;
+  desktopUrl: string;
+  originalName: string;
+  size: number;
+  createdAt: string;
+  staged: boolean;
+}
 
 interface OptionFormValue {
   id?: number | null;
@@ -137,6 +157,27 @@ export class Products implements OnInit {
   supplyVariantOptions = computed(() => this.cache.referenceData.data()?.variants ?? []);
   allProductOptions = computed(() => this._allProductOptionsOverride() ?? this.cache.referenceData.data()?.productOptions ?? []);
 
+  // Supply search for step 2 autocomplete
+  supplySearchTerm = signal('');
+  readonly filteredSuggestions = computed(() => {
+    const term = this.supplySearchTerm().toLowerCase().trim();
+    if (term.length < 1) return [];
+    const all = this.supplyVariantOptions();
+    // Exclude variants already in the recipe
+    const usedIds = new Set<number>();
+    for (const g of this.existingRecipe.controls) {
+      const id = (g.value as { supplyVariantId?: number | null }).supplyVariantId;
+      if (id != null) usedIds.add(id);
+    }
+    for (const g of this.baseRecipe.controls) {
+      const id = (g.value as { supplyVariantId?: number | null }).supplyVariantId;
+      if (id != null) usedIds.add(id);
+    }
+    return all
+      .filter(v => !usedIds.has(v.id) && v.displayName.toLowerCase().includes(term))
+      .slice(0, 8);
+  });
+
   // Estados de carga
   productsLoading = computed(() => this.cache.products.isLoading());
   referenceDataLoading = computed(() => this.cache.referenceData.isLoading());
@@ -217,6 +258,49 @@ export class Products implements OnInit {
   wizardProductImages = signal<ProductImageResponse[]>([]);
   wizardImagesLoading = signal(false);
 
+  /** Per-product timestamp of the last image mutation in this session.
+   *  Used to bust the browser HTTP cache when the backend returns the same
+   *  imageUrl string but the underlying image has changed. */
+  private imageRefreshMarker = signal<Map<number, number>>(new Map());
+
+  /** Staged images to upload on save (Finalizar). Each holds the raw File
+   *  and a blob URL used for the preview. Blob URLs are revoked on
+   *  finalize or discard. */
+  readonly stagedNewImages = signal<StagedImage[]>([]);
+
+  /** IDs of existing images the user marked for deletion. Applied on save. */
+  readonly stagedDeletedImageIds = signal<number[]>([]);
+
+  /** UI-facing image list: existing images (minus staged deletions) plus
+   *  staged new images. Staged new images use a negative synthetic id so
+   *  the template can branch on "is this a brand new image?" */
+  readonly previewImage = computed<PreviewImage[]>(() => {
+    const toDelete = new Set(this.stagedDeletedImageIds());
+    const existing = this.wizardProductImages()
+      .filter(i => !toDelete.has(i.id))
+      .map<PreviewImage>(i => ({ ...i, staged: false }));
+    const newOnes = this.stagedNewImages().map<PreviewImage>((s, idx) => ({
+      id: -1 - idx,
+      mobileUrl: s.previewUrl,
+      tabletUrl: s.previewUrl,
+      desktopUrl: s.previewUrl,
+      originalName: s.file.name,
+      size: s.file.size,
+      createdAt: new Date().toISOString(),
+      staged: true,
+    }));
+    return [...existing, ...newOnes];
+  });
+
+  /** `true` only when there are pending image changes (uploads or deletes). */
+  readonly hasUnsavedImageChanges = computed(() =>
+    this.stagedNewImages().length > 0 || this.stagedDeletedImageIds().length > 0
+  );
+
+  /** Loading state for any image-related async op (creating the draft,
+   *  running the final upload on save). */
+  isProcessingImage = signal(false);
+
   // Cost panel state
   cost = signal<ProductCostResponse | null>(null);
   costLoading = signal(false);
@@ -239,9 +323,6 @@ export class Products implements OnInit {
     return { calmMinutes: current, peakMinutes: current, interruptionMinutes: current, estimatedPrepMinutes: current };
   });
 
-  // Upload state
-  isUploadingImage = signal(false);
-
   // ── Step 1: product base + base recipe ──────────────────────────
   baseForm: FormGroup = this.fb.group({
     id: [null],
@@ -255,6 +336,34 @@ export class Products implements OnInit {
   baseRecipe: FormArray = this.fb.array([]);
 
   private destroyRef = inject(DestroyRef);
+
+  /**
+   * Re-exposes the base form value as a signal so computed signals
+   * (e.g. `canUploadImage`) can recompute reactively when the user edits
+   * a control. Reading the observable in a `computed` doesn't work because
+   * Angular's form controls don't integrate with the signal system natively.
+   * Declared after `baseForm` because class field initializers run in
+   * declaration order — `this.baseForm` must already exist.
+   */
+  private readonly baseFormValue = toSignal(this.baseForm.valueChanges, { initialValue: this.baseForm.value });
+
+  /**
+   * `true` once the user has filled the minimum required fields (name with
+   * at least 2 characters, categoryId, areaId). In edit mode the product
+   * already exists, so the upload is always enabled.
+   *
+   * Used by the image upload area to gate the file picker on Step 1 of the
+   * wizard in create mode — the product is created on demand when the user
+   * actually picks a file, instead of being auto-created on Step 1 entry.
+   */
+  readonly canUploadImage = computed(() => {
+    this.baseFormValue();
+    if (this.modalMode() === 'edit') return true;
+    const v = this.baseFormValue() as { name?: string | null; categoryId?: number | null; areaId?: number | null } | null;
+    if (!v) return false;
+    const name = (v.name ?? '').trim();
+    return name.length >= 2 && v.categoryId != null && v.areaId != null;
+  });
 
   recipeCost = signal(0);
   recipeBreakdown = signal<RecipeCostRow[]>([]);
@@ -392,6 +501,12 @@ export class Products implements OnInit {
     this.modalMode.set('create');
     this.wizardProductImages.set([]);
     this.modalIsOpen.set(true);
+    // Note: no auto-create. The product is now created on demand when the
+    // user uploads an image or clicks "Siguiente". The upload area is
+    // disabled (via `canUploadImage`) until the user fills name + categoryId
+    // + areaId. The previous draft-on-entry approach was removed because
+    // the backend's `ProductRequest` validation rejects the placeholder
+    // payload (e.g. `basePrice: 0` due to `@Positive`).
   }
 
   showModificationModal(id: number): void {
@@ -451,9 +566,49 @@ export class Products implements OnInit {
     });
   }
 
+  /**
+   * Cancel handler wired to the modal's "Cancelar" button. If the wizard
+   * has unsaved image changes (the user uploaded a new image or deleted
+   * the existing one), warn them that those changes have already been
+   * committed to the server and will persist if they cancel.
+   */
+  confirmCancel(): void {
+    this.closeModal();
+  }
+
   closeModal(): void {
+    // Discard any staged images (revoke blob URLs, clear staging arrays).
+    this.discardStagedImages();
+
+    // If the user opened the wizard in create mode and abandoned it before
+    // reaching Step 5 (the explicit "finish" step), treat any draft product
+    // (created on demand during the wizard) as disposable and hard-delete it.
+    const draft = this.createdProduct();
+    const draftId = draft?.id;
+    const shouldCleanupDraft =
+      this.modalMode() === 'create' &&
+      draftId != null &&
+      this.currentStep() < 5;
+
+    if (shouldCleanupDraft) {
+      // Fire-and-forget: delete the draft product (server cascades image deletes).
+      this.productService.deleteProduct(draftId).pipe(
+        catchError(() => of(null))
+      ).subscribe();
+    }
+
     this.modalIsOpen.set(false);
     this.wizardProductImages.set([]);
+    this.createdProduct.set(null);
+  }
+
+  /**
+   * Programmatically opens the file picker on a hidden `<p-fileupload>`.
+   * The `p-fileupload` component exposes its underlying `<input type="file">`
+   * as `basicFileInput` (ElementRef) when rendered in `mode="basic"`.
+   */
+  triggerFileInput(fu: { basicFileInput?: { nativeElement?: HTMLInputElement | null } }): void {
+    fu.basicFileInput?.nativeElement?.click();
   }
 
   // ── Prep time estimation dialog ──────────────────────────────────
@@ -474,6 +629,53 @@ export class Products implements OnInit {
       supplyVariantId: [null, (control: AbstractControl) => Validators.required(control)],
       requiredQuantity: [null, [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.min(0.001)(control)]],
     }));
+  }
+
+  /** Adds a supply variant to the base recipe with default qty=1. */
+  addSupplyVariant(variant: SupplyVariantResponse): void {
+    this.baseRecipe.push(this.fb.group({
+      supplyVariantId: [variant.id, (control: AbstractControl) => Validators.required(control)],
+      requiredQuantity: [1, [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.min(0.001)(control)]],
+    }));
+    this.supplySearchTerm.set('');
+  }
+
+  incrementQty(formArray: FormArray, idx: number): void {
+    const ctrl = formArray.at(idx).get('requiredQuantity');
+    if (!ctrl) return;
+    const current = Number(ctrl.value) || 0;
+    ctrl.setValue(Math.round((current + 1) * 1000) / 1000);
+  }
+
+  decrementQty(formArray: FormArray, idx: number): void {
+    const ctrl = formArray.at(idx).get('requiredQuantity');
+    if (!ctrl) return;
+    const current = Number(ctrl.value) || 0;
+    ctrl.setValue(Math.max(Math.round((current - 1) * 1000) / 1000, 0.001));
+  }
+
+  onSupplySearch(term: string): void {
+    this.supplySearchTerm.set(term);
+  }
+
+  onSearchKeydown(event: KeyboardEvent): void {
+    const suggestions = this.filteredSuggestions();
+    if (suggestions.length === 0) return;
+    if (event.key === 'Enter' && suggestions.length > 0) {
+      event.preventDefault();
+      this.addSupplyVariant(suggestions[0]);
+    }
+  }
+
+  /** Cost per unit for a given variant, shown in the table row. */
+  getUnitCost(variantId: number | null): number {
+    if (variantId == null) return 0;
+    return this.supplyVariantOptions().find(v => v.id === variantId)?.unitCost ?? 0;
+  }
+
+  /** Partial cost for a recipe row (unitCost × qty). */
+  getRowPartial(variantId: number | null, qty: number | null): number {
+    return this.getUnitCost(variantId) * (qty ?? 0);
   }
 
   removeBaseRecipeItem(i: number): void { this.baseRecipe.removeAt(i); }
@@ -653,6 +855,14 @@ export class Products implements OnInit {
   submitStep1(): void {
     if (this.baseForm.invalid) { this.baseForm.markAllAsTouched(); return; }
 
+    // If a draft product has already been created (e.g. via an early
+    // image upload in create mode), don't POST again — just advance. The
+    // form values are pushed to the server later in submitStep3.
+    if (this.modalMode() === 'create' && this.createdProduct()?.id) {
+      this.currentStep.set(2);
+      return;
+    }
+
     const v = this.baseForm.value as {
       id?: number | null;
       name: string;
@@ -663,7 +873,8 @@ export class Products implements OnInit {
     this.isSubmitting.set(true);
 
     if (this.modalMode() === 'create') {
-      // Create product first before proceeding to step 2 (insumos)
+      // Legacy path: no draft exists yet (e.g., reference data was empty
+      // and the auto-create was skipped). Fall back to creating now.
       this.productService.createProduct({
         name: v.name,
         basePrice: this.salePrice(),
@@ -909,7 +1120,18 @@ export class Products implements OnInit {
   }
 
   finish(): void {
-    this.closeModal();
+    const productId = this.createdProduct()?.id;
+    if (productId && this.hasUnsavedImageChanges()) {
+      this.isProcessingImage.set(true);
+      this.finalizeImages(productId).pipe(
+        catchError(() => of(null)),
+      ).subscribe(() => {
+        this.isProcessingImage.set(false);
+        this.closeModal();
+      });
+    } else {
+      this.closeModal();
+    }
   }
 
   // ── Helpers ──────────────────────────────────────────────────────
@@ -954,40 +1176,132 @@ export class Products implements OnInit {
     });
   }
 
+  /**
+   * Stages a new image for later upload. If the product hasn't been created
+   * server-side yet (create mode, no draft), a draft product is created
+   * first. The image is held in memory until "Finalizar" is clicked.
+   */
   onWizardImageSelect(event: { files: File[] }): void {
     const file = event.files[0];
-    const productId = this.createdProduct()?.id;
-    if (!productId) return;
 
-    this.isUploadingImage.set(true);
-    this.imageService.uploadImage(productId, file).subscribe({
-      next: (result) => {
-        const image = result.image;
-        if (image != null) {
-          this.wizardProductImages.update(imgs => [...imgs, image]);
-        }
-      },
-      complete: () => { 
-        this.isUploadingImage.set(false);
-        // Reload to ensure we have latest data including server-generated URLs
-        if (productId) {
-          this.loadWizardProductImages(productId);
-        }
+    if (this.createdProduct() == null) {
+      this.createDraftAndStage(file);
+      return;
+    }
+
+    this.stageNewImage(file);
+  }
+
+  /** Stage a file into `stagedNewImages` with a blob URL preview. */
+  private stageNewImage(file: File): void {
+    const url = URL.createObjectURL(file);
+    this.stagedNewImages.update(images => [...images, { file, previewUrl: url }]);
+  }
+
+  /** Remove an image from the preview: stage its id for deletion or
+   *  remove a staged new image. */
+  removeImage(image: PreviewImage): void {
+    if (image.staged) {
+      const idx = this.stagedNewImages().findIndex(s => s.previewUrl === image.mobileUrl);
+      if (idx >= 0) {
+        URL.revokeObjectURL(image.mobileUrl);
+        this.stagedNewImages.update(images => images.filter((_, i) => i !== idx));
       }
+    } else {
+      this.stagedDeletedImageIds.update(ids => [...ids, image.id]);
+    }
+  }
+
+  /** Creates a draft product on demand using the current Step 1 form values,
+   *  then stages the image in memory. */
+  private createDraftAndStage(file: File): void {
+    const v = this.baseForm.value as { name?: string | null; categoryId?: number | null; areaId?: number | null };
+    const name = (v.name ?? '').trim();
+    const categoryId = v.categoryId ?? null;
+    const areaId = v.areaId ?? null;
+    if (name.length < 2 || categoryId == null || areaId == null) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Datos incompletos',
+        detail: 'Completa nombre, categoría y área antes de subir una imagen',
+      });
+      return;
+    }
+
+    this.isProcessingImage.set(true);
+    this.productService.createProduct({
+      name,
+      basePrice: 0,
+      categoryId,
+      areaId,
+      recipe: [],
+      optionIds: [],
+    }).pipe(
+      catchError(err => {
+        this.logger.error('Error creating draft product for image staging', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo crear el producto para subir la imagen',
+        });
+        this.isProcessingImage.set(false);
+        return EMPTY;
+      }),
+    ).subscribe(product => {
+      this.createdProduct.set(product);
+      this.baseForm.patchValue({ id: product.id });
+      this.isProcessingImage.set(false);
+      this.stageNewImage(file);
     });
   }
 
-  deleteWizardImage(image: ProductImageResponse): void {
-    const productId = this.createdProduct()?.id;
-    if (!productId) return;
-    this.imageService.deleteImage(image.id).pipe(
-      catchError(() => of(false))
-    ).subscribe(result => {
-      if (result) {
-        // Reload to ensure UI matches server state
+  /** Commits all staged image changes to the server. Called from finish().
+   *  Uploads new images and deletes removed ones in parallel, then refreshes
+   *  the image list. Returns an Observable that completes when done. */
+  finalizeImages(productId: number): Observable<unknown> {
+    const uploads$ = this.stagedNewImages().length > 0
+      ? forkJoin(
+          this.stagedNewImages().map(s =>
+            this.imageService.uploadImage(productId, s.file).pipe(
+              catchError(err => {
+                this.logger.error('Error uploading staged image', err);
+                return of(null);
+              })
+            )
+          )
+        )
+      : of([]);
+
+    const deletes$ = this.stagedDeletedImageIds().length > 0
+      ? forkJoin(
+          this.stagedDeletedImageIds().map(id =>
+            this.imageService.deleteImage(id).pipe(
+              catchError(err => {
+                this.logger.error('Error deleting staged image', err);
+                return of(null);
+              })
+            )
+          )
+        )
+      : of([]);
+
+    return forkJoin([uploads$, deletes$]).pipe(
+      tap(() => {
+        this.markProductImageUpdated(productId);
+        this.discardStagedImages();
         this.loadWizardProductImages(productId);
-      }
-    });
+      }),
+    );
+  }
+
+  /** Revokes all blob URLs and clears staging state. Called on modal close
+   *  or after finalize. */
+  discardStagedImages(): void {
+    for (const s of this.stagedNewImages()) {
+      URL.revokeObjectURL(s.previewUrl);
+    }
+    this.stagedNewImages.set([]);
+    this.stagedDeletedImageIds.set([]);
   }
 
   showDetailDialog(product: ProductResponse): void {
@@ -1000,8 +1314,21 @@ export class Products implements OnInit {
     this.detailProduct.set(null);
   }
 
-  getImageUrl(image: ProductImageResponse, type: 'mobile' | 'tablet' | 'desktop' = 'desktop'): string {
-    return type === 'mobile' ? image.mobileUrl : type === 'tablet' ? image.tabletUrl : image.desktopUrl;
+  /** Returns the table-row image src with a cache-busting query param
+   *  whenever the current product's image was mutated in this session. */
+  getProductImageSrc(product: ProductResponse): string {
+    const url = product.imageUrl;
+    if (!url) return '';
+    const marker = this.imageRefreshMarker().get(product.id);
+    return marker ? `${url}?v=${String(marker)}` : url;
+  }
+
+  private markProductImageUpdated(productId: number): void {
+    this.imageRefreshMarker.update(m => {
+      const nm = new Map(m);
+      nm.set(productId, Date.now());
+      return nm;
+    });
   }
 
   confirmDeleteProduct(event: Event, product: ProductResponse): void {

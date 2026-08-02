@@ -913,4 +913,305 @@ describe('Products wizard — existing recipe rows', () => {
       expect(errorCalls.length).toBeGreaterThanOrEqual(1);
     });
   });
+
+  describe('showCreationModal does NOT auto-create (create mode)', () => {
+    it('does not call createProduct on showCreationModal even when reference data is ready', async () => {
+      const env = setupComponent();
+      env.cacheStub.referenceData.data = vi.fn().mockReturnValue({
+        areas: [{ id: 1, name: 'Cocina' }],
+        categories: [{ id: 1, name: 'Comidas' }],
+        optionCategories: [],
+        variants: [],
+        productOptions: [],
+      });
+      env.productStub.createProduct.mockClear();
+
+      env.component.showCreationModal();
+      await flushMicrotasks();
+
+      expect(env.productStub.createProduct).not.toHaveBeenCalled();
+      expect(env.component.createdProduct()).toBeNull();
+      expect(env.component.modalMode()).toBe('create');
+      expect(env.component.modalIsOpen()).toBe(true);
+    });
+
+    it('does not call createProduct on showCreationModal when reference data is empty', async () => {
+      const env = setupComponent();
+      env.productStub.createProduct.mockClear();
+
+      env.component.showCreationModal();
+      await flushMicrotasks();
+
+      expect(env.productStub.createProduct).not.toHaveBeenCalled();
+      expect(env.component.createdProduct()).toBeNull();
+      expect(env.component.modalIsOpen()).toBe(true);
+    });
+  });
+
+  describe('canUploadImage computed', () => {
+    it('is false on a fresh component (no form values)', () => {
+      const env = setupComponent();
+      expect(env.component.canUploadImage()).toBe(false);
+    });
+
+    it('is false when only name is filled (missing categoryId/areaId)', async () => {
+      const env = setupComponent();
+      env.component.baseForm.patchValue({ name: 'Hamburguesa' });
+      await flushMicrotasks();
+      expect(env.component.canUploadImage()).toBe(false);
+    });
+
+    it('is false when name is shorter than 2 characters even if the other fields are set', async () => {
+      const env = setupComponent();
+      env.component.baseForm.patchValue({ name: 'H', categoryId: 1, areaId: 1 });
+      await flushMicrotasks();
+      expect(env.component.canUploadImage()).toBe(false);
+    });
+
+    it('is true when name (>=2 chars) + categoryId + areaId are filled', async () => {
+      const env = setupComponent();
+      env.component.baseForm.patchValue({ name: 'Hamburguesa', categoryId: 1, areaId: 1 });
+      await flushMicrotasks();
+      expect(env.component.canUploadImage()).toBe(true);
+    });
+
+    it('flips back to false when the user clears the name after enabling it', async () => {
+      const env = setupComponent();
+      env.component.baseForm.patchValue({ name: 'Hamburguesa', categoryId: 1, areaId: 1 });
+      await flushMicrotasks();
+      expect(env.component.canUploadImage()).toBe(true);
+
+      env.component.baseForm.patchValue({ name: '' });
+      await flushMicrotasks();
+      expect(env.component.canUploadImage()).toBe(false);
+    });
+
+    it('is always true in edit mode regardless of form values', async () => {
+      const env = setupComponent();
+      env.productStub.findProduct.mockReturnValue(of(buildProductFixture()));
+      env.component.showModificationModal(7);
+      await flushMicrotasks();
+
+      expect(env.component.modalMode()).toBe('edit');
+      expect(env.component.canUploadImage()).toBe(true);
+    });
+  });
+
+  describe('onWizardImageSelect stages images instead of uploading immediately', () => {
+    function makeImageFile(): File {
+      return new File([new Uint8Array([0, 1, 2])], 'x.png', { type: 'image/png' });
+    }
+
+    function stubDraft(env: ReturnType<typeof setupComponent>, id: number): ProductResponse {
+      const draft: ProductResponse = {
+        id,
+        name: 'Hamburguesa',
+        basePrice: 0,
+        active: true,
+        categoryId: 1,
+        categoryName: 'Comidas',
+        areaId: 1,
+        areaName: 'Cocina',
+        recipe: [],
+      };
+      env.productStub.createProduct.mockReturnValue(of(draft));
+      return draft;
+    }
+
+    it('creates the product and stages the image when no draft exists yet', async () => {
+      const env = setupComponent();
+      env.component.showCreationModal();
+      await flushMicrotasks();
+      env.productStub.createProduct.mockClear();
+      env.imageStub.uploadImage.mockClear();
+
+      env.component.baseForm.patchValue({ name: 'Hamburguesa', categoryId: 1, areaId: 1 });
+      await flushMicrotasks();
+
+      const draftId = 11;
+      stubDraft(env, draftId);
+
+      env.component.onWizardImageSelect({ files: [makeImageFile()] });
+      await flushMicrotasks();
+
+      expect(env.productStub.createProduct).toHaveBeenCalledTimes(1);
+      const payload = env.productStub.createProduct.mock.calls[0][0] as {
+        name: string;
+        basePrice: number;
+        categoryId: number;
+        areaId: number;
+        recipe: unknown[];
+        optionIds: unknown[];
+      };
+      expect(payload.name).toBe('Hamburguesa');
+      expect(payload.basePrice).toBe(0);
+      expect(payload.categoryId).toBe(1);
+      expect(payload.areaId).toBe(1);
+      expect(payload.recipe).toEqual([]);
+      expect(payload.optionIds).toEqual([]);
+
+      // Image should be staged, not uploaded immediately
+      expect(env.imageStub.uploadImage).not.toHaveBeenCalled();
+      expect(env.component.stagedNewImages().length).toBe(1);
+
+      expect(env.component.createdProduct()?.id).toBe(draftId);
+      expect(env.component.baseForm.get('id')?.value).toBe(draftId);
+      expect(env.component.isProcessingImage()).toBe(false);
+    });
+
+    it('does NOT call createProduct when the form is invalid — shows a warn toast instead', async () => {
+      const env = setupComponent();
+      env.component.showCreationModal();
+      await flushMicrotasks();
+      env.productStub.createProduct.mockClear();
+      env.imageStub.uploadImage.mockClear();
+
+      const messageService = TestBed.inject(MessageService);
+      const addSpy = vi.spyOn(messageService, 'add');
+
+      env.component.onWizardImageSelect({ files: [makeImageFile()] });
+      await flushMicrotasks();
+
+      expect(env.productStub.createProduct).not.toHaveBeenCalled();
+      expect(env.imageStub.uploadImage).not.toHaveBeenCalled();
+      const warnCalls = addSpy.mock.calls.filter(
+        ([msg]: [{ severity: string; summary: string }]) =>
+          msg.severity === 'warn' && msg.summary === 'Datos incompletos'
+      );
+      expect(warnCalls.length).toBeGreaterThanOrEqual(1);
+      expect(env.component.createdProduct()).toBeNull();
+    });
+
+    it('stages the image (no POST, no upload) when a draft already exists', async () => {
+      const env = setupComponent();
+      env.component.modalMode.set('create');
+      env.component.createdProduct.set({
+        id: 77, name: 'Hamburguesa', basePrice: 0, active: true,
+        categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [],
+      });
+      env.productStub.createProduct.mockClear();
+      env.imageStub.uploadImage.mockClear();
+
+      env.component.onWizardImageSelect({ files: [makeImageFile()] });
+      await flushMicrotasks();
+
+      expect(env.productStub.createProduct).not.toHaveBeenCalled();
+      // Image is staged in memory, not uploaded to server
+      expect(env.imageStub.uploadImage).not.toHaveBeenCalled();
+      expect(env.component.stagedNewImages().length).toBe(1);
+    });
+
+    it('shows an error toast and does not upload when the on-demand POST fails', async () => {
+      const env = setupComponent();
+      env.component.showCreationModal();
+      await flushMicrotasks();
+      env.component.baseForm.patchValue({ name: 'Hamburguesa', categoryId: 1, areaId: 1 });
+      await flushMicrotasks();
+      env.productStub.createProduct.mockReturnValue(throwError(() => new Error('boom')));
+      env.imageStub.uploadImage.mockClear();
+
+      const messageService = TestBed.inject(MessageService);
+      const addSpy = vi.spyOn(messageService, 'add');
+
+      env.component.onWizardImageSelect({ files: [makeImageFile()] });
+      await flushMicrotasks();
+
+      expect(env.imageStub.uploadImage).not.toHaveBeenCalled();
+      const errorCalls = addSpy.mock.calls.filter(
+        ([msg]: [{ severity: string; detail: string }]) =>
+          msg.severity === 'error' && msg.detail === 'No se pudo crear el producto para subir la imagen'
+      );
+      expect(errorCalls.length).toBeGreaterThanOrEqual(1);
+      expect(env.component.createdProduct()).toBeNull();
+      expect(env.component.isProcessingImage()).toBe(false);
+    });
+  });
+
+  describe('closeModal cleanup of draft product', () => {
+    function setupCreateModeWithDraft(env: ReturnType<typeof setupComponent>, id: number) {
+      env.component.modalMode.set('create');
+      env.component.modalIsOpen.set(true);
+      env.component.createdProduct.set({
+        id, name: 'Nuevo producto', basePrice: 0, active: true,
+        categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [],
+      });
+      env.productStub.deleteProduct.mockReturnValue(of(null));
+    }
+
+    it('deletes the draft product in create mode before step 5', async () => {
+      const env = setupComponent();
+      setupCreateModeWithDraft(env, 42);
+      env.component.currentStep.set(2);
+
+      env.component.closeModal();
+      await flushMicrotasks();
+
+      expect(env.productStub.deleteProduct).toHaveBeenCalledWith(42);
+      expect(env.component.modalIsOpen()).toBe(false);
+      expect(env.component.createdProduct()).toBeNull();
+    });
+
+    it('does NOT delete in edit mode (product is pre-existing)', async () => {
+      const env = setupComponent();
+      env.productStub.findProduct.mockReturnValue(of(buildProductFixture()));
+      env.component.showModificationModal(7);
+      await flushMicrotasks();
+
+      expect(env.component.createdProduct()?.id).toBe(7);
+      env.productStub.deleteProduct.mockClear();
+
+      env.component.closeModal();
+      await flushMicrotasks();
+
+      expect(env.productStub.deleteProduct).not.toHaveBeenCalled();
+    });
+
+    it('does NOT delete when wizard reached step 5 in create mode', async () => {
+      const env = setupComponent();
+      setupCreateModeWithDraft(env, 50);
+      env.component.currentStep.set(5);
+
+      env.component.closeModal();
+      await flushMicrotasks();
+
+      expect(env.productStub.deleteProduct).not.toHaveBeenCalled();
+    });
+
+    it('does NOT delete when there is no createdProduct in create mode', async () => {
+      const env = setupComponent();
+      env.component.modalMode.set('create');
+      env.component.currentStep.set(2);
+      env.component.modalIsOpen.set(true);
+
+      env.component.closeModal();
+      await flushMicrotasks();
+
+      expect(env.productStub.deleteProduct).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('submitStep1 advances without re-creating when draft exists', () => {
+    it('does not call createProduct again if a draft was auto-created', async () => {
+      const env = setupComponent();
+      env.productStub.createProduct.mockClear();
+
+      // Simulate state after auto-create completed.
+      env.component.modalMode.set('create');
+      env.component.createdProduct.set({
+        id: 33, name: 'Nuevo producto', basePrice: 0, active: true,
+        categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [],
+      });
+      env.component.baseForm.patchValue({
+        name: 'Nuevo producto',
+        categoryId: 1,
+        areaId: 1,
+      });
+
+      env.component.submitStep1();
+      await flushMicrotasks();
+
+      expect(env.productStub.createProduct).not.toHaveBeenCalled();
+      expect(env.component.currentStep()).toBe(2);
+    });
+  });
 });
