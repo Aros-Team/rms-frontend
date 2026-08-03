@@ -1,0 +1,19 @@
+<div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 border-surface-200 dark:border-surface-700 bg-surface-100 dark:bg-surface-800 transition-all">
+  @if (chip.icon) {
+    <i class="pi text-sm" [class]="chip.icon"></i>
+  }
+  <span class="text-sm font-medium text-surface-700 dark:text-surface-200">{{ chip.label }}</span>
+  @if (chip.meta) {
+    <span class="text-xs font-medium text-primary-600 dark:text-primary-400">{{ chip.meta }}</span>
+  }
+  <button
+    type="button"
+    class="w-5 h-5 flex items-center justify-center rounded-full text-surface-400 hover:text-surface-600 dark:hover:text-surface-200 transition-colors"
+    [class.opacity-50]="chip.disabled"
+    [class.cursor-not-allowed]="chip.disabled"
+    [disabled]="chip.disabled"
+    (click)="onRemove($event)"
+    aria-label="Quitar">
+    <i class="pi pi-times text-xs"></i>
+  </button>
+</div>

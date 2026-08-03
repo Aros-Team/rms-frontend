@@ -1,0 +1,95 @@
+<div class="flex flex-col gap-4">
+  <!-- Group search -->
+  <div class="flex items-center gap-2">
+    <div class="relative flex-1">
+      <app-search-input
+        placeholder="Buscar grupo de opciones..."
+        (searchChange)="onGroupSearch($event)" />
+
+      @if (filteredGroups().length > 0) {
+        <div class="absolute z-50 left-0 right-0 mt-1 bg-primary-contrast dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg max-h-60 overflow-y-auto">
+          @for (group of filteredGroups(); track group.id) {
+            <button type="button"
+              class="w-full px-3 py-2 text-left text-sm hover:bg-surface-100 dark:hover:bg-surface-700 flex items-center justify-between gap-2 cursor-pointer border-none bg-transparent"
+              [class.bg-primary-50]="selectedGroupId() === group.id"
+              [class.dark:bg-primary-900/20]="selectedGroupId() === group.id"
+              (click)="selectGroup(group.id); $event.stopPropagation()"
+              (keydown.enter)="selectGroup(group.id)">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="font-medium text-surface-800 dark:text-surface-200 truncate">{{ group.name }}</span>
+              </div>
+              <span class="text-xs text-surface-400 shrink-0">{{ group.selectionType }}</span>
+            </button>
+          }
+
+          @if (showCreateOption()) {
+            <div class="border-t border-surface-200 dark:border-surface-700">
+              <app-inline-create-popover
+                title="Crear grupo de opciones"
+                submitLabel="Crear"
+                [submitting]="inlineCreateSubmitting"
+                [fields]="createGroupFields"
+                (submitted)="onInlineCreateSubmit($event)">
+                <button type="button"
+                  class="w-full px-3 py-2 text-left text-sm font-medium text-primary-600 dark:text-primary-400 hover:bg-surface-50 dark:hover:bg-surface-800 flex items-center gap-2 cursor-pointer border-none bg-transparent">
+                  <i class="pi pi-plus"></i>
+                  <span>+ Crear nuevo grupo "{{ groupSearchTerm() }}"</span>
+                </button>
+              </app-inline-create-popover>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Selected group info + type badge -->
+  @if (selectedGroupTypeConfig(); as config) {
+    <div class="flex items-center gap-3 px-3 py-2 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700">
+      <span class="text-sm font-medium text-surface-800 dark:text-surface-200">
+        Grupo seleccionado
+      </span>
+      <p-tag [value]="config.label" [severity]="config.severity" />
+      <span class="text-xs text-surface-500 ml-auto">{{ config.description }}</span>
+    </div>
+  }
+
+  <!-- Option checklist -->
+  @if (selectedGroupId()) {
+    <div class="flex flex-col gap-2">
+      <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Opciones del grupo</span>
+      <app-option-selection-list
+        [options]="groupOptions()"
+        [selectionType]="selectedGroupSelectionType()!"
+        [selectedIds]="tempSelectedOptionIds()"
+        [groupName]="'group-' + selectedGroupId()"
+        (selectionChange)="onSelectionChange($event)" />
+
+      @if (tempSelectedOptionIds().length > 0) {
+        <p-button
+          [label]="'Agregar ' + tempSelectedOptionIds().length + ' opción(es) seleccionada(s)'"
+          icon="pi pi-plus"
+          (click)="addSelectedOptions()" />
+      }
+    </div>
+
+    <p-divider />
+  }
+
+  <!-- Active options (chips) -->
+  @if (activeOptions().length > 0) {
+    <div class="flex flex-col gap-2">
+      <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Opciones agregadas</span>
+      <div class="flex flex-wrap gap-2">
+        @for (chip of activeOptionChips(); track chip.id) {
+          <app-removable-chip [chip]="chip" (removed)="removeOption($event)" />
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Cost breakdown -->
+  @if (costBreakdown()) {
+    <app-cost-breakdown-panel [breakdown]="costBreakdown()!" />
+  }
+</div>

@@ -2,6 +2,7 @@ import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { Order } from '@core/services/orders/order';
 import { CreateOrderRequest } from '@app/shared/models/dto/orders/create-order-request';
@@ -10,6 +11,7 @@ import { Product } from '@core/services/products/product';
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Logging } from '@core/services/logging/logging';
+import { mapHttpError } from '@app/shared/lib/http-error-mapper/http-error-mapper';
 
 @Component({
   selector: 'app-order-creation-form',
@@ -130,7 +132,10 @@ export class OrderCreationForm implements OnInit {
       },
       error: (err) => {
         this.logger.error('CreateOrder failed', err);
-        const errorDetail = typeof err === 'object' && err !== null ? this.resolveCreateOrderError(err) : 'Error desconocido';
+        const httpErr = err instanceof HttpErrorResponse ? err : null;
+        const errorDetail = httpErr
+          ? mapHttpError(httpErr, 'product-options')
+          : (typeof err === 'object' && err !== null ? this.resolveCreateOrderError(err) : 'Error desconocido');
         this.messageService.add({ severity: 'error', summary: 'Error', detail: errorDetail });
       }
     });

@@ -12,6 +12,11 @@ import { ProductCache } from './product-cache';
 import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 import { ProductOption } from '@app/core/services/product-option/product-option';
 import { WebSocket } from '@app/core/services/websocket/websocket';
+import { OptionGroup } from '@app/core/services/option-group/option-group';
+import { OptionsChangedPayload } from './step3-options/step3-options';
+import { Step3Options } from './step3-options/step3-options';
+import { mapHttpError } from '@app/shared/lib/http-error-mapper/http-error-mapper';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
 import { ProductResponse } from '@app/shared/models/dto/products/product-response';
@@ -20,6 +25,7 @@ import { ProductOptionCreateRequest, RecipeItemRequest } from '@app/shared/model
 import { ProductImage } from '@app/core/services/product-image/product-image';
 import { ProductImageResponse } from '@app/shared/models/dto/products/product-image-response';
 import { ProductCostResponse } from '@app/shared/models/dto/products/product-cost-response';
+import { OptionGroupResponse } from '@app/shared/models/dto/option-groups/option-group';
 
 import { SearchInput as SearchInputComponent } from '@app/shared/components/search-input/search-input';
 import { ButtonModule } from 'primeng/button';
@@ -70,14 +76,6 @@ interface PreviewImage {
   staged: boolean;
 }
 
-interface OptionFormValue {
-  id?: number | null;
-  name?: string;
-  optionCategoryId?: number | null;
-  recipe?: unknown[];
-  isExisting?: boolean;
-}
-
 interface RecipeCostRow {
   supplyVariantId: number | null;
   supplyName: string;
@@ -85,6 +83,14 @@ interface RecipeCostRow {
   unitCost: number | null;
   requiredQuantity: number;
   partial: number;
+}
+
+interface OptionFormValue {
+  id: number | null;
+  name: string;
+  optionCategoryId: number | null;
+  recipe: RecipeItemRequest[];
+  isExisting: boolean;
 }
 
 @Component({
@@ -119,6 +125,7 @@ interface RecipeCostRow {
     PrepTimeDialog,
     ProductDetailDialog,
     SearchInputComponent,
+    Step3Options,
   ],
   templateUrl: './products.html',
   providers: [MessageService, ConfirmationService],
@@ -134,6 +141,7 @@ export class Products implements OnInit {
   private wsService = inject(WebSocket);
   readonly cache = inject(ProductCache);
   readonly imageService = inject(ProductImage);
+  private optionGroupService = inject(OptionGroup);
 
   title = 'Carta de Productos';
   currencyFormat = Intl.NumberFormat('es-Co', { style: 'currency', currency: 'COP' });
@@ -245,6 +253,7 @@ export class Products implements OnInit {
   isSubmitting = signal(false);
   createdProduct = signal<ProductResponse | null>(null);
   existingOptions = signal<ProductOptionDTO[]>([]);
+  optionGroups = signal<OptionGroupResponse[]>([]);
   existingRecipe: FormArray = this.fb.array([]);
   private existingRecipeCategoryMap = new Map<number, number | null>();
   private existingRecipeRowIds: number[] = [];
@@ -436,6 +445,9 @@ export class Products implements OnInit {
   // Track selected option IDs (existing options)
   selectedOptionIds = signal<number[]>([]);
 
+  // Step 3 options state
+  step3OptionsChanged = signal<OptionsChangedPayload>({ optionIds: [], optionExtras: [] });
+
   ngOnInit(): void {
     // Force load on first visit if no data
     if (this.cache.products.data() === null) {
@@ -489,6 +501,7 @@ export class Products implements OnInit {
     this.optionsArray.clear();
     this.createdProduct.set(null);
     this.existingOptions.set([]);
+    this.optionGroups.set([]);
     this.existingRecipe.clear();
     this.existingRecipeCategoryMap.clear();
     this.existingRecipeRowIds = [];
@@ -521,6 +534,7 @@ export class Products implements OnInit {
     this.optionsArray.clear();
     this.createdProduct.set(null);
     this.existingOptions.set([]);
+    this.optionGroups.set([]);
     this.existingRecipe.clear();
     this.existingRecipeCategoryMap.clear();
     this.existingRecipeRowIds = [];
@@ -554,6 +568,7 @@ export class Products implements OnInit {
         if (p.id) {
           this.loadWizardProductImages(p.id);
           this.loadProductCost(p.id);
+          this.loadOptionGroups(p.id);
         }
         return this.masterDataService.getProductOptions(p.id).pipe(
           catchError(() => of([]))
@@ -932,138 +947,78 @@ export class Products implements OnInit {
     this.currentStep.set(4);
   }
 
-  submitStep3(): void {
-    if (this.optionsArray.invalid) { this.optionsArray.markAllAsTouched(); return; }
-    if (this.hasDuplicateOptions()) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'No puedes agregar la misma opción más de una vez'
-      });
-      return;
-    }
+  // ── Step 3 options handler ───────────────────────────────────────
 
+  onOptionsChanged(payload: OptionsChangedPayload): void {
+    this.step3OptionsChanged.set(payload);
+  }
+
+  submitStep3(): void {
     this.isSubmitting.set(true);
 
-    // IDs de opciones existentes que el usuario NO eliminó (siguen en existingOptions)
-    const keptExistingIds: number[] = this.existingOptions().map(o => o.id);
+    const { optionIds, optionExtras } = this.step3OptionsChanged();
 
-    // Separate new options added via the form from existing ones
-    const addedExistingIds: number[] = [];
-    const newOptions: { name: string; optionCategoryId: number; recipe: { supplyVariantId: number; requiredQuantity: number }[] }[] = [];
-
-    for (const opt of this.optionsArray.value as OptionFormValue[]) {
-      if (opt.isExisting && opt.id) {
-        addedExistingIds.push(opt.id);
-      } else {
-        newOptions.push({
-          name: opt.name ?? '',
-          optionCategoryId: opt.optionCategoryId ?? 0,
-          recipe: opt.recipe as { supplyVariantId: number; requiredQuantity: number }[],
-        });
-      }
+    const v = this.baseForm.value as {
+      id?: number | null;
+      name: string;
+      categoryId: number;
+      areaId: number;
+      description: string;
+      estimatedPrepMinutes: number | null;
+    };
+    const merged = new Map<number, RecipeItemRequest>();
+    for (const r of this.existingRecipe.value as RecipeItemRequest[]) {
+      merged.set(r.supplyVariantId, r);
     }
+    for (const r of this.baseRecipe.value as RecipeItemRequest[]) {
+      merged.set(r.supplyVariantId, r);
+    }
+    const recipeItems = Array.from(merged.values());
 
-    // Merge: kept existing + newly added existing (deduplicated)
-    const existingOptionIds = [...new Set([...keptExistingIds, ...addedExistingIds])];
-
-    // Create new options first (if any)
-    const createNewOptions$ = newOptions.length > 0
-      ? forkJoin(newOptions.map(opt => this.productService.createProductOption(opt)))
-      : of([]);
-
-    createNewOptions$.pipe(
-      switchMap((createdOptions: object[]) => {
-        // Collect all option IDs (existing + newly created)
-        const allOptionIds = [
-          ...existingOptionIds,
-          ...createdOptions.map(opt => (opt as { id: number }).id)
-        ];
-
-        // Refresh allProductOptions to include newly created options
-        if (createdOptions.length > 0) {
-          return this.productOptionService.getOptions().pipe(
-            switchMap(allOpts => {
-              this._allProductOptionsOverride.set(allOpts);
-              return of(allOptionIds);
-            })
-          );
-        }
-        return of(allOptionIds);
-      }),
-      switchMap((allOptionIds: number[]) => {
-        const v = this.baseForm.value as {
-          id?: number | null;
-          name: string;
-          categoryId: number;
-          areaId: number;
-          description: string;
-          estimatedPrepMinutes: number | null;
-        };
-        const merged = new Map<number, RecipeItemRequest>();
-        for (const r of this.existingRecipe.value as RecipeItemRequest[]) {
-          merged.set(r.supplyVariantId, r);
-        }
-        for (const r of this.baseRecipe.value as RecipeItemRequest[]) {
-          merged.set(r.supplyVariantId, r);
-        }
-        const recipeItems = Array.from(merged.values());
-
-        const productId = this.createdProduct()?.id ?? 0;
-        return this.productService.updateProduct(productId, {
-          name: v.name,
-          description: v.description || undefined,
-          basePrice: this.salePrice(),
-          categoryId: v.categoryId,
-          areaId: v.areaId,
-          estimatedPrepMinutes: v.estimatedPrepMinutes ?? undefined,
-          recipe: recipeItems,
-          optionIds: allOptionIds,
-        }).pipe(
-          catchError(err => {
-            this.logger.error('Error saving product with options', err);
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: 'No se pudo guardar el producto con sus opciones'
-            });
-            this.isSubmitting.set(false);
-            return EMPTY;
-          }),
-          switchMap(() => this.productService.findProduct(productId).pipe(
-            catchError(err => {
-              this.logger.error('Could not refetch updated product', err);
-              this.messageService.add({
-                severity: 'warn',
-                summary: 'Guardado con observaciones',
-                detail: 'Los cambios se guardaron, pero no se pudo recargar el detalle. Recarga la página si ves datos desactualizados.'
-              });
-              return of(null);
-            }),
-          )),
-          switchMap((product: ProductResponse | null) => {
-            if (!product) {
-              this.isSubmitting.set(false);
-              this.wsService.emitCacheInvalidation('products', 'update');
-              this.refreshProducts();
-              this.currentStep.set(4);
-              return of(null);
-            }
-            this.createdProduct.set(product);
-            return this.masterDataService.getProductOptions(product.id);
-          }),
-        );
-      }),
+    const productId = this.createdProduct()?.id ?? 0;
+    this.productService.updateProduct(productId, {
+      name: v.name,
+      description: v.description || undefined,
+      basePrice: this.salePrice(),
+      categoryId: v.categoryId,
+      areaId: v.areaId,
+      estimatedPrepMinutes: v.estimatedPrepMinutes ?? undefined,
+      recipe: recipeItems,
+      optionIds,
+      optionExtras: optionExtras.length > 0 ? optionExtras : undefined,
+    }).pipe(
       catchError(err => {
         this.logger.error('Error saving product with options', err);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo guardar el producto con sus opciones'
+          detail: mapHttpError(err as HttpErrorResponse, 'product-options'),
         });
         this.isSubmitting.set(false);
         return EMPTY;
-      })
+      }),
+      switchMap(() => this.productService.findProduct(productId).pipe(
+        catchError(err => {
+          this.logger.error('Could not refetch updated product', err);
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Guardado con observaciones',
+            detail: 'Los cambios se guardaron, pero no se pudo recargar el detalle. Recarga la página si ves datos desactualizados.'
+          });
+          return of(null);
+        }),
+      )),
+      switchMap((product: ProductResponse | null) => {
+        if (!product) {
+          this.isSubmitting.set(false);
+          this.wsService.emitCacheInvalidation('products', 'update');
+          this.refreshProducts();
+          this.currentStep.set(4);
+          return of(null);
+        }
+        this.createdProduct.set(product);
+        return this.masterDataService.getProductOptions(product.id);
+      }),
     ).subscribe(savedOptions => {
       if (savedOptions === null) return;
       this.existingOptions.set(savedOptions);
@@ -1173,6 +1128,15 @@ export class Products implements OnInit {
         }
       }
       this.costLoading.set(false);
+    });
+  }
+
+  loadOptionGroups(productId: number): void {
+    if (!productId) { this.optionGroups.set([]); return; }
+    this.optionGroupService.getProductOptionGroups(productId).pipe(
+      catchError(() => of([]))
+    ).subscribe(groups => {
+      this.optionGroups.set(groups);
     });
   }
 

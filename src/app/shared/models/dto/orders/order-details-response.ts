@@ -43,4 +43,5 @@ export interface ClientOrderDetail {
   additions?: ClientOrderAddition[];
   clarifications?: ClientOrderClarification[];
   groupSelections?: ClientGroupSelection[];
+  extraCharge?: number;
 }

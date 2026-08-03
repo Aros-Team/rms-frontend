@@ -6,6 +6,7 @@ import { ProductListResponse } from '@app/shared/models/dto/products/product-lis
 import { ProductUpdateRequest } from '@app/shared/models/dto/products/product-update-request';
 import { ProductOption } from '@app/shared/models/dto/products/product-option';
 import { ProductCostResponse } from '@app/shared/models/dto/products/product-cost-response';
+import { ProductCostBreakdownResponse } from '@app/shared/models/dto/products/product-cost-breakdown-response';
 import { Observable, catchError, map, of } from 'rxjs';
 
 export interface PaginatedProductsResponse {
@@ -111,6 +112,10 @@ export class Product {
 
   public getCost(productId: number): Observable<ProductCostResponse> {
     return this.http.get<ProductCostResponse>('v1/products/' + String(productId) + '/cost');
+  }
+
+  public getCostBreakdown(productId: number): Observable<ProductCostBreakdownResponse> {
+    return this.http.get<ProductCostBreakdownResponse>('v1/products/' + String(productId) + '/cost-breakdown');
   }
 
   public disableProduct(id: number): Observable<object> {

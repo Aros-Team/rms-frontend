@@ -4,42 +4,19 @@
     "type": "feat",
     "name": "search-input-component",
     "title": "Componente compartido SearchInput con debounce de 500ms",
-    "description": "Crear un Input component reutilizable con debounce de 500ms que estandarice los buscadores de las páginas de manage (products, inventory, tables, workers, areas, categories, suppliers, etc.). Hoy cada página tiene un `signal<string>` + filtro client-side sobre la página actual; el nuevo componente emite el valor debounced y cada consumidor decide cómo conectarlo al backend (cuando el backend exponga el parámetro de búsqueda). El componente es el primer paso de la migración a búsqueda server-side; la conexión al cache de cada módulo se hará en actividades posteriores cuando el backend agregue el parámetro `search` (o equivalente) en cada endpoint.",
+    "description": "Crear un Input component reutilizable con debounce de 500ms.",
     "acceptance": [
-      "Existe src/app/shared/components/search-input/search-input.ts + search-input.html, sin estilos inline ni template inline",
-      "Selector: app-search-input. Inputs: placeholder (default 'Buscar...'), debounceMs (default 500). Output: searchChange (string ya trimmed y puede ser '').",
-      "El componente emite searchChange solo tras el debounceMs de inactividad. No emite valores repetidos (distinctUntilChanged).",
-      "Internamente usa un signal `value` enlazado vía ngModel al input y un subject pipeado con debounceTime + distinctUntilChanged + map(trim) y emitido vía searchChange. takeUntilDestroyed para limpiar.",
-      "Visual: input con icono pi-search a la izquierda (p-iconfield) y botón de limpiar (pi-times) a la derecha cuando hay valor. Mantén estilo consistente con los buscadores actuales de manage (full width con lg:w-80).",
-      "Spec: src/app/shared/components/search-input/search-input.spec.ts con TestHost que verifica: (1) emite tras ~debounceMs, (2) no emite cuando el valor no cambia, (3) trimea espacios, (4) el subject se completa en destroy (no leak).",
-      "ng lint limpio, build OK, harness verde (lint + build + tests).",
-      "Doc docs/server-side-search.md: patrón de uso, contrato esperado del backend, checklist de endpoints pendientes de soportar search."
+      "Existe src/app/shared/components/search-input/search-input.ts + search-input.html",
+      "Selector: app-search-input. Inputs: placeholder, debounceMs. Output: searchChange.",
+      "El componente emite searchChange solo tras el debounceMs de inactividad.",
+      "Spec cubre debounce, distinctUntilChanged, trim, destroy.",
+      "Harness verde"
     ],
     "tasks": [
-      {
-        "id": "a",
-        "description": "Crear src/app/shared/components/search-input/search-input.ts + search-input.html. Componente standalone con ChangeDetectionStrategy.OnPush, imports (FormsModule, IconFieldModule, InputIconModule, InputTextModule, ButtonModule). Inputs: placeholder (default 'Buscar...'), debounceMs (default 500). Output: searchChange (string). Usa signal interno + Subject pipeado (debounceTime + distinctUntilChanged + map(trim)). Emite searchChange. Plantilla con p-iconfield + pi-search + input + botón limpiar condicional.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "b",
-        "description": "Spec src/app/shared/components/search-input/search-input.spec.ts con TestHost siguiendo el patrón de product-card.spec.ts. Cubrir: (1) emite value tras debounceMs, (2) no emite cuando value no cambia, (3) trimea espacios, (4) destroy limpia el subject.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "c",
-        "description": "Doc docs/server-side-search.md: (1) contrato backend esperado (parámetro search/name string, parcial, case-insensitive, paginado, totalElements), (2) patrón de uso del componente SearchInput, (3) checklist de endpoints pendientes (los 10 que no soportan search hoy), (4) ejemplo de migración de un módulo cuando el backend esté listo.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "d",
-        "description": "Harness: node scripts/harness.js — lint, build, tests verdes. Sin commits automáticos.",
-        "status": "done",
-        "agent": "implementer"
-      }
+      { "id": "a", "description": "Crear search-input.ts + search-input.html", "status": "done", "agent": "implementer" },
+      { "id": "b", "description": "Crear search-input.spec.ts", "status": "done", "agent": "implementer" },
+      { "id": "c", "description": "Doc docs/server-side-search.md", "status": "done", "agent": "implementer" },
+      { "id": "d", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
     ],
     "status": "done"
   },
@@ -48,75 +25,248 @@
     "type": "feat",
     "name": "migrate-server-side-search",
     "title": "Migrar manage modules a búsqueda server-side",
-    "description": "Migrar los 10 módulos de manage del filtro client-side a la búsqueda server-side usando el componente `<app-search-input>` y el parámetro `search` (o `name`) que el backend ya expone en todos los endpoints. Cada módulo sigue el mismo patrón: (1) service acepta `search?: string`, (2) cache propaga `search` al service y siempre llama con `page: 0` al buscar, (3) componente reemplaza el `<input>` por `<app-search-input>` y conecta `(searchChange)` al cache, (4) eliminar la computed `filtered*` que hacía filtro en cliente, (5) spec verifica que el cache envía `search` al service.",
+    "description": "Migrar los 10 módulos de manage del filtro client-side a la búsqueda server-side.",
     "acceptance": [
-      "Cada módulo: service acepta `search?: string` como parámetro, cache lo propaga, componente usa `<app-search-input>`, no existe `filtered*` computed para búsqueda de texto.",
-      "Harness verde: lint, build, tests pasan (todos los specs existentes + nuevos).",
-      "El input de búsqueda emite al backend (verificable en Network tab), no filtra en cliente.",
-      "Al escribir en el buscador, la paginación se reinicia a página 0 (si el módulo tiene paginación).",
-      "Docs/server-side-search.md actualizado con tabla de estado (todos los endpoints en 'Listo')."
+      "Cada módulo: service acepta search, cache lo propaga, componente usa app-search-input.",
+      "Harness verde"
     ],
     "tasks": [
-      {
-        "id": "a",
-        "description": "Products: (1) product.ts: añadir `search?: string` al 4to parámetro de `getProductsPaginated`, incluirlo en HttpParams si no vacío. (2) product-cache.ts: añadir `search?: string` al type de `productListParams` y a `setProductListParams`, propagar al service call. (3) products.ts: reemplazar `<input>` por `<app-search-input>`, conectar `(searchChange)` a handler que llame `cache.setProductListParams({ search, page: 0 })`, eliminar `filteredProducts` computed y `tableSearch` signal. (4) product-cache.spec.ts: añadir test que verifique que `setProductListParams({ search: 'foo' })` pasa `search: 'foo'` al service.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "b",
-        "description": "Inventory/Supplies: (1) supply.ts: añadir `search?: string` a `getSupplyVariantsPaginated`, incluirlo en HttpParams. (2) inventory-cache.ts: añadir `search?: string` al type de `supplyListParams` y a `setSuppliesListParams`, propagar al service call. (3) inventory.ts: reemplazar el `<input>` de búsqueda por `<app-search-input>`, conectar `(searchChange)` al cache, eliminar `filteredSupplies` computed y `tableSearch` signal. (4) inventory-cache.spec.ts: añadir test de propagación de search.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "c",
-        "description": "Tables: (1) table.ts: añadir `search?: string` a `getTables`, incluirlo en HttpParams. (2) tables-cache.ts: añadir `search?: string` al type de params y a `setTablesListParams` (o crear el método si no existe), propagar al service. (3) tables.ts: añadir `<app-search-input>` en el template, conectar `(searchChange)` al cache. tables-cache.ts ya usa ResourceCache; necesito ver cómo maneja los params.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "d",
-        "description": "Workers: (1) worker.ts: añadir `search?: string` a `getWorkers`, incluirlo en HttpParams. (2) workers-cache.ts: añadir search al type de params y a `setWorkersListParams`, propagar al service. (3) workers.ts: añadir `<app-search-input>` en el template, conectar `(searchChange)` al cache.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "e",
-        "description": "Areas: (1) area.ts: añadir `search?: string` a `getAreas`, incluirlo en HttpParams. (2) areas.ts (que reusa TablesCache): ver cómo se propagan los params de areas. Puede necesitar un método propio en TablesCache o un AreasCache. (3) areas.ts: añadir `<app-search-input>` en el template, conectar `(searchChange)`.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "f",
-        "description": "Categories: (1) category.ts: añadir `search?: string` a `getCategories`, incluirlo en HttpParams. (2) categories-cache.ts: añadir search al type de params y a `setCategoriesListParams`, propagar al service. (3) categories.ts: añadir `<app-search-input>` en el template, conectar `(searchChange)` al cache.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "g",
-        "description": "Option Categories: (1) option-category.ts: añadir `search?: string` a `getOptionCategories`, incluirlo en HttpParams. (2) categories-cache.ts: añadir search a `setOptionCategoriesListParams` (o método equivalente), propagar al service. (3) categories.ts: añadir `<app-search-input>` en la sección de Option Categories, conectar `(searchChange)` al cache.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "h",
-        "description": "Suppliers: (1) supplier.ts: añadir `search?: string` a `getSuppliers`, incluirlo en HttpParams. (2) inventory-cache.ts: añadir search a `setSuppliersListParams` (o método equivalente para suppliers), propagar al service. (3) inventory.ts: añadir `<app-search-input>` en la sección de Suppliers, conectar `(searchChange)` al cache.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-"id": "i",
-        "description": "Purchases: (1) purchase.ts: añadir `search?: string` a `getPurchases`, incluirlo en HttpParams. (2) inventory-cache.ts: añadir search a `setPurchasesListParams` (o método equivalente para purchases), propagar al service. (3) inventory.ts: añadir `<app-search-input>` en la sección de Purchases, conectar `(searchChange)` al cache.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "j",
-        "description": "Orders: (1) order.ts: añadir `search?: string` a `queryOrders` o `getOrders`, incluirlo en HttpParams. (2) orders-table.ts: reemplazar el input de búsqueda por `<app-search-input>`, conectar `(searchChange)` al handler que llame `fetchOrders` con `search`, eliminar el filtro client-side `applyFilters` que busca por id/tableId/productName.",
-        "status": "done",
-        "agent": "implementer"
-      }
+      { "id": "a", "description": "Products migration", "status": "done", "agent": "implementer" },
+      { "id": "b", "description": "Inventory/Supplies migration", "status": "done", "agent": "implementer" },
+      { "id": "c", "description": "Tables migration", "status": "done", "agent": "implementer" },
+      { "id": "d", "description": "Workers migration", "status": "done", "agent": "implementer" },
+      { "id": "e", "description": "Areas migration", "status": "done", "agent": "implementer" },
+      { "id": "f", "description": "Categories migration", "status": "done", "agent": "implementer" },
+      { "id": "g", "description": "Option Categories migration", "status": "done", "agent": "implementer" },
+      { "id": "h", "description": "Suppliers migration", "status": "done", "agent": "implementer" },
+      { "id": "i", "description": "Purchases migration", "status": "done", "agent": "implementer" },
+      { "id": "j", "description": "Orders migration", "status": "done", "agent": "implementer" }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 23,
+    "type": "feat",
+    "name": "improve-product-wizard-step1",
+    "title": "Mejorar UI del Paso 1 del wizard de producto",
+    "description": "Rediseñar el Paso 1 con layout 2 columnas, imagen, auto-create draft.",
+    "acceptance": [
+      "Layout 2 columnas en md+.",
+      "Auto-create draft on Step 1 entry.",
+      "Cleanup on cancel.",
+      "Harness verde"
+    ],
+    "tasks": [
+      { "id": "a", "description": "Auto-create on Step 1 entry", "status": "done", "agent": "implementer" },
+      { "id": "b", "description": "Cleanup on cancel", "status": "done", "agent": "implementer" },
+      { "id": "c", "description": "Restructure Step 1 layout", "status": "done", "agent": "implementer" },
+      { "id": "d", "description": "Image upload area", "status": "done", "agent": "implementer" },
+      { "id": "e", "description": "Polish prep time + area placeholder", "status": "done", "agent": "implementer" },
+      { "id": "f", "description": "Tests", "status": "done", "agent": "implementer" },
+      { "id": "g", "description": "Verify: harness verde", "status": "done", "agent": "implementer" },
+      { "id": "h", "description": "Fix: replace auto-create with on-demand create", "status": "done", "agent": "implementer" }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 24,
+    "type": "chore",
+    "name": "rename-option-category-to-option-group",
+    "title": "Renombrar option_category → option_group",
+    "description": "Renombrar modelos, services, rutas de option-category a option-group. Eliminar sección de Option Categories de Categories.",
+    "acceptance": [
+      "Ya no existen archivos o carpetas option-category.",
+      "Models renombrados a OptionGroupResponse/Request.",
+      "Service renombrado a OptionGroup.",
+      "Sección de Option Categories eliminada de Categories.",
+      "Harness verde"
+    ],
+    "tasks": [
+      { "id": "a", "description": "Renombrar archivos y carpetas", "status": "done", "agent": "implementer" },
+      { "id": "b", "description": "Actualizar importaciones", "status": "done", "agent": "implementer" },
+      { "id": "c", "description": "Eliminar sección de Option Categories", "status": "done", "agent": "implementer" },
+      { "id": "d", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 25,
+    "type": "feat",
+    "name": "option-groups-orgchart",
+    "title": "CRUD de Option Groups con vista Orgchart dentro de Products",
+    "description": "Crear CRUD de Option Groups con vista de jerarquía como pestaña dentro de Products. Patrón two-call: GET /option-groups?productId={id} + GET /products/{id}/options.",
+    "acceptance": [
+      "Existe pestaña 'Grupos de opciones' en Products.",
+      "La pestaña muestra productos con optionGroupsIds.",
+      "Al expandir, carga groups + options en paralelo.",
+      "Frontend bucketea options por optionGroupId.",
+      "Cada grupo muestra badge de selectionType.",
+      "Creación inline de grupos y opciones.",
+      "Lazy loading con skeleton.",
+      "Harness verde"
+    ],
+    "tasks": [
+      { "id": "a", "description": "Agregar métodos getProductOptionGroups y getProductOptions a services", "status": "done", "agent": "implementer" },
+      { "id": "b", "description": "Crear componente option-groups-view", "status": "done", "agent": "implementer" },
+      { "id": "c", "description": "Implementar UI del orgchart con tree-node-card", "status": "done", "agent": "implementer" },
+      { "id": "d", "description": "Implementar creación inline con inline-create-popover", "status": "done", "agent": "implementer" },
+      { "id": "e", "description": "Integrar en Products: agregar tab", "status": "done", "agent": "implementer" },
+      { "id": "f", "description": "Tests", "status": "done", "agent": "implementer" },
+      { "id": "g", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 26,
+    "type": "feat",
+    "name": "option-selection-type-mapper-models",
+    "title": "OptionSelectionType enum interno + mapper + Money + modelos",
+    "description": "Crear enum interno OptionSelectionType + mapper toApi/fromApi. Crear Money. Actualizar models.",
+    "acceptance": [
+      "Existe enum OptionSelectionType con valores INTERNOS.",
+      "Existe mapper toApi/fromApi.",
+      "Existe Money interface.",
+      "OptionGroupRequest tiene selectionType.",
+      "OptionGroupResponse tiene productIds.",
+      "ProductOption tiene cost, extraPrice, categorySelectionType.",
+      "Harness verde"
+    ],
+    "tasks": [
+      { "id": "a", "description": "Crear Money interface", "status": "done", "agent": "implementer" },
+      { "id": "b", "description": "Crear OptionSelectionType enum", "status": "done", "agent": "implementer" },
+      { "id": "c", "description": "Crear mapper toApi/fromApi", "status": "done", "agent": "implementer" },
+      { "id": "d", "description": "Actualizar OptionGroupRequest/Response", "status": "done", "agent": "implementer" },
+      { "id": "e", "description": "Actualizar ProductOption", "status": "done", "agent": "implementer" },
+      { "id": "f", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 27,
+    "type": "feat",
+    "name": "product-request-extras-and-group-ids",
+    "title": "optionExtras en ProductRequest y optionGroupIds en ProductResponse",
+    "description": "Agregar optionExtras al payload de productos y optionGroupIds a ProductResponse.",
+    "acceptance": [
+      "ProductCreateRequest tiene optionExtras.",
+      "ProductUpdateRequest tiene optionExtras.",
+      "ProductResponse tiene optionGroupIds.",
+      "Harness verde"
+    ],
+    "tasks": [
+      { "id": "a", "description": "Actualizar ProductCreateRequest", "status": "done", "agent": "implementer" },
+      { "id": "b", "description": "Actualizar ProductUpdateRequest", "status": "done", "agent": "implementer" },
+      { "id": "c", "description": "Actualizar ProductResponse y ProductListResponse", "status": "done", "agent": "implementer" },
+      { "id": "d", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 28,
+    "type": "feat",
+    "name": "cost-projection-endpoint",
+    "title": "Servicio getCostBreakdown con ProductCostBreakdownResponse",
+    "description": "Crear método getCostBreakdown en ProductService con modelo rico.",
+    "acceptance": [
+      "ProductService tiene getCostBreakdown.",
+      "ProductCostBreakdownResponse tiene shape completo.",
+      "Harness verde"
+    ],
+    "tasks": [
+      { "id": "a", "description": "Crear interfaces de cost breakdown", "status": "done", "agent": "implementer" },
+      { "id": "b", "description": "Agregar getCostBreakdown a ProductService", "status": "done", "agent": "implementer" },
+      { "id": "c", "description": "Tests", "status": "done", "agent": "implementer" },
+      { "id": "d", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 29,
+    "type": "feat",
+    "name": "waiter-modal-order-options",
+    "title": "Refactorizar ProductOptionsModal + error handling",
+    "description": "Actualizar ProductOptionsModal para soportar modos de selección con mapper. Manejo de error 400. OrderDetailResponse.extraCharge.",
+    "acceptance": [
+      "ProductOptionsModal compone app-option-selection-list por grupo.",
+      "Header muestra app-option-group-badge.",
+      "Selecciones se muestran como app-removable-chip.",
+      "Error 400 manejado con mapHttpError('product-options').",
+      "OrderDetailResponse tiene extraCharge.",
+      "Harness verde"
+    ],
+    "tasks": [
+      { "id": "a", "description": "Refactorizar ProductOptionsModal", "status": "done", "agent": "implementer" },
+      { "id": "b", "description": "Manejo de errores con mapHttpError", "status": "done", "agent": "implementer" },
+      { "id": "c", "description": "Actualizar OrderDetailResponse con extraCharge", "status": "done", "agent": "implementer" },
+      { "id": "d", "description": "Tests", "status": "done", "agent": "implementer" },
+      { "id": "e", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 30,
+    "type": "feat",
+    "name": "step3-redesign-massive-option-selection",
+    "title": "Rediseñar Paso 3: selección masiva de opciones por Option Groups",
+    "description": "Refactorización completa del Paso 3 con selección masiva por grupos, creación inline, cost breakdown, error handling.",
+    "acceptance": [
+      "Step3Options componente standalone.",
+      "Buscador de grupos con app-search-input.",
+      "Creación inline con app-inline-create-popover.",
+      "Checklist dinámico con app-option-selection-list.",
+      "Visor de opciones activas con app-removable-chip.",
+      "Resumen de costos con app-cost-breakdown-panel.",
+      "Error 400 con mapHttpError.",
+      "optionExtras en payload.",
+      "NewOptionDialog eliminado.",
+      "Harness verde"
+    ],
+    "tasks": [
+      { "id": "a", "description": "Crear componente Step3Options", "status": "done", "agent": "implementer" },
+      { "id": "b", "description": "Implementar buscador de grupos", "status": "done", "agent": "implementer" },
+      { "id": "c", "description": "Implementar creación inline de grupo", "status": "done", "agent": "implementer" },
+      { "id": "d", "description": "Componer checklist dinámico", "status": "done", "agent": "implementer" },
+      { "id": "e", "description": "Componer visor de opciones activas", "status": "done", "agent": "implementer" },
+      { "id": "f", "description": "Componer resumen de costos", "status": "done", "agent": "implementer" },
+      { "id": "g", "description": "Integrar en products.ts", "status": "done", "agent": "implementer" },
+      { "id": "h", "description": "Eliminar NewOptionDialog", "status": "done", "agent": "implementer" },
+      { "id": "i", "description": "Manejo de errores con mapHttpError", "status": "done", "agent": "implementer" },
+      { "id": "j", "description": "Tests", "status": "done", "agent": "implementer" },
+      { "id": "k", "description": "Verify: harness verde", "status": "done", "agent": "implementer" },
+      { "id": "l", "description": "API integration review (post-API-changes)", "status": "done", "agent": "implementer" }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 31,
+    "type": "feat",
+    "name": "option-groups-shared-components",
+    "title": "Componentes compartidos para Option Groups",
+    "description": "Crear componentes compartidos: badge, selection-list, chip, popover, cost panel, tree card, skeleton, http-error-mapper extension.",
+    "acceptance": [
+      "Existe option-selection-type-helper con config central.",
+      "Existe option-group-badge.",
+      "Existe option-selection-list.",
+      "Existe removable-chip.",
+      "Existe inline-create-popover.",
+      "Existe cost-breakdown-panel.",
+      "Existe tree-node-card.",
+      "Existe tree-node-skeleton.",
+      "http-error-mapper extendido.",
+      "Cada componente tiene spec.",
+      "Harness verde"
+    ],
+    "tasks": [
+      { "id": "a", "description": "Crear option-selection-type-helper", "status": "done", "agent": "implementer" },
+      { "id": "b", "description": "Crear option-group-badge", "status": "done", "agent": "implementer" },
+      { "id": "c", "description": "Crear option-selection-list", "status": "done", "agent": "implementer" },
+      { "id": "d", "description": "Crear removable-chip", "status": "done", "agent": "implementer" },
+      { "id": "e", "description": "Crear inline-create-popover", "status": "done", "agent": "implementer" },
+      { "id": "f", "description": "Crear cost-breakdown-panel", "status": "done", "agent": "implementer" },
+      { "id": "g", "description": "Crear tree-node-card", "status": "done", "agent": "implementer" },
+      { "id": "h", "description": "Crear tree-node-skeleton", "status": "done", "agent": "implementer" },
+      { "id": "i", "description": "Extender http-error-mapper", "status": "done", "agent": "implementer" },
+      { "id": "j", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
     ],
     "status": "done"
   }

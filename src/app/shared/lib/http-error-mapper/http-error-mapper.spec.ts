@@ -46,4 +46,34 @@ describe('mapHttpError', () => {
     const err = new HttpErrorResponse({ status: 400, error: { message: 'Bad Request' } });
     expect(mapHttpError(err)).toBe('Bad Request');
   });
+
+  it('returns 400 product-options not valid message', () => {
+    const err = new HttpErrorResponse({ status: 400, error: { message: 'Option 5 is not valid for product' } });
+    expect(mapHttpError(err, 'product-options')).toBe('Opción no válida para este producto');
+  });
+
+  it('returns 400 product-options fallback message', () => {
+    const err = new HttpErrorResponse({ status: 400, error: { message: 'Invalid option data' } });
+    expect(mapHttpError(err, 'product-options')).toBe('Invalid option data');
+  });
+
+  it('returns 400 product-options default when no message', () => {
+    const err = new HttpErrorResponse({ status: 400 });
+    expect(mapHttpError(err, 'product-options')).toBe('Error al procesar las opciones del producto');
+  });
+
+  it('returns 400 option-group grupo message', () => {
+    const err = new HttpErrorResponse({ status: 400, error: { message: 'Faltan grupos requeridos' } });
+    expect(mapHttpError(err, 'option-group')).toBe('Completa los grupos de opciones requeridos');
+  });
+
+  it('returns 400 option-group fallback message', () => {
+    const err = new HttpErrorResponse({ status: 400, error: { message: 'Group error' } });
+    expect(mapHttpError(err, 'option-group')).toBe('Group error');
+  });
+
+  it('returns 400 option-group default when no message', () => {
+    const err = new HttpErrorResponse({ status: 400 });
+    expect(mapHttpError(err, 'option-group')).toBe('Error en los grupos de opciones');
+  });
 });

@@ -610,7 +610,7 @@ describe('Products wizard — existing recipe rows', () => {
 
       const errorCalls = addSpy.mock.calls.filter(
         ([msg]: [{ severity: string; detail: string }]) =>
-          msg.severity === 'error' && msg.detail === 'No se pudo guardar el producto con sus opciones'
+          msg.severity === 'error' && msg.detail === 'Error al procesar la solicitud'
       );
       expect(errorCalls.length).toBeGreaterThanOrEqual(1);
       expect(env.component.currentStep()).not.toBe(4);

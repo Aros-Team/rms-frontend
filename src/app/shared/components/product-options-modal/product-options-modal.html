@@ -1,5 +1,5 @@
 <p-dialog
-  [visible]="visible()"
+  [visible]="visible"
   [modal]="true"
   [style]="{ width: '460px', maxHeight: '92dvh' }"
   [draggable]="false"
@@ -10,10 +10,10 @@
   <ng-template pTemplate="header">
     <div class="flex items-center gap-4 min-w-0 w-full pr-2">
       <!-- Product image -->
-      @if (product()?.thumbnailUrl) {
+      @if (product?.thumbnailUrl) {
         <img
-          [src]="product()!.thumbnailUrl"
-          [alt]="product()!.name"
+          [src]="product!.thumbnailUrl"
+          [alt]="product!.name"
           class="w-14 h-14 rounded-xl object-cover shrink-0"
           loading="lazy"
           (error)="$any($event.target).src = defaultImage"
@@ -22,17 +22,17 @@
       <!-- Name + description -->
       <div class="min-w-0 flex-1">
         <h3 class="text-lg font-bold text-surface-900 dark:text-surface-0 leading-tight truncate">
-          {{ product()?.name }}
+          {{ product?.name }}
         </h3>
-        @if (product()?.description) {
+        @if (product?.description) {
           <p class="text-xs text-surface-500 dark:text-surface-400 mt-0.5 line-clamp-1">
-            {{ product()?.description }}
+            {{ product?.description }}
           </p>
         }
       </div>
       <!-- Price -->
       <span class="text-lg font-black text-primary-700 dark:text-primary-300 shrink-0">
-        ${{ product()?.basePrice | number:'1.2-2' }}
+        ${{ product?.basePrice | number:'1.2-2' }}
       </span>
       <!-- Close button -->
       <button
@@ -49,7 +49,7 @@
   <div class="flex flex-col gap-5">
 
     <!-- Loading state -->
-    @if (loading()) {
+    @if (loading) {
       <div class="flex flex-col items-center justify-center py-12 gap-3">
         <i class="pi pi-spin pi-spinner text-2xl text-primary-700 dark:text-primary-300"></i>
         <span class="text-sm text-surface-500 dark:text-surface-400">Cargando opciones...</span>
@@ -57,62 +57,58 @@
     }
 
     <!-- Options loaded with content -->
-    @if (!loading() && options().length > 0) {
-      @for (catEntry of (groupedOptions() | keyvalue); track catEntry.key) {
+    @if (!loading && groupMeta().length > 0) {
+      @for (group of groupMeta(); track group.groupId) {
         <div class="flex flex-col gap-3">
-          <span class="text-[10px] font-bold uppercase tracking-[0.15em] text-surface-500 dark:text-surface-400">
-            {{ catEntry.key }}
-          </span>
+          <!-- Group header with badge -->
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-bold uppercase tracking-[0.15em] text-surface-500 dark:text-surface-400">
+              {{ group.groupName }}
+            </span>
+            <app-option-group-badge [selectionType]="group.selectionType" size="sm" />
+          </div>
 
-          @if (catEntry.value.length >= 2 && catEntry.value.length <= 4) {
-            <!-- Segmented control — grid 2 cols -->
-            <div class="grid grid-cols-2 gap-3">
-              @for (opt of catEntry.value; track opt.id) {
-                <button
-                  class="py-2.5 px-3 rounded-xl text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-primary-400 truncate"
-                  [class]="isSelected(opt.id)
-                    ? 'bg-primary-500 text-surface-900 border-2 border-primary-500'
-                    : 'bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-100 border-2 border-surface-200 dark:border-surface-700 hover:border-primary-400'"
-                  (click)="toggleOption(opt.id, opt.optionCategoryId)"
-                  [attr.aria-pressed]="isSelected(opt.id)"
-                  [attr.aria-label]="opt.name"
-                  type="button">
-                  {{ opt.name }}
-                </button>
-              }
-            </div>
-          } @else {
-            <!-- Chips — flex wrap -->
-            <div class="flex flex-wrap gap-2">
-              @for (opt of catEntry.value; track opt.id) {
-                <button
-                  class="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-primary-400"
-                  [class]="isSelected(opt.id)
-                    ? 'bg-primary-500 text-surface-900 border-2 border-primary-500'
-                    : 'bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-100 border-2 border-surface-200 dark:border-surface-700 hover:border-primary-400'"
-                  (click)="toggleOption(opt.id, opt.optionCategoryId)"
-                  [attr.aria-pressed]="isSelected(opt.id)"
-                  [attr.aria-label]="opt.name"
-                  type="button">
-                  @if (isSelected(opt.id)) {
-                    <i class="pi pi-check text-[10px]"></i>
-                  }
-                  {{ opt.name }}
-                </button>
-              }
-            </div>
-          }
+          <!-- Option selection list -->
+          <app-option-selection-list
+            [options]="group.options"
+            [selectionType]="group.selectionType"
+            [selectedIds]="getSelectedIdsForGroup(group.groupId)"
+            [groupName]="'option-group-' + group.groupId"
+            (selectionChange)="onGroupSelectionChange(group.groupId, $event)"
+          />
         </div>
       }
     }
 
+    <!-- Selected options chips -->
+    @if (!loading && selectedChips().length > 0) {
+      <div class="flex flex-col gap-2">
+        <span class="text-[10px] font-bold uppercase tracking-[0.15em] text-surface-500 dark:text-surface-400">
+          Seleccionados
+        </span>
+        <div class="flex flex-wrap gap-2">
+          @for (chip of selectedChips(); track chip.id) {
+            <app-removable-chip [chip]="chip" (removed)="removeSelection($event)" />
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Extra charge summary -->
+    @if (!loading && extraCharge() > 0) {
+      <div class="flex items-center justify-between px-4 py-2 rounded-xl bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800">
+        <span class="text-sm text-primary-700 dark:text-primary-300">Recargo por opciones</span>
+        <span class="text-sm font-bold text-primary-700 dark:text-primary-300">+${{ extraCharge() | number:'1.0-0' }}</span>
+      </div>
+    }
+
     <!-- Empty options (not loading, no options) -->
-    @if (!loading() && options().length === 0) {
+    @if (!loading && groupMeta().length === 0) {
       <p class="text-sm text-center py-8 text-surface-500 dark:text-surface-400">No hay opciones disponibles.</p>
     }
 
     <!-- Quantity selector -->
-    @if (!loading()) {
+    @if (!loading) {
       <div class="flex flex-col gap-2">
         <span class="text-[10px] font-bold uppercase tracking-[0.15em] text-surface-500 dark:text-surface-400">
           Cantidad
@@ -142,7 +138,7 @@
     }
 
     <!-- Special instructions -->
-    @if (!loading()) {
+    @if (!loading) {
       <div class="flex flex-col gap-2">
         <label for="modal-instructions" class="text-[10px] font-bold uppercase tracking-[0.15em] text-surface-500 dark:text-surface-400">
           Instrucciones especiales
@@ -161,10 +157,10 @@
     }
 
     <!-- Error banner -->
-    @if (error(); as errMsg) {
+    @if (error) {
       <div class="flex items-center gap-2 px-4 py-3 rounded-2xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
         <i class="pi pi-exclamation-circle text-red-700 dark:text-red-300 text-sm shrink-0"></i>
-        <p class="text-red-700 dark:text-red-300 text-sm flex-1">{{ errMsg }}</p>
+        <p class="text-red-700 dark:text-red-300 text-sm flex-1">{{ error }}</p>
         <button
           class="shrink-0 text-red-700 dark:text-red-300 hover:text-red-900 focus:outline-none"
           (click)="onErrorClear()"
@@ -181,10 +177,10 @@
     <div class="flex flex-col gap-2 w-full">
       <button
         class="w-full py-3.5 rounded-2xl text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary-400 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-primary-500 hover:bg-primary-600 text-surface-900"
-        [disabled]="loading() || !!error()"
+        [disabled]="loading || !!error"
         (click)="onConfirm()"
         type="button">
-        @if (loading()) {
+        @if (loading) {
           <i class="pi pi-spin pi-spinner"></i>
           Cargando...
         } @else {

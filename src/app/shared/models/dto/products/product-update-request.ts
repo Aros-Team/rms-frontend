@@ -1,4 +1,5 @@
 import { RecipeItemRequest } from './product-create-request';
+import { OptionExtrasItem } from './product-option';
 
 export interface ProductUpdateRequest {
   name: string;
@@ -9,4 +10,5 @@ export interface ProductUpdateRequest {
   estimatedPrepMinutes?: number;
   recipe?: RecipeItemRequest[];
   optionIds?: number[];
+  optionExtras?: OptionExtrasItem[];
 }

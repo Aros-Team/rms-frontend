@@ -34,5 +34,19 @@ export function mapHttpError(err: HttpErrorResponse, context?: string): string {
     return 'Configura el costo unitario de los insumos para obtener un precio sugerido';
   }
 
+  if (err.status === 400 && context === 'product-options') {
+    if (message?.toLowerCase().includes('option') && message.toLowerCase().includes('not valid')) {
+      return 'Opción no válida para este producto';
+    }
+    return message ?? 'Error al procesar las opciones del producto';
+  }
+
+  if (err.status === 400 && context === 'option-group') {
+    if (message?.toLowerCase().includes('grupo')) {
+      return 'Completa los grupos de opciones requeridos';
+    }
+    return message ?? 'Error en los grupos de opciones';
+  }
+
   return message ?? 'Error al procesar la solicitud';
 }

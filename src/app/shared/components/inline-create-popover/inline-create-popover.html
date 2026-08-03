@@ -1,0 +1,77 @@
+<p-popover
+  #popover
+  (onShow)="onPopoverShow()"
+  (onHide)="onPopoverHide()"
+  [dismissable]="true"
+  [style]="{ minWidth: '320px', maxWidth: '400px' }">
+
+  <ng-template pTemplate="content">
+    <div class="flex flex-col gap-3 p-2">
+      <div class="flex items-center justify-between pb-2 border-b border-surface-200 dark:border-surface-700">
+        <h4 class="font-semibold text-surface-900 dark:text-surface-0">{{ title }}</h4>
+        <button
+          type="button"
+          class="p-1 rounded hover:bg-surface-100 dark:hover:bg-surface-800"
+          (click)="close()"
+          aria-label="Cerrar">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+
+      <div class="flex flex-col gap-3">
+        @for (field of fields; track field.name) {
+          <div class="flex flex-col gap-1.5">
+            <span class="text-xs font-medium text-surface-600 dark:text-surface-400">
+              {{ field.label }}
+              @if (field.required) { <span class="text-red-500 ml-1">*</span> }
+            </span>
+
+            @switch (field.type) {
+              @case ('text') {
+                <input
+                  type="text"
+                  pInputText
+                  class="w-full"
+                  [placeholder]="field.placeholder"
+                  [(ngModel)]="formValues[field.name]"
+                  [required]="!!field.required" />
+              }
+              @case ('number') {
+                <p-inputNumber
+                  [ngModel]="formValues[field.name]"
+                  (ngModelChange)="formValues[field.name] = $event"
+                  [placeholder]="field.placeholder"
+                  [showButtons]="true"
+                  [required]="!!field.required"
+                  mode="decimal"
+                  class="w-full" />
+              }
+              @case ('select') {
+                <p-select
+                  [options]="field.options"
+                  [(ngModel)]="formValues[field.name]"
+                  [placeholder]="field.placeholder"
+                  [required]="!!field.required"
+                  class="w-full"
+                  optionLabel="label"
+                  optionValue="value" />
+              }
+            }
+          </div>
+        }
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-surface-200 dark:border-surface-700">
+        <p-button
+          [label]="cancelLabel"
+          severity="secondary"
+          (onClick)="close()"
+          [disabled]="submitting()" />
+        <p-button
+          [label]="submitLabel"
+          (onClick)="onSubmit()"
+          [disabled]="submitting()" />
+      </div>
+    </div>
+  </ng-template>
+</p-popover>

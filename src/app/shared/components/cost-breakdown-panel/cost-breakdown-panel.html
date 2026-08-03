@@ -1,0 +1,48 @@
+@if (breakdown) {
+  <div class="bg-surface-50 dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 p-4">
+    <h4 class="font-semibold text-surface-900 dark:text-surface-0 mb-3">Desglose de costos</h4>
+
+    <!-- Base cost -->
+    <div class="flex justify-between items-center py-2 border-b border-surface-200 dark:border-surface-700">
+      <span class="text-sm text-surface-600 dark:text-surface-400">Costo base</span>
+      <span class="text-sm font-medium text-surface-800 dark:text-surface-100">{{ formatMoney(breakdown.baseCost?.amount) }}</span>
+    </div>
+
+    <!-- Options cost -->
+    @if (breakdown.options && breakdown.options.length > 0) {
+      <div class="py-2 border-b border-surface-200 dark:border-surface-700">
+        <div class="flex justify-between items-center mb-1">
+          <span class="text-sm text-surface-600 dark:text-surface-400">Opciones</span>
+          <span class="text-sm font-medium text-primary-600 dark:text-primary-400">{{ formatMoney(breakdown.projectedOptionCost?.amount) }}</span>
+        </div>
+        @if (!compact) {
+          @for (option of breakdown.options; track option.optionId) {
+            <div class="flex justify-between items-center pl-4 py-1">
+              <span class="text-xs text-surface-500 dark:text-surface-400">{{ option.name }}</span>
+              <span class="text-xs text-surface-600 dark:text-surface-300">{{ formatMoney(option.cost?.amount) }}</span>
+            </div>
+          }
+        }
+      </div>
+    }
+
+    <!-- Categories cost -->
+    @if (!compact && breakdown.categories && breakdown.categories.length > 0) {
+      <div class="py-2 border-b border-surface-200 dark:border-surface-700">
+        <span class="text-sm text-surface-600 dark:text-surface-400 mb-1 block">Categorías</span>
+        @for (cat of breakdown.categories; track cat.categoryId) {
+          <div class="flex justify-between items-center pl-4 py-1">
+            <span class="text-xs text-surface-500 dark:text-surface-400">{{ cat.name }}</span>
+            <span class="text-xs text-surface-600 dark:text-surface-300">{{ formatMoney(cat.slotProjectedCost?.amount) }}</span>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Total -->
+    <div class="flex justify-between items-center pt-2">
+      <span class="text-sm font-semibold text-surface-900 dark:text-surface-0">Costo efectivo</span>
+      <span class="text-sm font-bold text-primary-700 dark:text-primary-300">{{ formatMoney(breakdown.projectedEffectiveCost?.amount) }}</span>
+    </div>
+  </div>
+}
