@@ -6,7 +6,6 @@ import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selecti
 import { ScheduleEntryRequest } from '@app/shared/models/dto/special-selections/schedule-entry';
 import { SpecialSelectionHistoryPage } from '@app/shared/models/dto/special-selections/special-selection-history';
 import { SpecialSelectionHistoryEntry } from '@app/shared/models/dto/special-selections/special-selection-history';
-import { SpecialSelectionHistoryRangeResponse } from '@app/shared/models/dto/special-selections/special-selection-history';
 import { SuggestedPriceResponse } from '@app/shared/models/dto/special-selections/special-selection-suggested-price';
 
 @Injectable({
@@ -26,11 +25,11 @@ export class SpecialSelections {
   }
 
   patchSchedule(id: number, body: { entries: ScheduleEntryRequest[] }): Observable<SpecialSelectionResponse> {
-    return this.http.patch<SpecialSelectionResponse>(this.base + '/' + String(id) + '/schedule', body);
+    return this.http.put<SpecialSelectionResponse>(this.base + '/' + String(id) + '/schedule', body);
   }
 
   patchPrice(id: number, body: { basePrice: number }): Observable<SpecialSelectionResponse> {
-    return this.http.patch<SpecialSelectionResponse>(this.base + '/' + String(id) + '/price', body);
+    return this.http.put<SpecialSelectionResponse>(this.base + '/' + String(id) + '/price', body);
   }
 
   delete(id: number): Observable<object> {
@@ -46,7 +45,7 @@ export class SpecialSelections {
   }
 
   availableNow(): Observable<SpecialSelectionResponse[]> {
-    return this.http.get<SpecialSelectionResponse[]>(this.base + '/available-now');
+    return this.http.get<SpecialSelectionResponse[]>('v1/special-selections/available');
   }
 
   getHistory(id: number, page = 0, size = 10): Observable<SpecialSelectionHistoryPage> {
@@ -59,14 +58,8 @@ export class SpecialSelections {
     return this.http.get<SpecialSelectionHistoryEntry>(this.base + '/' + String(id) + '/history/' + String(version));
   }
 
-  getHistoryRange(id: number, from: string, to: string): Observable<SpecialSelectionHistoryRangeResponse> {
-    return this.http.get<SpecialSelectionHistoryRangeResponse>(this.base + '/' + String(id) + '/history/range', {
-      params: { from: from, to: to }
-    });
-  }
-
   revertHistory(id: number, version: number): Observable<SpecialSelectionResponse> {
-    return this.http.post<SpecialSelectionResponse>(this.base + '/' + String(id) + '/history/' + String(version) + '/revert', {});
+    return this.http.post<SpecialSelectionResponse>(this.base + '/' + String(id) + '/revert/' + String(version), {});
   }
 
   suggestPrice(id: number, body: { marginPercent: number }): Observable<SuggestedPriceResponse> {

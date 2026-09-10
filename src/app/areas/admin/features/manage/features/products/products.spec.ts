@@ -48,7 +48,6 @@ function setupComponent() {
     getProducts: vi.fn(),
     filterByCategories: vi.fn(),
     disableProduct: vi.fn(),
-    deleteProduct: vi.fn(),
     enableProduct: vi.fn().mockReturnValue(of(null)),
     getCost: vi.fn().mockReturnValue(of(null)),
   };
@@ -60,7 +59,6 @@ function setupComponent() {
       data: vi.fn().mockReturnValue({
         areas: [],
         categories: [],
-        optionCategories: [],
         variants: [],
         productOptions: [],
       }),
@@ -1124,69 +1122,6 @@ describe('Products wizard — existing recipe rows', () => {
       expect(errorCalls.length).toBeGreaterThanOrEqual(1);
       expect(env.component.createdProduct()).toBeNull();
       expect(env.component.isProcessingImage()).toBe(false);
-    });
-  });
-
-  describe('closeModal cleanup of draft product', () => {
-    function setupCreateModeWithDraft(env: ReturnType<typeof setupComponent>, id: number) {
-      env.component.modalMode.set('create');
-      env.component.modalIsOpen.set(true);
-      env.component.createdProduct.set({
-        id, name: 'Nuevo producto', basePrice: 0, active: true,
-        categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [],
-      });
-      env.productStub.deleteProduct.mockReturnValue(of(null));
-    }
-
-    it('deletes the draft product in create mode before step 5', async () => {
-      const env = setupComponent();
-      setupCreateModeWithDraft(env, 42);
-      env.component.currentStep.set(2);
-
-      env.component.closeModal();
-      await flushMicrotasks();
-
-      expect(env.productStub.deleteProduct).toHaveBeenCalledWith(42);
-      expect(env.component.modalIsOpen()).toBe(false);
-      expect(env.component.createdProduct()).toBeNull();
-    });
-
-    it('does NOT delete in edit mode (product is pre-existing)', async () => {
-      const env = setupComponent();
-      env.productStub.findProduct.mockReturnValue(of(buildProductFixture()));
-      env.component.showModificationModal(7);
-      await flushMicrotasks();
-
-      expect(env.component.createdProduct()?.id).toBe(7);
-      env.productStub.deleteProduct.mockClear();
-
-      env.component.closeModal();
-      await flushMicrotasks();
-
-      expect(env.productStub.deleteProduct).not.toHaveBeenCalled();
-    });
-
-    it('does NOT delete when wizard reached step 5 in create mode', async () => {
-      const env = setupComponent();
-      setupCreateModeWithDraft(env, 50);
-      env.component.currentStep.set(5);
-
-      env.component.closeModal();
-      await flushMicrotasks();
-
-      expect(env.productStub.deleteProduct).not.toHaveBeenCalled();
-    });
-
-    it('does NOT delete when there is no createdProduct in create mode', async () => {
-      const env = setupComponent();
-      env.component.modalMode.set('create');
-      env.component.currentStep.set(2);
-      env.component.modalIsOpen.set(true);
-
-      env.component.closeModal();
-      await flushMicrotasks();
-
-      expect(env.productStub.deleteProduct).not.toHaveBeenCalled();
     });
   });
 

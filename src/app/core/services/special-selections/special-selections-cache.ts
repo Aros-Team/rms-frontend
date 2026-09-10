@@ -9,7 +9,6 @@ import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selecti
 import { SpecialSelectionRequest } from '@app/shared/models/dto/special-selections/special-selection-request';
 import { ScheduleEntryRequest } from '@app/shared/models/dto/special-selections/schedule-entry';
 import { SpecialSelectionHistoryPage } from '@app/shared/models/dto/special-selections/special-selection-history';
-import { SpecialSelectionHistoryRangeResponse } from '@app/shared/models/dto/special-selections/special-selection-history';
 import { SpecialSelectionHistoryEntry } from '@app/shared/models/dto/special-selections/special-selection-history';
 import { SuggestedPriceResponse } from '@app/shared/models/dto/special-selections/special-selection-suggested-price';
 import { CHANGE_TYPE, SpecialSelectionWsPayload } from '@app/shared/models/dto/special-selections/special-selection-ws-payload';
@@ -97,11 +96,9 @@ export class SpecialSelectionsCache {
   private removeCachedSelection(id: number): void {
     this.detailCaches.get(id)?.reset();
     this.historyCaches.get(id)?.reset();
-    this.historyRangeCaches.get(id)?.reset();
     this.historyVersionCaches.get(id)?.forEach((cache) => { cache.reset(); });
     this.detailCaches.delete(id);
     this.historyCaches.delete(id);
-    this.historyRangeCaches.delete(id);
     this.historyVersionCaches.delete(id);
   }
 
@@ -117,7 +114,6 @@ export class SpecialSelectionsCache {
 
   private readonly detailCaches = new Map<number, ResourceCache<SpecialSelectionResponse>>();
   private readonly historyCaches = new Map<number, ResourceCache<SpecialSelectionHistoryPage>>();
-  private readonly historyRangeCaches = new Map<number, ResourceCache<SpecialSelectionHistoryRangeResponse>>();
   private readonly historyVersionCaches = new Map<number, Map<number, ResourceCache<SpecialSelectionHistoryEntry>>>();
 
   detail(id: number): ResourceCache<SpecialSelectionResponse> {
@@ -144,18 +140,6 @@ export class SpecialSelectionsCache {
     return cache;
   }
 
-  historyRange(id: number): ResourceCache<SpecialSelectionHistoryRangeResponse> {
-    let cache = this.historyRangeCaches.get(id);
-    if (!cache) {
-      cache = new ResourceCache<SpecialSelectionHistoryRangeResponse>(
-        () => this.api.getHistoryRange(id, '', ''),
-        { ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true }
-      );
-      this.historyRangeCaches.set(id, cache);
-    }
-    return cache;
-  }
-
   historyVersion(id: number, version: number): ResourceCache<SpecialSelectionHistoryEntry> {
     let inner = this.historyVersionCaches.get(id);
     if (!inner) {
@@ -178,7 +162,6 @@ export class SpecialSelectionsCache {
     this.availableNow.invalidate();
     this.detailCaches.forEach((c) => { c.invalidate(); });
     this.historyCaches.forEach((c) => { c.invalidate(); });
-    this.historyRangeCaches.forEach((c) => { c.invalidate(); });
     this.historyVersionCaches.forEach((inner) => { inner.forEach((c) => { c.invalidate(); }); });
   }
 
@@ -188,7 +171,6 @@ export class SpecialSelectionsCache {
 
   invalidateHistory(id: number): void {
     this.historyCaches.get(id)?.invalidate();
-    this.historyRangeCaches.get(id)?.invalidate();
     this.historyVersionCaches.get(id)?.forEach((c) => { c.invalidate(); });
   }
 

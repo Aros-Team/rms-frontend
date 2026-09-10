@@ -4,7 +4,6 @@ import { provideHttpClient } from '@angular/common/http';
 
 import { CategoriesCache } from './categories-cache';
 import { Category } from '@app/core/services/category/category';
-import { OptionCategory } from '@app/core/services/option-category/option-category';
 import { Supply } from '@app/core/services/supplies/supply';
 import { SupplyCategoryResponse } from '@app/shared/models/dto/supplies/supply-category-response';
 
@@ -24,7 +23,6 @@ describe('CategoriesCache', () => {
         provideHttpClientTesting(),
         CategoriesCache,
         Category,
-        OptionCategory,
         Supply,
       ],
     });
@@ -66,8 +64,6 @@ describe('CategoriesCache', () => {
     expect(cache.supplyCategories.data()).toEqual(mockSupplyCategories);
 
     expect(cache.productCategories.status()).toBe('stale');
-    expect(cache.optionCategories.status()).toBe('stale');
-    expect(cache.allCategories.status()).toBe('stale');
   });
 
   it('setCategoriesListParams passes search to getCategories', () => {
@@ -78,15 +74,5 @@ describe('CategoriesCache', () => {
     req.flush([]);
 
     expect(cache.productCategories.data()).toEqual([]);
-  });
-
-  it('setOptionCategoriesListParams passes search to getOptionCategories', () => {
-    cache.setOptionCategoriesListParams({ search: 'tamaño' });
-
-    const req = httpMock.expectOne((r) => r.url === 'v1/option-categories' && r.params.get('search') === 'tamaño');
-    expect(req.request.method).toBe('GET');
-    req.flush([]);
-
-    expect(cache.optionCategories.data()).toEqual([]);
   });
 });

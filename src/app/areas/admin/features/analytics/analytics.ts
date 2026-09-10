@@ -39,12 +39,6 @@ export class Analytics {
     const url = this.currentUrl();
     if (url.includes('/menu-engineering')) {
       this.cache.menuEngineering.refresh();
-    } else if (url.includes('/operations')) {
-      this.cache.operations.refresh();
-    } else if (url.includes('/cohort')) {
-      this.cache.cohort.refresh();
-    } else if (url.includes('/alerts')) {
-      this.cache.alerts.refresh();
     } else {
       this.cache.primeCost.refresh();
     }

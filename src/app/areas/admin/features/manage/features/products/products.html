@@ -9,8 +9,45 @@
     </div>
   </div>
 
-  <!-- Table -->
-  <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 overflow-hidden">
+  <!-- Tab navigation -->
+  <nav aria-label="Navegación de productos">
+    <div class="flex gap-1 mb-4 border-b border-surface-200 dark:border-surface-700" role="tablist">
+      <button
+        role="tab"
+        id="tab-products"
+        aria-controls="tabpanel-products"
+        [attr.aria-selected]="activeProductTab() === 'products'"
+        class="px-4 py-2 text-sm font-medium rounded-t-lg border border-b-0 transition-colors cursor-pointer"
+        [ngClass]="{
+          'bg-primary-contrast dark:bg-surface-800 text-primary border-surface-200 dark:border-surface-700': activeProductTab() === 'products',
+          'bg-transparent text-surface-500 border-transparent hover:text-surface-700 dark:hover:text-surface-300': activeProductTab() !== 'products'
+        }"
+        (click)="activeProductTab.set('products')"
+      >Productos</button>
+      <button
+        role="tab"
+        id="tab-option-groups"
+        aria-controls="tabpanel-option-groups"
+        [attr.aria-selected]="activeProductTab() === 'option-groups'"
+        class="px-4 py-2 text-sm font-medium rounded-t-lg border border-b-0 transition-colors cursor-pointer"
+        [ngClass]="{
+          'bg-primary-contrast dark:bg-surface-800 text-primary border-surface-200 dark:border-surface-700': activeProductTab() === 'option-groups',
+          'bg-transparent text-surface-500 border-transparent hover:text-surface-700 dark:hover:text-surface-300': activeProductTab() !== 'option-groups'
+        }"
+        (click)="activeProductTab.set('option-groups')"
+      >Grupos de Opciones</button>
+    </div>
+  </nav>
+
+  @if (activeProductTab() === 'products') {
+  <div
+    id="tabpanel-products"
+    role="tabpanel"
+    aria-labelledby="tab-products"
+    class="flex-1 min-h-0 overflow-auto"
+  >
+    <!-- Table -->
+    <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 overflow-hidden">
     <p-table
       #dt1
       [value]="products() ?? []"
@@ -106,6 +143,19 @@
       </ng-template>
     </p-table>
   </div>
+  </div>
+  }
+
+  @if (activeProductTab() === 'option-groups') {
+  <div
+    id="tabpanel-option-groups"
+    role="tabpanel"
+    aria-labelledby="tab-option-groups"
+    class="flex-1 min-h-0 overflow-auto"
+  >
+    <app-option-groups-view />
+  </div>
+  }
 </div>
 
 <!-- ════════════════════════════════════════════════

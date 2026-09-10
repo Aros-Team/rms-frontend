@@ -188,14 +188,6 @@ describe('Product service', () => {
     });
   });
 
-  it('deleteProduct DELETEs v1/products/{id}', () => {
-    service.deleteProduct(7).subscribe();
-
-    const req = httpMock.expectOne('v1/products/7');
-    expect(req.request.method).toBe('DELETE');
-    req.flush({});
-  });
-
   describe('getProductsPaginated', () => {
     it('flattens nested page metadata into flat paginated response', () => {
       let emitted: PaginatedProductsResponse | undefined;

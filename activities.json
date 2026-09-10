@@ -269,5 +269,86 @@
       { "id": "j", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
     ],
     "status": "done"
+  },
+  {
+    "id": 32,
+    "type": "chore",
+    "name": "remove-dead-endpoint-code",
+    "title": "Eliminar código muerto de endpoints inexistentes",
+    "description": "Eliminar services, imports, UI sections y specs que llaman endpoints que ya no existen en el backend: option-categories (renombrado a option-groups), DELETE /products/{id} (no existe), analytics/operations|cohort|alerts (no existen).",
+    "acceptance": [
+      "OptionCategory service eliminado",
+      "OptionCategory DTO eliminado",
+      "categories-cache.ts ya no tiene optionCategories",
+      "categories.ts ya no tiene sección de Option Categories",
+      "product-cache.ts ya no importa OptionCategory ni tiene optionCategories en referenceData",
+      "deleteProduct() eliminado de product.ts",
+      "analytics/operations, analytics/cohort, analytics/alerts eliminados de analytics.ts",
+      "DTOs de operations, cohort, alert eliminados",
+      "master-data.ts ya no llama option-categories",
+      "Harness verde"
+    ],
+    "tasks": [
+      { "id": "a", "description": "Eliminar OptionCategory service + DTO", "status": "done", "agent": "implementer" },
+      { "id": "b", "description": "Limpiar categories-cache.ts y categories.ts (quitar option categories)", "status": "done", "agent": "implementer" },
+      { "id": "c", "description": "Limpiar product-cache.ts (quitar optionCategories de referenceData)", "status": "done", "agent": "implementer" },
+      { "id": "d", "description": "Eliminar deleteProduct de product.ts", "status": "done", "agent": "implementer" },
+      { "id": "e", "description": "Eliminar endpoints falsos de analytics (operations, cohort, alerts) + DTOs", "status": "done", "agent": "implementer" },
+      { "id": "f", "description": "Limpiar master-data.ts", "status": "done", "agent": "implementer" },
+      { "id": "g", "description": "Actualizar specs afectados", "status": "done", "agent": "implementer" },
+      { "id": "h", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 33,
+    "type": "fix",
+    "name": "fix-incorrect-endpoint-paths",
+    "title": "Corregir rutas mal mapeadas en special-selections",
+    "description": "Corregir las rutas del service special-selections.ts que no coinciden con el backend: available-now → available, revert path, history/range path. Corregir HTTP methods (PATCH → PUT para price/schedule).",
+    "acceptance": [
+      "availableNow() llama GET /v1/special-selections/available (no /available-now)",
+      "revertHistory() llama POST /v1/admin/special-selections/{id}/revert/{version} (no /history/{version}/revert)",
+      "getHistoryRange() eliminado o corregido (endpoint no existe en backend)",
+      "patchPrice() usa PUT no PATCH",
+      "patchSchedule() usa PUT no PATCH",
+      "Specs actualizados",
+      "Harness verde"
+    ],
+    "tasks": [
+      { "id": "a", "description": "Corregir rutas en special-selections.ts", "status": "pending", "agent": "implementer" },
+      { "id": "b", "description": "Corregir HTTP methods (PATCH → PUT)", "status": "pending", "agent": "implementer" },
+      { "id": "c", "description": "Eliminar getHistoryRange (endpoint no existe)", "status": "pending", "agent": "implementer" },
+      { "id": "d", "description": "Actualizar specs de special-selections", "status": "pending", "agent": "implementer" },
+      { "id": "e", "description": "Verify: harness verde", "status": "pending", "agent": "implementer" }
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 34,
+    "type": "feat",
+    "name": "implement-payroll-endpoints",
+    "title": "Implementar endpoints de Payroll en el frontend",
+    "description": "Crear services, models, cache y componentes para los endpoints de payroll del backend: Payroll CRUD, Payroll Events, Payroll Settlements.",
+    "acceptance": [
+      "Payroll service con CRUD completo",
+      "PayrollEvent service con CRUD",
+      "PayrollSettlement service",
+      "Models/DTOs para todas las respuestas",
+      "Cache con ResourceCache",
+      "Componentes UI para gestión de nómina",
+      "Harness verde"
+    ],
+    "tasks": [
+      { "id": "a", "description": "Crear models/DTOs de payroll", "status": "pending", "agent": "implementer" },
+      { "id": "b", "description": "Crear Payroll service", "status": "pending", "agent": "implementer" },
+      { "id": "c", "description": "Crear PayrollEvent service", "status": "pending", "agent": "implementer" },
+      { "id": "d", "description": "Crear PayrollSettlement service", "status": "pending", "agent": "implementer" },
+      { "id": "e", "description": "Crear PayrollCache", "status": "pending", "agent": "implementer" },
+      { "id": "f", "description": "Crear componentes UI", "status": "pending", "agent": "implementer" },
+      { "id": "g", "description": "Tests", "status": "pending", "agent": "implementer" },
+      { "id": "h", "description": "Verify: harness verde", "status": "pending", "agent": "implementer" }
+    ],
+    "status": "pending"
   }
 ]

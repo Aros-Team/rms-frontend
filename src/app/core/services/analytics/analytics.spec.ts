@@ -3,7 +3,6 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient } from '@angular/common/http';
 
 import { Analytics } from './analytics';
-import { AlertsPage } from '@app/shared/models/dto/analytics/alert';
 
 describe('Analytics service', () => {
   let service: Analytics;
@@ -63,51 +62,6 @@ describe('Analytics service', () => {
       );
       expect(req.request.method).toBe('GET');
       req.flush({});
-    });
-  });
-
-  describe('listAlerts', () => {
-    it('GETs v1/analytics/alerts with default limit=50 offset=0 when no filters', () => {
-      service.listAlerts().subscribe();
-
-      const req = httpMock.expectOne(
-        (r) =>
-          r.url === 'v1/analytics/alerts' &&
-          r.params.get('limit') === '50' &&
-          r.params.get('offset') === '0',
-      );
-      expect(req.request.method).toBe('GET');
-      expect(req.request.params.has('status')).toBe(false);
-      expect(req.request.params.has('severity')).toBe(false);
-      req.flush({ items: [], page: { limit: 50, offset: 0, total: 0 } } satisfies AlertsPage);
-    });
-
-    it('forwards status, severity, limit and offset as query params', () => {
-      service
-        .listAlerts({ status: 'OPEN', severity: 'RED', limit: 10, offset: 20 })
-        .subscribe();
-
-      const req = httpMock.expectOne(
-        (r) =>
-          r.url === 'v1/analytics/alerts' &&
-          r.params.get('status') === 'OPEN' &&
-          r.params.get('severity') === 'RED' &&
-          r.params.get('limit') === '10' &&
-          r.params.get('offset') === '20',
-      );
-      expect(req.request.method).toBe('GET');
-      req.flush({ items: [], page: { limit: 10, offset: 20, total: 0 } });
-    });
-  });
-
-  describe('markAlertRead', () => {
-    it('PATCHes v1/analytics/alerts/{id}/read with empty body', () => {
-      service.markAlertRead(17).subscribe();
-
-      const req = httpMock.expectOne('v1/analytics/alerts/17/read');
-      expect(req.request.method).toBe('PATCH');
-      expect(req.request.body).toEqual({});
-      req.flush(null);
     });
   });
 

@@ -2,7 +2,6 @@ import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy } 
 import { AbstractControl, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 import { Category } from '@app/core/services/category/category';
-import { OptionCategory } from '@app/core/services/option-category/option-category';
 import { Logging } from '@app/core/services/logging/logging';
 import { Supply } from '@app/core/services/supplies/supply';
 import { CategoriesCache } from './categories-cache';
@@ -44,7 +43,6 @@ export class Categories implements OnInit {
 
   private fb = inject(FormBuilder);
   private categoryService = inject(Category);
-  private optionCategoryService = inject(OptionCategory);
   private supplyService = inject(Supply);
   private messageService = inject(MessageService);
   private confirmService = inject(ConfirmationService);
@@ -63,17 +61,6 @@ export class Categories implements OnInit {
   productCategorySaved = signal(false);
   productCategoryError = signal<string | null>(null);
 
-  // ── Option categories ────────────────────────────────────────────
-  optionCategories = computed(() => this.cache.optionCategories.data() ?? []);
-  optionCategoryDialogOpen = signal(false);
-
-  optionCategoryForm: FormGroup = this.fb.group({
-    name: ['', (control: AbstractControl) => Validators.required(control)],
-    description: [''] as const,
-  });
-  optionCategorySaved = signal(false);
-  optionCategoryError = signal<string | null>(null);
-
   // ── Supply categories ─────────────────────────────────────────────
   supplyCategories = computed(() => this.cache.supplyCategories.data() ?? []);
   supplyCategoryDialogOpen = signal(false);
@@ -89,9 +76,6 @@ export class Categories implements OnInit {
     if (this.cache.productCategories.data() === null) {
       this.cache.productCategories.refresh();
     }
-    if (this.cache.optionCategories.data() === null) {
-      this.cache.optionCategories.refresh();
-    }
     if (this.cache.supplyCategories.data() === null) {
       this.cache.supplyCategories.refresh();
     }
@@ -99,7 +83,6 @@ export class Categories implements OnInit {
 
   onVisible(): void {
     this.cache.productCategories.loadIfStale();
-    this.cache.optionCategories.loadIfStale();
     this.cache.supplyCategories.loadIfStale();
   }
 
@@ -160,41 +143,6 @@ export class Categories implements OnInit {
 
   private refreshProductCategories(): void {
     this.cache.productCategories.refresh();
-  }
-
-  // ── Option category actions ──────────────────────────────────────
-
-  openOptionCategoryDialog(): void {
-    this.optionCategoryForm.reset();
-    this.optionCategorySaved.set(false);
-    this.optionCategoryError.set(null);
-    this.optionCategoryDialogOpen.set(true);
-  }
-
-  saveOptionCategory(): void {
-    this.optionCategorySaved.set(false);
-    if (this.optionCategoryForm.invalid) {
-      this.optionCategoryForm.markAllAsTouched();
-      return;
-    }
-    const { name, description } = this.optionCategoryForm.getRawValue() as { name: string; description: string | undefined };
-    this.optionCategoryService.createOptionCategory({ name, description: description ?? undefined }).subscribe({
-      next: () => {
-        this.optionCategorySaved.set(true);
-        this.optionCategoryForm.reset();
-        this.refreshOptionCategories();
-        this.messageService.add({ severity: 'success', summary: 'Categoría creada', detail: 'Categoría de opción guardada.' });
-        this.optionCategoryDialogOpen.set(false);
-      },
-      error: () => {
-        this.optionCategoryError.set('No se pudo guardar la categoría de opción');
-        this.logger.error('Error creating option category');
-      },
-    });
-  }
-
-  private refreshOptionCategories(): void {
-    this.cache.optionCategories.refresh();
   }
 
   // ── Supply category actions ───────────────────────────────────────

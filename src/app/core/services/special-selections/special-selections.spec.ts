@@ -74,10 +74,10 @@ describe('SpecialSelections service', () => {
     req.flush([mockSelection]);
   });
 
-  it('availableNow hits GET v1/special-selections/available-now', () => {
+  it('availableNow hits GET v1/special-selections/available', () => {
     service.availableNow().subscribe();
 
-    const req = httpMock.expectOne('v1/admin/special-selections/available-now');
+    const req = httpMock.expectOne('v1/special-selections/available');
     expect(req.request.method).toBe('GET');
     req.flush([mockSelection]);
   });

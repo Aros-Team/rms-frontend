@@ -4,7 +4,7 @@ import { forkJoin, Observable, BehaviorSubject } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
-import { ProductOption, OptionCategory } from '@app/shared/models/dto/products/product-option';
+import { ProductOption } from '@app/shared/models/dto/products/product-option';
 import { TableResponse } from '@app/shared/models/dto/tables/table-response';
 
 interface PageResponse<T> {
@@ -16,7 +16,6 @@ interface PageResponse<T> {
 export interface MasterDataPayload {
   products: ProductListResponse[];
   productOptions: ProductOption[];
-  optionCategories: OptionCategory[];
   tables: TableResponse[];
 }
 
@@ -33,14 +32,12 @@ export class MasterData {
         map(page => page.content ?? [])
       ),
       productOptions: this.http.get<ProductOption[]>('v1/product-options'),
-      optionCategories: this.http.get<OptionCategory[]>('v1/option-categories'),
       tables: this.http.get<TableResponse[]>('v1/tables'),
     }).pipe(
       tap(data => {
         this._data$.next({
           products: Array.isArray(data.products) ? data.products : [],
           productOptions: Array.isArray(data.productOptions) ? data.productOptions : [],
-          optionCategories: Array.isArray(data.optionCategories) ? data.optionCategories : [],
           tables: Array.isArray(data.tables) ? data.tables : [],
         });
       })

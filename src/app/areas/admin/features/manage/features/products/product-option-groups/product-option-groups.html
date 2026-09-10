@@ -10,90 +10,65 @@
       (click)="loadProducts()" />
   </div>
 
-  <!-- Tree container -->
-  <div class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 overflow-hidden">
-    <div class="flex flex-col gap-2 p-4">
-      @for (node of treeNodes(); track $index) {
-        <!-- ══ Product root node ══ -->
-        @if (node.type === 'product') {
-          <div class="flex flex-col gap-2">
-            <app-tree-node-card
-              nodeType="product"
-              [title]="node.product.name"
-              [subtitle]="node.product.categoryName + ' · ' + node.product.areaName"
-              icon="pi pi-box"
-              [expandable]="true"
-              [expanded]="node.expanded"
-              [loading]="node.loading"
-              (expand)="toggleProduct(node.product)" />
-
-            <!-- Skeleton while loading children -->
-            @if (node.expanded && node.loading) {
-              <app-tree-node-skeleton [depth]="2" [count]="2" />
-            }
-
-            <!-- Inline create group -->
-            @if (node.expanded && !node.loading) {
-              <div class="ml-6">
-                <app-inline-create-popover
-                  title="Nuevo grupo de opciones"
-                  [fields]="groupFields"
-                  submitLabel="Crear grupo"
-                  [submitting]="createSubmitting"
-                  (submitted)="onCreateGroup(node.product.id, $event)" />
+  <!-- Organization Chart -->
+  @if (chartData().length > 0) {
+    <div class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 overflow-auto p-4">
+      <p-organizationChart [value]="chartData()" [collapsible]="true" styleClass="w-full"
+        (onNodeExpand)="onNodeExpand($event)" (onNodeCollapse)="onNodeCollapse($event)">
+        <ng-template let-node pTemplate="default">
+          @if (node.data?.nodeType === 'product') {
+            <!-- Product root node -->
+            <div class="flex flex-col items-center gap-1 min-w-[140px]">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-box text-primary-500"></i>
+                <span class="font-semibold text-sm text-surface-900 dark:text-surface-0">{{ node.label }}</span>
               </div>
-            }
-          </div>
-        }
-
-        <!-- ══ Group child node ══ -->
-        @if (node.type === 'group') {
-          <div class="ml-6 flex flex-col gap-2">
-            <div class="flex items-center gap-2">
-              <div class="flex-1">
-                <app-tree-node-card
-                  nodeType="group"
-                  [title]="node.group.name"
-                  [subtitle]="node.group.description || undefined"
-                  icon="pi pi-tags"
-                  [expandable]="true"
-                  [expanded]="node.expanded"
-                  [loading]="node.loading"
-                  (expand)="toggleGroup(node.group)" />
-              </div>
-              <app-option-group-badge [selectionType]="getSelectionType(node.group)" size="sm" />
+              <span class="text-xs text-surface-500">{{ node.data.product.categoryName }} · {{ node.data.product.areaName }}</span>
+              @if (isProductLoading(node.data.product.id)) {
+                <p-skeleton width="80px" height="1rem" />
+              } @else {
+                <div class="mt-1">
+                  <app-inline-create-popover
+                    title="Nuevo grupo de opciones"
+                    [fields]="groupFields"
+                    submitLabel="Crear grupo"
+                    [submitting]="createSubmitting"
+                    (submitted)="onCreateGroup(node.data.product.id, $event)" />
+                </div>
+              }
             </div>
-
-            <!-- Inline create option -->
-            @if (node.expanded && !node.loading) {
-              <div class="ml-6">
+          } @else if (node.data?.nodeType === 'group') {
+            <!-- Group child node -->
+            <div class="flex flex-col items-center gap-1 min-w-[120px]">
+              <div class="flex items-center gap-1.5">
+                <i class="pi pi-tags text-sm text-surface-500"></i>
+                <span class="font-medium text-sm text-surface-800 dark:text-surface-100">{{ node.label }}</span>
+              </div>
+              @if (node.data.group.description) {
+                <span class="text-xs text-surface-400 text-center max-w-[150px]">{{ node.data.group.description }}</span>
+              }
+              <app-option-group-badge [selectionType]="getSelectionType(node.data.group)" size="sm" />
+              <div class="mt-1">
                 <app-inline-create-popover
                   title="Nueva opción"
                   [fields]="optionFields"
                   submitLabel="Crear opción"
                   [submitting]="createSubmitting"
-                  (submitted)="onCreateOption(node.group.id, $event)" />
+                  (submitted)="onCreateOption(node.data.group.id, $event)" />
               </div>
-            }
-          </div>
-        }
-
-        <!-- ══ Option leaf node ══ -->
-        @if (node.type === 'option') {
-          <div class="ml-12">
-            <app-tree-node-card
-              nodeType="option"
-              [title]="node.option.name"
-              [subtitle]="formatMoney(node.option.cost?.amount) + ' · + ' + formatMoney(node.option.extraPrice?.amount)"
-              icon="pi pi-circle-fill" />
-          </div>
-        }
-      }
+            </div>
+          } @else if (node.data?.nodeType === 'option') {
+            <!-- Option leaf node -->
+            <div class="flex flex-col items-center gap-0.5 min-w-[100px]">
+              <i class="pi pi-circle-fill text-xs text-surface-400"></i>
+              <span class="text-xs font-medium text-surface-700 dark:text-surface-200">{{ node.label }}</span>
+            </div>
+          }
+        </ng-template>
+      </p-organizationChart>
     </div>
-  </div>
-
-  <!-- Empty state -->
-  @if (treeNodes().length === 0) {
+  } @else {
+    <!-- Empty state -->
     <div class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 p-8 text-center">
       <i class="pi pi-sitemap text-4xl text-surface-300 dark:text-surface-600 mb-4 block"></i>
       <p class="text-surface-500 dark:text-surface-400 text-sm">No hay productos disponibles</p>

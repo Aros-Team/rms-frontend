@@ -158,7 +158,4 @@ export class Product {
     return this.http.get<ProductOption[]>('v1/products/' + String(productId) + '/options');
   }
 
-  public deleteProduct(id: number): Observable<object> {
-    return this.http.delete('v1/products/' + String(id));
-  }
 }

@@ -167,7 +167,6 @@ export class Products implements OnInit {
   private _allProductOptionsOverride = signal<ProductOptionResponse[] | undefined>(undefined);
   areas = computed(() => this.cache.referenceData.data()?.areas ?? []);
   categories = computed(() => this.cache.referenceData.data()?.categories ?? []);
-  optionCategories = computed(() => this.cache.referenceData.data()?.optionCategories ?? []);
   supplyVariantOptions = computed(() => this.cache.referenceData.data()?.variants ?? []);
   allProductOptions = computed(() => this._allProductOptionsOverride() ?? this.cache.referenceData.data()?.productOptions ?? []);
 
@@ -603,20 +602,8 @@ export class Products implements OnInit {
 
     // If the user opened the wizard in create mode and abandoned it before
     // reaching Step 5 (the explicit "finish" step), treat any draft product
-    // (created on demand during the wizard) as disposable and hard-delete it.
-    const draft = this.createdProduct();
-    const draftId = draft?.id;
-    const shouldCleanupDraft =
-      this.modalMode() === 'create' &&
-      draftId != null &&
-      this.currentStep() < 5;
-
-    if (shouldCleanupDraft) {
-      // Fire-and-forget: delete the draft product (server cascades image deletes).
-      this.productService.deleteProduct(draftId).pipe(
-        catchError(() => of(null))
-      ).subscribe();
-    }
+    // (created on demand during the wizard) as disposable. The backend will
+    // handle cleanup via disable/enable rather than hard-delete.
 
     this.modalIsOpen.set(false);
     this.wizardProductImages.set([]);

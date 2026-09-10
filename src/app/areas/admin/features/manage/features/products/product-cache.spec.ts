@@ -8,7 +8,6 @@ import { ProductCache } from './product-cache';
 import { Product } from '@app/core/services/products/product';
 import { Area } from '@app/core/services/areas/area';
 import { Category } from '@app/core/services/category/category';
-import { OptionCategory } from '@app/core/services/option-category/option-category';
 import { Supply } from '@app/core/services/supplies/supply';
 import { ProductOption } from '@app/core/services/product-option/product-option';
 import { WebSocket } from '@app/core/services/websocket/websocket';
@@ -30,7 +29,6 @@ describe('ProductCache', () => {
     };
     const areaStub = { getAreas: vi.fn().mockReturnValue(of([])) };
     const categoryStub = { getCategories: vi.fn().mockReturnValue(of([])) };
-    const optionCategoryStub = { getOptionCategories: vi.fn().mockReturnValue(of([])) };
     const supplyStub = { getSupplyVariants: vi.fn().mockReturnValue(of([])) };
     const productOptionStub = { getOptions: vi.fn().mockReturnValue(of([])) };
     const wsStub = { cacheInvalidation$: new Subject() };
@@ -43,7 +41,6 @@ describe('ProductCache', () => {
         { provide: Product, useValue: productStub },
         { provide: Area, useValue: areaStub },
         { provide: Category, useValue: categoryStub },
-        { provide: OptionCategory, useValue: optionCategoryStub },
         { provide: Supply, useValue: supplyStub },
         { provide: ProductOption, useValue: productOptionStub },
         { provide: WebSocket, useValue: wsStub },

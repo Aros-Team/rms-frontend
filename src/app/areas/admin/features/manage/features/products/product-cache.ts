@@ -4,14 +4,12 @@ import { ResourceCache } from '@app/core/cache/resource-cache/resource-cache';
 import { Product } from '@app/core/services/products/product';
 import { Area } from '@app/core/services/areas/area';
 import { Category } from '@app/core/services/category/category';
-import { OptionCategory } from '@app/core/services/option-category/option-category';
 import { Supply } from '@app/core/services/supplies/supply';
 import { ProductOption } from '@app/core/services/product-option/product-option';
 import { ProductResponse } from '@app/shared/models/dto/products/product-response';
 import { PaginatedProductsResponse } from '@app/core/services/products/product';
 import { AreaSimpleResponse } from '@app/shared/models/dto/areas/area-simple-response';
 import { CategorySimpleResponse } from '@app/shared/models/dto/category/category-simple-response';
-import { OptionCategoryResponse } from '@app/shared/models/dto/category/option-category';
 import { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
 import { ProductOptionResponse } from '@app/shared/models/dto/products/product-option';
 import { WebSocket } from '@app/core/services/websocket/websocket';
@@ -19,7 +17,6 @@ import { WebSocket } from '@app/core/services/websocket/websocket';
 export interface ProductReferenceData {
   areas: AreaSimpleResponse[];
   categories: CategorySimpleResponse[];
-  optionCategories: OptionCategoryResponse[];
   variants: (SupplyVariantResponse & { displayName: string })[];
   productOptions: ProductOptionResponse[];
 }
@@ -29,7 +26,6 @@ export class ProductCache implements OnDestroy {
   private readonly productService = inject(Product);
   private readonly areaService = inject(Area);
   private readonly categoryService = inject(Category);
-  private readonly optionCategoryService = inject(OptionCategory);
   private readonly supplyService = inject(Supply);
   private readonly productOptionService = inject(ProductOption);
   private readonly wsService = inject(WebSocket);
@@ -49,14 +45,12 @@ export class ProductCache implements OnDestroy {
     () => forkJoin({
       areas: this.areaService.getAreas(),
       categories: this.categoryService.getCategories(),
-      optionCategories: this.optionCategoryService.getOptionCategories(),
       variants: this.supplyService.getSupplyVariants(),
       productOptions: this.productOptionService.getOptions()
     }).pipe(
-      map(({ areas, categories, optionCategories, variants, productOptions }) => ({
+      map(({ areas, categories, variants, productOptions }) => ({
         areas,
         categories: categories.filter(c => c.enabled),
-        optionCategories,
         variants: variants.map(v => ({
           ...v,
           displayName: `${v.supplyName} — ${String(v.quantity)} ${v.unitAbbreviation}`

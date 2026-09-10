@@ -77,7 +77,6 @@ export class NewOptionDialog {
   });
 
   private applyReferenceData(ref: ProductReferenceData): void {
-    this.optionCategories.set(ref.optionCategories);
     this.supplyVariantOptions.set(ref.variants);
     const seen = new Set<number>();
     this.supplyCategories.set(
