@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, signal, computed, effect, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, FormArray, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -49,9 +50,10 @@ import { MessageModule } from 'primeng/message';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
-import { NewOptionDialog } from './componentes/new-option-dialog/new-option-dialog';
+
 import { PrepTimeDialog, type PrepTimeEstimate } from './componentes/prep-time-dialog/prep-time-dialog';
 import { ProductDetailDialog } from './componentes/product-detail-dialog/product-detail-dialog';
+import { OptionGroupsView } from './product-option-groups/product-option-groups';
 
 // Wizard steps: 1=basic data+image, 2=insumos, 3=options, 4=finalize
 type WizardStep = 1 | 2 | 3 | 4 | 5;
@@ -97,6 +99,7 @@ interface OptionFormValue {
   selector: 'app-products',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    NgClass,
     RouterModule,
     ReactiveFormsModule,
     FormsModule,
@@ -121,11 +124,11 @@ interface OptionFormValue {
     ProgressBarModule,
     ImageModule,
     ConfirmPopupModule,
-    NewOptionDialog,
     PrepTimeDialog,
     ProductDetailDialog,
     SearchInputComponent,
     Step3Options,
+    OptionGroupsView,
   ],
   templateUrl: './products.html',
   providers: [MessageService, ConfirmationService],
@@ -145,6 +148,9 @@ export class Products implements OnInit {
 
   title = 'Carta de Productos';
   currencyFormat = Intl.NumberFormat('es-Co', { style: 'currency', currency: 'COP' });
+
+  // Tab navigation
+  activeProductTab = signal<'products' | 'option-groups'>('products');
 
   // Table - usando cache service
   filterCategories = new FormControl<number[]>([], []);

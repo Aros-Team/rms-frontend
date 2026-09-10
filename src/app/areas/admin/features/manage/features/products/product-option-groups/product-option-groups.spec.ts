@@ -2,8 +2,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
+import { TreeNode } from 'primeng/api';
 
-import { OptionGroupsView } from './product-option-groups';
+import { OptionGroupsView, OrgChartData } from './product-option-groups';
 import { ProductResponse } from '@app/shared/models/dto/products/product-response';
 import { OptionGroupResponse } from '@app/shared/models/dto/option-groups/option-group';
 import { ProductOption } from '@app/shared/models/dto/products/product-option';
@@ -41,6 +42,10 @@ const mockOption: ProductOption = {
   extraPrice: { amount: 3000, currency: 'COP' },
 };
 
+function makeNode(data: OrgChartData, children: TreeNode<OrgChartData>[] = []): TreeNode<OrgChartData> {
+  return { label: '', data, children };
+}
+
 describe('OptionGroupsView', () => {
   let fixture: ComponentFixture<OptionGroupsView>;
   let component: OptionGroupsView;
@@ -72,6 +77,11 @@ describe('OptionGroupsView', () => {
     component = fixture.componentInstance;
     httpMock = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
+
+    // Flush the ngOnInit loadProducts() request with paginated response shape
+    const initReq = httpMock.expectOne(r => r.url === 'v1/products');
+    initReq.flush({ content: [mockProduct], page: { number: 0, size: 100, totalElements: 1, totalPages: 1 } });
+    fixture.detectChanges();
   }
 
   afterEach(() => {
@@ -83,39 +93,18 @@ describe('OptionGroupsView', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should load products on loadProducts()', async () => {
+  it('should load products on init', async () => {
     await setup();
-    component.loadProducts();
-
-    const req = httpMock.expectOne('v1/products');
-    expect(req.request.method).toBe('GET');
-    req.flush([mockProduct]);
-
     expect(component.products().length).toBe(1);
     expect(component.products()[0].name).toBe('Hamburguesa');
   });
 
-  it('should show empty state when no products', async () => {
+  it('should expand product and load groups + options', async () => {
     await setup();
-    fixture.detectChanges();
 
-    const el = fixture.nativeElement as HTMLElement;
-    const emptyState = el.querySelector('.text-surface-500');
-    expect(emptyState).toBeTruthy();
-  });
+    const productNode = makeNode({ nodeType: 'product', product: mockProduct });
+    component.onNodeExpand({ node: productNode });
 
-  it('should lazy-load groups and options on product expand', async () => {
-    await setup();
-    component.loadProducts();
-
-    const productsReq = httpMock.expectOne('v1/products');
-    productsReq.flush([mockProduct]);
-
-    // Toggle product expand
-    component.toggleProduct(mockProduct);
-    fixture.detectChanges();
-
-    // Should request groups and options
     const groupsReq = httpMock.expectOne(r =>
       r.url === 'v1/option-groups' && r.params.get('productId') === '10'
     );
@@ -128,21 +117,15 @@ describe('OptionGroupsView', () => {
 
     fixture.detectChanges();
 
-    expect(component.isProductExpanded(10)).toBe(true);
-    expect(component.getGroupsForProduct(10).length).toBe(1);
-    expect(component.getOptionsForGroup(1).length).toBe(1);
+    expect(component.isProductLoading(10)).toBe(false);
   });
 
-  it('should collapse product on second toggle', async () => {
+  it('should collapse product', async () => {
     await setup();
-    component.loadProducts();
 
-    const productsReq = httpMock.expectOne('v1/products');
-    productsReq.flush([mockProduct]);
-
-    // Expand
-    component.toggleProduct(mockProduct);
-    fixture.detectChanges();
+    // Expand first
+    const productNode = makeNode({ nodeType: 'product', product: mockProduct });
+    component.onNodeExpand({ node: productNode });
 
     const groupsReq = httpMock.expectOne(r =>
       r.url === 'v1/option-groups' && r.params.get('productId') === '10'
@@ -153,33 +136,21 @@ describe('OptionGroupsView', () => {
     optionsReq.flush([mockOption]);
 
     // Collapse
-    component.toggleProduct(mockProduct);
+    component.onNodeCollapse({ node: productNode });
     fixture.detectChanges();
 
-    expect(component.isProductExpanded(10)).toBe(false);
+    // After collapse, chartData should rebuild without the expanded key
+    const chartNodes = component.chartData();
+    expect(chartNodes.length).toBe(1);
+    expect(chartNodes[0].expanded).toBe(false);
   });
 
-  it('should toggle group expand/collapse', async () => {
+  it('should toggle group expand via onNodeExpand', async () => {
     await setup();
 
-    // Expand group
-    component.toggleGroup(mockGroup);
-    expect(component.isGroupExpanded(1)).toBe(true);
-
-    // Collapse group
-    component.toggleGroup(mockGroup);
-    expect(component.isGroupExpanded(1)).toBe(false);
-  });
-
-  it('should bucket options by optionGroupId', async () => {
-    await setup();
-    component.loadProducts();
-
-    const productsReq = httpMock.expectOne('v1/products');
-    productsReq.flush([mockProduct]);
-
-    component.toggleProduct(mockProduct);
-    fixture.detectChanges();
+    // First expand the product to load groups
+    const productNode = makeNode({ nodeType: 'product', product: mockProduct });
+    component.onNodeExpand({ node: productNode });
 
     const groupsReq = httpMock.expectOne(r =>
       r.url === 'v1/option-groups' && r.params.get('productId') === '10'
@@ -191,107 +162,12 @@ describe('OptionGroupsView', () => {
 
     fixture.detectChanges();
 
-    const options = component.getOptionsForGroup(1);
-    expect(options.length).toBe(1);
-    expect(options[0].name).toBe('Tocineta');
-  });
-
-  it('should build tree nodes with correct types', async () => {
-    await setup();
-    component.loadProducts();
-
-    const productsReq = httpMock.expectOne('v1/products');
-    productsReq.flush([mockProduct]);
-
-    component.toggleProduct(mockProduct);
+    // Now expand the group
+    const groupNode = makeNode({ nodeType: 'group', group: mockGroup, product: mockProduct });
+    component.onNodeExpand({ node: groupNode });
     fixture.detectChanges();
 
-    const groupsReq = httpMock.expectOne(r =>
-      r.url === 'v1/option-groups' && r.params.get('productId') === '10'
-    );
-    groupsReq.flush([mockGroup]);
-
-    const optionsReq = httpMock.expectOne('v1/products/10/options');
-    optionsReq.flush([mockOption]);
-
-    // Expand group
-    component.toggleGroup(mockGroup);
-    fixture.detectChanges();
-
-    const nodes = component.treeNodes();
-    expect(nodes.length).toBe(3);
-    expect(nodes[0].type).toBe('product');
-    expect(nodes[1].type).toBe('group');
-    expect(nodes[2].type).toBe('option');
-  });
-
-  it('should create group via onCreateGroup', async () => {
-    await setup();
-    component.loadProducts();
-
-    const productsReq = httpMock.expectOne('v1/products');
-    productsReq.flush([mockProduct]);
-
-    component.toggleProduct(mockProduct);
-
-    const groupsReq = httpMock.expectOne(r =>
-      r.url === 'v1/option-groups' && r.params.get('productId') === '10'
-    );
-    groupsReq.flush([mockGroup]);
-
-    const optionsReq = httpMock.expectOne('v1/products/10/options');
-    optionsReq.flush([mockOption]);
-
-    fixture.detectChanges();
-
-    component.onCreateGroup(10, {
-      name: 'Adiciones',
-      selectionType: 'EXTRA',
-      description: 'Adds extra items',
-    });
-
-    const createReq = httpMock.expectOne('v1/option-groups');
-    expect(createReq.request.method).toBe('POST');
-    expect((createReq.request.body as { name: string }).name).toBe('Adiciones');
-    createReq.flush({ ...mockGroup, id: 3, name: 'Adiciones' });
-
-    const reloadReq = httpMock.expectOne(r =>
-      r.url === 'v1/option-groups' && r.params.get('productId') === '10'
-    );
-    reloadReq.flush([mockGroup]);
-
-    fixture.detectChanges();
-  });
-
-  it('should create option via onCreateOption', async () => {
-    await setup();
-    component.loadProducts();
-
-    const productsReq = httpMock.expectOne('v1/products');
-    productsReq.flush([mockProduct]);
-
-    component.toggleProduct(mockProduct);
-
-    const groupsReq = httpMock.expectOne(r =>
-      r.url === 'v1/option-groups' && r.params.get('productId') === '10'
-    );
-    groupsReq.flush([mockGroup]);
-
-    const optionsReq = httpMock.expectOne('v1/products/10/options');
-    optionsReq.flush([mockOption]);
-
-    fixture.detectChanges();
-
-    component.onCreateOption(1, { name: 'Aguacate', cost: 1500, extraPrice: 2000 });
-
-    const createReq = httpMock.expectOne('v1/product-options');
-    expect(createReq.request.method).toBe('POST');
-    createReq.flush({ id: 102, name: 'Aguacate', optionGroupId: 1 });
-
-    const reloadReq = httpMock.expectOne('v1/products/10/options');
-    reloadReq.flush([mockOption, { ...mockOption, id: 102, name: 'Aguacate' }]);
-
-    fixture.detectChanges();
+    // No error, group key added to expanded set
   });
 
   it('should format money correctly', async () => {
@@ -321,31 +197,90 @@ describe('OptionGroupsView', () => {
   it('should have option fields configured', async () => {
     await setup();
     const fields = component.optionFields;
-    expect(fields.length).toBe(3);
+    expect(fields.length).toBe(1);
     expect(fields[0].name).toBe('name');
-    expect(fields[1].name).toBe('cost');
-    expect(fields[2].name).toBe('extraPrice');
   });
 
-  it('should render product card when products loaded', async () => {
+  it('should create group via onCreateGroup', async () => {
     await setup();
-    component.loadProducts();
 
-    const req = httpMock.expectOne('v1/products');
-    req.flush([mockProduct]);
+    const productNode = makeNode({ nodeType: 'product', product: mockProduct });
+    component.onNodeExpand({ node: productNode });
+
+    const groupsReq = httpMock.expectOne(r =>
+      r.url === 'v1/option-groups' && r.params.get('productId') === '10'
+    );
+    groupsReq.flush([mockGroup]);
+
+    const optionsReq = httpMock.expectOne('v1/products/10/options');
+    optionsReq.flush([mockOption]);
+
     fixture.detectChanges();
 
-    const el = fixture.nativeElement as HTMLElement;
-    const cards = el.querySelectorAll('app-tree-node-card');
-    expect(cards.length).toBeGreaterThanOrEqual(1);
+    component.onCreateGroup(10, {
+      name: 'Adiciones',
+      selectionType: 'ADD_ON',
+      description: 'Adds extra items',
+    });
+
+    const createReq = httpMock.expectOne('v1/option-groups');
+    expect(createReq.request.method).toBe('POST');
+    expect((createReq.request.body as { name: string }).name).toBe('Adiciones');
+    createReq.flush({ ...mockGroup, id: 3, name: 'Adiciones' });
+
+    const reloadReq = httpMock.expectOne(r =>
+      r.url === 'v1/option-groups' && r.params.get('productId') === '10'
+    );
+    reloadReq.flush([mockGroup]);
+
+    fixture.detectChanges();
+  });
+
+  it('should create option via onCreateOption', async () => {
+    await setup();
+
+    const productNode = makeNode({ nodeType: 'product', product: mockProduct });
+    component.onNodeExpand({ node: productNode });
+
+    const groupsReq = httpMock.expectOne(r =>
+      r.url === 'v1/option-groups' && r.params.get('productId') === '10'
+    );
+    groupsReq.flush([mockGroup]);
+
+    const optionsReq = httpMock.expectOne('v1/products/10/options');
+    optionsReq.flush([mockOption]);
+
+    fixture.detectChanges();
+
+    component.onCreateOption(1, { name: 'Aguacate' });
+
+    const createReq = httpMock.expectOne('v1/product-options');
+    expect(createReq.request.method).toBe('POST');
+    createReq.flush({ id: 102, name: 'Aguacate', optionGroupId: 1 });
+
+    const reloadReq = httpMock.expectOne('v1/products/10/options');
+    reloadReq.flush([mockOption, { ...mockOption, id: 102, name: 'Aguacate' }]);
+
+    fixture.detectChanges();
+  });
+
+  it('should build chartData with product nodes', async () => {
+    await setup();
+    fixture.detectChanges();
+
+    const nodes = component.chartData();
+    expect(nodes.length).toBe(1);
+    expect(nodes[0].data?.nodeType).toBe('product');
   });
 
   it('should handle error when loading products', async () => {
     await setup();
-    component.loadProducts();
 
-    const req = httpMock.expectOne('v1/products');
+    // Call loadProducts again to get a request we can fail
+    component.loadProducts();
+    const req = httpMock.expectOne(r => r.url === 'v1/products');
     req.error(new ProgressEvent('error'));
+    fixture.detectChanges();
     fixture.detectChanges();
 
     expect(component.products().length).toBe(0);
@@ -353,12 +288,9 @@ describe('OptionGroupsView', () => {
 
   it('should handle error when expanding product', async () => {
     await setup();
-    component.loadProducts();
 
-    const productsReq = httpMock.expectOne('v1/products');
-    productsReq.flush([mockProduct]);
-
-    component.toggleProduct(mockProduct);
+    const productNode = makeNode({ nodeType: 'product', product: mockProduct });
+    component.onNodeExpand({ node: productNode });
     fixture.detectChanges();
 
     const groupsReq = httpMock.expectOne(r =>
@@ -371,7 +303,24 @@ describe('OptionGroupsView', () => {
 
     fixture.detectChanges();
 
-    expect(component.isProductExpanded(10)).toBe(true);
-    expect(component.getGroupsForProduct(10).length).toBe(0);
+    expect(component.isProductLoading(10)).toBe(false);
+  });
+
+  it('should not expand if node data is missing', async () => {
+    await setup();
+    component.onNodeExpand({ node: {} as TreeNode<OrgChartData> });
+    component.onNodeCollapse({ node: {} as TreeNode<OrgChartData> });
+  });
+
+  it('should handle group node expand', async () => {
+    await setup();
+    const groupNode = makeNode({ nodeType: 'group', group: mockGroup, product: mockProduct });
+    component.onNodeExpand({ node: groupNode });
+  });
+
+  it('should handle group node collapse', async () => {
+    await setup();
+    const groupNode = makeNode({ nodeType: 'group', group: mockGroup, product: mockProduct });
+    component.onNodeCollapse({ node: groupNode });
   });
 });

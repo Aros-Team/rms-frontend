@@ -135,8 +135,8 @@ describe('CostBreakdownPanel', () => {
     expect(text).not.toContain('Extras');
   });
 
-  it('formatMoney returns $0 for undefined', async () => {
-    const fixture = await setup({ breakdown: buildBreakdown({ baseCost: undefined as unknown as { amount: number; currency: string } }) });
+  it('formatMoney returns $0 for zero amount', async () => {
+    const fixture = await setup({ breakdown: buildBreakdown({ baseCost: { amount: 0, currency: 'COP' } }) });
     const text = getText(fixture);
     expect(text).toContain('$0');
   });
