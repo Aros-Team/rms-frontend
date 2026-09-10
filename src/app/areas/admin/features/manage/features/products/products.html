@@ -121,8 +121,8 @@
                   pTooltip="Activar" tooltipPosition="top"
                   (click)="confirmEnableProduct($event, product)" />
               } @else {
-                <p-button icon="pi pi-trash" severity="danger" size="small" [text]="true"
-                  pTooltip="Eliminar" tooltipPosition="top"
+                <p-button icon="pi pi-ban" severity="danger" size="small" [text]="true"
+                  pTooltip="Desactivar" tooltipPosition="top"
                   (click)="confirmDeleteProduct($event, product)" />
               }
             </div>

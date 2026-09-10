@@ -159,25 +159,13 @@ export class Products implements OnInit {
   private _productsOverride = signal<ProductResponse[] | undefined>(undefined);
   products = computed(() => {
     if (this._productsOverride() !== undefined) return this._productsOverride();
-    const all = this.cache.products.data()?.content ?? undefined;
-    if (all === undefined) return undefined;
-    if (this.includeInactive()) {
-      // Backend's includeInactive is additive (returns active+inactive).
-      // Filter client-side to show ONLY inactive products.
-      return all.filter(p => !p.active);
-    }
-    return all;
+    const all = this.cache.products.data()?.content;
+    if (!all) return undefined;
+    return this.includeInactive()
+      ? all.filter(p => !p.active)
+      : all.filter(p => p.active);
   });
-  totalPages = computed(() => {
-    if (this._productsOverride() !== undefined) return 0;
-    if (this.includeInactive()) {
-      // Recount after client-side filtering
-      const all = this.cache.products.data()?.content ?? [];
-      const inactiveCount = all.filter(p => !p.active).length;
-      return Math.ceil(inactiveCount / this.pageSize()) || 1;
-    }
-    return this.cache.products.data()?.totalPages ?? 0;
-  });
+  totalPages = computed(() => this.cache.products.data()?.totalPages ?? 0);
   currentPage = signal(0);
   pageSize = signal(6);
   includeInactive = signal(false);
@@ -497,13 +485,7 @@ export class Products implements OnInit {
 
   setIncludeInactive(value: boolean): void {
     this.includeInactive.set(value);
-    if (value) {
-      // When showing inactive-only, fetch all products and filter client-side
-      this.cache.setProductListParams({ inactiveOnly: true, includeInactive: true, page: 0 });
-    } else {
-      // Normal mode: only active products from backend
-      this.cache.setProductListParams({ inactiveOnly: false, includeInactive: false, page: 0 });
-    }
+    this.cache.setProductListParams({ page: 0 });
   }
 
   onSearch(value: string): void {
@@ -1318,7 +1300,7 @@ export class Products implements OnInit {
       target: event.target as HTMLElement,
       message: `¿Estás seguro de desactivar "${product.name}"?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Eliminar',
+      acceptLabel: 'Desactivar',
       rejectLabel: 'Cancelar',
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
