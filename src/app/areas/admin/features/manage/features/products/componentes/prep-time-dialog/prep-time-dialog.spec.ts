@@ -1,3 +1,10 @@
+/**
+ * Tests for the PrepTimeDialog component and estimatePrepMinutes helper.
+ *
+ * Feature: Dialog for estimating prep time based on product complexity.
+ * Contract: estimatePrepMinutes returns correct estimates; dialog renders form and emits result.
+ * Approach: Test helper function directly, mount dialog via TestBed, assert form behavior.
+ */
 import { TestBed } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
 import { beforeAll, describe, expect, it } from 'vitest';

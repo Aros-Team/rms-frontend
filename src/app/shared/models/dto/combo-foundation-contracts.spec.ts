@@ -1,3 +1,10 @@
+/**
+ * Tests for combo foundation DTO type contracts.
+ *
+ * Feature: TypeScript interfaces for combo wizard data structures.
+ * Contract: DTOs accept expected shapes; type narrowing works correctly.
+ * Approach: Create objects matching DTO interfaces, assert they compile and have correct properties.
+ */
 import type { DockItem } from '@app/core/services/order-dock/order-dock';
 import type {
   ClientOrderDetail,

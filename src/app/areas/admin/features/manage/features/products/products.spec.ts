@@ -1,3 +1,10 @@
+/**
+ * Tests for the Products page component.
+ *
+ * Feature: Product listing page with search, filtering, and navigation to detail.
+ * Contract: Loads products via HTTP, renders product cards, supports search and navigation.
+ * Approach: Mount component via TestBed with router and HTTP, assert rendered product list.
+ */
 import { TestBed } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';

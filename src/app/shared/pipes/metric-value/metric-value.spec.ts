@@ -1,3 +1,10 @@
+/**
+ * Tests for the MetricValue pipe.
+ *
+ * Feature: Formats MetricValue DTOs into locale-aware numeric strings with units.
+ * Contract: null/undefined → em dash; valid values → formatted number; invalid → em dash.
+ * Approach: Instantiate pipe directly, call transform() with controlled inputs, assert outputs.
+ */
 import { describe, expect, it } from 'vitest';
 
 import { MetricValue as MetricValueModel } from '@app/shared/models/dto/analytics/metric-value';

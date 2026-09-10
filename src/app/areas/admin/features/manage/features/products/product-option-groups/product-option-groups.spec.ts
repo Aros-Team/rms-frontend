@@ -1,3 +1,10 @@
+/**
+ * Tests for the OptionGroupsView component.
+ *
+ * Feature: Displays and manages option groups for a product.
+ * Contract: Loads option groups via HTTP, renders tree, supports CRUD operations.
+ * Approach: Mount component via TestBed with HttpTestingController, assert rendered tree nodes.
+ */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';

@@ -45,6 +45,7 @@ const baseFiles = [
   'docs/verification.md',
   'docs/CHECKPOINTS.md',
   'docs/DESIGN.md',
+  'docs/testing.md',
 ];
 
 for (const f of baseFiles) {

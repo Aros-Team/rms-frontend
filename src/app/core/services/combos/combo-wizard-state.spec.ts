@@ -1,3 +1,10 @@
+/**
+ * Tests for the ComboWizardState service.
+ *
+ * Feature: Manages combo wizard form state with Angular signals and localStorage persistence.
+ * Contract: Tracks wizard draft, persists across reloads, supports reset and step navigation.
+ * Approach: Inject service via TestBed, manipulate state, assert signal values and localStorage.
+ */
 import { TestBed } from '@angular/core/testing';
 import { effect, signal } from '@angular/core';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

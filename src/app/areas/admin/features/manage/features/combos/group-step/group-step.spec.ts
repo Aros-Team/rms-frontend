@@ -1,3 +1,10 @@
+/**
+ * Tests for the GroupStep component (combo wizard step 2).
+ *
+ * Feature: Group configuration form for combo options (selection type, min/max).
+ * Contract: Renders group forms, validates constraints, emits group data.
+ * Approach: Mount component via TestBed with test host, configure groups, assert output.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import {
   ɵresolveComponentResources as resolveComponentResources,

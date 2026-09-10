@@ -25,6 +25,7 @@
 | `docs/architecture.md` | What "good work" means in this project | Before implement |
 | `docs/conventions.md` | Style rules, names, structure | Before write code |
 | `docs/verification.md` | How verify work works | Before declare task `done` |
+| `docs/testing.md` | Testing policy (write tests that catch bugs) | Before write or review tests |
 | `docs/CHECKPOINTS.md` | Final state evaluation checklist | Before declare task `done` |
 | `scripts/harness.js` | Entry harness (verifies env + quality) | Before start |
 | `scripts/build_harness.js` | Creates activities.json + progress/ folder | For setup |

@@ -1,3 +1,10 @@
+/**
+ * Tests for the SpecialSelectionsCacheService.
+ *
+ * Feature: Caches special selections per product, with HTTP fetch and WebSocket updates.
+ * Contract: Fetches on first access, updates via WebSocket, supports invalidation.
+ * Approach: Use HttpTestingController and mock WebSocket, assert cache state transitions.
+ */
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';

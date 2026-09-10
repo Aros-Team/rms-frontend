@@ -1,3 +1,10 @@
+/**
+ * Tests for the OptionSelectionType enum and API validation.
+ *
+ * Feature: Internal enum values and API string validation for option selection types.
+ * Contract: Enum has 4 values; isApiSelectionType validates API strings correctly.
+ * Approach: Import enum and validator directly, assert exact values and validation results.
+ */
 import { OptionSelectionType, API_SELECTION_TYPE_VALUES, isApiSelectionType } from './option-selection-type';
 
 describe('OptionSelectionType enum', () => {

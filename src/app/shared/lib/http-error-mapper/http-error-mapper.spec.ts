@@ -1,3 +1,10 @@
+/**
+ * Tests for the mapHttpError utility function.
+ *
+ * Feature: Maps HTTP error responses to user-friendly error messages.
+ * Contract: Returns correct message for each known status code; default for unknown.
+ * Approach: Import function directly, pass HttpErrorResponse with various statuses, assert messages.
+ */
 import { HttpErrorResponse } from '@angular/common/http';
 import { mapHttpError } from './http-error-mapper';
 

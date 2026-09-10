@@ -1,3 +1,10 @@
+/**
+ * Tests for analytics utility functions.
+ *
+ * Feature: Pure helper functions for period comparison, default periods, and formatting.
+ * Contract: comparePeriodKeys orders correctly; defaultPeriod returns current month; etc.
+ * Approach: Import functions directly, pass controlled inputs, assert exact outputs.
+ */
 import { describe, expect, it } from 'vitest';
 
 import {

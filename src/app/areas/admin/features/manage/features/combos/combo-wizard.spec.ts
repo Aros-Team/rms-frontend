@@ -1,3 +1,10 @@
+/**
+ * Tests for the ComboWizard component.
+ *
+ * Feature: Multi-step wizard for creating/editing combo products.
+ * Contract: Navigates between steps, validates each step, submits final combo data.
+ * Approach: Mount component via TestBed with test host, simulate step navigation, assert state.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import {
   ɵresolveComponentResources as resolveComponentResources,

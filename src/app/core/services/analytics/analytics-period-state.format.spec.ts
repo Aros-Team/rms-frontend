@@ -1,3 +1,10 @@
+/**
+ * Tests for AnalyticsPeriodState period formatting.
+ *
+ * Feature: Formats period start/end dates for API queries and display.
+ * Contract: Produces correct ISO date strings and display labels for various period types.
+ * Approach: Call format methods with controlled dates, assert exact output strings.
+ */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AnalyticsPeriodState } from './analytics-period-state';

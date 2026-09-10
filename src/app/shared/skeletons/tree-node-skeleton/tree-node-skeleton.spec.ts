@@ -1,3 +1,12 @@
+/**
+ * Tests for the TreeNodeSkeletonComponent.
+ *
+ * Feature: Renders animated skeleton placeholders for tree node cards.
+ * Contract: Applies correct padding-left per depth, renders the right
+ * count of skeleton items, and each item contains circle + line skeletons.
+ * Approach: Mount component via TestBed with a TestHost wrapper, query
+ * DOM for skeleton elements, assert exact counts and CSS values.
+ */
 import { ɵresolveComponentResources as resolveComponentResources, Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
@@ -41,13 +50,13 @@ describe('TreeNodeSkeletonComponent', () => {
 
   it('should create', async () => {
     const fixture = await setup(1, 1);
-    expect(fixture.componentInstance).toBeTruthy();
+    expect(fixture.componentInstance).toBeInstanceOf(TestHost);
   });
 
   it('should have selector app-tree-node-skeleton', async () => {
     const fixture = await setup(1, 1);
     const el = (fixture.nativeElement as HTMLElement).querySelector('app-tree-node-skeleton');
-    expect(el).toBeTruthy();
+    expect(el).not.toBeNull();
   });
 
   describe('depth', () => {

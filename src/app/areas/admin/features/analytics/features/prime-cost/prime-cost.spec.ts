@@ -1,3 +1,10 @@
+/**
+ * Tests for the PrimeCost analytics page.
+ *
+ * Feature: Displays prime cost analysis with cost breakdown by category.
+ * Contract: Loads prime cost data, renders KPI cards and breakdown chart.
+ * Approach: Mount component via TestBed, mock HTTP responses, assert rendered KPI values.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import {
   ɵresolveComponentResources as resolveComponentResources,

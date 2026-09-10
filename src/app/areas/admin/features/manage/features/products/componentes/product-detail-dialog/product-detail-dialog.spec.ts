@@ -1,3 +1,10 @@
+/**
+ * Tests for the ProductDetailDialog component.
+ *
+ * Feature: Dialog for viewing/editing product details with option groups.
+ * Contract: Loads product data, renders detail fields, supports editing and saving.
+ * Approach: Mount dialog via TestBed with mocked services, assert rendered content.
+ */
 import { TestBed } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';

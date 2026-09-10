@@ -1,3 +1,10 @@
+/**
+ * Tests for the CategoriesCache service.
+ *
+ * Feature: HTTP-backed cache for product categories with TTL and refresh.
+ * Contract: Fetches categories on load, caches with TTL, supports manual refresh.
+ * Approach: Use HttpTestingController to intercept requests, assert cache state transitions.
+ */
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';

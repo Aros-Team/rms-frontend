@@ -1,3 +1,10 @@
+/**
+ * Tests for the ProductOptionsModal component.
+ *
+ * Feature: Modal dialog for selecting product options (size, extras, removals).
+ * Contract: Renders option groups, tracks selections, emits confirm event with selected options.
+ * Approach: Mount component via TestBed, set inputs, simulate selections, assert emitted event.
+ */
 import { TestBed } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
 import { ProductOptionsModal, ProductOptionsConfirmEvent } from './product-options-modal';

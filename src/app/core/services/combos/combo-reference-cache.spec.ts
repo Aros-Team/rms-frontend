@@ -1,3 +1,10 @@
+/**
+ * Tests for the ComboReferenceCache service.
+ *
+ * Feature: Caches combo reference data (categories, products) for the combo wizard.
+ * Contract: Fetches on first access, caches with TTL, supports manual refresh.
+ * Approach: Use HttpTestingController to intercept requests, assert cache state.
+ */
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';

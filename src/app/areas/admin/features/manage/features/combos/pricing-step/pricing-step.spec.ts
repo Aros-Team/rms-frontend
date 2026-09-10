@@ -1,3 +1,10 @@
+/**
+ * Tests for the PricingStep component (combo wizard step 3).
+ *
+ * Feature: Pricing form for combo products (base price, discount, final price).
+ * Contract: Computes final price from base and discount, validates price constraints.
+ * Approach: Mount component via TestBed with test host, set prices, assert calculations.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import {
   ɵresolveComponentResources as resolveComponentResources,

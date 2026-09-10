@@ -1,3 +1,10 @@
+/**
+ * Tests for the Analytics area routing and child component resolution.
+ *
+ * Feature: Analytics area with lazy-loaded child routes.
+ * Contract: Router navigates to analytics sub-routes and renders correct components.
+ * Approach: Bootstrap TestBed with analytics routes, navigate, assert component rendered.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources, Component } from '@angular/core';
 import { Router, provideRouter, type Routes } from '@angular/router';

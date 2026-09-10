@@ -1,3 +1,10 @@
+/**
+ * Tests for the RemovableChip component.
+ *
+ * Feature: Chip element with a remove button for deletable items.
+ * Contract: Renders chip label, emits remove event when close button clicked.
+ * Approach: Mount component via TestBed, set input, click remove, assert emitted event.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
 

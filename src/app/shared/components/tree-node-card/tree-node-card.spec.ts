@@ -1,3 +1,10 @@
+/**
+ * Tests for the TreeNodeCardComponent.
+ *
+ * Feature: Card component for tree-structured data nodes with expand/collapse.
+ * Contract: Renders node data, supports expand/collapse, emits actions.
+ * Approach: Mount component via TestBed with test host, set node input, assert rendered content.
+ */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources, Component } from '@angular/core';
 import { TreeNodeCardComponent } from './tree-node-card';

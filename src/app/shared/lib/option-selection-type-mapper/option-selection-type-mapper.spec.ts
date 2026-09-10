@@ -1,3 +1,12 @@
+/**
+ * Tests for the option-selection-type-mapper functions.
+ *
+ * Feature: Bidirectional mapper between frontend internal enum names and backend API strings.
+ * Contract: toApi() converts internal → API; fromApi() converts API → internal with SINGLE_CHOICE
+ * fallback for null/undefined; fromApiString() validates untrusted strings; round-trip is lossless.
+ * Approach: Import mapper functions directly (no TestBed needed), assert exact enum/string values
+ * for all valid mappings, null/undefined, and invalid inputs.
+ */
 import { OptionSelectionType, ApiSelectionType } from '@app/shared/models/dto/option-groups/option-selection-type';
 import { toApi, fromApi, fromApiString } from './option-selection-type-mapper';
 

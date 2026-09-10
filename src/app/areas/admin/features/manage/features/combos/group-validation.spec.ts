@@ -1,3 +1,10 @@
+/**
+ * Tests for combo group validation logic.
+ *
+ * Feature: Validates wizard group drafts against product option constraints.
+ * Contract: Rejects invalid min/max values, validates selection type compatibility.
+ * Approach: Import validation functions directly, pass controlled inputs, assert results.
+ */
 import { describe, expect, it } from 'vitest';
 
 import type { WizardFormData, WizardGroupDraft } from '@app/core/services/combos/combo-wizard-state';

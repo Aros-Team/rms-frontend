@@ -1,3 +1,11 @@
+/**
+ * Tests for the OPTION_SELECTION_TYPE_CONFIG and helper functions.
+ *
+ * Feature: Maps OptionSelectionType enum values to display config (label, icon, severity, color).
+ * Contract: Each of the 4 selection types has correct config; getSelectionTypeConfig
+ * returns the right config or falls back to SINGLE_CHOICE for invalid/null/undefined.
+ * Approach: Import helpers directly (no TestBed needed), assert exact property values.
+ */
 import {
   OPTION_SELECTION_TYPE_CONFIG,
   getSelectionTypeConfig,
@@ -11,10 +19,18 @@ import { OptionSelectionType } from '@app/shared/models/dto/option-groups/option
 describe('OPTION_SELECTION_TYPE_CONFIG', () => {
   it('should have all 4 selection types defined', () => {
     expect(Object.keys(OPTION_SELECTION_TYPE_CONFIG).length).toBe(4);
-    expect(OPTION_SELECTION_TYPE_CONFIG[OptionSelectionType.SINGLE_CHOICE]).toBeDefined();
-    expect(OPTION_SELECTION_TYPE_CONFIG[OptionSelectionType.MULTI_SELECT]).toBeDefined();
-    expect(OPTION_SELECTION_TYPE_CONFIG[OptionSelectionType.EXTRA]).toBeDefined();
-    expect(OPTION_SELECTION_TYPE_CONFIG[OptionSelectionType.REMOVE]).toBeDefined();
+    expect(OPTION_SELECTION_TYPE_CONFIG[OptionSelectionType.SINGLE_CHOICE]).toEqual(
+      expect.objectContaining({ label: 'Única opción' }),
+    );
+    expect(OPTION_SELECTION_TYPE_CONFIG[OptionSelectionType.MULTI_SELECT]).toEqual(
+      expect.objectContaining({ label: 'Selección múltiple' }),
+    );
+    expect(OPTION_SELECTION_TYPE_CONFIG[OptionSelectionType.EXTRA]).toEqual(
+      expect.objectContaining({ label: 'Extra' }),
+    );
+    expect(OPTION_SELECTION_TYPE_CONFIG[OptionSelectionType.REMOVE]).toEqual(
+      expect.objectContaining({ label: 'Quitar' }),
+    );
   });
 
   it('should have correct config for SINGLE_CHOICE', () => {

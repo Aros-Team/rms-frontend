@@ -1,3 +1,10 @@
+/**
+ * Tests for the InventoryCache service.
+ *
+ * Feature: HTTP-backed cache for inventory data with stale-while-revalidate.
+ * Contract: Fetches inventory, caches with TTL, supports invalidation and refresh.
+ * Approach: Use HttpTestingController to intercept requests, assert cache signals.
+ */
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';

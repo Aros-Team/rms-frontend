@@ -1,3 +1,10 @@
+/**
+ * Tests for the CostBreakdownPanelComponent.
+ *
+ * Feature: Displays a cost breakdown table with items, types, and totals.
+ * Contract: Renders cost items in a table, calculates and displays total cost.
+ * Approach: Mount component via TestBed, set input data, assert rendered table rows and totals.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
 

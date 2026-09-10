@@ -1,3 +1,10 @@
+/**
+ * Tests for the PeriodSelector component.
+ *
+ * Feature: Date range selector for analytics periods with predefined and custom ranges.
+ * Contract: Emits selected period, handles quick ranges and custom dates, shows correct labels.
+ * Approach: Mount component via TestBed, simulate period selections, assert emitted values.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
 import { provideRouter } from '@angular/router';

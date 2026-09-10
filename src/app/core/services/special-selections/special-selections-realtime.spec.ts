@@ -1,3 +1,10 @@
+/**
+ * Tests for the SpecialSelectionsRealtime service.
+ *
+ * Feature: Real-time WebSocket updates for special selections.
+ * Contract: Subscribes to WebSocket events, updates cache on incoming data.
+ * Approach: Mock WebSocket subject, emit events, assert cache updates.
+ */
 import { TestBed } from '@angular/core/testing';
 import { Observable, Subject } from 'rxjs';
 

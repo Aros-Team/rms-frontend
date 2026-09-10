@@ -1,3 +1,10 @@
+/**
+ * Tests for the ProductCostResponse DTO type contract.
+ *
+ * Feature: TypeScript interface for product cost breakdown responses.
+ * Contract: DTO accepts expected shapes with cost items and totals.
+ * Approach: Create objects matching DTO interfaces, assert they compile and have correct properties.
+ */
 import type {
   CostItem,
   CostItemType,

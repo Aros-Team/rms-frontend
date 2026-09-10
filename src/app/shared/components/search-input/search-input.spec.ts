@@ -1,3 +1,10 @@
+/**
+ * Tests for the SearchInput component.
+ *
+ * Feature: Debounced search input with clear button.
+ * Contract: Emits search term after debounce, clears on button click, shows placeholder.
+ * Approach: Mount component via TestBed, type input, advance timers, assert emitted values.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources, Component } from '@angular/core';
 

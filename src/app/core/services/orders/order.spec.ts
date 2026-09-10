@@ -1,3 +1,10 @@
+/**
+ * Tests for the Order HTTP service.
+ *
+ * Feature: Fetches and manages orders via HTTP with logging integration.
+ * Contract: Makes correct GET requests, handles errors, integrates with Logging service.
+ * Approach: Use HttpTestingController to intercept requests, assert method and URL.
+ */
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';

@@ -1,3 +1,10 @@
+/**
+ * Tests for the GeneralStep component (combo wizard step 1).
+ *
+ * Feature: General info form for combo (name, description, image).
+ * Contract: Renders form fields, validates required fields, emits valid state.
+ * Approach: Mount component via TestBed with test host, fill fields, assert validation state.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import {
   ɵresolveComponentResources as resolveComponentResources,

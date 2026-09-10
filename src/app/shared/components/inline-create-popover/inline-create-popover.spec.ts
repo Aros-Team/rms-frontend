@@ -1,3 +1,10 @@
+/**
+ * Tests for the InlineCreatePopover component.
+ *
+ * Feature: Popover form for creating items inline (e.g., new option group).
+ * Contract: Opens/closes popover, validates fields, emits created item on submit.
+ * Approach: Mount component via TestBed, simulate open/submit, assert emitted values.
+ */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
 import { InlineCreatePopover, InlineCreateField } from './inline-create-popover';

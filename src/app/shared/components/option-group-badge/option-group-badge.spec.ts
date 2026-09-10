@@ -1,3 +1,10 @@
+/**
+ * Tests for the OptionGroupBadgeComponent.
+ *
+ * Feature: Displays a badge with option group type, label, and color.
+ * Contract: Renders correct label, icon, and severity badge for each selection type.
+ * Approach: Mount component via TestBed with test host, set input, assert rendered badge content.
+ */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources, Component } from '@angular/core';
 import { OptionGroupBadgeComponent } from './option-group-badge';

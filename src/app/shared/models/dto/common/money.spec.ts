@@ -1,3 +1,10 @@
+/**
+ * Tests for the Money DTO type contract.
+ *
+ * Feature: TypeScript interface for monetary values (amount + currency).
+ * Contract: Money objects accept numeric amounts and currency strings.
+ * Approach: Create Money objects with various values, assert they compile and hold correct data.
+ */
 import { Money } from './money';
 
 describe('Money', () => {

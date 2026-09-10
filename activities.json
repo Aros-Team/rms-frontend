@@ -316,13 +316,13 @@
       "Harness verde"
     ],
     "tasks": [
-      { "id": "a", "description": "Corregir rutas en special-selections.ts", "status": "pending", "agent": "implementer" },
-      { "id": "b", "description": "Corregir HTTP methods (PATCH → PUT)", "status": "pending", "agent": "implementer" },
-      { "id": "c", "description": "Eliminar getHistoryRange (endpoint no existe)", "status": "pending", "agent": "implementer" },
-      { "id": "d", "description": "Actualizar specs de special-selections", "status": "pending", "agent": "implementer" },
-      { "id": "e", "description": "Verify: harness verde", "status": "pending", "agent": "implementer" }
+      { "id": "a", "description": "Corregir rutas en special-selections.ts", "status": "done", "agent": "implementer" },
+      { "id": "b", "description": "Corregir HTTP methods (PATCH → PUT)", "status": "done", "agent": "implementer" },
+      { "id": "c", "description": "Eliminar getHistoryRange (endpoint no existe)", "status": "done", "agent": "implementer" },
+      { "id": "d", "description": "Actualizar specs de special-selections", "status": "done", "agent": "implementer" },
+      { "id": "e", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
     ],
-    "status": "pending"
+    "status": "done"
   },
   {
     "id": 34,
@@ -348,6 +348,29 @@
       { "id": "f", "description": "Crear componentes UI", "status": "pending", "agent": "implementer" },
       { "id": "g", "description": "Tests", "status": "pending", "agent": "implementer" },
       { "id": "h", "description": "Verify: harness verde", "status": "pending", "agent": "implementer" }
+    ],
+    "status": "pending"
+  },
+  {
+    "id": 35,
+    "type": "chore",
+    "name": "fix-test-policy-violations",
+    "title": "Corregir tests que no aprueban la testing policy",
+    "description": "Agregar headers obligatorios a todos los .spec.ts, eliminar asserts débiles (toContain como único assert de rendering,toBeTruthy como único assert), agregar httpMock.verify() donde falta, agregar resetTestingModule donde falta. Ver docs/TEST_POLICY_VIOLATIONS.md para la lista completa.",
+    "acceptance": [
+      "Todos los .spec.ts tienen header con feature/contract/approach",
+      "WEAK_RENDER_ASSERT eliminado: usar selector contextual en vez detoContain",
+      "WEAK_EXIST_ASSERT eliminado: assert valor exacto en vez detoBeTruthy",
+      "httpMock.verify() en afterEach de todos los tests HTTP",
+      "resetTestingModule entre tests de TestBed",
+      "Harness verde"
+    ],
+    "tasks": [
+      { "id": "a", "description": "Agregar headers a todos los .spec.ts (60 archivos)", "status": "pending", "agent": "implementer" },
+      { "id": "b", "description": "Corregir WEAK_RENDER_ASSERT (money, operations, cohort, alerts)", "status": "pending", "agent": "implementer" },
+      { "id": "c", "description": "Corregir WEAK_EXIST_ASSERT (app, skeleton, helper, selection-list, nav, theme)", "status": "pending", "agent": "implementer" },
+      { "id": "d", "description": "Agregar httpMock.verify() y resetTestingModule donde falta", "status": "pending", "agent": "implementer" },
+      { "id": "e", "description": "Verify: harness verde", "status": "pending", "agent": "implementer" }
     ],
     "status": "pending"
   }

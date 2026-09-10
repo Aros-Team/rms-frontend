@@ -1,3 +1,10 @@
+/**
+ * Tests for the ProductCache service.
+ *
+ * Feature: HTTP-backed cache for product data with invalidation on mutations.
+ * Contract: Fetches products, caches, invalidates on create/update/delete, refreshes on demand.
+ * Approach: Use HttpTestingController to intercept requests, assert cache state and HTTP calls.
+ */
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';

@@ -1,3 +1,10 @@
+/**
+ * Tests for the ProductCard component.
+ *
+ * Feature: Displays a product summary card with name, price, and status.
+ * Contract: Renders product name, formatted price, and active/inactive status badge.
+ * Approach: Mount component via TestBed with test host, set product input, assert rendered content.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources, Component } from '@angular/core';
 

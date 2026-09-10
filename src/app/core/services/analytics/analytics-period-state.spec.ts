@@ -1,3 +1,10 @@
+/**
+ * Tests for the AnalyticsPeriodState service.
+ *
+ * Feature: Manages analytics period selection state with signals and persistence.
+ * Contract: Tracks current period, supports quick ranges and custom dates, persists to localStorage.
+ * Approach: Inject service via TestBed, manipulate period state, assert signal values.
+ */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AnalyticsPeriodState } from './analytics-period-state';

@@ -1,3 +1,17 @@
+/**
+ * Tests for the Money pipe.
+ *
+ * Feature: Formats Money DTOs into locale-aware COP/USD strings.
+ * Contract:
+ *  - null/undefined → em dash ("—")
+ *  - COP → "$1.234" (no decimals, thousands separator)
+ *  - USD → "$1.000,00" (2 decimals)
+ *  - Invalid amount → em dash
+ *  - Unknown currency → currency-prefixed raw amount fallback
+ *
+ * Approach: Instantiate pipe directly (no TestBed needed for pure pipes),
+ * call transform() with controlled inputs, assert exact output strings.
+ */
 import { describe, expect, it } from 'vitest';
 
 import { Money as MoneyModel } from '@app/shared/models/dto/analytics/money';
@@ -18,18 +32,14 @@ describe('Money', () => {
     const value: MoneyModel = { amount: '1234.40', currency: 'COP' };
     const result = pipe.transform(value);
 
-    expect(result).toContain('$');
-    expect(result).not.toContain(',40');
-    expect(result).not.toContain('.40');
-    expect(result).toContain('1.234');
+    expect(result).toMatch(/^\$\s?1\.234$/);
   });
 
   it('formats USD with currency symbol and 2 decimal places', () => {
     const value: MoneyModel = { amount: '1000.00', currency: 'USD' };
     const result = pipe.transform(value);
 
-    expect(result).toContain('1.000');
-    expect(result).toContain(',00');
+    expect(result).toMatch(/^US\$\s?1\.000,00$/);
   });
 
   it('returns em dash when amount is not a valid number', () => {
@@ -41,15 +51,13 @@ describe('Money', () => {
     const value: MoneyModel = { amount: '0', currency: 'COP' };
     const result = pipe.transform(value);
 
-    expect(result).toContain('$');
-    expect(result).not.toContain('.00');
+    expect(result).toMatch(/^\$\s?0$/);
   });
 
   it('falls back to currency-prefixed raw amount when locale formatting fails', () => {
     const value: MoneyModel = { amount: '7', currency: 'XYZ' };
     const result = pipe.transform(value);
 
-    expect(result).toContain('XYZ');
-    expect(result).toContain('7');
+    expect(result).toMatch(/^XYZ\s?7,00$/);
   });
 });

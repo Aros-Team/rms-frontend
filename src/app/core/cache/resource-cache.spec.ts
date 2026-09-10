@@ -1,3 +1,13 @@
+/**
+ * Tests for the ResourceCache service.
+ *
+ * Feature: Generic cache wrapper over HTTP observables with TTL, stale-while-revalidate,
+ * in-flight cancellation, and version isolation on reset/invalidate.
+ * Contract: load() fetches and caches data; invalidate() cancels in-flight and keeps data;
+ * reset() cancels and clears; refresh() cancels and re-fetches; late responses are ignored.
+ * Approach: Use HttpTestingController to intercept requests, assert cache signals
+ * (data, status, hasData) and request cancellation states.
+ */
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { HttpClient, provideHttpClient } from '@angular/common/http';
@@ -17,6 +27,7 @@ describe('ResourceCache', () => {
   const freshSample: Sample = { id: 1, label: 'fresh' };
 
   beforeEach(() => {
+    TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });

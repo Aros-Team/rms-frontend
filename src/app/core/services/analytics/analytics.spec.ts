@@ -1,3 +1,10 @@
+/**
+ * Tests for the Analytics HTTP service.
+ *
+ * Feature: Fetches analytics data (prime cost, menu engineering, cohort, alerts) via HTTP.
+ * Contract: Makes correct GET requests, maps responses, handles errors.
+ * Approach: Use HttpTestingController to intercept requests, assert method, URL, and params.
+ */
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';

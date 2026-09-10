@@ -1,3 +1,10 @@
+/**
+ * Tests for the ComboSubmission service.
+ *
+ * Feature: Validates and submits combo wizard data to the API.
+ * Contract: Validates form data, posts to API, handles errors, navigates on success.
+ * Approach: Inject service via TestBed, call submit with controlled data, assert API calls.
+ */
 import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { Router } from '@angular/router';

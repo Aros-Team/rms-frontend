@@ -1,3 +1,11 @@
+/**
+ * Tests for the AnalyticsNav component.
+ *
+ * Feature: Renders a two-tab navigation bar for analytics sections (Rentabilidad, Tu carta).
+ * Contract: Nav has aria-label, two links with correct labels, hrefs, and icons.
+ * Approach: Mount component via TestBed with router, query nav elements,
+ * assert exact text, hrefs, aria-labels, and icon classes.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
 import { provideRouter } from '@angular/router';
@@ -34,7 +42,7 @@ describe('AnalyticsNav', () => {
 
   it('renders the navigation with the analytics sections aria label', () => {
     const nav = getRoot().querySelector('nav');
-    expect(nav).toBeTruthy();
+    expect(nav).not.toBeNull();
     expect(nav?.getAttribute('aria-label')).toBe('Secciones de estadísticas');
   });
 

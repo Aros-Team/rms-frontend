@@ -1,3 +1,10 @@
+/**
+ * Tests for the Supply HTTP service.
+ *
+ * Feature: CRUD operations for supply items via HTTP.
+ * Contract: Makes correct GET/POST/PUT/DELETE requests with proper URLs and bodies.
+ * Approach: Use HttpTestingController to intercept requests, assert method, URL, and body.
+ */
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';

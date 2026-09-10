@@ -1,3 +1,10 @@
+/**
+ * Integration tests for the Analytics service with full HTTP interceptor chain.
+ *
+ * Feature: Analytics service with API interceptor that may add prefix.
+ * Contract: Requests reach the correct URL without double-prefix bugs.
+ * Approach: Use HttpTestingController with real interceptors, assert matched request URLs.
+ */
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';

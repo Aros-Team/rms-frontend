@@ -1,3 +1,13 @@
+/**
+ * Tests for the OptionSelectionList component.
+ *
+ * Feature: Renders radio buttons (SINGLE_CHOICE) or checkboxes (MULTI_SELECT)
+ * for a list of selection options, with support for extra prices and disabled state.
+ * Contract: Correct input type rendered per selection type, selectionChange emits
+ * expected ids, disabled options get opacity-50, extra prices shown when > 0.
+ * Approach: Mount component via TestBed, configure selectionType and options per test,
+ * query DOM for PrimeNG elements, assert exact counts and emitted values.
+ */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
 import { OptionSelectionType } from '@app/shared/models/dto/option-groups/option-selection-type';
@@ -43,7 +53,7 @@ describe('OptionSelectionList', () => {
   }
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+    expect(component).toBeInstanceOf(OptionSelectionList);
   });
 
   it('should have selector app-option-selection-list', () => {

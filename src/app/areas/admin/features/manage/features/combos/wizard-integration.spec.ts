@@ -1,3 +1,10 @@
+/**
+ * Tests for the combo wizard integration (full wizard flow).
+ *
+ * Feature: End-to-end wizard flow from general step to submission.
+ * Contract: Steps advance correctly, data persists across steps, submission posts to API.
+ * Approach: Mount wizard via TestBed, step through all steps, assert final API call.
+ */
 import { TestBed } from '@angular/core/testing';
 import {
   ɵresolveComponentResources as resolveComponentResources,

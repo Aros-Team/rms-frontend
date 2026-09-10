@@ -1,3 +1,10 @@
+/**
+ * Tests for the MenuEngineering analytics page.
+ *
+ * Feature: Displays menu engineering matrix (stars, plowhorses, puzzles, dogs).
+ * Contract: Loads analytics data, renders KPI cards and chart with correct values.
+ * Approach: Mount component via TestBed, mock HTTP responses, assert rendered KPI values.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import {
   ɵresolveComponentResources as resolveComponentResources,

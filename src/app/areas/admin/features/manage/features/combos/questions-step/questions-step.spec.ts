@@ -1,3 +1,10 @@
+/**
+ * Tests for the QuestionsStep component (combo wizard step 4).
+ *
+ * Feature: Optional questions/notes configuration for combo products.
+ * Contract: Renders question fields, allows add/remove, emits question data.
+ * Approach: Mount component via TestBed with test host, manage questions, assert state.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import {
   ɵresolveComponentResources as resolveComponentResources,

@@ -1,3 +1,10 @@
+/**
+ * Tests for concurrent access patterns of ResourceCache.
+ *
+ * Feature: Thread-safety of cache load/invalidate/reset under rapid successive calls.
+ * Contract: Concurrent loads don't duplicate requests; rapid reset/invalidate sequences are safe.
+ * Approach: Create cache with controlled observables, trigger concurrent operations, assert state.
+ */
 import { describe, expect, it, vi } from 'vitest';
 import { Subject } from 'rxjs';
 
