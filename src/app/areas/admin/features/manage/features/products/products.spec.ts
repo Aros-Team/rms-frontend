@@ -832,26 +832,26 @@ describe('Products wizard — existing recipe rows', () => {
   });
 
   describe('Mostrar inactivos toggle', () => {
-    it('setIncludeInactive(true) flips the signal and propagates includeInactive=true with page=0 to the cache', () => {
+    it('setIncludeInactive(true) flips the signal and propagates inactiveOnly+includeInactive to cache', () => {
       const env = setupComponent();
 
       env.component.setIncludeInactive(true);
 
       expect(env.component.includeInactive()).toBe(true);
-      expect(env.cacheStub.setProductListParams).toHaveBeenCalledWith({ includeInactive: true, page: 0 });
+      expect(env.cacheStub.setProductListParams).toHaveBeenCalledWith({ inactiveOnly: true, includeInactive: true, page: 0 });
     });
 
-    it('setIncludeInactive(false) flips the signal and propagates includeInactive=false with page=0 to the cache', () => {
+    it('setIncludeInactive(false) flips the signal and resets inactiveOnly+includeInactive', () => {
       const env = setupComponent();
 
       env.component.setIncludeInactive(true);
       env.component.setIncludeInactive(false);
 
       expect(env.component.includeInactive()).toBe(false);
-      expect(env.cacheStub.setProductListParams).toHaveBeenLastCalledWith({ includeInactive: false, page: 0 });
+      expect(env.cacheStub.setProductListParams).toHaveBeenLastCalledWith({ inactiveOnly: false, includeInactive: false, page: 0 });
     });
 
-    it('setIncludeInactive propagates includeInactive to cache params', () => {
+    it('setIncludeInactive(true) filters products to show only inactive ones', () => {
       const env = setupComponent();
       const fixture: ProductResponse[] = [
         { id: 1, name: 'Activo', basePrice: 5, active: true, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
@@ -868,10 +868,10 @@ describe('Products wizard — existing recipe rows', () => {
 
       env.component.setIncludeInactive(true);
 
-      expect(env.cacheStub.setProductListParams).toHaveBeenLastCalledWith({ includeInactive: true, page: 0 });
+      expect(env.cacheStub.setProductListParams).toHaveBeenLastCalledWith({ inactiveOnly: true, includeInactive: true, page: 0 });
       const products = env.component.products();
-      expect(products).toHaveLength(3);
-      expect(products?.map((p) => p.id)).toEqual([1, 2, 3]);
+      expect(products).toHaveLength(2);
+      expect(products?.map((p) => p.id)).toEqual([2, 3]);
     });
   });
 
