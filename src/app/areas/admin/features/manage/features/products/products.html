@@ -9,45 +9,8 @@
     </div>
   </div>
 
-  <!-- Tab navigation -->
-  <nav aria-label="Navegación de productos">
-    <div class="flex gap-1 mb-4 border-b border-surface-200 dark:border-surface-700" role="tablist">
-      <button
-        role="tab"
-        id="tab-products"
-        aria-controls="tabpanel-products"
-        [attr.aria-selected]="activeProductTab() === 'products'"
-        class="px-4 py-2 text-sm font-medium rounded-t-lg border border-b-0 transition-colors cursor-pointer"
-        [ngClass]="{
-          'bg-primary-contrast dark:bg-surface-800 text-primary border-surface-200 dark:border-surface-700': activeProductTab() === 'products',
-          'bg-transparent text-surface-500 border-transparent hover:text-surface-700 dark:hover:text-surface-300': activeProductTab() !== 'products'
-        }"
-        (click)="activeProductTab.set('products')"
-      >Productos</button>
-      <button
-        role="tab"
-        id="tab-option-groups"
-        aria-controls="tabpanel-option-groups"
-        [attr.aria-selected]="activeProductTab() === 'option-groups'"
-        class="px-4 py-2 text-sm font-medium rounded-t-lg border border-b-0 transition-colors cursor-pointer"
-        [ngClass]="{
-          'bg-primary-contrast dark:bg-surface-800 text-primary border-surface-200 dark:border-surface-700': activeProductTab() === 'option-groups',
-          'bg-transparent text-surface-500 border-transparent hover:text-surface-700 dark:hover:text-surface-300': activeProductTab() !== 'option-groups'
-        }"
-        (click)="activeProductTab.set('option-groups')"
-      >Grupos de Opciones</button>
-    </div>
-  </nav>
-
-  @if (activeProductTab() === 'products') {
-  <div
-    id="tabpanel-products"
-    role="tabpanel"
-    aria-labelledby="tab-products"
-    class="flex-1 min-h-0 overflow-auto"
-  >
-    <!-- Table -->
-    <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 overflow-hidden">
+  <!-- Table -->
+  <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 overflow-hidden">
     <p-table
       #dt1
       [value]="products() ?? []"
@@ -112,10 +75,15 @@
           <td>{{ product.categoryName }}</td>
           <td>
             <div class="flex gap-1 items-center justify-center">
-              <p-button icon="pi pi-eye" severity="secondary" size="small" [text]="true"
-                pTooltip="Ver detalles" tooltipPosition="top" (click)="showDetailDialog(product)" />
-              <p-button icon="pi pi-pencil" severity="warn" size="small" [text]="true"
-                pTooltip="Editar" tooltipPosition="top" (click)="showModificationModal(product.id)" />
+              <p-button
+                icon="pi pi-book"
+                [rounded]="true"
+                [text]="true"
+                severity="info"
+                pTooltip="Ver receta"
+                tooltipPosition="top"
+                [routerLink]="['/admin/manage/products', product.id, 'recipe']"
+              />
               @if (includeInactive()) {
                 <p-button icon="pi pi-check-circle" severity="success" size="small" [text]="true"
                   pTooltip="Activar" tooltipPosition="top"
@@ -143,26 +111,13 @@
       </ng-template>
     </p-table>
   </div>
-  </div>
-  }
-
-  @if (activeProductTab() === 'option-groups') {
-  <div
-    id="tabpanel-option-groups"
-    role="tabpanel"
-    aria-labelledby="tab-option-groups"
-    class="flex-1 min-h-0 overflow-auto"
-  >
-    <app-option-groups-view />
-  </div>
-  }
 </div>
 
 <!-- ════════════════════════════════════════════════
      MODAL WIZARD
 ════════════════════════════════════════════════ -->
 <p-dialog [modal]="true" [(visible)]="modalIsOpen"
-  [header]="modalMode() === 'edit' ? 'Editar producto' : 'Crear producto'"
+  header="Crear producto"
   draggable="false" closable="false" styleClass="w-[90vw] max-w-[700px]" appendTo="body">
 
   <!-- Indicador de pasos -->
@@ -663,17 +618,6 @@
   [initialEstimate]="prepTimeInitialEstimate()"
   (visibleChange)="prepTimeDialogOpen.set($event)"
   (estimateApplied)="applyPrepTime($event)"
-/>
-
-<!-- ════════════════════════════════════════════════
-     DIALOG DETALLES DE PRODUCTO
-════════════════════════════════════════════════ -->
-<app-product-detail-dialog
-  [product]="detailProduct()"
-  [visible]="detailDialogOpen"
-  (visibleChange)="detailDialogOpen.set($event)"
-  (editProduct)="showModificationModal($event)"
-  (productUpdated)="onProductUpdated()"
 />
 
 <p-confirmpopup />

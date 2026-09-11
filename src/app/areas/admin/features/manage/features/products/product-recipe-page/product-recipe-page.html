@@ -1,0 +1,312 @@
+<p-toast />
+
+<div class="recipe-page">
+  <!-- Header -->
+  <header class="recipe-header">
+    <div class="recipe-header-left">
+      <p-button
+        label="Volver a productos"
+        icon="pi pi-arrow-left"
+        [text]="true"
+        (onClick)="goBack()"
+      />
+      <div class="recipe-header-info">
+        <h1 class="recipe-title">{{ formData().name }}</h1>
+        @if (product()) {
+          <p-tag
+            [value]="product()!.active ? 'Activo' : 'Inactivo'"
+            [severity]="product()!.active ? 'success' : 'warn'"
+          />
+        }
+      </div>
+    </div>
+    <p-button
+      label="Guardar cambios"
+      icon="pi pi-check"
+      severity="primary"
+      (onClick)="save()"
+      [loading]="saving()"
+    />
+  </header>
+
+  @if (loading()) {
+    <div class="recipe-loading">
+      <p-skeleton width="100%" height="200px" />
+    </div>
+  } @else {
+    <!-- Section 1: Datos básicos -->
+    <section class="recipe-section">
+      <p-card title="Datos Básicos">
+        <div class="recipe-form-grid">
+          <div class="recipe-form-field">
+            <label for="name" class="recipe-label">Nombre</label>
+            <input
+              pInputText
+              id="name"
+              [ngModel]="formData().name"
+              (ngModelChange)="formData.update(fd => ({ ...fd, name: $event }))"
+              class="w-full"
+            />
+          </div>
+
+          <div class="recipe-form-field">
+            <label for="description" class="recipe-label">Descripción</label>
+            <textarea
+              pTextarea
+              id="description"
+              [ngModel]="formData().description"
+              (ngModelChange)="formData.update(fd => ({ ...fd, description: $event }))"
+              rows="3"
+              class="w-full"
+            ></textarea>
+          </div>
+
+          <div class="recipe-form-field">
+            <label for="category" class="recipe-label">Categoría</label>
+            <p-select
+              id="category"
+              [options]="categoryOptions()"
+              [ngModel]="formData().categoryId"
+              (ngModelChange)="formData.update(fd => ({ ...fd, categoryId: $event }))"
+              placeholder="Seleccionar categoría"
+              optionLabel="label"
+              optionValue="value"
+              class="w-full"
+            />
+          </div>
+
+          <div class="recipe-form-field">
+            <label for="area" class="recipe-label">Área</label>
+            <p-select
+              id="area"
+              [options]="areaOptions()"
+              [ngModel]="formData().areaId"
+              (ngModelChange)="formData.update(fd => ({ ...fd, areaId: $event }))"
+              placeholder="Seleccionar área"
+              optionLabel="label"
+              optionValue="value"
+              class="w-full"
+            />
+          </div>
+
+          <div class="recipe-form-field">
+            <label for="prepTime" class="recipe-label">Tiempo de preparación</label>
+            <p-inputNumber
+              id="prepTime"
+              [ngModel]="formData().estimatedPrepMinutes"
+              (ngModelChange)="formData.update(fd => ({ ...fd, estimatedPrepMinutes: $event }))"
+              suffix=" min"
+              [min]="0"
+              class="w-full"
+            />
+          </div>
+
+          <div class="recipe-form-field">
+            <label for="active" class="recipe-label">Activo</label>
+            <p-toggleswitch
+              id="active"
+              [ngModel]="formData().active"
+              (ngModelChange)="formData.update(fd => ({ ...fd, active: $event }))"
+            />
+          </div>
+        </div>
+      </p-card>
+    </section>
+
+    <!-- Section 2: Imagen -->
+    <section class="recipe-section">
+      <p-card title="Imagen del Producto">
+        <div class="recipe-image-area">
+          @if (images().length > 0) {
+            <div class="recipe-image-preview">
+              <img [src]="images()[0].desktopUrl" alt="Imagen del producto" />
+            </div>
+          } @else {
+            <div class="recipe-image-placeholder">
+              <i class="pi pi-image"></i>
+              <span>Sin imagen</span>
+            </div>
+          }
+
+          <div class="recipe-image-actions">
+            <label class="p-button p-button-outlined">
+              <i class="pi pi-upload"></i>
+              <span>Subir imagen</span>
+              <input
+                type="file"
+                accept="image/*"
+                (change)="onImageSelect($event)"
+                class="recipe-file-input"
+              />
+            </label>
+
+            @if (images().length > 0) {
+              <p-button
+                label="Eliminar imagen"
+                icon="pi pi-trash"
+                severity="danger"
+                [outlined]="true"
+                (onClick)="deleteImage(images()[0].id)"
+              />
+            }
+          </div>
+        </div>
+      </p-card>
+    </section>
+
+    <!-- Section 3: Receta / Insumos -->
+    <section class="recipe-section recipe-section--prominent">
+      <p-card title="Receta e Insumos">
+        <p-table [value]="recipeItems()" styleClass="p-datatable-sm">
+          <ng-template #header>
+            <tr>
+              <th>Insumo</th>
+              <th>Cantidad</th>
+              <th>Unidad</th>
+              <th>Costo Parcial</th>
+              <th></th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-item let-index="index">
+            <tr>
+              <td>
+                <p-select
+                  [options]="supplyVariants()"
+                  [ngModel]="item.supplyVariantId"
+                  (ngModelChange)="updateRecipeVariant(index, $event)"
+                  optionLabel="displayName"
+                  optionValue="id"
+                  placeholder="Buscar insumo"
+                  [filter]="true"
+                  filterBy="displayName"
+                  class="w-full"
+                />
+              </td>
+              <td>
+                <p-inputNumber
+                  [ngModel]="item.requiredQuantity"
+                  (ngModelChange)="updateRecipeQuantity(index, $event)"
+                  [min]="0"
+                  [minFractionDigits]="0"
+                  [maxFractionDigits]="3"
+                  mode="decimal"
+                />
+              </td>
+              <td>{{ getVariantUnit(item.supplyVariantId) }}</td>
+              <td>{{ formatMoney(getPartialCost(item.supplyVariantId, item.requiredQuantity)) }}</td>
+              <td>
+                <p-button
+                  icon="pi pi-trash"
+                  [text]="true"
+                  severity="danger"
+                  (onClick)="removeRecipeItem(index)"
+                  pTooltip="Eliminar insumo"
+                />
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template #emptymessage>
+            <tr>
+              <td colspan="5" class="recipe-empty">
+                <i class="pi pi-plus-circle"></i>
+                <span>Agrega insumos a la receta usando el botón de abajo</span>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template #summary>
+            @if (recipeItems().length > 0) {
+              <div class="recipe-summary">
+                <span>Total de receta:</span>
+                <strong>{{ formatMoney(recipeTotal()) }}</strong>
+              </div>
+            }
+          </ng-template>
+        </p-table>
+      </p-card>
+    </section>
+
+    <!-- Section 4: Precio de Venta -->
+    <section class="recipe-section">
+      <p-card title="Precio de Venta">
+        <div class="recipe-pricing">
+          <div class="recipe-pricing-row">
+            <span class="recipe-label">Costo de producción oficial</span>
+            <span class="recipe-pricing-value">
+              {{ cost() ? formatMoney(cost()!.totalCost) : '—' }}
+            </span>
+          </div>
+
+          <div class="recipe-pricing-row">
+            <label for="salePrice" class="recipe-label">Precio de venta actual</label>
+            <p-inputNumber
+              id="salePrice"
+              [ngModel]="salePrice()"
+              (ngModelChange)="salePrice.set($event)"
+              mode="currency"
+              currency="COP"
+              locale="es-CO"
+              [min]="0"
+            />
+          </div>
+
+          <div class="recipe-pricing-row">
+            <span class="recipe-label">Precio sugerido (costo × 1.3)</span>
+            <div class="recipe-pricing-suggestion">
+              <span class="recipe-pricing-value">
+                {{ suggestedSalePrice() > 0 ? formatMoney(suggestedSalePrice()) : '—' }}
+              </span>
+              @if (suggestedSalePrice() > 0) {
+                <p-button
+                  label="Usar sugerido"
+                  [text]="true"
+                  size="small"
+                  (onClick)="salePrice.set(suggestedSalePrice())"
+                />
+              }
+            </div>
+          </div>
+        </div>
+      </p-card>
+    </section>
+
+    <!-- Section 5: Grupos de Opciones -->
+    <section class="recipe-section">
+      <p-card title="Grupos de Opciones">
+        @if (optionGroups().length > 0) {
+          <div class="recipe-option-groups">
+            @for (group of optionGroups(); track group.id) {
+              <div class="recipe-option-group-row">
+                <div class="recipe-option-group-info">
+                  <span class="recipe-option-group-name">{{ group.name }}</span>
+                  <app-option-group-badge [selectionType]="fromApiMapper(group.selectionType)" size="sm" />
+                  @if (group.description) {
+                    <span class="recipe-option-group-desc">{{ group.description }}</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="recipe-empty-text">No hay grupos de opciones asignados a este producto.</p>
+        }
+
+        <div class="recipe-create-group">
+          <app-inline-create-popover
+            title="Crear grupo de opciones"
+            [fields]="createGroupFields"
+            submitLabel="Crear grupo"
+            [submitting]="inlineCreateSubmitting"
+            (submitted)="createOptionGroup($event)"
+          />
+        </div>
+      </p-card>
+    </section>
+
+    <!-- Section 6: Costo de Producción -->
+    <section class="recipe-section">
+      <p-card title="Costo de Producción">
+        <app-cost-breakdown-panel [breakdown]="costBreakdown()" />
+      </p-card>
+    </section>
+  }
+</div>

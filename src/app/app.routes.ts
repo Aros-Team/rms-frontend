@@ -59,6 +59,10 @@ export const routes: Routes = [
             loadComponent: () => import('@areas/admin/features/manage/features/products/products').then(m => m.Products),
           },
           {
+            path: 'products/:id/recipe',
+            loadComponent: () => import('@areas/admin/features/manage/features/products/product-recipe-page/product-recipe-page').then(m => m.ProductRecipePage),
+          },
+          {
             path: 'categories',
             loadComponent: () => import('@areas/admin/features/manage/features/categories/categories').then(m => m.Categories),
           },

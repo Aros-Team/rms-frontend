@@ -1,5 +1,4 @@
 import { Component, inject, OnInit, signal, computed, effect, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
-import { NgClass } from '@angular/common';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, FormArray, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -13,7 +12,6 @@ import { ProductCache } from './product-cache';
 import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 import { ProductOption } from '@app/core/services/product-option/product-option';
 import { WebSocket } from '@app/core/services/websocket/websocket';
-import { OptionGroup } from '@app/core/services/option-group/option-group';
 import { OptionsChangedPayload } from './step3-options/step3-options';
 import { Step3Options } from './step3-options/step3-options';
 import { mapHttpError } from '@app/shared/lib/http-error-mapper/http-error-mapper';
@@ -52,8 +50,6 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 
 import { PrepTimeDialog, type PrepTimeEstimate } from './componentes/prep-time-dialog/prep-time-dialog';
-import { ProductDetailDialog } from './componentes/product-detail-dialog/product-detail-dialog';
-import { OptionGroupsView } from './product-option-groups/product-option-groups';
 
 // Wizard steps: 1=basic data+image, 2=insumos, 3=options, 4=finalize
 type WizardStep = 1 | 2 | 3 | 4 | 5;
@@ -99,7 +95,6 @@ interface OptionFormValue {
   selector: 'app-products',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    NgClass,
     RouterModule,
     ReactiveFormsModule,
     FormsModule,
@@ -125,10 +120,8 @@ interface OptionFormValue {
     ImageModule,
     ConfirmPopupModule,
     PrepTimeDialog,
-    ProductDetailDialog,
     SearchInputComponent,
     Step3Options,
-    OptionGroupsView,
   ],
   templateUrl: './products.html',
   providers: [MessageService, ConfirmationService],
@@ -144,13 +137,9 @@ export class Products implements OnInit {
   private wsService = inject(WebSocket);
   readonly cache = inject(ProductCache);
   readonly imageService = inject(ProductImage);
-  private optionGroupService = inject(OptionGroup);
 
   title = 'Carta de Productos';
   currencyFormat = Intl.NumberFormat('es-Co', { style: 'currency', currency: 'COP' });
-
-  // Tab navigation
-  activeProductTab = signal<'products' | 'option-groups'>('products');
 
   // Table - usando cache service
   filterCategories = new FormControl<number[]>([], []);
@@ -270,10 +259,6 @@ export class Products implements OnInit {
   private existingRecipeCategoryMap = new Map<number, number | null>();
   private existingRecipeRowIds: number[] = [];
   private nextExistingRecipeRowId = 1;
-
-  // Detail dialog
-  detailDialogOpen = signal(false);
-  detailProduct = signal<ProductResponse | null>(null);
 
   // Wizard images state
   wizardProductImages = signal<ProductImageResponse[]>([]);
@@ -532,65 +517,6 @@ export class Products implements OnInit {
     // + areaId. The previous draft-on-entry approach was removed because
     // the backend's `ProductRequest` validation rejects the placeholder
     // payload (e.g. `basePrice: 0` due to `@Positive`).
-  }
-
-  showModificationModal(id: number): void {
-    this.cost.set(null);
-    this.costLoading.set(false);
-    this.costError.set(null);
-    this.salePrice.set(0);
-    this.prepTimeEstimate.set(null);
-    this.cache.referenceData.loadIfStale();
-    this.baseForm.reset();
-    this.baseRecipe.clear();
-    this.optionsArray.clear();
-    this.createdProduct.set(null);
-    this.existingOptions.set([]);
-    this.optionGroups.set([]);
-    this.existingRecipe.clear();
-    this.existingRecipeCategoryMap.clear();
-    this.existingRecipeRowIds = [];
-    this.nextExistingRecipeRowId = 1;
-    this.selectedOptionIds.set([]);
-    this.baseRecipeCategoryMap.clear();
-    this.optionRecipeCategoryMap.clear();
-    this.currentStep.set(1);
-    this.modalMode.set('edit');
-    this.productService.findProduct(id).pipe(
-      switchMap(p => {
-        this.salePrice.set(p.basePrice);
-        this.baseForm.patchValue({
-          id: p.id, name: p.name, description: p.description ?? '',
-          estimatedPrepMinutes: p.estimatedPrepMinutes ?? null,
-          categoryId: p.categoryId, areaId: p.areaId,
-        });
-        for (const item of p.recipe) {
-          const rowId = this.nextExistingRecipeRowId++;
-          this.existingRecipeRowIds.push(rowId);
-          this.existingRecipe.push(this.fb.group({
-            supplyVariantId: [item.supplyVariantId, (control: AbstractControl) => Validators.required(control)],
-            requiredQuantity: [item.requiredQuantity, [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.min(0.001)(control)]],
-          }));
-          const variant = this.supplyVariantOptions().find(v => v.id === item.supplyVariantId);
-          this.existingRecipeCategoryMap.set(rowId, variant ? variant.categoryId : null);
-        }
-        this.baseRecipe.clear();
-        this.baseRecipeCategoryMap.clear();
-        this.createdProduct.set(p);
-        if (p.id) {
-          this.loadWizardProductImages(p.id);
-          this.loadProductCost(p.id);
-          this.loadOptionGroups(p.id);
-        }
-        return this.masterDataService.getProductOptions(p.id).pipe(
-          catchError(() => of([]))
-        );
-      })
-    ).subscribe(opts => {
-      this.existingOptions.set(opts);
-      this.selectedOptionIds.set(opts.map(o => o.id));
-      this.modalIsOpen.set(true);
-    });
   }
 
   /**
@@ -1131,15 +1057,6 @@ export class Products implements OnInit {
     });
   }
 
-  loadOptionGroups(productId: number): void {
-    if (!productId) { this.optionGroups.set([]); return; }
-    this.optionGroupService.getProductOptionGroups(productId).pipe(
-      catchError(() => of([]))
-    ).subscribe(groups => {
-      this.optionGroups.set(groups);
-    });
-  }
-
   /**
    * Stages a new image for later upload. If the product hasn't been created
    * server-side yet (create mode, no draft), a draft product is created
@@ -1266,16 +1183,6 @@ export class Products implements OnInit {
     }
     this.stagedNewImages.set([]);
     this.stagedDeletedImageIds.set([]);
-  }
-
-  showDetailDialog(product: ProductResponse): void {
-    this.detailProduct.set(product);
-    this.detailDialogOpen.set(true);
-  }
-
-  closeDetailDialog(): void {
-    this.detailDialogOpen.set(false);
-    this.detailProduct.set(null);
   }
 
   /** Returns the table-row image src with a cache-busting query param
@@ -1447,9 +1354,5 @@ export class Products implements OnInit {
       this.newOptionDialogOpen.set(false);
       this.messageService.add({ severity: 'success', summary: 'Opción creada', detail: `"${name}" agregada correctamente` });
     });
-  }
-
-  onProductUpdated(): void {
-    this.refreshProducts();
   }
 }

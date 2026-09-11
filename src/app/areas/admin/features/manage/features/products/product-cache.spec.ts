@@ -63,24 +63,24 @@ describe('ProductCache', () => {
     vi.useRealTimers();
   });
 
-  it('setProductListParams({ includeInactive: true }) calls Product.getProductsPaginated with includeInactive=true', () => {
-    cache.setProductListParams({ includeInactive: true });
+  it('setProductListParams({ page: 1 }) calls Product.getProductsPaginated with page=1', () => {
+    cache.setProductListParams({ page: 1 });
 
-    expect(productStub.getProductsPaginated).toHaveBeenCalledWith(0, 6, true, undefined, undefined);
+    expect(productStub.getProductsPaginated).toHaveBeenCalledWith(1, 6, true, undefined, undefined);
     expect(cache.products.hasData()).toBe(true);
     httpMock.expectNone('v1/products');
   });
 
-  it('setProductListParams({ includeInactive: false }) calls Product.getProductsPaginated with includeInactive=false', () => {
-    cache.setProductListParams({ includeInactive: false });
+  it('setProductListParams({ size: 10 }) calls Product.getProductsPaginated with size=10', () => {
+    cache.setProductListParams({ size: 10 });
 
-    expect(productStub.getProductsPaginated).toHaveBeenCalledWith(0, 6, false, undefined, undefined);
+    expect(productStub.getProductsPaginated).toHaveBeenCalledWith(0, 10, true, undefined, undefined);
     expect(cache.products.hasData()).toBe(true);
     httpMock.expectNone('v1/products');
   });
 
-  it('setProductListParams({ page: 2, size: 10, includeInactive: true }) propagates all three args', () => {
-    cache.setProductListParams({ page: 2, size: 10, includeInactive: true });
+  it('setProductListParams({ page: 2, size: 10 }) propagates both args', () => {
+    cache.setProductListParams({ page: 2, size: 10 });
 
     expect(productStub.getProductsPaginated).toHaveBeenCalledWith(2, 10, true, undefined, undefined);
     expect(cache.products.hasData()).toBe(true);
@@ -90,7 +90,7 @@ describe('ProductCache', () => {
   it('setProductListParams({ search: "foo" }) calls Product.getProductsPaginated with search: "foo"', () => {
     cache.setProductListParams({ search: 'foo' });
 
-    expect(productStub.getProductsPaginated).toHaveBeenCalledWith(0, 6, false, undefined, 'foo');
+    expect(productStub.getProductsPaginated).toHaveBeenCalledWith(0, 6, true, undefined, 'foo');
     expect(cache.products.hasData()).toBe(true);
     httpMock.expectNone('v1/products');
   });

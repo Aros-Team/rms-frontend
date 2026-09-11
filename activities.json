@@ -373,5 +373,46 @@
       { "id": "e", "description": "Verify: harness verde", "status": "pending", "agent": "implementer" }
     ],
     "status": "pending"
+  },
+  {
+    "id": 36,
+    "type": "feat",
+    "name": "product-recipe-page",
+    "title": "Página dedicada 'Ver Receta' para edición de productos",
+    "description": "Reemplazar 'Ver detalles' + 'Editar' (wizard) + tab 'Grupos de Opciones' por una página dedicada /admin/manage/products/:id/recipe con toda la info del producto editable inline. El wizard se mantiene solo para creación.",
+    "acceptance": [
+      "Existe ruta products/:id/recipe dentro de manage",
+      "Existe componente product-recipe-page standalone",
+      "Sección Datos básicos: nombre, descripción, categoría, área, prep time, estado — editable inline",
+      "Sección Imagen: preview + upload + delete",
+      "Sección Receta/Insumos: tabla con insumos existentes + buscador para agregar + costo total en tiempo real",
+      "Sección Precio de venta: costo producción oficial + input precio + precio sugerido (costo × 1.3)",
+      "Sección Grupos de opciones: lista de grupos con badge, creación inline, opciones por grupo, agregar/quitar opciones",
+      "Sección Costo de producción: materiales, mano de obra, total, desglose — solo lectura",
+      "Botón 'Guardar cambios' que persiste todos los edits",
+      "Botón '← Volver a productos' con routerLink",
+      "Botón 'Ver detalles' eliminado de la tabla",
+      "Botón 'Editar' (pencil) eliminado de la tabla, reemplazado por 'Ver receta' (book icon)",
+      "Tab 'Grupos de Opciones' eliminado de products.html",
+      "Wizard (5 pasos) se mantiene solo para creación via 'Nuevo producto'",
+      "Tests del nuevo componente",
+      "Harness verde"
+    ],
+    "tasks": [
+      { "id": "a", "description": "Crear product-recipe-page.ts/html/css con layout y header (navegación + nombre producto + guardar)", "status": "done", "agent": "implementer" },
+      { "id": "b", "description": "Sección Datos básicos: formulario editable con nombre, descripción, categoría, área, prep time, estado", "status": "done", "agent": "implementer" },
+      { "id": "c", "description": "Sección Imagen: preview de imagen actual, upload nueva, eliminar", "status": "done", "agent": "implementer" },
+      { "id": "d", "description": "Sección Receta/Insumos: tabla de insumos existentes + buscador autocomplete para agregar + costo total real-time + botón eliminar", "status": "done", "agent": "implementer" },
+      { "id": "e", "description": "Sección Precio de venta: costo oficial server + costo estimado + input precio + precio sugerido", "status": "done", "agent": "implementer" },
+      { "id": "f", "description": "Sección Grupos de opciones: lista de grupos con badge + creación inline + opciones por grupo + agregar/quitar", "status": "done", "agent": "implementer" },
+      { "id": "g", "description": "Sección Costo de producción: materiales, mano de obra, total, desglose (solo lectura)", "status": "done", "agent": "implementer" },
+      { "id": "h", "description": "Guardar cambios: método save que persiste todos los edits via updateProduct", "status": "done", "agent": "implementer" },
+      { "id": "i", "description": "Agregar ruta products/:id/recipe en app.routes.ts", "status": "done", "agent": "implementer" },
+      { "id": "j", "description": "Modificar products.html/ts: reemplazar Ver detalles + Editar por Ver receta (book icon), eliminar tab Grupos de Opciones", "status": "done", "agent": "implementer" },
+      { "id": "k", "description": "Eliminar archivos obsoletos: product-option-groups/*, product-detail-dialog/*", "status": "done", "agent": "implementer" },
+      { "id": "l", "description": "Tests del componente product-recipe-page", "status": "done", "agent": "implementer" },
+      { "id": "m", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
+    ],
+    "status": "done"
   }
 ]
