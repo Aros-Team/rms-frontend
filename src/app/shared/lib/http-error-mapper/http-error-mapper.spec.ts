@@ -83,4 +83,37 @@ describe('mapHttpError', () => {
     const err = new HttpErrorResponse({ status: 400 });
     expect(mapHttpError(err, 'option-group')).toBe('Error en los grupos de opciones');
   });
+
+  it('returns 400 payroll message when the backend sends one', () => {
+    const err = new HttpErrorResponse({ status: 400, error: { message: 'quantity must be positive' } });
+    expect(mapHttpError(err, 'payroll')).toBe('quantity must be positive');
+  });
+
+  it('returns 400 payroll fallback when the backend sends no message', () => {
+    const err = new HttpErrorResponse({ status: 400 });
+    expect(mapHttpError(err, 'payroll')).toBe(
+      'Datos de nómina inválidos: revisa la cantidad, el valor unitario y las fechas',
+    );
+  });
+
+  it('returns 404 payroll message instead of the generic menu message', () => {
+    const err = new HttpErrorResponse({ status: 404 });
+    expect(mapHttpError(err, 'payroll')).toBe(
+      'No se encontró la nómina, el evento o la liquidación solicitada',
+    );
+  });
+
+  it('returns 409 payroll message instead of the menu schedule message', () => {
+    const err = new HttpErrorResponse({ status: 409 });
+    expect(mapHttpError(err, 'payroll')).toBe(
+      'La nómina del periodo ya está cerrada o la liquidación ya fue registrada',
+    );
+  });
+
+  it('returns 500 payroll server message', () => {
+    const err = new HttpErrorResponse({ status: 500, error: { message: 'boom' } });
+    expect(mapHttpError(err, 'payroll')).toBe(
+      'Error del servidor al procesar la nómina. Intente más tarde.',
+    );
+  });
 });

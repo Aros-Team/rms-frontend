@@ -2,8 +2,8 @@
  * Tests for PayrollCache.
  *
  * Feature: `ResourceCache` wrappers around the payroll API, keyed per query
- * (all records / month / worker / worker+month) so switching period never shows
- * another period's numbers.
+ * (worker / worker+month) so switching period never shows another period's
+ * numbers.
  * Contract:
  *  - each accessor issues exactly the matching endpoint URL;
  *  - accessors with parameters are memoized per key: the same key returns the
@@ -102,41 +102,6 @@ describe('PayrollCache', () => {
     TestBed.resetTestingModule();
   });
 
-  it('loads every payroll record from GET v1/payroll', () => {
-    cache.payrolls.load();
-    httpMock.expectOne('v1/payroll').flush([payroll(11, 6), payroll(12, 6)]);
-
-    expect(cache.payrolls.data()?.map((p) => p.id)).toEqual([11, 12]);
-    expect(cache.payrolls.hasData()).toBe(true);
-  });
-
-  it('period(year, month) hits GET v1/payroll/{year}/{month} and memoizes the instance', () => {
-    const june = cache.period(2026, 6);
-
-    expect(cache.period(2026, 6)).toBe(june);
-
-    june.load();
-    httpMock.expectOne('v1/payroll/2026/6').flush([payroll(11, 6)]);
-
-    expect(june.data()).toEqual([payroll(11, 6)]);
-  });
-
-  it('period(year, month) returns a distinct cache per month', () => {
-    const june = cache.period(2026, 6);
-    const july = cache.period(2026, 7);
-
-    expect(july).not.toBe(june);
-
-    june.load();
-    july.load();
-
-    httpMock.expectOne('v1/payroll/2026/6').flush([payroll(11, 6)]);
-    httpMock.expectOne('v1/payroll/2026/7').flush([payroll(21, 7)]);
-
-    expect(june.data()?.[0].month).toBe(6);
-    expect(july.data()?.[0].month).toBe(7);
-  });
-
   it('worker(userId) hits GET v1/payroll/worker/{userId}', () => {
     const workerCache = cache.worker(7);
 
@@ -170,46 +135,67 @@ describe('PayrollCache', () => {
     expect(settlements.data()).toEqual([settlementResponse]);
   });
 
-  it('invalidateAll marks every entry stale, keeping the data, and loadIfStale re-fetches', () => {
-    cache.payrolls.load();
-    httpMock.expectOne('v1/payroll').flush([payroll(11, 6)]);
+  it('events(userId, year, month) memoizes per key and keeps months apart', () => {
+    const june = cache.events(7, 2026, 6);
+    const july = cache.events(7, 2026, 7);
 
-    const june = cache.period(2026, 6);
+    expect(cache.events(7, 2026, 6)).toBe(june);
+    expect(july).not.toBe(june);
+
     june.load();
-    httpMock.expectOne('v1/payroll/2026/6').flush([payroll(11, 6)]);
+    july.load();
+
+    httpMock.expectOne('v1/payroll/events/7/2026/6').flush([eventResponse]);
+    httpMock
+      .expectOne('v1/payroll/events/7/2026/7')
+      .flush([{ ...eventResponse, id: 32, eventDate: '2026-07-15' }]);
+
+    expect(june.data()?.[0].eventDate).toBe('2026-06-15');
+    expect(july.data()?.[0].eventDate).toBe('2026-07-15');
+  });
+
+  it('invalidateAll marks every entry stale, keeping the data, and loadIfStale re-fetches', () => {
+    const workerCache = cache.worker(7);
+    workerCache.load();
+    httpMock.expectOne('v1/payroll/worker/7').flush([payroll(11, 6)]);
+
+    const juneEvents = cache.events(7, 2026, 6);
+    juneEvents.load();
+    httpMock.expectOne('v1/payroll/events/7/2026/6').flush([eventResponse]);
 
     cache.invalidateAll();
 
     // Data survives invalidation — the UI keeps rendering while it revalidates.
-    expect(cache.payrolls.data()?.map((p) => p.id)).toEqual([11]);
-    expect(cache.payrolls.status()).toBe('stale');
-    expect(june.status()).toBe('stale');
+    expect(workerCache.data()?.map((p) => p.id)).toEqual([11]);
+    expect(workerCache.status()).toBe('stale');
+    expect(juneEvents.status()).toBe('stale');
 
-    cache.payrolls.loadIfStale();
-    june.loadIfStale();
+    workerCache.loadIfStale();
+    juneEvents.loadIfStale();
 
-    httpMock.expectOne('v1/payroll').flush([payroll(11, 6), payroll(13, 6)]);
-    httpMock.expectOne('v1/payroll/2026/6').flush([payroll(11, 6)]);
+    httpMock.expectOne('v1/payroll/worker/7').flush([payroll(11, 6), payroll(13, 6)]);
+    httpMock.expectOne('v1/payroll/events/7/2026/6').flush([eventResponse]);
 
-    expect(cache.payrolls.data()?.map((p) => p.id)).toEqual([11, 13]);
-    expect(cache.payrolls.status()).toBe('fresh');
+    expect(workerCache.data()?.map((p) => p.id)).toEqual([11, 13]);
+    expect(workerCache.status()).toBe('fresh');
   });
 
   it('surfaces HTTP failures in the cache error signal without dropping data', () => {
-    cache.payrolls.load();
-    httpMock.expectOne('v1/payroll').flush([payroll(11, 6)]);
+    const workerCache = cache.worker(7);
+    workerCache.load();
+    httpMock.expectOne('v1/payroll/worker/7').flush([payroll(11, 6)]);
 
-    cache.payrolls.invalidate();
-    cache.payrolls.loadIfStale();
+    workerCache.invalidate();
+    workerCache.loadIfStale();
 
     httpMock
-      .expectOne('v1/payroll')
+      .expectOne('v1/payroll/worker/7')
       .flush({ detail: 'boom' }, { status: 500, statusText: 'Server Error' });
 
     // `ResourceCache` collapses non-`Error` failures into an `Error`, so the
     // status code is not readable here — only that the failure was recorded.
-    expect(cache.payrolls.error()).toBeInstanceOf(Error);
-    expect(cache.payrolls.status()).toBe('stale');
-    expect(cache.payrolls.data()?.map((p) => p.id)).toEqual([11]);
+    expect(workerCache.error()).toBeInstanceOf(Error);
+    expect(workerCache.status()).toBe('stale');
+    expect(workerCache.data()?.map((p) => p.id)).toEqual([11]);
   });
 });

@@ -778,53 +778,53 @@
       {
         "id": "a",
         "description": "Crear models/DTOs de payroll",
-        "status": "in_progress",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
         "description": "Crear Payroll service",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
         "description": "Crear PayrollEvent service",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "d",
         "description": "Crear PayrollSettlement service",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "e",
         "description": "Crear PayrollCache",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "f",
         "description": "Crear componentes UI",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "g",
         "description": "Tests",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "h",
         "description": "Verify: harness verde",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "in_progress"
+    "status": "done"
   },
   {
     "id": 35,

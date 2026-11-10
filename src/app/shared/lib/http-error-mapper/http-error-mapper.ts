@@ -22,6 +22,22 @@ export function mapHttpError(err: HttpErrorResponse, context?: string): string {
     return 'Horario inválido: la hora de inicio debe ser menor a la hora de fin';
   }
 
+  if (context === 'payroll') {
+    if (err.status === 400) {
+      return message ?? 'Datos de nómina inválidos: revisa la cantidad, el valor unitario y las fechas';
+    }
+    if (err.status === 404) {
+      return 'No se encontró la nómina, el evento o la liquidación solicitada';
+    }
+    if (err.status === 409) {
+      return message ?? 'La nómina del periodo ya está cerrada o la liquidación ya fue registrada';
+    }
+    if (err.status === 0 || err.status >= 500) {
+      return 'Error del servidor al procesar la nómina. Intente más tarde.';
+    }
+    return message ?? 'Error al procesar la nómina';
+  }
+
   if (err.status === 409) {
     return 'Este menú no está disponible en este horario';
   }

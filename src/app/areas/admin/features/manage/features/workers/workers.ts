@@ -33,6 +33,7 @@ import { AreaResponse } from '@app/shared/models/dto/areas/area';
 import { Area } from '@app/core/services/areas/area';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 import { WorkerCard } from './worker-card';
+import { PayrollPanel } from './payroll-panel/payroll-panel';
 import { TimeLog, TimeLogFilterParams } from '@app/core/services/schedules/time-log';
 import { TimeLogEntry } from '@app/shared/models/dto/schedules/time-log-entry';
 import { Schedule } from '@app/core/services/schedules/schedule';
@@ -76,6 +77,7 @@ interface WorkerFormValue {
     LazyLoad,
     TableSkeleton,
     WorkerCard,
+    PayrollPanel,
   ],
   templateUrl: './workers.html',
 })
@@ -94,10 +96,11 @@ export class Workers implements OnInit {
   // Template refs for focus management
   @ViewChild('tabEmpleados') tabEmpleados?: ElementRef<HTMLButtonElement>;
   @ViewChild('tabTimeLogs') tabTimeLogs?: ElementRef<HTMLButtonElement>;
+  @ViewChild('tabPayroll') tabPayroll?: ElementRef<HTMLButtonElement>;
   @ViewChild('firstInputRef') firstInputRef?: ElementRef<HTMLElement>;
 
   // Tab navigation
-  activeEmployeeTab = signal<'list' | 'time-logs'>('list');
+  activeEmployeeTab = signal<'list' | 'time-logs' | 'payroll'>('list');
 
   // Time-log state
   timeLogs = signal<TimeLogEntry[]>([]);
@@ -556,18 +559,22 @@ export class Workers implements OnInit {
 
   // ── Time-log methods ──
 
-  switchTab(tab: 'list' | 'time-logs'): void {
+  switchTab(tab: 'list' | 'time-logs' | 'payroll'): void {
     if (this.activeEmployeeTab() === tab) return;
     this.activeEmployeeTab.set(tab);
     if (tab === 'time-logs') {
       this.loadTimeLogs();
     }
+    // `payroll` needs no call here: the panel is mounted by `@if` on first
+    // activation and loads its three caches in its own constructor.
     // Focus the active tab for keyboard/AT users
     setTimeout(() => {
       if (tab === 'list') {
         this.tabEmpleados?.nativeElement.focus();
-      } else {
+      } else if (tab === 'time-logs') {
         this.tabTimeLogs?.nativeElement.focus();
+      } else {
+        this.tabPayroll?.nativeElement.focus();
       }
     });
   }

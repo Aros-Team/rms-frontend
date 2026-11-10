@@ -42,6 +42,21 @@
         (keydown.enter)="$event.preventDefault(); switchTab('time-logs')"
         (keydown.space)="$event.preventDefault(); switchTab('time-logs')"
       >Registros de Ingreso</button>
+      <button
+        #tabPayroll
+        role="tab"
+        id="tab-payroll"
+        aria-controls="tabpanel-payroll"
+        [attr.aria-selected]="activeEmployeeTab() === 'payroll'"
+        class="px-4 py-2 text-sm font-medium rounded-t-lg border border-b-0 transition-colors cursor-pointer"
+        [ngClass]="{
+          'bg-primary-contrast dark:bg-surface-800 text-primary border-surface-200 dark:border-surface-700': activeEmployeeTab() === 'payroll',
+          'bg-transparent text-surface-500 border-transparent hover:text-surface-700 dark:hover:text-surface-300': activeEmployeeTab() !== 'payroll'
+        }"
+        (click)="switchTab('payroll')"
+        (keydown.enter)="$event.preventDefault(); switchTab('payroll')"
+        (keydown.space)="$event.preventDefault(); switchTab('payroll')"
+      >Nómina</button>
     </div>
   </nav>
 
@@ -178,6 +193,17 @@
         </p-table>
       }
     </div>
+  </div>
+  }
+
+  @if (activeEmployeeTab() === 'payroll') {
+  <div
+    id="tabpanel-payroll"
+    role="tabpanel"
+    aria-labelledby="tab-payroll"
+    class="flex-1 min-h-0 overflow-auto min-w-0"
+  >
+    <app-payroll-panel />
   </div>
   }
 </div>

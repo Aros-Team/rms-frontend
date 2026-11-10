@@ -15,7 +15,7 @@ const PAYROLL_TTL_MS = 2 * 60 * 1000;
  *
  * Mirrors the pattern already used by `WorkersCache` and `AnalyticsCache`: one
  * `ResourceCache` per query, lazily created per key when the query needs
- * parameters (`period`, `worker`). Caches are keyed by the exact query, so
+ * parameters (`worker`, `worker+month`). Caches are keyed by the exact query, so
  * switching the visible month never shows the previous month's numbers.
  *
  * Mutations must call `invalidate*()` afterwards (see
@@ -25,27 +25,9 @@ const PAYROLL_TTL_MS = 2 * 60 * 1000;
 export class PayrollCache {
   private readonly api = inject(Payroll);
 
-  /** Every payroll record, unfiltered (`GET /v1/payroll`). */
-  readonly payrolls = new ResourceCache<PayrollResponse[]>(() => this.api.getAllPayrolls(), {
-    ttlMs: PAYROLL_TTL_MS,
-    staleWhileRevalidate: true,
-  });
-
-  private readonly periodCaches = new Map<string, ResourceCache<PayrollResponse[]>>();
   private readonly workerCaches = new Map<string, ResourceCache<PayrollResponse[]>>();
   private readonly eventCaches = new Map<string, ResourceCache<PayrollEventResponse[]>>();
   private readonly settlementCaches = new Map<string, ResourceCache<PayrollSettlementResponse[]>>();
-
-  /** Payroll records of one month (`GET /v1/payroll/{year}/{month}`). */
-  period(year: number, month: number): ResourceCache<PayrollResponse[]> {
-    const key = `${String(year)}-${String(month)}`;
-    return this.memoize(this.periodCaches, key, () =>
-      new ResourceCache<PayrollResponse[]>(() => this.api.getPayrollsByPeriod(year, month), {
-        ttlMs: PAYROLL_TTL_MS,
-        staleWhileRevalidate: true,
-      }),
-    );
-  }
 
   /** Every payroll record of one worker (`GET /v1/payroll/worker/{userId}`). */
   worker(userId: number): ResourceCache<PayrollResponse[]> {
@@ -93,8 +75,6 @@ export class PayrollCache {
    * whole family is stale together.
    */
   invalidateAll(): void {
-    this.payrolls.invalidate();
-    for (const cache of this.periodCaches.values()) cache.invalidate();
     for (const cache of this.workerCaches.values()) cache.invalidate();
     for (const cache of this.eventCaches.values()) cache.invalidate();
     for (const cache of this.settlementCaches.values()) cache.invalidate();

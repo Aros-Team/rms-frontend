@@ -6,6 +6,3 @@
  * exhaustiveness-checked.
  */
 export type PayrollStatus = 'PENDING' | 'ACCRUED' | 'PAID';
-
-/** Every valid `PayrollStatus`, in lifecycle order. */
-export const PAYROLL_STATUSES: readonly PayrollStatus[] = ['PENDING', 'ACCRUED', 'PAID'];

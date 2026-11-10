@@ -22,11 +22,3 @@ export const PAYROLL_EVENT_TYPES: readonly PayrollEventType[] = [
   'BONUS_PERFORMANCE',
   'DEDUCTION',
 ];
-
-/**
- * Event types that subtract from the payroll instead of adding to it.
- *
- * Used by UI summaries to pick a severity/sign without hardcoding a list of
- * string literals in each component.
- */
-export const PAYROLL_DEDUCTION_EVENT_TYPES: readonly PayrollEventType[] = ['ABSENCE', 'DEDUCTION'];
