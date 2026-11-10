@@ -17,6 +17,7 @@ import {
 import { jwtInterceptor } from '@core/interceptors/jwt/jwt';
 import { urlInterceptor } from '@core/interceptors/url-interceptor/url-interceptor';
 import { errorInterceptor } from '@core/interceptors/error/error';
+import { envelopeInterceptor } from '@core/interceptors/envelope/envelope';
 import { routes } from './app.routes';
 
 /**
@@ -103,7 +104,7 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(routes, withPreloading(PreloadAllModules), withComponentInputBinding()),
     provideHttpClient(
-      withInterceptors([urlInterceptor, jwtInterceptor, errorInterceptor])
+      withInterceptors([urlInterceptor, jwtInterceptor, errorInterceptor, envelopeInterceptor])
     ),
     {
       provide: LOCALE_ID,
