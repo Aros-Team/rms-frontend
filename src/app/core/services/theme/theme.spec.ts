@@ -15,6 +15,7 @@ describe('Theme', () => {
   let service: Theme;
 
   beforeEach(() => {
+    TestBed.resetTestingModule();
     TestBed.configureTestingModule({});
     service = TestBed.inject(Theme);
   });

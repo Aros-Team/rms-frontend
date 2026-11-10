@@ -22,6 +22,7 @@ describe('Order', () => {
   beforeEach(() => {
     logMock = { debug: vi.fn() };
 
+    TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),

@@ -209,13 +209,13 @@ describe('ProductOptionsModal', () => {
 
       component.onConfirm();
 
-      expect(emitted).toBeDefined();
-      expect(emitted?.product).toBe(mockProduct);
-      expect(emitted?.selectedOptions.length).toBe(1);
-      expect(emitted?.selectedOptions[0].optionName).toBe('Tocineta');
-      expect(emitted?.extraCharge).toBe(3000);
-      expect(emitted?.instructions).toBe('sin cebolla');
-      expect(emitted?.quantity).toBe(2);
+      expect(emitted).toEqual({
+        product: mockProduct,
+        selectedOptions: [{ optionId: 20, optionName: 'Tocineta' }],
+        extraCharge: 3000,
+        instructions: 'sin cebolla',
+        quantity: 2,
+      });
     });
 
     it('should not emit when product is null', () => {

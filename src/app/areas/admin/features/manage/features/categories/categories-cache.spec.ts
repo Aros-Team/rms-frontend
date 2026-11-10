@@ -41,6 +41,7 @@ describe('CategoriesCache', () => {
   afterEach(() => {
     httpMock.verify({ ignoreCancelled: true });
     vi.useRealTimers();
+    TestBed.resetTestingModule();
   });
 
   it('load fetches supply categories from v1/supplies/categories and exposes the data', () => {

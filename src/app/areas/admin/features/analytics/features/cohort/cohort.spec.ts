@@ -40,7 +40,9 @@ describe('Cohort', () => {
   it('renders the unavailable message in a p-message element', async () => {
     const fixture = await setup();
     const messageEl = getRoot(fixture).querySelector('p-message');
-    expect(messageEl).not.toBeNull();
-    expect(messageEl?.getAttribute('text')).toContain('ya no está disponible');
+    expect(messageEl?.getAttribute('severity')).toBe('warn');
+    expect(messageEl?.getAttribute('text')).toBe(
+      'Esta funcionalidad ya no está disponible. Los datos de cohorte han sido removidos del backend.',
+    );
   });
 });

@@ -140,7 +140,8 @@ describe('PeriodSelector', () => {
 
       expect(component.fromValid()).toBe(false);
       expect(component.errorMessage()).toBe('Formato de fecha inválido. Use AAAA-MM');
-      expect(getRoot(fixture).querySelector('p-message')).toBeTruthy();
+      const message = getRoot(fixture).querySelector('p-message');
+      expect(message?.textContent.trim()).toBe('Formato de fecha inválido. Use AAAA-MM');
     });
 
     it('shows a range error message when to < from', async () => {
@@ -251,7 +252,8 @@ describe('PeriodSelector', () => {
       const fromInput = getInputById(getRoot(fixture), 'period-from');
       setInputValue(fromInput, '2026-1');
       fixture.detectChanges();
-      expect(component.errorMessage()).not.toBeNull();
+      expect(component.errorMessage()).toBe('Formato de fecha inválido. Use AAAA-MM');
+      expect(getRoot(fixture).querySelector('p-message')).not.toBeNull();
 
       const resetBtn = getButtonByLabel(getRoot(fixture), 'Restablecer');
       clickButton(resetBtn);
@@ -267,9 +269,15 @@ describe('PeriodSelector', () => {
       const { fixture, component } = await configure('docked');
       const root = getRoot(fixture);
       expect(component.expanded()).toBe(false);
-      expect(root.querySelector('.period-dock')).toBeTruthy();
-      expect(root.textContent).toContain('Periodo');
-      expect(root.textContent).toContain(component.currentRangeLabel());
+
+      const dock = root.querySelector('.period-dock');
+      expect(dock).not.toBeNull();
+      const pill = dock?.querySelector('button[aria-label="Cambiar periodo de análisis"]');
+      expect(pill?.querySelector('.text-xs')?.textContent.trim()).toBe('Periodo');
+      expect(pill?.querySelector('.text-sm')?.textContent.trim()).toBe(
+        component.currentRangeLabel(),
+      );
+      expect(pill?.getAttribute('aria-controls')).toBe('period-dock-form');
     });
 
     it('does not render the from/to inputs while collapsed', async () => {
@@ -284,8 +292,11 @@ describe('PeriodSelector', () => {
       fixture.detectChanges();
 
       expect(component.expanded()).toBe(true);
-      expect(getRoot(fixture).querySelector('#period-from')).toBeTruthy();
-      expect(getRoot(fixture).querySelector('#period-to')).toBeTruthy();
+      await Promise.resolve();
+      fixture.detectChanges();
+      const root = getRoot(fixture);
+      expect(getInputById(root, 'period-from').value).toBe('2026-02');
+      expect(getInputById(root, 'period-to').value).toBe('2026-07');
     });
 
     it('toggle() collapses the dock when it is already expanded', async () => {
@@ -358,11 +369,10 @@ describe('PeriodSelector', () => {
         'button[aria-label="Actualizar datos"]',
       );
       if (!refreshBtn) throw new Error('Refresh button not found');
-      expect(refreshBtn).toBeTruthy();
       clickButton(refreshBtn);
       fixture.detectChanges();
 
-      expect(refreshSpy).toHaveBeenCalled();
+      expect(refreshSpy).toHaveBeenCalledTimes(1);
     });
   });
 });

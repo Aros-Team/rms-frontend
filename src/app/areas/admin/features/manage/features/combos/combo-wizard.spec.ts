@@ -416,10 +416,11 @@ describe('ComboWizard shell', () => {
 
       const root = env.fixture.nativeElement as HTMLElement;
       const pane = root.querySelector(`[data-step-pane="${activeId}"]`);
-      expect(pane).toBeTruthy();
+      expect(pane?.getAttribute('data-step-pane')).toBe('general');
 
       const placeholder = pane?.querySelector('[data-testid="step-placeholder"]');
-      expect(placeholder).toBeTruthy();
+      // 6 skeletons: 1 title bar + 3 field rows + 2 buttons
+      expect(placeholder?.querySelectorAll('p-skeleton').length).toBe(6);
     });
 
     it('hides the placeholder when the active slot has projected content', async () => {
@@ -427,7 +428,7 @@ describe('ComboWizard shell', () => {
       const root = host.fixture.nativeElement as HTMLElement;
 
       const pane = root.querySelector('[data-step-pane="general"]');
-      expect(pane).toBeTruthy();
+      expect(pane?.getAttribute('data-step-pane')).toBe('general');
 
       const placeholder = pane?.querySelector('[data-testid="step-placeholder"]');
       expect(placeholder).toBeNull();
@@ -438,9 +439,7 @@ describe('ComboWizard shell', () => {
       const root = host.fixture.nativeElement as HTMLElement;
 
       const projected = root.querySelector('[data-testid="custom-general"]');
-      expect(projected).toBeTruthy();
-      const text = (projected?.textContent ?? '').trim();
-      expect(text).toBe('Contenido General Personalizado');
+      expect(projected?.textContent.trim()).toBe('Contenido General Personalizado');
 
       const pane = projected?.closest('[data-step-pane]');
       expect(pane?.getAttribute('data-step-pane')).toBe('general');
@@ -456,7 +455,7 @@ describe('ComboWizard shell', () => {
 
       const root = host.fixture.nativeElement as HTMLElement;
       const projected = root.querySelector('[data-testid="custom-category"]');
-      expect(projected).toBeTruthy();
+      expect(projected?.textContent.trim()).toBe('Productos');
 
       const parent = projected?.parentElement;
       expect(parent?.getAttribute('data-step-pane')).toBe('category:99');
@@ -471,8 +470,7 @@ describe('ComboWizard shell', () => {
 
       const root = host.fixture.nativeElement as HTMLElement;
       const projected = root.querySelector('[data-testid="custom-questions"]');
-      expect(projected).toBeTruthy();
-      expect((projected?.textContent ?? '').trim()).toBe('Preguntas Personalizadas');
+      expect(projected?.textContent.trim()).toBe('Preguntas Personalizadas');
 
       const pane = projected?.closest('[data-step-pane]');
       expect(pane?.getAttribute('data-step-pane')).toBe('questions');
@@ -490,8 +488,7 @@ describe('ComboWizard shell', () => {
 
       const root = host.fixture.nativeElement as HTMLElement;
       const projected = root.querySelector('[data-testid="custom-pricing"]');
-      expect(projected).toBeTruthy();
-      expect((projected?.textContent ?? '').trim()).toBe('Precio Final');
+      expect(projected?.textContent.trim()).toBe('Precio Final');
 
       const pane = projected?.closest('[data-step-pane]');
       expect(pane?.getAttribute('data-step-pane')).toBe('pricing');
@@ -635,18 +632,13 @@ describe('ComboWizard shell', () => {
     it('renders the Spanish title and footer button labels', async () => {
       const env = await setupWizardTestBed();
       const root = env.fixture.nativeElement as HTMLElement;
-      const text = root.textContent;
 
-      expect(text).toContain('Asistente de combo');
+      expect(root.querySelector('h1')?.textContent.trim()).toBe('Asistente de combo');
 
-      const buttons = root.querySelectorAll('p-button button');
-      const labels: string[] = [];
-      buttons.forEach((btn) => {
-        labels.push(btn.textContent.trim());
-      });
-
-      expect(labels).toContain('Atrás');
-      expect(labels).toContain('Siguiente');
+      const labels = Array.from(root.querySelectorAll('p-button button')).map((btn) =>
+        btn.textContent.trim(),
+      );
+      expect(labels).toEqual(['Atrás', 'Siguiente']);
     });
 
     it('shows the "Editar combo" title when a sourceId is hydrated', async () => {

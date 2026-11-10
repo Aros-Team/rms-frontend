@@ -106,6 +106,7 @@ function buildCacheStub(initialResponse: SpecialSelectionResponse | null = null)
 
 function setupTestBed(cacheStub?: ReturnType<typeof buildCacheStub>): ComboWizardState {
   const stub = cacheStub ?? buildCacheStub(null);
+  TestBed.resetTestingModule();
   TestBed.configureTestingModule({
     providers: [
       ComboWizardState,
@@ -163,6 +164,7 @@ describe('ComboWizardState', () => {
     });
 
     it('hydrateFromResponse(response) populates the draft from cache detail payload', () => {
+      const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(1_752_577_200_000);
       const state = setupTestBed();
 
       state.hydrateFromResponse(mockResponse);
@@ -184,7 +186,8 @@ describe('ComboWizardState', () => {
       expect(state.data().questions[0].question).toBe('¿Sin picante?');
       expect(state.data().schedule[0].dayOfWeek).toBe('MONDAY');
       expect(state.dirty()).toBe(false);
-      expect(state.lastSavedAt()).not.toBeNull();
+      expect(state.lastSavedAt()).toBe(1_752_577_200_000);
+      nowSpy.mockRestore();
     });
 
     it('normalizes MoneyDto basePrice and addition extraPrice on hydrate (regression)', () => {
@@ -549,7 +552,12 @@ describe('ComboWizardState', () => {
       state.hydrateFromResponse(mockResponse);
       state.updateData({ name: 'Para descartar' });
       state.persistDraft();
-      expect(window.localStorage.getItem(STORAGE_KEY)).not.toBeNull();
+      const persisted = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? 'null') as {
+        sourceId: number | null;
+        data: { name: string };
+      } | null;
+      expect(persisted?.sourceId).toBe(42);
+      expect(persisted?.data.name).toBe('Para descartar');
 
       state.discardDraft();
 
@@ -564,17 +572,13 @@ describe('ComboWizardState', () => {
       state.hydrateFromResponse(mockResponse);
       state.updateData({ name: 'Para guardar' });
       state.persistDraft();
-      const before = Date.now();
+      const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(1_752_577_200_000);
 
       state.markSaved();
 
       expect(state.dirty()).toBe(false);
-      const savedAt = state.lastSavedAt();
-      expect(savedAt).not.toBeNull();
-      if (savedAt === null) {
-        throw new Error('expected lastSavedAt');
-      }
-      expect(savedAt).toBeGreaterThanOrEqual(before);
+      expect(state.lastSavedAt()).toBe(1_752_577_200_000);
+      nowSpy.mockRestore();
       expect(state.lastPersistedAt()).toBeNull();
       expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
     });

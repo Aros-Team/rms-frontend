@@ -135,8 +135,8 @@ describe('OptionSelectionList', () => {
     });
 
     it('should show no options message', () => {
-      const message = getEl().textContent;
-      expect(message).toContain('No hay opciones disponibles');
+      const message = getEl().querySelector('p');
+      expect(message?.textContent.trim()).toBe('No hay opciones disponibles');
     });
 
     it('should not render any radio buttons', () => {

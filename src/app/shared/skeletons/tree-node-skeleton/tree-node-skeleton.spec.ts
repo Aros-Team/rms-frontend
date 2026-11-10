@@ -56,7 +56,7 @@ describe('TreeNodeSkeletonComponent', () => {
   it('should have selector app-tree-node-skeleton', async () => {
     const fixture = await setup(1, 1);
     const el = (fixture.nativeElement as HTMLElement).querySelector('app-tree-node-skeleton');
-    expect(el).not.toBeNull();
+    expect(el?.tagName.toLowerCase()).toBe('app-tree-node-skeleton');
   });
 
   describe('depth', () => {

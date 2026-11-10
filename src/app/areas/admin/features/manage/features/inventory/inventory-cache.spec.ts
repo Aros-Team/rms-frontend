@@ -67,6 +67,7 @@ describe('InventoryCache', () => {
   afterEach(() => {
     httpMock.verify();
     vi.useRealTimers();
+    TestBed.resetTestingModule();
   });
 
   it('setSuppliesListParams({ search: "foo" }) calls Supply.getSupplyVariantsPaginated with search: "foo"', () => {

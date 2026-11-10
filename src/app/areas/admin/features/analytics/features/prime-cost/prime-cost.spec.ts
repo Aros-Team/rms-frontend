@@ -86,8 +86,16 @@ function makeReport(opts: {
   };
 }
 
-// jsdom does not implement canvas — chart.js calls getContext on the canvas
-// element which would otherwise throw. Stub it with a no-op 2d context. The
+/**
+ * Exact expected output of the `money` pipe for a COP amount: currency symbol,
+ * a non-breaking space, and thousands separators (no decimals for COP).
+ * Kept explicit so a wrong amount or a bare unformatted number fails the test.
+ */
+function cop(amount: number): string {
+  return `$\u00A0${amount.toLocaleString('es-CO', { maximumFractionDigits: 0 })}`;
+}
+
+// jsdom does not implement canvas — chart.js calls getContext on the canvas// element which would otherwise throw. Stub it with a no-op 2d context. The
 // methods are no-ops because chart.js never actually renders to a real screen
 // during unit tests, but it must successfully acquire *some* context.
 function installCanvasContextStub(): void {
@@ -161,12 +169,12 @@ describe('PrimeCost', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  it('invokes cache.primeCost.load via the period effect on construction', async () => {
+   it('invokes cache.primeCost.load via the period effect on construction', async () => {
     const load = vi.fn();
     const stub = makePrimeCostStub();
     (stub.primeCost as { load: () => void }).load = load;
     await setup(stub);
-    expect(load).toHaveBeenCalled();
+    expect(load).toHaveBeenCalledTimes(1);
   });
 
   it('renders the page skeleton when isLoading() is true and report() is null', async () => {
@@ -193,20 +201,25 @@ describe('PrimeCost', () => {
     });
     const fixture = await setup(stub);
     const root = getRoot(fixture);
-    const text = root.textContent;
 
-    // Header + first 2 stat cards contain Money-formatted numbers
-    expect(text.includes('$') || text.includes('CO')).toBe(true);
-    // 4 stat-card articles inside the 4-col grid section
-    const statCards = root.querySelectorAll(
-      'section.grid.grid-cols-1.md\\:grid-cols-2.xl\\:grid-cols-4 article',
+    const statCards = Array.from(
+      root.querySelectorAll('section[aria-label="Indicadores clave"] article'),
     );
     expect(statCards.length).toBe(4);
-    // Card labels
-    expect(text).toContain('Ventas netas');
-    expect(text).toContain('Costo operativo');
-    expect(text).toContain('Ganancia bruta');
-    expect(text).toContain('Ganancia neta');
+
+    const label = (index: number): string =>
+      statCards[index].querySelector('p.text-xs')?.textContent.trim() ?? '';
+    const value = (index: number): string =>
+      statCards[index].querySelector('p.text-2xl')?.textContent.trim() ?? '';
+
+    expect(label(0)).toBe('Ventas netas');
+    expect(value(0)).toBe(cop(125_000_000));
+    expect(label(1)).toBe('Costo operativo');
+    expect(value(1)).toBe(cop(78_125_000));
+    expect(label(2)).toBe('Ganancia bruta');
+    expect(value(2)).toBe('37.50%');
+    expect(label(3)).toBe('Ganancia neta');
+    expect(value(3)).toBe('—');
   });
 
   it('renders primeCostPct formatted as XX.XX%', async () => {
@@ -216,12 +229,20 @@ describe('PrimeCost', () => {
       data: () => makeReport({ primeCostPct: 62.5 }),
     });
     const fixture = await setup(stub);
-    const text = getRoot(fixture).textContent;
+    const root = getRoot(fixture);
 
-    // fmtPercent(62.5) -> "62.50%"
-    expect(text).toContain('62.50%');
-    // GrossProfit% 37.5 -> "37.50%"
-    expect(text).toContain('37.50%');
+    // fmtPercent(62.5) -> "62.50% de las ventas" under the prime-cost card
+    const primeCostCard = root.querySelectorAll(
+      'section[aria-label="Indicadores clave"] article',
+    )[1];
+    expect(primeCostCard.querySelector('p.text-xs.text-surface-500')?.textContent.trim()).toBe(
+      '62.50% de las ventas',
+    );
+    // GrossProfit% 37.5 -> "37.50%" card value
+    const grossProfitCard = root.querySelectorAll(
+      'section[aria-label="Indicadores clave"] article',
+    )[2];
+    expect(grossProfitCard.querySelector('p.text-2xl')?.textContent.trim()).toBe('37.50%');
   });
 
   it('renders the trend chart when series.length > 1', async () => {
@@ -255,10 +276,14 @@ describe('PrimeCost', () => {
         }),
     });
     const fixture = await setup(stub);
-    const text = getRoot(fixture).textContent;
+    const root = getRoot(fixture);
 
-    expect(text).toContain('Datos parciales');
-    expect(text).toContain('Faltaban 3 recibos de la semana 28');
+    const banner = root.querySelector('[role="status"]');
+    expect(banner).not.toBeNull();
+    expect(banner?.querySelector('p.font-semibold')?.textContent.trim()).toBe('Datos parciales');
+    expect(Array.from(banner?.querySelectorAll('li') ?? []).map((li) => li.textContent.trim())).toEqual([
+      'Faltaban 3 recibos de la semana 28',
+    ]);
   });
 
   it('does NOT render the notes banner when dataCompleteness === "FULL" and notes is empty', async () => {
@@ -285,11 +310,10 @@ describe('PrimeCost', () => {
     });
     const fixture = await setup(stub);
     const root = getRoot(fixture);
-    const text = root.textContent;
 
-    expect(root.querySelector('p-message')).toBeTruthy();
-    expect(text).toContain('No se pudieron cargar los datos');
-    expect(text).toContain('No se pudo cargar el reporte');
+    expect(root.querySelector('p-message')?.textContent.trim()).toBe(
+      'No se pudieron cargar los datos: No se pudo cargar el reporte',
+    );
   });
 
   it('renders empty state text when loading is done, no error, and latest() is null', async () => {
@@ -304,9 +328,10 @@ describe('PrimeCost', () => {
     });
     const fixture = await setup(stub);
     const root = getRoot(fixture);
-    const text = root.textContent;
 
-    expect(text).toContain('No hay datos en el periodo seleccionado');
+    const emptyMessage = root.firstElementChild?.lastElementChild;
+    expect(emptyMessage?.tagName).toBe('P');
+    expect(emptyMessage?.textContent.trim()).toBe('No hay datos en el periodo seleccionado.');
     expect(root.querySelector('p-chart')).toBeNull();
     expect(root.querySelector('p-skeleton')).toBeNull();
     // No error message

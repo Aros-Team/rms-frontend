@@ -844,35 +844,35 @@
       {
         "id": "a",
         "description": "Agregar headers a todos los .spec.ts (60 archivos)",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
         "description": "Corregir WEAK_RENDER_ASSERT (money, operations, cohort, alerts)",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
         "description": "Corregir WEAK_EXIST_ASSERT (app, skeleton, helper, selection-list, nav, theme)",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "d",
         "description": "Agregar httpMock.verify() y resetTestingModule donde falta",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "e",
         "description": "Verify: harness verde",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "pending"
+    "status": "done"
   },
   {
     "id": 36,

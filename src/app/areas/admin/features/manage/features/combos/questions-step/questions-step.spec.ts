@@ -122,9 +122,8 @@ describe('QuestionsStep', () => {
     it('renders empty state when no questions', () => {
       createComponent();
       const emptyState = getNative().querySelector('[data-testid="empty-state"]');
-      expect(emptyState).toBeTruthy();
-      expect(emptyState?.textContent).toContain(
-        'No hay preguntas configuradas',
+      expect(emptyState?.querySelector('p')?.textContent.trim()).toBe(
+        'No hay preguntas configuradas. Agrega una pregunta para obtener información adicional del cliente.',
       );
     });
 
@@ -139,8 +138,7 @@ describe('QuestionsStep', () => {
     it('"Agregar pregunta" button exists when empty', () => {
       createComponent();
       const btn = getNative().querySelector('[data-testid="add-question-btn"]');
-      expect(btn).toBeTruthy();
-      expect(btn?.textContent).toContain('Agregar pregunta');
+      expect(btn?.querySelector('button')?.textContent.trim()).toBe('Agregar pregunta');
     });
 
     it('addQuestion adds a question to wizard state', () => {
@@ -148,7 +146,7 @@ describe('QuestionsStep', () => {
       component.addQuestion();
       fixture.detectChanges();
 
-      expect(wizardMock.updateQuestions).toHaveBeenCalled();
+      expect(wizardMock.updateQuestions).toHaveBeenCalledTimes(1);
       const questions = wizardMock.data().questions;
       expect(questions.length).toBe(1);
       expect(questions[0]?.question).toBe('');
@@ -215,7 +213,8 @@ describe('QuestionsStep', () => {
       fixture.detectChanges();
 
       const label = getNative().querySelector('label');
-      expect(label?.textContent).toContain('(Obligatorio)');
+      expect(label?.textContent.trim()).toBe('(Obligatorio)');
+      expect(label?.getAttribute('for')).toBe('required-0');
     });
   });
 

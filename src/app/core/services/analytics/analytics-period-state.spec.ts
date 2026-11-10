@@ -3,7 +3,9 @@
  *
  * Feature: Manages analytics period selection state with signals and persistence.
  * Contract: Tracks current period, supports quick ranges and custom dates, persists to localStorage.
- * Approach: Inject service via TestBed, manipulate period state, assert signal values.
+ * Approach: Instantiate the class directly (no TestBed: it has no injected
+ * dependencies), freeze the system clock with fake timers, and assert the exact
+ * from/to signal values.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 

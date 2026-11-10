@@ -109,10 +109,10 @@ describe('Money', () => {
     });
 
     it('does not throw for an unsupported currency and still renders the amount', () => {
-      const result = pipe.transform({ amount: '7', currency: 'XYZ' });
-
-      expect(result).toContain('7');
-      expect(result).toContain('XYZ');
+      // A well-formed but unknown code (XYZ) has no symbol: Intl renders the code
+      // itself with 2 decimals, and older runtimes throw and hit the pipe's
+      // "<currency> <amount>" fallback. Either way the amount must survive.
+      expect(pipe.transform({ amount: '7', currency: 'XYZ' })).toMatch(/^XYZ\s?7(?:,00)?$/);
     });
   });
 });

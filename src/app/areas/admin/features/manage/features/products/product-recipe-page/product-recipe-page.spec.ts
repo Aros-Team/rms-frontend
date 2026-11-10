@@ -218,7 +218,15 @@ describe('ProductRecipePage', () => {
   it('creates the component successfully', () => {
     configureTestBed('7');
     const fixture = TestBed.createComponent(ProductRecipePage);
-    expect(fixture.componentInstance).toBeDefined();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('.recipe-page')).not.toBeNull();
+    expect(
+      Array.from(root.querySelectorAll('.recipe-header p-button button')).map((btn) =>
+        btn.textContent.trim(),
+      ),
+    ).toEqual(['Volver a productos', 'Guardar cambios']);
   });
 
   it('loads product on init via findProduct with the route param id', async () => {

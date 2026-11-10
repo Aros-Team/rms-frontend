@@ -21,6 +21,7 @@ describe('Analytics service — full interceptor chain (regression for the api/a
   let httpMock: HttpTestingController;
 
   beforeEach(() => {
+    TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([urlInterceptor, jwtInterceptor, errorInterceptor])),

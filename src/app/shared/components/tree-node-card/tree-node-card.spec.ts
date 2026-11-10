@@ -7,8 +7,9 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources, Component } from '@angular/core';
+import { By } from '@angular/platform-browser';
 import { TreeNodeCardComponent } from './tree-node-card';
-import { RemovableChipData } from '../removable-chip/removable-chip';
+import { RemovableChip, RemovableChipData } from '../removable-chip/removable-chip';
 
 import treeNodeCardHtml from './tree-node-card.html?raw';
 import treeNodeCardCss from './tree-node-card.css?raw';
@@ -98,19 +99,20 @@ describe('TreeNodeCardComponent', () => {
 
   it('should create', async () => {
     await setup();
-    expect(host).toBeTruthy();
+    const card = fixture.debugElement.children[0].componentInstance as TreeNodeCardComponent;
+    expect(card).toBeInstanceOf(TreeNodeCardComponent);
   });
 
   it('should render title', async () => {
     await setup({ title: 'Test Title' });
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('h4')?.textContent).toContain('Test Title');
+    expect(el.querySelector('h4')?.textContent.trim()).toBe('Test Title');
   });
 
   it('should render subtitle when provided', async () => {
     await setup({ subtitle: 'Test Subtitle' });
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('p')?.textContent).toContain('Test Subtitle');
+    expect(el.querySelector('p')?.textContent.trim()).toBe('Test Subtitle');
   });
 
   it('should not render subtitle when not provided', async () => {
@@ -122,8 +124,9 @@ describe('TreeNodeCardComponent', () => {
   it('should render icon when provided', async () => {
     await setup({ icon: 'pi pi-box' });
     const el = fixture.nativeElement as HTMLElement;
-    const icon = el.querySelector('i.pi.pi-box');
-    expect(icon).toBeTruthy();
+    const icon = el.querySelector('i');
+    expect(icon?.classList.contains('pi-box')).toBe(true);
+    expect(icon?.classList.contains('text-primary-600')).toBe(true);
   });
 
   it('should not render icon when not provided', async () => {
@@ -173,9 +176,12 @@ describe('TreeNodeCardComponent', () => {
     expect(icon?.classList.contains('pi-chevron-up')).toBe(true);
   });
 
-  it('should emit badgeRemoved when chip emits removed', async () => {
+  it('should emit badgeRemoved when the child chip emits removed', async () => {
     await setup({ badges: [{ id: 42, label: 'Test' }] });
-    host.onBadgeRemoved(42);
+    const chip = fixture.debugElement.query(By.directive(RemovableChip)).componentInstance as RemovableChip;
+
+    chip.removed.emit(42);
+
     expect(host.lastBadgeRemoved).toBe(42);
   });
 
@@ -183,7 +189,8 @@ describe('TreeNodeCardComponent', () => {
     await setup({ loading: true });
     const el = fixture.nativeElement as HTMLElement;
     const spinner = el.querySelector('i.pi-spinner');
-    expect(spinner).toBeTruthy();
+    expect(spinner?.classList.contains('pi-spin')).toBe(true);
+    expect(spinner?.classList.contains('text-xl')).toBe(true);
   });
 
   it('should not show content when loading', async () => {

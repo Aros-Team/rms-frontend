@@ -38,6 +38,7 @@ describe('SpecialSelectionsRealtime', () => {
       }),
     );
 
+    TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
         SpecialSelectionsRealtime,

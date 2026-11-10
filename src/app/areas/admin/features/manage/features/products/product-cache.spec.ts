@@ -61,6 +61,7 @@ describe('ProductCache', () => {
   afterEach(() => {
     httpMock.verify();
     vi.useRealTimers();
+    TestBed.resetTestingModule();
   });
 
   it('setProductListParams({ page: 1 }) calls Product.getProductsPaginated with page=1', () => {

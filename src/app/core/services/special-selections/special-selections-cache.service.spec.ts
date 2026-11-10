@@ -77,6 +77,7 @@ describe('SpecialSelectionsCacheService', () => {
     comboRefRefresh = vi.fn();
     comboReferenceStub = { invalidate: comboRefInvalidate, refresh: comboRefRefresh };
 
+    TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
@@ -197,8 +198,8 @@ describe('SpecialSelectionsCacheService', () => {
     service.detail(1).load();
     httpMock.expectOne('v1/admin/special-selections/1').flush(mockSelection);
 
-    expect(service.list.data()).toBeTruthy();
-    expect(service.detail(1).data()).toBeTruthy();
+    expect(service.list.data()).toEqual([mockSelection]);
+    expect(service.detail(1).data()).toEqual(mockSelection);
 
     service.invalidateAll();
 
@@ -751,7 +752,11 @@ describe('SpecialSelectionsCacheService realtime source collapse', () => {
     expect(topicSubscribeCalls).toBe(1);
     expect(sourceSubscriptions).toBe(1);
     expect(manualEmissions).toEqual([event]);
-    expect(cache.modifiedCombo$).toBeDefined();
+
+    // BehaviorSubject semantics: a late subscriber still sees the last modified combo id.
+    const lateModified: (number | null)[] = [];
+    cache.modifiedCombo$.subscribe((value) => { lateModified.push(value); });
+    expect(lateModified).toEqual([99]);
   });
 
   it('keeps a single source subscription when several components and the cache service subscribe concurrently', () => {

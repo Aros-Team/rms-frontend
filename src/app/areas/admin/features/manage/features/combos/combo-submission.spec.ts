@@ -10,7 +10,7 @@ import { signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { MessageService } from 'primeng/api';
 
@@ -105,6 +105,10 @@ const fullFormData: WizardFormData = {
 };
 
 describe('ComboSubmission', () => {
+  afterEach(() => {
+    TestBed.resetTestingModule();
+  });
+
   describe('buildRequest', () => {
     it('maps WizardFormData to SpecialSelectionRequest correctly', () => {
       const { service } = setupTestBed(

@@ -126,12 +126,23 @@ describe('SearchInput', () => {
     expect(host.searchChanges).toEqual(['foo']);
 
     const clearButton = (fixture.nativeElement as HTMLElement).querySelector('p-button button');
-    expect(clearButton).toBeTruthy();
-    clearButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    if (!clearButton) throw new Error('clear button not rendered');
+    clearButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     fixture.detectChanges();
     vi.advanceTimersByTime(300);
 
     expect(host.searchChanges).toEqual(['foo', '']);
+  });
+
+  it('renders the clear button only when there is a value', async () => {
+    const fixture = await setupHost({ debounceMs: 300 });
+    const root = fixture.nativeElement as HTMLElement;
+
+    expect(root.querySelector('p-button button')).toBeNull();
+
+    typeValue(fixture, 'foo');
+
+    expect(root.querySelector('p-button button')?.tagName.toLowerCase()).toBe('button');
   });
 
   it('destination signal updates on input', async () => {

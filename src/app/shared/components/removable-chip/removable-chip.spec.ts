@@ -70,8 +70,10 @@ describe('RemovableChip', () => {
   it('renders chip.icon on the i element when provided', async () => {
     const fixture = await setup(buildChip({ icon: 'pi pi-check' }));
     const el = fixture.nativeElement as HTMLElement;
-    const icon = el.querySelector('i.pi.pi-check');
-    expect(icon).toBeTruthy();
+    const icons = el.querySelectorAll('i');
+    expect(icons).toHaveLength(2); // chip icon + the × button icon
+    expect(icons[0].classList.contains('pi-check')).toBe(true);
+    expect(icons[1].classList.contains('pi-times')).toBe(true);
   });
 
   it('does not render icon i element when icon is absent', async () => {

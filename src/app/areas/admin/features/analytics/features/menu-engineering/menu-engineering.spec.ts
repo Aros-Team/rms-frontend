@@ -189,7 +189,7 @@ describe('MenuEngineering', () => {
       load: loadSpy,
     });
     await setup(stub);
-    expect(loadSpy).toHaveBeenCalled();
+    expect(loadSpy).toHaveBeenCalledTimes(1);
   });
 
   it('renders two skeletons when isLoading() is true and report() is null', async () => {
@@ -202,14 +202,13 @@ describe('MenuEngineering', () => {
     const root = getRoot(fixture);
 
     const skeletons = root.querySelectorAll('p-skeleton');
-    // Template renders stat cards + chart + table placeholder skeletons;
-    // we wrap them all in a role="status" aria-live="polite" container.
-    expect(skeletons.length).toBeGreaterThanOrEqual(2);
+    // Template renders one 5rem stat skeleton plus two 20rem chart/table skeletons.
+    expect(skeletons.length).toBe(3);
     expect(root.querySelector('p-chart')).toBeNull();
     expect(root.querySelector('p-table')).toBeNull();
-    // Skeleton wrapper exposes a polite live region
+    // Skeleton wrapper exposes a polite live region containing the skeletons
     const wrapper = root.querySelector('[role="status"][aria-live="polite"]');
-    expect(wrapper).toBeTruthy();
+    expect(wrapper?.querySelectorAll('p-skeleton').length).toBe(3);
   });
 
   it('renders the BCG bubble chart when median is available', async () => {
@@ -227,10 +226,11 @@ describe('MenuEngineering', () => {
     const chartData = cmp.quadrantChartData();
     expect(chartData.datasets.length).toBe(4);
     const figure = root.querySelector('figure');
-    expect(figure).toBeTruthy();
     expect(figure?.querySelectorAll('figcaption').length).toBe(2);
     const srFig = figure?.querySelector('figcaption.sr-only');
-    expect(srFig?.textContent ?? '').toContain('Mapa');
+    expect(srFig?.textContent.trim()).toBe(
+      'Mapa BCG de 1 productos. Eje X: margen por unidad. Eje Y: unidades vendidas.',
+    );
   });
 
   it('wraps the chart <figure> with a sr-only figcaption that includes the item count', async () => {
@@ -249,8 +249,9 @@ describe('MenuEngineering', () => {
     const fixture = await setup(stub);
     const root = getRoot(fixture);
     const srFig = root.querySelector('figure figcaption.sr-only');
-    expect(srFig).toBeTruthy();
-    expect(srFig?.textContent ?? '').toContain('3');
+    expect(srFig?.textContent.trim()).toBe(
+      'Mapa BCG de 3 productos. Eje X: margen por unidad. Eje Y: unidades vendidas.',
+    );
   });
 
   it('renders four stat cards in an aria-labelledby section', async () => {
@@ -268,14 +269,17 @@ describe('MenuEngineering', () => {
     const root = getRoot(fixture);
 
     const section = root.querySelector('section[aria-labelledby="me-stats-heading"]');
-    expect(section).toBeTruthy();
-    const articles = section?.querySelectorAll('article') ?? [];
+    const articles = Array.from(section?.querySelectorAll('article') ?? []);
     expect(articles.length).toBe(4);
-    const text = root.textContent;
-    expect(text).toContain('Productos analizados');
-    expect(text).toContain('Ganancia que generan');
-    expect(text).toContain('Ventas típicas');
-    expect(text).toContain('Margen típico');
+    expect(articles.map((a) => a.querySelector('p.text-xs')?.textContent.trim())).toEqual([
+      'Productos analizados',
+      'Ganancia que generan',
+      'Ventas típicas (mediana)',
+      'Margen típico (mediana)',
+    ]);
+    expect(
+      articles.map((a) => a.querySelector('[data-testid^="me-stat-"]')?.textContent.trim()),
+    ).toEqual(['2', '$\u00A0120.000', '25', '$\u00A09.000']);
   });
 
   it('renders median volume stat card with the numeric median value', async () => {
@@ -307,10 +311,7 @@ describe('MenuEngineering', () => {
     const fixture = await setup(stub);
     const root = getRoot(fixture);
     const cell = root.querySelector('[data-testid="me-stat-median-margin"]');
-    expect(cell).toBeTruthy();
-    const text = cell?.textContent ?? '';
-    // Money on 9000.00 COP renders "$ 9.000" or similar localized
-    expect(text).toMatch(/9[.,\s]000/);
+    expect(cell?.textContent.trim()).toBe('$\u00A09.000');
   });
 
   it('renders total contribution stat card with the Money-pipe formatted sum', async () => {
@@ -328,8 +329,7 @@ describe('MenuEngineering', () => {
     const fixture = await setup(stub);
     const root = getRoot(fixture);
     const cell = root.querySelector('[data-testid="me-stat-total-contribution"]');
-    const text = cell?.textContent ?? '';
-    expect(text).toMatch(/100[.,\s]000/);
+    expect(cell?.textContent.trim()).toBe('$\u00A0100.000');
   });
 
   it('renders items count stat card with the filtered items length', async () => {
@@ -368,11 +368,11 @@ describe('MenuEngineering', () => {
     const root = getRoot(fixture);
 
     const table = root.querySelector('p-table');
-    expect(table).toBeTruthy();
-    const text = root.textContent;
-    expect(text).toContain('Coca Cola');
-    expect(text).toContain('Hamburguesa');
-    expect(text).toContain('Ensalada');
+    expect(table).not.toBeNull();
+    const names = Array.from(
+      root.querySelectorAll('p-table tbody tr td:first-child'),
+    ).map((td) => td.textContent.trim());
+    expect(names).toEqual(['Coca Cola', 'Hamburguesa', 'Ensalada']);
     // Three quadrant badges (icon+label spans in Cuadrante column)
     const badges = root.querySelectorAll('p-table tbody tr td:last-child span.inline-flex');
     expect(badges.length).toBe(3);
@@ -388,9 +388,10 @@ describe('MenuEngineering', () => {
     const root = getRoot(fixture);
 
     const table = root.querySelector('p-table');
-    expect(table).toBeTruthy();
-    const text = root.textContent;
-    expect(text).toContain('No hay productos para mostrar');
+    expect(table).not.toBeNull();
+    expect(root.querySelector('p-table tbody tr td')?.textContent.trim()).toBe(
+      'No hay productos para mostrar.',
+    );
     expect(root.querySelectorAll('p-table tbody tr td:last-child span.inline-flex').length).toBe(0);
   });
 
@@ -437,12 +438,11 @@ describe('MenuEngineering', () => {
     });
     const fixture = await setup(stub);
     const root = getRoot(fixture);
-    const text = root.textContent;
 
-    expect(text).toContain('Datos parciales');
-    expect(text).toContain('Faltan recetas para 2 productos');
-    const items = root.querySelectorAll('ul li');
-    expect(items.length).toBeGreaterThanOrEqual(1);
+    const banner = root.querySelector('[role="status"]');
+    expect(banner?.querySelector('p.font-semibold')?.textContent.trim()).toBe('Datos parciales');
+    expect(Array.from(banner?.querySelectorAll('ul li') ?? []).map((li) => li.textContent.trim()))
+      .toEqual(['Faltan recetas para 2 productos']);
   });
 
   it('renders the EMPTY banner with "Aún no hay datos de productos" headline', async () => {
@@ -458,8 +458,11 @@ describe('MenuEngineering', () => {
     });
     const fixture = await setup(stub);
     const root = getRoot(fixture);
-    expect(root.textContent).toContain('Aún no hay datos de productos');
-    expect(root.textContent).not.toContain('Datos parciales');
+    const banner = root.querySelector('[role="status"]');
+    expect(banner?.querySelector('p.font-semibold')?.textContent.trim()).toBe(
+      'Aún no hay datos de productos',
+    );
+    expect(root.querySelectorAll('[role="status"]').length).toBe(1);
   });
 
   it('does NOT render the partial banner when completeness is FULL', async () => {
@@ -494,10 +497,11 @@ describe('MenuEngineering', () => {
     });
     const fixture = await setup(stub);
     const root = getRoot(fixture);
-    const text = root.textContent;
 
-    expect(text).toContain('Última actualización');
-    expect(text).toContain('2026-07-17T12:00:00Z');
+    const cacheLine = root.querySelector('div.text-xs.text-surface-500');
+    expect(cacheLine?.textContent.trim()).toBe(
+      'Última actualización de datos: 2026-07-17T12:00:00Z',
+    );
   });
 
   it('renders an error p-message when error() is truthy', async () => {
@@ -511,10 +515,8 @@ describe('MenuEngineering', () => {
     const root = getRoot(fixture);
 
     const msg = root.querySelector('p-message');
-    expect(msg).toBeTruthy();
-    const text = root.textContent;
-    expect(text).toContain('No se pudieron cargar los datos');
-    expect(text).toContain('Cache miss');
+    expect(msg?.getAttribute('severity')).toBe('error');
+    expect(msg?.textContent.trim()).toBe('No se pudieron cargar los datos: Cache miss');
   });
 
   it('builds unique categories from report items (sorted by name)', async () => {
