@@ -11,7 +11,10 @@
  *    does not trigger a second HTTP round-trip;
  *  - changing the search term resets to page 0 and sends `search`;
  *  - `totalRecords` mirrors the server `total` (drives the paginator);
- *  - a failed request surfaces an error message and clears the loading flag.
+ *  - a failed request surfaces an error message and clears the loading flag;
+ *  - `getOrderTotal()` normalizes `MoneyDto` line values (`{ amount: "..." }`)
+ *    through `calculateTotalPrice()`, so a `MoneyDto` order yields an exact
+ *    number instead of `NaN`.
  *
  * Approach: mount the component with real template, provide a stub `Order`
  * service that records its arguments and returns a controlled page, drive the
@@ -29,16 +32,17 @@ import { WebSocket } from '@app/core/services/websocket/websocket';
 import { Auth } from '@app/core/services/auth/auth';
 import type { OrderResponse } from '@app/shared/models/dto/orders/order-response';
 import type { Page } from '@app/shared/models/dto/common/pagination';
+import type { MoneyLike } from '@app/shared/models/dto/common/money';
 import { OrdersTable } from './orders-table';
 import ordersTableHtml from './orders-table.html?raw';
 
-function makeOrder(id: number): OrderResponse {
+function makeOrder(id: number, unitPrice: MoneyLike = 2500): OrderResponse {
   return {
     id,
     date: '2026-07-15T12:00:00',
     status: 'QUEUE',
     tableId: 1,
-    details: [{ id, productId: 1, productName: 'Café', unitPrice: 2500, instructions: '' }],
+    details: [{ id, productId: 1, productName: 'Café', unitPrice, instructions: '' }],
   };
 }
 
@@ -130,6 +134,23 @@ describe('OrdersTable (server-side paging)', () => {
     const query = getPage.mock.calls[2][2] as Record<string, unknown>;
     expect(query).toMatchObject({ page: 0, status: 'READY' });
     expect(fixture.componentInstance.first).toBe(0);
+  });
+
+  it('totals MoneyDto line prices without producing NaN', () => {
+    const order = makeOrder(7, { amount: '15000.00', currency: 'COP' });
+    order.details.push({
+      id: 8,
+      productId: 2,
+      productName: 'Jugo',
+      unitPrice: { amount: '2500.00', currency: 'COP' },
+      extraCharge: { amount: '0.00', currency: 'COP' },
+      instructions: '',
+    });
+
+    const total = fixture.componentInstance.getOrderTotal(order);
+
+    expect(Number.isNaN(total)).toBe(false);
+    expect(total).toBe(17500);
   });
 
   it('reports a failed page load and stops the spinner', () => {

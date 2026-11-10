@@ -78,8 +78,8 @@
               <p class="text-xs text-surface-500 dark:text-surface-400 line-clamp-2">{{ product.description }}</p>
             }
             <div class="flex items-center justify-between mt-1">
-              <span class="text-primary-700 dark:text-primary-300 font-semibold text-sm">
-                ${{ product.basePrice | number:'1.2-2' }}
+              <span class="text-primary-700 dark:text-primary-300 font-semibold text-sm" data-testid="product-price">
+                {{ product.basePrice | money }}
               </span>
               <span class="text-[10px] text-surface-400 flex items-center gap-0.5">
                 <i class="pi pi-plus-circle text-xs"></i>

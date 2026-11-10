@@ -1,7 +1,12 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DialogModule } from 'primeng/dialog';
-import { OrderResponse, calculateTotalPrice } from '@app/shared/models/dto/orders/order-response';
+import {
+  type OrderDetailItem,
+  type OrderResponse,
+  calculateTotalPrice,
+} from '@app/shared/models/dto/orders/order-response';
+import { toAmount } from '@app/shared/models/dto/common/money';
 import { Money } from '@app/shared/pipes/money/money';
 
 @Component({
@@ -15,6 +20,16 @@ export class OrderDetailDialog {
 
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() closed = new EventEmitter<void>();
+
+  /**
+   * Per-line money total (`unitPrice + extraCharge`).
+   *
+   * Both fields are `MoneyDto` objects on the wire, so adding them in the
+   * template produced `NaN`. Normalization happens here, in TS, via `toAmount`.
+   */
+  getLineTotal(item: OrderDetailItem): number {
+    return toAmount(item.unitPrice) + toAmount(item.extraCharge);
+  }
 
   /** Delegates to the DTO helper so `extraCharge` is folded in exactly once. */
   getTotalPrice(): number {

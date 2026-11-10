@@ -8,6 +8,8 @@ import { Worker } from '@app/core/services/workers/worker';
 import { Accessibility, FontSize, ContrastMode } from '@app/core/services/accessibility/accessibility';
 import { Theme } from '@app/core/services/theme/theme';
 import { SalaryHistoryEntry } from '@app/shared/models/dto/workers/salary-history-entry';
+import { tryToAmount, type MoneyLike } from '@app/shared/models/dto/common/money';
+import { Money } from '@app/shared/pipes/money/money';
 
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
@@ -67,7 +69,8 @@ export class Settings implements OnInit {
   salaryHistory = signal<SalaryHistoryEntry[] | undefined>(undefined);
   salaryHistoryLoading = computed(() => this.salaryHistory() === undefined);
 
-  currencyFormat = Intl.NumberFormat('es-Co', { style: 'currency', currency: 'COP' });
+  /** Shared money pipe; the backend sends `MoneyDto`, not a raw number. */
+  private readonly moneyPipe = new Money();
 
   ngOnInit(): void {
     const userData = this.authService.getData();
@@ -92,9 +95,14 @@ export class Settings implements OnInit {
     });
   }
 
-  formatSalary(value: number | null): string {
-    if (value === null) return '-';
-    return this.currencyFormat.format(value);
+  /**
+   * Renders a salary. The wire shape is `MoneyDto` (`{ amount, currency }`), so
+   * `Intl.NumberFormat` on the raw value yields `$ NaN`; normalize with
+   * `tryToAmount` and format through the shared `money` pipe. Missing → `-`.
+   */
+  formatSalary(value: MoneyLike): string {
+    if (tryToAmount(value) === null) return '-';
+    return this.moneyPipe.transform(value);
   }
 
   formatDateTime(iso: string): string {

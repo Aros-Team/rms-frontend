@@ -12,6 +12,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';
 import type { DayOfWeek } from '@app/shared/models/dto/special-selections/schedule-entry';
+import { toAmount } from '@app/shared/models/dto/common/money';
 
 export type WizardStepId = string;
 
@@ -118,7 +119,7 @@ function responseToFormData(response: SpecialSelectionResponse): WizardFormData 
   return {
     name: response.name,
     description: response.description,
-    basePrice: response.basePrice,
+    basePrice: toAmount(response.basePrice),
     areaId: response.preparationAreaId,
     active: response.active,
     baseRecipeEnabled: response.baseRecipeEnabled,
@@ -137,7 +138,7 @@ function responseToFormData(response: SpecialSelectionResponse): WizardFormData 
       id: addition.id,
       name: addition.name,
       optionId: addition.optionId,
-      extraPrice: addition.extraPrice,
+      extraPrice: toAmount(addition.extraPrice),
       displayOrder: addition.displayOrder,
     })),
     questions: response.questions.map((question) => ({

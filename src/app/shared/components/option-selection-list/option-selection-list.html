@@ -21,7 +21,7 @@
       <div class="flex-1 min-w-0">
         <span class="text-sm font-medium text-surface-800 dark:text-surface-100">{{ option.name }}</span>
         @if (option.extraPrice && option.extraPrice > 0) {
-          <span class="text-xs text-primary-600 dark:text-primary-400 ml-2">+${{ option.extraPrice | number:'1.0-0' }}</span>
+          <span class="text-xs text-primary-600 dark:text-primary-400 ml-2">+{{ option.extraPrice | money }}</span>
         }
       </div>
     </div>

@@ -25,12 +25,12 @@ describe('CostBreakdownPanel', () => {
   function buildBreakdown(overrides: Partial<{
     productId: number;
     name: string;
-    baseCost: { amount: number; currency: string };
+    baseCost: { amount: number | string; currency: string };
     options: {
       optionId: number;
       name: string;
-      cost: { amount: number; currency: string };
-      extraPrice: { amount: number; currency: string };
+      cost: { amount: number | string; currency: string };
+      extraPrice: { amount: number | string; currency: string };
       categoryId: number;
       categorySelectionType: string;
     }[];
@@ -38,12 +38,12 @@ describe('CostBreakdownPanel', () => {
       categoryId: number;
       name: string;
       selectionType: string;
-      defaultSlotCost: { amount: number; currency: string };
-      slotProjectedCost: { amount: number; currency: string };
-      projectedContribution: { amount: number; currency: string };
+      defaultSlotCost: { amount: number | string; currency: string };
+      slotProjectedCost: { amount: number | string; currency: string };
+      projectedContribution: { amount: number | string; currency: string };
     }[];
-    projectedOptionCost: { amount: number; currency: string };
-    projectedEffectiveCost: { amount: number; currency: string };
+    projectedOptionCost: { amount: number | string; currency: string };
+    projectedEffectiveCost: { amount: number | string; currency: string };
   }> = {}) {
     return {
       productId: 1,
@@ -101,7 +101,7 @@ describe('CostBreakdownPanel', () => {
     const fixture = await setup();
     const text = getText(fixture);
     expect(text).toContain('Costo base');
-    expect(text).toContain('$15.000');
+    expect(text).toMatch(/Costo base\$\s?15\.000/);
   });
 
   it('renders options with name and cost', async () => {
@@ -109,7 +109,7 @@ describe('CostBreakdownPanel', () => {
     const text = getText(fixture);
     expect(text).toContain('Opciones');
     expect(text).toContain('Queso extra');
-    expect(text).toContain('$2.000');
+    expect(text).toMatch(/Queso extra\$\s?2\.000/);
   });
 
   it('renders categories with name and slotProjectedCost', async () => {
@@ -117,21 +117,21 @@ describe('CostBreakdownPanel', () => {
     const text = getText(fixture);
     expect(text).toContain('Categorías');
     expect(text).toContain('Extras');
-    expect(text).toContain('$2.000');
+    expect(text).toMatch(/Extras\$\s?2\.000/);
   });
 
   it('renders effective cost', async () => {
     const fixture = await setup();
     const text = getText(fixture);
     expect(text).toContain('Costo efectivo');
-    expect(text).toContain('$17.000');
+    expect(text).toMatch(/Costo efectivo\$\s?17\.000/);
   });
 
   it('hides detailed options list when compact=true', async () => {
     const fixture = await setup({ compact: true });
     const text = getText(fixture);
     expect(text).toContain('Opciones');
-    expect(text).toContain('$2.000');
+    expect(text).toMatch(/Opciones\$\s?2\.000/);
     expect(text).not.toContain('Queso extra');
   });
 
@@ -142,16 +142,20 @@ describe('CostBreakdownPanel', () => {
     expect(text).not.toContain('Extras');
   });
 
-  it('formatMoney returns $0 for zero amount', async () => {
-    const fixture = await setup({ breakdown: buildBreakdown({ baseCost: { amount: 0, currency: 'COP' } }) });
+  it('renders a string amount (MoneyDto wire shape) through the money pipe', async () => {
+    const fixture = await setup({
+      breakdown: buildBreakdown({ baseCost: { amount: '12500.00', currency: 'COP' } }),
+    });
     const text = getText(fixture);
-    expect(text).toContain('$0');
+    expect(text).toMatch(/Costo base\$\s?12\.500/);
   });
 
-  it('formatMoney returns formatted string for valid amount', async () => {
-    const fixture = await setup();
+  it('renders zero cost as $0 instead of an em dash', async () => {
+    const fixture = await setup({
+      breakdown: buildBreakdown({ baseCost: { amount: 0, currency: 'COP' } }),
+    });
     const text = getText(fixture);
-    expect(text).toContain('$15.000');
+    expect(text).toMatch(/Costo base\$\s?0/);
   });
 
   it('hides options section when options array is empty', async () => {

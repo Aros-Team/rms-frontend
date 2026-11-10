@@ -293,6 +293,21 @@ describe('ProductRecipePage', () => {
     expect(routerNavigate).toHaveBeenCalledWith(['/admin/manage/products']);
   });
 
+  it('normalizes a MoneyDto basePrice into the salePrice signal (regression)', async () => {
+    // The backend sends `basePrice` as `{ amount: "15000.00", currency: "COP" }`.
+    // A naive `salePrice.set(p.basePrice)` put an object into a number signal,
+    // which then rendered as NaN / "[object Object]".
+    const env = configureTestBed('7');
+    env.productStub.findProduct.mockReturnValue(
+      of({ ...buildProductFixture(), basePrice: { amount: '15000.00', currency: 'COP' } }),
+    );
+    const fixture = TestBed.createComponent(ProductRecipePage);
+    await flushMicrotasks();
+
+    expect(fixture.componentInstance.salePrice()).toBe(15000);
+    expect(Number.isNaN(fixture.componentInstance.salePrice())).toBe(false);
+  });
+
   it('displays product data after load — formData populated with name', async () => {
     configureTestBed('7');
     const fixture = TestBed.createComponent(ProductRecipePage);

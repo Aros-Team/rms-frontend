@@ -1,3 +1,4 @@
+import type { Money } from '@app/shared/models/dto/common/money';
 import type { SelectionType } from '@app/shared/models/dto/special-selections/selection-type';
 
 export interface ProductRecipeItem {
@@ -10,7 +11,8 @@ export interface ProductResponse {
   id: number;
   name: string;
   description?: string;
-  basePrice: number;
+  /** `MoneyDto { amount: string, currency: string }` on the wire. Use `toAmount()` for math. */
+  basePrice: Money | number;
   active: boolean;
   categoryId: number;
   categoryName: string;

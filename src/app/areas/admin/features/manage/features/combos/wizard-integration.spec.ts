@@ -21,6 +21,8 @@ import { ComboReferenceCache } from '@app/core/services/combos/combo-reference-c
 import { ComboWizardState, type WizardFormData } from '@app/core/services/combos/combo-wizard-state';
 import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import type { ProductResponse } from '@app/shared/models/dto/products/product-response';
+import type { Money } from '@app/shared/models/dto/common/money';
+import { toAmount } from '@app/shared/models/dto/common/money';
 import { SELECTION_TYPE } from '@app/shared/models/dto/special-selections/selection-type';
 
 import { ComboWizard } from './combo-wizard';
@@ -66,7 +68,7 @@ function specialSelectionsCacheStub() {
 
 // ─── Test data ───────────────────────────────────────────────────────────────
 
-function makeProduct(id: number, name: string, basePrice: number, categoryId: number): ProductResponse {
+function makeProduct(id: number, name: string, basePrice: Money | number, categoryId: number): ProductResponse {
   return {
     id,
     name,
@@ -413,16 +415,28 @@ describe('Wizard integration', () => {
   // ── 7. Pricing cost calculation ──────────────────────────────────────
   describe('5. Pricing cost calculation from selected products', () => {
     it('sums base prices of all selected products across groups', () => {
+      // Prices are `Money | number` now: the wire shape is
+      // `{ amount: "200.00", currency: "COP" }`, so every sum must be
+      // normalized with `toAmount()` or the total becomes a concatenated
+      // string / NaN.
+      const moneyProducts: ProductResponse[] = [
+        makeProduct(20, 'Producto M1', { amount: '100.00', currency: 'COP' }, 1),
+        makeProduct(21, 'Producto M2', { amount: '200.00', currency: 'COP' }, 1),
+        makeProduct(22, 'Producto M3', { amount: '300.00', currency: 'COP' }, 2),
+      ];
       const groups = [
-        { categoryId: 1, productIds: [10, 11] }, // 100 + 200
-        { categoryId: 2, productIds: [12] },       // 300
+        { categoryId: 1, productIds: [20, 21] }, // 100 + 200
+        { categoryId: 2, productIds: [22] }, // 300
       ];
       let total = 0;
       let count = 0;
       for (const g of groups) {
         for (const pid of g.productIds) {
-          const p = TEST_PRODUCTS.find((x) => x.id === pid);
-          if (p) { total += p.basePrice; count++; }
+          const p = moneyProducts.find((x) => x.id === pid);
+          if (p) {
+            total += toAmount(p.basePrice);
+            count++;
+          }
         }
       }
       expect(total).toBe(600);
@@ -434,7 +448,7 @@ describe('Wizard integration', () => {
       for (const g of [] as { productIds: number[] }[]) {
         for (const pid of g.productIds) {
           const p = TEST_PRODUCTS.find((x) => x.id === pid);
-          if (p) total += p.basePrice;
+          if (p) total += toAmount(p.basePrice);
         }
       }
       expect(total).toBe(0);
@@ -449,7 +463,7 @@ describe('Wizard integration', () => {
       for (const g of groups) {
         for (const pid of g.productIds) {
           const p = TEST_PRODUCTS.find((x) => x.id === pid);
-          if (p) total += p.basePrice;
+          if (p) total += toAmount(p.basePrice);
         }
       }
       expect(total).toBe(300);

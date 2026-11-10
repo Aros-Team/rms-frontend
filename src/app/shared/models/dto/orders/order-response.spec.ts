@@ -1,49 +1,93 @@
 /**
- * Tests for `calculateTotalPrice` — the single source of order money math.
+ * Tests for `calculateTotalPrice`, the single source of truth for an order's
+ * monetary total.
  *
- * Feature: Sums every order line as `unitPrice + extraCharge`.
+ * Feature: `OrderResponse.total` / `OrderDetailItem.unitPrice` /
+ * `OrderDetailItem.extraCharge` are `MoneyDto` objects on the wire
+ * (`{ amount: "15000.00", currency: "COP" }`), not numbers.
  * Contract:
- *  - empty details → 0
- *  - `extraCharge` is folded into the total (options/additions surcharges)
- *  - missing `extraCharge` behaves as 0
- * Approach: Build `OrderResponse` fixtures and assert exact numeric totals.
+ *  - a detail's contribution is `toAmount(unitPrice) + toAmount(extraCharge)`;
+ *  - two `MoneyDto` details `15000.00` + `2500.00` ⇒ exactly 17500 (the bug was
+ *    `NaN`, because objects were added directly);
+ *  - string amounts, bare numbers and a missing `extraCharge` all normalize;
+ *  - an order without details ⇒ 0 (never `NaN`).
+ *
+ * Approach: call the helper with the REAL payload shape (string amounts inside
+ * money objects) and assert the exact numeric total.
  */
 import { describe, expect, it } from 'vitest';
 
-import { calculateTotalPrice, type OrderResponse } from './order-response';
+import {
+  calculateTotalPrice,
+  type OrderDetailItem,
+  type OrderResponse,
+} from './order-response';
 
-function orderWith(details: { unitPrice: number; extraCharge?: number }[]): OrderResponse {
+function makeDetail(overrides: Partial<OrderDetailItem> = {}): OrderDetailItem {
+  return {
+    id: 1,
+    productId: 1,
+    productName: 'Hamburguesa',
+    instructions: '',
+    unitPrice: 0,
+    ...overrides,
+  };
+}
+
+function makeOrder(details: OrderDetailItem[]): OrderResponse {
   return {
     id: 1,
     date: '2026-07-15T12:00:00',
-    status: 'QUEUE',
-    tableId: 1,
-    details: details.map((d, i) => ({
-      id: i + 1,
-      productId: 100 + i,
-      productName: `Producto ${String(i + 1)}`,
-      unitPrice: d.unitPrice,
-      extraCharge: d.extraCharge,
-      instructions: '',
-    })),
+    status: 'DELIVERED',
+    tableId: 3,
+    details,
   };
 }
 
 describe('calculateTotalPrice', () => {
-  it('returns 0 when there are no details', () => {
-    expect(calculateTotalPrice(orderWith([]))).toBe(0);
-  });
-
-  it('folds extraCharge into the total', () => {
-    const order = orderWith([
-      { unitPrice: 10000, extraCharge: 2000 },
-      { unitPrice: 5000, extraCharge: 500 },
+  it('sums two MoneyDto details to the exact total', () => {
+    const order = makeOrder([
+      makeDetail({ id: 1, unitPrice: { amount: '15000.00', currency: 'COP' } }),
+      makeDetail({ id: 2, unitPrice: { amount: '2500.00', currency: 'COP' } }),
     ]);
 
     expect(calculateTotalPrice(order)).toBe(17500);
   });
 
-  it('treats a missing extraCharge as zero', () => {
-    expect(calculateTotalPrice(orderWith([{ unitPrice: 8000 }]))).toBe(8000);
+  it('folds a MoneyDto extraCharge into its line', () => {
+    const order = makeOrder([
+      makeDetail({
+        id: 1,
+        unitPrice: { amount: '10000.00', currency: 'COP' },
+        extraCharge: { amount: '2500.00', currency: 'COP' },
+      }),
+      makeDetail({ id: 2, unitPrice: { amount: '5000.00', currency: 'COP' } }),
+    ]);
+
+    expect(calculateTotalPrice(order)).toBe(17500);
+  });
+
+  it('tolerates bare numbers mixed with money objects', () => {
+    const order = makeOrder([
+      makeDetail({ id: 1, unitPrice: 10000, extraCharge: 2500 }),
+      makeDetail({ id: 2, unitPrice: { amount: '5000.00', currency: 'COP' } }),
+    ]);
+
+    expect(calculateTotalPrice(order)).toBe(17500);
+  });
+
+  it('never yields NaN when an amount is unparseable', () => {
+    const order = makeOrder([
+      makeDetail({ id: 1, unitPrice: { amount: 'notanumber', currency: 'COP' } }),
+      makeDetail({ id: 2, unitPrice: { amount: '1000.00', currency: 'COP' } }),
+    ]);
+
+    const total = calculateTotalPrice(order);
+    expect(Number.isNaN(total)).toBe(false);
+    expect(total).toBe(1000);
+  });
+
+  it('returns 0 for an order without details', () => {
+    expect(calculateTotalPrice(makeOrder([]))).toBe(0);
   });
 });

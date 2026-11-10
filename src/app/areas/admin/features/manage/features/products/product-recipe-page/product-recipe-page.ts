@@ -40,6 +40,7 @@ import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { SkeletonModule } from 'primeng/skeleton';
 import { MessageService } from 'primeng/api';
+import { toAmount } from '@app/shared/models/dto/common/money';
 
 interface RecipeItemEditable {
   supplyVariantId: number;
@@ -190,7 +191,7 @@ export class ProductRecipePage implements OnInit {
       takeUntilDestroyed(this.destroyRef),
       tap((p) => {
         this.product.set(p);
-        this.salePrice.set(p.basePrice);
+        this.salePrice.set(toAmount(p.basePrice));
         this.formData.set({
           name: p.name,
           description: p.description ?? '',

@@ -30,13 +30,19 @@ import { WebSocket } from '@app/core/services/websocket/websocket';
 import { Auth } from '@app/core/services/auth/auth';
 import { ServerStatus } from '@app/core/services/server-status/server-status';
 import type { OrderResponse } from '@app/shared/models/dto/orders/order-response';
+import type { MoneyLike } from '@app/shared/models/dto/common/money';
 import type { TableResponse } from '@app/shared/models/dto/tables/table-response';
 import { Dashboard } from './dashboard';
 
 function makeOrder(
   id: number,
   status: string,
-  details: { unitPrice: number; extraCharge?: number; categoryName?: string }[],
+  details: {
+    /** `MoneyDto` (`{ amount: "15000.00", currency: "COP" }`) or a bare number. */
+    unitPrice: MoneyLike;
+    extraCharge?: MoneyLike;
+    categoryName?: string;
+  }[],
 ): OrderResponse {
   return {
     id,
@@ -147,6 +153,28 @@ describe('Dashboard order aggregates', () => {
     ]);
 
     expect(dashboard.calcTotal(order)).toBe(17_500);
+  });
+
+  it('sums MoneyDto details to the exact KPI total instead of NaN', () => {
+    // The real wire shape: every monetary field is a money object.
+    const moneyOrder = makeOrder(12, 'DELIVERED', [
+      { unitPrice: { amount: '15000.00', currency: 'COP' }, categoryName: 'Platos' },
+      {
+        unitPrice: { amount: '10000.00', currency: 'COP' },
+        extraCharge: { amount: '2500.00', currency: 'COP' },
+        categoryName: 'Platos',
+      },
+    ]);
+
+    startLoad();
+    httpMock
+      .expectOne((r) => r.url === 'v1/orders' && r.params.get('page') === '0')
+      .flush({ items: [moneyOrder], total: 1, page: 0, size: 50, total_pages: 1 });
+
+    expect(dashboard.totalSales()).toBe(27_500);
+    expect(Number.isNaN(dashboard.totalSales())).toBe(false);
+    expect(dashboard.salesByCategoryTotal()).toBe(27_500);
+    expect(dashboard.topProductsTotal()).toBe(27_500);
   });
 
   it('flags a capped walk so the KPIs are not presented as complete', () => {

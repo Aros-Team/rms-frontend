@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
 
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
+import { toAmount } from '@app/shared/models/dto/common/money';
+import { Money as MoneyPipe } from '@app/shared/pipes/money/money';
 import { ProductOption } from '@app/shared/models/dto/products/product-option';
 import { OptionSelectionType } from '@app/shared/models/dto/option-groups/option-selection-type';
 import { OptionSelectionList, SelectionOption } from '@app/shared/components/option-selection-list/option-selection-list';
@@ -35,7 +37,7 @@ export interface GroupMeta {
   selector: 'app-product-options-modal',
   templateUrl: './product-options-modal.html',
   styleUrl: './product-options-modal.css',
-  imports: [CommonModule, DialogModule, FormsModule, OptionSelectionList, OptionGroupBadgeComponent, RemovableChip],
+  imports: [CommonModule, DialogModule, FormsModule, OptionSelectionList, OptionGroupBadgeComponent, RemovableChip, MoneyPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductOptionsModal {
@@ -55,6 +57,9 @@ export class ProductOptionsModal {
   @Output() readonly confirm = new EventEmitter<ProductOptionsConfirmEvent>();
   @Output() readonly dismiss = new EventEmitter<void>();
   @Output() readonly errorClear = new EventEmitter<void>();
+
+  /** Renders money values inside TS-computed labels (same formatting as the template pipe). */
+  private readonly moneyPipe = new MoneyPipe();
 
   // ── Internal state (public for template access) ──
   selectedOptionIds = signal<number[]>([]);
@@ -81,7 +86,7 @@ export class ProductOptionsModal {
       group.options.push({
         id: opt.id,
         name: opt.name,
-        extraPrice: opt.extraPrice?.amount,
+        extraPrice: opt.extraPrice == null ? undefined : toAmount(opt.extraPrice),
       });
     }
 
@@ -98,7 +103,7 @@ export class ProductOptionsModal {
       .map(o => ({
         id: o.id,
         label: o.name,
-        meta: o.extraPrice && o.extraPrice.amount > 0 ? `$${String(o.extraPrice.amount)}` : undefined,
+        meta: toAmount(o.extraPrice) > 0 ? this.moneyPipe.transform(toAmount(o.extraPrice)) : undefined,
       }));
   });
 
@@ -108,7 +113,7 @@ export class ProductOptionsModal {
     const opts = this.options;
     return selIds.reduce((sum, id) => {
       const opt = opts.find(o => o.id === id);
-      return sum + (opt?.extraPrice?.amount ?? 0);
+      return sum + toAmount(opt?.extraPrice);
     }, 0);
   });
 

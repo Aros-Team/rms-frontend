@@ -32,7 +32,7 @@
       </div>
       <!-- Price -->
       <span class="text-lg font-black text-primary-700 dark:text-primary-300 shrink-0">
-        ${{ product?.basePrice | number:'1.2-2' }}
+        {{ product?.basePrice | money }}
       </span>
       <!-- Close button -->
       <button
@@ -98,7 +98,7 @@
     @if (!loading && extraCharge() > 0) {
       <div class="flex items-center justify-between px-4 py-2 rounded-xl bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800">
         <span class="text-sm text-primary-700 dark:text-primary-300">Recargo por opciones</span>
-        <span class="text-sm font-bold text-primary-700 dark:text-primary-300">+${{ extraCharge() | number:'1.0-0' }}</span>
+        <span class="text-sm font-bold text-primary-700 dark:text-primary-300">+{{ extraCharge() | money }}</span>
       </div>
     }
 

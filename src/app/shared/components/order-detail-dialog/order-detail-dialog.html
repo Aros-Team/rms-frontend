@@ -44,7 +44,7 @@
               <div class="col-span-6">{{ item.productName }}</div>
               <div class="col-span-2 text-center">1</div>
               <div class="col-span-2 text-right">{{ item.unitPrice | money }}</div>
-              <div class="col-span-2 text-right">{{ (item.unitPrice + (item.extraCharge ?? 0)) | money }}</div>
+              <div class="col-span-2 text-right">{{ getLineTotal(item) | money }}</div>
             </div>
           }
           <div class="grid grid-cols-12 gap-2 p-3 bg-surface-50 dark:bg-surface-900 font-semibold">

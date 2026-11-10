@@ -187,6 +187,26 @@ describe('ComboWizardState', () => {
       expect(state.lastSavedAt()).not.toBeNull();
     });
 
+    it('normalizes MoneyDto basePrice and addition extraPrice on hydrate (regression)', () => {
+      // The backend sends money as `{ amount: "15000.00", currency: "COP" }`.
+      // Putting those objects into the numeric draft made the wizard's
+      // `basePrice > 0` check and every later sum wrong (NaN).
+      const state = setupTestBed();
+      const response: SpecialSelectionResponse = {
+        ...mockResponse,
+        basePrice: { amount: '15000.00', currency: 'COP' },
+        additions: [
+          { id: 1, name: 'Queso', optionId: 1, extraPrice: { amount: '1500.00', currency: 'COP' }, displayOrder: 1, optionName: 'Queso' },
+        ],
+      };
+
+      state.hydrateFromResponse(response);
+
+      expect(state.data().basePrice).toBe(15000);
+      expect(state.data().additions[0].extraPrice).toBe(1500);
+      expect(Number.isNaN(Number(state.data().basePrice))).toBe(false);
+    });
+
     it('hydrateFromResponse clears any persisted localStorage draft', () => {
       window.localStorage.setItem(
         STORAGE_KEY,

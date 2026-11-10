@@ -70,7 +70,7 @@
               <span>{{ product.name }}</span>
             </div>
           </td>
-          <td>{{ currencyFormat.format(product.basePrice) }}</td>
+          <td>{{ product.basePrice | money }}</td>
           <td>{{ product.areaName }}</td>
           <td>{{ product.categoryName }}</td>
           <td>
@@ -567,7 +567,7 @@
           }
           <div class="flex justify-between">
             <span class="text-surface-500">Precio de venta</span>
-            <span class="font-medium">{{ currencyFormat.format(createdProduct()!.basePrice) }}</span>
+            <span class="font-medium">{{ createdProduct()!.basePrice | money }}</span>
           </div>
           <div class="flex justify-between">
             <span class="text-surface-500">Tipo</span>

@@ -138,6 +138,30 @@ describe('PricingStep', () => {
   }
 
   describe('cost breakdown', () => {
+    it('normalizes MoneyDto product prices so totalCost stays exact (regression)', () => {
+      // Wire shape: `basePrice` is `{ amount: "15000.00", currency: "COP" }`.
+      // Reducing the raw objects used to produce NaN.
+      mockProducts.push(
+        { id: 200, name: 'Costo A', basePrice: { amount: '15000.00', currency: 'COP' }, active: true, categoryId: 1, categoryName: 'Bebidas', areaId: 1, areaName: 'Cocina', recipe: [] },
+        { id: 201, name: 'Costo B', basePrice: { amount: '10000.00', currency: 'COP' }, active: true, categoryId: 1, categoryName: 'Bebidas', areaId: 1, areaName: 'Cocina', recipe: [] },
+      );
+      createComponent({
+        ...emptyFormData(),
+        groups: [
+          { id: 9, categoryId: 1, displayOrder: 0, required: true, minSelections: 1, maxSelections: 1, productIds: [200, 201] },
+        ],
+      });
+      fixture.detectChanges();
+
+      expect(component.groupCosts()[0]?.avgPrice).toBe(12500);
+      expect(component.groupCosts()[0]?.subtotal).toBe(12500);
+      expect(component.totalCost()).toBe(12500);
+      expect(Number.isNaN(component.totalCost())).toBe(false);
+      expect(component.suggestedRetailPrice()).toBeCloseTo(11250);
+
+      mockProducts.length = 3;
+    });
+
     it('renders cost breakdown with selected products', () => {
       createComponent(formDataWithGroups());
       fixture.detectChanges();

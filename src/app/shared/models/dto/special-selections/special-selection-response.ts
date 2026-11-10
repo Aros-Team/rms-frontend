@@ -1,3 +1,4 @@
+import type { Money } from '@app/shared/models/dto/common/money';
 import type { SelectionType } from './selection-type';
 import type { ScheduleEntryResponse } from './schedule-entry';
 import type { SpecialSelectionGroupResponse } from './special-selection-group';
@@ -8,7 +9,8 @@ export interface SpecialSelectionResponse {
   id: number;
   name: string;
   description: string;
-  basePrice: number;
+  /** `MoneyDto` on the wire. Use `toAmount()` for math. */
+  basePrice: Money | number;
   active: boolean;
   preparationAreaId: number;
   selectionType: SelectionType;

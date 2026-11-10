@@ -168,7 +168,7 @@ describe('OptionSelectionList', () => {
 
     it('should show extra price when > 0', () => {
       const text = getEl().textContent;
-      expect(text).toContain('+$5');
+      expect(text).toMatch(/\+\$\s?5(?!\d)/);
     });
 
     it('should not show extra price when 0 or undefined', () => {

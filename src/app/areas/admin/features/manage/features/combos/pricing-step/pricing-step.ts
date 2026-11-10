@@ -22,6 +22,7 @@ import {
 import { DEFAULT_CURRENCY, Money } from '@app/shared/pipes/money/money';
 import { STEP_PRICING_ID } from '../combo-wizard';
 import type { ProductResponse } from '@app/shared/models/dto/products/product-response';
+import { toAmount } from '@app/shared/models/dto/common/money';
 
 interface ProductCostView {
   id: number;
@@ -82,7 +83,7 @@ export class PricingStep {
         .map((p: ProductResponse) => ({
           id: p.id,
           name: p.name,
-          basePrice: p.basePrice,
+          basePrice: toAmount(p.basePrice),
         }));
       const n = products.length;
       const avg = n > 0

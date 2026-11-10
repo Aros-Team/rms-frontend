@@ -14,6 +14,7 @@ import { Logging } from '@app/core/services/logging/logging';
 import { ProductImage } from '@app/core/services/product-image/product-image';
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
 import { ProductOption } from '@app/shared/models/dto/products/product-option';
+import { Money } from '@app/shared/pipes/money/money';
 
 import { CartaSkeleton } from './skeletons/carta-skeleton';
 import { ProductOptionsModal, ProductOptionsConfirmEvent } from '@app/shared/components/product-options-modal/product-options-modal';
@@ -22,7 +23,7 @@ import { ProductOptionsModal, ProductOptionsConfirmEvent } from '@app/shared/com
   selector: 'app-products',
   templateUrl: './products.html',
   styleUrl: './products.css',
-  imports: [CommonModule, FormsModule, CartaSkeleton, InputTextModule, IconFieldModule, InputIconModule, ProductOptionsModal],
+  imports: [CommonModule, FormsModule, CartaSkeleton, InputTextModule, IconFieldModule, InputIconModule, ProductOptionsModal, Money],
 })
 export class Products implements OnInit {
   private masterData = inject(MasterData);

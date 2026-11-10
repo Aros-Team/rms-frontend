@@ -103,7 +103,8 @@ describe('ProductOptionsModal', () => {
       component.selectedOptionIds.set([20]);
 
       const chips = component.selectedChips();
-      expect(chips[0].meta).toContain('3000');
+      // Chips render through the shared money pipe (COP, no decimals).
+      expect(chips[0].meta).toMatch(/^\$\s?3\.000$/);
     });
 
     it('should not include meta for options without extraPrice', () => {

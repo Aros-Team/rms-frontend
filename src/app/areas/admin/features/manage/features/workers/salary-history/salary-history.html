@@ -45,8 +45,8 @@
         <ng-template #body let-entry>
           <tr>
             <td class="text-sm whitespace-nowrap">{{ formatDateTime(entry.changedAt) }}</td>
-            <td class="text-sm font-mono">{{ formatSalary(entry.oldSalary) }}</td>
-            <td class="text-sm font-mono">{{ formatSalary(entry.newSalary) }}</td>
+            <td class="text-sm font-mono" data-testid="old-salary">{{ formatSalary(entry.oldSalary) }}</td>
+            <td class="text-sm font-mono" data-testid="new-salary">{{ formatSalary(entry.newSalary) }}</td>
             <td class="text-sm">{{ entry.reason }}</td>
             <td class="text-sm hidden lg:table-cell max-w-[200px] truncate">{{ entry.observations ?? '-' }}</td>
           </tr>

@@ -50,6 +50,7 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 
 import { PrepTimeDialog, type PrepTimeEstimate } from './componentes/prep-time-dialog/prep-time-dialog';
+import { Money } from '@app/shared/pipes/money/money';
 
 // Wizard steps: 1=basic data+image, 2=insumos, 3=options, 4=finalize
 type WizardStep = 1 | 2 | 3 | 4 | 5;
@@ -122,6 +123,7 @@ interface OptionFormValue {
     PrepTimeDialog,
     SearchInputComponent,
     Step3Options,
+    Money,
   ],
   templateUrl: './products.html',
   providers: [MessageService, ConfirmationService],

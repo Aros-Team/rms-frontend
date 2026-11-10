@@ -9,6 +9,8 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { Worker } from '@app/core/services/workers/worker';
 import { SalaryHistoryEntry } from '@app/shared/models/dto/workers/salary-history-entry';
 import { Logging } from '@app/core/services/logging/logging';
+import { tryToAmount, type MoneyLike } from '@app/shared/models/dto/common/money';
+import { Money } from '@app/shared/pipes/money/money';
 
 @Component({
   selector: 'app-salary-history',
@@ -17,7 +19,6 @@ import { Logging } from '@app/core/services/logging/logging';
     TableModule,
     ButtonModule,
     SkeletonModule,
-
   ],
   templateUrl: './salary-history.html',
 })
@@ -26,6 +27,8 @@ export class SalaryHistory implements OnInit {
   private workerService = inject(Worker);
   private logger = inject(Logging);
 
+  private readonly moneyPipe = new Money();
+
   userId = signal<number>(0);
   entries = signal<SalaryHistoryEntry[] | undefined>(undefined);
   isLoading = computed(() => this.entries() === undefined);
@@ -33,8 +36,6 @@ export class SalaryHistory implements OnInit {
     const data = this.entries();
     return data !== undefined && data.length > 0;
   });
-
-  currencyFormat = Intl.NumberFormat('es-Co', { style: 'currency', currency: 'COP' });
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -46,9 +47,15 @@ export class SalaryHistory implements OnInit {
     this.loadHistory();
   }
 
-  formatSalary(value: number | null): string {
-    if (value === null) return '-';
-    return this.currencyFormat.format(value);
+  /**
+   * Renders a salary. The backend sends `MoneyDto` (`{ amount, currency }`) so
+   * the value cannot be fed to `Intl.NumberFormat` directly (`$ NaN`); it is
+   * normalized through `tryToAmount` and formatted by the shared `money` pipe.
+   * A missing amount renders as `-`.
+   */
+  formatSalary(value: MoneyLike): string {
+    if (tryToAmount(value) === null) return '-';
+    return this.moneyPipe.transform(value);
   }
 
   formatDateTime(iso: string): string {

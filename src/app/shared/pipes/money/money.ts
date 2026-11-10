@@ -1,12 +1,16 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
+import { tryToAmount, type MoneyLike } from '@app/shared/models/dto/common/money';
+
+export type { MoneyLike };
+
 /**
  * Single source of truth for the currency the backend bills in.
  *
- * The backend serializes money as a bare JSON number with no currency
- * information, so the frontend must supply the currency itself. Every money
- * render in the app goes through this pipe, which means this constant is the
- * only place a currency code is declared.
+ * Every money render in the app goes through this pipe, which means this
+ * constant is the only place a currency code is declared. Monetary values
+ * arrive as `MoneyDto` (`{ amount: "15000.00", currency: "COP" }`); when a
+ * payload carries no currency object, this is the fallback.
  */
 export const DEFAULT_CURRENCY = 'COP';
 
@@ -17,20 +21,15 @@ export const DEFAULT_CURRENCY = 'COP';
 export const DEFAULT_LOCALE = 'es-CO';
 
 /**
- * Minimum structural shape of a money value.
+ * Anything the pipe knows how to render.
  *
- * Two `Money` interfaces live in the codebase today
- * (`dto/common/money.ts` → `amount: number`, `dto/analytics/money.ts` →
- * `amount: string`). Both are structurally assignable to this shape, and the
- * wire contract itself is a bare number, so the pipe accepts all of them.
+ * `MoneyLike` is defined in `dto/common/money.ts` (single source of truth) and
+ * covers every money shape in the codebase: the wire `MoneyDto`
+ * (`{ amount: "15000.00", currency: "COP" }`), the legacy common `Money`
+ * (`amount: number`), the analytics `Money` (`amount: string`), bare numbers
+ * and numeric strings.
  */
-export interface MoneyLike {
-  amount: number | string;
-  currency?: string | null;
-}
-
-/** Anything the pipe knows how to render. */
-export type MoneyInput = MoneyLike | number | string | null | undefined;
+export type MoneyInput = MoneyLike;
 
 /** Placeholder shown when there is no usable amount. */
 const EMPTY_VALUE = '—';
@@ -45,22 +44,12 @@ interface ParsedMoney {
  * Returns `null` when there is nothing sensible to format.
  */
 function parseMoney(value: MoneyInput): ParsedMoney | null {
-  if (value === null || value === undefined) return null;
+  const amount = tryToAmount(value);
+  if (amount === null) return null;
 
-  if (typeof value === 'number') {
-    return Number.isFinite(value) ? { amount: value, currency: DEFAULT_CURRENCY } : null;
-  }
+  const currency =
+    typeof value === 'object' && value !== null ? (value.currency?.trim() ?? '') : '';
 
-  if (typeof value === 'string') {
-    const amount = Number.parseFloat(value.trim());
-    return Number.isNaN(amount) ? null : { amount, currency: DEFAULT_CURRENCY };
-  }
-
-  const amount =
-    typeof value.amount === 'number' ? value.amount : Number.parseFloat(value.amount);
-  if (!Number.isFinite(amount)) return null;
-
-  const currency = value.currency?.trim() ?? '';
   return { amount, currency: currency.length > 0 ? currency : DEFAULT_CURRENCY };
 }
 

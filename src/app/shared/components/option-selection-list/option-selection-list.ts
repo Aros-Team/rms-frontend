@@ -5,6 +5,7 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 import { CheckboxModule } from 'primeng/checkbox';
 import { OptionSelectionType } from '@app/shared/models/dto/option-groups/option-selection-type';
 import { isSingleChoice } from '@app/shared/lib/option-selection-type-helper/option-selection-type-helper';
+import { Money } from '@app/shared/pipes/money/money';
 
 export interface SelectionOption {
   id: number;
@@ -18,7 +19,7 @@ export interface SelectionOption {
   selector: 'app-option-selection-list',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, FormsModule, RadioButtonModule, CheckboxModule],
+  imports: [CommonModule, FormsModule, RadioButtonModule, CheckboxModule, Money],
   templateUrl: './option-selection-list.html',
   styleUrl: './option-selection-list.css',
 })

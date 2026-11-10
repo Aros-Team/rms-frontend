@@ -8,6 +8,7 @@ import { ProductOption } from '@app/shared/models/dto/products/product-option';
 import { ProductCostResponse } from '@app/shared/models/dto/products/product-cost-response';
 import { ProductCostBreakdownResponse } from '@app/shared/models/dto/products/product-cost-breakdown-response';
 import { Observable, catchError, map, of } from 'rxjs';
+import { toAmount } from '@app/shared/models/dto/common/money';
 
 export interface PaginatedProductsResponse {
   content: ProductResponse[];
@@ -131,7 +132,7 @@ export class Product {
       map((product: ProductResponse) => ({
         id: product.id,
         name: product.name,
-        basePrice: product.basePrice,
+        basePrice: toAmount(product.basePrice),
         active: product.active,
         categoryId: product.categoryId,
         categoryName: product.categoryName,
