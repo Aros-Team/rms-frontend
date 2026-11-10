@@ -13,10 +13,30 @@
       "Harness verde"
     ],
     "tasks": [
-      { "id": "a", "description": "Crear search-input.ts + search-input.html", "status": "done", "agent": "implementer" },
-      { "id": "b", "description": "Crear search-input.spec.ts", "status": "done", "agent": "implementer" },
-      { "id": "c", "description": "Doc docs/server-side-search.md", "status": "done", "agent": "implementer" },
-      { "id": "d", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
+      {
+        "id": "a",
+        "description": "Crear search-input.ts + search-input.html",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Crear search-input.spec.ts",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Doc docs/server-side-search.md",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
     ],
     "status": "done"
   },
@@ -31,16 +51,66 @@
       "Harness verde"
     ],
     "tasks": [
-      { "id": "a", "description": "Products migration", "status": "done", "agent": "implementer" },
-      { "id": "b", "description": "Inventory/Supplies migration", "status": "done", "agent": "implementer" },
-      { "id": "c", "description": "Tables migration", "status": "done", "agent": "implementer" },
-      { "id": "d", "description": "Workers migration", "status": "done", "agent": "implementer" },
-      { "id": "e", "description": "Areas migration", "status": "done", "agent": "implementer" },
-      { "id": "f", "description": "Categories migration", "status": "done", "agent": "implementer" },
-      { "id": "g", "description": "Option Categories migration", "status": "done", "agent": "implementer" },
-      { "id": "h", "description": "Suppliers migration", "status": "done", "agent": "implementer" },
-      { "id": "i", "description": "Purchases migration", "status": "done", "agent": "implementer" },
-      { "id": "j", "description": "Orders migration", "status": "done", "agent": "implementer" }
+      {
+        "id": "a",
+        "description": "Products migration",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Inventory/Supplies migration",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Tables migration",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Workers migration",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Areas migration",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Categories migration",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Option Categories migration",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "h",
+        "description": "Suppliers migration",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "i",
+        "description": "Purchases migration",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "j",
+        "description": "Orders migration",
+        "status": "done",
+        "agent": "implementer"
+      }
     ],
     "status": "done"
   },
@@ -57,14 +127,54 @@
       "Harness verde"
     ],
     "tasks": [
-      { "id": "a", "description": "Auto-create on Step 1 entry", "status": "done", "agent": "implementer" },
-      { "id": "b", "description": "Cleanup on cancel", "status": "done", "agent": "implementer" },
-      { "id": "c", "description": "Restructure Step 1 layout", "status": "done", "agent": "implementer" },
-      { "id": "d", "description": "Image upload area", "status": "done", "agent": "implementer" },
-      { "id": "e", "description": "Polish prep time + area placeholder", "status": "done", "agent": "implementer" },
-      { "id": "f", "description": "Tests", "status": "done", "agent": "implementer" },
-      { "id": "g", "description": "Verify: harness verde", "status": "done", "agent": "implementer" },
-      { "id": "h", "description": "Fix: replace auto-create with on-demand create", "status": "done", "agent": "implementer" }
+      {
+        "id": "a",
+        "description": "Auto-create on Step 1 entry",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Cleanup on cancel",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Restructure Step 1 layout",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Image upload area",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Polish prep time + area placeholder",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Tests",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "h",
+        "description": "Fix: replace auto-create with on-demand create",
+        "status": "done",
+        "agent": "implementer"
+      }
     ],
     "status": "done"
   },
@@ -82,10 +192,30 @@
       "Harness verde"
     ],
     "tasks": [
-      { "id": "a", "description": "Renombrar archivos y carpetas", "status": "done", "agent": "implementer" },
-      { "id": "b", "description": "Actualizar importaciones", "status": "done", "agent": "implementer" },
-      { "id": "c", "description": "Eliminar sección de Option Categories", "status": "done", "agent": "implementer" },
-      { "id": "d", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
+      {
+        "id": "a",
+        "description": "Renombrar archivos y carpetas",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Actualizar importaciones",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Eliminar sección de Option Categories",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
     ],
     "status": "done"
   },
@@ -106,13 +236,48 @@
       "Harness verde"
     ],
     "tasks": [
-      { "id": "a", "description": "Agregar métodos getProductOptionGroups y getProductOptions a services", "status": "done", "agent": "implementer" },
-      { "id": "b", "description": "Crear componente option-groups-view", "status": "done", "agent": "implementer" },
-      { "id": "c", "description": "Implementar UI del orgchart con tree-node-card", "status": "done", "agent": "implementer" },
-      { "id": "d", "description": "Implementar creación inline con inline-create-popover", "status": "done", "agent": "implementer" },
-      { "id": "e", "description": "Integrar en Products: agregar tab", "status": "done", "agent": "implementer" },
-      { "id": "f", "description": "Tests", "status": "done", "agent": "implementer" },
-      { "id": "g", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
+      {
+        "id": "a",
+        "description": "Agregar métodos getProductOptionGroups y getProductOptions a services",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Crear componente option-groups-view",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Implementar UI del orgchart con tree-node-card",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Implementar creación inline con inline-create-popover",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Integrar en Products: agregar tab",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Tests",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
     ],
     "status": "done"
   },
@@ -132,12 +297,42 @@
       "Harness verde"
     ],
     "tasks": [
-      { "id": "a", "description": "Crear Money interface", "status": "done", "agent": "implementer" },
-      { "id": "b", "description": "Crear OptionSelectionType enum", "status": "done", "agent": "implementer" },
-      { "id": "c", "description": "Crear mapper toApi/fromApi", "status": "done", "agent": "implementer" },
-      { "id": "d", "description": "Actualizar OptionGroupRequest/Response", "status": "done", "agent": "implementer" },
-      { "id": "e", "description": "Actualizar ProductOption", "status": "done", "agent": "implementer" },
-      { "id": "f", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
+      {
+        "id": "a",
+        "description": "Crear Money interface",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Crear OptionSelectionType enum",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Crear mapper toApi/fromApi",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Actualizar OptionGroupRequest/Response",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Actualizar ProductOption",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
     ],
     "status": "done"
   },
@@ -154,10 +349,30 @@
       "Harness verde"
     ],
     "tasks": [
-      { "id": "a", "description": "Actualizar ProductCreateRequest", "status": "done", "agent": "implementer" },
-      { "id": "b", "description": "Actualizar ProductUpdateRequest", "status": "done", "agent": "implementer" },
-      { "id": "c", "description": "Actualizar ProductResponse y ProductListResponse", "status": "done", "agent": "implementer" },
-      { "id": "d", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
+      {
+        "id": "a",
+        "description": "Actualizar ProductCreateRequest",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Actualizar ProductUpdateRequest",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Actualizar ProductResponse y ProductListResponse",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
     ],
     "status": "done"
   },
@@ -173,10 +388,30 @@
       "Harness verde"
     ],
     "tasks": [
-      { "id": "a", "description": "Crear interfaces de cost breakdown", "status": "done", "agent": "implementer" },
-      { "id": "b", "description": "Agregar getCostBreakdown a ProductService", "status": "done", "agent": "implementer" },
-      { "id": "c", "description": "Tests", "status": "done", "agent": "implementer" },
-      { "id": "d", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
+      {
+        "id": "a",
+        "description": "Crear interfaces de cost breakdown",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Agregar getCostBreakdown a ProductService",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Tests",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
     ],
     "status": "done"
   },
@@ -195,11 +430,36 @@
       "Harness verde"
     ],
     "tasks": [
-      { "id": "a", "description": "Refactorizar ProductOptionsModal", "status": "done", "agent": "implementer" },
-      { "id": "b", "description": "Manejo de errores con mapHttpError", "status": "done", "agent": "implementer" },
-      { "id": "c", "description": "Actualizar OrderDetailResponse con extraCharge", "status": "done", "agent": "implementer" },
-      { "id": "d", "description": "Tests", "status": "done", "agent": "implementer" },
-      { "id": "e", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
+      {
+        "id": "a",
+        "description": "Refactorizar ProductOptionsModal",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Manejo de errores con mapHttpError",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Actualizar OrderDetailResponse con extraCharge",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Tests",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
     ],
     "status": "done"
   },
@@ -222,18 +482,78 @@
       "Harness verde"
     ],
     "tasks": [
-      { "id": "a", "description": "Crear componente Step3Options", "status": "done", "agent": "implementer" },
-      { "id": "b", "description": "Implementar buscador de grupos", "status": "done", "agent": "implementer" },
-      { "id": "c", "description": "Implementar creación inline de grupo", "status": "done", "agent": "implementer" },
-      { "id": "d", "description": "Componer checklist dinámico", "status": "done", "agent": "implementer" },
-      { "id": "e", "description": "Componer visor de opciones activas", "status": "done", "agent": "implementer" },
-      { "id": "f", "description": "Componer resumen de costos", "status": "done", "agent": "implementer" },
-      { "id": "g", "description": "Integrar en products.ts", "status": "done", "agent": "implementer" },
-      { "id": "h", "description": "Eliminar NewOptionDialog", "status": "done", "agent": "implementer" },
-      { "id": "i", "description": "Manejo de errores con mapHttpError", "status": "done", "agent": "implementer" },
-      { "id": "j", "description": "Tests", "status": "done", "agent": "implementer" },
-      { "id": "k", "description": "Verify: harness verde", "status": "done", "agent": "implementer" },
-      { "id": "l", "description": "API integration review (post-API-changes)", "status": "done", "agent": "implementer" }
+      {
+        "id": "a",
+        "description": "Crear componente Step3Options",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Implementar buscador de grupos",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Implementar creación inline de grupo",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Componer checklist dinámico",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Componer visor de opciones activas",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Componer resumen de costos",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Integrar en products.ts",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "h",
+        "description": "Eliminar NewOptionDialog",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "i",
+        "description": "Manejo de errores con mapHttpError",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "j",
+        "description": "Tests",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "k",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "l",
+        "description": "API integration review (post-API-changes)",
+        "status": "done",
+        "agent": "implementer"
+      }
     ],
     "status": "done"
   },
@@ -257,16 +577,66 @@
       "Harness verde"
     ],
     "tasks": [
-      { "id": "a", "description": "Crear option-selection-type-helper", "status": "done", "agent": "implementer" },
-      { "id": "b", "description": "Crear option-group-badge", "status": "done", "agent": "implementer" },
-      { "id": "c", "description": "Crear option-selection-list", "status": "done", "agent": "implementer" },
-      { "id": "d", "description": "Crear removable-chip", "status": "done", "agent": "implementer" },
-      { "id": "e", "description": "Crear inline-create-popover", "status": "done", "agent": "implementer" },
-      { "id": "f", "description": "Crear cost-breakdown-panel", "status": "done", "agent": "implementer" },
-      { "id": "g", "description": "Crear tree-node-card", "status": "done", "agent": "implementer" },
-      { "id": "h", "description": "Crear tree-node-skeleton", "status": "done", "agent": "implementer" },
-      { "id": "i", "description": "Extender http-error-mapper", "status": "done", "agent": "implementer" },
-      { "id": "j", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
+      {
+        "id": "a",
+        "description": "Crear option-selection-type-helper",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Crear option-group-badge",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Crear option-selection-list",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Crear removable-chip",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Crear inline-create-popover",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Crear cost-breakdown-panel",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Crear tree-node-card",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "h",
+        "description": "Crear tree-node-skeleton",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "i",
+        "description": "Extender http-error-mapper",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "j",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
     ],
     "status": "done"
   },
@@ -289,14 +659,54 @@
       "Harness verde"
     ],
     "tasks": [
-      { "id": "a", "description": "Eliminar OptionCategory service + DTO", "status": "done", "agent": "implementer" },
-      { "id": "b", "description": "Limpiar categories-cache.ts y categories.ts (quitar option categories)", "status": "done", "agent": "implementer" },
-      { "id": "c", "description": "Limpiar product-cache.ts (quitar optionCategories de referenceData)", "status": "done", "agent": "implementer" },
-      { "id": "d", "description": "Eliminar deleteProduct de product.ts", "status": "done", "agent": "implementer" },
-      { "id": "e", "description": "Eliminar endpoints falsos de analytics (operations, cohort, alerts) + DTOs", "status": "done", "agent": "implementer" },
-      { "id": "f", "description": "Limpiar master-data.ts", "status": "done", "agent": "implementer" },
-      { "id": "g", "description": "Actualizar specs afectados", "status": "done", "agent": "implementer" },
-      { "id": "h", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
+      {
+        "id": "a",
+        "description": "Eliminar OptionCategory service + DTO",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Limpiar categories-cache.ts y categories.ts (quitar option categories)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Limpiar product-cache.ts (quitar optionCategories de referenceData)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Eliminar deleteProduct de product.ts",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Eliminar endpoints falsos de analytics (operations, cohort, alerts) + DTOs",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Limpiar master-data.ts",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Actualizar specs afectados",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "h",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
     ],
     "status": "done"
   },
@@ -316,11 +726,36 @@
       "Harness verde"
     ],
     "tasks": [
-      { "id": "a", "description": "Corregir rutas en special-selections.ts", "status": "done", "agent": "implementer" },
-      { "id": "b", "description": "Corregir HTTP methods (PATCH → PUT)", "status": "done", "agent": "implementer" },
-      { "id": "c", "description": "Eliminar getHistoryRange (endpoint no existe)", "status": "done", "agent": "implementer" },
-      { "id": "d", "description": "Actualizar specs de special-selections", "status": "done", "agent": "implementer" },
-      { "id": "e", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
+      {
+        "id": "a",
+        "description": "Corregir rutas en special-selections.ts",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Corregir HTTP methods (PATCH → PUT)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Eliminar getHistoryRange (endpoint no existe)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Actualizar specs de special-selections",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
     ],
     "status": "done"
   },
@@ -340,14 +775,54 @@
       "Harness verde"
     ],
     "tasks": [
-      { "id": "a", "description": "Crear models/DTOs de payroll", "status": "pending", "agent": "implementer" },
-      { "id": "b", "description": "Crear Payroll service", "status": "pending", "agent": "implementer" },
-      { "id": "c", "description": "Crear PayrollEvent service", "status": "pending", "agent": "implementer" },
-      { "id": "d", "description": "Crear PayrollSettlement service", "status": "pending", "agent": "implementer" },
-      { "id": "e", "description": "Crear PayrollCache", "status": "pending", "agent": "implementer" },
-      { "id": "f", "description": "Crear componentes UI", "status": "pending", "agent": "implementer" },
-      { "id": "g", "description": "Tests", "status": "pending", "agent": "implementer" },
-      { "id": "h", "description": "Verify: harness verde", "status": "pending", "agent": "implementer" }
+      {
+        "id": "a",
+        "description": "Crear models/DTOs de payroll",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Crear Payroll service",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Crear PayrollEvent service",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Crear PayrollSettlement service",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Crear PayrollCache",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Crear componentes UI",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Tests",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "h",
+        "description": "Verify: harness verde",
+        "status": "pending",
+        "agent": "implementer"
+      }
     ],
     "status": "pending"
   },
@@ -366,11 +841,36 @@
       "Harness verde"
     ],
     "tasks": [
-      { "id": "a", "description": "Agregar headers a todos los .spec.ts (60 archivos)", "status": "pending", "agent": "implementer" },
-      { "id": "b", "description": "Corregir WEAK_RENDER_ASSERT (money, operations, cohort, alerts)", "status": "pending", "agent": "implementer" },
-      { "id": "c", "description": "Corregir WEAK_EXIST_ASSERT (app, skeleton, helper, selection-list, nav, theme)", "status": "pending", "agent": "implementer" },
-      { "id": "d", "description": "Agregar httpMock.verify() y resetTestingModule donde falta", "status": "pending", "agent": "implementer" },
-      { "id": "e", "description": "Verify: harness verde", "status": "pending", "agent": "implementer" }
+      {
+        "id": "a",
+        "description": "Agregar headers a todos los .spec.ts (60 archivos)",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Corregir WEAK_RENDER_ASSERT (money, operations, cohort, alerts)",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Corregir WEAK_EXIST_ASSERT (app, skeleton, helper, selection-list, nav, theme)",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Agregar httpMock.verify() y resetTestingModule donde falta",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Verify: harness verde",
+        "status": "pending",
+        "agent": "implementer"
+      }
     ],
     "status": "pending"
   },
@@ -399,20 +899,209 @@
       "Harness verde"
     ],
     "tasks": [
-      { "id": "a", "description": "Crear product-recipe-page.ts/html/css con layout y header (navegación + nombre producto + guardar)", "status": "done", "agent": "implementer" },
-      { "id": "b", "description": "Sección Datos básicos: formulario editable con nombre, descripción, categoría, área, prep time, estado", "status": "done", "agent": "implementer" },
-      { "id": "c", "description": "Sección Imagen: preview de imagen actual, upload nueva, eliminar", "status": "done", "agent": "implementer" },
-      { "id": "d", "description": "Sección Receta/Insumos: tabla de insumos existentes + buscador autocomplete para agregar + costo total real-time + botón eliminar", "status": "done", "agent": "implementer" },
-      { "id": "e", "description": "Sección Precio de venta: costo oficial server + costo estimado + input precio + precio sugerido", "status": "done", "agent": "implementer" },
-      { "id": "f", "description": "Sección Grupos de opciones: lista de grupos con badge + creación inline + opciones por grupo + agregar/quitar", "status": "done", "agent": "implementer" },
-      { "id": "g", "description": "Sección Costo de producción: materiales, mano de obra, total, desglose (solo lectura)", "status": "done", "agent": "implementer" },
-      { "id": "h", "description": "Guardar cambios: método save que persiste todos los edits via updateProduct", "status": "done", "agent": "implementer" },
-      { "id": "i", "description": "Agregar ruta products/:id/recipe en app.routes.ts", "status": "done", "agent": "implementer" },
-      { "id": "j", "description": "Modificar products.html/ts: reemplazar Ver detalles + Editar por Ver receta (book icon), eliminar tab Grupos de Opciones", "status": "done", "agent": "implementer" },
-      { "id": "k", "description": "Eliminar archivos obsoletos: product-option-groups/*, product-detail-dialog/*", "status": "done", "agent": "implementer" },
-      { "id": "l", "description": "Tests del componente product-recipe-page", "status": "done", "agent": "implementer" },
-      { "id": "m", "description": "Verify: harness verde", "status": "done", "agent": "implementer" }
+      {
+        "id": "a",
+        "description": "Crear product-recipe-page.ts/html/css con layout y header (navegación + nombre producto + guardar)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Sección Datos básicos: formulario editable con nombre, descripción, categoría, área, prep time, estado",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Sección Imagen: preview de imagen actual, upload nueva, eliminar",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Sección Receta/Insumos: tabla de insumos existentes + buscador autocomplete para agregar + costo total real-time + botón eliminar",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Sección Precio de venta: costo oficial server + costo estimado + input precio + precio sugerido",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Sección Grupos de opciones: lista de grupos con badge + creación inline + opciones por grupo + agregar/quitar",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Sección Costo de producción: materiales, mano de obra, total, desglose (solo lectura)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "h",
+        "description": "Guardar cambios: método save que persiste todos los edits via updateProduct",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "i",
+        "description": "Agregar ruta products/:id/recipe en app.routes.ts",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "j",
+        "description": "Modificar products.html/ts: reemplazar Ver detalles + Editar por Ver receta (book icon), eliminar tab Grupos de Opciones",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "k",
+        "description": "Eliminar archivos obsoletos: product-option-groups/*, product-detail-dialog/*",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "l",
+        "description": "Tests del componente product-recipe-page",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "m",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
     ],
     "status": "done"
+  },
+  {
+    "id": 37,
+    "type": "fix",
+    "name": "p0-money-and-auth-hardening",
+    "title": "P0: capa de dinero unificada y endurecimiento de auth/guards",
+    "description": "Cerrar los dos P0 del critique de impeccable: (1) unificar el renderizado de dinero en el pipe compartido money, eliminar hardcodes de moneda y arreglar el bug de precedencia pipe-before-?? en orders-table; (2) 401/403 no deben terminar en /server-error, respetar returnUrl y honrar POST /auth/refresh en el interceptor 401.",
+    "acceptance": [
+      "Ninguna plantilla de combos usa '| currency' con moneda hardcodeada",
+      "No quedan literales '$ {{' en src/ (todo pasa por el pipe money o Intl)",
+      "orders-table.html:99 agrupa correctamente (order.total ?? getOrderTotal(order)) | money",
+      "extraCharge se refleja en calculateTotalPrice cuando el backend lo expone",
+      "Un solo tipo Money normalizado en el borde del wire",
+      "Paginación de orders deja de usar size: 500",
+      "Un 401/403 no navega a /server-error",
+      "returnUrl se preserva y se aplica tras login",
+      "El interceptor 401 intenta POST /auth/refresh antes de desloguear",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Money adapter: money pipe accepts Money | number | string | null (backend sends bare number), single currency constant (COP), normalize at wire boundary",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Migrate combos pricing-step + combos.html (9 currency:'USD' sites), product-card, order-creation-form to money pipe",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "orders-table: fix pipe-before-?? precedence, fold extraCharge into getOrderTotal, migrate 4 currency:'COP' sites",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "dashboard.html: remove 10 hardcoded '$ {{ }}' renderings, route through money pipe",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Pagination adapter: one tolerant unwrapPage() for items/content + total/totalElements + total_pages/totalPages + bare arrays; drop size:500 in orders",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Auth: 403 → dedicated forbidden (never /server-error), 401 → refresh-or-login with returnUrl round-trip",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Auth: honour POST /auth/refresh in the 401 interceptor before logging out (single-flight, no redirect loop)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "h",
+        "description": "Verify: full harness green + reviewer pass",
+        "status": "done",
+        "agent": "reviewer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 38,
+    "type": "fix",
+    "name": "data-envelope-adapter",
+    "title": "Adaptador del envelope {data} y hotfix de login",
+    "description": "El backend empezó a envolver todo payload 2xx en {\"data\": ...} sin actualizar /v3/api-docs. El frontend leía plano, así que el login guardaba tokens undefined y toda petición autenticada salía sin bearer (401). Se centraliza el desempaquetado en un interceptor tolerante.",
+    "acceptance": [
+      "envelopeInterceptor desempaqueta {data} y es tolerante a payloads planos (rollback-safe)",
+      "Blob/ArrayBuffer/streams/escalares/arrays/null pasan sin tocar",
+      "Errores no se tocan (se ramifica solo por status)",
+      "Login guarda tokens reales y GET /auth sale con bearer",
+      "Spec con el payload real ({data:{type:SUCCESS,...}}) que habría detectado la caída",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Crear envelopeInterceptor + registro en app.config",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Spec del interceptor (11 casos) + regresión e2e de auth con payload real",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Auditar 120 schemas por campos data de nivel superior y rutas responseType blob",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Verify: harness verde (848 tests)",
+        "status": "done",
+        "agent": "reviewer"
+      },
+      {
+        "id": "e",
+        "description": "Pendiente: surfacear detail de ProblemDetail en mensajes de login/validación",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Pendiente: pedir al equipo backend regenerar /v3/api-docs (spec sigue plano)",
+        "status": "pending",
+        "agent": "implementer"
+      }
+    ],
+    "status": "in_progress"
   }
 ]
