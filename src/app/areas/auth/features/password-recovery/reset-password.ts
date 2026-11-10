@@ -10,6 +10,7 @@ import { MessageModule } from 'primeng/message';
 import { MessageService } from 'primeng/api';
 import { Password } from '@app/core/services/auth/password';
 import { Logging } from '@app/core/services/logging/logging';
+import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
 
 function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
   const newPassword = control.get('newPassword')?.value as string;
@@ -94,12 +95,15 @@ export class ResetPassword implements OnInit {
           detail: 'Tu contraseña ha sido restablecida'
         });
       },
-      error: (err: { status?: number }) => {
+      error: (err: { status?: number; error?: unknown }) => {
         this.loading.set(false);
-        if (err.status === 400) {
-          this.error.set('Token inválido o expirado. Por favor, solicita un nuevo código.');
+        const problemDetail = extractProblemDetail(err);
+        if (err.status === 400 || err.status === 422) {
+          this.error.set(
+            problemDetail ?? 'Token inválido o expirado. Por favor, solicita un nuevo código.',
+          );
         } else {
-          this.error.set('Ocurrió un error. Por favor, intenta más tarde.');
+          this.error.set(problemDetail ?? 'Ocurrió un error. Por favor, intenta más tarde.');
         }
         this.logger.error('Reset password failed', err);
       }

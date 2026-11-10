@@ -6,7 +6,7 @@ export interface ProductListResponse {
   name: string;
   description?: string;
   /** `MoneyDto` on the wire (see `dto/common/money.ts`). Render with `money`, normalize with `toAmount()`. */
-  basePrice: Money | number;
+  basePrice: Money;
   active: boolean;
   categoryId: number;
   categoryName: string;

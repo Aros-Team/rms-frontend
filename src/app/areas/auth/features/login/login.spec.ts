@@ -9,15 +9,19 @@
  *  - no `returnUrl` → role default (`/admin`, `/worker/kitchen`, `/worker/waiter`)
  *  - unsafe `returnUrl` (`https://evil…`, `//evil…`, `/login`) → role default
  *  - TFA_REQUIRED → `/login/verify`, ignoring `returnUrl`
+ *  - a failed login shows the server's RFC-7807 `detail` when the body has one,
+ *    and falls back to the generic copy for bodiless 401s or non-problem bodies
  *
  * Approach: TestBed with the real component, `ActivatedRoute` stubbed with fixed
- * query params, Auth stubbed (HTTP boundary), Router spied to capture the
- * navigation target. No private-state access.
+ * query params, Auth stubbed (HTTP boundary) returning either a user or an
+ * `HttpErrorResponse`, Router spied to capture the navigation target and
+ * `MessageService` spied to capture the exact toast. No private-state access.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { of, throwError } from 'rxjs';
 
 import { LoginForm } from './login';
 import { Auth } from '@services/auth/auth';
@@ -62,6 +66,7 @@ describe('LoginForm navigation', () => {
     login: ReturnType<typeof vi.fn>;
     logout: ReturnType<typeof vi.fn>;
   };
+  let messages: { add: ReturnType<typeof vi.fn> };
 
   beforeAll(async () => {
     await resolveComponentResources((url: string) => {
@@ -74,6 +79,7 @@ describe('LoginForm navigation', () => {
 
   function setup(queryParams: Record<string, string>): void {
     auth = { login: vi.fn(), logout: vi.fn() };
+    messages = { add: vi.fn() };
 
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
@@ -82,7 +88,7 @@ describe('LoginForm navigation', () => {
         provideRouter([]),
         { provide: Auth, useValue: auth },
         { provide: ActivatedRoute, useValue: { queryParams: of(queryParams) } },
-        { provide: MessageService, useValue: { add: vi.fn() } },
+        { provide: MessageService, useValue: messages },
         {
           provide: Logging,
           useValue: { auth: vi.fn(), routing: vi.fn(), error: vi.fn(), info: vi.fn() },
@@ -181,5 +187,115 @@ describe('LoginForm navigation', () => {
     component.onSubmit();
 
     expect(navigateSpy).toHaveBeenCalledWith(['/login/verify']);
+  });
+});
+
+describe('LoginForm error messages', () => {
+  let component: LoginForm;
+  let auth: { login: ReturnType<typeof vi.fn>; logout: ReturnType<typeof vi.fn> };
+  let messages: { add: ReturnType<typeof vi.fn> };
+
+  const SERVER_DETAIL = 'Credenciales inválidas. Verifique su correo electrónico y contraseña';
+  const GENERIC_DETAIL = 'Credenciales incorrectas. Verifique su correo y contraseña.';
+
+  function setup(): void {
+    auth = { login: vi.fn(), logout: vi.fn() };
+    messages = { add: vi.fn() };
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [LoginForm],
+      providers: [
+        provideRouter([]),
+        { provide: Auth, useValue: auth },
+        { provide: ActivatedRoute, useValue: { queryParams: of({}) } },
+        { provide: MessageService, useValue: messages },
+        {
+          provide: Logging,
+          useValue: { auth: vi.fn(), routing: vi.fn(), error: vi.fn(), info: vi.fn() },
+        },
+      ],
+    });
+
+    TestBed.createComponent(LoginForm);
+    component = TestBed.createComponent(LoginForm).componentInstance;
+    component.ngOnInit();
+    component.form.setValue({
+      username: 'ana@rms.test',
+      password: 'wrong',
+      termsAccepted: true,
+    });
+  }
+
+  /** The single error toast the failed login produced. */
+  function errorToast(): { severity: string; summary: string; detail: string } {
+    expect(messages.add).toHaveBeenCalledTimes(1);
+    return messages.add.mock.calls[0][0] as { severity: string; summary: string; detail: string };
+  }
+
+  afterEach(() => {
+    TestBed.resetTestingModule();
+  });
+
+  it('shows the server problem detail on a 401 that carries a problem body', () => {
+    setup();
+    auth.login.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 401,
+            statusText: 'Unauthorized',
+            error: {
+              detail: SERVER_DETAIL,
+              instance: '/api/auth/login',
+              status: 401,
+              title: 'Unauthorized',
+            },
+          }),
+      ),
+    );
+
+    component.onSubmit();
+
+    expect(errorToast()).toEqual({
+      severity: 'error',
+      summary: 'Error de autenticación',
+      detail: SERVER_DETAIL,
+      life: 5000,
+    });
+  });
+
+  it('falls back to the generic message on a bodiless 401', () => {
+    setup();
+    auth.login.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 401, statusText: 'Unauthorized', error: null })),
+    );
+
+    component.onSubmit();
+
+    expect(errorToast()).toEqual({
+      severity: 'error',
+      summary: 'Error de autenticación',
+      detail: GENERIC_DETAIL,
+      life: 5000,
+    });
+  });
+
+  it('never surfaces an HTML error page as the message', () => {
+    setup();
+    auth.login.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 400,
+            statusText: 'Bad Request',
+            error: '<!doctype html><html><body>Proxy error</body></html>',
+          }),
+      ),
+    );
+
+    component.onSubmit();
+
+    expect(errorToast().detail).toBe('Ha ocurrido un error inesperado. Por favor, intente nuevamente.');
   });
 });

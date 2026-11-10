@@ -9,7 +9,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { Worker } from '@app/core/services/workers/worker';
 import { SalaryHistoryEntry } from '@app/shared/models/dto/workers/salary-history-entry';
 import { Logging } from '@app/core/services/logging/logging';
-import { tryToAmount, type MoneyLike } from '@app/shared/models/dto/common/money';
+import { formatInstant } from '@app/shared/lib/date-format/date-format';
 import { Money } from '@app/shared/pipes/money/money';
 
 @Component({
@@ -19,6 +19,7 @@ import { Money } from '@app/shared/pipes/money/money';
     TableModule,
     ButtonModule,
     SkeletonModule,
+    Money,
   ],
   templateUrl: './salary-history.html',
 })
@@ -26,8 +27,6 @@ export class SalaryHistory implements OnInit {
   private route = inject(ActivatedRoute);
   private workerService = inject(Worker);
   private logger = inject(Logging);
-
-  private readonly moneyPipe = new Money();
 
   userId = signal<number>(0);
   entries = signal<SalaryHistoryEntry[] | undefined>(undefined);
@@ -48,21 +47,11 @@ export class SalaryHistory implements OnInit {
   }
 
   /**
-   * Renders a salary. The backend sends `MoneyDto` (`{ amount, currency }`) so
-   * the value cannot be fed to `Intl.NumberFormat` directly (`$ NaN`); it is
-   * normalized through `tryToAmount` and formatted by the shared `money` pipe.
-   * A missing amount renders as `-`.
+   * Renders the change instant as `dd/mm/aaaa HH:mm` (shared helper — never a
+   * local `Intl.DateTimeFormat`, which produced `15T18:00:00/06/2026`).
    */
-  formatSalary(value: MoneyLike): string {
-    if (tryToAmount(value) === null) return '-';
-    return this.moneyPipe.transform(value);
-  }
-
   formatDateTime(iso: string): string {
-    return new Intl.DateTimeFormat('es-CO', {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    }).format(new Date(iso));
+    return formatInstant(iso);
   }
 
   private loadHistory(): void {

@@ -29,6 +29,9 @@
           <p>Esta cuenta ya fue activada anteriormente.</p>
           <button pButton type="button" icon="pi pi-sign-in" (click)="goToLogin()">Ir al login</button>
         }
+        @if (serverDetail()) {
+          <p data-testid="setup-server-detail">{{ serverDetail() }}</p>
+        }
       </div>
     }
 

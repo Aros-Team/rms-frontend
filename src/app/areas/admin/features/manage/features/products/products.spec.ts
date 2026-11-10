@@ -23,14 +23,36 @@ import { ProductOption } from '@app/core/services/product-option/product-option'
 import { WebSocket } from '@app/core/services/websocket/websocket';
 import { ProductImage } from '@app/core/services/product-image/product-image';
 import { ProductResponse } from '@app/shared/models/dto/products/product-response';
+import type { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
 
 import productsHtml from './products.html?raw';
+
+/** Money DTO as the backend serializes it (`amount` is a decimal string). */
+function money(amount: string): { amount: string; currency: string } {
+  return { amount, currency: 'COP' };
+}
+
+function buildSupplyVariant(id: number, unitCost: string): SupplyVariantResponse {
+  return {
+    id,
+    supplyId: id + 100,
+    supplyName: `Insumo ${String(id)}`,
+    categoryId: 1,
+    categoryName: 'Verduras',
+    unitId: 1,
+    unitAbbreviation: 'kg',
+    quantity: 1,
+    stockBodega: 10,
+    stockCocina: 10,
+    unitCost: money(unitCost),
+  };
+}
 
 function buildProductFixture(): ProductResponse {
   return {
     id: 7,
     name: 'Lentejas',
-    basePrice: 12.5,
+    basePrice: money('12.50'),
     active: true,
     categoryId: 2,
     categoryName: 'Comidas',
@@ -43,7 +65,7 @@ function buildProductFixture(): ProductResponse {
   };
 }
 
-function setupComponent() {
+function setupComponent(variants: SupplyVariantResponse[] = []) {
   const productStub = {
     findProduct: vi.fn(),
     updateProduct: vi.fn(),
@@ -64,7 +86,7 @@ function setupComponent() {
       data: vi.fn().mockReturnValue({
         areas: [],
         categories: [],
-        variants: [],
+        variants,
         productOptions: [],
       }),
       refresh: vi.fn(),
@@ -202,9 +224,9 @@ describe('Products page', () => {
     it('with includeInactive=true, products() shows only inactive products from cache', () => {
       const env = setupComponent();
       const fixture: ProductResponse[] = [
-        { id: 1, name: 'Activo', basePrice: 5, active: true, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
-        { id: 2, name: 'Inactivo', basePrice: 5, active: false, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
-        { id: 3, name: 'Otro inactivo', basePrice: 5, active: false, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
+        { id: 1, name: 'Activo', basePrice: money('5.00'), active: true, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
+        { id: 2, name: 'Inactivo', basePrice: money('5.00'), active: false, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
+        { id: 3, name: 'Otro inactivo', basePrice: money('5.00'), active: false, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
       ];
       env.cacheStub.products.data = vi.fn().mockReturnValue({
         content: fixture,
@@ -224,9 +246,9 @@ describe('Products page', () => {
     it('with includeInactive=false, products() shows only active products from cache', () => {
       const env = setupComponent();
       const fixture: ProductResponse[] = [
-        { id: 1, name: 'Activo', basePrice: 5, active: true, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
-        { id: 2, name: 'Inactivo', basePrice: 5, active: false, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
-        { id: 3, name: 'Otro activo', basePrice: 5, active: true, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
+        { id: 1, name: 'Activo', basePrice: money('5.00'), active: true, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
+        { id: 2, name: 'Inactivo', basePrice: money('5.00'), active: false, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
+        { id: 3, name: 'Otro activo', basePrice: money('5.00'), active: true, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
       ];
       env.cacheStub.products.data = vi.fn().mockReturnValue({
         content: fixture,
@@ -368,7 +390,7 @@ describe('Products page', () => {
       const draft: ProductResponse = {
         id,
         name: 'Hamburguesa',
-        basePrice: 0,
+        basePrice: money('0.00'),
         active: true,
         categoryId: 1,
         categoryName: 'Comidas',
@@ -448,7 +470,7 @@ describe('Products page', () => {
       const env = setupComponent();
       env.component.modalMode.set('create');
       env.component.createdProduct.set({
-        id: 77, name: 'Hamburguesa', basePrice: 0, active: true,
+        id: 77, name: 'Hamburguesa', basePrice: money('0.00'), active: true,
         categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [],
       });
       env.productStub.createProduct.mockClear();
@@ -497,7 +519,7 @@ describe('Products page', () => {
       // Simulate state after auto-create completed.
       env.component.modalMode.set('create');
       env.component.createdProduct.set({
-        id: 33, name: 'Nuevo producto', basePrice: 0, active: true,
+        id: 33, name: 'Nuevo producto', basePrice: money('0.00'), active: true,
         categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [],
       });
       env.component.baseForm.patchValue({
@@ -518,6 +540,31 @@ describe('Products page', () => {
     it('template contains routerLink to recipe page with product id', () => {
       expect(productsHtml).toContain('Ver receta');
       expect(productsHtml).toContain("/admin/manage/products', product.id, 'recipe'");
+    });
+  });
+  describe('recipe cost from Money-shaped supply costs', () => {
+    it('totals the recipe exactly instead of producing NaN/String from Money objects', async () => {
+      const env = setupComponent([
+        buildSupplyVariant(301, '2000.00'),
+        buildSupplyVariant(302, '4000.00'),
+      ]);
+      env.component.showCreationModal();
+
+      env.component.addSupplyVariant(buildSupplyVariant(301, '2000.00'));
+      env.component.addSupplyVariant(buildSupplyVariant(302, '4000.00'));
+      await flushMicrotasks();
+
+      // 1 kg × 2000 + 1 kg × 4000
+      expect(env.component.recipeCost()).toBe(6000);
+      expect(Number.isNaN(env.component.recipeCost())).toBe(false);
+    });
+
+    it('keeps a decimal unit cost exact in the per-row partial', () => {
+      const env = setupComponent([buildSupplyVariant(301, '1500.50')]);
+      env.component.showCreationModal();
+
+      expect(env.component.getRowPartial(301, 0.5)).toBe(750.25);
+      expect(env.component.getUnitCost(301)).toBe(1500.5);
     });
   });
 });

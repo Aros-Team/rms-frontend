@@ -11,6 +11,7 @@ import { MessageService } from 'primeng/api';
 import { Password } from '@app/core/services/auth/password';
 import { Auth } from '@app/core/services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
+import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
 
 const passwordMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
   const newPassword = String(control.get('newPassword')?.value ?? '');
@@ -100,10 +101,11 @@ export class ChangePassword {
       error: (err: unknown) => {
         this.loading.set(false);
         const status = typeof err === 'object' && err !== null && 'status' in err ? (err as { status: number }).status : 0;
-        if (status === 400) {
-          this.error.set('La contraseña actual es incorrecta');
+        const problemDetail = extractProblemDetail(err);
+        if (status === 400 || status === 401 || status === 422) {
+          this.error.set(problemDetail ?? 'La contraseña actual es incorrecta');
         } else {
-          this.error.set('Ocurrió un error al cambiar la contraseña');
+          this.error.set(problemDetail ?? 'Ocurrió un error al cambiar la contraseña');
         }
         this.logger.error('Change password failed', err);
       }

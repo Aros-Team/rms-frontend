@@ -1104,7 +1104,7 @@
     "type": "chore",
     "name": "contract-followups",
     "title": "Seguimientos del contrato backend",
-    "description": "Pendientes que dependen del equipo de backend o de una segunda pasada: surfacear el detail de ProblemDetail en mensajes de login/validación, regenerar /v3/api-docs, y migrar los DTOs restantes (SalaryHistoryEntry, inventory, admin-products) a Money.",
+    "description": "Pendientes que dependen del equipo de backend o de una segunda pasada: surfacear el detail de ProblemDetail en mensajes de login/validación, regenerar /v3/api-docs, y migrar los DTOs restantes (SalaryHistoryEntry, inventory, admin-products) a Money. Bloqueada únicamente por (f): regenerar /v3/api-docs depende del equipo backend.",
     "acceptance": [
       "detail de ProblemDetail visible en login/validación",
       "/v3/api-docs regenerado por el equipo backend",
@@ -1115,22 +1115,22 @@
       {
         "id": "e",
         "description": "Pendiente: surfacear detail de ProblemDetail en mensajes de login/validación",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "f",
-        "description": "Pendiente: pedir al equipo backend regenerar /v3/api-docs (spec sigue plano)",
-        "status": "pending",
+        "description": "Pendiente: pedir al equipo backend regenerar /v3/api-docs (spec sigue plano) (BLOQUEADO: depende del equipo backend; el spec sigue publicando payloads planos mientras runtime envuelve en {data})",
+        "status": "blocked",
         "agent": "implementer"
       },
       {
         "id": "g",
         "description": "Migrar DTOs restantes a Money (SalaryHistoryEntry, inventory, admin-products, product-recipe-page) y eliminar Intl.NumberFormat ad-hoc sobre dinero",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "pending"
+    "status": "blocked"
   }
 ]

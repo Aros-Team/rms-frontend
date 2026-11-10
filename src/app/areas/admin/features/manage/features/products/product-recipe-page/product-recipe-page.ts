@@ -41,6 +41,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { SkeletonModule } from 'primeng/skeleton';
 import { MessageService } from 'primeng/api';
 import { toAmount } from '@app/shared/models/dto/common/money';
+import { Money } from '@app/shared/pipes/money/money';
 
 interface RecipeItemEditable {
   supplyVariantId: number;
@@ -69,6 +70,7 @@ interface RecipeItemEditable {
     InlineCreatePopover,
     OptionGroupBadgeComponent,
     CostBreakdownPanelComponent,
+    Money,
   ],
   providers: [MessageService],
   templateUrl: './product-recipe-page.html',
@@ -85,8 +87,6 @@ export class ProductRecipePage implements OnInit {
   private readonly wsService = inject(WebSocket);
   private readonly messageService = inject(MessageService);
   private readonly destroyRef = inject(DestroyRef);
-
-  private currencyFormat = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 
   // ── State signals ────────────────────────────────────────────────
   readonly product = signal<ProductResponse | null>(null);
@@ -129,7 +129,7 @@ export class ProductRecipePage implements OnInit {
     for (const item of items) {
       const variant = variantById.get(item.supplyVariantId);
       if (variant?.unitCost != null && item.requiredQuantity > 0) {
-        total += variant.unitCost * item.requiredQuantity;
+        total += toAmount(variant.unitCost) * item.requiredQuantity;
       }
     }
     return total;
@@ -138,7 +138,9 @@ export class ProductRecipePage implements OnInit {
   readonly suggestedSalePrice = computed(() => {
     const c = this.cost();
     if (!c) return 0;
-    return Math.round(c.totalCost * 1.3);
+    // Cost comes back as a plain number in `ProductCostResponse`; `toAmount`
+    // keeps the rounding safe if that payload ever switches to a `Money` DTO.
+    return Math.round(toAmount(c.totalCost) * 1.3);
   });
 
   readonly categoryOptions = computed(() =>
@@ -320,15 +322,11 @@ export class ProductRecipePage implements OnInit {
   }
 
   getVariantUnitCost(variantId: number): number {
-    return this.supplyVariants().find(v => v.id === variantId)?.unitCost ?? 0;
+    return toAmount(this.supplyVariants().find(v => v.id === variantId)?.unitCost);
   }
 
   getPartialCost(variantId: number, qty: number): number {
     return this.getVariantUnitCost(variantId) * qty;
-  }
-
-  formatMoney(amount: number): string {
-    return this.currencyFormat.format(amount);
   }
 
   // ── Image management ──────────────────────────────────────────────

@@ -647,7 +647,7 @@ describe('ComboWizard shell', () => {
         id: 5,
         name: 'Combo demo',
         description: '',
-        basePrice: 0,
+        basePrice: { amount: '0.00', currency: 'COP' },
         active: true,
         preparationAreaId: 1,
         selectionType: 'SPECIAL_SELECTION',

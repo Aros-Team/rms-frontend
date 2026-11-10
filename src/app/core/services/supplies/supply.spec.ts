@@ -29,7 +29,7 @@ describe('Supply service', () => {
     quantity: 1,
     stockBodega: 5,
     stockCocina: 2,
-    unitCost: 12000,
+    unitCost: { amount: '12000.00', currency: 'COP' },
   };
 
   beforeEach(() => {

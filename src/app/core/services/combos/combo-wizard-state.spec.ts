@@ -71,7 +71,7 @@ const mockResponse: SpecialSelectionResponse = {
   id: 42,
   name: 'Combo Almuerzo',
   description: 'Sopa + plato fuerte',
-  basePrice: 12.5,
+  basePrice: { amount: '12.50', currency: 'COP' },
   active: true,
   preparationAreaId: 1,
   selectionType: 'SPECIAL_SELECTION',

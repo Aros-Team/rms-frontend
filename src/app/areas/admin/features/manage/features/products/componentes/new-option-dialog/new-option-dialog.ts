@@ -9,6 +9,8 @@ import { Logging } from '@app/core/services/logging/logging';
 import { ProductCache, ProductReferenceData } from '../../product-cache';
 import { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
 import { RecipeItemRequest } from '@app/shared/models/dto/products/product-create-request';
+import { Money } from '@app/shared/pipes/money/money';
+import { toAmount } from '@app/shared/models/dto/common/money';
 
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -35,6 +37,7 @@ import { MessageService } from 'primeng/api';
     SelectModule,
     DividerModule,
     ToastModule,
+    Money,
   ],
   providers: [MessageService],
   templateUrl: './new-option-dialog.html',
@@ -56,7 +59,6 @@ export class NewOptionDialog {
   supplyVariantOptions = signal<(SupplyVariantResponse & { displayName: string })[]>([]);
   supplyCategories = signal<{ id: number; name: string }[]>([]);
   newOptionSubmitting = signal(false);
-  currencyFormat = Intl.NumberFormat('es-Co', { style: 'currency', currency: 'COP' });
 
   newOptionForm = this.fb.group({
     optionCategoryId: [null as number | null, (control: AbstractControl) => Validators.required(control)],
@@ -105,6 +107,14 @@ export class NewOptionDialog {
   findVariantById(id: number | null): (SupplyVariantResponse & { displayName: string }) | undefined {
     if (id == null) return undefined;
     return this.supplyVariantOptions().find(v => v.id === id);
+  }
+
+  /**
+   * `unitCost` is a MoneyDto ({ amount: string, currency: string }) on the wire,
+   * so it can never be compared to a number directly.
+   */
+  hasNoCost(variant: SupplyVariantResponse): boolean {
+    return toAmount(variant.unitCost) === 0;
   }
 
   addNewOptionRecipeItem(): void {

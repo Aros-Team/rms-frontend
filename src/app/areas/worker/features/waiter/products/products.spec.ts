@@ -70,7 +70,7 @@ describe('Products', () => {
     byCategory = {
       Bebidas: [
         makeProduct(1, 'Café americano', 'Bebidas', { amount: '12000.00', currency: 'COP' }),
-        makeProduct(2, 'Jugo natural', 'Bebidas', 8500),
+        makeProduct(2, 'Jugo natural', 'Bebidas', { amount: '8500.00', currency: 'COP' }),
       ],
     };
 

@@ -9,6 +9,7 @@ import { MessageService } from 'primeng/api';
 import { Auth } from '@services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
 import { UserInfo } from '@models/domain/user/user-info';
+import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
 
 @Component({
   selector: 'app-two-factor-verify',
@@ -51,7 +52,8 @@ export class TwoFactorVerify {
       error: (err: { status?: number; error?: { message?: string } }) => {
         this.logger.error('2FA verification failed:', err);
         this.formStatus.set('Free');
-        const backendMessage = err.error?.message;
+        // RFC-7807 `detail` first, then the legacy `message`, then our copy.
+        const backendMessage = extractProblemDetail(err) ?? err.error?.message;
         this.errorMessage = backendMessage ?? 'Código inválido o expirado. Por favor, intenta nuevamente.';
 
         if (err.status === 400) {

@@ -3,7 +3,7 @@ export interface ProductSimpleResponse {
   id: number;
   name: string;
   /** `MoneyDto` on the wire. Use `toAmount()` for math. */
-  basePrice: Money | number;
+  basePrice: Money;
   active: boolean;
   categoryId: number;
   categoryName: string;

@@ -27,6 +27,7 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import { FormValidation } from '@app/shared/components/form/form-validation';
 import { Logging } from '@app/core/services/logging/logging';
 import { UpdateWorkerRequest } from '@app/shared/models/dto/workers/worker-response';
+import { tryToAmount } from '@app/shared/models/dto/common/money';
 import { WorkersCache } from './workers-cache';
 import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 import { AreaResponse } from '@app/shared/models/dto/areas/area';
@@ -172,8 +173,10 @@ export class Workers implements OnInit {
     this.editing = true;
     this.backendFieldErrors = {};
     this.fillFormWithData(worker);
-    this.originalSalary.set(worker.salary ?? null);
-    this.salaryValue.set(worker.salary ?? null);
+    // `salary` is a `Money` DTO on the wire; the form/request work with numbers.
+    const salary = tryToAmount(worker.salary);
+    this.originalSalary.set(salary);
+    this.salaryValue.set(salary);
     this.userForm.patchValue({ reason: null, observations: null });
     this.creationModalVisible = true;
   }
@@ -481,7 +484,7 @@ export class Workers implements OnInit {
       phone: data.phone ?? '',
       address: data.address ?? '',
       areaId: data.assignedAreas?.[0] ?? null,
-      salary: data.salary ?? null,
+      salary: tryToAmount(data.salary),
     });
   }
 

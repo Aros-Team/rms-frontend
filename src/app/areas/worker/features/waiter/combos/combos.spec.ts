@@ -6,7 +6,8 @@
  *  - a combo whose `basePrice` arrives as `Money` (`{ amount: "15000.00",
  *    currency: "COP" }`, the wire shape) renders the formatted COP string —
  *    never `NaN`, `$ NaN`, `[object Object]` or a concatenated string;
- *  - a legacy numeric `basePrice` renders the same formatted string;
+ *  - a `basePrice` whose `amount` is a bare number (no decimal string) renders
+ *    the same formatted string;
  *  - an empty list renders the empty state and no price node at all.
  *
  * Approach: mount `Combos` with a stubbed `SpecialSelectionsCache` holding a
@@ -112,8 +113,8 @@ describe('Combos', () => {
     expect(price).not.toMatch(/NaN|object/);
   });
 
-  it('renders a legacy numeric basePrice the same way', () => {
-    combos.set([makeCombo(1, 'Combo Personal', 12500)]);
+  it('renders a basePrice with a numeric amount the same way', () => {
+    combos.set([makeCombo(1, 'Combo Personal', { amount: 12500, currency: 'COP' })]);
     mount();
 
     expect(priceTexts()).toEqual(['$ 12.500']);

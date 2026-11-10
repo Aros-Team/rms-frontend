@@ -7,7 +7,7 @@ export interface PurchaseResponse {
   registeredById: number;
   purchasedAt: string;
   /** `MoneyDto` on the wire. Use `toAmount()` for math. */
-  totalAmount: Money | number;
+  totalAmount: Money;
   notes: string | null;
   createdAt: string;
   items: PurchaseItemResponse[];

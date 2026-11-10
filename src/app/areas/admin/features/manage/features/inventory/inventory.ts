@@ -21,6 +21,7 @@ import { SupplyUnitResponse } from '@models/dto/supplies/supply-unit-response';
 import { SupplyResponse } from '@models/dto/supplies/supply-response';
 import { TransferItem } from '@models/dto/inventory/transfer-request';
 import { InventoryStockUpdatedEvent } from '@models/dto/inventory/inventory-stock-update';
+import { toAmount } from '@models/dto/common/money';
 
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -43,6 +44,7 @@ import { TagModule } from 'primeng/tag';
 import { MessageModule } from 'primeng/message';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 import { SearchInput } from '@shared/components/search-input/search-input';
+import { Money as MoneyPipe } from '@shared/pipes/money/money';
 
 // Wizard step type
 type VariantStep = 'category' | 'supply' | 'variant';
@@ -74,6 +76,7 @@ type VariantStep = 'category' | 'supply' | 'variant';
     LazyLoad,
     TableSkeleton,
     SearchInput,
+    MoneyPipe,
   ],
   providers: [MessageService],
   templateUrl: './inventory.html',
@@ -138,7 +141,11 @@ export class Inventory implements OnInit {
   pageSupplies = computed(() => this.cache.suppliesPage.data()?.content ?? undefined);
   totalElements = computed(() => this.cache.suppliesPage.data()?.totalElements ?? 0);
 
-  hasZeroUnitCost = computed(() => (this.supplies() ?? []).some(v => v.unitCost === 0));
+  hasZeroUnitCost = computed(() => (this.supplies() ?? []).some(v => toAmount(v.unitCost) === 0));
+
+  /** True when the variant carries no usable unit cost (zero or missing). */
+  hasNoCost = (variant: SupplyVariantResponse): boolean => toAmount(variant.unitCost) === 0;
+
 
   loading = computed(() => this.cache.suppliesPage.isLoading() && !this.cache.suppliesPage.hasData());
 
@@ -160,8 +167,6 @@ export class Inventory implements OnInit {
 
   modalIsOpen = false;
   submitting = false;
-
-  currencyFormat = Intl.NumberFormat('es-Co', { style: 'currency', currency: 'COP' });
 
   purchaseForm: FormGroup = this.fb.group({
     // eslint-disable-next-line @typescript-eslint/unbound-method

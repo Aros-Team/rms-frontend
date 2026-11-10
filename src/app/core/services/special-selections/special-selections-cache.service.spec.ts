@@ -38,7 +38,7 @@ describe('SpecialSelectionsCacheService', () => {
     id: 1,
     name: 'Menú Almuerzo',
     description: 'Sopa + plato fuerte',
-    basePrice: 12.50,
+    basePrice: { amount: '12.50', currency: 'COP' },
     active: true,
     preparationAreaId: 1,
     selectionType: 'SPECIAL_SELECTION',
@@ -329,7 +329,7 @@ describe('SpecialSelectionsCacheService', () => {
     });
 
     it('PRICE_CHANGE invalidates every affected cache and applies selection data', () => {
-      verifyKnownRealtimeChange('PRICE_CHANGE', { ...mockSelection, basePrice: 18 });
+      verifyKnownRealtimeChange('PRICE_CHANGE', { ...mockSelection, basePrice: { amount: '18.00', currency: 'COP' } });
     });
 
     it('DELETE with null selection resets held caches before removing them', () => {
@@ -343,7 +343,7 @@ describe('SpecialSelectionsCacheService', () => {
     it('REVERT invalidates every affected cache and applies selection data', () => {
       verifyKnownRealtimeChange('REVERT', {
         ...mockSelection,
-        basePrice: 9.5,
+        basePrice: { amount: '9.50', currency: 'COP' },
         name: 'Menú v1',
       });
     });
@@ -557,9 +557,9 @@ describe('SpecialSelectionsCacheService', () => {
         changeType: 'PRICE_CHANGE',
         productId: 13,
         active: true,
-        selection: { ...mockSelection, id: 13, basePrice: 20 },
+        selection: { ...mockSelection, id: 13, basePrice: { amount: '20.00', currency: 'COP' } },
       });
-      flushAvailableNowRefresh({ ...mockSelection, id: 13, basePrice: 20 });
+      flushAvailableNowRefresh({ ...mockSelection, id: 13, basePrice: { amount: '20.00', currency: 'COP' } });
 
       expect(emissions).toEqual([null, 13]);
     });
@@ -572,9 +572,9 @@ describe('SpecialSelectionsCacheService', () => {
         changeType: 'REVERT',
         productId: 17,
         active: true,
-        selection: { ...mockSelection, id: 17, basePrice: 9.5 },
+        selection: { ...mockSelection, id: 17, basePrice: { amount: '9.50', currency: 'COP' } },
       });
-      flushAvailableNowRefresh({ ...mockSelection, id: 17, basePrice: 9.5 });
+      flushAvailableNowRefresh({ ...mockSelection, id: 17, basePrice: { amount: '9.50', currency: 'COP' } });
 
       expect(emissions).toEqual([null, 17]);
     });

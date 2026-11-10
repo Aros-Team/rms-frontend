@@ -13,6 +13,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { HabeasDataEvents } from '@shared/features/habeas-data/habeas-data-events';
 import { UserInfo } from '@models/domain/user/user-info';
 import { resolveReturnUrl } from '@shared/lib/auth-navigation/auth-navigation';
+import { extractProblemDetail } from '@shared/lib/problem-detail/problem-detail';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -112,6 +113,9 @@ export class LoginForm implements OnInit, OnDestroy {
           this.authService.logout();
           this.formStatus.set('Free');
 
+          // The server's RFC-7807 `detail` beats our generic copy whenever the
+          // body carried one. A filter-level 401 is bodiless → `null` here.
+          const problemDetail = extractProblemDetail(err);
           const errorMessage = (err.error as { message?: string; error?: string } | undefined)?.message ??
                                (err.error as { message?: string; error?: string } | undefined)?.error ?? '';
           const isInvalidCredentials = err.status === 401 ||
@@ -123,7 +127,7 @@ export class LoginForm implements OnInit, OnDestroy {
             this.messageService.add({
               severity: 'error',
               summary: 'Error de autenticación',
-              detail: 'Credenciales incorrectas. Verifique su correo y contraseña.',
+              detail: problemDetail ?? 'Credenciales incorrectas. Verifique su correo y contraseña.',
               life: 5000
             });
           } else if (err.status === 0 || (err.status && err.status >= 500)) {
@@ -139,7 +143,7 @@ export class LoginForm implements OnInit, OnDestroy {
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: 'Ha ocurrido un error inesperado. Por favor, intente nuevamente.',
+              detail: problemDetail ?? 'Ha ocurrido un error inesperado. Por favor, intente nuevamente.',
               life: 5000
             });
           }

@@ -12,6 +12,7 @@ import { SetupPasswordRequest } from '@models/dto/auth/setup-password-request';
 import { MessageService } from 'primeng/api';
 import { Logging } from '@app/core/services/logging/logging';
 import { NgClass } from '@angular/common';
+import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
 
 @Component({
   selector: 'app-setup-account',
@@ -36,6 +37,8 @@ export class SetupAccount implements OnInit {
 
   loading = signal(true);
   error = signal<string | null>(null);
+  /** Server's RFC-7807 `detail`, when the failure carried one. */
+  serverDetail = signal<string | null>(null);
   success = signal(false);
   userData = signal<SetupAccountResponse | null>(null);
   currentStep = signal(1);
@@ -70,6 +73,7 @@ export class SetupAccount implements OnInit {
       },
       error: (err: HttpErrorResponse) => {
         this.loading.set(false);
+        this.serverDetail.set(extractProblemDetail(err));
         if (err.status === 409) {
           this.error.set('already_used');
         } else {
@@ -141,15 +145,17 @@ export class SetupAccount implements OnInit {
       },
       error: (err: HttpErrorResponse) => {
         this.loading.set(false);
+        const problemDetail = extractProblemDetail(err);
+        this.serverDetail.set(problemDetail);
         if (err.status === 409) {
           this.error.set('already_used');
-        } else if (err.status === 400) {
+        } else if (err.status === 400 || err.status === 422) {
           this.error.set('invalid');
         } else {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'No se pudo activar la cuenta. Intente más tarde.',
+            detail: problemDetail ?? 'No se pudo activar la cuenta. Intente más tarde.',
             life: 5000,
           });
         }

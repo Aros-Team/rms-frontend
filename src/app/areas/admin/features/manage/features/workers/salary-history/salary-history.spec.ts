@@ -1,23 +1,20 @@
 /**
  * Tests for the admin "salary history" screen.
  *
- * Feature: lists every salary change of a worker (old salary → new salary).
+ * Feature: lists every salary change of a worker (old salary → new salary) as
+ * returned by `GET /v1/users/{id}/salary-history`.
  * Contract:
- *  - a salary that arrives as `Money` (`{ amount: "1200000.00", currency: "COP" }`,
- *    the backend wire shape) renders the formatted COP string — never
- *    `$ NaN`;
- *  - a legacy numeric salary renders the same formatted string;
- *  - a missing previous salary (`null`) renders `-`.
+ *  - both salaries are `Money` DTOs on the wire
+ *    (`{ amount: "1200000.00", currency: "COP" }`) and render the formatted COP
+ *    string — never `$ NaN`, never `[object Object]`;
+ *  - a `Money` whose `amount` is a number (legacy payload) renders the same;
+ *  - a missing previous salary (`oldSalary: null`, the first assignment) renders
+ *    an em dash.
  *
  * Approach: mount `SalaryHistory` with a stubbed `Worker` service returning a
  * controlled history and a stub `ActivatedRoute` carrying the worker id, then
  * assert the exact text of the `old-salary` / `new-salary` cells, normalizing
  * the non-breaking space ICU inserts.
- *
- * Note: `SalaryHistoryEntry` still types the salaries as `number`, while the
- * backend serializes `MoneyDto`. The fixtures therefore cast the money payload
- * — that gap is exactly what the `$ NaN` regression was about, and
- * `formatSalary()` is expected to cope at runtime.
  */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
@@ -32,17 +29,15 @@ import type { Money } from '@app/shared/models/dto/common/money';
 import { SalaryHistory } from './salary-history';
 import salaryHistoryHtml from './salary-history.html?raw';
 
-/** The DTO type is still `number`; the wire sends `MoneyDto`. */
-type WireSalary = Money | number | null;
+/** Money DTO with a decimal-string amount — exactly what the backend sends. */
+function money(amount: string): Money {
+  return { amount, currency: 'COP' };
+}
 
-function makeEntry(
-  oldSalary: WireSalary,
-  newSalary: WireSalary,
-  reason = 'Ajuste anual',
-): SalaryHistoryEntry {
-  const asWire = { oldSalary, newSalary } as unknown as SalaryHistoryEntry;
+function makeEntry(oldSalary: Money | null, newSalary: Money, reason = 'Ajuste anual'): SalaryHistoryEntry {
   return {
-    ...asWire,
+    oldSalary,
+    newSalary,
     changedAt: '2026-03-01T09:30:00',
     reason,
     observations: null,
@@ -93,6 +88,10 @@ describe('SalaryHistory', () => {
     fixture.detectChanges();
   }
 
+  function cellOf(row: Element, testId: string): string {
+    return normalize(row.querySelector<HTMLElement>(`[data-testid="${testId}"]`)?.textContent ?? '');
+  }
+
   function cell(testId: string): string {
     const node = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>(
       `[data-testid="${testId}"]`,
@@ -100,31 +99,47 @@ describe('SalaryHistory', () => {
     return normalize(node?.textContent ?? '');
   }
 
-  it('renders Money salaries as formatted COP strings, never NaN', () => {
-    mount([
-      makeEntry(
-        { amount: '1150000.00', currency: 'COP' },
-        { amount: '1200000.00', currency: 'COP' },
-      ),
-    ]);
+  it('renders both Money salaries as formatted COP strings', () => {
+    mount([makeEntry(money('1150000.00'), money('1200000.00'))]);
 
     expect(cell('old-salary')).toBe('$ 1.150.000');
     expect(cell('new-salary')).toBe('$ 1.200.000');
-    expect(cell('new-salary')).not.toMatch(/NaN/);
   });
 
-  it('renders legacy numeric salaries the same way', () => {
-    mount([makeEntry(1500000, 1650000)]);
+  it('renders a decimal Money amount rounded to COP (no minor unit)', () => {
+    mount([makeEntry(money('1150000.50'), money('1200000.75'))]);
+
+    expect(cell('old-salary')).toBe('$ 1.150.001');
+    expect(cell('new-salary')).toBe('$ 1.200.001');
+  });
+
+  it('renders a legacy Money whose amount is a number', () => {
+    mount([makeEntry({ amount: 1500000, currency: 'COP' }, { amount: 1650000, currency: 'COP' })]);
 
     expect(cell('old-salary')).toBe('$ 1.500.000');
     expect(cell('new-salary')).toBe('$ 1.650.000');
   });
 
-  it('renders a missing previous salary as a dash', () => {
-    mount([makeEntry(null, { amount: '900000.00', currency: 'COP' })]);
+  it('renders a missing previous salary as an em dash, not NaN or an object', () => {
+    mount([makeEntry(null, money('900000.00'))]);
 
-    expect(cell('old-salary')).toBe('-');
+    expect(cell('old-salary')).toBe('—');
     expect(cell('new-salary')).toBe('$ 900.000');
+    expect(cell('old-salary')).not.toMatch(/NaN|object/);
+  });
+
+  it('renders both changes of a two-row history independently', () => {
+    mount([
+      makeEntry(money('1000000.00'), money('1100000.00')),
+      makeEntry(money('1100000.00'), money('1250000.00')),
+    ]);
+
+    const rows = (fixture.nativeElement as HTMLElement).querySelectorAll('tbody tr');
+    expect(rows).toHaveLength(2);
+    expect(cellOf(rows[0], 'old-salary')).toBe('$ 1.000.000');
+    expect(cellOf(rows[0], 'new-salary')).toBe('$ 1.100.000');
+    expect(cellOf(rows[1], 'old-salary')).toBe('$ 1.100.000');
+    expect(cellOf(rows[1], 'new-salary')).toBe('$ 1.250.000');
   });
 
   it('requests the history of the worker in the route', () => {

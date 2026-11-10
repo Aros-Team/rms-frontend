@@ -293,7 +293,7 @@
                   class="w-full px-3 py-2 text-left text-sm hover:bg-surface-100 dark:hover:bg-surface-700 flex items-center justify-between gap-2 cursor-pointer border-none bg-transparent"
                   (click)="addSupplyVariant(s)" (keydown.enter)="addSupplyVariant(s)">
                   <span class="font-medium text-surface-800 dark:text-surface-200">{{ s.supplyName }}</span>
-                  <span class="text-xs text-surface-400 shrink-0">{{ s.quantity }} {{ s.unitAbbreviation }} · {{ currencyFormat.format(s.unitCost) }}/u</span>
+                  <span class="text-xs text-surface-400 shrink-0">{{ s.quantity }} {{ s.unitAbbreviation }} · {{ s.unitCost | money }}/u</span>
                 </button>
               }
             </div>
@@ -336,7 +336,7 @@
                   (click)="incrementQty(existingRecipe, i); $event.stopPropagation()"></button>
               </div>
               <div class="text-right text-sm text-surface-500">
-                {{ currencyFormat.format(getRowPartial($any(item).get('supplyVariantId')?.value, $any(item).get('requiredQuantity')?.value)) }}
+                {{ getRowPartial($any(item).get('supplyVariantId')?.value, $any(item).get('requiredQuantity')?.value) | money }}
               </div>
               <div class="flex justify-center">
                 <button type="button" pButton icon="pi pi-trash" [text]="true" size="small" severity="danger" aria-label="Eliminar insumo"
@@ -367,7 +367,7 @@
                   (click)="incrementQty(baseRecipe, i); $event.stopPropagation()"></button>
               </div>
               <div class="text-right text-sm text-surface-500">
-                {{ currencyFormat.format(getRowPartial($any(item).get('supplyVariantId')?.value, $any(item).get('requiredQuantity')?.value)) }}
+                {{ getRowPartial($any(item).get('supplyVariantId')?.value, $any(item).get('requiredQuantity')?.value) | money }}
               </div>
               <div class="flex justify-center">
                 <button type="button" pButton icon="pi pi-trash" [text]="true" size="small" severity="danger" aria-label="Eliminar insumo"
@@ -388,7 +388,7 @@
         @if (recipeBreakdown().length > 0) {
           <div class="flex justify-between items-center bg-primary-50 dark:bg-primary-900/20 rounded-lg px-4 py-3">
             <span class="font-semibold">Materiales</span>
-            <span class="font-semibold text-base">{{ currencyFormat.format(recipeCost()) }}</span>
+            <span class="font-semibold text-base">{{ recipeCost() | money }}</span>
           </div>
         } @else {
           <p class="text-sm text-surface-400 italic">Agrega insumos para calcular el costo</p>
@@ -442,15 +442,15 @@
           </h4>
           <div class="flex justify-between">
             <span class="text-surface-500">Materiales</span>
-            <span class="font-medium">{{ currencyFormat.format(c.materialCost) }}</span>
+            <span class="font-medium">{{ c.materialCost | money }}</span>
           </div>
           <div class="flex justify-between">
             <span class="text-surface-500">Mano de obra</span>
-            <span class="font-medium">{{ currencyFormat.format(c.laborCost) }}</span>
+            <span class="font-medium">{{ c.laborCost | money }}</span>
           </div>
           <div class="flex justify-between bg-primary-50 dark:bg-primary-900/20 -mx-4 -mb-4 px-4 py-3 mt-2 rounded-b-lg">
             <span class="font-semibold">Costo total</span>
-            <span class="font-semibold text-base">{{ currencyFormat.format(c.totalCost) }}</span>
+            <span class="font-semibold text-base">{{ c.totalCost | money }}</span>
           </div>
         </div>
       } @else if (costLoading()) {
@@ -465,7 +465,7 @@
             <i class="pi pi-bolt text-xs"></i>
             Materiales estimado (receta actual)
           </span>
-          <span class="font-medium italic">{{ currencyFormat.format(recipeCost()) }}</span>
+          <span class="font-medium italic">{{ recipeCost() | money }}</span>
         </div>
       }
 
@@ -479,7 +479,7 @@
           <div class="bg-green-50 dark:bg-green-900/20 rounded-lg px-4 py-3 flex items-center justify-between border border-green-200 dark:border-green-800">
             <div class="flex flex-col gap-1">
               <span class="text-xs text-green-700 dark:text-green-300 font-medium">Precio sugerido</span>
-              <span class="text-lg font-bold text-green-600 dark:text-green-400">{{ currencyFormat.format(suggestedSalePrice()) }}</span>
+              <span class="text-lg font-bold text-green-600 dark:text-green-400">{{ suggestedSalePrice() | money }}</span>
               <span class="text-xs text-green-600/70 dark:text-green-400/70">Costo oficial + 30% de margen</span>
             </div>
             <p-button label="Usar este precio" severity="success" [outlined]="true" size="small"
@@ -538,15 +538,15 @@
               } @else if (cost(); as c) {
                 <div class="flex justify-between">
                   <span class="text-surface-500">Materiales</span>
-                  <span class="font-medium">{{ currencyFormat.format(c.materialCost) }}</span>
+                  <span class="font-medium">{{ c.materialCost | money }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-surface-500">Mano de obra</span>
-                  <span class="font-medium">{{ currencyFormat.format(c.laborCost) }}</span>
+                  <span class="font-medium">{{ c.laborCost | money }}</span>
                 </div>
                 <div class="flex justify-between items-center bg-primary-50 dark:bg-primary-900/20 -mx-4 -mb-4 px-4 py-3 mt-2 rounded-b-lg">
                   <span class="font-semibold">Total</span>
-                  <span class="font-semibold text-base">{{ currencyFormat.format(c.totalCost) }}</span>
+                  <span class="font-semibold text-base">{{ c.totalCost | money }}</span>
                 </div>
                 @if (c.breakdown.length > 0) {
                   <div class="flex flex-col gap-2 mt-3 pt-3 border-t border-surface-200 dark:border-surface-700">
@@ -557,7 +557,7 @@
                           <i [class]="item.type === 'MATERIAL' ? 'pi pi-box' : 'pi pi-clock'" class="text-surface-500"></i>
                           <span>{{ item.description }}</span>
                         </span>
-                        <span class="font-medium">{{ currencyFormat.format(item.amount) }}</span>
+                        <span class="font-medium">{{ item.amount | money }}</span>
                       </div>
                     }
                   </div>

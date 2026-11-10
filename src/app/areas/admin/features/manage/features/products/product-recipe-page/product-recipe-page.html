@@ -193,7 +193,7 @@
                 />
               </td>
               <td>{{ getVariantUnit(item.supplyVariantId) }}</td>
-              <td>{{ formatMoney(getPartialCost(item.supplyVariantId, item.requiredQuantity)) }}</td>
+              <td>{{ getPartialCost(item.supplyVariantId, item.requiredQuantity) | money }}</td>
               <td>
                 <p-button
                   icon="pi pi-trash"
@@ -217,7 +217,7 @@
             @if (recipeItems().length > 0) {
               <div class="recipe-summary">
                 <span>Total de receta:</span>
-                <strong>{{ formatMoney(recipeTotal()) }}</strong>
+                <strong>{{ recipeTotal() | money }}</strong>
               </div>
             }
           </ng-template>
@@ -232,7 +232,7 @@
           <div class="recipe-pricing-row">
             <span class="recipe-label">Costo de producción oficial</span>
             <span class="recipe-pricing-value">
-              {{ cost() ? formatMoney(cost()!.totalCost) : '—' }}
+              {{ (cost()?.totalCost ?? null) | money }}
             </span>
           </div>
 
@@ -253,7 +253,7 @@
             <span class="recipe-label">Precio sugerido (costo × 1.3)</span>
             <div class="recipe-pricing-suggestion">
               <span class="recipe-pricing-value">
-                {{ suggestedSalePrice() > 0 ? formatMoney(suggestedSalePrice()) : '—' }}
+                {{ (suggestedSalePrice() > 0 ? suggestedSalePrice() : null) | money }}
               </span>
               @if (suggestedSalePrice() > 0) {
                 <p-button

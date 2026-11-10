@@ -36,15 +36,37 @@ import { ProductCostResponse } from '@app/shared/models/dto/products/product-cos
 import { ProductCostBreakdownResponse } from '@app/shared/models/dto/products/product-cost-breakdown-response';
 import { ProductImageResponse } from '@app/shared/models/dto/products/product-image-response';
 import { OptionGroupResponse } from '@app/shared/models/dto/option-groups/option-group';
+import type { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
 
 import productRecipeHtml from './product-recipe-page.html?raw';
+
+/** Money DTO as the backend serializes it (`amount` is a decimal string). */
+function money(amount: string): { amount: string; currency: string } {
+  return { amount, currency: 'COP' };
+}
+
+function buildSupplyVariant(id: number, unitCost: string): SupplyVariantResponse {
+  return {
+    id,
+    supplyId: id + 100,
+    supplyName: `Insumo ${String(id)}`,
+    categoryId: 1,
+    categoryName: 'Verduras',
+    unitId: 1,
+    unitAbbreviation: 'kg',
+    quantity: 1,
+    stockBodega: 10,
+    stockCocina: 10,
+    unitCost: money(unitCost),
+  };
+}
 
 function buildProductFixture(): ProductResponse {
   return {
     id: 7,
     name: 'Lentejas',
     description: 'Lentejas con verduras',
-    basePrice: 12.5,
+    basePrice: money('12.50'),
     active: true,
     categoryId: 2,
     categoryName: 'Comidas',
@@ -101,13 +123,13 @@ function buildImageFixture(): ProductImageResponse {
   };
 }
 
-function buildCacheStub() {
+function buildCacheStub(variants: SupplyVariantResponse[] = []) {
   return {
     referenceData: {
       data: vi.fn().mockReturnValue({
         areas: [{ id: 1, name: 'Cocina' }],
         categories: [{ id: 2, name: 'Comidas' }],
-        variants: [],
+        variants,
         productOptions: [],
       }),
       refresh: vi.fn(),
@@ -134,7 +156,11 @@ function buildProductStub() {
   };
 }
 
-function configureTestBed(routeParamId: string | null = '7', extraProviders: unknown[] = []) {
+function configureTestBed(
+  routeParamId: string | null = '7',
+  extraProviders: unknown[] = [],
+  variants: SupplyVariantResponse[] = [],
+) {
   const paramMap = new Map<string, string>();
   if (routeParamId !== null) {
     paramMap.set('id', routeParamId);
@@ -156,7 +182,7 @@ function configureTestBed(routeParamId: string | null = '7', extraProviders: unk
     uploadImage: vi.fn(),
     deleteImage: vi.fn(),
   };
-  const cacheStub = buildCacheStub();
+  const cacheStub = buildCacheStub(variants);
   const wsStub = {
     emitCacheInvalidation: vi.fn(),
     cacheInvalidation$: of(null),
@@ -195,6 +221,11 @@ function configureTestBed(routeParamId: string | null = '7', extraProviders: unk
     wsStub,
     loggerStub,
   };
+}
+
+/** `Intl` separates the COP symbol from the amount with U+00A0. */
+function normalizeText(text: string): string {
+  return text.replace(/\u00a0|\u202f/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 function flushMicrotasks(): Promise<void> {
@@ -508,5 +539,79 @@ describe('ProductRecipePage', () => {
     await flushMicrotasks();
 
     expect(fixture.componentInstance.loading()).toBe(false);
+  });
+  it('sums recipeTotal from Money-shaped unit costs of the selected variants', async () => {
+    configureTestBed('7', [], [
+      buildSupplyVariant(301, '2000.00'),
+      buildSupplyVariant(302, '4000.00'),
+    ]);
+    const fixture = TestBed.createComponent(ProductRecipePage);
+    await flushMicrotasks();
+
+    // 0.5 kg × 2000 + 0.25 kg × 4000 = 1000 + 1000
+    expect(fixture.componentInstance.recipeTotal()).toBe(2000);
+  });
+
+  it('computes recipeTotal with decimal Money amounts — not a string concat or NaN', async () => {
+    configureTestBed('7', [], [buildSupplyVariant(301, '1500.50')]);
+    const fixture = TestBed.createComponent(ProductRecipePage);
+    await flushMicrotasks();
+
+    fixture.componentInstance.updateRecipeQuantity(0, 2);
+    fixture.detectChanges();
+
+    // 2 × 1500.50
+    expect(fixture.componentInstance.recipeTotal()).toBe(3001);
+  });
+
+  it('computes the suggested sale price as production cost × 1.3, rounded', async () => {
+    configureTestBed('7');
+    const fixture = TestBed.createComponent(ProductRecipePage);
+    await flushMicrotasks();
+
+    // buildCostFixture().totalCost = 25.75 → 25.75 × 1.3 = 33.475 → 33
+    expect(fixture.componentInstance.suggestedSalePrice()).toBe(33);
+  });
+
+  it('renders the suggested sale price through the money pipe as COP', async () => {
+    configureTestBed('7');
+    const fixture = TestBed.createComponent(ProductRecipePage);
+    await flushMicrotasks();
+    fixture.detectChanges();
+
+    const suggestion = (fixture.nativeElement as HTMLElement).querySelector(
+      '.recipe-pricing-suggestion .recipe-pricing-value',
+    );
+    expect(normalizeText(suggestion?.textContent ?? '')).toBe('$ 33');
+  });
+
+  it('renders the official production cost through the money pipe as COP', async () => {
+    configureTestBed('7');
+    const fixture = TestBed.createComponent(ProductRecipePage);
+    await flushMicrotasks();
+    fixture.detectChanges();
+
+    const value = (fixture.nativeElement as HTMLElement).querySelector(
+      '.recipe-pricing-row .recipe-pricing-value',
+    );
+    // 25.75 COP has no minor unit → rounds to 26
+    expect(normalizeText(value?.textContent ?? '')).toBe('$ 26');
+  });
+
+  it('renders an em dash for the cost and the suggestion when the cost request fails', async () => {
+    const env = configureTestBed('7');
+    env.productStub.getCost.mockReturnValue(throwError(() => ({ status: 500 })));
+    const fixture = TestBed.createComponent(ProductRecipePage);
+    await flushMicrotasks();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const suggestion = root.querySelector('.recipe-pricing-suggestion .recipe-pricing-value');
+    const officialCost = root.querySelector('.recipe-pricing-row .recipe-pricing-value');
+
+    expect(fixture.componentInstance.cost()).toBeNull();
+    expect(fixture.componentInstance.suggestedSalePrice()).toBe(0);
+    expect(normalizeText(suggestion?.textContent ?? '')).toBe('—');
+    expect(normalizeText(officialCost?.textContent ?? '')).toBe('—');
   });
 });

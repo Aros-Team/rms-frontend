@@ -9,8 +9,8 @@ export interface SpecialSelectionResponse {
   id: number;
   name: string;
   description: string;
-  /** `MoneyDto` on the wire. Use `toAmount()` for math. */
-  basePrice: Money | number;
+  /** `MoneyDto` on the wire (`{ amount: string, currency: string }`). Use `toAmount()` for math, `| money` to render. */
+  basePrice: Money;
   active: boolean;
   preparationAreaId: number;
   selectionType: SelectionType;

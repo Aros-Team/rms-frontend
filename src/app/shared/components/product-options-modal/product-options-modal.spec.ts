@@ -21,7 +21,7 @@ const mockProduct: ProductListResponse = {
   id: 1,
   name: 'Hamburguesa',
   description: 'Deliciosa hamburguesa',
-  basePrice: 15000,
+  basePrice: { amount: '15000.00', currency: 'COP' },
   thumbnailUrl: '',
   categoryId: 1,
   categoryName: 'Platos',

@@ -51,6 +51,7 @@ import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 
 import { PrepTimeDialog, type PrepTimeEstimate } from './componentes/prep-time-dialog/prep-time-dialog';
 import { Money } from '@app/shared/pipes/money/money';
+import { toAmount } from '@app/shared/models/dto/common/money';
 
 // Wizard steps: 1=basic data+image, 2=insumos, 3=options, 4=finalize
 type WizardStep = 1 | 2 | 3 | 4 | 5;
@@ -141,7 +142,6 @@ export class Products implements OnInit {
   readonly imageService = inject(ProductImage);
 
   title = 'Carta de Productos';
-  currencyFormat = Intl.NumberFormat('es-Co', { style: 'currency', currency: 'COP' });
 
   // Table - usando cache service
   filterCategories = new FormControl<number[]>([], []);
@@ -407,9 +407,9 @@ export class Products implements OnInit {
           supplyVariantId: v.supplyVariantId,
           supplyName: variant?.supplyName ?? 'Insumo desconocido',
           unitLabel: variant ? `${String(variant.quantity)} ${variant.unitAbbreviation}` : '—',
-          unitCost: variant?.unitCost ?? null,
+          unitCost: variant?.unitCost != null ? toAmount(variant.unitCost) : null,
           requiredQuantity: qty,
-          partial: variant?.unitCost != null && qty > 0 ? variant.unitCost * qty : 0,
+          partial: variant?.unitCost != null && qty > 0 ? toAmount(variant.unitCost) * qty : 0,
         });
         if (v.supplyVariantId != null && qty > 0) {
           merged.set(v.supplyVariantId, qty);
@@ -424,7 +424,7 @@ export class Products implements OnInit {
     for (const [variantId, qty] of merged) {
       const variant = variantById.get(variantId);
       if (variant?.unitCost != null) {
-        total += variant.unitCost * qty;
+        total += toAmount(variant.unitCost) * qty;
       }
     }
 
@@ -435,7 +435,7 @@ export class Products implements OnInit {
   suggestedSalePrice = computed(() => {
     const c = this.cost();
     if (!c) return 0;
-    return Math.round(c.totalCost * 1.3);
+    return Math.round(toAmount(c.totalCost) * 1.3);
   });
 
   // ── Step 2: product options, each with its own recipe ───────────
@@ -613,7 +613,7 @@ export class Products implements OnInit {
   /** Cost per unit for a given variant, shown in the table row. */
   getUnitCost(variantId: number | null): number {
     if (variantId == null) return 0;
-    return this.supplyVariantOptions().find(v => v.id === variantId)?.unitCost ?? 0;
+    return toAmount(this.supplyVariantOptions().find(v => v.id === variantId)?.unitCost);
   }
 
   /** Partial cost for a recipe row (unitCost × qty). */

@@ -72,8 +72,8 @@
           <td class="text-xs text-surface-600 dark:text-surface-400">{{ supply.quantity }} {{ supply.unitAbbreviation }}</td>
           <td>
             <span class="flex items-center gap-1">
-              <span class="text-sm">{{ currencyFormat.format(supply.unitCost) }}</span>
-              @if (supply.unitCost === 0) {
+              <span class="text-sm" data-testid="supply-unit-cost">{{ supply.unitCost | money }}</span>
+              @if (hasNoCost(supply)) {
                 <p-tag severity="warn" value="Sin costo" />
               }
             </span>

@@ -274,4 +274,34 @@ describe('Workers — payroll tab', () => {
     expect(timeLogApi.getTimeLogs).toHaveBeenCalledTimes(1);
     expect(tab('#tab-time-logs').getAttribute('aria-selected')).toBe('true');
   });
+  describe('salary field — Money DTO on the wire, number in the form', () => {
+    it('normalizes a Money salary into the numeric form control', async () => {
+      await mount();
+      component.showModificationModal({ ...WORKER, salary: money('1200000.00') });
+
+      expect(component.userForm.get('salary')?.value).toBe(1200000);
+      expect(component.originalSalary()).toBe(1200000);
+      expect(component.salaryValue()).toBe(1200000);
+      expect(component.salaryChanged()).toBe(false);
+    });
+
+    it('leaves the salary null when the worker has none and reports no change', async () => {
+      await mount();
+      component.showModificationModal({ ...WORKER, salary: null });
+
+      expect(component.userForm.get('salary')?.value).toBeNull();
+      expect(component.originalSalary()).toBeNull();
+      expect(component.salaryChanged()).toBe(false);
+      expect(Number.isNaN(Number(component.userForm.get('salary')?.value))).toBe(false);
+    });
+
+    it('flags a change when the admin types a different salary', async () => {
+      await mount();
+      component.showModificationModal({ ...WORKER, salary: money('1200000.00') });
+
+      component.userForm.get('salary')?.setValue(1500000);
+
+      expect(component.salaryChanged()).toBe(true);
+    });
+  });
 });

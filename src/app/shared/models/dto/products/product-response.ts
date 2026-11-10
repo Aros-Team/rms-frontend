@@ -12,7 +12,7 @@ export interface ProductResponse {
   name: string;
   description?: string;
   /** `MoneyDto { amount: string, currency: string }` on the wire. Use `toAmount()` for math. */
-  basePrice: Money | number;
+  basePrice: Money;
   active: boolean;
   categoryId: number;
   categoryName: string;

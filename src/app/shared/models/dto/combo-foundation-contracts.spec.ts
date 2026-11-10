@@ -100,7 +100,7 @@ describe('Combo foundation DTO contracts', () => {
     const product: ProductListResponse = {
       id: 90,
       name: 'Combo Ejecutivo',
-      basePrice: 25,
+      basePrice: { amount: '25.00', currency: 'COP' },
       active: true,
       categoryId: 5,
       categoryName: 'Combos',

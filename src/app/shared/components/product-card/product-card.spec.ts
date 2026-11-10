@@ -16,7 +16,7 @@ import productCardHtml from './product-card.html?raw';
 const TEST_PRODUCT: ProductSimpleResponse = {
   id: 1,
   name: 'Hamburguesa',
-  basePrice: 15000,
+  basePrice: { amount: '15000.00', currency: 'COP' },
   active: true,
   categoryId: 1,
   categoryName: 'Comidas',
