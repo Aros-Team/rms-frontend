@@ -33,6 +33,10 @@ export const routes: Routes = [
     loadComponent: () => import('@shared/components/server-error-page/server-error-page').then(m => m.ServerErrorPage),
   },
   {
+    path: 'forbidden',
+    loadComponent: () => import('@shared/components/forbidden-page/forbidden-page').then(m => m.ForbiddenPage),
+  },
+  {
     path: 'admin',
     loadComponent: () => import('@areas/admin/admin-area').then(m => m.AdminArea),
     canActivate: [AuthGuard, RoleGuard],

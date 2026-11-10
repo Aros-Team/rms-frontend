@@ -1,9 +1,26 @@
 import { Injectable, inject } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, GuardResult, MaybeAsync, RedirectCommand, Router } from '@angular/router';
+import {
+  ActivatedRouteSnapshot,
+  CanActivate,
+  GuardResult,
+  MaybeAsync,
+  RedirectCommand,
+  Router,
+  RouterStateSnapshot,
+} from '@angular/router';
 import { map, catchError, of } from 'rxjs';
 import { Auth } from '@services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
+import { UserInfo } from '@models/domain/user/user-info';
+import { redirectForFailure } from '@shared/lib/auth-navigation/auth-navigation';
 
+/**
+ * Enforces the role of the top-level area (`/admin` vs `/worker`).
+ *
+ * A role mismatch is a permission failure, so it lands on `/forbidden` (403
+ * semantics), never on `/server-error`. Loading the user data follows the same
+ * matrix as {@link AuthGuard}.
+ */
 @Injectable({
   providedIn: 'root',
 })
@@ -12,18 +29,20 @@ export class RoleGuard implements CanActivate {
   private router = inject(Router);
   private logger = inject(Logging);
 
-  canActivate(route: ActivatedRouteSnapshot): MaybeAsync<GuardResult> {
+  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): MaybeAsync<GuardResult> {
     const userData = this.authService.getData();
     if (userData) {
       return this.checkRole(userData, route);
     }
     return this.authService.loadUserInfo().pipe(
       map((u) => this.checkRole(u, route)),
-      catchError(() => of<RedirectCommand>(new RedirectCommand(this.router.parseUrl('/login')))),
+      catchError((err: unknown) =>
+        of<RedirectCommand>(redirectForFailure(this.router, err, state.url)),
+      ),
     );
   }
 
-  private checkRole(userData: ReturnType<typeof this.authService.getData>, route: ActivatedRouteSnapshot): GuardResult {
+  private checkRole(userData: UserInfo | undefined, route: ActivatedRouteSnapshot): GuardResult {
     if (!userData) {
       return new RedirectCommand(this.router.parseUrl('/login'));
     }
@@ -34,22 +53,15 @@ export class RoleGuard implements CanActivate {
     const targetRoute = route.routeConfig?.path;
     this.logger.routing('RoleGuard: Target route:', targetRoute);
 
-    if (isAdmin) {
-      if (targetRoute === 'admin') {
-        this.logger.routing('RoleGuard: Admin user allowed access to /admin');
-        return true;
-      } else {
-        this.logger.warn('RoleGuard: Admin user attempted to access worker route, redirecting to /admin');
-        return new RedirectCommand(this.router.parseUrl('/admin'));
-      }
+    const allowedRoute = isAdmin ? 'admin' : 'worker';
+    if (targetRoute === allowedRoute) {
+      this.logger.routing(`RoleGuard: ${userData.role} user allowed access to /${targetRoute}`);
+      return true;
     }
 
-    if (targetRoute === 'worker') {
-      this.logger.routing('RoleGuard: Worker user allowed access to /worker');
-      return true;
-    } else {
-      this.logger.warn('RoleGuard: Worker user attempted to access admin route, redirecting to /worker');
-      return new RedirectCommand(this.router.parseUrl('/worker'));
-    }
+    this.logger.warn(
+      `RoleGuard: ${userData.role} user attempted to access /${String(targetRoute)}, redirecting to /forbidden`,
+    );
+    return new RedirectCommand(this.router.parseUrl('/forbidden'));
   }
 }

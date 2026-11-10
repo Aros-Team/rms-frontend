@@ -1,63 +1,118 @@
 /**
  * Tests for the Money pipe.
  *
- * Feature: Formats Money DTOs into locale-aware COP/USD strings.
+ * Feature: Renders every money value in the app as a locale-aware currency
+ *          string, tolerating all shapes that reach the wire boundary.
  * Contract:
- *  - null/undefined → em dash ("—")
- *  - COP → "$1.234" (no decimals, thousands separator)
- *  - USD → "$1.000,00" (2 decimals)
- *  - Invalid amount → em dash
- *  - Unknown currency → currency-prefixed raw amount fallback
+ *  - money object `{ amount, currency }` → uses its own currency
+ *  - bare number (what the backend actually sends) → DEFAULT_CURRENCY
+ *  - numeric string → parsed, DEFAULT_CURRENCY
+ *  - null / undefined / NaN / blank string → em dash ("—")
+ *  - COP → 0 decimals ("$ 1.234")
+ *  - non-COP → 2 decimals ("US$ 1.000,00")
  *
- * Approach: Instantiate pipe directly (no TestBed needed for pure pipes),
- * call transform() with controlled inputs, assert exact output strings.
+ * Approach: Instantiate the pipe directly (pure pipe, no TestBed needed) and
+ * assert exact/pattern-matched output strings. Currency symbol spacing varies
+ * between ICU builds (regular vs non-breaking space), so symbol-separated
+ * assertions use `\s?`.
  */
 import { describe, expect, it } from 'vitest';
 
-import { Money as MoneyModel } from '@app/shared/models/dto/analytics/money';
-import { Money } from './money';
+import type { Money as AnalyticsMoney } from '@app/shared/models/dto/analytics/money';
+import type { Money as CommonMoney } from '@app/shared/models/dto/common/money';
+import { DEFAULT_CURRENCY, Money } from './money';
 
 describe('Money', () => {
   const pipe = new Money();
 
-  it('returns em dash for null value', () => {
-    expect(pipe.transform(null)).toBe('—');
+  describe('empty input', () => {
+    it('returns em dash for null', () => {
+      expect(pipe.transform(null)).toBe('—');
+    });
+
+    it('returns em dash for undefined', () => {
+      expect(pipe.transform(undefined)).toBe('—');
+    });
+
+    it('returns em dash for NaN', () => {
+      expect(pipe.transform(Number.NaN)).toBe('—');
+    });
+
+    it('returns em dash for a non-numeric string', () => {
+      expect(pipe.transform('notanumber')).toBe('—');
+    });
+
+    it('returns em dash for a blank string', () => {
+      expect(pipe.transform('   ')).toBe('—');
+    });
+
+    it('returns em dash for an object with an unusable amount', () => {
+      expect(pipe.transform({ amount: 'notanumber', currency: 'COP' })).toBe('—');
+    });
   });
 
-  it('returns em dash for undefined value', () => {
-    expect(pipe.transform(undefined)).toBe('—');
+  describe('money objects', () => {
+    it('formats a COP money object without decimals', () => {
+      const value: CommonMoney = { amount: 1234.4, currency: 'COP' };
+
+      expect(pipe.transform(value)).toMatch(/^\$\s?1\.234$/);
+    });
+
+    it('formats a string-amount money object (analytics DTO)', () => {
+      const value: AnalyticsMoney = { amount: '1234.40', currency: 'COP' };
+
+      expect(pipe.transform(value)).toMatch(/^\$\s?1\.234$/);
+    });
+
+    it('formats a money object with a non-COP currency using 2 decimals', () => {
+      const value: AnalyticsMoney = { amount: '1000.00', currency: 'USD' };
+
+      expect(pipe.transform(value)).toMatch(/^US\$\s?1\.000,00$/);
+    });
+
+    it('formats zero', () => {
+      expect(pipe.transform({ amount: '0', currency: 'COP' })).toMatch(/^\$\s?0$/);
+    });
+
+    it('falls back to the default currency when the object has none', () => {
+      expect(pipe.transform({ amount: 2500 })).toMatch(/^\$\s?2\.500$/);
+    });
   });
 
-  it('formats COP with currency symbol and no decimal places', () => {
-    const value: MoneyModel = { amount: '1234.40', currency: 'COP' };
-    const result = pipe.transform(value);
+  describe('bare numbers and numeric strings', () => {
+    it('formats a bare number with 0 decimals for COP', () => {
+      expect(pipe.transform(12500)).toMatch(/^\$\s?12\.500$/);
+    });
 
-    expect(result).toMatch(/^\$\s?1\.234$/);
+    it('rounds COP to the whole peso', () => {
+      expect(pipe.transform(12500.6)).toMatch(/^\$\s?12\.501$/);
+    });
+
+    it('formats a numeric string', () => {
+      expect(pipe.transform('987654')).toMatch(/^\$\s?987\.654$/);
+    });
+
+    it('formats negative amounts keeping the minus sign', () => {
+      expect(pipe.transform(-1500)).toMatch(/^-\$\s?1\.500$/);
+    });
   });
 
-  it('formats USD with currency symbol and 2 decimal places', () => {
-    const value: MoneyModel = { amount: '1000.00', currency: 'USD' };
-    const result = pipe.transform(value);
-
-    expect(result).toMatch(/^US\$\s?1\.000,00$/);
+  describe('currency constant', () => {
+    it('defaults to COP', () => {
+      expect(DEFAULT_CURRENCY).toBe('COP');
+    });
   });
 
-  it('returns em dash when amount is not a valid number', () => {
-    const value: MoneyModel = { amount: 'notanumber', currency: 'COP' };
-    expect(pipe.transform(value)).toBe('—');
-  });
+  describe('locale handling', () => {
+    it('honours an explicit locale argument', () => {
+      expect(pipe.transform(1234, 'en-US')).toMatch(/^COP\s?1,234$/);
+    });
 
-  it('formats zero COP as COP currency with no decimals', () => {
-    const value: MoneyModel = { amount: '0', currency: 'COP' };
-    const result = pipe.transform(value);
+    it('does not throw for an unsupported currency and still renders the amount', () => {
+      const result = pipe.transform({ amount: '7', currency: 'XYZ' });
 
-    expect(result).toMatch(/^\$\s?0$/);
-  });
-
-  it('falls back to currency-prefixed raw amount when locale formatting fails', () => {
-    const value: MoneyModel = { amount: '7', currency: 'XYZ' };
-    const result = pipe.transform(value);
-
-    expect(result).toMatch(/^XYZ\s?7,00$/);
+      expect(result).toContain('7');
+      expect(result).toContain('XYZ');
+    });
   });
 });

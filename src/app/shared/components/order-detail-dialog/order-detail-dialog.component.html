@@ -45,14 +45,14 @@
             <div class="grid grid-cols-12 gap-2 p-3 border-b border-surface-100 dark:border-surface-700 text-sm">
               <div class="col-span-6">{{ item.status }}</div>
               <div class="col-span-2 text-center">{{ item.tableName }}</div>
-              <div class="col-span-2 text-right">S/ {{ item.responsibleName }}</div>
+              <div class="col-span-2 text-right">{{ item.responsibleName }}</div>
             </div>
           }
 
           <div class="grid grid-cols-12 gap-2 p-3 bg-surface-50 dark:bg-surface-900 font-semibold">
             <div class="col-span-10 text-right">Total del Pedido:</div>
             <div class="col-span-2 text-right text-primary-600 dark:text-primary-400">
-              S/ {{ order.totalPrice | number:'1.2-2' }}
+              {{ order.totalPrice | money }}
             </div>
           </div>
         </div>

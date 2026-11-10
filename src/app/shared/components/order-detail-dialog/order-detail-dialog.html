@@ -43,14 +43,14 @@
             <div class="grid grid-cols-12 gap-2 p-3 border-b border-surface-100 dark:border-surface-700 text-sm">
               <div class="col-span-6">{{ item.productName }}</div>
               <div class="col-span-2 text-center">1</div>
-              <div class="col-span-2 text-right">S/ {{ item.unitPrice }}</div>
-              <div class="col-span-2 text-right">S/ {{ item.unitPrice }}</div>
+              <div class="col-span-2 text-right">{{ item.unitPrice | money }}</div>
+              <div class="col-span-2 text-right">{{ (item.unitPrice + (item.extraCharge ?? 0)) | money }}</div>
             </div>
           }
           <div class="grid grid-cols-12 gap-2 p-3 bg-surface-50 dark:bg-surface-900 font-semibold">
             <div class="col-span-10 text-right">Total del Pedido:</div>
             <div class="col-span-2 text-right text-primary-600 dark:text-primary-400">
-              S/ {{ getTotalPrice() | number:'1.2-2' }}
+              {{ getTotalPrice() | money }}
             </div>
           </div>
         </div>

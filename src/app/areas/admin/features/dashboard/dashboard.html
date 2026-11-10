@@ -2,6 +2,16 @@
   <app-server-down-page />
 } @else {
 <div class="p-4 lg:pr-4 lg:pt-4 min-w-0 overflow-hidden h-full">
+  @if (ordersTruncated() && isStatsLoaded()) {
+    <div
+      class="mb-3 flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+      role="status">
+      <i class="pi pi-exclamation-triangle text-xs"></i>
+      <span>
+        Día muy grande: los indicadores usan los primeros {{ orders().length }} pedidos.
+      </span>
+    </div>
+  }
   <div class="md:hidden relative h-full overflow-hidden">
     <div class="flex h-full">
 
@@ -97,7 +107,7 @@
                 <h2 class="text-base font-bold text-surface-700 dark:text-surface-300">Composición de ventas</h2>
                 <p class="text-xs text-surface-500">Top productos y distribución por categoría</p>
               </div>
-              <span class="text-xs text-surface-500">$ {{ formatMoney(topProductsTotal()) }}</span>
+              <span class="text-xs text-surface-500">{{ topProductsTotal() | money }}</span>
             </header>
 
             <div class="flex-1 grid grid-cols-1 lg:grid-cols-5 gap-3 p-3 min-h-0">
@@ -119,7 +129,7 @@
                           <p class="text-xs text-surface-500 truncate">{{ item.category }} · {{ item.units }} {{ item.units === 1 ? 'unidad' : 'unidades' }}</p>
                         </div>
                         <span class="text-sm font-semibold text-surface-700 dark:text-surface-200 whitespace-nowrap">
-                          $ {{ formatMoney(item.total) }}
+                          {{ item.total | money }}
                         </span>
                       </li>
                     }
@@ -171,7 +181,7 @@
                     <div class="flex justify-between items-center">
                       <span class="text-sm text-surface-600 dark:text-surface-400">{{ formatDate(order.date) }}</span>
                       <div class="flex items-center gap-2">
-                        <span class="font-semibold">$ {{ calcTotal(order) | number:'1.0-0' }}</span>
+                        <span class="font-semibold">{{ calcTotal(order) | money }}</span>
                         <p-button icon="pi pi-ellipsis-h" size="small" [text]="true" [rounded]="true" severity="secondary"
                           (onClick)="viewOrderDetails(order)" title="Ver detalle del pedido">
                         </p-button>
@@ -260,7 +270,7 @@
                 <div class="flex justify-center items-center gap-2">
                   <div class="text-2xl font-bold text-surface-700 dark:text-surface-300">
                     @if (showSales()) {
-                    ${{ totalSales() | number:'1.0-0' }}
+                    {{ totalSales() | money }}
                     } @else {
                     •••
                     }
@@ -291,7 +301,7 @@
           <h2 class="text-base font-bold text-surface-700 dark:text-surface-300">Composición de ventas</h2>
           <p class="text-xs text-surface-500">Top productos y distribución por categoría</p>
         </div>
-        <span class="text-xs text-surface-500">$ {{ formatMoney(topProductsTotal()) }}</span>
+        <span class="text-xs text-surface-500">{{ topProductsTotal() | money }}</span>
       </header>
 
       <div class="grid grid-cols-1 lg:grid-cols-5 gap-3 p-3 min-h-0">
@@ -313,7 +323,7 @@
                     <p class="text-xs text-surface-500 truncate">{{ item.category }} · {{ item.units }} {{ item.units === 1 ? 'unidad' : 'unidades' }}</p>
                   </div>
                   <span class="text-sm font-semibold text-surface-700 dark:text-surface-200 whitespace-nowrap">
-                    $ {{ formatMoney(item.total) }}
+                    {{ item.total | money }}
                   </span>
                 </li>
               }
@@ -372,7 +382,7 @@
                 <div class="flex justify-between items-center text-sm">
                   <span class="text-xs text-surface-600 dark:text-surface-400">{{ formatDate(order.date) }}</span>
                   <div class="flex items-center gap-2">
-                    <span class="font-semibold">$ {{ calcTotal(order) | number:'1.0-0' }}</span>
+                    <span class="font-semibold">{{ calcTotal(order) | money }}</span>
                     <p-button icon="pi pi-ellipsis-h" size="small" [text]="true" [rounded]="true" severity="secondary"
                       (onClick)="viewOrderDetails(order)" title="Ver detalle del pedido">
                     </p-button>
@@ -456,7 +466,7 @@
               <div class="flex justify-center items-center gap-2">
                 <div class="text-3xl font-bold text-surface-700 dark:text-surface-300">
                   @if (showSales()) {
-                  $ {{ totalSales() | number:'1.0-0' }}
+                  {{ totalSales() | money }}
                   } @else {
                   •••••
                   }
@@ -507,7 +517,7 @@
             <h2 class="text-lg font-bold text-surface-700 dark:text-surface-300">Composición de ventas</h2>
             <p class="text-xs text-surface-500">Top productos y distribución por categoría</p>
           </div>
-          <span class="text-sm text-surface-600 dark:text-surface-400">$ {{ formatMoney(topProductsTotal()) }}</span>
+          <span class="text-sm text-surface-600 dark:text-surface-400">{{ topProductsTotal() | money }}</span>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 p-4 min-h-0">
@@ -529,7 +539,7 @@
                       <p class="text-xs text-surface-500 truncate">{{ item.category }} · {{ item.units }} {{ item.units === 1 ? 'unidad' : 'unidades' }}</p>
                     </div>
                     <span class="text-sm font-semibold text-surface-700 dark:text-surface-200 whitespace-nowrap">
-                      $ {{ formatMoney(item.total) }}
+                      {{ item.total | money }}
                     </span>
                   </li>
                 }
@@ -588,7 +598,7 @@
                 <p-tag [value]="getStatusText(order.status)" [severity]="getStatusSeverity(order.status)" />
               </td>
               <td class="text-right font-semibold">
-                $ {{ calcTotal(order) | number:'1.0-0' }}
+                {{ calcTotal(order) | money }}
               </td>
               <td class="text-center">
                 <p-button icon="pi pi-ellipsis-h" size="small" [text]="true" [rounded]="true" severity="secondary"

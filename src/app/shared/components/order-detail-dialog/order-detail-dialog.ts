@@ -1,11 +1,12 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DialogModule } from 'primeng/dialog';
-import { OrderResponse } from '@app/shared/models/dto/orders/order-response';
+import { OrderResponse, calculateTotalPrice } from '@app/shared/models/dto/orders/order-response';
+import { Money } from '@app/shared/pipes/money/money';
 
 @Component({
   selector: 'app-order-detail-dialog',
-  imports: [CommonModule, DialogModule],
+  imports: [CommonModule, DialogModule, Money],
   templateUrl: './order-detail-dialog.html',
 })
 export class OrderDetailDialog {
@@ -15,9 +16,10 @@ export class OrderDetailDialog {
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() closed = new EventEmitter<void>();
 
+  /** Delegates to the DTO helper so `extraCharge` is folded in exactly once. */
   getTotalPrice(): number {
-    if (!this.order?.details) return 0;
-    return this.order.details.reduce((sum, item) => sum + (item.unitPrice || 0), 0);
+    if (!this.order) return 0;
+    return calculateTotalPrice(this.order);
   }
 
   getStatusBadgeClass(status: string): string {

@@ -1,6 +1,6 @@
 import { Injectable, inject, signal, OnDestroy } from '@angular/core';
-import { interval, Subscription } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { EMPTY, interval, Subscription } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
 
 import { Order } from '@app/core/services/orders/order';
 import { Logging } from '@app/core/services/logging/logging';
@@ -28,10 +28,28 @@ export class Notification implements OnDestroy {
 
     this.pollingSub = interval(this.POLLING_INTERVAL)
       .pipe(
-        switchMap(() => this.orderService.getOrdersByStatus('READY'))
+        // Bounded page walk: a READY order past the first page must still be
+        // notified, and the walk stops at MAX_ORDER_PAGES instead of looping.
+        switchMap(() =>
+          this.orderService.getAllOrdersByStatus('READY').pipe(
+            // A failed walk (e.g. a 5xx mid-way) must not kill the interval:
+            // the next tick retries instead of silencing notifications forever.
+            catchError((err: unknown) => {
+              this.logger.error('Error polling READY orders', err);
+              return EMPTY;
+            }),
+          ),
+        ),
       )
       .subscribe({
-        next: (orders) => { this.processNewOrders(orders); },
+        next: (result) => {
+          if (result.truncated) {
+            this.logger.warn(
+              `Notification: READY walk capped, notificando ${String(result.items.length)} de ${String(result.total)} pedidos`,
+            );
+          }
+          this.processNewOrders(result.items);
+        },
         error: (err) => { this.logger.error('Error polling READY orders', err); }
       });
   }

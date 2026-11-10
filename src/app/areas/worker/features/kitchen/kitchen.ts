@@ -1,10 +1,10 @@
 
-import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, type WritableSignal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 
-import { Order } from '@app/core/services/orders/order';
+import { Order, type OrderStatus } from '@app/core/services/orders/order';
 import { OrderResponse } from '@app/shared/models/dto/orders/order-response';
 import { OptionNames } from '@app/shared/pipes/option-names/option-names.pipe';
 import { WebSocket } from '@app/core/services/websocket/websocket';
@@ -19,6 +19,21 @@ const WS_TOPICS = {
   delivered: '/topic/orders/delivered',
   cancelled: '/topic/orders/cancelled',
 } as const;
+
+/** Columns of the kitchen board, one per status. */
+export type KitchenColumn = 'queue' | 'preparing' | 'ready';
+
+/** Shown/total pair rendered when a column's page walk hit `MAX_ORDER_PAGES`. */
+export interface ColumnLimit {
+  shown: number;
+  total: number;
+}
+
+const NO_LIMITS: Record<KitchenColumn, ColumnLimit | null> = {
+  queue: null,
+  preparing: null,
+  ready: null,
+};
 
 @Component({
   selector: 'app-kitchen',
@@ -40,11 +55,23 @@ export class Kitchen implements OnInit, OnDestroy {
   preparingOrders = signal<OrderResponse[]>([]);
   readyOrders    = signal<OrderResponse[]>([]);
 
+  /**
+   * Per-column page-walk notice. Non-null only when that column hit
+   * `MAX_ORDER_PAGES`, i.e. the rendered list is a prefix of the real set.
+   * Never a silent truncation: the template renders it next to the count.
+   */
+  limits = signal<Record<KitchenColumn, ColumnLimit | null>>({ ...NO_LIMITS });
+
   processing = new Set<number>();
   preparingNext = signal(false);
 
   private wsSubs: Subscription[] = [];
   private pollingInterval?: ReturnType<typeof setInterval>;
+  /**
+   * Guards against overlapping refreshes. The columns are page-walked now, so a
+   * slow walk plus the 5s polling fallback could otherwise stack requests.
+   */
+  private fetching = false;
 
   ngOnInit(): void {
     this.fetchAll();
@@ -191,6 +218,12 @@ export class Kitchen implements OnInit, OnDestroy {
   }
 
   fetchAll(silent = false): void {
+    if (this.fetching) {
+      this.logger.debug('Kitchen: refresh already in flight, skipping');
+      return;
+    }
+    this.fetching = true;
+
     if (silent) {
       this.refreshing.set(true);
     } else {
@@ -201,25 +234,48 @@ export class Kitchen implements OnInit, OnDestroy {
     let done = 0;
     const check = () => {
       if (++done === 3) {
+        this.fetching = false;
         this.loading.set(false);
         this.refreshing.set(false);
       }
     };
 
-    this.orderService.getOrdersByStatus('QUEUE').subscribe({
-      next: v => { this.queueOrders.set(v); check(); },
-      error: () => { this.error.set('Error cargando cola.'); check(); }
-    });
+    this.loadColumn('QUEUE', 'queue', this.queueOrders, 'Error cargando cola.', check);
+    this.loadColumn('PREPARING', 'preparing', this.preparingOrders, 'Error cargando preparación.', check);
+    this.loadColumn('READY', 'ready', this.readyOrders, 'Error cargando listas.', check);
+  }
 
-    this.orderService.getOrdersByStatus('PREPARING').subscribe({
-      next: v => { this.preparingOrders.set(v); check(); },
-      error: () => { this.error.set('Error cargando preparación.'); check(); }
+  /**
+   * Loads one whole column through the bounded page walk
+   * (`Order.getAllOrdersByStatus`), so a column longer than one page is shown
+   * completely instead of losing its tail.
+   */
+  private loadColumn(
+    status: OrderStatus,
+    column: KitchenColumn,
+    target: WritableSignal<OrderResponse[]>,
+    errorMessage: string,
+    done: () => void,
+  ): void {
+    this.orderService.getAllOrdersByStatus(status).subscribe({
+      next: (result) => {
+        target.set(result.items);
+        this.limits.update((current) => ({
+          ...current,
+          [column]: result.truncated ? { shown: result.items.length, total: result.total } : null,
+        }));
+        done();
+      },
+      error: () => {
+        this.error.set(errorMessage);
+        done();
+      },
     });
+  }
 
-    this.orderService.getOrdersByStatus('READY').subscribe({
-      next: v => { this.readyOrders.set(v); check(); },
-      error: () => { this.error.set('Error cargando listas.'); check(); }
-    });
+  /** Truncation notice for a column, or `null` when the whole set was loaded. */
+  limitFor(column: KitchenColumn): ColumnLimit | null {
+    return this.limits()[column];
   }
 
   prepareNext(): void {

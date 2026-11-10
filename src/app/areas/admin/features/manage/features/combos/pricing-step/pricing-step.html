@@ -29,7 +29,7 @@
                 {{ product.name }}
               </span>
               <span class="font-medium text-surface-800 dark:text-surface-200">
-                {{ product.basePrice | currency : 'USD' : 'symbol' : '1.2-2' }}
+                {{ product.basePrice | money }}
               </span>
             </div>
           }
@@ -38,7 +38,7 @@
 
           <div class="flex flex-col gap-1 text-sm">
             <span class="text-surface-500 dark:text-surface-400">
-              Promedio: {{ group.avgPrice | currency : 'USD' : 'symbol' : '1.2-2' }}
+              Promedio: {{ group.avgPrice | money }}
               &times; {{ group.maxSelections }} {{ group.maxSelections === 1 ? 'selección' : 'selecciones' }}
             </span>
             <div
@@ -49,7 +49,7 @@
                 Subtotal
               </span>
               <span class="text-surface-800 dark:text-surface-200">
-                {{ group.subtotal | currency : 'USD' : 'symbol' : '1.2-2' }}
+                {{ group.subtotal | money }}
               </span>
             </div>
           </div>
@@ -63,7 +63,7 @@
         data-testid="total-cost"
       >
         <span class="text-base font-bold text-surface-900 dark:text-surface-0">
-          Costo total: {{ totalCost() | currency : 'USD' : 'symbol' : '1.2-2' }}
+          Costo total: {{ totalCost() | money }}
         </span>
         <span class="text-sm text-surface-500 dark:text-surface-400">
           ({{ customerSelectionCount() }} {{ customerSelectionCount() === 1 ? 'selección' : 'selecciones' }})
@@ -87,7 +87,7 @@
             Costo total
           </span>
           <span class="font-medium text-surface-800 dark:text-surface-200">
-            {{ totalCost() | currency : 'USD' : 'symbol' : '1.2-2' }}
+            {{ totalCost() | money }}
           </span>
         </div>
 
@@ -96,7 +96,7 @@
             Descuento promocional (10%)
           </span>
           <span class="font-medium text-green-600 dark:text-green-400">
-            -{{ totalCost() * 0.1 | currency : 'USD' : 'symbol' : '1.2-2' }}
+            -{{ totalCost() * 0.1 | money }}
           </span>
         </div>
 
@@ -110,7 +110,7 @@
             class="text-lg font-bold text-primary"
             data-testid="suggested-price-value"
           >
-            {{ suggestedRetailPrice() | currency : 'USD' : 'symbol' : '1.2-2' }}
+            {{ suggestedRetailPrice() | money }}
           </span>
         </div>
 
@@ -143,9 +143,9 @@
         [ngModel]="wizardData().basePrice"
         (ngModelChange)="onBasePriceChange($event)"
         mode="currency"
-        currency="USD"
-        [minFractionDigits]="2"
-        [maxFractionDigits]="2"
+        [currency]="defaultCurrency"
+        [minFractionDigits]="0"
+        [maxFractionDigits]="0"
         data-testid="final-price-input"
       />
     </div>

@@ -12,6 +12,7 @@ import { Logging } from '@app/core/services/logging/logging';
 import { CheckboxModule } from 'primeng/checkbox';
 import { HabeasDataEvents } from '@shared/features/habeas-data/habeas-data-events';
 import { UserInfo } from '@models/domain/user/user-info';
+import { resolveReturnUrl } from '@shared/lib/auth-navigation/auth-navigation';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -37,8 +38,12 @@ export class LoginForm implements OnInit, OnDestroy {
 
   formStatus = signal<'Free' | 'Occuped'>('Free');
 
+  /** Where to go after a successful login (from a guard/interceptor redirect). */
+  private returnUrl: string | null = null;
+
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
+      this.returnUrl = resolveReturnUrl(params['returnUrl'] as string | undefined);
       if (params['passwordResetSent']) {
         this.messageService.add({
           severity: 'success',
@@ -98,7 +103,7 @@ export class LoginForm implements OnInit, OnDestroy {
           } else {
             const userInfo = response as UserInfo;
             this.logger.auth('Login successful, redirecting based on user role');
-            this.redirectBasedOnUserRole(userInfo);
+            this.redirectAfterLogin(userInfo);
             this.formStatus.set('Free');
           }
         },
@@ -145,6 +150,19 @@ export class LoginForm implements OnInit, OnDestroy {
   isInvalid(value: string): boolean {
     const control = this.form.get(value);
     return control ? control.invalid && control.touched : false;
+  }
+
+  /**
+   * Closes the returnUrl round-trip: when a guard/interceptor sent the user here
+   * from an internal URL, that URL wins over the role-based default.
+   */
+  private redirectAfterLogin(userData: UserInfo): void {
+    if (this.returnUrl) {
+      this.logger.routing('Login successful, returning to the attempted URL:', this.returnUrl);
+      void this.router.navigateByUrl(this.returnUrl);
+      return;
+    }
+    this.redirectBasedOnUserRole(userData);
   }
 
   private redirectBasedOnUserRole(userData: UserInfo): void {

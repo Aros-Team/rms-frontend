@@ -4,7 +4,17 @@ import { map, catchError, of } from 'rxjs';
 import { Auth } from '@services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
 import { UserInfo } from '@models/domain/user/user-info';
+import { redirectForFailure } from '@shared/lib/auth-navigation/auth-navigation';
 
+/**
+ * Guards the `/login` screen: an already-authenticated user is sent to their area.
+ *
+ * When the session exists but `GET auth` fails, this guard never redirects to
+ * `/server-error` for an auth failure and never loops back to `/login`:
+ *  - 401 → session cleared, the login screen is shown (`true`)
+ *  - 403 → `/forbidden`
+ *  - 5xx / network → `/server-error`
+ */
 @Injectable({
   providedIn: 'root',
 })
@@ -29,8 +39,14 @@ export class RedirectGuard implements CanActivate {
 
     return this.authService.loadUserInfo().pipe(
       map((u) => this.redirectFor(u)),
-      catchError(() => {
-        return of(new RedirectCommand(this.router.parseUrl('/server-error')));
+      catchError((err: unknown) => {
+        const result = redirectForFailure(this.router, err);
+        // Already on /login: a failed session simply means "show the form".
+        if (result.redirectTo.toString() === '/login') {
+          this.logger.warn('RedirectGuard: session rejected, allowing the login screen');
+          return of(true as GuardResult);
+        }
+        return of<RedirectCommand>(result);
       }),
     );
   }

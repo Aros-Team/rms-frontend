@@ -35,6 +35,10 @@ export class TodayOrders implements OnInit {
   refreshing = signal(false);
   error = signal<string | null>(null);
   orders = signal<OrderResponse[]>([]);
+  /** Server-reported total for the current filter (may exceed `orders().length`). */
+  totalCount = signal(0);
+  /** `true` when the day was too large to walk completely — surfaced in the UI. */
+  truncated = signal(false);
   private processingIds = signal(new Set<number>());
 
   selectedStatus = '';
@@ -90,11 +94,15 @@ export class TodayOrders implements OnInit {
     const status = this.selectedStatus || undefined;
 
     this.subscription?.unsubscribe();
-    this.subscription = this.orderService.getOrdersByDateRange(startDate, endDate, status).subscribe({
-      next: (data) => {
+    this.subscription = this.orderService
+      .getAllOrdersByDateRange(startDate, endDate, { status })
+      .subscribe({
+      next: (result) => {
         if (seq !== this.loadSeq) return;
-        this.log.debug('TodayOrders: loaded', data);
-        this.orders.set(data);
+        this.log.debug('TodayOrders: loaded', result.items.length, 'of', result.total);
+        this.orders.set(result.items);
+        this.totalCount.set(result.total);
+        this.truncated.set(result.truncated);
         this.loading.set(false);
         this.refreshing.set(false);
       },

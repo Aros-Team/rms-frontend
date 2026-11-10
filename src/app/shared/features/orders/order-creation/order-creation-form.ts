@@ -12,11 +12,12 @@ import { ProductListResponse } from '@app/shared/models/dto/products/product-lis
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Logging } from '@core/services/logging/logging';
 import { mapHttpError } from '@app/shared/lib/http-error-mapper/http-error-mapper';
+import { Money } from '@app/shared/pipes/money/money';
 
 @Component({
   selector: 'app-order-creation-form',
   templateUrl: './order-creation-form.html',
-  imports: [CommonModule, ReactiveFormsModule]
+  imports: [CommonModule, ReactiveFormsModule, Money],
 })
 export class OrderCreationForm implements OnInit {
   private fb = inject(FormBuilder);

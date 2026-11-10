@@ -6,12 +6,7 @@ import { map, tap } from 'rxjs/operators';
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
 import { ProductOption } from '@app/shared/models/dto/products/product-option';
 import { TableResponse } from '@app/shared/models/dto/tables/table-response';
-
-interface PageResponse<T> {
-  content?: T[];
-  totalElements?: number;
-  totalPages?: number;
-}
+import { type PageEnvelope, unwrapPage } from '@app/shared/models/dto/common/pagination';
 
 export interface MasterDataPayload {
   products: ProductListResponse[];
@@ -28,11 +23,18 @@ export class MasterData {
 
   load(): Observable<MasterDataPayload> {
     return forkJoin({
-      products: this.http.get<PageResponse<ProductListResponse>>('v1/products?page=0&size=100').pipe(
-        map(page => page.content ?? [])
-      ),
-      productOptions: this.http.get<ProductOption[]>('v1/product-options'),
-      tables: this.http.get<TableResponse[]>('v1/tables'),
+      // `/v1/products` answers with Spring HATEOAS (`{ content, page }`), but
+      // `unwrapPage` also tolerates `{ items }` and bare arrays, so this keeps
+      // working regardless of which dialect the endpoint settles on.
+      products: this.http
+        .get<PageEnvelope<ProductListResponse>>('v1/products?page=0&size=100')
+        .pipe(map((res) => unwrapPage<ProductListResponse>(res).items)),
+      productOptions: this.http
+        .get<PageEnvelope<ProductOption>>('v1/product-options')
+        .pipe(map((res) => unwrapPage<ProductOption>(res).items)),
+      tables: this.http
+        .get<PageEnvelope<TableResponse>>('v1/tables')
+        .pipe(map((res) => unwrapPage<TableResponse>(res).items)),
     }).pipe(
       tap(data => {
         this._data$.next({
@@ -45,7 +47,8 @@ export class MasterData {
   }
 
   reloadTables(): Observable<TableResponse[]> {
-    return this.http.get<TableResponse[]>('v1/tables').pipe(
+    return this.http.get<PageEnvelope<TableResponse>>('v1/tables').pipe(
+      map((res) => unwrapPage<TableResponse>(res).items),
       tap(tables => {
         const current = this._data$.value;
         if (current) this._data$.next({ ...current, tables });

@@ -99,7 +99,8 @@ describe('ProductCard', () => {
     expect(card).toBeTruthy();
 
     expect(card?.textContent).toContain('Hamburguesa');
-    expect(card?.textContent).toContain('$15,000');
+    // Money pipe renders COP with es-CO separators and 0 decimals.
+    expect(card?.textContent).toMatch(/\$\s?15\.000/);
   });
 
   it('renders placeholder image when no thumbnailUrl', async () => {

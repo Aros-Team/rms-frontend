@@ -184,8 +184,8 @@ describe('PricingStep', () => {
       fixture.detectChanges();
 
       const native = getNative();
-      // avg = 10.5 / 1 = 10.5, × maxSelections=2 = 21
-      expect(native.textContent).toContain('21.00');
+      // avg = 10.5 / 1 = 10.5, × maxSelections=2 = 21 → COP renders 0 decimals
+      expect(native.textContent).toMatch(/\$\s?21\b/);
     });
 
     it('shows empty message when no groups', () => {
@@ -252,7 +252,8 @@ describe('PricingStep', () => {
       fixture.detectChanges();
 
       const priceValue = getNative().querySelector('[data-testid="suggested-price-value"]');
-      expect(priceValue?.textContent).toContain('76.95');
+      // 85.5 × 0.9 = 76.95 → COP rounds to the whole peso
+      expect(priceValue?.textContent).toMatch(/\$\s?77\b/);
     });
 
     it('applySuggestedPrice sets basePrice to suggested retail price', () => {

@@ -19,6 +19,7 @@ import {
   ComboWizardState,
   type WizardGroupDraft,
 } from '@app/core/services/combos/combo-wizard-state';
+import { DEFAULT_CURRENCY, Money } from '@app/shared/pipes/money/money';
 import { STEP_PRICING_ID } from '../combo-wizard';
 import type { ProductResponse } from '@app/shared/models/dto/products/product-response';
 
@@ -47,6 +48,7 @@ interface GroupCostView {
     DividerModule,
     InputNumberModule,
     SelectButtonModule,
+    Money,
   ],
   templateUrl: './pricing-step.html',
   styleUrl: './pricing-step.css',
@@ -57,6 +59,9 @@ export class PricingStep {
   private readonly reference = inject(ComboReferenceCache);
 
   readonly wizardData = this.wizard.data;
+
+  /** Currency used by the final-price input (single-sourced with the pipe). */
+  readonly defaultCurrency = DEFAULT_CURRENCY;
 
   readonly activeOptions = [
     { label: 'Sí', value: true },

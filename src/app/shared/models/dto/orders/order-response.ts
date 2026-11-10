@@ -31,6 +31,13 @@ export interface OrderDetailItem {
   categoryId?: number | null;
   categoryName?: string | null;
   unitPrice: number;
+  /**
+   * Surcharge for the selected options/additions of this line. Sent by the
+   * backend as a bare number and already included in `unitPrice` for priced
+   * options, but kept separate here because some responses only report the
+   * base price in `unitPrice`.
+   */
+  extraCharge?: number;
   instructions: string;
   selectedOptions?: OrderSelectedOption[];
   selectedProductIds?: number[];
@@ -50,9 +57,19 @@ export interface OrderResponse {
   total?: number;
 }
 
+/**
+ * Single source of truth for an order's monetary total.
+ *
+ * Sums `unitPrice + extraCharge` per line. Anywhere an order total is needed
+ * (order table, dashboard KPIs, sales composition) must call this function
+ * instead of re-implementing the reduction.
+ */
 export function calculateTotalPrice(order: OrderResponse): number {
-  if (order.details.length === 0) {
+  if (!order.details.length) {
     return 0;
   }
-  return order.details.reduce((sum, detail) => sum + detail.unitPrice, 0);
+  return order.details.reduce(
+    (sum, detail) => sum + detail.unitPrice + (detail.extraCharge ?? 0),
+    0,
+  );
 }

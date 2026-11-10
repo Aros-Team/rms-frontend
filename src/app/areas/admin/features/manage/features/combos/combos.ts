@@ -1,6 +1,5 @@
 import { Component, inject, computed } from '@angular/core';
 import { Router } from '@angular/router';
-import { CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { ButtonModule } from 'primeng/button';
@@ -12,6 +11,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { MessageService } from 'primeng/api';
 
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
+import { Money } from '@shared/pipes/money/money';
 import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';
 
@@ -19,7 +19,7 @@ import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selecti
   selector: 'app-combos',
   imports: [
     FormsModule,
-    CurrencyPipe,
+    Money,
     ButtonModule,
     TableModule,
     ToggleSwitch,

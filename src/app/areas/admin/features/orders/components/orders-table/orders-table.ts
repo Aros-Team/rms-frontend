@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef, NgZone, ViewChild } from '@angular/core';
 import { CommonModule, SlicePipe } from '@angular/common';
-import { Table, TableModule } from 'primeng/table';
+import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
@@ -9,9 +9,13 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
+import { InputTextModule } from 'primeng/inputtext';
 import { Subscription } from 'rxjs';
 import { Order, OrderStatus } from '@app/core/services/orders/order';
-import { OrderResponse, OrderDetailItem } from '@models/dto/orders/order-response';
+import {
+  OrderResponse,
+  calculateTotalPrice,
+} from '@models/dto/orders/order-response';
 import { SharedDatepicker } from '@app/shared/components/datepicker/datepicker';
 import { WebSocket } from '@services/websocket/websocket';
 import { Auth } from '@services/auth/auth';
@@ -19,6 +23,7 @@ import { environment } from '@environments/environment';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
+import { Money } from '@shared/pipes/money/money';
 
 const WS_TOPICS = {
   created:   '/topic/orders/created',
@@ -42,21 +47,34 @@ const WS_TOPICS = {
     TagModule,
     DialogModule,
     TooltipModule,
+    InputTextModule,
     SlicePipe,
-    TableSkeleton
+    TableSkeleton,
+    Money
   ],
   templateUrl: './orders-table.html',
 })
 export class OrdersTable implements OnInit, OnDestroy {
 
-  @ViewChild('dt') table!: Table;
+  @ViewChild('dt') table: Table | undefined;
 
   orders: OrderResponse[] = [];
-  private allOrders: OrderResponse[] = [];
   loading = false;
   saving = false;
   error: string | null = null;
 
+  /** Server-side pagination state (the table is `lazy`). */
+  first = 0;
+  rows = 10;
+  totalRecords = 0;
+  private loadedOnce = false;
+  /** Identifies the request currently in flight, to avoid duplicate round-trips. */
+  private inFlightKey: string | null = null;
+
+  /**
+   * Free-text search sent to the backend (`?search=`). Bound by the search box
+   * in the filter bar; it is part of the request key, so a change reloads page 0.
+   */
   search = '';
   selectedOrder: OrderResponse | null = null;
   detailsDialogVisible = false;
@@ -91,11 +109,14 @@ export class OrdersTable implements OnInit, OnDestroy {
     this.connectWebSocket();
   }
 
+  /**
+   * Order total including per-line `extraCharge`.
+   *
+   * Delegates to `calculateTotalPrice` so the money math lives in exactly one
+   * place (dashboard KPIs use the same function).
+   */
   getOrderTotal(order: OrderResponse): number {
-    if (order.details.length === 0) return 0;
-    return order.details.reduce((sum: number, detail: OrderDetailItem) =>
-      sum + detail.unitPrice, 0
-    );
+    return calculateTotalPrice(order);
   }
 
   showOrderDetails(order: OrderResponse): void {
@@ -107,7 +128,8 @@ export class OrdersTable implements OnInit, OnDestroy {
     this.search = '';
     this.selectedStatus = 'ALL';
     this.selectedDate = new Date();
-    this.table.clear();
+    this.first = 0;
+    this.table?.clear();
     this.fetchOrders();
   }
 
@@ -122,18 +144,21 @@ export class OrdersTable implements OnInit, OnDestroy {
     // Ensure connection is active (no-op if already connected from Kitchen)
     this.wsService.connect(environment.wsUrl, token);
 
-    // When any order changes status, update it in the local list
+    // Patch the visible page in place; a brand-new order means the server-side
+    // page/total changed, so reload the current page instead of guessing where
+    // the row belongs.
     const updateOrder = (updated: OrderResponse) => {
       this.ngZone.run(() => {
-        const idx = this.allOrders.findIndex(o => o.id === updated.id);
+        const idx = this.orders.findIndex(o => o.id === updated.id);
         if (idx !== -1) {
-          this.allOrders[idx] = { ...this.allOrders[idx], status: updated.status };
+          this.orders = this.orders.map(o =>
+            o.id === updated.id ? { ...o, status: updated.status } : o
+          );
         } else {
-          // New order not yet in the list — add it
-          this.allOrders = [updated, ...this.allOrders];
-          this.originalOrders.set(updated.id, { ...updated });
+          this.fetchOrders();
+          return;
         }
-        // Also update originalOrders so the "unsaved changes" badge stays accurate
+        // Keep originalOrders in sync so the "unsaved changes" badge stays accurate
         const original = this.originalOrders.get(updated.id);
         if (original) {
           original.status = updated.status;
@@ -141,7 +166,6 @@ export class OrdersTable implements OnInit, OnDestroy {
         // If this order was being edited locally, clear the pending change
         // since the server already applied the new status
         this.modifiedOrders.delete(updated.id);
-        this.applyFilters();
         this.cdr.markForCheck();
       });
     };
@@ -155,45 +179,94 @@ export class OrdersTable implements OnInit, OnDestroy {
 
   onStatusChange(value: string): void {
     this.selectedStatus = value;
+    this.first = 0;
     this.fetchOrders();
   }
 
   onDateChange(date: Date | null): void {
     this.selectedDate = date;
-    this.applyFilters();
+    this.first = 0;
+    this.fetchOrders();
+  }
+
+  /** Search is server-side: reset to the first page and refetch. */
+  onSearchChange(): void {
+    this.first = 0;
+    this.fetchOrders();
+  }
+
+  /**
+   * PrimeNG lazy-table callback: every page/sort change is answered by the
+   * backend (`page` + `size` + `totalRecords`), so only one page of orders is
+   * ever in memory.
+   */
+  onLazyLoad(event: TableLazyLoadEvent): void {
+    const first = event.first ?? 0;
+    const rows = event.rows ?? this.rows;
+    const unchanged = this.loadedOnce && first === this.first && rows === this.rows;
+
+    this.first = first;
+    this.rows = rows;
+
+    if (unchanged) return;
+    this.fetchOrders();
   }
 
   private fetchOrders(): void {
-    this.loading = true;
-    this.error = null;
-
     let status: OrderStatus | undefined;
     if (this.selectedStatus && this.selectedStatus !== 'ALL') {
       status = this.selectedStatus as OrderStatus;
     }
 
-    // Use date‑range query (the backend filters by date, much faster than
-    // loading everything and filtering client‑side)
+    // Date/status/search filtering and paging all happen server-side.
     const date = this.selectedDate ?? new Date();
-    this.orderService.getOrdersByDateRange(date, date, status, this.search || undefined).subscribe({
-      next: (res: OrderResponse[]) => {
-        this.allOrders = res;
-        this.originalOrders.clear();
-        res.forEach(order => {
-          this.originalOrders.set(order.id, { ...order });
-        });
-        this.modifiedOrders.clear();
-        this.applyFilters();
-        this.loading = false;
-        this.cdr.markForCheck();
-      },
-      error: (err: unknown) => {
-        console.error(err);
-        this.error = 'No se pudieron cargar los pedidos.';
-        this.loading = false;
-        this.cdr.markForCheck();
-      },
-    });
+    const page = this.rows > 0 ? Math.floor(this.first / this.rows) : 0;
+    const requestKey = [
+      page,
+      this.rows,
+      status ?? 'ALL',
+      date.toDateString(),
+      this.search,
+    ].join('|');
+
+    // The initial `(onLazyLoad)` emission fires right after `ngOnInit`, with the
+    // same page that is already loading. Skip that duplicate round-trip.
+    if (this.inFlightKey === requestKey) return;
+
+    this.inFlightKey = requestKey;
+    this.loading = true;
+    this.error = null;
+
+    this.orderService
+      .getOrdersByDateRangePage(date, date, {
+        status,
+        search: this.search || undefined,
+        page,
+        size: this.rows,
+        sort: 'date,desc',
+      })
+      .subscribe({
+        next: (res) => {
+          this.orders = res.items;
+          this.totalRecords = res.total;
+          this.originalOrders.clear();
+          res.items.forEach(order => {
+            this.originalOrders.set(order.id, { ...order });
+          });
+          this.modifiedOrders.clear();
+          this.loadedOnce = true;
+          this.inFlightKey = null;
+          this.loading = false;
+          this.cdr.markForCheck();
+        },
+        error: (err: unknown) => {
+          console.error(err);
+          this.error = 'No se pudieron cargar los pedidos.';
+          this.inFlightKey = null;
+          this.loading = false;
+          this.cdr.markForCheck();
+        },
+      });
   }
 
   formatDate(date: string | Date): string {
@@ -223,40 +296,6 @@ export class OrdersTable implements OnInit, OnDestroy {
       case 'CANCELLED': return 'danger';
       default: return 'secondary';
     }
-  }
-
-  private applyFilters(): void {
-    if (this.allOrders.length === 0) {
-      this.orders = [];
-      return;
-    }
-
-    let filtered = [...this.allOrders];
-
-    const date = this.selectedDate;
-    if (date) {
-      const start = this.startOfDay(date);
-      const end = this.endOfDay(date);
-      filtered = filtered.filter((o) => {
-        const d = new Date(o.date);
-        return d >= start && d <= end;
-      });
-    }
-
-    this.orders = filtered;
-    this.cdr.markForCheck();
-  }
-
-  private startOfDay(d: Date): Date {
-    const x = new Date(d);
-    x.setHours(0, 0, 0, 0);
-    return x;
-  }
-
-  private endOfDay(d: Date): Date {
-    const x = new Date(d);
-    x.setHours(23, 59, 59, 999);
-    return x;
   }
 
   onStatusFieldChange(order: OrderResponse, newStatus: string): void {

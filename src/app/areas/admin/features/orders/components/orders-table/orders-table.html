@@ -11,6 +11,17 @@
           appendTo="body"
         />
 
+        <input
+          pInputText
+          type="search"
+          name="orderSearch"
+          placeholder="Buscar pedido"
+          class="w-full sm:w-56"
+          [(ngModel)]="search"
+          (ngModelChange)="onSearchChange()"
+          aria-label="Buscar pedido"
+        />
+
         <app-shared-datepicker
           (dateChange)="onDateChange($event)"
         ></app-shared-datepicker>
@@ -46,10 +57,13 @@
     <p-table 
       #dt
       [value]="orders" 
+      [lazy]="true"
+      [(first)]="first"
+      [rows]="rows"
+      [totalRecords]="totalRecords"
       [scrollable]="true" 
       scrollHeight="flex" 
       [paginator]="true" 
-      [rows]="10"
       [rowsPerPageOptions]="[10, 20, 50]"
       styleClass="h-full rounded-lg overflow-hidden"
       [tableStyle]="{'min-width': '900px'}"
@@ -57,6 +71,7 @@
       [showLoader]="false"
       [globalFilterFields]="['id', 'tableId']"
       sortMode="multiple"
+      (onLazyLoad)="onLazyLoad($event)"
     >
       <ng-template pTemplate="header">
         <tr>
@@ -96,7 +111,7 @@
           <td class="text-sm">Mesa {{ order.tableId }}</td>
           
           <td class="font-medium text-sm">
-            {{ order.total ?? getOrderTotal(order) | currency:'COP':'symbol':'1.0-0' }}
+            {{ (order.total ?? getOrderTotal(order)) | money }}
           </td>
           
           <td>
@@ -106,7 +121,7 @@
                   <div class="flex items-center gap-2 text-sm py-1 border-b border-surface-100 dark:border-surface-700 last:border-0">
                     <span class="font-medium flex-1">{{ detail.productName }}</span>
                     <span class="font-medium text-surface-700 dark:text-surface-300">
-                      {{ detail.unitPrice | currency:'COP':'symbol':'1.0-0' }}
+                      {{ detail.unitPrice | money }}
                     </span>
                   </div>
                 }
@@ -182,7 +197,7 @@
         </div>
         <div>
           <span class="text-surface-500 text-sm">Total:</span>
-          <div class="font-medium text-lg">{{ getOrderTotal(selectedOrder) | currency:'COP':'symbol':'1.0-0' }}</div>
+          <div class="font-medium text-lg">{{ (selectedOrder.total ?? getOrderTotal(selectedOrder)) | money }}</div>
         </div>
       </div>
 
@@ -195,7 +210,7 @@
                 <span class="font-medium">{{ detail.productName }}</span>
               </div>
               <span class="font-medium">
-                {{ detail.unitPrice | currency:'COP':'symbol':'1.0-0' }}
+                {{ detail.unitPrice | money }}
               </span>
             </div>
           }

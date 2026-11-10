@@ -2,6 +2,11 @@
     <header class="flex justify-between">
       <p class="text-sm text-surface-500">
         {{ activeCount }} activas · {{ deliveredCount }} entregadas
+        @if (truncated()) {
+          <span class="text-amber-600 dark:text-amber-400 font-medium">
+            · vista limitada: mostrando {{ orders().length }} de {{ totalCount() }} pedidos
+          </span>
+        }
       </p>
     </header>
 <section class="flex items-center justify-between">

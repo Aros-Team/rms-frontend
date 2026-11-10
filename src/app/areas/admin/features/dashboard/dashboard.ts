@@ -27,6 +27,10 @@ import { calculateTotalPrice } from '@app/shared/models/dto/orders/order-respons
 import { ListSkeleton } from '@shared/skeletons/list-skeleton/list-skeleton';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 import { ServerDownPage } from '@shared/components/server-down-page/server-down-page';
+import { Money } from '@shared/pipes/money/money';
+
+/** Chart tooltips format money through the same pipe the templates use. */
+const moneyPipe = new Money();
 
 const RHYTHM_START_HOUR = 8;
 const RHYTHM_END_HOUR = 23;
@@ -57,6 +61,7 @@ const WS_TOPICS = {
     ListSkeleton,
     TableSkeleton,
     ServerDownPage,
+    Money,
   ],
 })
 export class Dashboard implements OnInit {
@@ -75,6 +80,12 @@ export class Dashboard implements OnInit {
   orders = signal<OrderResponse[]>([]);
   isOrdersLoading = signal(true);
   isStatsLoaded = signal(false);
+  /**
+   * `true` when the day was too large to walk completely; the KPIs then cover
+   * only the first `MAX_ORDER_PAGES` pages and the UI says so instead of
+   * pretending the numbers are complete.
+   */
+  ordersTruncated = signal(false);
   orderDetails = signal<OrderDetailsResponse[]>([]);
 
   completedOrdersCount = computed(() =>
@@ -240,7 +251,7 @@ export class Dashboard implements OnInit {
           label: (ctx: { label: string; parsed: number }): string => {
             const total = this.salesByCategoryTotal();
             const pct = total > 0 ? (ctx.parsed / total) * 100 : 0;
-            return ` ${ctx.label}: $ ${this.formatMoney(ctx.parsed)} (${pct.toFixed(1)}%)`;
+            return ` ${ctx.label}: ${moneyPipe.transform(ctx.parsed)} (${pct.toFixed(1)}%)`;
           },
         },
       },
@@ -319,12 +330,17 @@ export class Dashboard implements OnInit {
   }
 
   private loadStatsThenOrders() {
-    this.orderService.getTodayOrders().pipe(
+    const now = new Date();
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+
+    this.orderService.getAllOrdersByDateRange(todayStart, now).pipe(
       catchError(() => of(null)),
       finalize(() => { this.isOrdersLoading.set(false); })
-    ).subscribe(orders => {
-      if (orders !== null) {
-        this.orders.set(orders);
+    ).subscribe(result => {
+      if (result !== null) {
+        this.orders.set(result.items);
+        this.ordersTruncated.set(result.truncated);
       }
       this.isStatsLoaded.set(true);
     });
@@ -371,20 +387,6 @@ export class Dashboard implements OnInit {
 
   calcTotal(order: OrderResponse): number {
     return calculateTotalPrice(order);
-  }
-
-  formatMoney(value: number): string {
-    return new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 }).format(value);
-  }
-
-  shortMoney(value: number | string): string {
-    const n = typeof value === 'string' ? Number.parseFloat(value) : value;
-    if (Number.isNaN(n)) return String(value);
-    const abs = Math.abs(n);
-    if (abs >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`;
-    if (abs >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-    if (abs >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
-    return String(n);
   }
 
   getStatusBadgeClass(status: string): string {

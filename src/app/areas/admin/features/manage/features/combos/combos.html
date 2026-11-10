@@ -25,7 +25,7 @@
         <ng-template pTemplate="body" let-combo>
           <tr>
             <td>{{ combo.name }}</td>
-            <td>{{ combo.basePrice | currency:'USD':'symbol':'1.0-2' }}</td>
+            <td>{{ combo.basePrice | money }}</td>
             <td>{{ scheduleSummary(combo.schedule) }}</td>
             <td>
               <p-toggleswitch [ngModel]="combo.active" [disabled]="true" />
