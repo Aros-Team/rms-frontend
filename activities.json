@@ -778,7 +778,7 @@
       {
         "id": "a",
         "description": "Crear models/DTOs de payroll",
-        "status": "pending",
+        "status": "in_progress",
         "agent": "implementer"
       },
       {
@@ -824,7 +824,7 @@
         "agent": "implementer"
       }
     ],
-    "status": "pending"
+    "status": "in_progress"
   },
   {
     "id": 35,
@@ -1062,7 +1062,8 @@
       "Errores no se tocan (se ramifica solo por status)",
       "Login guarda tokens reales y GET /auth sale con bearer",
       "Spec con el payload real ({data:{type:SUCCESS,...}}) que habría detectado la caída",
-      "Harness verde"
+      "Harness verde",
+      "Ninguna agregacion en TS opera sobre MoneyDto sin normalizar (sin NaN en totales)"
     ],
     "tasks": [
       {
@@ -1090,6 +1091,28 @@
         "agent": "reviewer"
       },
       {
+        "id": "g",
+        "description": "MoneyDto adoption: money pipe acepta {amount,currency}; arreglar aritmetica en TS (totalizadores, cost breakdowns) que hoy haria NaN",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 39,
+    "type": "chore",
+    "name": "contract-followups",
+    "title": "Seguimientos del contrato backend",
+    "description": "Pendientes que dependen del equipo de backend o de una segunda pasada: surfacear el detail de ProblemDetail en mensajes de login/validación, regenerar /v3/api-docs, y migrar los DTOs restantes (SalaryHistoryEntry, inventory, admin-products) a Money.",
+    "acceptance": [
+      "detail de ProblemDetail visible en login/validación",
+      "/v3/api-docs regenerado por el equipo backend",
+      "DTOs restantes migrados a Money sin Intl.NumberFormat ad-hoc sobre dinero",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
         "id": "e",
         "description": "Pendiente: surfacear detail de ProblemDetail en mensajes de login/validación",
         "status": "pending",
@@ -1100,8 +1123,14 @@
         "description": "Pendiente: pedir al equipo backend regenerar /v3/api-docs (spec sigue plano)",
         "status": "pending",
         "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Migrar DTOs restantes a Money (SalaryHistoryEntry, inventory, admin-products, product-recipe-page) y eliminar Intl.NumberFormat ad-hoc sobre dinero",
+        "status": "pending",
+        "agent": "implementer"
       }
     ],
-    "status": "in_progress"
+    "status": "pending"
   }
 ]
