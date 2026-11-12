@@ -6,7 +6,7 @@ import { Schedules } from '@areas/admin/features/manage/features/schedules/sched
 import { Auth } from '@app/core/services/auth/auth';
 import { Worker } from '@app/core/services/workers/worker';
 import { Accessibility, FontSize, ContrastMode } from '@app/core/services/accessibility/accessibility';
-import { Theme } from '@app/core/services/theme/theme';
+import { Theme, ThemeName } from '@app/core/services/theme/theme';
 import { SalaryHistoryEntry } from '@app/shared/models/dto/workers/salary-history-entry';
 import { tryToAmount, type MoneyLike } from '@app/shared/models/dto/common/money';
 import { Money } from '@app/shared/pipes/money/money';
@@ -122,7 +122,7 @@ export class Settings implements OnInit {
     this.accessibilityService.setContrastMode(mode);
   }
 
-  setTheme(theme: string): void {
+  setTheme(theme: ThemeName): void {
     this.themeService.set(theme);
     this.currentTheme.set(theme);
   }

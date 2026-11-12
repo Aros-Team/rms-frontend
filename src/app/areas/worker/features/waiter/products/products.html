@@ -59,6 +59,7 @@
                 [alt]="product.name"
                 class="group-hover:scale-105 transition-transform duration-300"
                 loading="lazy"
+                decoding="async"
                 (error)="$any($event.target).src = defaultImage"
               />
             } @else {

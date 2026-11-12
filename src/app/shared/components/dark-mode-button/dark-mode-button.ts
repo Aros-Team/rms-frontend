@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { Theme } from '@app/core/services/theme/theme';
 import { ButtonModule } from 'primeng/button';
 
@@ -7,35 +7,16 @@ import { ButtonModule } from 'primeng/button';
   selector: 'app-dark-mode-button',
   imports: [ButtonModule],
   templateUrl: './dark-mode-button.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 
 export class DarkModeButton {
   private theme = inject(Theme);
-  icon = "";
 
-  constructor() {
-    this.setDefaultIcon();
-  }
-
-  setDefaultIcon() {
-    const currentTheme = this.theme.get()
-    if (currentTheme == "dark") {
-      this.icon = "pi pi-moon"
-
-    } else {
-      this.icon = "pi pi-sun"
-    }
-  }
+  readonly isDark = signal(this.theme.isDark());
 
   toggleDarkMode() {
-    const currentTheme = this.theme.get()
-    if (currentTheme == "dark") {
-      this.theme.set("light");
-      this.icon = "pi pi-sun"
-
-    } else {
-      this.theme.set("dark");
-      this.icon = "pi pi-moon"
-    }
+    this.theme.toggle();
+    this.isDark.set(this.theme.isDark());
   }
 }

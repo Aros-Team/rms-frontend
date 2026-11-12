@@ -119,7 +119,7 @@
         <div class="recipe-image-area">
           @if (images().length > 0) {
             <div class="recipe-image-preview">
-              <img [src]="images()[0].desktopUrl" alt="Imagen del producto" />
+              <img [src]="images()[0].desktopUrl" alt="Imagen del producto" loading="lazy" decoding="async" />
             </div>
           } @else {
             <div class="recipe-image-placeholder">

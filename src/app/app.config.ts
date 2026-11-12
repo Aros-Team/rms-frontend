@@ -4,7 +4,7 @@ import {
   provideZonelessChangeDetection,
   isDevMode,
 } from '@angular/core';
-import { provideRouter, withPreloading, PreloadAllModules, withComponentInputBinding } from '@angular/router';
+import { provideRouter, withPreloading, PreloadAllModules, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { LOCALE_ID } from '@angular/core';
@@ -102,7 +102,14 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideRouter(routes, withPreloading(PreloadAllModules), withComponentInputBinding()),
+    provideRouter(
+      routes,
+      withPreloading(PreloadAllModules),
+      withComponentInputBinding(),
+      // Reset scroll on navigation and honour #anchors, otherwise a long page
+      // leaves the next route scrolled halfway down.
+      withInMemoryScrolling({ scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled' }),
+    ),
     provideHttpClient(
       withInterceptors([urlInterceptor, jwtInterceptor, errorInterceptor, envelopeInterceptor])
     ),

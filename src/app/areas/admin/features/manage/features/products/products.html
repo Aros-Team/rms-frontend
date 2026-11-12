@@ -60,7 +60,11 @@
                 <img
                   [src]="getProductImageSrc(product)"
                   [alt]="product.name"
+                  width="48"
+                  height="48"
                   class="w-12 h-12 object-cover rounded shrink-0"
+                  loading="lazy"
+                  decoding="async"
                 />
               } @else {
                 <div class="w-12 h-12 bg-surface-200 dark:bg-surface-700 rounded flex items-center justify-center shrink-0">
