@@ -57,6 +57,44 @@ describe('Accessibility', () => {
     expect(document.documentElement.hasAttribute('data-contrast')).toBe(false);
   });
 
+  it('should honour the OS "increase contrast" preference when nothing is stored', () => {
+    const original = window.matchMedia;
+    window.matchMedia = ((query: string) =>
+      ({ matches: query.includes('prefers-contrast'), media: query, addEventListener: () => undefined, removeEventListener: () => undefined }) as unknown as MediaQueryList);
+
+    try {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({});
+      const fresh = TestBed.inject(Accessibility);
+
+      expect(fresh.contrastMode()).toBe('high');
+      expect(localStorage.getItem('accessibility_settings')).toBeNull();
+    } finally {
+      window.matchMedia = original;
+    }
+  });
+
+  it('should let an explicit preference win over the OS setting', () => {
+    localStorage.setItem(
+      'accessibility_settings',
+      JSON.stringify({ fontSize: 'normal', contrastMode: 'normal' }),
+    );
+
+    const original = window.matchMedia;
+    window.matchMedia = ((query: string) =>
+      ({ matches: query.includes('prefers-contrast'), media: query, addEventListener: () => undefined, removeEventListener: () => undefined }) as unknown as MediaQueryList);
+
+    try {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({});
+      const fresh = TestBed.inject(Accessibility);
+
+      expect(fresh.contrastMode()).toBe('normal');
+    } finally {
+      window.matchMedia = original;
+    }
+  });
+
   it('should persist settings', () => {
     service.setFontSize('extra-large');
     service.setContrastMode('high');

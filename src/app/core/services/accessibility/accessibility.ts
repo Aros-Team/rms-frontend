@@ -91,12 +91,35 @@ export class Accessibility {
           if (contrastMode === 'normal' || contrastMode === 'high') {
             this.contrastMode.set(contrastMode);
           }
+          return;
         }
       } catch {
         this.fontSize.set('normal');
         this.contrastMode.set('normal');
+        return;
       }
     }
+
+    // No stored preference: honour the OS "increase contrast" setting instead
+    // of defaulting to normal, and keep following it while unlocked.
+    this.contrastMode.set(this.prefersMoreContrast() ? 'high' : 'normal');
+
+    if (typeof window.matchMedia === 'function') {
+      window
+        .matchMedia('(prefers-contrast: more)')
+        .addEventListener('change', (event) => {
+          if (!localStorage.getItem(this.STORAGE_KEY)) {
+            this.contrastMode.set(event.matches ? 'high' : 'normal');
+          }
+        });
+    }
+  }
+
+  private prefersMoreContrast(): boolean {
+    return (
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-contrast: more)').matches
+    );
   }
 
   private saveSettings(): void {
