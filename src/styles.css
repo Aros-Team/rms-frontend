@@ -25,7 +25,9 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-@custom-variant dark (&:where(.dark, .dark *));
+/* `:is()` (not `:where()`) so a `dark:` utility outranks its base utility by
+   specificity instead of relying on stylesheet order. */
+@custom-variant dark (&:is(.dark, .dark *));
 
 /* Set Archivo as the default font family */
 @theme {
@@ -68,10 +70,12 @@
   --radius-sheet-top: 1.75rem; /* 28 px */
 }
 
-/* Global link styles */
-a, p {
-  @apply text-surface-600;
-}
+/* NOTE: there used to be `a, p { @apply text-surface-600 }` here. Being
+   unlayered, it beat every Tailwind utility (which lives in `@layer
+   utilities`) regardless of specificity, so `text-*`, `dark:text-*`,
+   `text-red-*` … were all ignored on every <p> and <a>: error messages
+   rendered grey and all paragraph text was invisible in dark mode.
+   Typography colour now comes from the element's own utilities. */
 
 /* ========================================
    Color scheme
@@ -81,6 +85,9 @@ a, p {
    colors — in step with the app theme.
    ======================================== */
 :root {
+  /* Raw brand colour, used to derive high-contrast tints without cycles. */
+  --brand-gold: #F9BB0B;
+
   color-scheme: light dark;
 
   &:has(> head > meta[name="color-scheme"][content="dark"]) {
@@ -126,11 +133,18 @@ html[data-contrast="high"]:not(.dark) {
   --p-text-muted-color: #475569;
   --p-text-hover-muted-color: #1e293b;
 
-  --p-primary-color: color-mix(in srgb, var(--p-primary-500), black 35%);
-  --p-primary-contrast-color: #ffffff;
-  --p-primary-400: color-mix(in srgb, var(--p-primary-500), black 10%);
-  --p-primary-500: color-mix(in srgb, var(--p-primary-500), black 25%);
-  --p-primary-600: color-mix(in srgb, var(--p-primary-500), black 45%);
+  /* Mix from the raw brand colour, never from the token being redefined: a
+     self-referential `--p-primary-500: color-mix(... var(--p-primary-500))`
+     is a cycle, so the whole primary scale resolved to nothing and every
+     primary button lost its background (white text on white). */
+  /* Two jobs, two tokens: `primary.color` is a button *background* (keep the
+     brand gold, put dark text on it → ~11:1), while `primary-500` is used as
+     *text* on light surfaces (darken it, gold on white is 1.8:1). */
+  --p-primary-color: var(--brand-gold);
+  --p-primary-contrast-color: #1e1b19;
+  --p-primary-500: color-mix(in srgb, var(--brand-gold), black 45%);
+  --p-primary-400: color-mix(in srgb, var(--brand-gold), black 10%);
+  --p-primary-600: color-mix(in srgb, var(--brand-gold), black 45%);
 }
 
 /* === Dark mode: background surfaces only === */
@@ -146,11 +160,11 @@ html.dark[data-contrast="high"] {
   --p-text-muted-color: #d4d4d8;
   --p-text-hover-muted-color: #e4e4e7;
 
-  --p-primary-color: color-mix(in srgb, var(--p-primary-500), white 40%);
+  --p-primary-500: color-mix(in srgb, var(--brand-gold), white 25%);
+  --p-primary-color: color-mix(in srgb, var(--brand-gold), white 40%);
   --p-primary-contrast-color: #000000;
-  --p-primary-400: color-mix(in srgb, var(--p-primary-500), white 50%);
-  --p-primary-500: color-mix(in srgb, var(--p-primary-500), white 25%);
-  --p-primary-600: color-mix(in srgb, var(--p-primary-500), white 10%);
+  --p-primary-400: color-mix(in srgb, var(--brand-gold), white 50%);
+  --p-primary-600: color-mix(in srgb, var(--brand-gold), white 10%);
 }
 
 /* === Light mode: text surface classes → dark slates for 7:1+ on white === */

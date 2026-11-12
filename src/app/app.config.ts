@@ -68,7 +68,8 @@ const arosPreset = definePreset(Aura, {
       light: {
         primary: {
           color: '{primary.500}',
-          contrastColor: '#ffffff',
+          // Dark text on brand gold: white on #F9BB0B is 1.8:1 (WCAG needs 4.5).
+          contrastColor: '#1e1b19',
           hoverColor: '{primary.600}',
           activeColor: '{primary.700}'
         },
