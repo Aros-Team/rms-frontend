@@ -1132,5 +1132,65 @@
       }
     ],
     "status": "blocked"
+  },
+  {
+    "id": 40,
+    "type": "chore",
+    "name": "modern-web-audit",
+    "title": "Auditoría web moderna (CSS, dark mode, a11y, tipografía)",
+    "description": "Revisión en profundidad del frontend contra las guías de la plataforma web. Corregido CSS global roto (orden de @import, selector `body &` inválido, variables --surface-* inexistentes, scrollbars duplicadas), dark mode real (color-scheme + meta + anti-FOUC), tipografía variable Archivo 400-900, títulos por ruta, 404, accesibilidad (subrayado de teclado en tabs, radios ARIA, iconos decorativos, prefers-reduced-motion, prefers-contrast, escala de texto del SO) y precarga condicional de chunks.",
+    "acceptance": [
+      "Harness verde",
+      "CSS global sin selectores inválidos ni variables inexistentes",
+      "El tema claro/oscuro se aplica antes del primer paint y themea UI nativa",
+      "Cada ruta declara title y las URLs desconocidas muestran 404",
+      "Preferencias del SO (reduced motion, more contrast, text scale) respetadas",
+      "Sin dependencias muertas (zone.js, idb, componente sin uso)"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Reparar styles.css: @import, selector `body &`, tokens --surface-*, scrollbars, max-width 100vw",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Dark mode: meta color-scheme, script anti-FOUC, Theme service sin pin",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Tipografía variable Archivo 400-900 y limpieza de fuentes estáticas",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Títulos por ruta + TitleStrategy + página 404",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Accesibilidad: tabs con teclado, radios ARIA, iconos aria-hidden, reduced motion, prefers-contrast, escala de texto",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Rendimiento: precarga condicional, imágenes con dimensiones, service worker sin dataGroups muertos",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Dependencias y código muerto: zone.js, idb, dark-mode-button, template duplicado",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
   }
 ]
