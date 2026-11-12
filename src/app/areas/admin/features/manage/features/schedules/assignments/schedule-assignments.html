@@ -18,7 +18,7 @@
       <app-table-skeleton [rowCount]="5" [colCount]="4" />
     } @else if (workers().length === 0) {
       <div class="flex flex-col items-center justify-center h-full p-8">
-        <i class="pi pi-users text-4xl text-surface-300 mb-4"></i>
+        <i class="pi pi-users text-4xl text-surface-300 mb-4" aria-hidden="true"></i>
         <p class="text-surface-500 text-lg">No hay trabajadores disponibles</p>
         <p class="text-surface-400 text-sm mt-1">Crea trabajadores primero para asignarles horarios</p>
       </div>

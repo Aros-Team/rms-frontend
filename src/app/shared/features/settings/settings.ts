@@ -18,6 +18,12 @@ import { SkeletonModule } from 'primeng/skeleton';
 
 type TabId = 'accesibilidad' | 'horarios' | 'cuenta' | 'cerrar-session';
 
+interface SettingsTab {
+  id: TabId;
+  label: string;
+  icon: string;
+}
+
 @Component({
   selector: 'app-settings',
   imports: [
@@ -57,6 +63,24 @@ export class Settings implements OnInit {
 
   // Computed
   isAdmin = computed(() => this.authService.getData()?.role === 'ADMIN');
+
+  /** Visible tabs, in order. Drives both the tablist and keyboard navigation. */
+  tabs = computed<SettingsTab[]>(() => {
+    const tabs: SettingsTab[] = [
+      { id: 'accesibilidad', label: 'Accesibilidad', icon: 'pi pi-cog' },
+    ];
+
+    if (this.isAdmin()) {
+      tabs.push({ id: 'horarios', label: 'Horarios', icon: 'pi pi-calendar' });
+    }
+
+    tabs.push(
+      { id: 'cuenta', label: 'Cuenta', icon: 'pi pi-user' },
+      { id: 'cerrar-session', label: 'Cerrar sesión', icon: 'pi pi-sign-out' },
+    );
+
+    return tabs;
+  });
 
   // Theme
   currentTheme = signal<string>(this.themeService.get());
@@ -110,6 +134,45 @@ export class Settings implements OnInit {
       dateStyle: 'short',
       timeStyle: 'short',
     }).format(new Date(iso));
+  }
+
+  // ---- Tabs ----
+
+  selectTab(id: TabId): void {
+    this.activeTab.set(id);
+  }
+
+  /**
+   * WAI-ARIA tabs keyboard pattern: arrows move the selection and the focus,
+   * Home/End jump to the first/last tab.
+   */
+  onTabKeydown(event: KeyboardEvent, index: number): void {
+    const tabs = this.tabs();
+    let nextIndex: number;
+
+    switch (event.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+        nextIndex = (index + 1) % tabs.length;
+        break;
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        nextIndex = (index - 1 + tabs.length) % tabs.length;
+        break;
+      case 'Home':
+        nextIndex = 0;
+        break;
+      case 'End':
+        nextIndex = tabs.length - 1;
+        break;
+      default:
+        return;
+    }
+
+    event.preventDefault();
+    const next = tabs[nextIndex];
+    this.selectTab(next.id);
+    document.getElementById(`tab-${next.id}`)?.focus();
   }
 
   // ---- Accesibilidad ----

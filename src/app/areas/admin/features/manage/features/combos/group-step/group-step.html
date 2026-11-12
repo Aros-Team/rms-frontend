@@ -12,7 +12,7 @@
   <!-- Customer selection limits: how many products the customer can choose from this category -->
   <div class="border border-surface-200 dark:border-surface-700 rounded-lg p-3 bg-surface-50 dark:bg-surface-800">
     <p class="text-xs sm:text-sm text-surface-600 dark:text-surface-400 mb-2">
-      <i class="pi pi-info-circle mr-1"></i>
+      <i class="pi pi-info-circle mr-1" aria-hidden="true"></i>
       Límites de selección para el cliente — ¿cuántos productos puede escoger el cliente en esta categoría?
     </p>
     <div class="flex flex-wrap items-center gap-2">
@@ -34,7 +34,7 @@
 
   <!-- Search input -->
   <span class="p-input-icon-left w-full max-w-md">
-    <i class="pi pi-search"></i>
+    <i class="pi pi-search" aria-hidden="true"></i>
     <input
       pInputText
       class="w-full"
@@ -150,7 +150,7 @@
       class="text-sm text-primary flex items-center gap-1"
       data-testid="min-warning"
     >
-      <i class="pi pi-exclamation-circle"></i>
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
       Debe seleccionar al menos {{ groupMinSelections() }} producto(s)
     </p>
   }

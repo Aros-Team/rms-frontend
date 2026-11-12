@@ -4,7 +4,15 @@ import {
   provideZonelessChangeDetection,
   isDevMode,
 } from '@angular/core';
-import { provideRouter, withPreloading, PreloadAllModules, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
+import {
+  provideRouter,
+  withPreloading,
+  PreloadAllModules,
+  withComponentInputBinding,
+  withInMemoryScrolling,
+  TitleStrategy,
+} from '@angular/router';
+import { AppTitleStrategy } from './core/title-strategy/title-strategy';
 import { provideServiceWorker } from '@angular/service-worker';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { LOCALE_ID } from '@angular/core';
@@ -125,6 +133,7 @@ export const appConfig: ApplicationConfig = {
         }
       }
     }),
+    { provide: TitleStrategy, useClass: AppTitleStrategy },
     MessageService,
     ConfirmationService,
     provideServiceWorker('ngsw-worker.js', {

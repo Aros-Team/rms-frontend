@@ -20,7 +20,7 @@
             <div class="flex items-center gap-2">
               <span class="font-semibold text-surface-800 dark:text-surface-200">{{ group.categoryName ?? 'Grupo' }}</span>
               @if (group.required) {
-                <i class="pi pi-asterisk text-red-500 text-xs"></i>
+                <i class="pi pi-asterisk text-red-500 text-xs" aria-hidden="true"></i>
               }
               <span class="text-xs text-surface-500 ml-auto">
                 @if (group.minSelections === group.maxSelections) {

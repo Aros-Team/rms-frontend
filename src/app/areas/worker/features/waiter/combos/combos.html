@@ -3,7 +3,7 @@
     <p>Loading... (skeleton later)</p>
   } @else if (combos().length === 0) {
     <div class="text-center py-16">
-      <i class="pi pi-box text-5xl text-surface-400 mb-4"></i>
+      <i class="pi pi-box text-5xl text-surface-400 mb-4" aria-hidden="true"></i>
       <h2 class="text-xl font-semibold text-surface-600">No hay combos disponibles</h2>
       <p class="text-surface-500">No hay combos activos para este horario.</p>
     </div>
@@ -20,7 +20,7 @@
              (click)="selectCombo(combo.id)"
              (keydown.enter)="selectCombo(combo.id)">
           <div class="bg-primary-500 px-6 py-4 flex items-center gap-3">
-            <i class="pi pi-th-large text-surface-900 text-xl"></i>
+            <i class="pi pi-th-large text-surface-900 text-xl" aria-hidden="true"></i>
             <h3 class="text-surface-900 text-xl font-bold">{{ combo.name }}</h3>
           </div>
           <div class="px-6 py-4">
@@ -31,7 +31,7 @@
               @for (group of combo.groups; track group.id) {
                 <span class="px-3 py-1 rounded-full text-xs font-medium bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-700">
                   @if (group.required) {
-                    <i class="pi pi-asterisk mr-1 text-xs"></i>
+                    <i class="pi pi-asterisk mr-1 text-xs" aria-hidden="true"></i>
                   }
                   {{ group.categoryName ?? 'Grupo' }}
                 </span>

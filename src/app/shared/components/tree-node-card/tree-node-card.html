@@ -6,7 +6,7 @@
 
   @if (loading) {
     <div class="flex-1 flex items-center justify-center py-4">
-      <i class="pi pi-spin pi-spinner text-primary-600 dark:text-primary-400 text-xl"></i>
+      <i class="pi pi-spin pi-spinner text-primary-600 dark:text-primary-400 text-xl" aria-hidden="true"></i>
     </div>
   } @else {
     @if (icon) {
@@ -14,7 +14,7 @@
          [class]="icon"
          [class.text-primary-600]="nodeType === 'product'"
          [class.text-primary-500]="nodeType === 'group'"
-         [class.text-surface-400]="nodeType === 'option'"></i>
+         [class.text-surface-400]="nodeType === 'option'" aria-hidden="true"></i>
     }
 
     <div class="flex-1 min-w-0">
@@ -38,7 +38,7 @@
         (click)="expand.emit()"
         [attr.aria-expanded]="expanded"
         aria-label="Expandir">
-        <i class="pi" [class]="expanded ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
+        <i class="pi" [class]="expanded ? 'pi-chevron-up' : 'pi-chevron-down'" aria-hidden="true"></i>
       </button>
     }
   }

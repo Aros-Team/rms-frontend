@@ -12,7 +12,7 @@
     @if (selectedMenuItem) {
     <div class="hidden lg:flex items-center gap-2 ml-4 pl-4 border-l border-surface-200 dark:border-surface-700 shrink-0">
       @if (selectedMenuItem.icon) {
-      <i [class]="selectedMenuItem.icon + ' text-surface-500 dark:text-surface-400'"></i>
+      <i [class]="selectedMenuItem.icon + ' text-surface-500 dark:text-surface-400'" aria-hidden="true"></i>
       }
       <span class="text-surface-700 dark:text-surface-300 font-medium truncate">
         {{ selectedMenuItem.description }}
@@ -28,7 +28,7 @@
            [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
            class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer text-sm whitespace-nowrap">
           @if (item.icon) {
-            <i [class]="item.icon"></i>
+            <i [class]="item.icon" aria-hidden="true"></i>
           }
           <span>{{ item.label }}</span>
         </a>
@@ -41,7 +41,7 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
             (click)="toggleOverflowMenu($event)"
             aria-label="Ver más opciones de menú"
             title="Ver más opciones">
-            <i class="pi pi-ellipsis-h"></i>
+            <i class="pi pi-ellipsis-h" aria-hidden="true"></i>
           </button>
 
           @if (showOverflowMenu()) {
@@ -53,7 +53,7 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
                    class="flex items-center gap-3 px-4 py-2 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 hover:pl-5 transition-all duration-200 cursor-pointer text-sm"
                    (click)="onOverflowItemClick(item)">
                   @if (item.icon) {
-                    <i [class]="item.icon"></i>
+                    <i [class]="item.icon" aria-hidden="true"></i>
                   }
                   <span class="font-medium">{{ item.label }}</span>
                 </a>
@@ -70,7 +70,7 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
     @if (!hideTabletNav) {
     <button class="md:hidden p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
       (click)="toggleMenu.emit()" aria-label="Abrir menú" title="Abrir menú">
-      <i class="pi pi-bars text-surface-600 dark:text-surface-400"></i>
+      <i class="pi pi-bars text-surface-600 dark:text-surface-400" aria-hidden="true"></i>
     </button>
     }
 
@@ -85,9 +85,9 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
       [attr.aria-label]="isChatOpen ? 'Cerrar chat' : 'Abrir chat con asistente IA'"
       [title]="isChatOpen ? 'Cerrar chat' : 'Asistente IA'">
    @if (isChatOpen) {
-     <i class="pi pi-times text-lg transition-colors duration-300 text-primary-500 dark:text-primary-400"></i>
+     <i class="pi pi-times text-lg transition-colors duration-300 text-primary-500 dark:text-primary-400" aria-hidden="true"></i>
    } @else {
-     <i class="pi pi-comment text-lg transition-colors duration-300 text-primary-500 dark:text-primary-400"></i>
+     <i class="pi pi-comment text-lg transition-colors duration-300 text-primary-500 dark:text-primary-400" aria-hidden="true"></i>
      <span class="absolute top-1 right-1 w-2 h-2 bg-primary-500 rounded-full animate-ping"></span>
      <span class="absolute top-1 right-1 w-2 h-2 bg-primary-500 rounded-full"></span>
    }
@@ -100,7 +100,7 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
       (click)="onKitchen()"
       aria-label="Ir a cocina"
       title="Ir a cocina">
-      <i class="pi pi-box text-surface-600 dark:text-surface-400"></i>
+      <i class="pi pi-box text-surface-600 dark:text-surface-400" aria-hidden="true"></i>
     </button>
     }
 
@@ -110,7 +110,7 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
       (click)="showSettingsDialog = true"
       aria-label="Configuración"
       title="Configuración">
-      <i class="pi pi-cog text-surface-600 dark:text-surface-400"></i>
+      <i class="pi pi-cog text-surface-600 dark:text-surface-400" aria-hidden="true"></i>
     </button>
     }
   </section>
@@ -142,7 +142,7 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
 >
   <div class="py-4">
     <div class="flex items-center gap-3">
-      <i class="pi pi-exclamation-triangle text-yellow-500 text-2xl"></i>
+      <i class="pi pi-exclamation-triangle text-yellow-500 text-2xl" aria-hidden="true"></i>
       <p class="text-surface-700 dark:text-surface-300">
         ¿Estás seguro de que deseas cerrar sesión?
       </p>

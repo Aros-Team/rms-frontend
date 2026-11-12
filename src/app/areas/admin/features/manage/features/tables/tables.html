@@ -39,7 +39,7 @@
       }
     } @else if (tables().length === 0) {
       <div class="col-span-full text-center py-20 text-surface-400">
-        <i class="pi pi-table text-4xl mb-4 block"></i>
+        <i class="pi pi-table text-4xl mb-4 block" aria-hidden="true"></i>
         <p>No hay mesas configuradas</p>
         <p-button label="Crear primera mesa" icon="pi pi-plus" class="mt-4" (onClick)="showCreationModal()" />
       </div>
@@ -57,7 +57,7 @@
           </div>
           
           <div class="flex items-center justify-center gap-2 text-surface-500">
-            <i class="pi pi-users text-xs"></i>
+            <i class="pi pi-users text-xs" aria-hidden="true"></i>
             <span class="text-sm">{{ table.capacity }} personas</span>
           </div>
           
@@ -66,7 +66,7 @@
           </div>
 
           <div class="absolute top-2 right-2 opacity-0 hover:opacity-100 transition-opacity">
-            <i class="pi pi-pencil text-xs text-surface-400"></i>
+            <i class="pi pi-pencil text-xs text-surface-400" aria-hidden="true"></i>
           </div>
         </div>
       }

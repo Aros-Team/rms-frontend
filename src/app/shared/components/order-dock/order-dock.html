@@ -52,7 +52,7 @@
 
     <!-- Table info: click opens popover (separate from tab expand/collapse) -->
     <div class="flex items-center gap-2 text-sm font-medium overflow-hidden cursor-pointer" (click)="onTableInfoClick(); $event.stopPropagation()" (keydown.enter)="onTableInfoClick(); $event.stopPropagation()" tabindex="0" role="button" [attr.aria-label]="'Seleccionar mesa'">
-      <i class="pi pi-table text-surface-500"></i>
+      <i class="pi pi-table text-surface-500" aria-hidden="true"></i>
       <span class="font-semibold whitespace-nowrap text-surface-700 dark:text-surface-300">
         @if (selectedTable(); as table) { Mesa {{ table.tableNumber }} }
         @else { Sin mesa }
@@ -60,7 +60,7 @@
 
     </div>
 
-    <i class="pi text-surface-400 text-xs" [class.pi-chevron-up]="!isExpanded()" [class.pi-chevron-down]="isExpanded()"></i>
+    <i class="pi text-surface-400 text-xs" [class.pi-chevron-up]="!isExpanded()" [class.pi-chevron-down]="isExpanded()" aria-hidden="true"></i>
   </button>
 
   <!-- ═══ TABLE POPOVER ═══ -->
@@ -81,10 +81,10 @@
         }
       </div>
       @if (dock.tablesLoading()) {
-        <div class="flex items-center gap-2 mt-2 text-xs text-surface-500"><i class="pi pi-spin pi-spinner"></i> Cargando...</div>
+        <div class="flex items-center gap-2 mt-2 text-xs text-surface-500"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Cargando...</div>
       }
       @if (dock.tablesError(); as err) {
-        <div class="flex items-center gap-2 mt-2 text-xs text-red-500"><i class="pi pi-exclamation-triangle"></i> {{ err }}</div>
+        <div class="flex items-center gap-2 mt-2 text-xs text-red-500"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i> {{ err }}</div>
       }
     </div>
   }
@@ -102,7 +102,7 @@
               : 'bg-surface-100 dark:bg-surface-700 border-surface-200 dark:border-surface-600 text-surface-500 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-600'"
             (click)="onDinerSelect(i)"
             [title]="'Comensal ' + diner.id">
-            <i class="pi pi-user text-xs leading-none"></i>
+            <i class="pi pi-user text-xs leading-none" aria-hidden="true"></i>
             <span class="text-[8px] leading-none mt-[1px]">{{ diner.id }}</span>
           </button>
           @if (diner.items.length > 0) {
@@ -119,13 +119,13 @@
         (click)="onRemoveDiner()"
         [disabled]="dock.totalDiners() <= 1"
         title="Eliminar comensal">
-        <i class="pi pi-trash text-xs"></i>
+        <i class="pi pi-trash text-xs" aria-hidden="true"></i>
       </button>
       <button
         class="w-7 h-7 flex items-center justify-center rounded-lg bg-surface-100 dark:bg-surface-700 text-surface-500 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors text-[10px]"
         (click)="onAddDiner()"
         title="Agregar comensal">
-        <i class="pi pi-plus"></i>
+        <i class="pi pi-plus" aria-hidden="true"></i>
       </button>
     </div>
   </div>
@@ -133,7 +133,7 @@
   <!-- ── Removal confirmation (always visible) ── -->
   @if (showRemoveConfirm()) {
     <div class="flex items-center gap-2 px-3 py-2 bg-yellow-50 dark:bg-yellow-900/10 border-b border-yellow-200 dark:border-yellow-800 flex-shrink-0">
-      <i class="pi pi-exclamation-triangle text-yellow-600 dark:text-yellow-400 text-xs"></i>
+      <i class="pi pi-exclamation-triangle text-yellow-600 dark:text-yellow-400 text-xs" aria-hidden="true"></i>
       <span class="flex-1 text-sm text-yellow-800 dark:text-yellow-200">
         @let diner = dinerRemoveData();
         @if (diner) { ¿Eliminar comensal #{{ diner.id }}? Tiene {{ diner.items.length }} producto(s). }
@@ -153,9 +153,9 @@
         <div class="flex-1 overflow-y-auto flex flex-col gap-1 min-h-0">
           @for (item of dock.selectedDinerItems(); track $index; let i = $index) {
             <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-50 dark:bg-surface-800 flex-shrink-0 text-sm">
-              <button class="w-7 h-7 flex items-center justify-center rounded-md bg-primary-contrast dark:bg-surface-700 text-surface-500 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors text-[10px]" (click)="dock.decrementItemQuantity(i)" title="Reducir"><i class="pi pi-minus"></i></button>
+              <button class="w-7 h-7 flex items-center justify-center rounded-md bg-primary-contrast dark:bg-surface-700 text-surface-500 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors text-[10px]" (click)="dock.decrementItemQuantity(i)" title="Reducir"><i class="pi pi-minus" aria-hidden="true"></i></button>
               <span class="w-6 text-center text-surface-700 dark:text-surface-300 text-sm">{{ item.quantity }}</span>
-              <button class="w-7 h-7 flex items-center justify-center rounded-md bg-primary-contrast dark:bg-surface-700 text-surface-500 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors text-[10px]" (click)="dock.incrementItemQuantity(i)" title="Aumentar"><i class="pi pi-plus"></i></button>
+              <button class="w-7 h-7 flex items-center justify-center rounded-md bg-primary-contrast dark:bg-surface-700 text-surface-500 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors text-[10px]" (click)="dock.incrementItemQuantity(i)" title="Aumentar"><i class="pi pi-plus" aria-hidden="true"></i></button>
 
               <button class="flex-1 text-left font-medium text-surface-700 dark:text-surface-300 hover:text-primary-500 dark:hover:text-primary-400 transition-colors truncate bg-transparent border-none cursor-pointer px-0" (click)="openEditModal(i)" title="Modificar">{{ item.product.name }}</button>
 
@@ -163,7 +163,7 @@
                 <span class="text-[11px] text-surface-500 max-w-[80px] truncate flex-shrink-0 hidden sm:inline">{{ item.optionNames.join(', ') }}</span>
               }
 
-              <button class="w-7 h-7 flex items-center justify-center rounded-md text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-colors text-[11px] bg-transparent border-none cursor-pointer" (click)="dock.decrementItemQuantity(i)" title="Eliminar"><i class="pi pi-trash"></i></button>
+              <button class="w-7 h-7 flex items-center justify-center rounded-md text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-colors text-[11px] bg-transparent border-none cursor-pointer" (click)="dock.decrementItemQuantity(i)" title="Eliminar"><i class="pi pi-trash" aria-hidden="true"></i></button>
             </div>
           }
         </div>
@@ -178,8 +178,8 @@
         [disabled]="!dock.canPlaceOrder() || submitting()"
         [title]="!dock.hasSelectedTable() ? 'Selecciona una mesa primero' : !dock.hasItems() ? 'Agrega productos al pedido' : 'Colocar pedido'"
         (click)="placeOrderWithNarrative()">
-        @if (submitting()) { <i class="pi pi-spin pi-spinner"></i> }
-        @else { <i class="pi pi-send"></i> }
+        @if (submitting()) { <i class="pi pi-spin pi-spinner" aria-hidden="true"></i> }
+        @else { <i class="pi pi-send" aria-hidden="true"></i> }
         <span>Colocar Pedido</span>
       </button>
     </div>

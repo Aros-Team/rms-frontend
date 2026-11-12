@@ -5,101 +5,78 @@
 
   <!-- Tab navigation -->
   <nav class="icon-text-nav gap-1 md:gap-2 mb-4 md:mb-6 flex flex-wrap" role="tablist" aria-label="Opciones de configuración">
-    <button
-      (click)="activeTab.set('accesibilidad')"
-      role="tab"
-      [attr.aria-selected]="activeTab() === 'accesibilidad'"
-      aria-controls="panel-accesibilidad"
-      class="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 nav-item flex-shrink-0"
-      [class.bg-surface-200]="activeTab() === 'accesibilidad'"
-      [class.dark:!bg-surface-900]="activeTab() === 'accesibilidad'"
-    >
-      <i class="pi pi-cog"></i>
-      <span class="nav-label">Accesibilidad</span>
-    </button>
-
-    @if (isAdmin()) {
+    @for (tab of tabs(); track tab.id; let i = $index) {
       <button
-        (click)="activeTab.set('horarios')"
+        type="button"
+        [id]="'tab-' + tab.id"
         role="tab"
-        [attr.aria-selected]="activeTab() === 'horarios'"
-        aria-controls="panel-horarios"
+        [attr.aria-selected]="activeTab() === tab.id"
+        [attr.aria-controls]="'panel-' + tab.id"
+        [attr.tabindex]="activeTab() === tab.id ? 0 : -1"
+        (click)="selectTab(tab.id)"
+        (keydown)="onTabKeydown($event, i)"
         class="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 nav-item flex-shrink-0"
-        [class.bg-surface-200]="activeTab() === 'horarios'"
-        [class.dark:!bg-surface-900]="activeTab() === 'horarios'"
+        [class.bg-surface-200]="activeTab() === tab.id"
+        [class.dark:!bg-surface-900]="activeTab() === tab.id"
       >
-        <i class="pi pi-calendar"></i>
-        <span class="nav-label">Horarios</span>
+        <i [class]="tab.icon" aria-hidden="true"></i>
+        <span class="nav-label">{{ tab.label }}</span>
       </button>
     }
-
-    <button
-      (click)="activeTab.set('cuenta')"
-      role="tab"
-      [attr.aria-selected]="activeTab() === 'cuenta'"
-      aria-controls="panel-cuenta"
-      class="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 nav-item flex-shrink-0"
-      [class.bg-surface-200]="activeTab() === 'cuenta'"
-      [class.dark:!bg-surface-900]="activeTab() === 'cuenta'"
-    >
-      <i class="pi pi-user"></i>
-      <span class="nav-label">Cuenta</span>
-    </button>
-
-    <button
-      (click)="activeTab.set('cerrar-session')"
-      role="tab"
-      [attr.aria-selected]="activeTab() === 'cerrar-session'"
-      aria-controls="panel-cerrar-session"
-      class="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 nav-item flex-shrink-0"
-      [class.bg-surface-200]="activeTab() === 'cerrar-session'"
-      [class.dark:!bg-surface-900]="activeTab() === 'cerrar-session'"
-    >
-      <i class="pi pi-sign-out"></i>
-      <span class="nav-label">Cerrar sesión</span>
-    </button>
   </nav>
 
   <!-- Tab panels -->
   @switch (activeTab()) {
     <!-- Accesibilidad panel -->
     @case ('accesibilidad') {
-      <section id="panel-accesibilidad" role="tabpanel" aria-label="Accesibilidad" class="py-4">
+      <section id="panel-accesibilidad" role="tabpanel" aria-labelledby="tab-accesibilidad" tabindex="0" class="py-4">
         <div class="flex flex-col gap-6 bg-primary-contrast border border-surface-200 dark:border-surface-700 rounded-xl">
           <!-- Font size -->
           <div role="group" aria-labelledby="font-size-label" class="p-4">
             <span id="font-size-label" class="block font-semibold text-surface-700 dark:text-surface-200 mb-3">Tamaño de letra</span>
             <div class="flex gap-2" role="radiogroup" aria-label="Tamaño de letra">
               <button
+                type="button"
+                role="radio"
                 pButton
                 [class]="currentFontSize() === 'small' ? 'p-button-sm' : 'p-button-outlined p-button-sm'"
                 label="A"
                 aria-label="Pequeño"
                 class="text-xs"
+                [attr.aria-checked]="currentFontSize() === 'small'"
                 (click)="setFontSize('small')"
               ></button>
               <button
+                type="button"
+                role="radio"
                 pButton
                 [class]="currentFontSize() === 'normal' ? 'p-button-sm' : 'p-button-outlined p-button-sm'"
                 label="A"
                 aria-label="Normal"
                 class="text-sm"
+                [attr.aria-checked]="currentFontSize() === 'normal'"
                 (click)="setFontSize('normal')"
               ></button>
               <button
+                type="button"
+                role="radio"
                 pButton
                 [class]="currentFontSize() === 'large' ? 'p-button-sm' : 'p-button-outlined p-button-sm'"
                 label="A"
                 aria-label="Grande"
                 class="text-base"
+                [attr.aria-checked]="currentFontSize() === 'large'"
                 (click)="setFontSize('large')"
               ></button>
               <button
+                type="button"
+                role="radio"
                 pButton
                 [class]="currentFontSize() === 'extra-large' ? 'p-button-sm' : 'p-button-outlined p-button-sm'"
                 label="A"
                 aria-label="Extra grande"
                 class="text-lg"
+                [attr.aria-checked]="currentFontSize() === 'extra-large'"
                 (click)="setFontSize('extra-large')"
               ></button>
             </div>
@@ -110,19 +87,25 @@
             <span id="contrast-label" class="block font-semibold text-surface-700 dark:text-surface-200 mb-3">Nivel de contraste</span>
             <div class="flex gap-2" role="radiogroup" aria-label="Modo de contraste">
               <button
+                type="button"
+                role="radio"
                 pButton
                 [class]="currentContrast() === 'normal' ? '' : 'p-button-outlined'"
                 label="Normal"
                 aria-label="Contraste normal"
                 class="p-button-sm"
+                [attr.aria-checked]="currentContrast() === 'normal'"
                 (click)="setContrast('normal')"
               ></button>
               <button
+                type="button"
+                role="radio"
                 pButton
                 [class]="currentContrast() === 'high' ? '' : 'p-button-outlined'"
                 label="Alto"
                 aria-label="Alto contraste"
                 class="p-button-sm"
+                [attr.aria-checked]="currentContrast() === 'high'"
                 (click)="setContrast('high')"
               ></button>
             </div>
@@ -133,21 +116,27 @@
             <span id="theme-label" class="block font-semibold text-surface-700 dark:text-surface-200 mb-3">Tema de color</span>
             <div class="flex gap-2" role="radiogroup" aria-label="Tema de la aplicación">
               <button
+                type="button"
+                role="radio"
                 pButton
                 icon="pi pi-sun"
                 [class]="currentTheme() === 'light' ? '' : 'p-button-outlined'"
                 label="Claro"
                 aria-label="Tema claro"
                 class="p-button-sm"
+                [attr.aria-checked]="currentTheme() === 'light'"
                 (click)="setTheme('light')"
               ></button>
               <button
+                type="button"
+                role="radio"
                 pButton
                 icon="pi pi-moon"
                 [class]="currentTheme() === 'dark' ? '' : 'p-button-outlined'"
                 label="Oscuro"
                 aria-label="Tema oscuro"
                 class="p-button-sm"
+                [attr.aria-checked]="currentTheme() === 'dark'"
                 (click)="setTheme('dark')"
               ></button>
             </div>
@@ -158,14 +147,14 @@
 
     <!-- Horarios panel (ADMIN only) -->
     @case ('horarios') {
-      <section id="panel-horarios" role="tabpanel" aria-label="Horarios" class="py-4">
+      <section id="panel-horarios" role="tabpanel" aria-labelledby="tab-horarios" tabindex="0" class="py-4">
         <app-schedules></app-schedules>
       </section>
     }
 
     <!-- Cuenta panel -->
     @case ('cuenta') {
-      <section id="panel-cuenta" role="tabpanel" aria-label="Cuenta" class="py-4">
+      <section id="panel-cuenta" role="tabpanel" aria-labelledby="tab-cuenta" tabindex="0" class="py-4">
         <!-- User info -->
         <div class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4 mb-4">
           <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-3">Información del usuario</h2>
@@ -265,9 +254,9 @@
 
     <!-- Cerrar sesión panel -->
     @case ('cerrar-session') {
-      <section id="panel-cerrar-session" role="tabpanel" aria-label="Cerrar sesión" class="py-4">
+      <section id="panel-cerrar-session" role="tabpanel" aria-labelledby="tab-cerrar-session" tabindex="0" class="py-4">
         <div class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-6 text-center">
-          <i class="pi pi-sign-out text-4xl text-surface-400 mb-4 block"></i>
+          <i class="pi pi-sign-out text-4xl text-surface-400 mb-4 block" aria-hidden="true"></i>
           <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-2">Cerrar sesión</h2>
           <p class="text-surface-600 dark:text-surface-400 mb-6">
             ¿Estás seguro de que deseas cerrar la sesión actual?

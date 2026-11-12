@@ -130,7 +130,7 @@
         >{{ i + 1 }}</div>
         <span class="text-sm" [class.font-semibold]="variantStep() === step.key">{{ step.label }}</span>
         @if (i < 2) {
-          <i class="pi pi-chevron-right text-surface-400 text-xs"></i>
+          <i class="pi pi-chevron-right text-surface-400 text-xs" aria-hidden="true"></i>
         }
       </div>
     }
@@ -504,7 +504,7 @@
   <!-- Search + category filter -->
   <div class="flex flex-col sm:flex-row gap-2 mb-3">
     <p-iconfield iconPosition="left" class="flex-1">
-      <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+      <p-inputicon><i class="pi pi-search" aria-hidden="true"></i></p-inputicon>
       <input
         pInputText
         type="text"

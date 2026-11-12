@@ -43,7 +43,7 @@
         (click)="onDismiss()"
         aria-label="Cerrar"
         type="button">
-        <i class="pi pi-times text-xs"></i>
+        <i class="pi pi-times text-xs" aria-hidden="true"></i>
       </button>
     </div>
   </ng-template>
@@ -54,7 +54,7 @@
     <!-- Loading state -->
     @if (loading) {
       <div class="flex flex-col items-center justify-center py-12 gap-3">
-        <i class="pi pi-spin pi-spinner text-2xl text-primary-700 dark:text-primary-300"></i>
+        <i class="pi pi-spin pi-spinner text-2xl text-primary-700 dark:text-primary-300" aria-hidden="true"></i>
         <span class="text-sm text-surface-500 dark:text-surface-400">Cargando opciones...</span>
       </div>
     }
@@ -123,7 +123,7 @@
             [disabled]="quantity() <= 1"
             aria-label="Reducir cantidad"
             type="button">
-            <i class="pi pi-minus text-sm"></i>
+            <i class="pi pi-minus text-sm" aria-hidden="true"></i>
           </button>
           <span class="text-xl font-semibold text-surface-700 dark:text-surface-200 min-w-[2ch] text-center tabular-nums">
             {{ quantity() }}
@@ -134,7 +134,7 @@
             [disabled]="quantity() >= 99"
             aria-label="Aumentar cantidad"
             type="button">
-            <i class="pi pi-plus text-sm"></i>
+            <i class="pi pi-plus text-sm" aria-hidden="true"></i>
           </button>
         </div>
       </div>
@@ -162,14 +162,14 @@
     <!-- Error banner -->
     @if (error) {
       <div class="flex items-center gap-2 px-4 py-3 rounded-2xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-        <i class="pi pi-exclamation-circle text-red-700 dark:text-red-300 text-sm shrink-0"></i>
+        <i class="pi pi-exclamation-circle text-red-700 dark:text-red-300 text-sm shrink-0" aria-hidden="true"></i>
         <p class="text-red-700 dark:text-red-300 text-sm flex-1">{{ error }}</p>
         <button
           class="shrink-0 text-red-700 dark:text-red-300 hover:text-red-900 focus:outline-none"
           (click)="onErrorClear()"
           aria-label="Cerrar error"
           type="button">
-          <i class="pi pi-times text-xs"></i>
+          <i class="pi pi-times text-xs" aria-hidden="true"></i>
         </button>
       </div>
     }
@@ -184,10 +184,10 @@
         (click)="onConfirm()"
         type="button">
         @if (loading) {
-          <i class="pi pi-spin pi-spinner"></i>
+          <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
           Cargando...
         } @else {
-          <i class="pi pi-shopping-cart"></i>
+          <i class="pi pi-shopping-cart" aria-hidden="true"></i>
           Agregar al pedido
         }
       </button>

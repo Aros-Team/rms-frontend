@@ -1,14 +1,14 @@
 @if (backendError) {
   <div class="shrink flex-grow ml-1 mt-1">
     <small class="text-red-500 text-xs">
-      <i class="pi pi-exclamation-triangle"></i>
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
       <span>{{ backendError }}</span>
     </small>
   </div>
 } @else if (form.get(field)?.invalid && form.get(field)?.touched) {
   <div class="shrink flex-grow ml-1 mt-1">
     <small class="text-red-500 text-xs">
-      <i class="pi pi-exclamation-triangle"></i>
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
       @if (form.get(field)?.hasError('required')) {
         <span>Campo requerido</span>
       }

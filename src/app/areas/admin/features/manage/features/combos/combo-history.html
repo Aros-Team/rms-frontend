@@ -14,12 +14,12 @@
   <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast overflow-hidden p-6">
     @if (isLoading()) {
       <div class="flex items-center justify-center py-12">
-        <i class="pi pi-spin pi-spinner text-2xl text-surface-400"></i>
+        <i class="pi pi-spin pi-spinner text-2xl text-surface-400" aria-hidden="true"></i>
         <span class="ml-2 text-surface-400">Cargando historial...</span>
       </div>
     } @else if (entries().length === 0) {
       <div class="text-center py-12 text-surface-400">
-        <i class="pi pi-history text-3xl mb-2 block"></i>
+        <i class="pi pi-history text-3xl mb-2 block" aria-hidden="true"></i>
         <p>Sin historial disponible</p>
       </div>
     } @else {

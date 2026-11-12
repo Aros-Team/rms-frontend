@@ -26,11 +26,11 @@
             @for (c of activeCategories(); track c.id) {
               <p-chip class="border border-surface-200 dark:border-surface-700">
                 <div class="flex items-center gap-2">
-                  <i class="pi pi-tag"></i>
+                  <i class="pi pi-tag" aria-hidden="true"></i>
                   <span class="mx-1">{{ c.name }}</span>
                   <i class="pi pi-times-circle cursor-pointer text-red-500"
                     (click)="confirmCategoryToggle(c.id)" (keydown.enter)="confirmCategoryToggle(c.id)"
-                    role="button" tabindex="0" title="Desactivar" aria-label="Desactivar categoría"></i>
+                    role="button" tabindex="0" title="Desactivar" aria-label="Desactivar categoría" aria-hidden="true"></i>
                 </div>
               </p-chip>
             }
@@ -47,11 +47,11 @@
             @for (c of inactiveCategories(); track c.id) {
               <p-chip class="border border-surface-200 dark:border-surface-700 opacity-60">
                 <div class="flex items-center gap-2">
-                  <i class="pi pi-tag"></i>
+                  <i class="pi pi-tag" aria-hidden="true"></i>
                   <span class="mx-1 line-through">{{ c.name }}</span>
                   <i class="pi pi-check-circle cursor-pointer text-green-500"
                     (click)="confirmCategoryToggle(c.id)" (keydown.enter)="confirmCategoryToggle(c.id)"
-                    role="button" tabindex="0" title="Activar" aria-label="Activar categoría"></i>
+                    role="button" tabindex="0" title="Activar" aria-label="Activar categoría" aria-hidden="true"></i>
                 </div>
               </p-chip>
             }
@@ -78,7 +78,7 @@
         @for (c of supplyCategories(); track c.id) {
           <p-chip class="border border-surface-200 dark:border-surface-700">
             <div class="flex items-center gap-2">
-              <i class="pi pi-tag"></i>
+              <i class="pi pi-tag" aria-hidden="true"></i>
               <span class="mx-1">{{ c.name }}</span>
             </div>
           </p-chip>

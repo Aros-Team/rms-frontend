@@ -6,7 +6,7 @@
     <div
       class="mb-3 flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
       role="status">
-      <i class="pi pi-exclamation-triangle text-xs"></i>
+      <i class="pi pi-exclamation-triangle text-xs" aria-hidden="true"></i>
       <span>
         Día muy grande: los indicadores usan los primeros {{ orders().length }} pedidos.
       </span>
@@ -53,8 +53,7 @@
                     class="pi text-xs"
                     [class.pi-check-circle]="serverStatus() === 'online'"
                     [class.pi-times-circle]="serverStatus() === 'offline'"
-                    [class.pi-spin.pi-spinner]="serverStatus() === 'checking'">
-                  </i>
+                    [class.pi-spin.pi-spinner]="serverStatus() === 'checking'" aria-hidden="true"></i>
                   @if (serverStatus() === 'online') {
                     Online
                   } @else if (serverStatus() === 'offline') {
@@ -239,8 +238,7 @@
               class="pi text-xs"
               [class.pi-check-circle]="serverStatus() === 'online'"
               [class.pi-times-circle]="serverStatus() === 'offline'"
-              [class.pi-spin.pi-spinner]="serverStatus() === 'checking'">
-            </i>
+              [class.pi-spin.pi-spinner]="serverStatus() === 'checking'" aria-hidden="true"></i>
             @if (serverStatus() === 'online') {
               Servidor Online
             } @else if (serverStatus() === 'offline') {
@@ -438,8 +436,7 @@
               class="pi text-xs"
               [class.pi-check-circle]="serverStatus() === 'online'"
               [class.pi-times-circle]="serverStatus() === 'offline'"
-              [class.pi-spin.pi-spinner]="serverStatus() === 'checking'">
-            </i>
+              [class.pi-spin.pi-spinner]="serverStatus() === 'checking'" aria-hidden="true"></i>
             @if (serverStatus() === 'online') {
               Servidor Online
             } @else if (serverStatus() === 'offline') {

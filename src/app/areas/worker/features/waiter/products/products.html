@@ -9,17 +9,17 @@
     <!-- Error -->
     @if (error()) {
       <div class="mb-4 p-4 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-xl flex items-center gap-3">
-        <i class="pi pi-exclamation-circle text-red-700 dark:text-red-300"></i>
+        <i class="pi pi-exclamation-circle text-red-700 dark:text-red-300" aria-hidden="true"></i>
         <span class="text-red-700 dark:text-red-300 text-sm">{{ error() }}</span>
         <button class="ml-auto text-red-700 dark:text-red-300 hover:text-red-900" (click)="error.set(null)">
-          <i class="pi pi-times"></i>
+          <i class="pi pi-times" aria-hidden="true"></i>
         </button>
       </div>
     }
 
     <!-- Search bar -->
     <p-iconfield iconPosition="left" class="mb-4">
-      <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+      <p-inputicon><i class="pi pi-search" aria-hidden="true"></i></p-inputicon>
       <input pInputText type="text" [(ngModel)]="searchQuery" placeholder="Buscar producto..." class="w-full" />
     </p-iconfield>
 
@@ -40,7 +40,7 @@
     <!-- Product cards grid -->
     @if (filteredProducts().length === 0) {
       <div class="text-center py-16 text-surface-500">
-        <i class="pi pi-search text-4xl mb-3 block"></i>
+        <i class="pi pi-search text-4xl mb-3 block" aria-hidden="true"></i>
         <p class="text-sm">No se encontraron productos</p>
       </div>
     }
@@ -64,7 +64,7 @@
               />
             } @else {
               <div class="flex flex-col items-center gap-1 text-surface-400">
-                <i class="pi pi-image text-2xl"></i>
+                <i class="pi pi-image text-2xl" aria-hidden="true"></i>
                 <span class="text-[10px]">Sin imagen</span>
               </div>
             }
@@ -83,7 +83,7 @@
                 {{ product.basePrice | money }}
               </span>
               <span class="text-[10px] text-surface-400 flex items-center gap-0.5">
-                <i class="pi pi-plus-circle text-xs"></i>
+                <i class="pi pi-plus-circle text-xs" aria-hidden="true"></i>
                 Agregar
               </span>
             </div>
