@@ -7,12 +7,12 @@ import {
 import {
   provideRouter,
   withPreloading,
-  PreloadAllModules,
   withComponentInputBinding,
   withInMemoryScrolling,
   TitleStrategy,
 } from '@angular/router';
 import { AppTitleStrategy } from './core/title-strategy/title-strategy';
+import { SelectivePreloadingStrategy } from './core/preloading/selective-preloading-strategy';
 import { provideServiceWorker } from '@angular/service-worker';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { LOCALE_ID } from '@angular/core';
@@ -112,7 +112,7 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(
       routes,
-      withPreloading(PreloadAllModules),
+      withPreloading(SelectivePreloadingStrategy),
       withComponentInputBinding(),
       // Reset scroll on navigation and honour #anchors, otherwise a long page
       // leaves the next route scrolled halfway down.
