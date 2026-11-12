@@ -257,6 +257,13 @@ html[data-contrast="high"] a:not(.p-button) {
 
 /* ========================================
    PrimeNG Dropdown Positioning Fix
+   ----------------------------------------
+   DEBT: these `!important` rules fight PrimeNG 21's CDK overlay
+   positioning. They exist because overlays were being clipped inside
+   scrollable containers. The supported fix is `appendTo="body"` on the
+   component (PrimeNG's default) instead of forcing `position: fixed`
+   and a magic z-index; removing these requires visual regression
+   testing of every select/autocomplete nested in a dialog or drawer.
    ======================================== */
 .p-select-overlay,
 .p-multiselect-overlay,

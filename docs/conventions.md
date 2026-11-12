@@ -302,9 +302,8 @@ Siempre que necesites crear un componente, directiva, pipe o servicio:
 
 ```
 shared/
-├── components/          # Componentes reutilizables (13 actuales)
+├── components/          # Componentes reutilizables (12 actuales)
 │   ├── current-date/
-│   ├── dark-mode-button/
 │   ├── datepicker/
 │   ├── form/
 │   ├── header/

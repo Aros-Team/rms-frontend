@@ -201,7 +201,7 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: '/login'
-
+    title: 'Página no encontrada',
+    loadComponent: () => import('@shared/components/not-found-page/not-found-page').then(m => m.NotFoundPage),
   }
 ];
