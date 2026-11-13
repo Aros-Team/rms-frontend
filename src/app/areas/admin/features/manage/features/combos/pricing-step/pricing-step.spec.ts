@@ -233,7 +233,7 @@ describe('PricingStep', () => {
       createComponent();
       fixture.detectChanges();
 
-      const empty = getNative().querySelector('p.text-sm.text-surface-500');
+      const empty = getNative().querySelector('p.text-sm.text-muted');
       expect(empty?.textContent.trim()).toBe('No hay grupos seleccionados para calcular costos.');
       expect(getNative().querySelector('[data-testid="total-cost"]')).toBeNull();
     });

@@ -127,7 +127,7 @@
                 }
               </div>
             } @else {
-              <span class="text-surface-400 text-sm">Sin productos</span>
+              <span class="text-muted text-sm">Sin productos</span>
             }
           </td>
           
@@ -157,7 +157,7 @@
 
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="7" class="text-center text-surface-500 py-8">
+          <td colspan="7" class="text-center text-muted py-8">
             <i class="pi pi-inbox text-4xl mb-2 block" aria-hidden="true"></i>
             No hay pedidos para mostrar
           </td>
@@ -184,19 +184,19 @@
     <div class="flex flex-col gap-4">
       <div class="grid grid-cols-2 gap-4 p-4 bg-surface-50 dark:bg-surface-800 rounded-lg">
         <div>
-          <span class="text-surface-500 text-sm">Estado:</span>
+          <span class="text-muted text-sm">Estado:</span>
           <p-tag [value]="getStatusLabel(selectedOrder.status)" [severity]="getStatusSeverity(selectedOrder.status)" class="mt-1" />
         </div>
         <div>
-          <span class="text-surface-500 text-sm">Mesa:</span>
+          <span class="text-muted text-sm">Mesa:</span>
           <div class="font-medium">Mesa {{ selectedOrder.tableId }}</div>
         </div>
         <div>
-          <span class="text-surface-500 text-sm">Fecha:</span>
+          <span class="text-muted text-sm">Fecha:</span>
           <div class="font-medium">{{ formatDate(selectedOrder.date) }}</div>
         </div>
         <div>
-          <span class="text-surface-500 text-sm">Total:</span>
+          <span class="text-muted text-sm">Total:</span>
           <div class="font-medium text-lg">{{ (selectedOrder.total ?? getOrderTotal(selectedOrder)) | money }}</div>
         </div>
       </div>

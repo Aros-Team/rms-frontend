@@ -498,7 +498,7 @@ describe('MenuEngineering', () => {
     const fixture = await setup(stub);
     const root = getRoot(fixture);
 
-    const cacheLine = root.querySelector('div.text-xs.text-surface-500');
+    const cacheLine = root.querySelector('div.text-xs.text-muted');
     expect(cacheLine?.textContent.trim()).toBe(
       'Última actualización de datos: 2026-07-17T12:00:00Z',
     );

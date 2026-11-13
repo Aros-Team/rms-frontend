@@ -16,11 +16,11 @@
       <h3 class="text-lg font-semibold mb-4">Crear Mesa</h3>
       <form [formGroup]="tableForm" (ngSubmit)="saveTable()" class="flex flex-wrap gap-4 items-end">
         <div class="flex flex-col gap-1">
-          <label for="newTableNumber" class="text-sm text-surface-600 dark:text-surface-400">Número</label>
+          <label for="newTableNumber" class="text-sm text-muted">Número</label>
           <input pInputText id="newTableNumber" type="number" formControlName="tableNumber" class="w-24" />
         </div>
         <div class="flex flex-col gap-1">
-          <label for="newCapacity" class="text-sm text-surface-600 dark:text-surface-400">Capacidad</label>
+          <label for="newCapacity" class="text-sm text-muted">Capacidad</label>
           <input pInputText id="newCapacity" type="number" formControlName="capacity" class="w-24" />
         </div>
         <div class="flex gap-2">
@@ -38,7 +38,7 @@
         <div class="h-32 bg-surface-100 dark:bg-surface-700 rounded-xl animate-pulse"></div>
       }
     } @else if (tables().length === 0) {
-      <div class="col-span-full text-center py-20 text-surface-400">
+      <div class="col-span-full text-center py-20 text-muted">
         <i class="pi pi-table text-4xl mb-4 block" aria-hidden="true"></i>
         <p>No hay mesas configuradas</p>
         <p-button label="Crear primera mesa" icon="pi pi-plus" class="mt-4" (onClick)="showCreationModal()" />
@@ -56,7 +56,7 @@
             <span class="text-3xl font-bold text-surface-900 dark:text-surface-0">#{{ table.tableNumber }}</span>
           </div>
           
-          <div class="flex items-center justify-center gap-2 text-surface-500">
+          <div class="flex items-center justify-center gap-2 text-muted">
             <i class="pi pi-users text-xs" aria-hidden="true"></i>
             <span class="text-sm">{{ table.capacity }} personas</span>
           </div>
@@ -66,7 +66,7 @@
           </div>
 
           <div class="absolute top-2 right-2 opacity-0 hover:opacity-100 transition-opacity">
-            <i class="pi pi-pencil text-xs text-surface-400" aria-hidden="true"></i>
+            <i class="pi pi-pencil text-xs text-muted" aria-hidden="true"></i>
           </div>
         </div>
       }
@@ -80,11 +80,11 @@
         <h3 class="text-lg font-semibold mb-4">Editar Mesa</h3>
         <form [formGroup]="tableForm" (ngSubmit)="saveTable()" class="flex flex-col gap-4">
           <div>
-            <label for="editTableNumber" class="text-sm text-surface-600 dark:text-surface-400 block mb-1">Número</label>
+            <label for="editTableNumber" class="text-sm text-muted block mb-1">Número</label>
             <input pInputText id="editTableNumber" type="number" formControlName="tableNumber" class="w-full" />
           </div>
           <div>
-            <label for="editCapacity" class="text-sm text-surface-600 dark:text-surface-400 block mb-1">Capacidad</label>
+            <label for="editCapacity" class="text-sm text-muted block mb-1">Capacidad</label>
             <input pInputText id="editCapacity" type="number" formControlName="capacity" class="w-full" />
           </div>
           <div class="flex gap-2 mt-2">

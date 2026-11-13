@@ -32,6 +32,7 @@
 }
 
 .analytics-nav-item-active {
-  border-color: var(--p-primary-color);
-  color: var(--p-primary-color);
+  border-color: var(--accent-text);
+  /* gold as text is 1.7:1 on light surfaces */
+  color: var(--accent-text);
 }

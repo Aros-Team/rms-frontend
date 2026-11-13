@@ -102,7 +102,7 @@ describe('ProductCard', () => {
     expect(name?.textContent.trim()).toBe('Hamburguesa');
 
     // Money pipe renders COP with es-CO separators and 0 decimals.
-    const price = card.querySelector('.font-semibold.text-surface-600');
+    const price = card.querySelector('.font-semibold.text-muted');
     expect(price?.textContent.trim()).toMatch(/^\$\s?15\.000$/);
   });
 
@@ -122,7 +122,7 @@ describe('ProductCard', () => {
     expect(card.classList.contains('border-primary')).toBe(true);
     expect(card.getAttribute('aria-selected')).toBe('true');
     const check = card.querySelector('.pi-check-circle');
-    expect(check?.classList.contains('text-primary')).toBe(true);
+    expect(check?.classList.contains('text-accent')).toBe(true);
   });
 
   it('disabled state blocks click emit', async () => {

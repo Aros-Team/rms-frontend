@@ -235,9 +235,10 @@ describe('PrimeCost', () => {
     const primeCostCard = root.querySelectorAll(
       'section[aria-label="Indicadores clave"] article',
     )[1];
-    expect(primeCostCard.querySelector('p.text-xs.text-surface-500')?.textContent.trim()).toBe(
-      '62.50% de las ventas',
-    );
+    const primeCostSubtitle = [...primeCostCard.querySelectorAll('p')]
+      .map((p) => p.textContent.trim())
+      .find((text) => text.includes('de las ventas'));
+    expect(primeCostSubtitle).toBe('62.50% de las ventas');
     // GrossProfit% 37.5 -> "37.50%" card value
     const grossProfitCard = root.querySelectorAll(
       'section[aria-label="Indicadores clave"] article',

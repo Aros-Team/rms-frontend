@@ -121,9 +121,25 @@ html.dark {
   --accent-text: #f2daa2; /* 12.9:1 on the dark page */
 }
 
+/* Secondary / muted copy. The numeric surface scale cannot serve both themes
+   here: `text-surface-500` is 4.3:1 on the light page but 3.1:1 on the dark
+   one, and `text-surface-400` is the other way round. One semantic token keeps
+   the intent and stays readable in both. */
+:root {
+  --muted-text: #475569; /* 7.2:1 on the slate-50 page */
+}
+
+html.dark {
+  --muted-text: #a1a1aa; /* 6.6:1 on the dark page */
+}
+
 /* Usable as `text-accent` / `!text-accent`, like any Tailwind colour. */
 @utility text-accent {
   color: var(--accent-text);
+}
+
+@utility text-muted {
+  color: var(--muted-text);
 }
 
 .logo {
@@ -171,6 +187,7 @@ html[data-contrast="high"]:not(.dark) {
   --p-primary-contrast-color: #1e1b19;
   --p-primary-500: color-mix(in srgb, var(--brand-gold), black 45%);
   --accent-text: #6f5306; /* 7.2:1 — AAA for normal text */
+  --muted-text: #1e293b; /* 12.4:1 */
   --p-primary-400: color-mix(in srgb, var(--brand-gold), black 10%);
   --p-primary-600: color-mix(in srgb, var(--brand-gold), black 45%);
 }
@@ -299,30 +316,18 @@ html[data-contrast="high"] a:not(.p-button) {
 }
 
 /* ========================================
-   PrimeNG Dropdown Positioning Fix
+   PrimeNG overlays
    ----------------------------------------
-   DEBT: these `!important` rules fight PrimeNG 21's CDK overlay
-   positioning. They exist because overlays were being clipped inside
-   scrollable containers. The supported fix is `appendTo="body"` on the
-   component (PrimeNG's default) instead of forcing `position: fixed`
-   and a magic z-index; removing these requires visual regression
-   testing of every select/autocomplete nested in a dialog or drawer.
-   ======================================== */
-.p-select-overlay,
-.p-multiselect-overlay,
-.p-dropdown-overlay,
-.p-autocomplete-panel,
-.p-calendar .p-datepicker-panel {
-  position: fixed !important;
-  z-index: 10000 !important;
-}
+   There used to be `position: fixed !important; z-index: 10000` on every
+   select/autocomplete panel plus `contain: layout style` on the triggers,
+   added when overlays were clipped inside scroll containers.
 
-/* Ensure overlay doesn't get clipped in scrollable containers */
-.p-select,
-.p-multiselect,
-.p-dropdown {
-  contain: layout style;
-}
+   Measured with PrimeNG 21 in a real browser: with and without those rules
+   the panel lands 2px under its trigger, stays inside the viewport and keeps
+   its anchor while the dialog scrolls. They were no longer doing anything
+   except forcing a stacking context (z-index 10000 could cover dialogs) and
+   breaking `containment`-based measurement. Removed.
+   ======================================== */
 
 /* Table action buttons - flex wrap for responsive behavior */
 .table-actions {

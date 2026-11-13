@@ -41,7 +41,7 @@
 
       @if (selected) {
         <div class="absolute inset-0 bg-primary/20 flex items-center justify-center">
-          <i class="pi pi-check-circle text-primary text-2xl" aria-hidden="true"></i>
+          <i class="pi pi-check-circle text-accent text-2xl" aria-hidden="true"></i>
         </div>
       }
 
@@ -54,7 +54,7 @@
 
     <div class="flex flex-col gap-1 p-2">
       <span class="text-xs sm:text-sm font-medium text-surface-900 truncate leading-tight">{{ product?.name }}</span>
-      <span class="text-xs sm:text-sm font-semibold text-surface-600" [class.line-through]="unavailable">
+      <span class="text-xs sm:text-sm font-semibold text-muted" [class.line-through]="unavailable">
         {{ product?.basePrice | money }}
       </span>
     </div>

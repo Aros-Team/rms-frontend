@@ -66,7 +66,7 @@
             (click)="toggleCategory(cat.id)"
           />
         } @empty {
-          <span class="text-sm text-surface-400 italic">Sin categorías</span>
+          <span class="text-sm text-muted italic">Sin categorías</span>
         }
       </div>
     </div>
@@ -108,7 +108,7 @@
                 [showIcon]="false"
                 data-testid="schedule-start-time"
               />
-              <span class="text-surface-400">-</span>
+              <span class="text-muted">-</span>
               <p-datepicker
                 [ngModel]="block.endTime"
                 (ngModelChange)="onBlockEndTimeChange(block.id, $event)"

@@ -5,7 +5,7 @@
   >
     <div class="flex flex-wrap items-end gap-3">
       <div class="flex flex-col gap-1 min-w-0 w-full sm:w-64">
-        <label class="text-xs text-surface-500 dark:text-surface-400" for="payroll-worker">
+        <label class="text-xs text-muted" for="payroll-worker">
           Trabajador
         </label>
         <p-select
@@ -22,7 +22,7 @@
       </div>
 
       <div class="flex flex-col gap-1 w-full sm:w-40">
-        <label class="text-xs text-surface-500 dark:text-surface-400" for="payroll-month">
+        <label class="text-xs text-muted" for="payroll-month">
           Mes
         </label>
         <p-select
@@ -38,7 +38,7 @@
       </div>
 
       <div class="flex flex-col gap-1 w-full sm:w-28">
-        <label class="text-xs text-surface-500 dark:text-surface-400" for="payroll-year">
+        <label class="text-xs text-muted" for="payroll-year">
           Año
         </label>
         <p-select
@@ -124,7 +124,7 @@
         <div
           class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 p-3 min-w-0"
         >
-          <p class="text-xs text-surface-500 dark:text-surface-400">Salario base</p>
+          <p class="text-xs text-muted">Salario base</p>
           <p
             class="text-base md:text-lg font-semibold text-surface-900 dark:text-surface-0 break-words"
             data-testid="payroll-base"
@@ -135,7 +135,7 @@
         <div
           class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 p-3 min-w-0"
         >
-          <p class="text-xs text-surface-500 dark:text-surface-400">Bonificaciones</p>
+          <p class="text-xs text-muted">Bonificaciones</p>
           <p
             class="text-base md:text-lg font-semibold text-surface-900 dark:text-surface-0 break-words"
             data-testid="payroll-bonuses"
@@ -146,7 +146,7 @@
         <div
           class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 p-3 min-w-0"
         >
-          <p class="text-xs text-surface-500 dark:text-surface-400">Deducciones</p>
+          <p class="text-xs text-muted">Deducciones</p>
           <p
             class="text-base md:text-lg font-semibold text-surface-900 dark:text-surface-0 break-words"
             data-testid="payroll-deductions"
@@ -157,7 +157,7 @@
         <div
           class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 p-3 min-w-0"
         >
-          <p class="text-xs text-surface-500 dark:text-surface-400">Neto</p>
+          <p class="text-xs text-muted">Neto</p>
           <p
             class="text-base md:text-lg font-semibold text-surface-900 dark:text-surface-0 break-words"
             data-testid="payroll-net"
@@ -168,7 +168,7 @@
         <div
           class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 p-3 min-w-0"
         >
-          <p class="text-xs text-surface-500 dark:text-surface-400">Pagado</p>
+          <p class="text-xs text-muted">Pagado</p>
           <p
             class="text-base md:text-lg font-semibold text-surface-900 dark:text-surface-0 break-words"
             data-testid="payroll-paid"
@@ -179,7 +179,7 @@
         <div
           class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 p-3 min-w-0"
         >
-          <p class="text-xs text-surface-500 dark:text-surface-400">Pendiente</p>
+          <p class="text-xs text-muted">Pendiente</p>
           <p
             class="text-base md:text-lg font-semibold text-surface-900 dark:text-surface-0 break-words"
             data-testid="payroll-pending"
@@ -195,7 +195,7 @@
           data-testid="payroll-pending-warning"
           class="flex items-start gap-2 p-3 border border-surface-300 dark:border-surface-600 rounded-xl bg-surface-100 dark:bg-surface-800"
         >
-          <i class="pi pi-exclamation-triangle text-surface-600 dark:text-surface-300 mt-1" aria-hidden="true"></i>
+          <i class="pi pi-exclamation-triangle text-muted mt-1" aria-hidden="true"></i>
           <p class="text-sm text-surface-900 dark:text-surface-0">
             Pendiente por pagar: <strong>{{ payroll.pendingAmount | money }}</strong>. Registra una
             liquidación para cerrar el periodo.
@@ -207,11 +207,11 @@
         class="flex flex-col items-center justify-center gap-2 p-8 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 text-center"
         data-testid="payroll-empty"
       >
-        <i class="pi pi-inbox text-4xl text-surface-300 dark:text-surface-600" aria-hidden="true"></i>
-        <p class="text-surface-600 dark:text-surface-400">
+        <i class="pi pi-inbox text-4xl text-surface-300" aria-hidden="true"></i>
+        <p class="text-muted">
           El trabajador no tiene nómina registrada para este periodo.
         </p>
-        <p class="text-sm text-surface-500 dark:text-surface-400">
+        <p class="text-sm text-muted">
           Cambia el periodo o registra los eventos del mes.
         </p>
       </div>
@@ -227,7 +227,7 @@
       >
         Eventos del periodo
       </h2>
-      <span class="text-sm text-surface-500 dark:text-surface-400" data-testid="events-count">
+      <span class="text-sm text-muted" data-testid="events-count">
         {{ events().length }} registrado(s)
       </span>
     </div>
@@ -243,8 +243,8 @@
           class="flex flex-col items-center justify-center gap-3 p-8 text-center"
           data-testid="events-empty"
         >
-          <i class="pi pi-calendar text-4xl text-surface-300 dark:text-surface-600" aria-hidden="true"></i>
-          <p class="text-surface-600 dark:text-surface-400" data-testid="events-empty-title">
+          <i class="pi pi-calendar text-4xl text-surface-300" aria-hidden="true"></i>
+          <p class="text-muted" data-testid="events-empty-title">
             No hay eventos registrados en este periodo.
           </p>
           <p-button
@@ -322,7 +322,7 @@
       >
         Liquidaciones
       </h2>
-      <span class="text-sm text-surface-500 dark:text-surface-400" data-testid="settlements-count">
+      <span class="text-sm text-muted" data-testid="settlements-count">
         {{ settlements().length }} registrada(s)
       </span>
     </div>
@@ -338,8 +338,8 @@
           class="flex flex-col items-center justify-center gap-3 p-8 text-center"
           data-testid="settlements-empty"
         >
-          <i class="pi pi-wallet text-4xl text-surface-300 dark:text-surface-600" aria-hidden="true"></i>
-          <p class="text-surface-600 dark:text-surface-400">
+          <i class="pi pi-wallet text-4xl text-surface-300" aria-hidden="true"></i>
+          <p class="text-muted">
             Todavía no hay liquidaciones registradas en este periodo.
           </p>
           <p-button
@@ -413,7 +413,7 @@
 
       <div class="flex flex-col gap-3">
         <div class="flex flex-col gap-1">
-          <label class="text-xs text-surface-500 dark:text-surface-400" for="event-type">
+          <label class="text-xs text-muted" for="event-type">
             Tipo de evento
           </label>
           <p-select
@@ -429,7 +429,7 @@
         </div>
 
         <div class="flex flex-col gap-1">
-          <label class="text-xs text-surface-500 dark:text-surface-400" for="event-date">
+          <label class="text-xs text-muted" for="event-date">
             Fecha
           </label>
           <p-datepicker
@@ -444,7 +444,7 @@
         </div>
 
         <div class="flex flex-col gap-1">
-          <label class="text-xs text-surface-500 dark:text-surface-400" for="event-quantity">
+          <label class="text-xs text-muted" for="event-quantity">
             Cantidad (horas o días)
           </label>
           <p-inputnumber
@@ -469,7 +469,7 @@
             (onClick)="calculateSuggested()"
           />
           @if (calculateBasis(); as basis) {
-            <p class="text-xs text-surface-600 dark:text-surface-400" data-testid="calculate-basis">
+            <p class="text-xs text-muted" data-testid="calculate-basis">
               Base: {{ basis.hourlyRate | money }}/hora × {{ basis.multiplier }} =
               {{ basis.suggestedUnitRate | money }} · Total
               {{ basis.suggestedAmount | money }}
@@ -478,7 +478,7 @@
         </div>
 
         <div class="flex flex-col gap-1">
-          <label class="text-xs text-surface-500 dark:text-surface-400" for="event-unit-rate">
+          <label class="text-xs text-muted" for="event-unit-rate">
             Valor unitario
           </label>
           <p-inputnumber
@@ -494,7 +494,7 @@
         </div>
 
         <div class="flex flex-col gap-1">
-          <label class="text-xs text-surface-500 dark:text-surface-400" for="event-notes">
+          <label class="text-xs text-muted" for="event-notes">
             Notas
           </label>
           <input
@@ -555,7 +555,7 @@
 
       <div class="flex flex-col gap-3">
         <div class="flex flex-col gap-1">
-          <label class="text-xs text-surface-500 dark:text-surface-400" for="settle-type">
+          <label class="text-xs text-muted" for="settle-type">
             Tipo de liquidación
           </label>
           <p-select
@@ -572,7 +572,7 @@
 
         <div class="flex flex-col sm:flex-row gap-3">
           <div class="flex flex-col gap-1 flex-1">
-            <label class="text-xs text-surface-500 dark:text-surface-400" for="settle-start">
+            <label class="text-xs text-muted" for="settle-start">
               Inicio del periodo
             </label>
             <p-datepicker
@@ -586,7 +586,7 @@
             />
           </div>
           <div class="flex flex-col gap-1 flex-1">
-            <label class="text-xs text-surface-500 dark:text-surface-400" for="settle-end">
+            <label class="text-xs text-muted" for="settle-end">
               Fin del periodo
             </label>
             <p-datepicker
@@ -602,7 +602,7 @@
         </div>
 
         <div class="flex flex-col gap-1">
-          <label class="text-xs text-surface-500 dark:text-surface-400" for="settle-amount">
+          <label class="text-xs text-muted" for="settle-amount">
             Monto
           </label>
           <p-inputnumber
@@ -616,7 +616,7 @@
             styleClass="w-full"
           />
           <p
-            class="text-xs text-surface-500 dark:text-surface-400"
+            class="text-xs text-muted"
             data-testid="settle-pending-basis"
           >
             Pendiente del periodo: {{ settleBasis() | money }}
@@ -680,7 +680,7 @@
         }
 
         <div class="flex flex-col gap-1">
-          <label class="text-xs text-surface-500 dark:text-surface-400" for="settle-notes">
+          <label class="text-xs text-muted" for="settle-notes">
             Notas
           </label>
           <input

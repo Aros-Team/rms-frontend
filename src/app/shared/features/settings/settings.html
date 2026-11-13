@@ -160,15 +160,15 @@
           <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-3">Información del usuario</h2>
           <div class="space-y-3">
             <div class="flex justify-between py-2 border-b border-surface-200 dark:border-surface-700">
-              <span class="text-surface-600 dark:text-surface-400">Nombre:</span>
+              <span class="text-muted">Nombre:</span>
               <span class="font-medium text-surface-900 dark:text-surface-100">{{ userName() }}</span>
             </div>
             <div class="flex justify-between py-2 border-b border-surface-200 dark:border-surface-700">
-              <span class="text-surface-600 dark:text-surface-400">Correo:</span>
+              <span class="text-muted">Correo:</span>
               <span class="font-medium text-surface-900 dark:text-surface-100">{{ userEmail() }}</span>
             </div>
             <div class="flex justify-between py-2">
-              <span class="text-surface-600 dark:text-surface-400">Rol:</span>
+              <span class="text-muted">Rol:</span>
               <span class="font-medium text-surface-900 dark:text-surface-100">{{ userRole() }}</span>
             </div>
           </div>
@@ -179,7 +179,7 @@
           <div class="flex justify-between items-center">
             <div>
               <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-3">Cambiar contraseña</h2>
-              <p class="text-sm text-surface-500">Actualiza tu contraseña periódicamente para mantener tu cuenta segura</p>
+              <p class="text-sm text-muted">Actualiza tu contraseña periódicamente para mantener tu cuenta segura</p>
             </div>
             <p-button label="Cambiar" icon="pi pi-lock" (onClick)="changePasswordVisible.set(true)"></p-button>
           </div>
@@ -197,16 +197,16 @@
                 <p-skeleton height="32px" borderRadius="8px" />
               </div>
             } @else if (salaryHistory()?.length === 0) {
-              <p class="text-surface-500 text-sm">Sin cambios salariales registrados</p>
+              <p class="text-muted text-sm">Sin cambios salariales registrados</p>
             } @else {
               <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                   <thead>
                     <tr class="border-b border-surface-200 dark:border-surface-700">
-                      <th class="text-left py-2 px-2 text-surface-500 font-medium">Fecha</th>
-                      <th class="text-right py-2 px-2 text-surface-500 font-medium">Anterior</th>
-                      <th class="text-right py-2 px-2 text-surface-500 font-medium">Nuevo</th>
-                      <th class="text-left py-2 px-2 text-surface-500 font-medium">Razón</th>
+                      <th class="text-left py-2 px-2 text-muted font-medium">Fecha</th>
+                      <th class="text-right py-2 px-2 text-muted font-medium">Anterior</th>
+                      <th class="text-right py-2 px-2 text-muted font-medium">Nuevo</th>
+                      <th class="text-left py-2 px-2 text-muted font-medium">Razón</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -230,12 +230,12 @@
           <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-3">Privacidad</h2>
           <div class="flex justify-between items-center">
             <div>
-              <span class="text-surface-600 dark:text-surface-400">Estado: </span>
+              <span class="text-muted">Estado: </span>
               <span [class]="habeasDataAccepted() ? 'text-green-600 dark:text-green-400 font-medium' : 'text-red-600 dark:text-red-400 font-medium'">
                 {{ habeasDataAccepted() ? 'Aceptado' : 'Pendiente' }}
               </span>
               @if (habeasDataAccepted()) {
-                <p class="text-sm text-surface-500 mt-1">Aceptado el {{ habeasDataDate() }}</p>
+                <p class="text-sm text-muted mt-1">Aceptado el {{ habeasDataDate() }}</p>
               }
             </div>
             <button
@@ -256,9 +256,9 @@
     @case ('cerrar-session') {
       <section id="panel-cerrar-session" role="tabpanel" aria-labelledby="tab-cerrar-session" tabindex="0" class="py-4">
         <div class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-6 text-center">
-          <i class="pi pi-sign-out text-4xl text-surface-400 mb-4 block" aria-hidden="true"></i>
+          <i class="pi pi-sign-out text-4xl text-muted mb-4 block" aria-hidden="true"></i>
           <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-2">Cerrar sesión</h2>
-          <p class="text-surface-600 dark:text-surface-400 mb-6">
+          <p class="text-muted mb-6">
             ¿Estás seguro de que deseas cerrar la sesión actual?
           </p>
           <div class="flex gap-3 justify-center">
@@ -329,7 +329,7 @@
       puede contactarnos a través de los canales establecidos por la organización.
     </p>
 
-    <p class="text-xs text-surface-500 mt-6">
+    <p class="text-xs text-muted mt-6">
       Fecha de última actualización: 13 de Marzo de 2026
     </p>
   </div>

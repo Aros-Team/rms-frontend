@@ -33,7 +33,7 @@
       </div>
       <div>
         <h2 class="text-surface-700 dark:text-surface-100 font-semibold text-lg">ABI</h2>
-        <p class="text-surface-500 dark:text-surface-400 text-xs">Asistente de Negocio</p>
+        <p class="text-muted text-xs">Asistente de Negocio</p>
       </div>
     </div>
     <div class="flex items-center gap-2">
@@ -42,14 +42,14 @@
           class="p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
           (click)="clearChat()"
           title="Limpiar chat">
-          <i class="pi pi-trash text-surface-500" aria-hidden="true"></i>
+          <i class="pi pi-trash text-muted" aria-hidden="true"></i>
         </button>
       }
       <button
         class="p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors lg:flex md:hidden"
         (click)="closeChat()"
         aria-label="Cerrar chat">
-        <i class="pi pi-times text-surface-500" aria-hidden="true"></i>
+        <i class="pi pi-times text-muted" aria-hidden="true"></i>
       </button>
     </div>
   </div>
@@ -63,7 +63,7 @@
         <h3 class="text-lg font-semibold text-surface-700 dark:text-surface-200 mb-2">
           ¡Hola! Soy tu asistente de negocio profesional
         </h3>
-        <p class="text-surface-500 dark:text-surface-400 text-sm max-w-[240px]">
+        <p class="text-muted text-sm max-w-[240px]">
           Consultas sobre ventas, inventario, pedidos o lo que necesites para tu restaurante.
         </p>
       </div>
@@ -89,12 +89,12 @@
           <div class="flex items-center justify-end gap-2 mt-1">
             <span class="text-xs"
                   [class.text-white/70]="message.role === 'user'"
-                  [class.text-surface-400]="message.role === 'assistant'">
+                  [class.text-muted]="message.role === 'assistant'">
               {{ formatTime(message.timestamp) }}
             </span>
             @if (message.role === 'assistant') {
               <button
-                class="text-surface-400 hover:text-accent transition-colors"
+                class="text-muted hover:text-accent transition-colors"
                 (click)="copyMessage(message.content)"
                 [title]="copySuccess() ? '¡Copiado!' : 'Copiar'">
                 @if (copySuccess()) {
@@ -119,11 +119,11 @@
               <span class="w-2 h-2 rounded-full bg-surface-400"></span>
             </div>
             @if (processMessage()) {
-              <span class="text-xs text-surface-500 dark:text-surface-400 italic">{{ processMessage() }}</span>
+              <span class="text-xs text-muted italic">{{ processMessage() }}</span>
             } @else if (pendingMessage()) {
-              <span class="text-xs text-surface-500 dark:text-surface-400 italic">{{ pendingMessage() }}</span>
+              <span class="text-xs text-muted italic">{{ pendingMessage() }}</span>
             } @else if (isToolCallActive()) {
-              <span class="text-xs text-surface-500 dark:text-surface-400 italic">Consultando negocio...</span>
+              <span class="text-xs text-muted italic">Consultando negocio...</span>
             }
           </div>
         </div>

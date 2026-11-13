@@ -37,7 +37,7 @@
           <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="dt1.clear()" />
           <div class="flex items-center gap-2 ml-auto">
             <div class="flex items-center gap-2">
-              <label for="includeInactive" class="text-sm text-surface-600 dark:text-surface-400 cursor-pointer select-none">Mostrar inactivos</label>
+              <label for="includeInactive" class="text-sm text-muted cursor-pointer select-none">Mostrar inactivos</label>
               <p-toggleswitch [ngModel]="includeInactive()" (ngModelChange)="setIncludeInactive($event)" inputId="includeInactive" />
             </div>
           </div>
@@ -68,7 +68,7 @@
                 />
               } @else {
                 <div class="w-12 h-12 bg-surface-200 dark:bg-surface-700 rounded flex items-center justify-center shrink-0">
-                  <i class="pi pi-image text-surface-400 text-sm" aria-hidden="true"></i>
+                  <i class="pi pi-image text-muted text-sm" aria-hidden="true"></i>
                 </div>
               }
               <span>{{ product.name }}</span>
@@ -111,7 +111,7 @@
         </tr>
       </ng-template>
       <ng-template pTemplate="emptymessage">
-        <tr><td colspan="5" class="text-center text-surface-500 py-4">{{ includeInactive() ? 'No hay productos inactivos' : 'No hay productos registrados' }}</td></tr>
+        <tr><td colspan="5" class="text-center text-muted py-4">{{ includeInactive() ? 'No hay productos inactivos' : 'No hay productos registrados' }}</td></tr>
       </ng-template>
     </p-table>
   </div>
@@ -130,11 +130,11 @@
       <div class="flex items-center flex-1">
         <div class="flex flex-col items-center gap-1">
           <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors"
-            [class]="currentStep() >= step ? 'bg-primary-500 text-white' : 'bg-surface-200 dark:bg-surface-700 text-surface-500'">
+            [class]="currentStep() >= step ? 'bg-primary-500 text-surface-900' : 'bg-surface-200 dark:bg-surface-700 text-muted'">
             @if (currentStep() > step) { <i class="pi pi-check text-xs" aria-hidden="true"></i> }
             @else { {{ i + 1 }} }
           </div>
-          <span class="text-xs text-surface-500 whitespace-nowrap">
+          <span class="text-xs text-muted whitespace-nowrap">
             @switch (step) {
               @case (1) { Datos básicos }
               @case (2) { Insumos }
@@ -185,7 +185,7 @@
 
           @if (isProcessingImage()) {
             <p-progressBar mode="indeterminate" styleClass="h-2 w-full mb-3" />
-            <span class="text-sm text-surface-500">{{ createdProduct() ? 'Guardando imagen...' : 'Creando producto...' }}</span>
+            <span class="text-sm text-muted">{{ createdProduct() ? 'Guardando imagen...' : 'Creando producto...' }}</span>
           } @else if (previewImage().length > 0) {
             <div class="relative w-full h-[220px] flex items-center justify-center">
               <img [src]="previewImage()[0].desktopUrl" alt="Imagen del producto"
@@ -196,14 +196,14 @@
                 (onClick)="removeImage(previewImage()[0]); $event.stopPropagation()" />
             </div>
           } @else if (!canUploadImage()) {
-            <i class="pi pi-image text-4xl text-surface-300 dark:text-surface-600 mb-3" aria-hidden="true"></i>
-            <span class="text-sm font-medium text-surface-500">Imagen del producto</span>
-            <span class="text-xs text-surface-400 mt-2 text-center max-w-[200px]">Completa nombre, categoría y área para habilitar la carga de imagen</span>
+            <i class="pi pi-image text-4xl text-surface-300 mb-3" aria-hidden="true"></i>
+            <span class="text-sm font-medium text-muted">Imagen del producto</span>
+            <span class="text-xs text-muted mt-2 text-center max-w-[200px]">Completa nombre, categoría y área para habilitar la carga de imagen</span>
           } @else {
-            <i class="pi pi-cloud-upload text-4xl text-surface-400 mb-3" aria-hidden="true"></i>
+            <i class="pi pi-cloud-upload text-4xl text-muted mb-3" aria-hidden="true"></i>
             <span class="text-sm font-medium text-surface-700 dark:text-surface-300">Sube una imagen</span>
-            <span class="text-xs text-surface-500 mt-1">JPG, PNG, WebP · max 5MB</span>
-            <span class="text-xs text-surface-400 mt-3">Click para seleccionar</span>
+            <span class="text-xs text-muted mt-1">JPG, PNG, WebP · max 5MB</span>
+            <span class="text-xs text-muted mt-3">Click para seleccionar</span>
           }
         </div>
       </div>
@@ -238,7 +238,7 @@
 
           <!-- Tiempo estimado (full width with prep time button + badge) -->
           <div class="md:col-span-2">
-            <span class="text-xs text-surface-500 block mb-1">Tiempo estimado de preparación</span>
+            <span class="text-xs text-muted block mb-1">Tiempo estimado de preparación</span>
             <div class="flex items-center gap-3">
               <p-button icon="pi pi-stopwatch" [rounded]="true" [outlined]="true" [text]="true"
                 pTooltip="Estimar tiempo" tooltipPosition="top"
@@ -283,7 +283,7 @@
           <span class="text-sm font-semibold text-surface-800 dark:text-surface-200 truncate">
             {{ baseForm.get('name')?.value || 'Producto sin nombre' }}
           </span>
-          <span class="text-xs text-surface-400 shrink-0 hidden sm:inline">(Insumos)</span>
+          <span class="text-xs text-muted shrink-0 hidden sm:inline">(Insumos)</span>
         </div>
         <div class="relative w-64 shrink-0">
           <app-search-input
@@ -297,7 +297,7 @@
                   class="w-full px-3 py-2 text-left text-sm hover:bg-surface-100 dark:hover:bg-surface-700 flex items-center justify-between gap-2 cursor-pointer border-none bg-transparent"
                   (click)="addSupplyVariant(s)" (keydown.enter)="addSupplyVariant(s)">
                   <span class="font-medium text-surface-800 dark:text-surface-200">{{ s.supplyName }}</span>
-                  <span class="text-xs text-surface-400 shrink-0">{{ s.quantity }} {{ s.unitAbbreviation }} · {{ s.unitCost | money }}/u</span>
+                  <span class="text-xs text-muted shrink-0">{{ s.quantity }} {{ s.unitAbbreviation }} · {{ s.unitCost | money }}/u</span>
                 </button>
               }
             </div>
@@ -307,11 +307,11 @@
 
       <!-- Table header + rows -->
       @if (existingRecipe.controls.length === 0 && baseRecipe.length === 0) {
-        <p class="text-sm text-surface-400 italic">Sin insumos — el producto no descuenta stock</p>
+        <p class="text-sm text-muted italic">Sin insumos — el producto no descuenta stock</p>
       } @else {
         <div class="flex flex-col">
           <!-- Header -->
-          <div class="grid grid-cols-[1fr_120px_90px_36px] gap-2 px-3 py-1.5 text-xs font-semibold text-surface-500 uppercase tracking-wide border-b border-surface-200 dark:border-surface-700">
+          <div class="grid grid-cols-[1fr_120px_90px_36px] gap-2 px-3 py-1.5 text-xs font-semibold text-muted uppercase tracking-wide border-b border-surface-200 dark:border-surface-700">
             <span>Insumo</span>
             <span class="text-center">Cantidad</span>
             <span class="text-right">Costo</span>
@@ -326,7 +326,7 @@
                 <span class="text-sm font-medium text-surface-800 dark:text-surface-200 truncate block">
                   {{ findVariantById($any(item).get('supplyVariantId')?.value)?.supplyName ?? 'Insumo' }}
                 </span>
-                <span class="text-xs text-surface-400">
+                <span class="text-xs text-muted">
                   {{ findVariantById($any(item).get('supplyVariantId')?.value)?.quantity }}
                   {{ findVariantById($any(item).get('supplyVariantId')?.value)?.unitAbbreviation }}
                 </span>
@@ -339,7 +339,7 @@
                 <button type="button" pButton icon="pi pi-plus" [text]="true" size="small" severity="secondary" aria-label="Aumentar cantidad"
                   (click)="incrementQty(existingRecipe, i); $event.stopPropagation()"></button>
               </div>
-              <div class="text-right text-sm text-surface-500">
+              <div class="text-right text-sm text-muted">
                 {{ getRowPartial($any(item).get('supplyVariantId')?.value, $any(item).get('requiredQuantity')?.value) | money }}
               </div>
               <div class="flex justify-center">
@@ -357,7 +357,7 @@
                 <span class="text-sm font-medium text-surface-800 dark:text-surface-200 truncate block">
                   {{ findVariantById($any(item).get('supplyVariantId')?.value)?.supplyName ?? 'Insumo' }}
                 </span>
-                <span class="text-xs text-surface-400">
+                <span class="text-xs text-muted">
                   {{ findVariantById($any(item).get('supplyVariantId')?.value)?.quantity }}
                   {{ findVariantById($any(item).get('supplyVariantId')?.value)?.unitAbbreviation }}
                 </span>
@@ -370,7 +370,7 @@
                 <button type="button" pButton icon="pi pi-plus" [text]="true" size="small" severity="secondary" aria-label="Aumentar cantidad"
                   (click)="incrementQty(baseRecipe, i); $event.stopPropagation()"></button>
               </div>
-              <div class="text-right text-sm text-surface-500">
+              <div class="text-right text-sm text-muted">
                 {{ getRowPartial($any(item).get('supplyVariantId')?.value, $any(item).get('requiredQuantity')?.value) | money }}
               </div>
               <div class="flex justify-center">
@@ -395,7 +395,7 @@
             <span class="font-semibold text-base">{{ recipeCost() | money }}</span>
           </div>
         } @else {
-          <p class="text-sm text-surface-400 italic">Agrega insumos para calcular el costo</p>
+          <p class="text-sm text-muted italic">Agrega insumos para calcular el costo</p>
         }
       </div>
     </div>
@@ -445,11 +445,11 @@
             Costo de producción oficial
           </h4>
           <div class="flex justify-between">
-            <span class="text-surface-500">Materiales</span>
+            <span class="text-muted">Materiales</span>
             <span class="font-medium">{{ c.materialCost | money }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-surface-500">Mano de obra</span>
+            <span class="text-muted">Mano de obra</span>
             <span class="font-medium">{{ c.laborCost | money }}</span>
           </div>
           <div class="flex justify-between bg-primary-50 dark:bg-primary-900/20 -mx-4 -mb-4 px-4 py-3 mt-2 rounded-b-lg">
@@ -465,7 +465,7 @@
 
       @if (recipeCost() > 0) {
         <div class="border border-dashed border-surface-300 dark:border-surface-600 rounded-lg p-3 flex items-center justify-between text-sm bg-surface-50 dark:bg-surface-800">
-          <span class="flex items-center gap-2 text-surface-500">
+          <span class="flex items-center gap-2 text-muted">
             <i class="pi pi-bolt text-xs" aria-hidden="true"></i>
             Materiales estimado (receta actual)
           </span>
@@ -515,18 +515,18 @@
         <i class="pi pi-check-circle text-green-500 text-2xl" aria-hidden="true"></i>
         <div>
           <p class="font-semibold text-surface-900 dark:text-surface-0">Producto guardado correctamente</p>
-          <p class="text-sm text-surface-500">Todos los datos han sido registrados.</p>
+          <p class="text-sm text-muted">Todos los datos han sido registrados.</p>
         </div>
       </div>
 
       @if (createdProduct()) {
         <div class="border border-surface-200 dark:border-surface-700 rounded-lg p-4 flex flex-col gap-2 text-sm">
           <div class="flex justify-between">
-            <span class="text-surface-500">Nombre</span>
+            <span class="text-muted">Nombre</span>
             <span class="font-medium">{{ createdProduct()!.name }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-surface-500">Descripción</span>
+            <span class="text-muted">Descripción</span>
             <span class="text-right max-w-[60%]">{{ createdProduct()!.description || 'Sin descripción' }}</span>
           </div>
           @if (cost() !== null) {
@@ -541,11 +541,11 @@
                 <p-message severity="error" [text]="costError()!" />
               } @else if (cost(); as c) {
                 <div class="flex justify-between">
-                  <span class="text-surface-500">Materiales</span>
+                  <span class="text-muted">Materiales</span>
                   <span class="font-medium">{{ c.materialCost | money }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-surface-500">Mano de obra</span>
+                  <span class="text-muted">Mano de obra</span>
                   <span class="font-medium">{{ c.laborCost | money }}</span>
                 </div>
                 <div class="flex justify-between items-center bg-primary-50 dark:bg-primary-900/20 -mx-4 -mb-4 px-4 py-3 mt-2 rounded-b-lg">
@@ -554,11 +554,11 @@
                 </div>
                 @if (c.breakdown.length > 0) {
                   <div class="flex flex-col gap-2 mt-3 pt-3 border-t border-surface-200 dark:border-surface-700">
-                    <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Desglose</span>
+                    <span class="text-xs font-semibold text-muted uppercase tracking-wide">Desglose</span>
                     @for (item of c.breakdown; track $index) {
                       <div class="flex items-center justify-between">
                         <span class="flex items-center gap-2">
-                          <i [class]="item.type === 'MATERIAL' ? 'pi pi-box' : 'pi pi-clock'" class="text-surface-500" aria-hidden="true"></i>
+                          <i [class]="item.type === 'MATERIAL' ? 'pi pi-box' : 'pi pi-clock'" class="text-muted" aria-hidden="true"></i>
                           <span>{{ item.description }}</span>
                         </span>
                         <span class="font-medium">{{ item.amount | money }}</span>
@@ -570,25 +570,25 @@
             </div>
           }
           <div class="flex justify-between">
-            <span class="text-surface-500">Precio de venta</span>
+            <span class="text-muted">Precio de venta</span>
             <span class="font-medium">{{ createdProduct()!.basePrice | money }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-surface-500">Tipo</span>
+            <span class="text-muted">Tipo</span>
             <p-tag [value]="existingOptions().length > 0 ? 'Personalizable' : 'Simple'"
               [severity]="existingOptions().length > 0 ? 'info' : 'secondary'" />
           </div>
           <div class="flex justify-between">
-            <span class="text-surface-500">Categoría</span>
+            <span class="text-muted">Categoría</span>
             <span>{{ createdProduct()!.categoryName }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-surface-500">Área</span>
+            <span class="text-muted">Área</span>
             <span>{{ createdProduct()!.areaName }}</span>
           </div>
           @if (existingRecipe.controls.length + baseRecipe.length > 0) {
             <div class="flex justify-between">
-              <span class="text-surface-500">Insumos base</span>
+              <span class="text-muted">Insumos base</span>
               <span>{{ existingRecipe.controls.length + baseRecipe.length }}</span>
             </div>
           }
@@ -597,11 +597,11 @@
         <!-- Opciones guardadas (confirmadas desde la API) -->
         @if (existingOptions().length > 0) {
           <div class="flex flex-col gap-2">
-            <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Opciones registradas</span>
+            <span class="text-xs font-semibold text-muted uppercase tracking-wide">Opciones registradas</span>
             @for (opt of existingOptions(); track opt.id) {
               <div class="flex items-center justify-between px-3 py-2 bg-surface-50 dark:bg-surface-800 rounded-lg text-sm border border-surface-200 dark:border-surface-700">
                 <span class="font-medium">{{ opt.name }}</span>
-                <span class="text-surface-400 text-xs px-2 py-0.5 bg-surface-200 dark:bg-surface-700 rounded">{{ opt.optionCategoryName }}</span>
+                <span class="text-muted text-xs px-2 py-0.5 bg-surface-200 dark:bg-surface-700 rounded">{{ opt.optionCategoryName }}</span>
               </div>
             }
           </div>

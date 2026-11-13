@@ -1,7 +1,7 @@
 <div class="p-4 md:p-6 flex flex-col gap-4 h-full overflow-auto">
   <header>
     <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-0">Rentabilidad por periodo</h2>
-    <p class="text-sm text-surface-600 dark:text-surface-400">
+    <p class="text-sm text-muted">
       Cuánto vendes, cuánto te costó producir y operar, y cuánto te quedó.
     </p>
   </header>
@@ -42,27 +42,27 @@
   } @else if (latest(); as latest) {
     <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3" aria-label="Indicadores clave">
       <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-        <p class="text-xs text-surface-600 dark:text-surface-400">Ventas netas</p>
+        <p class="text-xs text-muted">Ventas netas</p>
         <p class="text-2xl font-bold mt-1">{{ latest.netSales | money }}</p>
       </article>
       <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-        <p class="text-xs text-surface-600 dark:text-surface-400">Costo operativo</p>
+        <p class="text-xs text-muted">Costo operativo</p>
         <p class="text-2xl font-bold mt-1">{{ latest.primeCost | money }}</p>
-        <p class="text-xs text-surface-500 mt-1">{{ fmtPercent(latest.primeCostPct) }} de las ventas</p>
+        <p class="text-xs text-muted mt-1">{{ fmtPercent(latest.primeCostPct) }} de las ventas</p>
       </article>
       <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-        <p class="text-xs text-surface-600 dark:text-surface-400">Ganancia bruta</p>
+        <p class="text-xs text-muted">Ganancia bruta</p>
         <p class="text-2xl font-bold mt-1">{{ fmtPercent(latest.margins?.grossProfitPct) }}</p>
       </article>
       <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-        <p class="text-xs text-surface-600 dark:text-surface-400">Ganancia neta</p>
+        <p class="text-xs text-muted">Ganancia neta</p>
         <p class="text-2xl font-bold mt-1">{{ fmtPercent(latest.margins?.netProfitPct) }}</p>
       </article>
     </section>
 
     <figure class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
       <figcaption class="text-sm font-semibold mb-1">Ventas en el tiempo</figcaption>
-      <p class="text-xs text-surface-500 mb-2">Brutas vs netas. La diferencia es lo que se va en descuentos y consumo del personal.</p>
+      <p class="text-xs text-muted mb-2">Brutas vs netas. La diferencia es lo que se va en descuentos y consumo del personal.</p>
       <div class="h-72">
         <p-chart type="line" [data]="salesTrendData()" [options]="lineOptions" />
       </div>
@@ -70,7 +70,7 @@
 
     <figure class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
       <figcaption class="text-sm font-semibold mb-1">Evolución de márgenes</figcaption>
-      <p class="text-xs text-surface-500 mb-2">Si el costo operativo sube y la ganancia baja, hay que revisar.</p>
+      <p class="text-xs text-muted mb-2">Si el costo operativo sube y la ganancia baja, hay que revisar.</p>
       <div class="h-72">
         <p-chart type="line" [data]="marginTrendData()" [options]="percentLineOptions" />
       </div>
@@ -78,7 +78,7 @@
 
     <figure class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
       <figcaption class="text-sm font-semibold mb-1">Composición del costo de lo que vendes</figcaption>
-      <p class="text-xs text-surface-500 mb-2">En qué se va cada peso del costo de producción (sin contar nómina).</p>
+      <p class="text-xs text-muted mb-2">En qué se va cada peso del costo de producción (sin contar nómina).</p>
       <div class="h-42">
         <p-chart type="bar" [data]="cogsStackData()" [options]="percentStackOptions" />
       </div>
@@ -92,7 +92,7 @@
         </div>
         <table class="w-full mt-3 text-sm">
           <thead>
-            <tr class="text-left text-xs text-surface-600 dark:text-surface-400">
+            <tr class="text-left text-xs text-muted">
               <th class="py-1">Categoría</th>
               <th class="py-1 text-right">Monto</th>
               <th class="py-1 text-right">%</th>
@@ -116,7 +116,7 @@
         </div>
         <table class="w-full mt-6 text-sm">
           <thead>
-            <tr class="text-left text-xs text-surface-600 dark:text-surface-400">
+            <tr class="text-left text-xs text-muted">
               <th class="py-1">Área</th>
               <th class="py-1 text-right">Monto</th>
               <th class="py-1 text-right">%</th>
@@ -135,6 +135,6 @@
       </article>
     </section>
   } @else {
-    <p class="text-surface-600 dark:text-surface-400">No hay datos en el periodo seleccionado.</p>
+    <p class="text-muted">No hay datos en el periodo seleccionado.</p>
   }
 </div>

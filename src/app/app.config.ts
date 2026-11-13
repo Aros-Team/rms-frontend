@@ -66,10 +66,18 @@ const arosPreset = definePreset(Aura, {
     },
     colorScheme: {
       light: {
+        // PrimeNG's muted text (select labels, table empties, paginator) was
+        // surface-500, which lands at 3.9:1 on the light surfaces.
+        text: {
+          mutedColor: '{surface.600}',
+        },
         primary: {
           color: '{primary.500}',
-          // Dark text on brand gold: white on #F9BB0B is 1.8:1 (WCAG needs 4.5).
-          contrastColor: '#1e1b19',
+          // NOTE: keep this white. `bg-primary-contrast` resolves to this token
+          // and the app uses it as its card surface, so a dark value here would
+          // paint every card near-black. Button label contrast is handled by
+          // the button component tokens below.
+          contrastColor: '#ffffff',
           hoverColor: '{primary.600}',
           activeColor: '{primary.700}'
         },
@@ -117,6 +125,11 @@ const arosPreset = definePreset(Aura, {
       colorScheme: {
         light: {
           root: {
+            primary: {
+              color: '#1e1b19',
+              hoverColor: '#1e1b19',
+              activeColor: '#1e1b19',
+            },
             info: {
               background: '{Semantic.info.600}',
               hoverBackground: '{Semantic.info.700}',

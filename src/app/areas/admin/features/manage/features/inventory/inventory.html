@@ -69,7 +69,7 @@
         <tr>
           <td class="font-medium text-sm">{{ supply.supplyName }}</td>
           <td class="hidden sm:table-cell text-sm">{{ supply.categoryName }}</td>
-          <td class="text-xs text-surface-600 dark:text-surface-400">{{ supply.quantity }} {{ supply.unitAbbreviation }}</td>
+          <td class="text-xs text-muted">{{ supply.quantity }} {{ supply.unitAbbreviation }}</td>
           <td>
             <span class="flex items-center gap-1">
               <span class="text-sm" data-testid="supply-unit-cost">{{ supply.unitCost | money }}</span>
@@ -102,7 +102,7 @@
 
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="6" class="text-center text-surface-500 py-6">No hay insumos registrados.</td>
+          <td colspan="6" class="text-center text-muted py-6">No hay insumos registrados.</td>
         </tr>
       </ng-template>
     </p-table>
@@ -126,11 +126,11 @@
           class="flex items-center justify-center w-7 h-7 rounded-full text-sm font-semibold"
           [class]="variantStep() === step.key
             ? 'bg-primary-500 text-primary-contrast'
-            : 'bg-surface-200 dark:bg-surface-700 text-surface-600 dark:text-surface-300'"
+            : 'bg-surface-200 dark:bg-surface-700 text-muted'"
         >{{ i + 1 }}</div>
         <span class="text-sm" [class.font-semibold]="variantStep() === step.key">{{ step.label }}</span>
         @if (i < 2) {
-          <i class="pi pi-chevron-right text-surface-400 text-xs" aria-hidden="true"></i>
+          <i class="pi pi-chevron-right text-muted text-xs" aria-hidden="true"></i>
         }
       </div>
     }
@@ -244,7 +244,7 @@
         />
         <label for="unitCost">Costo unitario</label>
       </p-iftalabel>
-      <small class="text-surface-500 -mt-3">Necesario para la herramienta de precio sugerido de combinaciones</small>
+      <small class="text-muted -mt-3">Necesario para la herramienta de precio sugerido de combinaciones</small>
     </form>
     <div class="flex justify-between mt-6">
       <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="variantStep.set('supply')" />
@@ -496,7 +496,7 @@
   styleClass="w-[90vw] max-w-[680px]"
   appendTo="body"
 >
-  <p class="text-surface-600 dark:text-surface-400 text-sm mb-4">
+  <p class="text-muted text-sm mb-4">
     Selecciona los insumos y la cantidad a mover desde <strong>Bodega</strong> a <strong>Cocina</strong>.
     La operación es atómica: si algún ítem falla, ninguno se aplica.
   </p>
@@ -530,9 +530,9 @@
   </div>
 
   @if (transferableSupplies().length === 0) {
-    <p class="text-center text-surface-500 py-6">No hay insumos con stock en bodega disponibles para transferir.</p>
+    <p class="text-center text-muted py-6">No hay insumos con stock en bodega disponibles para transferir.</p>
   } @else if (filteredTransferSupplies().length === 0) {
-    <p class="text-center text-surface-500 py-6">No hay resultados para la búsqueda.</p>
+    <p class="text-center text-muted py-6">No hay resultados para la búsqueda.</p>
   } @else {
     <div class="flex flex-col gap-2 max-h-80 overflow-y-auto pr-1" role="list" aria-label="Insumos disponibles para transferir">
       @for (supply of filteredTransferSupplies(); track supply.id) {
@@ -552,7 +552,7 @@
           />
           <label [for]="'chk-' + supply.id" class="flex-1 cursor-pointer min-w-0">
             <span class="font-medium text-sm block truncate">{{ supply.supplyName }}</span>
-            <span class="text-xs text-surface-500">
+            <span class="text-xs text-muted">
               {{ supply.categoryName }} · {{ supply.quantity }} {{ supply.unitAbbreviation }} · Bodega: <strong>{{ supply.stockBodega }}</strong>
             </span>
           </label>
@@ -596,7 +596,7 @@
   }
 
   <div class="flex justify-between items-center mt-6">
-    <span class="text-sm text-surface-500">
+    <span class="text-sm text-muted">
       {{ transferSelected().size }} insumo(s) seleccionado(s)
     </span>
     <div class="flex gap-2">

@@ -1,6 +1,6 @@
 <div class="flex flex-col items-center justify-between gap-4 w-full mb-6">
     <header class="flex justify-between">
-      <p class="text-sm text-surface-500">
+      <p class="text-sm text-muted">
         {{ activeCount }} activas · {{ deliveredCount }} entregadas
         @if (truncated()) {
           <span class="text-amber-600 dark:text-amber-400 font-medium">
@@ -59,7 +59,7 @@
 
     <!-- Empty -->
     @if (orders().length === 0) {
-      <div class="text-center py-20 text-surface-500 dark:text-surface-400">
+      <div class="text-center py-20 text-muted">
         <i class="pi pi-inbox text-4xl mb-3 block" aria-hidden="true"></i>
         <p>No hay órdenes registradas.</p>
       </div>
@@ -74,8 +74,8 @@
           <div class="flex items-center justify-between px-4 py-3 border-b border-surface-100 dark:border-surface-700">
             <div class="flex items-center gap-3">
               <span class="font-semibold text-surface-900 dark:text-surface-100">#{{ order.id }}</span>
-              <span class="text-sm text-surface-600 dark:text-surface-300">Mesa {{ order.tableId }}</span>
-              <span class="text-xs text-surface-500 dark:text-surface-400">{{ orderTime(order.date) }}</span>
+              <span class="text-sm text-muted">Mesa {{ order.tableId }}</span>
+              <span class="text-xs text-muted">{{ orderTime(order.date) }}</span>
             </div>
             <span class="px-2.5 py-1 rounded-full text-xs font-medium {{ statusClass(order.status) }}">
               {{ statusLabel(order.status) }}
@@ -85,16 +85,16 @@
           <!-- Productos -->
           <div class="px-4 py-3">
             @if (!order.details || order.details.length === 0) {
-              <p class="text-sm text-surface-500 dark:text-surface-400 italic">Sin detalle disponible</p>
+              <p class="text-sm text-muted italic">Sin detalle disponible</p>
             }
             @for (detail of order.details; track detail.id) {
               <div class="text-sm mb-1.5">
                 <span class="font-medium text-surface-700 dark:text-surface-200">{{ detail.productName }}</span>
                 @if (detail.selectedOptions?.length) {
-                  <span class="text-xs text-surface-500 dark:text-surface-400 ml-1">({{ detail.selectedOptions | optionNames }})</span>
+                  <span class="text-xs text-muted ml-1">({{ detail.selectedOptions | optionNames }})</span>
                 }
                 @if (detail.instructions) {
-                  <p class="text-xs text-surface-500 dark:text-surface-400 italic mt-0.5">"{{ detail.instructions }}"</p>
+                  <p class="text-xs text-muted italic mt-0.5">"{{ detail.instructions }}"</p>
                 }
               </div>
             }

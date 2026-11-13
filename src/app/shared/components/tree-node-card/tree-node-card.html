@@ -13,13 +13,13 @@
       <i class="pi text-2xl shrink-0"
          [class]="icon"
          [class.text-accent]="nodeType === 'product' || nodeType === 'group'"
-         [class.text-surface-400]="nodeType === 'option'" aria-hidden="true"></i>
+         [class.text-muted]="nodeType === 'option'" aria-hidden="true"></i>
     }
 
     <div class="flex-1 min-w-0">
       <h4 class="font-semibold text-surface-900 dark:text-surface-0 truncate text-sm">{{ title }}</h4>
       @if (subtitle) {
-        <p class="text-xs text-surface-500 dark:text-surface-400 truncate">{{ subtitle }}</p>
+        <p class="text-xs text-muted truncate">{{ subtitle }}</p>
       }
       @if (badges.length > 0) {
         <div class="flex flex-wrap gap-1.5 mt-2">
@@ -33,7 +33,7 @@
     @if (expandable) {
       <button
         type="button"
-        class="p-2 rounded-full text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 transition-colors shrink-0"
+        class="p-2 rounded-full text-muted hover:text-muted hover:text-muted transition-colors shrink-0"
         (click)="expand.emit()"
         [attr.aria-expanded]="expanded"
         aria-label="Expandir">

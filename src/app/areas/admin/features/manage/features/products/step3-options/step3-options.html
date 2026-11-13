@@ -18,7 +18,7 @@
               <div class="flex items-center gap-2 min-w-0">
                 <span class="font-medium text-surface-800 dark:text-surface-200 truncate">{{ group.name }}</span>
               </div>
-              <span class="text-xs text-surface-400 shrink-0">{{ group.selectionType }}</span>
+              <span class="text-xs text-muted shrink-0">{{ group.selectionType }}</span>
             </button>
           }
 
@@ -50,14 +50,14 @@
         Grupo seleccionado
       </span>
       <p-tag [value]="config.label" [severity]="config.severity" />
-      <span class="text-xs text-surface-500 ml-auto">{{ config.description }}</span>
+      <span class="text-xs text-muted ml-auto">{{ config.description }}</span>
     </div>
   }
 
   <!-- Option checklist -->
   @if (selectedGroupId()) {
     <div class="flex flex-col gap-2">
-      <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Opciones del grupo</span>
+      <span class="text-xs font-semibold text-muted uppercase tracking-wide">Opciones del grupo</span>
       <app-option-selection-list
         [options]="groupOptions()"
         [selectionType]="selectedGroupSelectionType()!"
@@ -79,7 +79,7 @@
   <!-- Active options (chips) -->
   @if (activeOptions().length > 0) {
     <div class="flex flex-col gap-2">
-      <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Opciones agregadas</span>
+      <span class="text-xs font-semibold text-muted uppercase tracking-wide">Opciones agregadas</span>
       <div class="flex flex-wrap gap-2">
         @for (chip of activeOptionChips(); track chip.id) {
           <app-removable-chip [chip]="chip" (removed)="removeOption($event)" />
