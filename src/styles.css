@@ -56,18 +56,25 @@
   --color-outline-warm: #475569;            /* slate-600 — readable on white */
   --color-outline-variant-warm: #cbd5e1;    /* slate-300 — hairline divider */
 
-  /* Spacing (8 px base) */
+
+  /* Extended radius (App-in-Card) */
+  --radius-card: 1rem;         /* 16 px */
+  --radius-container: 1.5rem;  /* 24 px */
+  --radius-sheet-top: 1.75rem; /* 28 px */
+}
+
+/* Waiter Service spacing scale (8 px base).
+   Deliberately NOT inside `@theme`: Tailwind resolves `max-w-sm|md|lg|xl`
+   through the same names, and registering them as theme spacings made
+   `max-w-md` compile to `var(--spacing-md)` = 16px, collapsing every
+   max-w-* container to a one-glyph column. */
+:root {
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 32px;
   --spacing-touch: 44px;
-
-  /* Extended radius (App-in-Card) */
-  --radius-card: 1rem;         /* 16 px */
-  --radius-container: 1.5rem;  /* 24 px */
-  --radius-sheet-top: 1.75rem; /* 28 px */
 }
 
 /* NOTE: there used to be `a, p { @apply text-surface-600 }` here. Being
@@ -346,16 +353,16 @@ body {
   max-width: 100%;
 }
 
-.font-bold {
-  overflow-wrap: break-word;
-  word-break: break-word;
-}
-
+/* NOTE: no `word-break: break-word` here. It makes the intrinsic min-content
+   width one character, and together with the `min-width: 0` below it collapsed
+   flex children (e.g. the 403/500 pages) into a single-glyph-wide column.
+   `overflow-wrap: break-word` only kicks in on overflow and leaves intrinsic
+   sizing alone. */
+.font-bold,
 .text-xl,
 .text-2xl,
 .text-3xl {
   overflow-wrap: break-word;
-  word-break: break-word;
 }
 
 .p-chip {
@@ -367,7 +374,6 @@ body {
   min-width: 0 !important;
   max-width: 100% !important;
   overflow-wrap: break-word !important;
-  word-break: break-word !important;
 }
 
 .p-button .p-button-label {

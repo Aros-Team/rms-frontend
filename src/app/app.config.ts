@@ -104,6 +104,51 @@ const arosPreset = definePreset(Aura, {
     Primary: Primary,
     Semantic: Semantic,
     Surface: Surface
+  },
+
+  components: {
+    /**
+     * Severity buttons use Aura's raw 500 shades with white text, which fails
+     * WCAG AA on light surfaces (warn #f97316 → 2.8:1, success → 2.6:1,
+     * info → 3.4:1, danger → 3.8:1). Keep the hues, move them one step darker
+     * — or, for amber, keep the bright fill and switch to dark ink.
+     */
+    button: {
+      colorScheme: {
+        light: {
+          root: {
+            info: {
+              background: '{Semantic.info.600}',
+              hoverBackground: '{Semantic.info.700}',
+              activeBackground: '{Semantic.info.800}',
+              borderColor: '{Semantic.info.600}',
+              color: '#ffffff',
+            },
+            success: {
+              background: '{Semantic.success.700}',
+              hoverBackground: '{Semantic.success.800}',
+              activeBackground: '{Semantic.success.900}',
+              borderColor: '{Semantic.success.700}',
+              color: '#ffffff',
+            },
+            warn: {
+              background: '{Semantic.warn.500}',
+              hoverBackground: '{Semantic.warn.600}',
+              activeBackground: '{Semantic.warn.700}',
+              borderColor: '{Semantic.warn.500}',
+              color: '#1e1b19',
+            },
+            danger: {
+              background: '#dc2626',
+              hoverBackground: '#b91c1c',
+              activeBackground: '#991b1b',
+              borderColor: '#dc2626',
+              color: '#ffffff',
+            },
+          },
+        },
+      },
+    },
   }
 });
 
