@@ -157,7 +157,7 @@
               <span class="w-6 text-center text-surface-700 dark:text-surface-300 text-sm">{{ item.quantity }}</span>
               <button class="w-7 h-7 flex items-center justify-center rounded-md bg-primary-contrast dark:bg-surface-700 text-surface-500 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors text-[10px]" (click)="dock.incrementItemQuantity(i)" title="Aumentar"><i class="pi pi-plus" aria-hidden="true"></i></button>
 
-              <button class="flex-1 text-left font-medium text-surface-700 dark:text-surface-300 hover:text-primary-500 dark:hover:text-primary-400 transition-colors truncate bg-transparent border-none cursor-pointer px-0" (click)="openEditModal(i)" title="Modificar">{{ item.product.name }}</button>
+              <button class="flex-1 text-left font-medium text-surface-700 dark:text-surface-300 hover:text-accent transition-colors truncate bg-transparent border-none cursor-pointer px-0" (click)="openEditModal(i)" title="Modificar">{{ item.product.name }}</button>
 
               @if (item.optionNames.length > 0) {
                 <span class="text-[11px] text-surface-500 max-w-[80px] truncate flex-shrink-0 hidden sm:inline">{{ item.optionNames.join(', ') }}</span>

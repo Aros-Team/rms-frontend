@@ -18,7 +18,7 @@
             @for (item of menuItems; track item.id) {
                 <li class="block">
                     <a [routerLink]="item.routerLink"
-                        routerLinkActive="!text-primary-500 font-semibold"
+                        routerLinkActive="!text-accent font-semibold"
                         [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
                         class="flex items-center gap-3 p-3 rounded-lg text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 hover:pl-4 transition-all duration-200 cursor-pointer"
                         (click)="onMenuItemClick(item)">

@@ -146,6 +146,30 @@ const arosPreset = definePreset(Aura, {
               color: '#ffffff',
             },
           },
+          // Where primary is used as *foreground* (text / outlined / link
+          // buttons) the brand gold is only 1.7:1 on light surfaces. These
+          // point at the theme-aware accent token instead, which resolves to
+          // dark bronze in light mode and pale gold in dark mode.
+          text: {
+            primary: {
+              color: 'var(--accent-text)',
+              hoverBackground: '{primary.100}',
+              activeBackground: '{primary.200}',
+            },
+          },
+          outlined: {
+            primary: {
+              color: 'var(--accent-text)',
+              borderColor: 'var(--accent-text)',
+              hoverBackground: '{primary.100}',
+              activeBackground: '{primary.200}',
+            },
+          },
+          link: {
+            color: 'var(--accent-text)',
+            hoverColor: 'var(--accent-text)',
+            activeColor: 'var(--accent-text)',
+          },
         },
       },
     },

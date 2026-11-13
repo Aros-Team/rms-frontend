@@ -29,7 +29,7 @@
        [class.lg:rounded-none]="true">
     <div class="flex items-center gap-3">
       <div class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
-         <i class="pi pi-comments text-primary-500 dark:text-primary-400 text-xl" aria-hidden="true"></i>
+         <i class="pi pi-comments text-accent text-xl" aria-hidden="true"></i>
       </div>
       <div>
         <h2 class="text-surface-700 dark:text-surface-100 font-semibold text-lg">ABI</h2>
@@ -58,7 +58,7 @@
     @if (messages().length === 0 && !loading()) {
       <div class="flex flex-col items-center justify-center h-full text-center px-4">
         <div class="w-20 h-20 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center mb-4">
-          <i class="pi pi-sparkles text-primary-500 text-3xl" aria-hidden="true"></i>
+          <i class="pi pi-sparkles text-accent text-3xl" aria-hidden="true"></i>
         </div>
         <h3 class="text-lg font-semibold text-surface-700 dark:text-surface-200 mb-2">
           ¡Hola! Soy tu asistente de negocio profesional
@@ -94,11 +94,11 @@
             </span>
             @if (message.role === 'assistant') {
               <button
-                class="text-surface-400 hover:text-primary-500 transition-colors"
+                class="text-surface-400 hover:text-accent transition-colors"
                 (click)="copyMessage(message.content)"
                 [title]="copySuccess() ? '¡Copiado!' : 'Copiar'">
                 @if (copySuccess()) {
-                  <i class="pi pi-check text-xs text-primary-500" aria-hidden="true"></i>
+                  <i class="pi pi-check text-xs text-accent" aria-hidden="true"></i>
                 } @else {
                   <i class="pi pi-copy text-xs" aria-hidden="true"></i>
                 }

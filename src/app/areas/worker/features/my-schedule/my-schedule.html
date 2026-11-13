@@ -29,7 +29,7 @@
             <h3 class="font-semibold text-surface-900 dark:text-surface-0">
               {{ DAY_LABELS[day.dayOfWeek] || day.dayOfWeek }}
               @if (isToday(day.dayOfWeek)) {
-                <span class="text-primary-600 dark:text-primary-400 text-sm ml-2">(Hoy)</span>
+                <span class="text-accent text-sm ml-2">(Hoy)</span>
               }
             </h3>
           </div>
@@ -40,7 +40,7 @@
               <div class="flex flex-col gap-3">
                 @for (shift of day.shifts; track $index) {
                   <div class="flex items-center gap-3 p-2 rounded-lg bg-surface-50 dark:bg-surface-800">
-                    <i class="pi pi-clock text-primary-500" aria-hidden="true"></i>
+                    <i class="pi pi-clock text-accent" aria-hidden="true"></i>
                     <div class="flex flex-col">
                       <span class="text-sm font-medium text-surface-900 dark:text-surface-0">{{ shift.scheduleName }}</span>
                       <span class="text-xs text-surface-500">{{ shift.startTime }} - {{ shift.endTime }}</span>

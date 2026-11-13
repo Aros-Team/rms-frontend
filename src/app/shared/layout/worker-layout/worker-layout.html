@@ -15,7 +15,7 @@
       <button
         (click)="onTabClick(tab)"
         class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm whitespace-nowrap transition-colors cursor-pointer text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-800"
-        [ngClass]="isActive(tab) ? '!text-primary-500 font-semibold' : ''">
+        [ngClass]="isActive(tab) ? '!text-accent font-semibold' : ''">
         <i [class]="tab.icon + ' text-sm'" aria-hidden="true"></i>
         <span>{{ tab.label }}</span>
       </button>

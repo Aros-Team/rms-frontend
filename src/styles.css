@@ -106,6 +106,26 @@
   }
 }
 
+/* ========================================
+   Accent text
+   The brand gold (#F9BB0B) is a *fill* colour: as text on a light surface it
+   is 1.7:1, and no amount of it can reach 4.5:1 without turning brown. So the
+   palette stays for fills and the accent gets its own, readable value that
+   flips with the theme — dark bronze on light, pale gold on dark.
+   ======================================== */
+:root {
+  --accent-text: #8a6508; /* 5.3:1 on #ffffff, 5.1:1 on the slate-50 page */
+}
+
+html.dark {
+  --accent-text: #f2daa2; /* 12.9:1 on the dark page */
+}
+
+/* Usable as `text-accent` / `!text-accent`, like any Tailwind colour. */
+@utility text-accent {
+  color: var(--accent-text);
+}
+
 .logo {
   font-family: var(--font-sans);
   font-weight: 900;
@@ -150,6 +170,7 @@ html[data-contrast="high"]:not(.dark) {
   --p-primary-color: var(--brand-gold);
   --p-primary-contrast-color: #1e1b19;
   --p-primary-500: color-mix(in srgb, var(--brand-gold), black 45%);
+  --accent-text: #6f5306; /* 7.2:1 — AAA for normal text */
   --p-primary-400: color-mix(in srgb, var(--brand-gold), black 10%);
   --p-primary-600: color-mix(in srgb, var(--brand-gold), black 45%);
 }
@@ -168,6 +189,7 @@ html.dark[data-contrast="high"] {
   --p-text-hover-muted-color: #e4e4e7;
 
   --p-primary-500: color-mix(in srgb, var(--brand-gold), white 25%);
+  --accent-text: #f2daa2;
   --p-primary-color: color-mix(in srgb, var(--brand-gold), white 40%);
   --p-primary-contrast-color: #000000;
   --p-primary-400: color-mix(in srgb, var(--brand-gold), white 50%);

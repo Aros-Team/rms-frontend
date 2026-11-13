@@ -126,7 +126,7 @@ describe('TreeNodeCardComponent', () => {
     const el = fixture.nativeElement as HTMLElement;
     const icon = el.querySelector('i');
     expect(icon?.classList.contains('pi-box')).toBe(true);
-    expect(icon?.classList.contains('text-primary-600')).toBe(true);
+    expect(icon?.classList.contains('text-accent')).toBe(true);
   });
 
   it('should not render icon when not provided', async () => {

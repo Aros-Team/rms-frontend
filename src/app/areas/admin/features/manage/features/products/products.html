@@ -385,7 +385,7 @@
       <!-- Cost summary footer -->
       <div class="border border-surface-200 dark:border-surface-700 rounded-lg p-4 text-sm">
         <div class="flex items-center gap-2 mb-3" pTooltip="Costo calculado en vivo según los insumos de la receta" tooltipPosition="top">
-          <i class="pi pi-calculator text-primary-500" aria-hidden="true"></i>
+          <i class="pi pi-calculator text-accent" aria-hidden="true"></i>
           <span class="font-medium">Costo de materiales</span>
         </div>
 
@@ -441,7 +441,7 @@
       @if (cost(); as c) {
         <div class="border border-surface-200 dark:border-surface-700 rounded-lg p-4 flex flex-col gap-2 text-sm">
           <h4 class="text-sm font-medium flex items-center gap-2 mb-1">
-            <i class="pi pi-receipt text-primary-500" aria-hidden="true"></i>
+            <i class="pi pi-receipt text-accent" aria-hidden="true"></i>
             Costo de producción oficial
           </h4>
           <div class="flex justify-between">
@@ -532,7 +532,7 @@
           @if (cost() !== null) {
             <div class="flex flex-col gap-2">
               <div class="flex items-center gap-2" pTooltip="Calculado por el servidor con base en la receta e insumos" tooltipPosition="top">
-                <i class="pi pi-calculator text-primary-500" aria-hidden="true"></i>
+                <i class="pi pi-calculator text-accent" aria-hidden="true"></i>
                 <span class="font-medium">Costo de producción</span>
               </div>
               @if (costLoading()) {
