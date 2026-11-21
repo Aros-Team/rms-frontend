@@ -1,5 +1,20 @@
 # Changelog
 
+## [v3.1.0](https://github.com/Aros-Team/rms-frontend/releases/tag/v3.1.0)
+
+### Features
+
+- **combo-builder**: foundation + real-time cache sync
+- **analytics**: admin analytics section per docs/analytics.md
+
+### Bug Fixes
+
+- align SpecialSelection DTOs with backend OpenAPI spec
+- wire combo wizard into routes + add footerActions slot
+- use computed for categoryIds and snapshot for route params
+- update special-selections API path to v1/admin/special-selections
+- **combo-wizard**: responsive product cards, auto suggested price, fix save flow
+
 ## [v3.0.0](https://github.com/Aros-Team/rms-frontend/releases/tag/v3.0.0)
 
 ### Features
