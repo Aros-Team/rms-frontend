@@ -116,11 +116,9 @@ export class LoginForm implements OnInit, OnDestroy {
           // The server's RFC-7807 `detail` beats our generic copy whenever the
           // body carried one. A filter-level 401 is bodiless → `null` here.
           const problemDetail = extractProblemDetail(err);
-          const errorMessage = (err.error as { message?: string; error?: string } | undefined)?.message ??
-                               (err.error as { message?: string; error?: string } | undefined)?.error ?? '';
-          const isInvalidCredentials = err.status === 401 ||
-            errorMessage.toLowerCase().includes('invalid credentials') ||
-            errorMessage.toLowerCase().includes('incorrectos');
+          const isInvalidCredentials =
+            err.status === 401 ||
+            (problemDetail?.toLowerCase().includes('credenciales') ?? false);
 
           if (isInvalidCredentials) {
             this.logger.auth('Login failed: Invalid credentials');

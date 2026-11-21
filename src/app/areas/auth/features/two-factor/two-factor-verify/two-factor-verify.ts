@@ -49,11 +49,11 @@ export class TwoFactorVerify {
         this.redirectBasedOnUserRole(userInfo);
         this.formStatus.set('Free');
       },
-      error: (err: { status?: number; error?: { message?: string } }) => {
+      error: (err: { status?: number; error?: unknown }) => {
         this.logger.error('2FA verification failed:', err);
         this.formStatus.set('Free');
-        // RFC-7807 `detail` first, then the legacy `message`, then our copy.
-        const backendMessage = extractProblemDetail(err) ?? err.error?.message;
+        // The API reports the reason in the RFC-7807 `detail`.
+        const backendMessage = extractProblemDetail(err);
         this.errorMessage = backendMessage ?? 'Código inválido o expirado. Por favor, intenta nuevamente.';
 
         if (err.status === 400) {

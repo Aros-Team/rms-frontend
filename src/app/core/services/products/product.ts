@@ -7,9 +7,11 @@ import { ProductUpdateRequest } from '@app/shared/models/dto/products/product-up
 import { ProductOption } from '@app/shared/models/dto/products/product-option';
 import { ProductCostResponse } from '@app/shared/models/dto/products/product-cost-response';
 import { ProductCostBreakdownResponse } from '@app/shared/models/dto/products/product-cost-breakdown-response';
+import { type PageEnvelope, unwrapPage } from '@app/shared/models/dto/common/pagination';
 import { Observable, catchError, map, of } from 'rxjs';
 import { toAmount } from '@app/shared/models/dto/common/money';
 
+/** `GET /v1/products` always answers with a Spring page envelope (`{ content, page }`). */
 export interface PaginatedProductsResponse {
   content: ProductResponse[];
   totalElements: number;
@@ -22,6 +24,9 @@ export interface PagedProductsApiResponse {
   content?: ProductResponse[];
   page?: { size: number; number: number; totalElements: number; totalPages: number };
 }
+
+/** API maximum accepted by `GET /v1/products?size`. */
+const MAX_PAGE_SIZE = 100;
 
 export interface PreparationArea {
   id: number;
@@ -52,11 +57,21 @@ export interface ProductData {
 export class Product {
   private http = inject(HttpClient);
 
+  /**
+   * Fetches the first page of products and flattens the page envelope into a
+   * plain array. `GET /v1/products` is paginated: without an explicit `size`
+   * the API returns only 20 items, so consumers that need "all" products ask
+   * for the API maximum.
+   */
+  private listAll<T>(params: Record<string, string> = {}): Observable<T[]> {
+    const query = { ...params, page: '0', size: String(MAX_PAGE_SIZE) };
+    return this.http
+      .get<PageEnvelope<T>>('v1/products', { params: query })
+      .pipe(map((res) => unwrapPage<T>(res).items));
+  }
+
   public getProducts(includeSelections?: boolean): Observable<ProductResponse[]> {
-    if (includeSelections) {
-      return this.http.get<ProductResponse[]>('v1/products', { params: { includeSelections: 'true' } });
-    }
-    return this.http.get<ProductResponse[]>('v1/products');
+    return this.listAll<ProductResponse>(includeSelections ? { includeSelections: 'true' } : {});
   }
 
   public getProductsPaginated(page = 0, size = 20, includeInactive = false, includeSelections?: boolean, search?: string): Observable<PaginatedProductsResponse> {
@@ -83,16 +98,12 @@ export class Product {
   }
 
   public getAllProducts(includeSelections?: boolean): Observable<ProductListResponse[]> {
-    if (includeSelections) {
-      return this.http.get<ProductListResponse[]>('v1/products', { params: { includeSelections: 'true' } });
-    }
-    return this.http.get<ProductListResponse[]>('v1/products');
+    return this.listAll<ProductListResponse>(includeSelections ? { includeSelections: 'true' } : {});
   }
 
-  public filterByCategories(categories: number[]) {
-    return this.http.get<ProductResponse[]>('v1/products', {
-      params: { categories: categories.join(',') },
-    });
+  /** Flattens the page envelope; `categories` is a comma-separated `List<Long>` filter. */
+  public filterByCategories(categories: number[]): Observable<ProductResponse[]> {
+    return this.listAll<ProductResponse>({ categories: categories.join(',') });
   }
 
   public createProduct(data: ProductCreateRequest): Observable<ProductResponse> {
@@ -152,7 +163,7 @@ export class Product {
     if (includeSelections) {
       params['includeSelections'] = 'true';
     }
-    return this.http.get<ProductResponse[]>('v1/products', { params });
+    return this.listAll<ProductResponse>(params);
   }
 
   public getOptions(productId: number): Observable<ProductOption[]> {

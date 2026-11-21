@@ -93,7 +93,7 @@
             <div class="flex flex-col gap-2">
               <p-tag [value]="getStatusLabel(order.status)" [severity]="getStatusSeverity(order.status)" />
               <p-select 
-                [options]="comboStatusOptions | slice:1" 
+                [options]="editableStatusOptions" 
                 [(ngModel)]="order.status" 
                 (onChange)="onStatusFieldChange(order, $event.value)"
                 placeholder="Cambiar estado" 

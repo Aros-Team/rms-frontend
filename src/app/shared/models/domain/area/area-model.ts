@@ -1,5 +1,7 @@
+import type { AreaTypeValue } from '@app/shared/models/dto/areas/area';
+
 export interface Area {
     id: number,
     name: string,
-    type?: 'KITCHEN' | 'WAITER' | 'SERVICE' | 'BAR' | 'CASHIER',
+    type?: AreaTypeValue,
 }

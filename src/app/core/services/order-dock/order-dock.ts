@@ -235,8 +235,8 @@ export class OrderDock {
 function extractError(err: unknown): string {
   if (err instanceof HttpErrorResponse) {
     const errorBody: unknown = err.error;
-    const body = errorBody as { message?: string } | null;
-    return body?.message ?? err.message;
+    const body = errorBody as { detail?: string; message?: string } | null;
+    return body?.detail ?? body?.message ?? err.message;
   }
   if (err instanceof Error) return err.message;
   return 'Error desconocido';

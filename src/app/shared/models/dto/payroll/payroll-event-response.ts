@@ -10,11 +10,11 @@ import { PayrollEventType } from './payroll-event-type';
  *
  * `amount` is `quantity × unitRate`, computed by the backend. Both `amount` and
  * `unitRate` are `Money` DTOs (decimal string amounts), not bare numbers.
+ * `createdBy` is a free-form actor label (the API currently sends `"system"`).
  */
 export interface PayrollEventResponse {
   id: number;
   userId: number;
-  userName: string;
   /** `YYYY-MM-DD` */
   eventDate: string;
   eventType: PayrollEventType;
@@ -23,5 +23,5 @@ export interface PayrollEventResponse {
   amount: Money;
   notes: string;
   createdAt: string;
-  createdBy: number;
+  createdBy: string;
 }

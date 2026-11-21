@@ -13,6 +13,14 @@ import { MessageService } from 'primeng/api';
 import { Logging } from '@app/core/services/logging/logging';
 import { NgClass } from '@angular/common';
 import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
+import {
+  hasLowerCase,
+  hasMinPasswordLength,
+  hasNumber,
+  hasSymbol,
+  hasUpperCase,
+  isPasswordValid,
+} from '@app/shared/lib/password-policy/password-policy';
 
 @Component({
   selector: 'app-setup-account',
@@ -164,13 +172,7 @@ export class SetupAccount implements OnInit {
   }
 
   private validatePasswordStrength(password: string): boolean {
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-    const hasSymbol = /[!@#$%^&*()+\-=[\]{};':"\\|,.<>?]/.test(password);
-    const hasMinLength = password.length >= 8;
-
-    if (!hasMinLength || !hasUpperCase || !hasLowerCase || !hasNumbers || !hasSymbol) {
+    if (!isPasswordValid(password)) {
       this.messageService.add({
         severity: 'error',
         summary: 'Contraseña débil',
@@ -184,11 +186,11 @@ export class SetupAccount implements OnInit {
 
   checkPasswordRequirement(password: string, requirement: string): boolean {
     switch (requirement) {
-      case 'minLength': return password.length >= 8;
-      case 'upperCase': return /[A-Z]/.test(password);
-      case 'lowerCase': return /[a-z]/.test(password);
-      case 'number': return /\d/.test(password);
-      case 'symbol': return /[!@#$%^&*()+\-=[\]{};':"\\|,.<>?]/.test(password);
+      case 'minLength': return hasMinPasswordLength(password);
+      case 'upperCase': return hasUpperCase(password);
+      case 'lowerCase': return hasLowerCase(password);
+      case 'number': return hasNumber(password);
+      case 'symbol': return hasSymbol(password);
       default: return false;
     }
   }

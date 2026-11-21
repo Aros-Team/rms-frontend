@@ -17,6 +17,10 @@ export interface MenuEngineeringItem {
   unitsSold: number;
   revenue: Money;
   recipeCost: Money;
+  /** Average cost of the chosen options per order in the period. */
+  avgOptionCost: Money;
+  /** Effective cost per unit: `recipeCost + avgOptionCost`. */
+  effectiveCost: Money;
   grossProfitPerUnit: Money;
   totalContribution: Money;
   quadrant: MenuQuadrant;

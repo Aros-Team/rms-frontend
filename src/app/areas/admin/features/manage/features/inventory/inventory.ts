@@ -382,9 +382,9 @@ export class Inventory implements OnInit {
           this.resolvedCategoryId.set(cat.id);
           this.variantStep.set('supply');
         },
-        error: (err: { status?: number; error?: { message?: string } }) => {
+        error: (err: { status?: number; error?: { detail?: string; message?: string } }) => {
           this.variantSubmitting = false;
-          const errorMessage = err.error?.message;
+          const errorMessage = err.error?.detail ?? err.error?.message;
           const detail = err.status === 409
             ? errorMessage ?? 'Esa categoría ya existe.'
             : errorMessage ?? 'No se pudo crear la categoría.';
@@ -415,9 +415,9 @@ export class Inventory implements OnInit {
           this.resolvedSupplyId.set(supply.id);
           this.variantStep.set('variant');
         },
-        error: (err: { status?: number; error?: { message?: string } }) => {
+        error: (err: { status?: number; error?: { detail?: string; message?: string } }) => {
           this.variantSubmitting = false;
-          const errorMessage = err.error?.message;
+          const errorMessage = err.error?.detail ?? err.error?.message;
           const detail = err.status === 409
             ? errorMessage ?? 'Ese insumo ya existe.'
             : errorMessage ?? 'No se pudo crear el insumo.';
@@ -467,9 +467,9 @@ export class Inventory implements OnInit {
             detail: `${created.supplyName} (${created.unitAbbreviation}) agregado al inventario.`,
           });
         },
-        error: (err: { status?: number; error?: { message?: string } }) => {
+        error: (err: { status?: number; error?: { detail?: string; message?: string } }) => {
           this.variantSubmitting = false;
-          const errorMessage = err.error?.message;
+          const errorMessage = err.error?.detail ?? err.error?.message;
           const detail =
             err.status === 409
               ? errorMessage ?? 'Ya existe esa combinación de insumo y unidad.'
@@ -504,9 +504,9 @@ export class Inventory implements OnInit {
         this.closeNewSupplierDialog();
         this.messageService.add({ severity: 'success', summary: 'Distribuidor creado', detail: created.name });
       },
-      error: (err: { status?: number; error?: { message?: string } }) => {
+      error: (err: { status?: number; error?: { detail?: string; message?: string } }) => {
         this.newSupplierSubmitting.set(false);
-        const errorMessage = err.error?.message;
+        const errorMessage = err.error?.detail ?? err.error?.message;
         const detail = err.status === 400
           ? errorMessage ?? 'El nombre es requerido y no puede superar 255 caracteres.'
           : errorMessage ?? 'No se pudo crear el distribuidor.';
@@ -616,9 +616,9 @@ export class Inventory implements OnInit {
             detail: 'El stock fue actualizado automáticamente.',
           });
         },
-        error: (err: { status?: number; error?: { message?: string } }) => {
+        error: (err: { status?: number; error?: { detail?: string; message?: string } }) => {
           this.submitting = false;
-          const errorMessage = err.error?.message;
+          const errorMessage = err.error?.detail ?? err.error?.message;
           if (err.status === 409) {
             this.messageService.add({
               severity: 'error',
@@ -736,9 +736,9 @@ export class Inventory implements OnInit {
           detail: `${String(items.length)} insumo(s) transferido(s) a cocina.`,
         });
       },
-      error: (err: { status?: number; error?: { message?: string } }) => {
+      error: (err: { status?: number; error?: { detail?: string; message?: string } }) => {
         this.transferSubmitting.set(false);
-        const detail = err.error?.message ?? 'No se pudo completar la transferencia.';
+        const detail = err.error?.detail ?? err.error?.message ?? 'No se pudo completar la transferencia.';
         this.messageService.add({ severity: 'error', summary: 'Error', detail });
         this.logger.error('Error transferring to kitchen', err);
       },

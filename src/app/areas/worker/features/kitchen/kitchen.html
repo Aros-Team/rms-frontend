@@ -104,27 +104,27 @@
                   @if (detail.instructions) {
                     <p class="text-xs text-amber-600 dark:text-amber-400 italic mt-0.5">"{{ detail.instructions }}"</p>
                   }
-                  @if (detail.selectionType === 'SPECIAL_SELECTION') {
+                  @if (detail.selectedProducts?.length || detail.selectedAdditions?.length || detail.clarifications?.length) {
                     <div class="mt-1 space-y-0.5">
-                      @if (detail.groupSelections?.length) {
-                        @for (group of detail.groupSelections; track $index) {
-                          <div class="text-xs">
-                            <span class="font-medium text-muted">{{ group.groupName }}:</span>
-                            <span class="text-muted">{{ group.selectedOptions.join(', ') }}</span>
-                          </div>
-                        }
+                      @if (detail.selectedProducts?.length) {
+                        <div class="text-xs text-muted">
+                          <span class="font-medium">Productos:</span>
+                          @for (product of detail.selectedProducts; track product.id) {
+                            <span class="text-muted">{{ product.name }}{{ $last ? '' : ', ' }}</span>
+                          }
+                        </div>
                       }
-                      @if (detail.additionsResolved?.length) {
+                      @if (detail.selectedAdditions?.length) {
                         <div class="text-xs text-muted">
                           <span class="font-medium">Adiciones:</span>
-                          @for (add of detail.additionsResolved; track add.id) {
+                          @for (add of detail.selectedAdditions; track add.id) {
                             <span class="text-muted">{{ add.name }}{{ $last ? '' : ', ' }}</span>
                           }
                         </div>
                       }
-                      @if (detail.clarificationsResolved?.length) {
+                      @if (detail.clarifications?.length) {
                         <div class="text-xs text-muted space-y-0.5">
-                          @for (clar of detail.clarificationsResolved; track clar.questionId) {
+                          @for (clar of detail.clarifications; track clar.questionId) {
                             <div><span class="font-medium">{{ clar.question }}:</span> <span class="text-muted">{{ clar.answer }}</span></div>
                           }
                         </div>
@@ -183,27 +183,27 @@
                   @if (detail.instructions) {
                     <p class="text-xs text-blue-600 dark:text-blue-400 italic mt-0.5">"{{ detail.instructions }}"</p>
                   }
-                  @if (detail.selectionType === 'SPECIAL_SELECTION') {
+                  @if (detail.selectedProducts?.length || detail.selectedAdditions?.length || detail.clarifications?.length) {
                     <div class="mt-1 space-y-0.5">
-                      @if (detail.groupSelections?.length) {
-                        @for (group of detail.groupSelections; track $index) {
-                          <div class="text-xs">
-                            <span class="font-medium text-muted">{{ group.groupName }}:</span>
-                            <span class="text-muted">{{ group.selectedOptions.join(', ') }}</span>
-                          </div>
-                        }
+                      @if (detail.selectedProducts?.length) {
+                        <div class="text-xs text-muted">
+                          <span class="font-medium">Productos:</span>
+                          @for (product of detail.selectedProducts; track product.id) {
+                            <span class="text-muted">{{ product.name }}{{ $last ? '' : ', ' }}</span>
+                          }
+                        </div>
                       }
-                      @if (detail.additionsResolved?.length) {
+                      @if (detail.selectedAdditions?.length) {
                         <div class="text-xs text-muted">
                           <span class="font-medium">Adiciones:</span>
-                          @for (add of detail.additionsResolved; track add.id) {
+                          @for (add of detail.selectedAdditions; track add.id) {
                             <span class="text-muted">{{ add.name }}{{ $last ? '' : ', ' }}</span>
                           }
                         </div>
                       }
-                      @if (detail.clarificationsResolved?.length) {
+                      @if (detail.clarifications?.length) {
                         <div class="text-xs text-muted space-y-0.5">
-                          @for (clar of detail.clarificationsResolved; track clar.questionId) {
+                          @for (clar of detail.clarifications; track clar.questionId) {
                             <div><span class="font-medium">{{ clar.question }}:</span> <span class="text-muted">{{ clar.answer }}</span></div>
                           }
                         </div>

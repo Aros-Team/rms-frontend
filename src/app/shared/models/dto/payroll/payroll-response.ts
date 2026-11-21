@@ -17,7 +17,8 @@ import { PayrollStatus } from './payroll-status';
 export interface PayrollResponse {
   id: number;
   userId: number;
-  userName: string;
+  /** The API currently serializes this as `null`; the panel shows the worker it selected. */
+  userName: string | null;
   year: number;
   month: number;
   /** `YYYY-MM-DD` */

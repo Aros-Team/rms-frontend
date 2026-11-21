@@ -10,9 +10,9 @@
   <ng-template pTemplate="header">
     <div class="flex items-center gap-4 min-w-0 w-full pr-2">
       <!-- Product image -->
-      @if (product?.thumbnailUrl) {
+      @if (product?.imageUrl) {
         <img
-          [src]="product!.thumbnailUrl"
+          [src]="product!.imageUrl!"
           [alt]="product!.name"
           width="56"
           height="56"

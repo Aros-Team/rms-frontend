@@ -11,6 +11,9 @@ export interface ProductListResponse {
   categoryId: number;
   categoryName: string;
   areaId: number;
-  thumbnailUrl?: string;
+  areaName?: string;
+  /** Signed URL of the primary image (mobile variant), `null` when the product has none. */
+  imageUrl?: string | null;
+  estimatedPrepMinutes?: number;
   selectionType?: SelectionType;
 }

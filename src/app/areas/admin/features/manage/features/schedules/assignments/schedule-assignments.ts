@@ -147,10 +147,6 @@ export class ScheduleAssignments implements OnInit {
   private removeAssignment(workerId: number): void {
     this.assigning.update(s => new Set(s).add(workerId));
 
-    // NOTE: getAssignments returns schedule IDs, but removeAssignment expects an assignment ID.
-    // Currently passing scheduleId as assignmentId as a simplification.
-    // TODO: Update when backend provides a proper endpoint to fetch assignment IDs separately,
-    // or when getAssignments returns assignment IDs instead of schedule IDs.
     this.scheduleAssignmentService.removeAssignment(workerId, this.scheduleId()).subscribe({
       next: () => {
         const current = this.assignedScheduleIds();

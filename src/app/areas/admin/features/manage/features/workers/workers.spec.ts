@@ -20,7 +20,8 @@
  */
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { of, throwError } from 'rxjs';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -77,7 +78,6 @@ function makeEvent(): PayrollEventResponse {
   return {
     id: 55,
     userId: 7,
-    userName: 'Ana Pérez',
     eventDate: '2026-06-15',
     eventType: 'OVERTIME',
     quantity: 2,
@@ -85,7 +85,7 @@ function makeEvent(): PayrollEventResponse {
     amount: money('37500.00'),
     notes: '',
     createdAt: '2026-06-15T22:00:00',
-    createdBy: 1,
+    createdBy: 'system',
   };
 }
 
@@ -94,6 +94,10 @@ describe('Workers — payroll tab', () => {
   let component: Workers;
   let payrollApi: Record<string, ReturnType<typeof vi.fn>>;
   let timeLogApi: { getTimeLogs: ReturnType<typeof vi.fn> };
+  let workerApi: {
+    getWorkers: ReturnType<typeof vi.fn>;
+    createWorker: ReturnType<typeof vi.fn>;
+  };
 
   const now = new Date();
   const year = now.getFullYear();
@@ -136,6 +140,11 @@ describe('Workers — payroll tab', () => {
 
     timeLogApi = { getTimeLogs: vi.fn(() => of([])) };
 
+    workerApi = {
+      getWorkers: vi.fn(() => of([WORKER])),
+      createWorker: vi.fn(() => of({ ...WORKER, password: null })),
+    };
+
     payrollApi = {
       getAllPayrolls: vi.fn(() => of([])),
       getPayrollsByPeriod: vi.fn(() => of([])),
@@ -164,7 +173,7 @@ describe('Workers — payroll tab', () => {
     TestBed.configureTestingModule({
       imports: [Workers],
       providers: [
-        { provide: Worker, useValue: { getWorkers: vi.fn(() => of([WORKER])) } },
+        { provide: Worker, useValue: workerApi },
         { provide: Area, useValue: { getAreas: vi.fn(() => of([])) } },
         { provide: Payroll, useValue: payrollApi },
         { provide: TimeLog, useValue: timeLogApi },
@@ -274,6 +283,40 @@ describe('Workers — payroll tab', () => {
     expect(timeLogApi.getTimeLogs).toHaveBeenCalledTimes(1);
     expect(tab('#tab-time-logs').getAttribute('aria-selected')).toBe('true');
   });
+  describe('RFC 7807 error mapping', () => {
+    it('surfaces the problem `detail` on the matching form field', async () => {
+      await mount();
+      workerApi.createWorker.mockReturnValue(
+        throwError(
+          () =>
+            new HttpErrorResponse({
+              status: 400,
+              error: {
+                detail: 'document: Document must contain only digits',
+                status: 400,
+                title: 'Bad Request',
+              },
+            }),
+        ),
+      );
+
+      component.showCreationModal();
+      component.userForm.patchValue({
+        document: '123',
+        name: 'Ana Perez',
+        email: 'ana@rms.co',
+        phone: '3001234567',
+        areaId: 1,
+      });
+      component.createWorker();
+
+      // Read through the component's public accessor, as the template does.
+      expect(component.getBackendError('document')).toBe(
+        'Document must contain only digits',
+      );
+    });
+  });
+
   describe('salary field — Money DTO on the wire, number in the form', () => {
     it('normalizes a Money salary into the numeric form control', async () => {
       await mount();

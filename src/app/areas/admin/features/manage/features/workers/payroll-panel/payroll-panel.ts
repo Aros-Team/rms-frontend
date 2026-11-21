@@ -422,7 +422,6 @@ export class PayrollPanel {
       userId: workerId,
       eventType: this.eventType(),
       quantity,
-      eventDate: toIsoDate(date),
     };
 
     this.calculating.set(true);
@@ -461,7 +460,7 @@ export class PayrollPanel {
       eventDate: toIsoDate(date),
       eventType: this.eventType(),
       quantity,
-      unitRate: this.moneyFromNumber(unitRate),
+      unitRate,
       notes: this.eventNotes().trim(),
     };
 
@@ -542,10 +541,15 @@ export class PayrollPanel {
 
   settle(): void {
     const workerId = this.workerId();
+    const payroll = this.summary();
     const amount = this.settleAmount();
     const periodStart = this.settlePeriodStart();
     const periodEnd = this.settlePeriodEnd();
 
+    if (payroll === null) {
+      this.settleError.set('No hay una nómina cargada para este trabajador y periodo.');
+      return;
+    }
     if (workerId === null || amount === null || !Number.isFinite(amount) || amount <= 0) {
       this.settleError.set('Indica un monto mayor a cero para liquidar.');
       return;
@@ -571,15 +575,14 @@ export class PayrollPanel {
     }
 
     const request: PayrollSettlementRequest = {
+      // The backend addresses the settlement by payroll id; `year`/`month` are
+      // not part of the request.
+      payrollId: payroll.id,
       userId: workerId,
-      // Derived from the settled period, which is validated above to sit inside
-      // the loaded payroll: `year`/`month` can never disagree with the dates.
-      year: periodStart.getFullYear(),
-      month: periodStart.getMonth() + 1,
       settlementType: this.settlementType(),
       periodStart: toIsoDate(periodStart),
       periodEnd: toIsoDate(periodEnd),
-      amount: this.moneyFromNumber(amount),
+      amount,
       notes: this.settleNotes().trim(),
     };
 
@@ -729,9 +732,5 @@ export class PayrollPanel {
 
   private notifyError(detail: string): void {
     this.messages.add({ severity: 'error', summary: 'Error', detail, life: 5000 });
-  }
-
-  private moneyFromNumber(value: number): MoneyValue {
-    return { amount: value.toFixed(2), currency: DEFAULT_CURRENCY };
   }
 }

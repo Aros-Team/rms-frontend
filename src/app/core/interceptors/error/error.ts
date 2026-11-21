@@ -32,9 +32,12 @@ const AUTH_ENDPOINT_PATHS = [
   '/auth/verify',
   '/auth/register',
   '/auth/forgot-password',
+  '/auth/resend-password',
   '/auth/reset-password',
-  '/auth/change-password',
+  '/auth/setup-password',
   '/auth/setup-account',
+  '/auth/setup-account/validate',
+  '/auth/change-password',
 ];
 
 export function isAuthEndpoint(url: string): boolean {

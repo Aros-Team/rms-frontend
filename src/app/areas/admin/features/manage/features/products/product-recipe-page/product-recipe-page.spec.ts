@@ -37,6 +37,7 @@ import { ProductCostBreakdownResponse } from '@app/shared/models/dto/products/pr
 import { ProductImageResponse } from '@app/shared/models/dto/products/product-image-response';
 import { OptionGroupResponse } from '@app/shared/models/dto/option-groups/option-group';
 import type { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
+import { toAmount } from '@app/shared/models/dto/common/money';
 
 import productRecipeHtml from './product-recipe-page.html?raw';
 
@@ -83,12 +84,12 @@ function buildProductFixture(): ProductResponse {
 function buildCostFixture(): ProductCostResponse {
   return {
     productId: 7,
-    totalCost: 25.75,
-    materialCost: 15.5,
-    laborCost: 10.25,
+    totalCost: { amount: '25.75', currency: 'COP' },
+    materialCost: { amount: '15.50', currency: 'COP' },
+    laborCost: { amount: '10.25', currency: 'COP' },
     breakdown: [
-      { description: 'Tomate 0.5 kg', amount: 7.5, type: 'MATERIAL' },
-      { description: 'Cebolla 0.25 kg', amount: 8, type: 'MATERIAL' },
+      { description: 'Tomate 0.5 kg', amount: { amount: '7.50', currency: 'COP' }, type: 'MATERIAL' },
+      { description: 'Cebolla 0.25 kg', amount: { amount: '8.00', currency: 'COP' }, type: 'MATERIAL' },
     ],
   };
 }
@@ -114,11 +115,14 @@ function buildOptionGroupsFixture(): OptionGroupResponse[] {
 function buildImageFixture(): ProductImageResponse {
   return {
     id: 50,
+    entityType: 'PRODUCT',
+    entityId: 7,
+    contentType: 'image/webp',
     mobileUrl: 'http://img/m.jpg',
     tabletUrl: 'http://img/t.jpg',
     desktopUrl: 'http://img/d.jpg',
-    originalName: 'photo.jpg',
-    size: 1024,
+    originalFilename: 'photo.jpg',
+    originalSizeBytes: 1024,
     createdAt: '2025-01-01T00:00:00Z',
   };
 }
@@ -383,7 +387,7 @@ describe('ProductRecipePage', () => {
     await flushMicrotasks();
 
     const comp = fixture.componentInstance;
-    expect(comp.cost()?.totalCost).toBe(25.75);
+    expect(toAmount(comp.cost()?.totalCost)).toBe(25.75);
   });
 
   it('displays product data after load — images signal set', async () => {

@@ -46,11 +46,11 @@
                 <span class="text-xs text-muted">v{{ entry.version }}</span>
               </div>
 
-              <!-- Author + timestamp -->
+              <!-- Changed by + timestamp -->
               <div class="text-sm text-muted mb-3">
-                <span class="font-medium">{{ entry.author }}</span>
+                <span class="font-medium">{{ entry.changedBy }}</span>
                 <span class="mx-1">·</span>
-                <span>{{ entry.timestamp | date:'dd/MM/yyyy HH:mm' }}</span>
+                <span>{{ entry.changedAt | date:'dd/MM/yyyy HH:mm' }}</span>
               </div>
 
               <!-- Snapshot viewer (expandable) -->

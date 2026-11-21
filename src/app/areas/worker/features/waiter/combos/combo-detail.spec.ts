@@ -35,7 +35,7 @@ function makeCombo(
   additions: SpecialSelectionResponse['additions'],
 ): SpecialSelectionResponse {
   return {
-    id: 7,
+    productId: 7,
     name: 'Combo Familiar',
     description: 'Para dos personas',
     basePrice,

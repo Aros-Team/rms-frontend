@@ -20,7 +20,7 @@ export class AreaGuard implements CanActivate {
 
     // Default '/' inside /worker — dispatch by assigned area
     if (targetRoute === '') {
-      const hasService = userData?.areas.some(a => a.type === 'SERVICE' || a.type === 'WAITER') ?? false;
+      const hasService = userData?.areas.some(a => a.type === 'SERVICE') ?? false;
       const hasKitchen = userData?.areas.some(a => a.type === 'KITCHEN') ?? false;
 
       if (hasService) {
@@ -45,7 +45,7 @@ export class AreaGuard implements CanActivate {
     // kitchen route requires KITCHEN area
     if (targetRoute === 'kitchen') {
       const hasKitchen = userData?.areas.some(a => a.type === 'KITCHEN') ?? false;
-      const hasService = userData?.areas.some(a => a.type === 'SERVICE' || a.type === 'WAITER') ?? false;
+      const hasService = userData?.areas.some(a => a.type === 'SERVICE') ?? false;
       if (!hasKitchen) {
         if (!hasService) {
           // No kitchen AND no service → redirect to profile (safe default)

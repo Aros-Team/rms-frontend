@@ -19,7 +19,7 @@
       <ng-template #body let-area>
         <tr>
           <td class="font-medium">{{ area.name }}</td>
-          <td class="text-sm">{{ area.type === 'KITCHEN' ? 'Cocina' : 'Bartender' }}</td>
+          <td class="text-sm">{{ areaTypeLabel(area.type) }}</td>
           <td>
             <span [class]="area.enabled ? 'text-green-600' : 'text-red-600'" class="text-sm">
               {{ area.enabled ? 'Activo' : 'Inactivo' }}

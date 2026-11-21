@@ -19,5 +19,4 @@ export interface SpecialSelectionAdditionResponse {
    */
   extraPrice: Money | number;
   displayOrder: number;
-  optionName: string;
 }

@@ -148,7 +148,7 @@ export class NewOptionDialog {
 
     this.productService.createProductOption({
       name,
-      optionCategoryId: optionCategoryId ?? 0,
+      optionGroupId: optionCategoryId ?? 0,
       recipe: recipeItems,
     }).pipe(
       switchMap(() => this.productOptionService.getOptions()),

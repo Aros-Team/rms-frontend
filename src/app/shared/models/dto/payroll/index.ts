@@ -2,6 +2,7 @@ export * from './payroll-status';
 export * from './payroll-event-type';
 export * from './settlement-type';
 export * from './payroll-request';
+export * from './payroll-update-request';
 export * from './payroll-response';
 export * from './payroll-event-request';
 export * from './payroll-event-response';

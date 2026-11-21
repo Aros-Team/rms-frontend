@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
 import { PayrollRequest } from '@models/dto/payroll/payroll-request';
+import { PayrollUpdateRequest } from '@models/dto/payroll/payroll-update-request';
 import { PayrollResponse } from '@models/dto/payroll/payroll-response';
 import { PayrollEventRequest } from '@models/dto/payroll/payroll-event-request';
 import { PayrollEventResponse } from '@models/dto/payroll/payroll-event-response';
@@ -18,11 +19,13 @@ import { PayrollSettlementResponse } from '@models/dto/payroll/payroll-settlemen
  *  - URLs are relative — `'v1/payroll/...'` — because the app-wide base URL and the
  *    `{ data: ... }` envelope are handled by the HTTP interceptors. Response
  *    types below are therefore typed WITHOUT the envelope wrapper.
- *  - Every monetary field in these DTOs is a `Money` object
- *    (`{ amount: "125000000.00", currency: "COP" }`), not a number. This service
- *    deliberately performs no arithmetic: `netAmount`, `pendingAmount`,
- *    `amount` and the settlement accumulation are all computed by the backend,
- *    so there is no money math to get wrong on the client.
+ *  - Response monetary fields are `Money` objects
+ *    (`{ amount: "125000000.00", currency: "COP" }`), not numbers. Request
+ *    monetary fields (`baseSalary`, `unitRate`, `amount`) are plain numbers,
+ *    matching the backend request DTOs. This service deliberately performs no
+ *    arithmetic: `netAmount`, `pendingAmount`, `amount` and the settlement
+ *    accumulation are all computed by the backend, so there is no money math to
+ *    get wrong on the client.
  *  - `DELETE` endpoints answer `204 No Content`, so they map to `void`.
  */
 @Injectable({ providedIn: 'root' })
@@ -63,7 +66,7 @@ export class Payroll {
   }
 
   /** `PATCH /v1/payroll/{id}` — partial update (status, notes, amounts, …). */
-  updatePayroll(id: number, request: Partial<PayrollRequest>): Observable<PayrollResponse> {
+  updatePayroll(id: number, request: PayrollUpdateRequest): Observable<PayrollResponse> {
     return this.http.patch<PayrollResponse>(`v1/payroll/${String(id)}`, request);
   }
 

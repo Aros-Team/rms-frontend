@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef, NgZone, ViewChild } from '@angular/core';
-import { CommonModule, SlicePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
@@ -48,7 +48,6 @@ const WS_TOPICS = {
     DialogModule,
     TooltipModule,
     InputTextModule,
-    SlicePipe,
     TableSkeleton,
     Money
   ],
@@ -83,6 +82,19 @@ export class OrdersTable implements OnInit, OnDestroy {
     { label: 'Todos', value: 'ALL' },
     { label: 'En Cola', value: 'QUEUE' },
     { label: 'En Preparación', value: 'PREPARING' },
+    { label: 'Listo', value: 'READY' },
+    { label: 'Entregado', value: 'DELIVERED' },
+    { label: 'Cancelado', value: 'CANCELLED' }
+  ];
+
+  /**
+   * Statuses that can be assigned to a specific order from this table.
+   *
+   * PREPARING is intentionally absent: the API only exposes `PUT /orders/prepare`,
+   * which takes the oldest QUEUE order, not the row the user clicked. Offering it
+   * per row would prepare a different order than the one being edited.
+   */
+  editableStatusOptions = [
     { label: 'Listo', value: 'READY' },
     { label: 'Entregado', value: 'DELIVERED' },
     { label: 'Cancelado', value: 'CANCELLED' }
@@ -344,16 +356,7 @@ export class OrdersTable implements OnInit, OnDestroy {
         return of({ error: true, orderId: undefined });
       }
 
-      if (status === 'PREPARING') {
-        // PREPARING se activa con el endpoint "prepare next" que toma la siguiente de la cola.
-        // Desde la tabla de admin usamos prepareNext() ya que no hay endpoint directo por ID.
-        return this.orderService.prepareNext().pipe(
-          catchError(error => {
-            console.error('Error preparing order:', orderId, error);
-            return of({ error: true, orderId });
-          })
-        );
-      } else if (status === 'READY') {
+      if (status === 'READY') {
         return this.orderService.markAsReady(orderId).pipe(
           catchError(error => {
             console.error('Error updating order:', orderId, error);

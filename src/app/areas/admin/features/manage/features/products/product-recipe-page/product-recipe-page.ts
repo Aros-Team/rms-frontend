@@ -138,8 +138,8 @@ export class ProductRecipePage implements OnInit {
   readonly suggestedSalePrice = computed(() => {
     const c = this.cost();
     if (!c) return 0;
-    // Cost comes back as a plain number in `ProductCostResponse`; `toAmount`
-    // keeps the rounding safe if that payload ever switches to a `Money` DTO.
+    // Cost comes back as `MoneyDto` objects; `toAmount` normalizes them before
+    // the markup math.
     return Math.round(toAmount(c.totalCost) * 1.3);
   });
 

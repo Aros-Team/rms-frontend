@@ -290,7 +290,13 @@ export class Order {
     return this.http.put<OrderResponse>(`v1/orders/${String(id)}/cancel`, {});
   }
 
-  updateOrder(request: UpdateOrderRequest): Observable<void> {
-    return this.http.put(`v1/orders/${String(request.id)}`, request).pipe(map(() => undefined));
+  /**
+   * Replaces an order's table and details (`PUT /v1/orders/{id}`).
+   *
+   * The backend accepts the same body as `createOrder` (`{ tableId, details }`)
+   * and returns the updated order; it is not a status-transition endpoint.
+   */
+  updateOrder(id: number, request: UpdateOrderRequest): Observable<OrderResponse> {
+    return this.http.put<OrderResponse>(`v1/orders/${String(id)}`, request);
   }
 }

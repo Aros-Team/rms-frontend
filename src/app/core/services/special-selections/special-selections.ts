@@ -5,7 +5,6 @@ import { SpecialSelectionRequest } from '@app/shared/models/dto/special-selectio
 import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';
 import { ScheduleEntryRequest } from '@app/shared/models/dto/special-selections/schedule-entry';
 import { SpecialSelectionHistoryPage } from '@app/shared/models/dto/special-selections/special-selection-history';
-import { SpecialSelectionHistoryEntry } from '@app/shared/models/dto/special-selections/special-selection-history';
 import { SuggestedPriceResponse } from '@app/shared/models/dto/special-selections/special-selection-suggested-price';
 
 @Injectable({
@@ -24,7 +23,8 @@ export class SpecialSelections {
     return this.http.put<SpecialSelectionResponse>(this.base + '/' + String(id), req);
   }
 
-  patchSchedule(id: number, body: { entries: ScheduleEntryRequest[] }): Observable<SpecialSelectionResponse> {
+  /** The API expects `{ schedule: [...] }` (see `SpecialSelectionSchedulePatchRequest`). */
+  patchSchedule(id: number, body: { schedule: ScheduleEntryRequest[] }): Observable<SpecialSelectionResponse> {
     return this.http.put<SpecialSelectionResponse>(this.base + '/' + String(id) + '/schedule', body);
   }
 
@@ -52,10 +52,6 @@ export class SpecialSelections {
     return this.http.get<SpecialSelectionHistoryPage>(this.base + '/' + String(id) + '/history', {
       params: { page: String(page), size: String(size) }
     });
-  }
-
-  getHistoryVersion(id: number, version: number): Observable<SpecialSelectionHistoryEntry> {
-    return this.http.get<SpecialSelectionHistoryEntry>(this.base + '/' + String(id) + '/history/' + String(version));
   }
 
   revertHistory(id: number, version: number): Observable<SpecialSelectionResponse> {

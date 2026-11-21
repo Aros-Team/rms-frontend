@@ -4,9 +4,9 @@ import { DialogModule } from 'primeng/dialog';
 import {
   type OrderDetailItem,
   type OrderResponse,
+  calculateLineTotal,
   calculateTotalPrice,
 } from '@app/shared/models/dto/orders/order-response';
-import { toAmount } from '@app/shared/models/dto/common/money';
 import { Money } from '@app/shared/pipes/money/money';
 
 @Component({
@@ -22,16 +22,17 @@ export class OrderDetailDialog {
   @Output() closed = new EventEmitter<void>();
 
   /**
-   * Per-line money total (`unitPrice + extraCharge`).
+   * Per-line money total.
    *
-   * Both fields are `MoneyDto` objects on the wire, so adding them in the
-   * template produced `NaN`. Normalization happens here, in TS, via `toAmount`.
+   * `unitPrice` is a `MoneyDto` on the wire and already includes the line's
+   * option surcharge, so `extraCharge` is not added again. Normalization
+   * happens here, in TS, via `calculateLineTotal`.
    */
   getLineTotal(item: OrderDetailItem): number {
-    return toAmount(item.unitPrice) + toAmount(item.extraCharge);
+    return calculateLineTotal(item);
   }
 
-  /** Delegates to the DTO helper so `extraCharge` is folded in exactly once. */
+  /** Delegates to the DTO helper, which prefers the server-computed total. */
   getTotalPrice(): number {
     if (!this.order) return 0;
     return calculateTotalPrice(this.order);

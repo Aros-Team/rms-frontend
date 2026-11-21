@@ -19,6 +19,19 @@ describe('mapHttpError', () => {
     expect(mapHttpError(err)).toBe('Error al procesar la solicitud');
   });
 
+  it('prefers the RFC 7807 `detail` over a legacy `message`', () => {
+    const err = new HttpErrorResponse({
+      status: 500,
+      error: { detail: 'Fallo interno', message: 'legacy' },
+    });
+    expect(mapHttpError(err)).toBe('Fallo interno');
+  });
+
+  it('surfaces the order 409 detail instead of the menu message', () => {
+    const err = new HttpErrorResponse({ status: 409, error: { detail: 'Table not available' } });
+    expect(mapHttpError(err, 'order')).toBe('Table not available');
+  });
+
   it('returns 409 schedule message', () => {
     const err = new HttpErrorResponse({ status: 409 });
     expect(mapHttpError(err)).toBe('Este menú no está disponible en este horario');

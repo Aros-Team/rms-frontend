@@ -106,7 +106,7 @@ describe('ProductCard', () => {
     expect(price?.textContent.trim()).toMatch(/^\$\s?15\.000$/);
   });
 
-  it('renders placeholder image when no thumbnailUrl', async () => {
+  it('renders placeholder image when no imageUrl', async () => {
     const fixture = await setupHost();
     const root = fixture.nativeElement as HTMLElement;
     const img = root.querySelector('img');

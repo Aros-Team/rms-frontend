@@ -22,17 +22,16 @@ const mockProduct: ProductListResponse = {
   name: 'Hamburguesa',
   description: 'Deliciosa hamburguesa',
   basePrice: { amount: '15000.00', currency: 'COP' },
-  thumbnailUrl: '',
+  imageUrl: '',
   categoryId: 1,
   categoryName: 'Platos',
-  available: true,
 };
 
 const mockOptions: ProductOption[] = [
   { id: 10, name: 'Lechuga', optionGroupId: 1, optionGroupName: 'Guarniciones', categorySelectionType: OptionSelectionType.SINGLE_CHOICE },
   { id: 11, name: 'Tomate', optionGroupId: 1, optionGroupName: 'Guarniciones', categorySelectionType: OptionSelectionType.SINGLE_CHOICE },
-  { id: 20, name: 'Tocineta', optionGroupId: 2, optionGroupName: 'Extras', extraPrice: { amount: 3000, currency: 'COP' }, categorySelectionType: OptionSelectionType.EXTRA },
-  { id: 21, name: 'Queso', optionGroupId: 2, optionGroupName: 'Extras', extraPrice: { amount: 2000, currency: 'COP' }, categorySelectionType: OptionSelectionType.EXTRA },
+  { id: 20, name: 'Tocineta', optionGroupId: 2, optionGroupName: 'Extras', extraPrice: { amount: 3000, currency: 'COP' }, categorySelectionType: 'ADD_ON' },
+  { id: 21, name: 'Queso', optionGroupId: 2, optionGroupName: 'Extras', extraPrice: { amount: 2000, currency: 'COP' }, categorySelectionType: 'ADD_ON' },
 ];
 
 describe('ProductOptionsModal', () => {

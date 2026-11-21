@@ -1,23 +1,28 @@
 import { Money } from '@app/shared/models/dto/common/money';
-import { OptionSelectionType } from '@app/shared/models/dto/option-groups/option-selection-type';
+import { ApiSelectionType } from '@app/shared/models/dto/option-groups/option-selection-type';
 
+/**
+ * Wire shape of `ProductOptionResponse`, shared by:
+ * `GET /v1/products/{id}/options`, `GET /v1/product-options` and
+ * `GET /v1/option-groups/{id}/options`.
+ */
 export interface ProductOption {
   id: number;
   name: string;
-  optionCategoryId: number;
-  optionCategoryName: string;
-  /** Present when fetched via /products/{id}/options */
-  optionGroupId?: number;
-  /** Present when fetched via /products/{id}/options */
-  optionGroupName?: string;
+  /** ID of the option group (called "category" in older payloads). */
+  optionGroupId: number;
+  /** Name of the option group (called "category" in older payloads). */
+  optionGroupName: string;
   cost?: Money;
   extraPrice?: Money;
-  categorySelectionType?: OptionSelectionType;
+  categorySelectionType?: ApiSelectionType;
 }
 
 export interface ProductOptionRequest {
   name: string;
-  optionCategoryId: number;
+  /** API field name is `optionGroupId` (required by `ProductOptionRequest`). */
+  optionGroupId: number;
+  recipe?: { supplyVariantId: number; requiredQuantity: number }[];
 }
 
 export type ProductOptionResponse = ProductOption;

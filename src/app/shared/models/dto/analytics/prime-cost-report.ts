@@ -26,7 +26,8 @@ export interface PrimeCostPeriod {
   cogs: { total: Money; byCategory: PrimeCostCogsBreakdownRow[] };
   labor: { total: Money; byArea: PrimeCostLaborBreakdownRow[] };
   primeCost: Money;
-  primeCostPct: number;
+  /** `null` when the period has no sales (API returns `null` instead of 0). */
+  primeCostPct: number | null;
   margins?: { grossProfitPct?: number; netProfitPct?: number };
   dataCompleteness: DataCompleteness;
 }

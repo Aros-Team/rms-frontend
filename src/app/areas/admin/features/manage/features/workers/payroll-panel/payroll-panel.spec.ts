@@ -95,7 +95,6 @@ function makeEvent(overrides: Partial<PayrollEventResponse> = {}): PayrollEventR
   return {
     id: 55,
     userId: 7,
-    userName: 'Ana Pérez',
     eventDate: '2026-06-15',
     eventType: 'OVERTIME',
     quantity: 2,
@@ -103,7 +102,7 @@ function makeEvent(overrides: Partial<PayrollEventResponse> = {}): PayrollEventR
     amount: money('37500.00'),
     notes: 'Cierre de cocina',
     createdAt: '2026-06-15T22:00:00',
-    createdBy: 1,
+    createdBy: 'system',
     ...overrides,
   };
 }
@@ -115,14 +114,13 @@ function makeSettlement(
     id: 91,
     payrollId: 31,
     userId: 7,
-    userName: 'Ana Pérez',
     settlementType: 'BIWEEKLY',
     periodStart: '2026-06-01',
     periodEnd: '2026-06-15',
     amount: money('500000.00'),
     notes: 'Primera quincena',
     settledAt: '2026-06-15T18:00:00',
-    settledBy: 1,
+    settledBy: 'system',
     ...overrides,
   };
 }
@@ -338,7 +336,6 @@ describe('PayrollPanel', () => {
       userId: 7,
       eventType: 'OVERTIME',
       quantity: 2,
-      eventDate: '2026-06-15',
     });
     expect(component.eventUnitRate()).toBe(18750);
     expect(textOf(fixture, 'calculate-basis')).toBe(
@@ -372,7 +369,7 @@ describe('PayrollPanel', () => {
     );
   });
 
-  it('sends the created event with quantity, unit rate as Money and notes', async () => {
+  it('sends the created event with quantity, unit rate as a number and notes', async () => {
     await mount();
 
     component.openEventModal();
@@ -390,7 +387,7 @@ describe('PayrollPanel', () => {
       eventDate: '2026-06-18',
       eventType: 'NIGHT_SURCHARGE',
       quantity: 4,
-      unitRate: { amount: '21000.00', currency: 'COP' },
+      unitRate: 21000,
       notes: 'Turno noche',
     });
     expect(component.eventModalVisible()).toBe(false);
@@ -456,7 +453,7 @@ describe('PayrollPanel', () => {
     expect(component.settleAmount()).toBe(900000);
   });
 
-  it('submits the settlement with the pending amount as Money', async () => {
+  it('submits the settlement against the payroll id with the pending amount as a number', async () => {
     await mount();
 
     component.openSettleModal();
@@ -466,13 +463,12 @@ describe('PayrollPanel', () => {
     fixture.detectChanges();
 
     expect(payrollApi.settle).toHaveBeenCalledWith({
+      payrollId: 31,
       userId: 7,
-      year,
-      month,
       settlementType: 'WEEKLY',
       periodStart: `${String(year)}-${String(month).padStart(2, '0')}-01`,
       periodEnd: `${String(year)}-${String(month).padStart(2, '0')}-30`,
-      amount: { amount: '1150000.00', currency: 'COP' },
+      amount: 1150000,
       notes: 'Pago semanal',
     });
     expect(component.settleModalVisible()).toBe(false);
@@ -494,7 +490,7 @@ describe('PayrollPanel', () => {
     fixture.detectChanges();
 
     expect(payrollApi.settle).toHaveBeenCalledWith(
-      expect.objectContaining({ amount: { amount: '100000.00', currency: 'COP' } }),
+      expect.objectContaining({ amount: 100000 }),
     );
   });
 
@@ -522,7 +518,7 @@ describe('PayrollPanel', () => {
     fixture.detectChanges();
 
     expect(payrollApi.settle).toHaveBeenCalledWith(
-      expect.objectContaining({ amount: { amount: '1200000.00', currency: 'COP' } }),
+      expect.objectContaining({ amount: 1200000 }),
     );
   });
 

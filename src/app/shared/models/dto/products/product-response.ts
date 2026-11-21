@@ -20,6 +20,9 @@ export interface ProductResponse {
   areaName: string;
   recipe: ProductRecipeItem[];
   estimatedPrepMinutes?: number;
-  imageUrl?: string;
+  /** Signed URL of the primary image (mobile variant), `null` when the product has none. */
+  imageUrl?: string | null;
   selectionType?: SelectionType;
+  /** IDs of the option groups associated with the product (`GET /v1/products/{id}`). */
+  optionGroupIds?: number[];
 }

@@ -12,14 +12,15 @@ import { PayrollEventType } from './payroll-event-type';
  * backend so the form can prefill the inputs without doing money arithmetic in
  * TypeScript.
  *
- * `hourlyRate`, `suggestedUnitRate` and `suggestedAmount` are `Money` DTOs
- * (decimal string amounts); `multiplier` is a plain factor (e.g. `1.5`).
+ * `hourlyRate` is always present. For event types with a manual rate
+ * (`BONUS_PERFORMANCE`, `DEDUCTION`) the API has no multiplier, so
+ * `multiplier`, `suggestedUnitRate` and `suggestedAmount` arrive as `null`.
  */
 export interface PayrollCalculateResponse {
   userId: number;
   eventType: PayrollEventType;
   hourlyRate: Money;
-  multiplier: number;
-  suggestedUnitRate: Money;
-  suggestedAmount: Money;
+  multiplier: number | null;
+  suggestedUnitRate: Money | null;
+  suggestedAmount: Money | null;
 }

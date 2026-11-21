@@ -55,7 +55,7 @@ const payrollRequest: PayrollRequest = {
   month: 6,
   periodStart: '2026-06-01',
   periodEnd: '2026-06-30',
-  baseSalary: moneyDto('3000000.00'),
+  baseSalary: 3000000,
   hoursWorked: 192,
 };
 
@@ -86,14 +86,13 @@ const eventRequest: PayrollEventRequest = {
   eventDate: '2026-06-15',
   eventType: 'OVERTIME',
   quantity: 2,
-  unitRate: moneyDto('23437.50'),
+  unitRate: 23437.5,
   notes: 'Cierre de mes',
 };
 
 const eventResponse: PayrollEventResponse = {
   id: 31,
   userId: 7,
-  userName: 'Juan Pérez',
   eventDate: '2026-06-15',
   eventType: 'OVERTIME',
   quantity: 2,
@@ -101,14 +100,13 @@ const eventResponse: PayrollEventResponse = {
   amount: moneyDto('46875.00'),
   notes: 'Cierre de mes',
   createdAt: '2026-06-15T20:00:00Z',
-  createdBy: 1,
+  createdBy: 'system',
 };
 
 const calculateRequest: PayrollCalculateRequest = {
   userId: 7,
   eventType: 'NIGHT_SURCHARGE',
   quantity: 4,
-  eventDate: '2026-06-18',
 };
 
 const calculateResponse: PayrollCalculateResponse = {
@@ -121,13 +119,12 @@ const calculateResponse: PayrollCalculateResponse = {
 };
 
 const settlementRequest: PayrollSettlementRequest = {
+  payrollId: 11,
   userId: 7,
-  year: 2026,
-  month: 6,
   settlementType: 'WEEKLY',
   periodStart: '2026-06-01',
   periodEnd: '2026-06-07',
-  amount: moneyDto('1000000.00'),
+  amount: 1000000,
   notes: 'Primera semana',
 };
 
@@ -135,14 +132,13 @@ const settlementResponse: PayrollSettlementResponse = {
   id: 51,
   payrollId: 11,
   userId: 7,
-  userName: 'Juan Pérez',
   settlementType: 'WEEKLY',
   periodStart: '2026-06-01',
   periodEnd: '2026-06-07',
   amount: moneyDto('1000000.00'),
   notes: 'Primera semana',
   settledAt: '2026-06-08T10:00:00Z',
-  settledBy: 1,
+  settledBy: 'system',
 };
 
 describe('Payroll service', () => {

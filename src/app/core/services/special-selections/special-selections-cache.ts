@@ -9,7 +9,6 @@ import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selecti
 import { SpecialSelectionRequest } from '@app/shared/models/dto/special-selections/special-selection-request';
 import { ScheduleEntryRequest } from '@app/shared/models/dto/special-selections/schedule-entry';
 import { SpecialSelectionHistoryPage } from '@app/shared/models/dto/special-selections/special-selection-history';
-import { SpecialSelectionHistoryEntry } from '@app/shared/models/dto/special-selections/special-selection-history';
 import { SuggestedPriceResponse } from '@app/shared/models/dto/special-selections/special-selection-suggested-price';
 import { CHANGE_TYPE, SpecialSelectionWsPayload } from '@app/shared/models/dto/special-selections/special-selection-ws-payload';
 
@@ -65,8 +64,7 @@ export class SpecialSelectionsCache {
       }
       case CHANGE_TYPE.UPDATE:
       case CHANGE_TYPE.SCHEDULE_CHANGE:
-      case CHANGE_TYPE.PRICE_CHANGE:
-      case CHANGE_TYPE.REVERT: {
+      case CHANGE_TYPE.PRICE_CHANGE: {
         const detail = this.detailCaches.get(productId);
         detail?.invalidate();
         if (selection) {
@@ -96,10 +94,8 @@ export class SpecialSelectionsCache {
   private removeCachedSelection(id: number): void {
     this.detailCaches.get(id)?.reset();
     this.historyCaches.get(id)?.reset();
-    this.historyVersionCaches.get(id)?.forEach((cache) => { cache.reset(); });
     this.detailCaches.delete(id);
     this.historyCaches.delete(id);
-    this.historyVersionCaches.delete(id);
   }
 
   readonly list = new ResourceCache<SpecialSelectionResponse[]>(
@@ -114,7 +110,6 @@ export class SpecialSelectionsCache {
 
   private readonly detailCaches = new Map<number, ResourceCache<SpecialSelectionResponse>>();
   private readonly historyCaches = new Map<number, ResourceCache<SpecialSelectionHistoryPage>>();
-  private readonly historyVersionCaches = new Map<number, Map<number, ResourceCache<SpecialSelectionHistoryEntry>>>();
 
   detail(id: number): ResourceCache<SpecialSelectionResponse> {
     let cache = this.detailCaches.get(id);
@@ -140,29 +135,11 @@ export class SpecialSelectionsCache {
     return cache;
   }
 
-  historyVersion(id: number, version: number): ResourceCache<SpecialSelectionHistoryEntry> {
-    let inner = this.historyVersionCaches.get(id);
-    if (!inner) {
-      inner = new Map();
-      this.historyVersionCaches.set(id, inner);
-    }
-    let cache = inner.get(version);
-    if (!cache) {
-      cache = new ResourceCache<SpecialSelectionHistoryEntry>(
-        () => this.api.getHistoryVersion(id, version),
-        { ttlMs: 10 * 60 * 1000, staleWhileRevalidate: true }
-      );
-      inner.set(version, cache);
-    }
-    return cache;
-  }
-
   invalidateAll(): void {
     this.list.invalidate();
     this.availableNow.invalidate();
     this.detailCaches.forEach((c) => { c.invalidate(); });
     this.historyCaches.forEach((c) => { c.invalidate(); });
-    this.historyVersionCaches.forEach((inner) => { inner.forEach((c) => { c.invalidate(); }); });
   }
 
   invalidateDetail(id: number): void {
@@ -171,7 +148,6 @@ export class SpecialSelectionsCache {
 
   invalidateHistory(id: number): void {
     this.historyCaches.get(id)?.invalidate();
-    this.historyVersionCaches.get(id)?.forEach((c) => { c.invalidate(); });
   }
 
   suggestPrice(id: number, marginPercent: number): Observable<SuggestedPriceResponse> {
@@ -190,7 +166,7 @@ export class SpecialSelectionsCache {
   }
 
   patchSchedule(id: number, entries: ScheduleEntryRequest[]): Observable<SpecialSelectionResponse> {
-    return this.api.patchSchedule(id, { entries: entries }).pipe(tap(() => {
+    return this.api.patchSchedule(id, { schedule: entries }).pipe(tap(() => {
       this.availableNow.invalidate();
       this.invalidateDetail(id);
     }));

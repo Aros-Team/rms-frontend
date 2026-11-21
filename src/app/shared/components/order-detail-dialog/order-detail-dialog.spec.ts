@@ -3,10 +3,9 @@
  *
  * Feature: The dialog renders each line's money total and the order total.
  * Contract:
- *  - `getLineTotal()` = `toAmount(unitPrice) + toAmount(extraCharge)`, so a
- *    `MoneyDto` line (`{ amount: "15000.00" }` + `{ amount: "2500.00" }`)
- *    yields exactly 17500 instead of `NaN`;
- *  - a missing `extraCharge` contributes 0;
+ *  - `getLineTotal()` = `calculateLineTotal(detail)`, i.e. `toAmount(unitPrice)`
+ *    only, because `unitPrice` already includes `extraCharge`; a `MoneyDto`
+ *    line yields an exact number instead of `NaN`;
  *  - `getTotalPrice()` = `calculateTotalPrice(order)` and 0 when no order;
  *  - money objects never reach the template as raw objects for arithmetic.
  *
@@ -30,9 +29,12 @@ function makeDetail(overrides: Partial<OrderDetailItem> = {}): OrderDetailItem {
 }
 
 describe('OrderDetailDialog', () => {
-  it('sums a MoneyDto unitPrice and extraCharge into an exact line total', () => {
+  it('does not add extraCharge on top of an inclusive unitPrice', () => {
     const dialog = new OrderDetailDialog();
-    const detail = makeDetail({ extraCharge: { amount: '2500.00', currency: 'COP' } });
+    const detail = makeDetail({
+      unitPrice: { amount: '17500.00', currency: 'COP' },
+      extraCharge: { amount: '2500.00', currency: 'COP' },
+    });
 
     const total = dialog.getLineTotal(detail);
 
@@ -40,7 +42,7 @@ describe('OrderDetailDialog', () => {
     expect(total).toBe(17500);
   });
 
-  it('treats a missing extraCharge as zero', () => {
+  it('normalizes a MoneyDto unitPrice', () => {
     const dialog = new OrderDetailDialog();
 
     expect(dialog.getLineTotal(makeDetail())).toBe(15000);
@@ -78,3 +80,4 @@ describe('OrderDetailDialog', () => {
     expect(dialog.getTotalPrice()).toBe(0);
   });
 });
+

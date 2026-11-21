@@ -9,12 +9,12 @@ import { SettlementType } from './settlement-type';
  * `GET /v1/payroll/settlements/{userId}/{year}/{month}`.
  *
  * `amount` is a `Money` DTO (decimal string amount), not a bare number.
+ * `settledBy` is a free-form actor label (the API currently sends `"system"`).
  */
 export interface PayrollSettlementResponse {
   id: number;
   payrollId: number;
   userId: number;
-  userName: string;
   settlementType: SettlementType;
   /** `YYYY-MM-DD` */
   periodStart: string;
@@ -23,5 +23,5 @@ export interface PayrollSettlementResponse {
   amount: Money;
   notes: string;
   settledAt: string;
-  settledBy: number;
+  settledBy: string;
 }

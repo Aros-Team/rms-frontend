@@ -1,48 +1,81 @@
-import { HttpClient } from '@angular/common/http';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { Component, inject } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Area } from '@app/core/services/areas/area';
+import { Category } from '@app/core/services/category/category';
 import { Logging } from '@app/core/services/logging/logging';
+import { Product } from '@app/core/services/products/product';
+import { AreaSimpleResponse } from '@app/shared/models/dto/areas/area-simple-response';
+import { CategorySimpleResponse } from '@app/shared/models/dto/category/category-simple-response';
 
+/**
+ * Minimal product form. It posts to `POST /v1/products` through the `Product`
+ * service, using the real `ProductRequest` field names (`basePrice`,
+ * `categoryId`, `areaId`, `estimatedPrepMinutes`).
+ */
 @Component({
   selector: 'app-product-creation-form',
   templateUrl: './product-creation-form.html',
   imports: [ReactiveFormsModule],
 })
-export class ProductCreationForm {
-  private http = inject(HttpClient);
+export class ProductCreationForm implements OnInit {
+  private productService = inject(Product);
+  private areaService = inject(Area);
+  private categoryService = inject(Category);
   private logger = inject(Logging);
 
+  readonly areas = signal<AreaSimpleResponse[]>([]);
+  readonly categories = signal<CategorySimpleResponse[]>([]);
 
   form = new FormGroup({
-    name: new FormControl(''),
-    price: new FormControl(''),
-    description: new FormControl(''),
-    estimateTime: new FormControl(0),
-    preparationArea: new FormControl(1),
+    name: new FormControl('', {
+      nonNullable: true,
+      validators: [(control) => Validators.required(control)],
+    }),
+    basePrice: new FormControl(0, {
+      nonNullable: true,
+      validators: [(control) => Validators.required(control), (control) => Validators.min(0)(control)],
+    }),
+    description: new FormControl('', { nonNullable: true }),
+    estimatedPrepMinutes: new FormControl<number | null>(null),
+    categoryId: new FormControl<number | null>(null, [(control) => Validators.required(control)]),
+    areaId: new FormControl<number | null>(null, [(control) => Validators.required(control)]),
   });
 
-  /**
-   * availables preparation areas
-   */
-  preparationAreas = [
-    { id: 1, name: 'Kitchen' },
-    { id: 2, name: 'Bar' },
-  ];
-
-
-
-  createProduct() {
-    this.http.post('products', {
-      name: this.form.get('name')?.value,
-      price: this.form.get('price')?.value,
-      description: this.form.get('description')?.value,
-      estimateTime: this.form.get('estimateTime')?.value,
-      areaId: this.form.get('preparationArea')?.value,
-    }).subscribe({
-      next: (r) => { this.logger.debug('Product created:', r); },
-      error: (er) => { this.logger.error('Error creating product:', er); }
+  ngOnInit(): void {
+    this.areaService.getAreas().subscribe({
+      next: (areas) => { this.areas.set(areas); },
+      error: (err: unknown) => { this.logger.error('Error loading areas', err); },
+    });
+    this.categoryService.getCategories().subscribe({
+      next: (categories) => { this.categories.set(categories); },
+      error: (err: unknown) => { this.logger.error('Error loading categories', err); },
     });
   }
 
+  createProduct(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const { name, basePrice, description, estimatedPrepMinutes, categoryId, areaId } = this.form.getRawValue();
+    if (categoryId == null || areaId == null) return;
+
+    this.productService.createProduct({
+      name,
+      basePrice,
+      description: description || undefined,
+      estimatedPrepMinutes: estimatedPrepMinutes ?? undefined,
+      categoryId,
+      areaId,
+      recipe: [],
+    }).subscribe({
+      next: (product) => {
+        this.logger.debug('Product created:', product);
+        this.form.reset({ name: '', basePrice: 0, description: '', estimatedPrepMinutes: null, categoryId: null, areaId: null });
+      },
+      error: (err: unknown) => { this.logger.error('Error creating product:', err); },
+    });
+  }
 }

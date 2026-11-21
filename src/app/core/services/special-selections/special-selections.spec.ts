@@ -19,7 +19,7 @@ describe('SpecialSelections service', () => {
   let httpMock: HttpTestingController;
 
   const mockSelection: SpecialSelectionResponse = {
-    id: 7,
+    productId: 7,
     name: 'Combo Almuerzo',
     description: 'Sopa + plato fuerte',
     basePrice: { amount: '12.50', currency: 'COP' },
@@ -65,7 +65,7 @@ describe('SpecialSelections service', () => {
 
   it('getById hits GET v1/special-selections/{id}', () => {
     service.getById(7).subscribe(res => {
-      expect(res.id).toBe(7);
+      expect(res.productId).toBe(7);
     });
 
     const req = httpMock.expectOne('v1/admin/special-selections/7');
@@ -152,6 +152,34 @@ describe('SpecialSelections service', () => {
     expect(req.request.method).toBe('PUT');
     expect(req.request.body).toEqual(payload);
     req.flush(mockSelection);
+  });
+
+  it('patchSchedule PUTs { schedule } to v1/special-selections/{id}/schedule', () => {
+    const entries = [{ dayOfWeek: 'MONDAY' as const, startTime: '10:00:00', endTime: '22:00:00' }];
+
+    service.patchSchedule(7, { schedule: entries }).subscribe();
+
+    const req = httpMock.expectOne('v1/admin/special-selections/7/schedule');
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({ schedule: entries });
+    req.flush(mockSelection);
+  });
+
+  it('getHistory hits GET v1/special-selections/{id}/history with page params', () => {
+    const page = {
+      content: [],
+      page: { size: 10, number: 0, totalElements: 0, totalPages: 0 },
+    };
+
+    service.getHistory(7, 0, 10).subscribe(res => {
+      expect(res.page.totalElements).toBe(0);
+    });
+
+    const req = httpMock.expectOne(
+      'v1/admin/special-selections/7/history?page=0&size=10',
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush(page);
   });
 
   it('delete DELETEs v1/special-selections/{id}', () => {

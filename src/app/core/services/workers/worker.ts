@@ -3,6 +3,7 @@ import { Injectable, inject } from "@angular/core";
 import { CreateWorkerRequest } from "@app/shared/models/dto/workers/create-worker-request";
 import { SalaryHistoryEntry } from "@app/shared/models/dto/workers/salary-history-entry";
 import { UpdateWorkerRequest, WorkerResponse } from "@app/shared/models/dto/workers/worker-response";
+import { UserRegisterResponse } from "@app/shared/models/dto/workers/user-register-response";
 import { Observable } from "rxjs";
 import { Logging } from '@app/core/services/logging/logging';
 
@@ -23,9 +24,9 @@ export class Worker {
     return this.http.get<WorkerResponse[]>('v1/workers', { params });
   }
 
-  public createWorker(data: CreateWorkerRequest): Observable<WorkerResponse> {
+  public createWorker(data: CreateWorkerRequest): Observable<UserRegisterResponse> {
     this.logger.debug('Worker: Calling POST workers with data:', data);
-    return this.http.post<WorkerResponse>('v1/workers', data);
+    return this.http.post<UserRegisterResponse>('v1/workers', data);
   }
 
   public updateWorker(id: number, data: UpdateWorkerRequest): Observable<WorkerResponse> {

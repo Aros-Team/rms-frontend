@@ -73,7 +73,7 @@ export class MasterData {
 
   groupOptionsByCategory(options: ProductOption[]): Record<string, ProductOption[]> {
     return options.reduce<Record<string, ProductOption[]>>((acc, opt) => {
-      const key = opt.optionCategoryName;
+      const key = opt.optionGroupName;
       acc[key] ??= [];
       acc[key].push(opt);
       return acc;

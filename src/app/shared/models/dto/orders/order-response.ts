@@ -1,10 +1,24 @@
 import type { SelectionType } from '@app/shared/models/dto/special-selections/selection-type';
-import { toAmount, type Money } from '@app/shared/models/dto/common/money';
+import { toAmount, tryToAmount, type Money } from '@app/shared/models/dto/common/money';
 
 export interface OrderSelectedOption {
   id: number;
   name: string;
   categoryName: string;
+}
+
+/** Combo product resolved by the backend (`selectedProducts` on the wire). */
+export interface OrderSelectedProduct {
+  id: number;
+  name: string | null;
+  basePrice: Money | number | null;
+}
+
+/** Special-selection addition resolved by the backend (`selectedAdditions`). */
+export interface OrderSelectedAddition {
+  id: number;
+  name: string | null;
+  extraPrice: Money | number | null;
 }
 
 export interface OrderAdditionResolved {
@@ -44,14 +58,21 @@ export interface OrderDetailItem {
   unitPrice: Money | number;
   /**
    * Surcharge for the selected options/additions of this line, also a
-   * `MoneyDto` now; already included in `unitPrice` for priced options, but
-   * kept separate here because some responses only report the base price in
-   * `unitPrice`.
+   * `MoneyDto`. Informational only: the backend already includes it in
+   * `unitPrice`, so never add it again (use `calculateLineTotal`).
    */
   extraCharge?: Money | number;
   instructions: string;
   selectedOptions?: OrderSelectedOption[];
   selectedProductIds?: number[];
+  /** Combo products resolved by the backend (`selectedProducts`). */
+  selectedProducts?: OrderSelectedProduct[];
+  /** Special-selection addition IDs (`additionIds`). */
+  additionIds?: number[];
+  /** Special-selection additions resolved by the backend (`selectedAdditions`). */
+  selectedAdditions?: OrderSelectedAddition[];
+  /** Clarification answers with the question text resolved by the backend. */
+  clarifications?: OrderClarificationResolved[];
   selectionType?: SelectionType;
   groupSelections?: OrderGroupSelectionResolved[];
   additionsResolved?: OrderAdditionResolved[];
@@ -73,19 +94,38 @@ export interface OrderResponse {
 }
 
 /**
+ * Single source of truth for a line's monetary contribution.
+ *
+ * The backend already includes the line's option surcharge in `unitPrice`
+ * (`TakeOrderService` builds `unitPrice = basePrice + extraCharge`), so
+ * `extraCharge` must NOT be added again: doing so double-counts every
+ * surcharge. Normalize the `MoneyDto` through `toAmount()` instead of summing
+ * the objects (which yields `NaN` or a concatenated string).
+ */
+export function calculateLineTotal(detail: OrderDetailItem): number {
+  return toAmount(detail.unitPrice);
+}
+
+/**
  * Single source of truth for an order's monetary total.
  *
- * Sums `unitPrice + extraCharge` per line, normalizing every `MoneyDto` through
- * `toAmount()` (adding the objects directly yields `NaN`). Anywhere an order
- * total is needed (order table, dashboard KPIs, sales composition) must call
- * this function instead of re-implementing the reduction.
+ * Prefers the server-computed `total` (`MoneyDto`), which is authoritative and
+ * already folds every line surcharge. Only when the payload carries no usable
+ * total does it fall back to summing each line's `unitPrice` through
+ * `calculateLineTotal()` — never `unitPrice + extraCharge`, because the backend
+ * contract already includes the surcharge in `unitPrice`.
+ *
+ * Anywhere an order total is needed (order table, dashboard KPIs, sales
+ * composition) must call this function instead of re-implementing the
+ * reduction.
  */
 export function calculateTotalPrice(order: OrderResponse): number {
+  const serverTotal = tryToAmount(order.total);
+  if (serverTotal !== null) {
+    return serverTotal;
+  }
   if (!order.details.length) {
     return 0;
   }
-  return order.details.reduce(
-    (sum, detail) => sum + toAmount(detail.unitPrice) + toAmount(detail.extraCharge),
-    0,
-  );
+  return order.details.reduce((sum, detail) => sum + calculateLineTotal(detail), 0);
 }

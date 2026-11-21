@@ -1,17 +1,15 @@
-import { Money } from '@models/dto/common/money';
-
-import { PayrollStatus } from './payroll-status';
-
 /**
- * Payload for `POST /v1/payroll` and, partially, `PATCH /v1/payroll/{id}`.
+ * Payload for `POST /v1/payroll`.
  *
  * Field-by-field mirror of the backend `PayrollRequest` record. Required:
  * `userId`, `year`, `month`, `periodStart`, `periodEnd`, `baseSalary`,
  * `hoursWorked`. `bonuses` / `deductions` may be omitted (backend defaults them
- * to zero) and `status` may be omitted on creation (backend defaults it).
+ * to zero). The initial status is always `PENDING`; use `PayrollUpdateRequest`
+ * on `PATCH` to change it.
  *
- * All monetary fields are `Money` DTOs — the wire format is
- * `{ amount: "125000000.00", currency: "COP" }`, never a bare number.
+ * Request money fields are plain numbers on this API (like
+ * `UserRegisterRequest.salary`), not `Money` DTOs. Only responses carry
+ * `{ amount, currency }`.
  */
 export interface PayrollRequest {
   userId: number;
@@ -21,11 +19,10 @@ export interface PayrollRequest {
   periodStart: string;
   /** `YYYY-MM-DD` */
   periodEnd: string;
-  baseSalary: Money;
-  bonuses?: Money;
-  deductions?: Money;
+  baseSalary: number;
+  bonuses?: number;
+  deductions?: number;
   /** Hours actually worked in the period (also the denominator for hourly rate). */
   hoursWorked: number;
-  status?: PayrollStatus;
   notes?: string;
 }

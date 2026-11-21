@@ -23,7 +23,7 @@ import { TableResponse } from '@app/shared/models/dto/tables/table-response';
 import { environment } from '@environments/environment';
 import { of } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
-import { calculateTotalPrice } from '@app/shared/models/dto/orders/order-response';
+import { calculateLineTotal, calculateTotalPrice } from '@app/shared/models/dto/orders/order-response';
 import { ListSkeleton } from '@shared/skeletons/list-skeleton/list-skeleton';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 import { ServerDownPage } from '@shared/components/server-down-page/server-down-page';
@@ -181,7 +181,7 @@ export class Dashboard implements OnInit {
         const productName = detail.productName.trim() || 'Sin nombre';
         const categoryName = detail.categoryName?.trim() ?? 'Sin categoría';
         const current = map.get(productName) ?? { category: categoryName, total: 0, units: 0 };
-        current.total += calculateTotalPrice({ ...order, details: [detail] });
+        current.total += calculateLineTotal(detail);
         current.units += 1;
         current.category = categoryName;
         map.set(productName, current);
@@ -199,7 +199,7 @@ export class Dashboard implements OnInit {
       for (const detail of order.details) {
         const categoryName = detail.categoryName?.trim() ?? 'Sin categoría';
         const current = map.get(categoryName) ?? { total: 0, units: 0 };
-        current.total += calculateTotalPrice({ ...order, details: [detail] });
+        current.total += calculateLineTotal(detail);
         current.units += 1;
         map.set(categoryName, current);
       }

@@ -272,7 +272,7 @@ export class ComboWizardState {
       this.lastSavedAtState.set(null);
     } else {
       this.draftState.set({
-        sourceId: response.id,
+        sourceId: response.productId,
         data: responseToFormData(response),
       });
       this.lastSavedAtState.set(Date.now());

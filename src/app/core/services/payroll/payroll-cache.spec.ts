@@ -59,7 +59,6 @@ function payroll(id: number, month: number): PayrollResponse {
 const eventResponse: PayrollEventResponse = {
   id: 31,
   userId: 7,
-  userName: 'Juan Pérez',
   eventDate: '2026-06-15',
   eventType: 'OVERTIME',
   quantity: 2,
@@ -67,21 +66,20 @@ const eventResponse: PayrollEventResponse = {
   amount: moneyDto('46875.00'),
   notes: '',
   createdAt: '2026-06-15T20:00:00Z',
-  createdBy: 1,
+  createdBy: 'system',
 };
 
 const settlementResponse: PayrollSettlementResponse = {
   id: 51,
   payrollId: 11,
   userId: 7,
-  userName: 'Juan Pérez',
   settlementType: 'DAILY',
   periodStart: '2026-06-01',
   periodEnd: '2026-06-01',
   amount: moneyDto('100000.00'),
   notes: '',
   settledAt: '2026-06-02T10:00:00Z',
-  settledBy: 1,
+  settledBy: 'system',
 };
 
 describe('PayrollCache', () => {

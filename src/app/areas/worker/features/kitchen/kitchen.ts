@@ -29,6 +29,12 @@ export interface ColumnLimit {
   total: number;
 }
 
+/** RFC 7807 problem responses expose the human-readable text in `detail`. */
+function problemDetail(err: HttpErrorResponse): string | null {
+  const body = err.error as { detail?: string; message?: string } | null;
+  return body?.detail ?? body?.message ?? null;
+}
+
 const NO_LIMITS: Record<KitchenColumn, ColumnLimit | null> = {
   queue: null,
   preparing: null,
@@ -290,7 +296,7 @@ export class Kitchen implements OnInit, OnDestroy {
         this.preparingNext.set(false);
       },
       error: (err: HttpErrorResponse) => {
-        const msg = (err.error as { message?: string }).message ?? 'No hay órdenes en cola.';
+        const msg = problemDetail(err) ?? 'No hay órdenes en cola.';
         this.error.set(msg);
         this.preparingNext.set(false);
       }
@@ -310,7 +316,7 @@ export class Kitchen implements OnInit, OnDestroy {
         this.processing.delete(order.id);
       },
 error: (err: HttpErrorResponse) => {
-        this.error.set((err.error as { message?: string }).message ?? 'No se pudo marcar como lista.');
+        this.error.set(problemDetail(err) ?? 'No se pudo marcar como lista.');
         this.processing.delete(order.id);
       }
     });
@@ -331,7 +337,7 @@ error: (err: HttpErrorResponse) => {
         this.processing.delete(order.id);
       },
 error: (err: HttpErrorResponse) => {
-        this.error.set((err.error as { message?: string }).message ?? 'No se pudo entregar la orden.');
+        this.error.set(problemDetail(err) ?? 'No se pudo entregar la orden.');
         this.processing.delete(order.id);
       }
     });

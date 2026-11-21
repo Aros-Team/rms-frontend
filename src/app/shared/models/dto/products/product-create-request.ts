@@ -1,3 +1,5 @@
+import type { OptionExtrasItem } from './product-option';
+
 export interface RecipeItemRequest {
   supplyVariantId: number;
   requiredQuantity: number;
@@ -5,7 +7,8 @@ export interface RecipeItemRequest {
 
 export interface ProductOptionCreateRequest {
   name: string;
-  optionCategoryId: number;
+  /** API field name for the option group (`ProductOptionRequest.optionGroupId`). */
+  optionGroupId: number;
   recipe: RecipeItemRequest[];
 }
 
@@ -17,4 +20,6 @@ export interface ProductCreateRequest {
   areaId: number;
   recipe: RecipeItemRequest[];
   optionIds?: number[];
+  optionExtras?: OptionExtrasItem[];
+  estimatedPrepMinutes?: number;
 }

@@ -29,7 +29,7 @@ function makeCombo(
   basePrice: SpecialSelectionResponse['basePrice'],
 ): SpecialSelectionResponse {
   return {
-    id,
+    productId: id,
     name,
     description: '',
     basePrice,

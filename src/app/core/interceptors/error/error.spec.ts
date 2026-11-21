@@ -382,6 +382,12 @@ describe('isAuthEndpoint', () => {
     );
   });
 
+  it('matches the public setup endpoints', () => {
+    expect(isAuthEndpoint('auth/setup-password')).toBe(true);
+    expect(isAuthEndpoint('auth/setup-account/validate?token=abc')).toBe(true);
+    expect(isAuthEndpoint('auth/resend-password')).toBe(true);
+  });
+
   it('does not match a business endpoint', () => {
     expect(isAuthEndpoint('v1/products')).toBe(false);
   });

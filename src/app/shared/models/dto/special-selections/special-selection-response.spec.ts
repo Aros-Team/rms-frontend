@@ -24,7 +24,7 @@ import type { SpecialSelectionResponse } from './special-selection-response';
 
 function makeSelection(basePrice: Money): SpecialSelectionResponse {
   return {
-    id: 1,
+    productId: 1,
     name: 'Combo Familiar',
     description: '',
     basePrice,

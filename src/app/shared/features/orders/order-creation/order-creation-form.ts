@@ -143,9 +143,9 @@ export class OrderCreationForm implements OnInit {
   }
 
   private resolveCreateOrderError(err: unknown): string {
-    const errorObj = err as { status?: number; error?: { message?: string } };
+    const errorObj = err as { status?: number; error?: { detail?: string; message?: string } };
     const status = errorObj.status;
-    const message = errorObj.error?.message ?? '';
+    const message = errorObj.error?.detail ?? errorObj.error?.message ?? '';
 
     if (status === 409) {
       if (message.startsWith('Table not available')) return 'La mesa no está disponible.';

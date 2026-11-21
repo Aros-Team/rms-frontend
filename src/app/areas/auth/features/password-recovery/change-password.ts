@@ -12,6 +12,13 @@ import { Password } from '@app/core/services/auth/password';
 import { Auth } from '@app/core/services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
 import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
+import {
+  hasLowerCase,
+  hasMinPasswordLength,
+  hasNumber,
+  hasSymbol,
+  hasUpperCase,
+} from '@app/shared/lib/password-policy/password-policy';
 
 const passwordMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
   const newPassword = String(control.get('newPassword')?.value ?? '');
@@ -64,11 +71,11 @@ export class ChangePassword {
   checkPasswordRequirement(requirement: string): boolean {
     const password = String(this.form.get('newPassword')?.value ?? '');
     switch (requirement) {
-      case 'minLength': return password.length >= 8;
-      case 'upperCase': return /[A-Z]/.test(password);
-      case 'lowerCase': return /[a-z]/.test(password);
-      case 'number': return /\d/.test(password);
-      case 'symbol': return /[@$!%*?&]/.test(password);
+      case 'minLength': return hasMinPasswordLength(password);
+      case 'upperCase': return hasUpperCase(password);
+      case 'lowerCase': return hasLowerCase(password);
+      case 'number': return hasNumber(password);
+      case 'symbol': return hasSymbol(password);
       default: return false;
     }
   }

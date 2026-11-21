@@ -70,8 +70,8 @@ interface PreviewImage {
   mobileUrl: string;
   tabletUrl: string;
   desktopUrl: string;
-  originalName: string;
-  size: number;
+  originalFilename: string;
+  originalSizeBytes: number;
   createdAt: string;
   staged: boolean;
 }
@@ -292,8 +292,8 @@ export class Products implements OnInit {
       mobileUrl: s.previewUrl,
       tabletUrl: s.previewUrl,
       desktopUrl: s.previewUrl,
-      originalName: s.file.name,
-      size: s.file.size,
+      originalFilename: s.file.name,
+      originalSizeBytes: s.file.size,
       createdAt: new Date().toISOString(),
       staged: true,
     }));
@@ -516,9 +516,9 @@ export class Products implements OnInit {
     // Note: no auto-create. The product is now created on demand when the
     // user uploads an image or clicks "Siguiente". The upload area is
     // disabled (via `canUploadImage`) until the user fills name + categoryId
-    // + areaId. The previous draft-on-entry approach was removed because
-    // the backend's `ProductRequest` validation rejects the placeholder
-    // payload (e.g. `basePrice: 0` due to `@Positive`).
+    // + areaId. Drafts are created with `basePrice: 0`, which the backend
+    // accepts (`ProductRequest.basePrice` is `@PositiveOrZero`); the real
+    // sale price is set in the final wizard step.
   }
 
   /**
@@ -675,7 +675,7 @@ export class Products implements OnInit {
   /** Opciones disponibles filtradas por categoría para el combobox de nombre */
   optionsByCategory(categoryId: number | null): ProductOptionResponse[] {
     if (!categoryId) return [];
-    return this.allProductOptions().filter(o => o.optionCategoryId === categoryId);
+    return this.allProductOptions().filter(o => o.optionGroupId === categoryId);
   }
 
   findOptionByName(categoryId: number | null, name: string): ProductOptionResponse | null {
@@ -1341,7 +1341,7 @@ export class Products implements OnInit {
     const recipeItems: RecipeItemRequest[] = Array.isArray(rawItems) ? rawItems.map(toRecipeItem) : [];
     this.newOptionSubmitting.set(true);
      
-    const request: ProductOptionCreateRequest = { name, optionCategoryId: optionCategoryId ?? 0, recipe: recipeItems };
+    const request: ProductOptionCreateRequest = { name, optionGroupId: optionCategoryId ?? 0, recipe: recipeItems };
     this.productService.createProductOption(request).pipe(
       switchMap(() => this.productOptionService.getOptions()),
       catchError(err => {

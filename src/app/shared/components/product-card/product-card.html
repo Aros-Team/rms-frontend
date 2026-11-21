@@ -20,9 +20,9 @@
     [attr.aria-selected]="selected"
   >
     <div class="relative w-full aspect-[3/2] bg-surface-100 dark:bg-surface-800">
-      @if ($any(product)?.thumbnailUrl) {
+      @if (product?.imageUrl) {
         <img
-          [src]="$any(product).thumbnailUrl"
+          [src]="product!.imageUrl!"
           [alt]="product?.name ?? ''"
           class="w-full h-full object-cover"
           loading="lazy"

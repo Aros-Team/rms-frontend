@@ -6,6 +6,7 @@ import type { Money } from '@app/shared/models/dto/common/money';
  * `toAmount()` before arithmetic and render with the `money` pipe.
  */
 export interface SuggestedPriceBreakdownEntry {
+  optionId?: number | null;
   productId: number;
   name: string;
   cost: Money | number;
@@ -16,10 +17,4 @@ export interface SuggestedPriceResponse {
   totalCost: Money | number;
   marginPercent: number;
   breakdown: SuggestedPriceBreakdownEntry[];
-}
-
-export interface SuggestedPriceErrorResponse {
-  status: number;
-  message: string;
-  missingVariants: number[];
 }

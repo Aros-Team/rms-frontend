@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, inject, computed } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Area } from '@app/core/services/areas/area';
+import { AreaRequest, AreaTypeValue } from '@app/shared/models/dto/areas/area';
 import { AreaSimpleResponse } from '@app/shared/models/dto/areas/area-simple-response';
 import { Auth } from '@app/core/services/auth/auth';
 import { ButtonModule } from 'primeng/button';
@@ -52,10 +53,18 @@ export class Areas implements OnInit, OnDestroy {
     type: ['', (control: AbstractControl) => Validators.required(control)],
   });
 
-  areaTypes = [
+  /** Area types accepted by the API (`AreaType` enum). */
+  readonly areaTypes: { label: string; value: AreaTypeValue }[] = [
     { label: 'Cocina', value: 'KITCHEN' },
-    { label: 'Bartender', value: 'BARTENDER' },
+    { label: 'Servicio', value: 'SERVICE' },
+    { label: 'Bar', value: 'BAR' },
+    { label: 'Parrilla', value: 'GRILL' },
+    { label: 'Caja', value: 'CASH' },
   ];
+
+  areaTypeLabel(type: AreaTypeValue): string {
+    return this.areaTypes.find((t) => t.value === type)?.label ?? type;
+  }
 
   ngOnInit(): void {
     this.cache.areas.loadIfStale();
@@ -94,7 +103,7 @@ export class Areas implements OnInit, OnDestroy {
   saveArea = (): void => {
     if (this.form.invalid) return;
 
-    const data = this.form.value as { name: string; type: 'KITCHEN' | 'BARTENDER' };
+    const data = this.form.value as AreaRequest;
 
     if (this.editMode && this.selectedArea) {
       this.areaService.updateArea(this.selectedArea.id, data).subscribe({

@@ -2,7 +2,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 export function mapHttpError(err: HttpErrorResponse, context?: string): string {
   const body = err.error as Record<string, unknown> | null;
-  const message = typeof body?.['message'] === 'string' ? body['message'] : undefined;
+  // RFC 7807 problem responses carry the human-readable text in `detail`;
+  // `message` is accepted as a fallback for legacy/plain payloads.
+  const message =
+    typeof body?.['detail'] === 'string'
+      ? body['detail']
+      : typeof body?.['message'] === 'string'
+        ? body['message']
+        : undefined;
 
   if (err.status === 400 && context === 'order') {
     const bodyLower = message?.toLowerCase() ?? '';
@@ -36,6 +43,14 @@ export function mapHttpError(err: HttpErrorResponse, context?: string): string {
       return 'Error del servidor al procesar la nómina. Intente más tarde.';
     }
     return message ?? 'Error al procesar la nómina';
+  }
+
+  if (context === 'order' && (err.status === 404 || err.status === 409)) {
+    // Order creation: 404 = table/product missing, 409 = table not available.
+    return (
+      message ??
+      (err.status === 409 ? 'La mesa no está disponible' : 'Mesa o producto no encontrado')
+    );
   }
 
   if (err.status === 409) {

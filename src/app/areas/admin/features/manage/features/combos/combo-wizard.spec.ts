@@ -644,7 +644,7 @@ describe('ComboWizard shell', () => {
     it('shows the "Editar combo" title when a sourceId is hydrated', async () => {
       const env = await setupWizardTestBed();
       env.state.hydrateFromResponse({
-        id: 5,
+        productId: 5,
         name: 'Combo demo',
         description: '',
         basePrice: { amount: '0.00', currency: 'COP' },

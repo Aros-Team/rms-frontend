@@ -187,7 +187,7 @@ export class ComboDetail {
 
     const item: DockItem = {
       product: {
-        id: combo.id,
+        id: combo.productId,
         name: combo.name,
         basePrice: combo.basePrice,
         active: true,

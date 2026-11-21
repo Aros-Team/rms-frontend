@@ -8,7 +8,8 @@
  *  - the KPI totals sum over EVERY walked page, not just the first one;
  *  - non-DELIVERED orders never contribute to `totalSales` / `salesByCategory`;
  *  - a failing walk leaves the signals empty without throwing;
- *  - `calcTotal()` delegates to `calculateTotalPrice()` (folds `extraCharge`).
+ *  - `calcTotal()` delegates to `calculateTotalPrice()`, which prefers the
+ *    server-computed `total` and never double-counts `extraCharge`.
  *
  * Approach: mount the component's logic through TestBed with the REAL `Order`
  * service and `HttpTestingController`, so the multi-page walk is exercised
@@ -68,7 +69,7 @@ describe('Dashboard order aggregates', () => {
   const pageOne = Array.from({ length: 50 }, (_, index) =>
     makeOrder(index + 1, 'DELIVERED', [{ unitPrice: 1000, extraCharge: 0 }]),
   );
-  // Second page adds one delivered order (with `extraCharge`) and one preparing order.
+  // Second page adds one delivered order and one preparing order.
   const pageTwo = [
     makeOrder(51, 'DELIVERED', [{ unitPrice: 4000, extraCharge: 1000 }]),
     makeOrder(52, 'PREPARING', [{ unitPrice: 99_000 }]),
@@ -126,11 +127,12 @@ describe('Dashboard order aggregates', () => {
       .expectOne((r) => r.url === 'v1/orders' && r.params.get('page') === '1')
       .flush({ items: pageTwo, total: 52, page: 1, size: 50, total_pages: 2 });
 
-    // 50 × 1000 from page 0 + (4000 + 1000) from page 1; the PREPARING order is excluded.
-    expect(dashboard.totalSales()).toBe(55_000);
+    // 50 × 1000 from page 0 + 4000 from page 1; the PREPARING order is excluded
+    // and `extraCharge` is not added on top of the inclusive `unitPrice`.
+    expect(dashboard.totalSales()).toBe(54_000);
     expect(dashboard.completedOrdersCount()).toBe(51);
     expect(dashboard.preparingOrdersCount()).toBe(1);
-    expect(dashboard.salesByCategoryTotal()).toBe(55_000);
+    expect(dashboard.salesByCategoryTotal()).toBe(54_000);
   });
 
   it('exposes the walked orders so the day is not truncated to one page', () => {
@@ -146,13 +148,20 @@ describe('Dashboard order aggregates', () => {
     expect(dashboard.orders().at(-1)?.id).toBe(52);
   });
 
-  it('folds extraCharge into the per-order total', () => {
+  it('does not double-count extraCharge in the per-order total', () => {
     const order = makeOrder(9, 'DELIVERED', [
       { unitPrice: 10_000, extraCharge: 2500 },
       { unitPrice: 5000 },
     ]);
 
-    expect(dashboard.calcTotal(order)).toBe(17_500);
+    expect(dashboard.calcTotal(order)).toBe(15_000);
+  });
+
+  it('prefers the server-computed total over line arithmetic', () => {
+    const order = makeOrder(10, 'DELIVERED', [{ unitPrice: 10_000, extraCharge: 2500 }]);
+    order.total = { amount: '12500.00', currency: 'COP' };
+
+    expect(dashboard.calcTotal(order)).toBe(12_500);
   });
 
   it('sums MoneyDto details to the exact KPI total instead of NaN', () => {
@@ -171,10 +180,10 @@ describe('Dashboard order aggregates', () => {
       .expectOne((r) => r.url === 'v1/orders' && r.params.get('page') === '0')
       .flush({ items: [moneyOrder], total: 1, page: 0, size: 50, total_pages: 1 });
 
-    expect(dashboard.totalSales()).toBe(27_500);
+    expect(dashboard.totalSales()).toBe(25_000);
     expect(Number.isNaN(dashboard.totalSales())).toBe(false);
-    expect(dashboard.salesByCategoryTotal()).toBe(27_500);
-    expect(dashboard.topProductsTotal()).toBe(27_500);
+    expect(dashboard.salesByCategoryTotal()).toBe(25_000);
+    expect(dashboard.topProductsTotal()).toBe(25_000);
   });
 
   it('flags a capped walk so the KPIs are not presented as complete', () => {

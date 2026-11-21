@@ -9,6 +9,7 @@ import { toAmount } from '@app/shared/models/dto/common/money';
 import { Money as MoneyPipe } from '@app/shared/pipes/money/money';
 import { ProductOption } from '@app/shared/models/dto/products/product-option';
 import { OptionSelectionType } from '@app/shared/models/dto/option-groups/option-selection-type';
+import { fromApi } from '@app/shared/lib/option-selection-type-mapper/option-selection-type-mapper';
 import { OptionSelectionList, SelectionOption } from '@app/shared/components/option-selection-list/option-selection-list';
 import { OptionGroupBadgeComponent } from '@app/shared/components/option-group-badge/option-group-badge';
 import { RemovableChip, RemovableChipData } from '@app/shared/components/removable-chip/removable-chip';
@@ -72,13 +73,13 @@ export class ProductOptionsModal {
     const map = new Map<number, GroupMeta>();
 
     for (const opt of opts) {
-      const gid = opt.optionGroupId ?? opt.optionCategoryId;
+      const gid = opt.optionGroupId;
       let group = map.get(gid);
       if (!group) {
         group = {
           groupId: gid,
-          groupName: opt.optionGroupName ?? opt.optionCategoryName,
-          selectionType: opt.categorySelectionType ?? OptionSelectionType.SINGLE_CHOICE,
+          groupName: opt.optionGroupName,
+          selectionType: fromApi(opt.categorySelectionType),
           options: [],
         };
         map.set(gid, group);
@@ -151,9 +152,9 @@ export class ProductOptionsModal {
     this.selectedOptionIds.update(ids => ids.filter(id => id !== optionId));
   }
 
-  toggleOption(optionId: number, categoryId: number): void {
+  toggleOption(optionId: number, optionGroupId: number): void {
     const sameCategory = this.options
-      .filter(o => o.optionCategoryId === categoryId)
+      .filter(o => o.optionGroupId === optionGroupId)
       .map(o => o.id);
 
     this.selectedOptionIds.update(ids => {

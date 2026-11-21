@@ -28,6 +28,7 @@ import { FormValidation } from '@app/shared/components/form/form-validation';
 import { Logging } from '@app/core/services/logging/logging';
 import { UpdateWorkerRequest } from '@app/shared/models/dto/workers/worker-response';
 import { tryToAmount } from '@app/shared/models/dto/common/money';
+import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
 import { WorkersCache } from './workers-cache';
 import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 import { AreaResponse } from '@app/shared/models/dto/areas/area';
@@ -219,9 +220,10 @@ export class Workers implements OnInit {
           life: 5000,
         });
       },
-      error: (err: { status?: number; error?: { message?: string } }) => {
+      error: (err: HttpErrorResponse) => {
         this.logger.error('Error creating worker:', err);
-        const backendMessage = err.error?.message;
+        // RFC 7807: the API reports the reason in `detail`, never in `message`.
+        const backendMessage = extractProblemDetail(err);
 
         if (err.status === 400 && backendMessage) {
           this.parseBackendValidationErrors(backendMessage);
@@ -321,9 +323,9 @@ export class Workers implements OnInit {
           life: 5000,
         });
       },
-      error: (err: { status?: number; error?: { message?: string } }) => {
+      error: (err: HttpErrorResponse) => {
         this.logger.error('Error updating worker:', err);
-        const backendMessage = err.error?.message;
+        const backendMessage = extractProblemDetail(err);
 
         if (err.status === 400 && backendMessage) {
           this.parseBackendValidationErrors(backendMessage);
@@ -401,9 +403,9 @@ export class Workers implements OnInit {
               life: 5000,
             });
           },
-          error: (err: { status?: number; error?: { message?: string } }) => {
+          error: (err: HttpErrorResponse) => {
             this.logger.error('Error deleting worker:', err);
-            const backendMessage = err.error?.message;
+            const backendMessage = extractProblemDetail(err);
 
             if (err.status === 404) {
               this.messageService.add({
@@ -446,9 +448,9 @@ export class Workers implements OnInit {
           life: 5000,
         });
       },
-      error: (err: { status?: number; error?: { message?: string } }) => {
+      error: (err: HttpErrorResponse) => {
         this.logger.error('Error retrying setup email:', err);
-        const backendMessage = err.error?.message;
+        const backendMessage = extractProblemDetail(err);
 
         if (err.status === 404) {
           this.messageService.add({

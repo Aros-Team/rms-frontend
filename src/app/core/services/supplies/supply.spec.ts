@@ -13,6 +13,7 @@ import { Supply } from './supply';
 import { PaginatedSuppliesResponse } from './supply';
 import { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
 import { SupplyCategoryResponse } from '@app/shared/models/dto/supplies/supply-category-response';
+import { SupplyResponse } from '@app/shared/models/dto/supplies/supply-response';
 
 describe('Supply service', () => {
   let service: Supply;
@@ -147,6 +148,57 @@ describe('Supply service', () => {
       );
       expect(req.request.method).toBe('GET');
       req.flush({});
+    });
+  });
+
+  describe('getSupplies', () => {
+    it('unwraps the Spring Page envelope instead of returning the raw object', () => {
+      let emitted: SupplyResponse[] | undefined;
+      service.getSupplies().subscribe((value) => {
+        emitted = value;
+      });
+
+      const req = httpMock.expectOne(
+        (r) =>
+          r.url === 'v1/supplies' &&
+          r.params.get('page') === '0' &&
+          r.params.get('size') === '100',
+      );
+      expect(req.request.method).toBe('GET');
+
+      req.flush({
+        content: [{ id: 1, name: 'Carne de res', categoryId: 3, categoryName: 'Carnes' }],
+        page: { size: 100, number: 0, totalElements: 1, totalPages: 1 },
+      });
+
+      expect(emitted).toEqual([
+        { id: 1, name: 'Carne de res', categoryId: 3, categoryName: 'Carnes' },
+      ]);
+    });
+
+    it('walks past the first page when the catalog is larger than the API cap', () => {
+      let emitted: SupplyVariantResponse[] | undefined;
+      service.getSupplyVariants().subscribe((value) => {
+        emitted = value;
+      });
+
+      const firstPage = Array.from({ length: 100 }, (_, index) => ({
+        ...mockVariant,
+        id: index + 1,
+      }));
+      httpMock
+        .expectOne((r) => r.url === 'v1/supplies/variants' && r.params.get('page') === '0')
+        .flush({ content: firstPage, page: { size: 100, number: 0, totalElements: 101, totalPages: 2 } });
+
+      httpMock
+        .expectOne((r) => r.url === 'v1/supplies/variants' && r.params.get('page') === '1')
+        .flush({
+          content: [{ ...mockVariant, id: 101 }],
+          page: { size: 100, number: 1, totalElements: 101, totalPages: 2 },
+        });
+
+      expect(emitted).toHaveLength(101);
+      expect(emitted?.at(-1)?.id).toBe(101);
     });
   });
 

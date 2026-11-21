@@ -21,7 +21,6 @@ import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selecti
 import { SpecialSelectionRequest } from '@app/shared/models/dto/special-selections/special-selection-request';
 import { SpecialSelectionWsPayload } from '@app/shared/models/dto/special-selections/special-selection-ws-payload';
 import {
-  SpecialSelectionHistoryEntry,
   SpecialSelectionHistoryPage,
 } from '@app/shared/models/dto/special-selections/special-selection-history';
 
@@ -35,7 +34,7 @@ describe('SpecialSelectionsCacheService', () => {
   let comboReferenceStub: Pick<ComboReferenceCache, 'invalidate' | 'refresh'>;
 
   const mockSelection: SpecialSelectionResponse = {
-    id: 1,
+    productId: 1,
     name: 'Menú Almuerzo',
     description: 'Sopa + plato fuerte',
     basePrice: { amount: '12.50', currency: 'COP' },
@@ -52,21 +51,7 @@ describe('SpecialSelectionsCacheService', () => {
 
   const mockHistory: SpecialSelectionHistoryPage = {
     content: [],
-    totalElements: 0,
-    totalPages: 0,
-    size: 10,
-    number: 0,
-    first: true,
-    last: true,
-  };
-
-  const mockHistoryEntry: SpecialSelectionHistoryEntry = {
-    version: 1,
-    changeType: 'CREATE',
-    author: 'admin',
-    timestamp: '2026-07-15T10:00:00Z',
-    isCurrent: true,
-    snapshot: mockSelection,
+    page: { size: 10, number: 0, totalElements: 0, totalPages: 0 },
   };
 
   beforeEach(() => {
@@ -120,7 +105,7 @@ describe('SpecialSelectionsCacheService', () => {
     const req = httpMock.expectOne('v1/admin/special-selections/1');
     expect(req.request.method).toBe('GET');
     req.flush(mockSelection);
-    expect(cache.data()?.id).toBe(1);
+    expect(cache.data()?.productId).toBe(1);
   });
 
   it('create POSTs and invalidates top-level caches', () => {
@@ -219,9 +204,6 @@ describe('SpecialSelectionsCacheService', () => {
 
     service.history(1).load();
     httpMock.expectOne('v1/admin/special-selections/1/history?page=0&size=10').flush(mockHistory);
-
-    service.historyVersion(1, 1).load();
-    httpMock.expectOne('v1/admin/special-selections/1/history/1').flush(mockHistoryEntry);
   }
 
   function flushAvailableNowRefresh(selection = mockSelection): void {
@@ -234,7 +216,6 @@ describe('SpecialSelectionsCacheService', () => {
     expect(service.detail(1).status()).toBe('stale');
     expect(service.detail(1).data()).toEqual(expectedDetail);
     expect(service.history(1).status()).toBe('stale');
-    expect(service.historyVersion(1, 1).status()).toBe('stale');
     expect(service.availableNow.status()).toBe('stale');
   }
 
@@ -267,7 +248,6 @@ describe('SpecialSelectionsCacheService', () => {
     primeRealtimeFixtures();
     const detail = service.detail(1);
     const history = service.history(1);
-    const historyVersion = service.historyVersion(1, 1);
 
     realtimeSubject.next({
       changeType: 'DELETE',
@@ -281,11 +261,8 @@ describe('SpecialSelectionsCacheService', () => {
     expect(detail.data()).toBeNull();
     expect(history.status()).toBe('stale');
     expect(history.data()).toBeNull();
-    expect(historyVersion.status()).toBe('stale');
-    expect(historyVersion.data()).toBeNull();
     expect(service.detail(1)).not.toBe(detail);
     expect(service.history(1)).not.toBe(history);
-    expect(service.historyVersion(1, 1)).not.toBe(historyVersion);
     expect(comboRefInvalidate).toHaveBeenCalledTimes(1);
     expect(comboRefRefresh).not.toHaveBeenCalled();
 
@@ -297,14 +274,12 @@ describe('SpecialSelectionsCacheService', () => {
     primeRealtimeFixtures();
     const detail = service.detail(1);
     const history = service.history(1);
-    const historyVersion = service.historyVersion(1, 1);
 
     realtimeSubject.next(payload);
 
     expectAffectedCachesStale(mockSelection);
     expect(service.detail(1)).toBe(detail);
     expect(service.history(1)).toBe(history);
-    expect(service.historyVersion(1, 1)).toBe(historyVersion);
     expect(comboRefInvalidate).toHaveBeenCalledTimes(1);
     expect(comboRefRefresh).not.toHaveBeenCalled();
 
@@ -340,8 +315,8 @@ describe('SpecialSelectionsCacheService', () => {
       verifyDelete({ ...mockSelection, name: 'Payload atrasado' });
     });
 
-    it('REVERT invalidates every affected cache and applies selection data', () => {
-      verifyKnownRealtimeChange('REVERT', {
+    it('REVERT-like restores arrive as UPDATE and invalidate the affected caches', () => {
+      verifyKnownRealtimeChange('UPDATE', {
         ...mockSelection,
         basePrice: { amount: '9.50', currency: 'COP' },
         name: 'Menú v1',
@@ -352,7 +327,6 @@ describe('SpecialSelectionsCacheService', () => {
       primeRealtimeFixtures();
       const detail = service.detail(1);
       const history = service.history(1);
-      const historyVersion = service.historyVersion(1, 1);
 
       realtimeSubject.next({
         changeType: 'UPDATE',
@@ -364,7 +338,6 @@ describe('SpecialSelectionsCacheService', () => {
       expectAffectedCachesStale(mockSelection);
       expect(service.detail(1)).toBe(detail);
       expect(service.history(1)).toBe(history);
-      expect(service.historyVersion(1, 1)).toBe(historyVersion);
       expect(comboRefInvalidate).not.toHaveBeenCalled();
       expect(comboRefRefresh).not.toHaveBeenCalled();
 
@@ -403,9 +376,6 @@ describe('SpecialSelectionsCacheService', () => {
         'v1/admin/special-selections/1/history?page=0&size=10',
       );
 
-      service.historyVersion(1, 1).load();
-      const historyVersionRequest = httpMock.expectOne('v1/admin/special-selections/1/history/1');
-
       const updated = { ...mockSelection, name: 'Menú en tiempo real' };
       realtimeSubject.next({
         changeType: 'UPDATE',
@@ -418,12 +388,10 @@ describe('SpecialSelectionsCacheService', () => {
       expect(availableNowRequest.cancelled).toBe(true);
       expect(detailRequest.cancelled).toBe(true);
       expect(historyRequest.cancelled).toBe(true);
-      expect(historyVersionRequest.cancelled).toBe(true);
       expect(service.list.status()).toBe('stale');
       expect(service.detail(1).status()).toBe('stale');
       expect(service.detail(1).data()).toBeNull();
       expect(service.history(1).status()).toBe('stale');
-      expect(service.historyVersion(1, 1).status()).toBe('stale');
       expect(service.availableNow.status()).toBe('loading');
       expect(comboRefInvalidate).not.toHaveBeenCalled();
       expect(comboRefRefresh).not.toHaveBeenCalled();
@@ -440,16 +408,12 @@ describe('SpecialSelectionsCacheService', () => {
       service.history(1).load();
       httpMock.expectOne('v1/admin/special-selections/1/history?page=0&size=10').flush(mockHistory);
 
-      service.historyVersion(1, 1).load();
-      httpMock.expectOne('v1/admin/special-selections/1/history/1').flush(mockHistoryEntry);
-
       expect(service.list.data()).toEqual([updated]);
       expect(service.detail(1).data()).toEqual(updated);
       expect(service.history(1).status()).toBe('fresh');
-      expect(service.historyVersion(1, 1).status()).toBe('fresh');
     });
 
-    it('supersedes in-flight detail/history/version loads when a DELETE realtime event arrives', () => {
+    it('supersedes in-flight detail/history loads when a DELETE realtime event arrives', () => {
       service.list.load();
       const listRequest = httpMock.expectOne('v1/admin/special-selections');
 
@@ -464,12 +428,8 @@ describe('SpecialSelectionsCacheService', () => {
         'v1/admin/special-selections/1/history?page=0&size=10',
       );
 
-      service.historyVersion(1, 1).load();
-      const historyVersionRequest = httpMock.expectOne('v1/admin/special-selections/1/history/1');
-
       const detail = service.detail(1);
       const history = service.history(1);
-      const historyVersion = service.historyVersion(1, 1);
 
       realtimeSubject.next({
         changeType: 'DELETE',
@@ -482,19 +442,15 @@ describe('SpecialSelectionsCacheService', () => {
       expect(availableNowRequest.cancelled).toBe(true);
       expect(detailRequest.cancelled).toBe(true);
       expect(historyRequest.cancelled).toBe(true);
-      expect(historyVersionRequest.cancelled).toBe(true);
 
       expect(service.list.status()).toBe('stale');
       expect(detail.status()).toBe('stale');
       expect(detail.data()).toBeNull();
       expect(history.status()).toBe('stale');
       expect(history.data()).toBeNull();
-      expect(historyVersion.status()).toBe('stale');
-      expect(historyVersion.data()).toBeNull();
 
       expect(service.detail(1)).not.toBe(detail);
       expect(service.history(1)).not.toBe(history);
-      expect(service.historyVersion(1, 1)).not.toBe(historyVersion);
 
       expect(service.availableNow.status()).toBe('loading');
       expect(comboRefInvalidate).toHaveBeenCalledTimes(1);
@@ -509,12 +465,8 @@ describe('SpecialSelectionsCacheService', () => {
       service.history(1).load();
       httpMock.expectOne('v1/admin/special-selections/1/history?page=0&size=10').flush(mockHistory);
 
-      service.historyVersion(1, 1).load();
-      httpMock.expectOne('v1/admin/special-selections/1/history/1').flush(mockHistoryEntry);
-
       expect(service.detail(1).data()).toEqual(mockSelection);
       expect(service.history(1).status()).toBe('fresh');
-      expect(service.historyVersion(1, 1).status()).toBe('fresh');
     });
   });
 
@@ -527,9 +479,9 @@ describe('SpecialSelectionsCacheService', () => {
         changeType: 'UPDATE',
         productId: 7,
         active: true,
-        selection: { ...mockSelection, id: 7, name: 'Combo actualizado' },
+        selection: { ...mockSelection, productId: 7, name: 'Combo actualizado' },
       });
-      flushAvailableNowRefresh({ ...mockSelection, id: 7, name: 'Combo actualizado' });
+      flushAvailableNowRefresh({ ...mockSelection, productId: 7, name: 'Combo actualizado' });
 
       expect(emissions).toEqual([null, 7]);
     });
@@ -542,9 +494,9 @@ describe('SpecialSelectionsCacheService', () => {
         changeType: 'SCHEDULE_CHANGE',
         productId: 11,
         active: true,
-        selection: { ...mockSelection, id: 11 },
+        selection: { ...mockSelection, productId: 11 },
       });
-      flushAvailableNowRefresh({ ...mockSelection, id: 11 });
+      flushAvailableNowRefresh({ ...mockSelection, productId: 11 });
 
       expect(emissions).toEqual([null, 11]);
     });
@@ -557,26 +509,11 @@ describe('SpecialSelectionsCacheService', () => {
         changeType: 'PRICE_CHANGE',
         productId: 13,
         active: true,
-        selection: { ...mockSelection, id: 13, basePrice: { amount: '20.00', currency: 'COP' } },
+        selection: { ...mockSelection, productId: 13, basePrice: { amount: '20.00', currency: 'COP' } },
       });
-      flushAvailableNowRefresh({ ...mockSelection, id: 13, basePrice: { amount: '20.00', currency: 'COP' } });
+      flushAvailableNowRefresh({ ...mockSelection, productId: 13, basePrice: { amount: '20.00', currency: 'COP' } });
 
       expect(emissions).toEqual([null, 13]);
-    });
-
-    it('emits the productId when a REVERT event arrives', () => {
-      const emissions: (number | null)[] = [];
-      service.modifiedCombo$.subscribe((id) => { emissions.push(id); });
-
-      realtimeSubject.next({
-        changeType: 'REVERT',
-        productId: 17,
-        active: true,
-        selection: { ...mockSelection, id: 17, basePrice: { amount: '9.50', currency: 'COP' } },
-      });
-      flushAvailableNowRefresh({ ...mockSelection, id: 17, basePrice: { amount: '9.50', currency: 'COP' } });
-
-      expect(emissions).toEqual([null, 17]);
     });
 
     it('does NOT emit when a CREATE event arrives', () => {
@@ -587,9 +524,9 @@ describe('SpecialSelectionsCacheService', () => {
         changeType: 'CREATE',
         productId: 23,
         active: true,
-        selection: { ...mockSelection, id: 23, name: 'Combo creado' },
+        selection: { ...mockSelection, productId: 23, name: 'Combo creado' },
       });
-      flushAvailableNowRefresh({ ...mockSelection, id: 23, name: 'Combo creado' });
+      flushAvailableNowRefresh({ ...mockSelection, productId: 23, name: 'Combo creado' });
 
       expect(emissions).toEqual([null]);
     });
@@ -614,9 +551,9 @@ describe('SpecialSelectionsCacheService', () => {
         changeType: 'UPDATE',
         productId: 31,
         active: true,
-        selection: { ...mockSelection, id: 31 },
+        selection: { ...mockSelection, productId: 31 },
       });
-      flushAvailableNowRefresh({ ...mockSelection, id: 31 });
+      flushAvailableNowRefresh({ ...mockSelection, productId: 31 });
 
       const lateEmissions: (number | null)[] = [];
       service.modifiedCombo$.subscribe((id) => { lateEmissions.push(id); });
@@ -632,33 +569,33 @@ describe('SpecialSelectionsCacheService', () => {
         changeType: 'UPDATE',
         productId: 41,
         active: true,
-        selection: { ...mockSelection, id: 41 },
+        selection: { ...mockSelection, productId: 41 },
       });
-      flushAvailableNowRefresh({ ...mockSelection, id: 41 });
+      flushAvailableNowRefresh({ ...mockSelection, productId: 41 });
 
       realtimeSubject.next({
         changeType: 'PRICE_CHANGE',
         productId: 42,
         active: true,
-        selection: { ...mockSelection, id: 42 },
+        selection: { ...mockSelection, productId: 42 },
       });
-      flushAvailableNowRefresh({ ...mockSelection, id: 42 });
+      flushAvailableNowRefresh({ ...mockSelection, productId: 42 });
 
       realtimeSubject.next({
         changeType: 'CREATE',
         productId: 43,
         active: true,
-        selection: { ...mockSelection, id: 43 },
+        selection: { ...mockSelection, productId: 43 },
       });
-      flushAvailableNowRefresh({ ...mockSelection, id: 43 });
+      flushAvailableNowRefresh({ ...mockSelection, productId: 43 });
 
       realtimeSubject.next({
-        changeType: 'REVERT',
+        changeType: 'SCHEDULE_CHANGE',
         productId: 44,
         active: true,
-        selection: { ...mockSelection, id: 44 },
+        selection: { ...mockSelection, productId: 44 },
       });
-      flushAvailableNowRefresh({ ...mockSelection, id: 44 });
+      flushAvailableNowRefresh({ ...mockSelection, productId: 44 });
 
       realtimeSubject.next({
         changeType: 'DELETE',

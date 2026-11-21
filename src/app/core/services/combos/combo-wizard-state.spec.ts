@@ -68,7 +68,7 @@ function makeScheduleEntry(id: number): ScheduleEntryResponse {
 }
 
 const mockResponse: SpecialSelectionResponse = {
-  id: 42,
+  productId: 42,
   name: 'Combo Almuerzo',
   description: 'Sopa + plato fuerte',
   basePrice: { amount: '12.50', currency: 'COP' },

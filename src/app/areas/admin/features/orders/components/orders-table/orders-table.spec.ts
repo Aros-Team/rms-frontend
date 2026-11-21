@@ -153,6 +153,13 @@ describe('OrdersTable (server-side paging)', () => {
     expect(total).toBe(17500);
   });
 
+  it('never offers PREPARING as a per-order status (the API only prepares the next QUEUE order)', () => {
+    const values = fixture.componentInstance.editableStatusOptions.map((option) => option.value);
+
+    expect(values).not.toContain('PREPARING');
+    expect(values).toEqual(['READY', 'DELIVERED', 'CANCELLED']);
+  });
+
   it('reports a failed page load and stops the spinner', () => {
     getPage.mockReturnValueOnce(throwError(() => new Error('boom')));
 

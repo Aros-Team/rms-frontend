@@ -23,7 +23,7 @@ describe('Product service', () => {
   const mockProduct: ProductResponse = {
     id: 7,
     name: 'Combo Almuerzo',
-    basePrice: 12.5,
+    basePrice: { amount: '12.50', currency: 'COP' },
     active: true,
     categoryId: 2,
     categoryName: 'Combos',
@@ -51,13 +51,17 @@ describe('Product service', () => {
     httpMock.verify();
   });
 
-  it('getProducts() hits GET v1/products without query params', () => {
+  it('getProducts() hits GET v1/products asking for the maximum page size', () => {
     service.getProducts().subscribe();
 
-    const req = httpMock.expectOne('v1/products');
+    const req = httpMock.expectOne(r =>
+      r.url === 'v1/products' &&
+      r.params.get('page') === '0' &&
+      r.params.get('size') === '100' &&
+      !r.params.has('includeSelections')
+    );
     expect(req.request.method).toBe('GET');
-    expect(req.request.params.keys().length).toBe(0);
-    req.flush([]);
+    req.flush({ content: [], page: { size: 100, number: 0, totalElements: 0, totalPages: 0 } });
   });
 
   it('getProducts(true) hits GET v1/products?includeSelections=true', () => {
@@ -78,6 +82,19 @@ describe('Product service', () => {
     );
     expect(req.request.method).toBe('GET');
     req.flush([]);
+  });
+
+  it('getProducts flattens the page envelope into a bare array', () => {
+    let emitted: ProductResponse[] | undefined;
+    service.getProducts().subscribe(value => { emitted = value; });
+
+    const req = httpMock.expectOne(r => r.url === 'v1/products' && r.params.get('size') === '100');
+    req.flush({
+      content: [mockProduct],
+      page: { size: 100, number: 0, totalElements: 1, totalPages: 1 },
+    });
+
+    expect(emitted).toEqual([mockProduct]);
   });
 
   it('getAllProducts(true) hits GET v1/products?includeSelections=true', () => {
@@ -110,6 +127,19 @@ describe('Product service', () => {
     );
     expect(req.request.method).toBe('GET');
     req.flush([]);
+  });
+
+  it('filterByCategories flattens the page envelope into a bare array', () => {
+    let emitted: ProductResponse[] | undefined;
+    service.filterByCategories([2]).subscribe(value => { emitted = value; });
+
+    const req = httpMock.expectOne(r => r.url === 'v1/products' && r.params.get('categories') === '2');
+    req.flush({
+      content: [mockProduct],
+      page: { size: 100, number: 0, totalElements: 1, totalPages: 1 },
+    });
+
+    expect(emitted).toEqual([mockProduct]);
   });
 
   it('createProduct POSTs payload with categoryId to v1/products', () => {
@@ -156,11 +186,15 @@ describe('Product service', () => {
   it('getCost hits GET v1/products/{id}/cost and emits payload', () => {
     const mockCost: ProductCostResponse = {
       productId: 1,
-      totalCost: 25.75,
-      materialCost: 15.5,
-      laborCost: 10.25,
+      totalCost: { amount: '25.75', currency: 'COP' },
+      materialCost: { amount: '15.50', currency: 'COP' },
+      laborCost: { amount: '10.25', currency: 'COP' },
       breakdown: [
-        { description: 'Material: variant 3', amount: 15.5, type: 'MATERIAL' },
+        {
+          description: 'Material: variant 3',
+          amount: { amount: '15.50', currency: 'COP' },
+          type: 'MATERIAL',
+        },
       ],
     };
 
@@ -215,7 +249,7 @@ describe('Product service', () => {
       const lentejas: ProductResponse = {
         id: 7,
         name: 'Lentejas',
-        basePrice: 12.5,
+        basePrice: { amount: '12.50', currency: 'COP' },
         active: true,
         categoryId: 2,
         categoryName: 'Comidas',

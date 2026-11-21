@@ -2,6 +2,7 @@ import { HttpClient, HttpEventType } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
 import { Logging } from '@app/core/services/logging/logging';
+import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
 import { ProductImageResponse } from '@app/shared/models/dto/products/product-image-response';
 
 @Injectable({
@@ -48,8 +49,7 @@ export class ProductImage {
         error: (err: unknown) => {
           this.isUploading.set(false);
           this.uploadProgress.set(0);
-          const errObj = err as { error?: { message?: string }; message?: string };
-          const message = errObj.error?.message ?? errObj.message ?? 'Upload failed';
+          const message = extractProblemDetail(err) ?? 'Upload failed';
           this.uploadError.set(message);
           this.logging.error('ProductImage upload failed', err);
           observer.error(err);

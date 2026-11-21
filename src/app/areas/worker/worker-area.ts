@@ -73,7 +73,7 @@ export class WorkerArea implements OnInit, OnDestroy {
   private computeCanOrder(): void {
     const userData = this.authService.getData();
     const canOrder = userData?.areas.some(
-      a => a.type === 'SERVICE' || a.type === 'WAITER'
+      a => a.type === 'SERVICE'
     ) ?? false;
     this.canOrder.set(canOrder);
     this.logger.debug(`WorkerArea: canOrder=${String(canOrder)} based on user areas`);

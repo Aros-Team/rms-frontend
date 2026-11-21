@@ -1192,5 +1192,175 @@
       }
     ],
     "status": "done"
+  },
+  {
+    "id": 41,
+    "type": "fix",
+    "name": "contract-auth-users",
+    "title": "Align auth and users/workers contract with the live API",
+    "description": "Audit and fix every API/frontend incoherence in auth (login, 2FA, refresh, password reset/setup, password policy) and users/workers (CRUD, errors, salary history).",
+    "acceptance": [
+      "Auth flow field names, error statuses and password policy match the API",
+      "Worker CRUD surfaces ProblemDetail detail messages and validation fields",
+      "Worker salary history readable by the owning worker",
+      "Frontend typecheck and targeted specs green"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Audit auth flow against live API and fix mismatches",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Audit workers CRUD/errors/salary history and fix mismatches",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Update specs and verify typecheck/gradle",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 42,
+    "type": "fix",
+    "name": "contract-catalog-products",
+    "title": "Align catalog, products and analytics contract with the live API",
+    "description": "Audit and fix areas/categories/option groups/tables/product options/products/images/analytics contracts, including money shapes, pagination and enums.",
+    "acceptance": [
+      "Area types, optionGroupId and selection type enums match the API",
+      "Product list pagination and money fields match the wire",
+      "Image request/response fields and errors match the wire",
+      "Frontend typecheck and targeted specs green"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Audit catalog CRUD (areas, categories, option groups, tables, product options)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Audit products, images and analytics; fix DTOs and mappings",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Update specs and verify typecheck/gradle",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 43,
+    "type": "fix",
+    "name": "contract-orders-inventory",
+    "title": "Align orders, inventory, supplies, purchases and suppliers contract",
+    "description": "Audit and fix order lifecycle/pagination, inventory transfers, supply catalog paging, purchases and suppliers, plus RFC 7807 domain errors.",
+    "acceptance": [
+      "Order totals are not double counted and detail fields match the wire",
+      "Order update body/handling matches the API",
+      "Supply and purchase paging no longer truncates",
+      "Domain errors return 400/404/409 problem documents"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Audit orders lifecycle, totals and detail fields",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Audit inventory, supplies, purchases and suppliers",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Add missing exception handlers and verify",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 44,
+    "type": "fix",
+    "name": "contract-schedules-payroll",
+    "title": "Align schedules, time logs and payroll contract",
+    "description": "Audit and fix schedule assignments, time logs and payroll (records, events, settlements), including numeric money requests and partial updates.",
+    "acceptance": [
+      "Schedule assignment deletion targets the right row",
+      "Payroll create/patch/settle request shapes match the API",
+      "Payroll money responses are consumed through Money",
+      "Targeted API and frontend tests green"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Audit schedules, assignments and time logs",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Audit payroll, events and settlements; fix request/response shapes",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Add RFC 7807 404s, tests and verify",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 45,
+    "type": "fix",
+    "name": "contract-special-selections-realtime",
+    "title": "Align special selections, system configuration and realtime contract",
+    "description": "Audit and fix special selection admin/public flows (identity, history, schedule patch, persistence warnings), system configuration and WebSocket topics.",
+    "acceptance": [
+      "Special selection identity and history shapes match the wire",
+      "Schedule patch, active and price updates persist without 500s",
+      "System configuration PUT upserts by key without 500s",
+      "WebSocket topics and payloads match; specs green"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Audit special selections admin/public and fix DTOs/persistence",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Audit system configuration and realtime topics",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Add handlers/tests and verify",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
   }
 ]

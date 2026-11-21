@@ -112,7 +112,7 @@ export class Step3Options {
     if (!groupId) return [];
     const allOptions = this.cache.referenceData.data()?.productOptions ?? [];
     return allOptions
-      .filter(o => o.optionCategoryId === groupId)
+      .filter(o => o.optionGroupId === groupId)
       .map(o => ({
         id: o.id,
         name: o.name,
