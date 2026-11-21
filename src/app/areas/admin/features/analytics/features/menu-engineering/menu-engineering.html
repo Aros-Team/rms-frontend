@@ -1,16 +1,9 @@
 <div class="p-4 md:p-6 flex flex-col gap-4 h-full overflow-auto">
-  <header class="flex items-start justify-between gap-2">
-    <div>
-      <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-0">Ingeniería de menú (BCG)</h2>
-      <p class="text-sm text-surface-600 dark:text-surface-400">Clasificación de productos según margen y volumen.</p>
-    </div>
-    <button
-      type="button"
-      class="pi pi-refresh text-sm text-surface-600 dark:text-surface-300 px-3 py-2 rounded-lg border border-surface-200 dark:border-surface-700 hover:bg-surface-100 dark:hover:bg-surface-700"
-      (click)="reload()"
-      aria-label="Actualizar">
-      Actualizar
-    </button>
+  <header>
+    <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-0">Tu carta, clasificada</h2>
+    <p class="text-sm text-muted">
+      Qué productos te dejan plata, cuáles son populares pero caros, y cuáles deberías revisar.
+    </p>
   </header>
 
   @if (error(); as err) {
@@ -18,55 +11,28 @@
   }
 
   @if (cacheStatus(); as cs) {
-    <div class="text-xs text-surface-500 dark:text-surface-400">
-      Caché actualizado: {{ cs.lastRefreshedAt }} · versión {{ cs.sourceVersion }} · TTL {{ cs.ttlSeconds }} s
+    <div class="text-xs text-muted">
+      Última actualización de datos: {{ cs.lastRefreshedAt }}
     </div>
   }
 
-  @if (completeness() !== 'FULL') {
-    <div
-      data-testid="me-data-banner"
-      [class.rounded-lg]="true"
-      [class.border]="true"
-      [class.p-3]="true"
-      [class.text-sm]="true"
-      [class.border-amber-300]="completeness() === 'PARTIAL'"
-      [class.dark:border-amber-700]="completeness() === 'PARTIAL'"
-      [class.bg-amber-50]="completeness() === 'PARTIAL'"
-      [class.dark:bg-amber-900\/30]="completeness() === 'PARTIAL'"
-      [class.border-blue-300]="completeness() === 'EMPTY'"
-      [class.dark:border-blue-700]="completeness() === 'EMPTY'"
-      [class.bg-blue-50]="completeness() === 'EMPTY'"
-      [class.dark:bg-blue-900\/30]="completeness() === 'EMPTY'"
-      role="status"
-      aria-live="polite"
-    >
-      <div class="flex items-start justify-between gap-3">
-        <div>
-          @if (completeness() === 'PARTIAL') {
-            <p class="font-semibold text-amber-900 dark:text-amber-200">Datos parciales</p>
-          } @else if (completeness() === 'EMPTY') {
-            <p class="font-semibold text-blue-900 dark:text-blue-200">Sin datos en el periodo</p>
-          }
-          @if (notes().length > 0) {
-            <ul class="mt-1 list-disc list-inside text-amber-800 dark:text-amber-300">
-              @for (note of notes(); track note) {
-                <li>{{ note }}</li>
-              }
-            </ul>
-          } @else if (completeness() === 'EMPTY') {
-            <p class="mt-1 text-blue-800 dark:text-blue-300">No hay registros en el rango seleccionado.</p>
-          }
-        </div>
-        <button
-          type="button"
-          class="px-3 py-1.5 rounded-md border border-surface-200 dark:border-surface-700 text-xs text-surface-700 dark:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700"
-          (click)="reload()"
-          aria-label="Reintentar carga"
-        >
-          Reintentar
-        </button>
-      </div>
+  @if (completeness() === 'EMPTY' && !isLoading()) {
+    <div class="rounded-lg border border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 p-4 text-sm" role="status" aria-live="polite">
+      <p class="font-semibold text-blue-900 dark:text-blue-200">Aún no hay datos de productos</p>
+      <p class="mt-1 text-blue-800 dark:text-blue-300">
+        El análisis de carta se genera a partir de las ventas y los costos de receta. Registra productos con receta y ventas para ver la clasificación.
+      </p>
+    </div>
+  }
+
+  @if (completeness() === 'PARTIAL' && notes().length > 0) {
+    <div class="rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 p-3 text-sm" role="status" aria-live="polite">
+      <p class="font-semibold text-amber-900 dark:text-amber-200">Datos parciales</p>
+      <ul class="mt-1 list-disc list-inside text-amber-800 dark:text-amber-300">
+        @for (note of notes(); track note) {
+          <li>{{ note }}</li>
+        }
+      </ul>
     </div>
   }
 
@@ -81,40 +47,82 @@
       aria-labelledby="me-stats-heading"
       class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3"
     >
-      <h3 id="me-stats-heading" class="sr-only">Resumen de ingeniería de menú</h3>
+      <h3 id="me-stats-heading" class="sr-only">Resumen de tu carta</h3>
       <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-        <p class="text-xs text-surface-600 dark:text-surface-400">Productos</p>
+        <p class="text-xs text-muted">Productos analizados</p>
         <p class="text-2xl font-bold mt-1" data-testid="me-stat-count">{{ stats().count }}</p>
       </article>
       <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-        <p class="text-xs text-surface-600 dark:text-surface-400">Contribución total</p>
+        <p class="text-xs text-muted">Ganancia que generan</p>
         <p class="text-2xl font-bold mt-1" data-testid="me-stat-total-contribution">
           {{ totalContributionMoney() | money }}
         </p>
       </article>
       <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-        <p class="text-xs text-surface-600 dark:text-surface-400">Volumen mediana</p>
+        <p class="text-xs text-muted">Ventas típicas (mediana)</p>
         <p class="text-2xl font-bold mt-1" data-testid="me-stat-median-volume">{{ stats().medianVolume }}</p>
+        <p class="text-xs text-muted mt-1">unidades por producto</p>
       </article>
       <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-        <p class="text-xs text-surface-600 dark:text-surface-400">Margen mediana</p>
+        <p class="text-xs text-muted">Margen típico (mediana)</p>
         <p class="text-2xl font-bold mt-1" data-testid="me-stat-median-margin">
           {{ medianMarginMoney() | money }}
         </p>
       </article>
     </section>
 
-    <figure class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-      <figcaption class="text-sm font-semibold mb-2">Matriz BCG (margen × volumen)</figcaption>
-      <div class="h-96">
-        <p-chart type="bubble" [data]="quadrantChartData()" [options]="quadrantChartOptions" />
-      </div>
+<!-- PRODUCT MAP GRAPHIC -->
+    <figure class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-6">
+      <figcaption class="text-sm font-semibold">Mapa de productos</figcaption>
+      <p-chart type="bubble" [data]="quadrantChartData()" [options]="quadrantChartOptions" class="h-[30rem]" />
       <figcaption class="sr-only">
-        Matriz BCG de {{ stats().count }} productos. Eje X: margen por unidad. Eje Y: unidades vendidas.
+        Mapa BCG de {{ stats().count }} productos. Eje X: margen por unidad. Eje Y: unidades vendidas.
       </figcaption>
     </figure>
 
-    <section class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast overflow-hidden">
+    <section aria-labelledby="me-quad-dist-heading" class="flex flex-col gap-2 mt-2">
+      <h3 id="me-quad-dist-heading" class="text-sm font-semibold">Diagnóstico por cuadrante</h3>
+      <p class="text-xs text-muted -mt-1">Haz click en un cuadrante para filtrar la tabla a sus productos.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 min-h-fit">
+        @for (q of quadrantSummary(); track q.quadrant) {
+          <button
+            type="button"
+            class="text-left rounded-xl bg-primary-contrast p-4 flex flex-col gap-2 border border-surface-200 dark:border-surface-700 rounded-xl transition-all cursor-pointer hover:bg-surface-50 dark:hover:bg-surface-700/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            [class]="[q.meta.borderClass, isQuadrantSelected(q.quadrant) ? q.meta.ringClass : '']"
+            [class.bg-green-50]="isQuadrantSelected(q.quadrant) && q.quadrant === 'STAR'"
+            [class.dark:bg-green-900/30]="isQuadrantSelected(q.quadrant) && q.quadrant === 'STAR'"
+            [class.bg-amber-50]="isQuadrantSelected(q.quadrant) && q.quadrant === 'PLOWHORSE'"
+            [class.dark:bg-amber-900/30]="isQuadrantSelected(q.quadrant) && q.quadrant === 'PLOWHORSE'"
+            [class.bg-blue-50]="isQuadrantSelected(q.quadrant) && q.quadrant === 'PUZZLE'"
+            [class.dark:bg-blue-900/30]="isQuadrantSelected(q.quadrant) && q.quadrant === 'PUZZLE'"
+            [class.bg-red-50]="isQuadrantSelected(q.quadrant) && q.quadrant === 'DOG'"
+            [class.dark:bg-red-900/30]="isQuadrantSelected(q.quadrant) && q.quadrant === 'DOG'"
+            [attr.aria-pressed]="isQuadrantSelected(q.quadrant)"
+            [attr.aria-label]="'Filtrar por ' + q.meta.label + ' (' + q.count + ' productos)'"
+            [attr.data-quadrant]="q.quadrant"
+            (click)="onQuadrantClick(q.quadrant)"
+          >
+            <div class="flex items-center justify-between gap-2">
+              <span class="flex items-center gap-2 text-sm font-semibold">
+                <i [class]="q.meta.icon" aria-hidden="true"></i>
+                {{ q.meta.label }}
+              </span>
+              <span class="text-xl font-bold">{{ q.count }}</span>
+            </div>
+            <p class="text-xs text-muted">{{ q.meta.action }}</p>
+            @if (q.topItems.length > 0) {
+              <ul class="text-xs text-surface-700 dark:text-surface-300 mt-1">
+                @for (item of q.topItems; track $index) {
+                  <li class="truncate">· {{ item }}</li>
+                }
+              </ul>
+            }
+          </button>
+        }
+      </div>
+    </section>
+
+    <section class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast overflow-hidden min-h-fit">
       <p-table
         [value]="items()"
         [paginator]="true"
@@ -123,54 +131,47 @@
         styleClass="p-datatable-sm"
         [customSort]="true"
         (sortFunction)="onSort($event)"
-        aria-label="Tabla de productos clasificados en cuadrantes BCG"
+        aria-label="Tabla de productos clasificados en cuadrantes"
       >
-        <ng-template pTemplate="caption">
-          <div class="flex flex-col sm:flex-row sm:items-center gap-2 p-2">
-            <p-select
-              [options]="categories()"
-              optionLabel="name"
-              optionValue="id"
-              placeholder="Filtrar por categoría"
-              [showClear]="true"
-              [ngModel]="categoryId()"
-              (onChange)="onCategoryChange($event.value)"
-              (onClear)="clearCategory()"
-              appendTo="body"
-              class="w-full sm:w-64"
-              data-testid="me-category-filter"
-            />
-            <span class="sr-only">Filtro de categoría para la tabla de productos</span>
-          </div>
-        </ng-template>
         <ng-template pTemplate="header">
-          <tr>
+          <tr class="border-l-0">
             <th pSortableColumn="productName">Producto <p-sortIcon field="productName" /></th>
-            <th pSortableColumn="categoryName">Categoría <p-sortIcon field="categoryName" /></th>
-            <th pSortableColumn="unitsSold" class="text-right">Unidades <p-sortIcon field="unitsSold" /></th>
-            <th pSortableColumn="revenue" class="text-right">Ingresos <p-sortIcon field="revenue" /></th>
-            <th pSortableColumn="grossProfitPerUnit" class="text-right">Margen / unidad <p-sortIcon field="grossProfitPerUnit" /></th>
-            <th pSortableColumn="totalContribution" class="text-right">Contribución <p-sortIcon field="totalContribution" /></th>
-            <th pSortableColumn="quadrant">Cuadrante <p-sortIcon field="quadrant" /></th>
+            <th pSortableColumn="unitsSold" class="text-right">Unid. vendidas <p-sortIcon field="unitsSold" /></th>
+            <th pSortableColumn="recipeCost" class="text-right">Costo por unidad <p-sortIcon field="recipeCost" /></th>
+            <th pSortableColumn="sellPricePerUnit" class="text-right">Precio de venta <p-sortIcon field="sellPricePerUnit" /></th>
+            <th pSortableColumn="marginPercent" class="text-right">Margen <p-sortIcon field="marginPercent" /></th>
+            <th pSortableColumn="totalContribution" class="text-right">Ganancia total <p-sortIcon field="totalContribution" /></th>
+            <th class="w-12 text-center"></th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-item>
-          <tr>
+          <tr [class]="quadrantBorderLeftClass(item.quadrant)">
             <td>{{ item.productName }}</td>
-            <td>{{ item.categoryName ?? '—' }}</td>
             <td class="text-right">{{ item.unitsSold }}</td>
-            <td class="text-right">{{ item.revenue | money }}</td>
-            <td class="text-right">{{ item.grossProfitPerUnit | money }}</td>
+            <td class="text-right">{{ item.recipeCost | money }}</td>
+            <td class="text-right">
+              @if (sellPricePerUnit(item); as p) {
+                {{ p | money }}
+              } @else {
+                —
+              }
+            </td>
+            <td class="text-right">{{ fmtPercent(marginPercent(item)) }}</td>
             <td class="text-right">{{ item.totalContribution | money }}</td>
-            <td><p-tag [value]="quadrantLabel(item.quadrant)" [severity]="quadrantSeverity(item.quadrant)" /></td>
+            <td class="w-12 text-center">
+              <span class="inline-flex items-center justify-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border"
+                [class]="quadrantBorderClass(item.quadrant) + ' ' + quadrantBgClass(item.quadrant) + ' text-surface-700 dark:text-surface-200'">
+                <i [class]="quadrantIcon(item.quadrant)" aria-hidden="true"></i>
+              </span>
+            </td>
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
-          <tr><td colspan="7" class="text-center py-4 text-surface-500">No hay SKUs para mostrar.</td></tr>
+          <tr><td colspan="7" class="text-center py-4 text-muted">No hay productos para mostrar.</td></tr>
         </ng-template>
       </p-table>
     </section>
   } @else {
-    <p class="text-surface-600 dark:text-surface-400">No hay datos en el periodo seleccionado.</p>
+    <p class="text-muted">No hay datos en el periodo seleccionado.</p>
   }
 </div>

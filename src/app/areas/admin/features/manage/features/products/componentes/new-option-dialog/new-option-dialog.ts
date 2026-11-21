@@ -1,14 +1,16 @@
-import { Component, inject, signal, OnInit, Output, EventEmitter, Input, ChangeDetectionStrategy, effect } from '@angular/core';
+import { Component, inject, signal, Output, EventEmitter, Input, ChangeDetectionStrategy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { AbstractControl, FormBuilder, FormArray, Validators } from '@angular/forms';
 import { switchMap, catchError, EMPTY } from 'rxjs';
 import { Product } from '@app/core/services/products/product';
-import { ProductOptionService } from '@app/core/services/product-option/product-option';
+import { ProductOption } from '@app/core/services/product-option/product-option';
 import { Logging } from '@app/core/services/logging/logging';
-import { ProductCacheService, ProductReferenceData } from '../../product-cache.service';
+import { ProductCache, ProductReferenceData } from '../../product-cache';
 import { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
 import { RecipeItemRequest } from '@app/shared/models/dto/products/product-create-request';
+import { Money } from '@app/shared/pipes/money/money';
+import { toAmount } from '@app/shared/models/dto/common/money';
 
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -35,22 +37,23 @@ import { MessageService } from 'primeng/api';
     SelectModule,
     DividerModule,
     ToastModule,
+    Money,
   ],
   providers: [MessageService],
   templateUrl: './new-option-dialog.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class NewOptionDialog implements OnInit {
+export class NewOptionDialog {
   @Input() visible = signal(false);
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() optionCreated = new EventEmitter<void>();
 
   private fb = inject(FormBuilder);
   private productService = inject(Product);
-  private productOptionService = inject(ProductOptionService);
+  private productOptionService = inject(ProductOption);
   private logger = inject(Logging);
   private messageService = inject(MessageService);
-  readonly cache = inject(ProductCacheService);
+  readonly cache = inject(ProductCache);
 
   optionCategories = signal<{ id: number; name: string }[]>([]);
   supplyVariantOptions = signal<(SupplyVariantResponse & { displayName: string })[]>([]);
@@ -66,23 +69,16 @@ export class NewOptionDialog implements OnInit {
 
   private readonly newOptionRecipeCategoryMap = new Map<number, number | null>();
 
-  ngOnInit(): void {
-    this.loadReferenceData();
-  }
-
-  private loadReferenceData(): void {
-    this.cache.referenceData.loadIfStale();
-    // Watch for reference data changes using effect
-    effect(() => {
-      const refData = this.cache.referenceData.data();
-      if (refData) {
-        this.applyReferenceData(refData);
-      }
-    }, { this: undefined } as Parameters<typeof effect>[1]);
-  }
+  // Field initializers run in an injection context; lifecycle hooks do not,
+  // so effect() must be created here (not in ngOnInit) or it throws NG0203.
+  private readonly referenceDataEffect = effect(() => {
+    const refData = this.cache.referenceData.data();
+    if (refData) {
+      this.applyReferenceData(refData);
+    }
+  });
 
   private applyReferenceData(ref: ProductReferenceData): void {
-    this.optionCategories.set(ref.optionCategories);
     this.supplyVariantOptions.set(ref.variants);
     const seen = new Set<number>();
     this.supplyCategories.set(
@@ -106,6 +102,19 @@ export class NewOptionDialog implements OnInit {
   filteredVariantsForNewOptionRecipe(i: number): (SupplyVariantResponse & { displayName: string })[] {
     const catId = this.newOptionRecipeCategoryMap.get(i) ?? null;
     return catId ? this.supplyVariantOptions().filter(v => v.categoryId === catId) : this.supplyVariantOptions();
+  }
+
+  findVariantById(id: number | null): (SupplyVariantResponse & { displayName: string }) | undefined {
+    if (id == null) return undefined;
+    return this.supplyVariantOptions().find(v => v.id === id);
+  }
+
+  /**
+   * `unitCost` is a MoneyDto ({ amount: string, currency: string }) on the wire,
+   * so it can never be compared to a number directly.
+   */
+  hasNoCost(variant: SupplyVariantResponse): boolean {
+    return toAmount(variant.unitCost) === 0;
   }
 
   addNewOptionRecipeItem(): void {
@@ -139,7 +148,7 @@ export class NewOptionDialog implements OnInit {
 
     this.productService.createProductOption({
       name,
-      optionCategoryId: optionCategoryId ?? 0,
+      optionGroupId: optionCategoryId ?? 0,
       recipe: recipeItems,
     }).pipe(
       switchMap(() => this.productOptionService.getOptions()),

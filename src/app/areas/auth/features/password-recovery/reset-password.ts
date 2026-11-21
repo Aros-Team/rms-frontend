@@ -10,6 +10,14 @@ import { MessageModule } from 'primeng/message';
 import { MessageService } from 'primeng/api';
 import { Password } from '@app/core/services/auth/password';
 import { Logging } from '@app/core/services/logging/logging';
+import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
+import {
+  hasLowerCase,
+  hasMinPasswordLength,
+  hasNumber,
+  hasSymbol,
+  hasUpperCase,
+} from '@app/shared/lib/password-policy/password-policy';
 
 function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
   const newPassword = control.get('newPassword')?.value as string;
@@ -49,13 +57,13 @@ export class ResetPassword implements OnInit {
   }, { validators: (control) => passwordMatchValidator(control) });
 
   checkPasswordRequirement(requirement: string): boolean {
-    const password = this.form.get('newPassword')?.value as string;
+    const password = (this.form.get('newPassword')?.value as string | null | undefined) ?? '';
     switch (requirement) {
-      case 'minLength': return password.length >= 8;
-      case 'upperCase': return /[A-Z]/.test(password);
-      case 'lowerCase': return /[a-z]/.test(password);
-      case 'number': return /\d/.test(password);
-      case 'symbol': return /[@$!%*?&]/.test(password);
+      case 'minLength': return hasMinPasswordLength(password);
+      case 'upperCase': return hasUpperCase(password);
+      case 'lowerCase': return hasLowerCase(password);
+      case 'number': return hasNumber(password);
+      case 'symbol': return hasSymbol(password);
       default: return false;
     }
   }
@@ -94,12 +102,15 @@ export class ResetPassword implements OnInit {
           detail: 'Tu contraseña ha sido restablecida'
         });
       },
-      error: (err: { status?: number }) => {
+      error: (err: { status?: number; error?: unknown }) => {
         this.loading.set(false);
-        if (err.status === 400) {
-          this.error.set('Token inválido o expirado. Por favor, solicita un nuevo código.');
+        const problemDetail = extractProblemDetail(err);
+        if (err.status === 400 || err.status === 422) {
+          this.error.set(
+            problemDetail ?? 'Token inválido o expirado. Por favor, solicita un nuevo código.',
+          );
         } else {
-          this.error.set('Ocurrió un error. Por favor, intenta más tarde.');
+          this.error.set(problemDetail ?? 'Ocurrió un error. Por favor, intenta más tarde.');
         }
         this.logger.error('Reset password failed', err);
       }

@@ -3,20 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { forkJoin, Observable, BehaviorSubject } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 
-import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
-import { ProductOption, OptionCategory } from '@app/shared/models/dto/products/product-option.model';
-import { TableResponse } from '@app/shared/models/dto/tables/table-response.model';
-
-interface PageResponse<T> {
-  content?: T[];
-  totalElements?: number;
-  totalPages?: number;
-}
+import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
+import { ProductOption } from '@app/shared/models/dto/products/product-option';
+import { TableResponse } from '@app/shared/models/dto/tables/table-response';
+import { type PageEnvelope, unwrapPage } from '@app/shared/models/dto/common/pagination';
 
 export interface MasterDataPayload {
   products: ProductListResponse[];
   productOptions: ProductOption[];
-  optionCategories: OptionCategory[];
   tables: TableResponse[];
 }
 
@@ -29,18 +23,23 @@ export class MasterData {
 
   load(): Observable<MasterDataPayload> {
     return forkJoin({
-      products: this.http.get<PageResponse<ProductListResponse>>('v1/products?page=0&size=100').pipe(
-        map(page => page.content ?? [])
-      ),
-      productOptions: this.http.get<ProductOption[]>('v1/product-options'),
-      optionCategories: this.http.get<OptionCategory[]>('v1/option-categories'),
-      tables: this.http.get<TableResponse[]>('v1/tables'),
+      // `/v1/products` answers with Spring HATEOAS (`{ content, page }`), but
+      // `unwrapPage` also tolerates `{ items }` and bare arrays, so this keeps
+      // working regardless of which dialect the endpoint settles on.
+      products: this.http
+        .get<PageEnvelope<ProductListResponse>>('v1/products?page=0&size=100')
+        .pipe(map((res) => unwrapPage<ProductListResponse>(res).items)),
+      productOptions: this.http
+        .get<PageEnvelope<ProductOption>>('v1/product-options')
+        .pipe(map((res) => unwrapPage<ProductOption>(res).items)),
+      tables: this.http
+        .get<PageEnvelope<TableResponse>>('v1/tables')
+        .pipe(map((res) => unwrapPage<TableResponse>(res).items)),
     }).pipe(
       tap(data => {
         this._data$.next({
           products: Array.isArray(data.products) ? data.products : [],
           productOptions: Array.isArray(data.productOptions) ? data.productOptions : [],
-          optionCategories: Array.isArray(data.optionCategories) ? data.optionCategories : [],
           tables: Array.isArray(data.tables) ? data.tables : [],
         });
       })
@@ -48,7 +47,8 @@ export class MasterData {
   }
 
   reloadTables(): Observable<TableResponse[]> {
-    return this.http.get<TableResponse[]>('v1/tables').pipe(
+    return this.http.get<PageEnvelope<TableResponse>>('v1/tables').pipe(
+      map((res) => unwrapPage<TableResponse>(res).items),
       tap(tables => {
         const current = this._data$.value;
         if (current) this._data$.next({ ...current, tables });
@@ -73,7 +73,7 @@ export class MasterData {
 
   groupOptionsByCategory(options: ProductOption[]): Record<string, ProductOption[]> {
     return options.reduce<Record<string, ProductOption[]>>((acc, opt) => {
-      const key = opt.optionCategoryName;
+      const key = opt.optionGroupName;
       acc[key] ??= [];
       acc[key].push(opt);
       return acc;

@@ -10,8 +10,10 @@ import { ButtonModule } from 'primeng/button'
 import { MessageService } from 'primeng/api';
 import { Logging } from '@app/core/services/logging/logging';
 import { CheckboxModule } from 'primeng/checkbox';
-import { HabeasDataService } from '@shared/features/habeas-data/habeas-data.service';
-import { UserInfo } from '@models/domain/user/user-info.model';
+import { HabeasDataEvents } from '@shared/features/habeas-data/habeas-data-events';
+import { UserInfo } from '@models/domain/user/user-info';
+import { resolveReturnUrl } from '@shared/lib/auth-navigation/auth-navigation';
+import { extractProblemDetail } from '@shared/lib/problem-detail/problem-detail';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -26,7 +28,7 @@ export class LoginForm implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private messageService = inject(MessageService);
   private logger = inject(Logging);
-  private habeasDataService = inject(HabeasDataService);
+  private habeasDataService = inject(HabeasDataEvents);
   private subs: Subscription[] = [];
 
   form: FormGroup = new FormGroup({
@@ -37,8 +39,12 @@ export class LoginForm implements OnInit, OnDestroy {
 
   formStatus = signal<'Free' | 'Occuped'>('Free');
 
+  /** Where to go after a successful login (from a guard/interceptor redirect). */
+  private returnUrl: string | null = null;
+
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
+      this.returnUrl = resolveReturnUrl(params['returnUrl'] as string | undefined);
       if (params['passwordResetSent']) {
         this.messageService.add({
           severity: 'success',
@@ -98,7 +104,7 @@ export class LoginForm implements OnInit, OnDestroy {
           } else {
             const userInfo = response as UserInfo;
             this.logger.auth('Login successful, redirecting based on user role');
-            this.redirectBasedOnUserRole(userInfo);
+            this.redirectAfterLogin(userInfo);
             this.formStatus.set('Free');
           }
         },
@@ -107,18 +113,19 @@ export class LoginForm implements OnInit, OnDestroy {
           this.authService.logout();
           this.formStatus.set('Free');
 
-          const errorMessage = (err.error as { message?: string; error?: string } | undefined)?.message ??
-                               (err.error as { message?: string; error?: string } | undefined)?.error ?? '';
-          const isInvalidCredentials = err.status === 401 ||
-            errorMessage.toLowerCase().includes('invalid credentials') ||
-            errorMessage.toLowerCase().includes('incorrectos');
+          // The server's RFC-7807 `detail` beats our generic copy whenever the
+          // body carried one. A filter-level 401 is bodiless → `null` here.
+          const problemDetail = extractProblemDetail(err);
+          const isInvalidCredentials =
+            err.status === 401 ||
+            (problemDetail?.toLowerCase().includes('credenciales') ?? false);
 
           if (isInvalidCredentials) {
             this.logger.auth('Login failed: Invalid credentials');
             this.messageService.add({
               severity: 'error',
               summary: 'Error de autenticación',
-              detail: 'Credenciales incorrectas. Verifique su correo y contraseña.',
+              detail: problemDetail ?? 'Credenciales incorrectas. Verifique su correo y contraseña.',
               life: 5000
             });
           } else if (err.status === 0 || (err.status && err.status >= 500)) {
@@ -134,7 +141,7 @@ export class LoginForm implements OnInit, OnDestroy {
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: 'Ha ocurrido un error inesperado. Por favor, intente nuevamente.',
+              detail: problemDetail ?? 'Ha ocurrido un error inesperado. Por favor, intente nuevamente.',
               life: 5000
             });
           }
@@ -145,6 +152,19 @@ export class LoginForm implements OnInit, OnDestroy {
   isInvalid(value: string): boolean {
     const control = this.form.get(value);
     return control ? control.invalid && control.touched : false;
+  }
+
+  /**
+   * Closes the returnUrl round-trip: when a guard/interceptor sent the user here
+   * from an internal URL, that URL wins over the role-based default.
+   */
+  private redirectAfterLogin(userData: UserInfo): void {
+    if (this.returnUrl) {
+      this.logger.routing('Login successful, returning to the attempted URL:', this.returnUrl);
+      void this.router.navigateByUrl(this.returnUrl);
+      return;
+    }
+    this.redirectBasedOnUserRole(userData);
   }
 
   private redirectBasedOnUserRole(userData: UserInfo): void {

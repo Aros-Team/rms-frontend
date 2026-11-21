@@ -5,7 +5,7 @@
       <p-button icon="pi pi-arrow-left" severity="secondary" (onClick)="goBack()" />
       <div>
         <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0">Historial del Combo</h1>
-        <p class="text-surface-600 dark:text-surface-400 mt-1 text-sm">Versiones y cambios del combo #{{ id() }}</p>
+        <p class="text-muted mt-1 text-sm">Versiones y cambios del combo #{{ id() }}</p>
       </div>
     </div>
   </div>
@@ -14,12 +14,12 @@
   <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast overflow-hidden p-6">
     @if (isLoading()) {
       <div class="flex items-center justify-center py-12">
-        <i class="pi pi-spin pi-spinner text-2xl text-surface-400"></i>
-        <span class="ml-2 text-surface-400">Cargando historial...</span>
+        <i class="pi pi-spin pi-spinner text-2xl text-muted" aria-hidden="true"></i>
+        <span class="ml-2 text-muted">Cargando historial...</span>
       </div>
     } @else if (entries().length === 0) {
-      <div class="text-center py-12 text-surface-400">
-        <i class="pi pi-history text-3xl mb-2 block"></i>
+      <div class="text-center py-12 text-muted">
+        <i class="pi pi-history text-3xl mb-2 block" aria-hidden="true"></i>
         <p>Sin historial disponible</p>
       </div>
     } @else {
@@ -43,14 +43,14 @@
                     <p-tag value="Actual" severity="success" />
                   }
                 </div>
-                <span class="text-xs text-surface-400">v{{ entry.version }}</span>
+                <span class="text-xs text-muted">v{{ entry.version }}</span>
               </div>
 
-              <!-- Author + timestamp -->
-              <div class="text-sm text-surface-600 dark:text-surface-400 mb-3">
-                <span class="font-medium">{{ entry.author }}</span>
+              <!-- Changed by + timestamp -->
+              <div class="text-sm text-muted mb-3">
+                <span class="font-medium">{{ entry.changedBy }}</span>
                 <span class="mx-1">·</span>
-                <span>{{ entry.timestamp | date:'dd/MM/yyyy HH:mm' }}</span>
+                <span>{{ entry.changedAt | date:'dd/MM/yyyy HH:mm' }}</span>
               </div>
 
               <!-- Snapshot viewer (expandable) -->
@@ -66,7 +66,7 @@
                   <pre class="bg-surface-800 dark:bg-surface-950 text-surface-100 p-4 rounded-lg overflow-auto max-h-96 text-xs font-mono">{{ entry.snapshot | json }}</pre>
                 }
               } @else {
-                <span class="text-xs text-surface-400 italic">Sin datos del combo (eliminado)</span>
+                <span class="text-xs text-muted italic">Sin datos del combo (eliminado)</span>
               }
 
               <!-- Revert button (only for non-current entries) -->

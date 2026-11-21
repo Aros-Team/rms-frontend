@@ -4,13 +4,6 @@
   display: block;
 }
 
-.analytics-nav-bar {
-  @apply flex-shrink-0;
-  border-bottom-color: var(--p-surface-200);
-  background-color: var(--p-surface-50);
-  border-width: 1px;
-}
-
 .analytics-nav-list {
   @apply flex flex-nowrap overflow-x-auto gap-1 md:gap-2;
   scrollbar-width: none;
@@ -39,6 +32,7 @@
 }
 
 .analytics-nav-item-active {
-  border-color: var(--p-primary-color);
-  color: var(--p-primary-color);
+  border-color: var(--accent-text);
+  /* gold as text is 1.7:1 on light surfaces */
+  color: var(--accent-text);
 }

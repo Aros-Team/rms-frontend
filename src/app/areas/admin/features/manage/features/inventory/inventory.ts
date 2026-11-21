@@ -3,15 +3,15 @@ import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators, For
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { Auth } from '@services/auth/auth';
-import { InventoryService } from '@services/inventory/inventory';
+import { Inventory as InventoryApi } from '@services/inventory/inventory';
 import { Purchase } from '@services/purchases/purchase';
 import { Supplier } from '@services/suppliers/supplier';
 import { Supply } from '@services/supplies/supply';
 import { Logging } from '@services/logging/logging';
 import { WebSocket } from '@services/websocket/websocket';
 import { environment } from '@environments/environment';
-import { InventoryCacheService } from './inventory-cache.service';
-import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
+import { InventoryCache } from './inventory-cache';
+import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 
 import { SupplyVariantResponse } from '@models/dto/supplies/supply-variant-response';
 import { SupplyCategoryResponse } from '@models/dto/supplies/supply-category-response';
@@ -21,6 +21,7 @@ import { SupplyUnitResponse } from '@models/dto/supplies/supply-unit-response';
 import { SupplyResponse } from '@models/dto/supplies/supply-response';
 import { TransferItem } from '@models/dto/inventory/transfer-request';
 import { InventoryStockUpdatedEvent } from '@models/dto/inventory/inventory-stock-update';
+import { toAmount } from '@models/dto/common/money';
 
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -41,7 +42,9 @@ import { TooltipModule } from 'primeng/tooltip';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TagModule } from 'primeng/tag';
 import { MessageModule } from 'primeng/message';
-import { TableSkeleton } from '@shared/skeletons/table-skeleton';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
+import { SearchInput } from '@shared/components/search-input/search-input';
+import { Money as MoneyPipe } from '@shared/pipes/money/money';
 
 // Wizard step type
 type VariantStep = 'category' | 'supply' | 'variant';
@@ -70,8 +73,10 @@ type VariantStep = 'category' | 'supply' | 'variant';
     CheckboxModule,
     TagModule,
     MessageModule,
-    LazyLoadDirective,
+    LazyLoad,
     TableSkeleton,
+    SearchInput,
+    MoneyPipe,
   ],
   providers: [MessageService],
   templateUrl: './inventory.html',
@@ -79,7 +84,7 @@ type VariantStep = 'category' | 'supply' | 'variant';
 export class Inventory implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private authService = inject(Auth);
-  private inventoryService = inject(InventoryService);
+  private inventoryService = inject(InventoryApi);
   private purchaseService = inject(Purchase);
   private supplierService = inject(Supplier);
   private supplyService = inject(Supply);
@@ -89,7 +94,7 @@ export class Inventory implements OnInit {
   private wsService = inject(WebSocket);
   private destroyRef = inject(DestroyRef);
   private ngZone = inject(NgZone);
-  readonly cache = inject(InventoryCacheService);
+  readonly cache = inject(InventoryCache);
 
   readonly wizardSteps = [
     { key: 'category' as VariantStep, label: 'Categoría' },
@@ -104,7 +109,8 @@ export class Inventory implements OnInit {
   categories = signal<SupplyCategoryResponse[]>([]);
   units = signal<SupplyUnitResponse[]>([]);
   allSupplies = signal<SupplyResponse[]>([]);
-  selectedCategoryId = signal<number | null>(null);
+  currentPage = signal(0);
+  pageSize = signal(20);
 
   // Efecto para sincronizar automáticamente cuando el cache cambie
   private syncEffect = effect(() => {
@@ -118,25 +124,30 @@ export class Inventory implements OnInit {
       this.purchases.set(cachedPurchases);
     }
 
+    const cachedSuppliers = this.cache.suppliers.data();
+    if (cachedSuppliers !== null) {
+      this.suppliers.set(cachedSuppliers);
+    }
+
     const refData = this.cache.referenceData.data();
     if (refData !== null) {
-      this.suppliers.set(refData.suppliers);
       this.categories.set(refData.categories);
       this.units.set(refData.units);
       this.allSupplies.set(refData.allSupplies);
     }
   });
 
-  filteredSupplies = computed(() => {
-    const all = this.supplies();
-    if (all === undefined) return undefined;
-    const catId = this.selectedCategoryId();
-    return catId === null ? all : all.filter((s) => s.categoryId === catId);
-  });
+  // Fila actual de la tabla - proviene de la página consultada al servidor
+  pageSupplies = computed(() => this.cache.suppliesPage.data()?.content ?? undefined);
+  totalElements = computed(() => this.cache.suppliesPage.data()?.totalElements ?? 0);
 
-  hasZeroUnitCost = computed(() => (this.supplies() ?? []).some(v => v.unitCost === 0));
+  hasZeroUnitCost = computed(() => (this.supplies() ?? []).some(v => toAmount(v.unitCost) === 0));
 
-  loading = computed(() => this.supplies() === undefined);
+  /** True when the variant carries no usable unit cost (zero or missing). */
+  hasNoCost = (variant: SupplyVariantResponse): boolean => toAmount(variant.unitCost) === 0;
+
+
+  loading = computed(() => this.cache.suppliesPage.isLoading() && !this.cache.suppliesPage.hasData());
 
   // --- new variant wizard ---
   variantModalIsOpen = false;
@@ -156,8 +167,6 @@ export class Inventory implements OnInit {
 
   modalIsOpen = false;
   submitting = false;
-
-  currencyFormat = Intl.NumberFormat('es-Co', { style: 'currency', currency: 'COP' });
 
   purchaseForm: FormGroup = this.fb.group({
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -226,14 +235,6 @@ export class Inventory implements OnInit {
     contact: ['', Validators.maxLength(255)],
   });
 
-  // --- new category dialog ---
-  newCategoryDialogOpen = false;
-  newCategorySubmitting = signal(false);
-  newCategoryForm: FormGroup = this.fb.group({
-    /* eslint-disable-next-line @typescript-eslint/unbound-method */
-    name: ['', [Validators.required, Validators.maxLength(255)]],
-  });
-
   // --- transfer to kitchen dialog ---
   transferDialogOpen = false;
   transferSubmitting = signal(false);
@@ -258,15 +259,8 @@ export class Inventory implements OnInit {
 
   ngOnInit(): void {
     // Force load on first visit if no data
-    if (this.cache.supplies.data() === null) {
-      this.cache.supplies.refresh();
-    }
-    if (this.cache.purchases.data() === null) {
-      this.cache.purchases.refresh();
-    }
-    // Load reference data (categories, suppliers, units) for filters
-    if (this.cache.referenceData.data() === null) {
-      this.cache.referenceData.refresh();
+    if (this.cache.suppliesPage.data() === null) {
+      this.cache.suppliesPage.refresh();
     }
     // With OnPush, form status changes don't trigger CD automatically.
     // Subscribe so the template re-evaluates [invalid] bindings when fields become valid.
@@ -276,8 +270,36 @@ export class Inventory implements OnInit {
   }
 
   onVisible(): void {
+    this.cache.suppliesPage.loadIfStale();
     this.cache.supplies.loadIfStale();
     this.cache.purchases.loadIfStale();
+    this.cache.suppliers.loadIfStale();
+    this.cache.referenceData.loadIfStale();
+  }
+
+  onPage(event: { first: number; rows: number }): void {
+    const page = Math.floor(event.first / event.rows);
+    this.currentPage.set(page);
+    this.pageSize.set(event.rows);
+    this.cache.setSuppliesListParams({ page, size: event.rows });
+  }
+
+  clearFilters(): void {
+    this.currentPage.set(0);
+    this.cache.setSuppliesListParams({ page: 0, search: '' });
+  }
+
+  onSearchSupply(value: string): void {
+    this.currentPage.set(0);
+    this.cache.setSuppliesListParams({ search: value, page: 0 });
+  }
+
+  onSearchSuppliers(value: string): void {
+    this.cache.setSuppliersListParams({ search: value });
+  }
+
+  onSearchPurchases(value: string): void {
+    this.cache.setPurchasesListParams({ search: value });
   }
 
   private syncFromCache(): void {
@@ -291,9 +313,13 @@ export class Inventory implements OnInit {
       this.purchases.set(cachedPurchases);
     }
 
+    const cachedSuppliers = this.cache.suppliers.data();
+    if (cachedSuppliers !== null) {
+      this.suppliers.set(cachedSuppliers);
+    }
+
     const refData = this.cache.referenceData.data();
     if (refData !== null) {
-      this.suppliers.set(refData.suppliers);
       this.categories.set(refData.categories);
       this.units.set(refData.units);
       this.allSupplies.set(refData.allSupplies);
@@ -314,10 +340,6 @@ export class Inventory implements OnInit {
     this.wsService.subscribeToTopic<InventoryStockUpdatedEvent>('/topic/inventory/updates')
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((event) => { this.ngZone.run(() => { this.applyInventoryUpdate(event); }); });
-  }
-
-  filterByCategory(categoryId: number | null): void {
-    this.selectedCategoryId.set(categoryId);
   }
 
   openPurchaseModal(): void {
@@ -360,9 +382,9 @@ export class Inventory implements OnInit {
           this.resolvedCategoryId.set(cat.id);
           this.variantStep.set('supply');
         },
-        error: (err: { status?: number; error?: { message?: string } }) => {
+        error: (err: { status?: number; error?: { detail?: string; message?: string } }) => {
           this.variantSubmitting = false;
-          const errorMessage = err.error?.message;
+          const errorMessage = err.error?.detail ?? err.error?.message;
           const detail = err.status === 409
             ? errorMessage ?? 'Esa categoría ya existe.'
             : errorMessage ?? 'No se pudo crear la categoría.';
@@ -393,9 +415,9 @@ export class Inventory implements OnInit {
           this.resolvedSupplyId.set(supply.id);
           this.variantStep.set('variant');
         },
-        error: (err: { status?: number; error?: { message?: string } }) => {
+        error: (err: { status?: number; error?: { detail?: string; message?: string } }) => {
           this.variantSubmitting = false;
-          const errorMessage = err.error?.message;
+          const errorMessage = err.error?.detail ?? err.error?.message;
           const detail = err.status === 409
             ? errorMessage ?? 'Ese insumo ya existe.'
             : errorMessage ?? 'No se pudo crear el insumo.';
@@ -445,9 +467,9 @@ export class Inventory implements OnInit {
             detail: `${created.supplyName} (${created.unitAbbreviation}) agregado al inventario.`,
           });
         },
-        error: (err: { status?: number; error?: { message?: string } }) => {
+        error: (err: { status?: number; error?: { detail?: string; message?: string } }) => {
           this.variantSubmitting = false;
-          const errorMessage = err.error?.message;
+          const errorMessage = err.error?.detail ?? err.error?.message;
           const detail =
             err.status === 409
               ? errorMessage ?? 'Ya existe esa combinación de insumo y unidad.'
@@ -467,45 +489,6 @@ export class Inventory implements OnInit {
     this.newSupplierDialogOpen = false;
   }
 
-  openCategoryDialog(): void {
-    this.newCategoryForm.reset();
-    this.newCategoryDialogOpen = true;
-  }
-
-  closeCategoryDialog(): void {
-    this.newCategoryDialogOpen = false;
-  }
-
-  submitNewCategory(): void {
-    if (this.newCategoryForm.invalid) {
-      this.newCategoryForm.markAllAsTouched();
-      return;
-    }
-    this.newCategorySubmitting.set(true);
-    const { name } = this.newCategoryForm.value as { name: string };
-    this.supplyService.createCategory({ name: name.trim() }).subscribe({
-      next: (created) => {
-        this.newCategorySubmitting.set(false);
-        this.categories.update((list) => [...list, created]);
-        this.closeCategoryDialog();
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Categoría creada',
-          detail: created.name,
-        });
-      },
-      error: (err: { status?: number; error?: { message?: string } }) => {
-        this.newCategorySubmitting.set(false);
-        const errorMessage = err.error?.message;
-        const detail = err.status === 409
-          ? errorMessage ?? 'Ya existe una categoría con ese nombre.'
-          : errorMessage ?? 'No se pudo crear la categoría.';
-        this.messageService.add({ severity: 'error', summary: 'Error', detail });
-        this.logger.error('Error creating supply category', err);
-      },
-    });
-  }
-
   submitNewSupplier(): void {
     if (this.newSupplierForm.invalid) {
       this.newSupplierForm.markAllAsTouched();
@@ -521,9 +504,9 @@ export class Inventory implements OnInit {
         this.closeNewSupplierDialog();
         this.messageService.add({ severity: 'success', summary: 'Distribuidor creado', detail: created.name });
       },
-      error: (err: { status?: number; error?: { message?: string } }) => {
+      error: (err: { status?: number; error?: { detail?: string; message?: string } }) => {
         this.newSupplierSubmitting.set(false);
-        const errorMessage = err.error?.message;
+        const errorMessage = err.error?.detail ?? err.error?.message;
         const detail = err.status === 400
           ? errorMessage ?? 'El nombre es requerido y no puede superar 255 caracteres.'
           : errorMessage ?? 'No se pudo crear el distribuidor.';
@@ -633,9 +616,9 @@ export class Inventory implements OnInit {
             detail: 'El stock fue actualizado automáticamente.',
           });
         },
-        error: (err: { status?: number; error?: { message?: string } }) => {
+        error: (err: { status?: number; error?: { detail?: string; message?: string } }) => {
           this.submitting = false;
-          const errorMessage = err.error?.message;
+          const errorMessage = err.error?.detail ?? err.error?.message;
           if (err.status === 409) {
             this.messageService.add({
               severity: 'error',
@@ -753,9 +736,9 @@ export class Inventory implements OnInit {
           detail: `${String(items.length)} insumo(s) transferido(s) a cocina.`,
         });
       },
-      error: (err: { status?: number; error?: { message?: string } }) => {
+      error: (err: { status?: number; error?: { detail?: string; message?: string } }) => {
         this.transferSubmitting.set(false);
-        const detail = err.error?.message ?? 'No se pudo completar la transferencia.';
+        const detail = err.error?.detail ?? err.error?.message ?? 'No se pudo completar la transferencia.';
         this.messageService.add({ severity: 'error', summary: 'Error', detail });
         this.logger.error('Error transferring to kitchen', err);
       },
@@ -768,6 +751,7 @@ export class Inventory implements OnInit {
 
   private loadSupplies(): void {
     this.cache.supplies.refresh();
+    this.cache.suppliesPage.refresh();
   }
 
   private loadPurchases(): void {
@@ -775,9 +759,9 @@ export class Inventory implements OnInit {
   }
 
   private loadSuppliers(): void {
-    const refData = this.cache.referenceData.data();
-    if (refData !== null) {
-      this.suppliers.set(refData.suppliers);
+    const cachedSuppliers = this.cache.suppliers.data();
+    if (cachedSuppliers !== null) {
+      this.suppliers.set(cachedSuppliers);
     }
   }
 

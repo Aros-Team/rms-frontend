@@ -30,7 +30,7 @@
                     <select [id]="'product-' + i + '-' + j" formControlName="product" class="w-full border  border-surface-300 dark:border-surface-700 rounded p-2 bg-transparent">
                       <option [ngValue]="null" disabled>Seleccione un producto</option>
                       @for (product of products; track product.id) {
-                        <option [ngValue]="product.id">{{ product.name }} · {{ product.basePrice | currency:'COP':'symbol-narrow' }}</option>
+                        <option [ngValue]="product.id">{{ product.name }} · {{ product.basePrice | money }}</option>
                       }
                     </select>
                   </div>
@@ -43,11 +43,11 @@
                     <input [id]="'observations-' + i + '-' + j" type="text" formControlName="observations" class="w-full border  border-surface-300 dark:border-surface-700 rounded p-2 bg-transparent"/>
                   </div>
                   <div>
-                    <label class="block text-xs mb-1" [attr.for]="'subproducts-' + i + '-' + j">Para menu del dia</label>
+                    <label class="block text-xs mb-1" [attr.for]="'subproducts-' + i + '-' + j">Para menú del día</label>
                     <input [id]="'subproducts-' + i + '-' + j" type="text" formControlName="subProducts" class="w-full border  border-surface-300 dark:border-surface-700 rounded p-2 bg-transparent" placeholder="Ej. 1, 2, 3 " />
                   </div>
                   <div class="md:col-span-4 flex justify-end">
-                    <button type="button" (click)="removeDetail(i, j)" class="text-sm text-surface-600 pointer hover:underline" [disabled]="detailsAt(i).length === 1" aria-label="Eliminar detalle"><i class="pi pi-trash"></i></button>
+                    <button type="button" (click)="removeDetail(i, j)" class="text-sm text-muted pointer hover:underline" [disabled]="detailsAt(i).length === 1" aria-label="Eliminar detalle"><i class="pi pi-trash" aria-hidden="true"></i></button>
                   </div>
                 </div>
                 }
@@ -59,7 +59,7 @@
       </div>
 
       <div class="flex gap-2">
-        <button type="submit" class="px-4 py-2 rounded bg-primary-500 text-white hover:bg-primary-600 disabled:opacity-60" [disabled]="isSubmitDisabled">Crear pedido</button>
+        <button type="submit" class="px-4 py-2 rounded bg-primary-500 text-surface-900 hover:bg-primary-600 disabled:opacity-60" [disabled]="isSubmitDisabled">Crear pedido</button>
       </div>
     </form>
   </div>

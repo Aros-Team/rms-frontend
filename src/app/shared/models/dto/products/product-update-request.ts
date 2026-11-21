@@ -1,15 +1,14 @@
-import type { SelectionType } from '@app/shared/models/dto/special-selections/selection-type';
 import { RecipeItemRequest } from './product-create-request';
+import { OptionExtrasItem } from './product-option';
 
 export interface ProductUpdateRequest {
-  id: number;
   name: string;
+  description?: string;
   basePrice: number;
   categoryId: number;
   areaId: number;
+  estimatedPrepMinutes?: number;
   recipe?: RecipeItemRequest[];
   optionIds?: number[];
-  selectionType?: SelectionType;
-  baseRecipeEnabled?: boolean;
-  schedulingRequired?: boolean;
+  optionExtras?: OptionExtrasItem[];
 }

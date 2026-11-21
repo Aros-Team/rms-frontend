@@ -1,8 +1,8 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { Observable, map } from "rxjs";
-import { TableRequest, ChangeStatusRequest } from "@app/shared/models/dto/tables/table.model";
-import { TableResponse } from "@app/shared/models/dto/tables/table-response.model";
+import { TableRequest, ChangeStatusRequest } from "@app/shared/models/dto/tables/table";
+import { TableResponse } from "@app/shared/models/dto/tables/table-response";
 
 @Injectable({
   providedIn: 'root',
@@ -10,8 +10,12 @@ import { TableResponse } from "@app/shared/models/dto/tables/table-response.mode
 export class Table {
   private http = inject(HttpClient);
 
-  public getTables(): Observable<TableResponse[]> {
-    return this.http.get<TableResponse[]>('v1/tables');
+  public getTables(search?: string): Observable<TableResponse[]> {
+    let params: Record<string, string> = {};
+    if (search) {
+      params = { ...params, search };
+    }
+    return this.http.get<TableResponse[]>('v1/tables', { params });
   }
 
   public getTableById(id: number): Observable<TableResponse> {

@@ -1,9 +1,19 @@
+/**
+ * Tests for the Analytics area routing and child component resolution.
+ *
+ * Feature: Analytics area with lazy-loaded child routes.
+ * Contract: Router navigates to analytics sub-routes and renders correct components.
+ * Approach: Bootstrap TestBed with analytics routes, navigate, assert component rendered.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources, Component } from '@angular/core';
+import { By } from '@angular/platform-browser';
 import { Router, provideRouter, type Routes } from '@angular/router';
 import { beforeAll, describe, expect, it } from 'vitest';
 
 import { Analytics } from './analytics';
+import { AnalyticsNav } from './components/analytics-nav/analytics-nav';
+import { PeriodSelector } from './components/period-selector/period-selector';
 import analyticsHtml from './analytics.html?raw';
 
 @Component({
@@ -84,28 +94,42 @@ describe('Analytics shell', () => {
 
   it('renders the shared analytics-nav', async () => {
     const fixture = await setup();
-    const root = fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('app-analytics-nav')).toBeTruthy();
+    const nav = fixture.debugElement.query(By.directive(AnalyticsNav));
+    expect(nav.componentInstance).toBeInstanceOf(AnalyticsNav);
   });
 
   it('renders the shared period-selector', async () => {
     const fixture = await setup();
+    const selector = fixture.debugElement.query(By.directive(PeriodSelector));
+    expect(selector.componentInstance).toBeInstanceOf(PeriodSelector);
+  });
+
+  it('docks the period-selector inside the content section', async () => {
+    const fixture = await setup();
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('app-period-selector')).toBeTruthy();
+    const section = root.querySelector('section');
+    const selectorEl = root.querySelector('app-period-selector');
+    expect(section).not.toBeNull();
+    expect(selectorEl).not.toBeNull();
+    expect(section?.contains(selectorEl as Node)).toBe(true);
+    expect(section?.querySelector('router-outlet')?.parentElement?.contains(selectorEl as Node)).toBe(
+      false,
+    );
   });
 
   it('renders a router-outlet for child routes', async () => {
     const fixture = await setup();
-    const root = fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('router-outlet')).toBeTruthy();
-  });
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/admin/analytics/prime-cost');
+    fixture.detectChanges();
 
-  it('shows the section title "Estadísticas" and its description', async () => {
-    const fixture = await setup();
     const root = fixture.nativeElement as HTMLElement;
-    const heading = root.querySelector('h1');
-    expect((heading?.textContent ?? '').trim()).toBe('Estadísticas');
-    expect(root.textContent).toContain('Visualiza las estadísticas de tu restaurante');
+    const outlet = root.querySelector('router-outlet');
+    const placeholder = root.querySelector('[data-testid="placeholder-prime-cost"]');
+    expect(outlet).not.toBeNull();
+    expect(placeholder).not.toBeNull();
+    // The activated child route renders inside the outlet's host container.
+    expect(outlet?.parentElement?.contains(placeholder as Node)).toBe(true);
   });
 
   it('lands on the prime-cost placeholder when visiting /admin/analytics', async () => {
@@ -115,8 +139,8 @@ describe('Analytics shell', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('[data-testid="placeholder-prime-cost"]')).toBeTruthy();
-    expect(root.textContent).toContain('Costo primo y márgenes');
+    const placeholder = root.querySelector('[data-testid="placeholder-prime-cost"]');
+    expect(placeholder?.textContent.trim()).toBe('Costo primo y márgenes');
   });
 
   it('renders the menu-engineering placeholder when visiting /admin/analytics/menu-engineering', async () => {
@@ -126,7 +150,8 @@ describe('Analytics shell', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('[data-testid="placeholder-menu-engineering"]')).toBeTruthy();
+    const placeholder = root.querySelector('[data-testid="placeholder-menu-engineering"]');
+    expect(placeholder?.textContent.trim()).toBe('Carta');
   });
 
   it('renders the operations placeholder when visiting /admin/analytics/operations', async () => {
@@ -136,7 +161,8 @@ describe('Analytics shell', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('[data-testid="placeholder-operations"]')).toBeTruthy();
+    const placeholder = root.querySelector('[data-testid="placeholder-operations"]');
+    expect(placeholder?.textContent.trim()).toBe('Operaciones');
   });
 
   it('renders the cohort placeholder when visiting /admin/analytics/cohort', async () => {
@@ -146,7 +172,8 @@ describe('Analytics shell', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('[data-testid="placeholder-cohort"]')).toBeTruthy();
+    const placeholder = root.querySelector('[data-testid="placeholder-cohort"]');
+    expect(placeholder?.textContent.trim()).toBe('Cohorte');
   });
 
   it('renders the alerts placeholder when visiting /admin/analytics/alerts', async () => {
@@ -156,6 +183,7 @@ describe('Analytics shell', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('[data-testid="placeholder-alerts"]')).toBeTruthy();
+    const placeholder = root.querySelector('[data-testid="placeholder-alerts"]');
+    expect(placeholder?.textContent.trim()).toBe('Alertas');
   });
 });

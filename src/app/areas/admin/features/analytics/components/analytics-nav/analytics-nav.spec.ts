@@ -1,3 +1,11 @@
+/**
+ * Tests for the AnalyticsNav component.
+ *
+ * Feature: Renders a two-tab navigation bar for analytics sections (Rentabilidad, Tu carta).
+ * Contract: Nav has aria-label, two links with correct labels, hrefs, and icons.
+ * Approach: Mount component via TestBed with router, query nav elements,
+ * assert exact text, hrefs, aria-labels, and icon classes.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
 import { provideRouter } from '@angular/router';
@@ -34,20 +42,20 @@ describe('AnalyticsNav', () => {
 
   it('renders the navigation with the analytics sections aria label', () => {
     const nav = getRoot().querySelector('nav');
-    expect(nav).toBeTruthy();
+    expect(nav).not.toBeNull();
     expect(nav?.getAttribute('aria-label')).toBe('Secciones de estadísticas');
   });
 
-  it('renders exactly five tab links', () => {
+  it('renders exactly two tab links', () => {
     const links = getRoot().querySelectorAll('nav a');
-    expect(links).toHaveLength(5);
+    expect(links).toHaveLength(2);
   });
 
-  it('renders the five Spanish labels in order: Costo primo, Carta, Operaciones, Cohorte, Alertas', () => {
+  it('renders the two Spanish labels in order: Rentabilidad, Tu carta', () => {
     const labels = Array.from(getRoot().querySelectorAll('nav a .nav-label')).map(
       (el) => el.textContent.trim(),
     );
-    expect(labels).toEqual(['Costo primo', 'Carta', 'Operaciones', 'Cohorte', 'Alertas']);
+    expect(labels).toEqual(['Rentabilidad', 'Tu carta']);
   });
 
   it('points each tab to its /admin/analytics/<module> route via href', () => {
@@ -57,9 +65,6 @@ describe('AnalyticsNav', () => {
     expect(hrefs).toEqual([
       '/admin/analytics/prime-cost',
       '/admin/analytics/menu-engineering',
-      '/admin/analytics/operations',
-      '/admin/analytics/cohort',
-      '/admin/analytics/alerts',
     ]);
   });
 
@@ -67,13 +72,7 @@ describe('AnalyticsNav', () => {
     const ariaLabels = Array.from(getRoot().querySelectorAll('nav a')).map((el) =>
       el.getAttribute('aria-label'),
     );
-    expect(ariaLabels).toEqual([
-      'Costo primo',
-      'Carta',
-      'Operaciones',
-      'Cohorte',
-      'Alertas',
-    ]);
+    expect(ariaLabels).toEqual(['Rentabilidad', 'Tu carta']);
   });
 
   it('renders the icon for each tab', () => {
@@ -82,9 +81,6 @@ describe('AnalyticsNav', () => {
     expect(classes).toEqual([
       'pi pi-chart-line',
       'pi pi-th-large',
-      'pi pi-stopwatch',
-      'pi pi-users',
-      'pi pi-bell',
     ]);
   });
 });

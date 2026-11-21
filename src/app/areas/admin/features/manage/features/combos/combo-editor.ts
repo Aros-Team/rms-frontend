@@ -4,8 +4,6 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { catchError, EMPTY } from 'rxjs';
 
-import { DecimalPipe } from '@angular/common';
-
 import { ButtonModule } from 'primeng/button';
 import { TabsModule } from 'primeng/tabs';
 import { InputTextModule } from 'primeng/inputtext';
@@ -22,8 +20,8 @@ import { ChipModule } from 'primeng/chip';
 import { MessageService } from 'primeng/api';
 
 import { HttpErrorResponse } from '@angular/common/http';
-import { mapHttpError } from '@app/shared/lib/http-error-mapper';
-import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
+import { mapHttpError } from '@app/shared/lib/http-error-mapper/http-error-mapper';
+import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import { SpecialSelectionRequest } from '@app/shared/models/dto/special-selections/special-selection-request';
 import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';
 import { SpecialSelectionGroupRequest } from '@app/shared/models/dto/special-selections/special-selection-group';
@@ -32,7 +30,9 @@ import { SpecialSelectionQuestionRequest } from '@app/shared/models/dto/special-
 import { ScheduleEntryRequest } from '@app/shared/models/dto/special-selections/schedule-entry';
 import { SuggestedPriceResponse } from '@app/shared/models/dto/special-selections/special-selection-suggested-price';
 import { Area } from '@app/core/services/areas/area';
-import { AreaResponse } from '@app/shared/models/dto/areas/area.model';
+import { AreaResponse } from '@app/shared/models/dto/areas/area';
+import { toAmount } from '@app/shared/models/dto/common/money';
+import { Money } from '@app/shared/pipes/money/money';
 
 // ─── Schedule UI types ──────────────────────────────────────────────────────
 interface ScheduleEntry {
@@ -64,14 +64,14 @@ interface ScheduleDay {
     TableModule,
     MessageModule,
     ChipModule,
-    DecimalPipe,
+    Money,
   ],
   providers: [MessageService],
   templateUrl: './combo-editor.html',
   styleUrl: './combo-editor.css',
 })
 export class ComboEditor {
-  private readonly cache = inject(SpecialSelectionsCacheService);
+  private readonly cache = inject(SpecialSelectionsCache);
   private readonly areaService = inject(Area);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -166,7 +166,7 @@ export class ComboEditor {
   private populateForm(data: SpecialSelectionResponse): void {
     this.name.set(data.name);
     this.description.set(data.description);
-    this.basePrice.set(data.basePrice);
+    this.basePrice.set(toAmount(data.basePrice));
     this.areaId.set(data.preparationAreaId);
     this.active.set(data.active);
     this.baseRecipeEnabled.set(data.baseRecipeEnabled);
@@ -183,7 +183,7 @@ export class ComboEditor {
     this.editableAdditions.set(data.additions.map(a => ({
       name: a.name,
       optionId: a.optionId,
-      extraPrice: a.extraPrice,
+      extraPrice: toAmount(a.extraPrice),
       displayOrder: a.displayOrder,
     })));
     this.editableQuestions.set(data.questions.map(q => ({
@@ -393,7 +393,7 @@ export class ComboEditor {
   applySuggestedPrice(): void {
     const result = this.priceResult();
     if (result) {
-      this.basePrice.set(result.suggestedPrice);
+      this.basePrice.set(toAmount(result.suggestedPrice));
       this.showPriceDialog.set(false);
     }
   }

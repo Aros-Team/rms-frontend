@@ -5,24 +5,23 @@ import { interval } from 'rxjs';
 
 import { ButtonModule } from 'primeng/button';
 
-import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
+import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
+import { Money } from '@app/shared/pipes/money/money';
 
 @Component({
   selector: 'app-combos-waiter',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './combos.html',
   styleUrl: './combos.css',
-  imports: [ButtonModule],
+  imports: [ButtonModule, Money],
 })
 export class Combos {
-  private cache = inject(SpecialSelectionsCacheService);
+  private cache = inject(SpecialSelectionsCache);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
 
   combos = computed(() => this.cache.availableNow.data() ?? []);
   loading = computed(() => this.cache.availableNow.isLoading());
-
-  currencyFormat = Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' });
 
   constructor() {
     this.cache.availableNow.load();

@@ -9,9 +9,10 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
-import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
+import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';
 import type { DayOfWeek } from '@app/shared/models/dto/special-selections/schedule-entry';
+import { toAmount } from '@app/shared/models/dto/common/money';
 
 export type WizardStepId = string;
 
@@ -118,7 +119,7 @@ function responseToFormData(response: SpecialSelectionResponse): WizardFormData 
   return {
     name: response.name,
     description: response.description,
-    basePrice: response.basePrice,
+    basePrice: toAmount(response.basePrice),
     areaId: response.preparationAreaId,
     active: response.active,
     baseRecipeEnabled: response.baseRecipeEnabled,
@@ -137,7 +138,7 @@ function responseToFormData(response: SpecialSelectionResponse): WizardFormData 
       id: addition.id,
       name: addition.name,
       optionId: addition.optionId,
-      extraPrice: addition.extraPrice,
+      extraPrice: toAmount(addition.extraPrice),
       displayOrder: addition.displayOrder,
     })),
     questions: response.questions.map((question) => ({
@@ -188,7 +189,7 @@ function isPersistedDraft(value: unknown): value is PersistedWizardDraft {
 @Injectable({ providedIn: 'root' })
 export class ComboWizardState {
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly cache = inject(SpecialSelectionsCacheService);
+  private readonly cache = inject(SpecialSelectionsCache);
 
   private readonly draftState: WritableSignal<ComboWizardDraft>;
   private readonly dirtyFlag: WritableSignal<boolean>;
@@ -271,7 +272,7 @@ export class ComboWizardState {
       this.lastSavedAtState.set(null);
     } else {
       this.draftState.set({
-        sourceId: response.id,
+        sourceId: response.productId,
         data: responseToFormData(response),
       });
       this.lastSavedAtState.set(Date.now());

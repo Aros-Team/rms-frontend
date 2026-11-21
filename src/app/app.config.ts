@@ -4,7 +4,15 @@ import {
   provideZonelessChangeDetection,
   isDevMode,
 } from '@angular/core';
-import { provideRouter, withPreloading, PreloadAllModules, withComponentInputBinding } from '@angular/router';
+import {
+  provideRouter,
+  withPreloading,
+  withComponentInputBinding,
+  withInMemoryScrolling,
+  TitleStrategy,
+} from '@angular/router';
+import { AppTitleStrategy } from './core/title-strategy/title-strategy';
+import { SelectivePreloadingStrategy } from './core/preloading/selective-preloading-strategy';
 import { provideServiceWorker } from '@angular/service-worker';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { LOCALE_ID } from '@angular/core';
@@ -14,9 +22,10 @@ import {
   provideHttpClient,
   withInterceptors,
 } from '@angular/common/http';
-import { jwtInterceptor } from '@core/interceptors/jwt';
-import { urlInterceptor } from '@core/interceptors/url-interceptor';
-import { errorInterceptor } from '@core/interceptors/error';
+import { jwtInterceptor } from '@core/interceptors/jwt/jwt';
+import { urlInterceptor } from '@core/interceptors/url-interceptor/url-interceptor';
+import { errorInterceptor } from '@core/interceptors/error/error';
+import { envelopeInterceptor } from '@core/interceptors/envelope/envelope';
 import { routes } from './app.routes';
 
 /**
@@ -57,8 +66,17 @@ const arosPreset = definePreset(Aura, {
     },
     colorScheme: {
       light: {
+        // PrimeNG's muted text (select labels, table empties, paginator) was
+        // surface-500, which lands at 3.9:1 on the light surfaces.
+        text: {
+          mutedColor: '{surface.600}',
+        },
         primary: {
           color: '{primary.500}',
+          // NOTE: keep this white. `bg-primary-contrast` resolves to this token
+          // and the app uses it as its card surface, so a dark value here would
+          // paint every card near-black. Button label contrast is handled by
+          // the button component tokens below.
           contrastColor: '#ffffff',
           hoverColor: '{primary.600}',
           activeColor: '{primary.700}'
@@ -94,6 +112,80 @@ const arosPreset = definePreset(Aura, {
     Primary: Primary,
     Semantic: Semantic,
     Surface: Surface
+  },
+
+  components: {
+    /**
+     * Severity buttons use Aura's raw 500 shades with white text, which fails
+     * WCAG AA on light surfaces (warn #f97316 → 2.8:1, success → 2.6:1,
+     * info → 3.4:1, danger → 3.8:1). Keep the hues, move them one step darker
+     * — or, for amber, keep the bright fill and switch to dark ink.
+     */
+    button: {
+      colorScheme: {
+        light: {
+          root: {
+            primary: {
+              color: '#1e1b19',
+              hoverColor: '#1e1b19',
+              activeColor: '#1e1b19',
+            },
+            info: {
+              background: '{Semantic.info.600}',
+              hoverBackground: '{Semantic.info.700}',
+              activeBackground: '{Semantic.info.800}',
+              borderColor: '{Semantic.info.600}',
+              color: '#ffffff',
+            },
+            success: {
+              background: '{Semantic.success.700}',
+              hoverBackground: '{Semantic.success.800}',
+              activeBackground: '{Semantic.success.900}',
+              borderColor: '{Semantic.success.700}',
+              color: '#ffffff',
+            },
+            warn: {
+              background: '{Semantic.warn.500}',
+              hoverBackground: '{Semantic.warn.600}',
+              activeBackground: '{Semantic.warn.700}',
+              borderColor: '{Semantic.warn.500}',
+              color: '#1e1b19',
+            },
+            danger: {
+              background: '#dc2626',
+              hoverBackground: '#b91c1c',
+              activeBackground: '#991b1b',
+              borderColor: '#dc2626',
+              color: '#ffffff',
+            },
+          },
+          // Where primary is used as *foreground* (text / outlined / link
+          // buttons) the brand gold is only 1.7:1 on light surfaces. These
+          // point at the theme-aware accent token instead, which resolves to
+          // dark bronze in light mode and pale gold in dark mode.
+          text: {
+            primary: {
+              color: 'var(--accent-text)',
+              hoverBackground: '{primary.100}',
+              activeBackground: '{primary.200}',
+            },
+          },
+          outlined: {
+            primary: {
+              color: 'var(--accent-text)',
+              borderColor: 'var(--accent-text)',
+              hoverBackground: '{primary.100}',
+              activeBackground: '{primary.200}',
+            },
+          },
+          link: {
+            color: 'var(--accent-text)',
+            hoverColor: 'var(--accent-text)',
+            activeColor: 'var(--accent-text)',
+          },
+        },
+      },
+    },
   }
 });
 
@@ -101,9 +193,16 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideRouter(routes, withPreloading(PreloadAllModules), withComponentInputBinding()),
+    provideRouter(
+      routes,
+      withPreloading(SelectivePreloadingStrategy),
+      withComponentInputBinding(),
+      // Reset scroll on navigation and honour #anchors, otherwise a long page
+      // leaves the next route scrolled halfway down.
+      withInMemoryScrolling({ scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled' }),
+    ),
     provideHttpClient(
-      withInterceptors([urlInterceptor, jwtInterceptor, errorInterceptor])
+      withInterceptors([urlInterceptor, jwtInterceptor, errorInterceptor, envelopeInterceptor])
     ),
     {
       provide: LOCALE_ID,
@@ -117,6 +216,7 @@ export const appConfig: ApplicationConfig = {
         }
       }
     }),
+    { provide: TitleStrategy, useClass: AppTitleStrategy },
     MessageService,
     ConfirmationService,
     provideServiceWorker('ngsw-worker.js', {

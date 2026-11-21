@@ -1,3 +1,10 @@
+/**
+ * Tests for the combo wizard integration (full wizard flow).
+ *
+ * Feature: End-to-end wizard flow from general step to submission.
+ * Contract: Steps advance correctly, data persists across steps, submission posts to API.
+ * Approach: Mount wizard via TestBed, step through all steps, assert final API call.
+ */
 import { TestBed } from '@angular/core/testing';
 import {
   ɵresolveComponentResources as resolveComponentResources,
@@ -8,17 +15,20 @@ import {
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { MessageService } from 'primeng/api';
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ComboReferenceCache } from '@app/core/services/combos/combo-reference-cache';
 import { ComboWizardState, type WizardFormData } from '@app/core/services/combos/combo-wizard-state';
-import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
+import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import type { ProductResponse } from '@app/shared/models/dto/products/product-response';
+import type { Money } from '@app/shared/models/dto/common/money';
 import { SELECTION_TYPE } from '@app/shared/models/dto/special-selections/selection-type';
 
 import { ComboWizard } from './combo-wizard';
+import { PricingStep } from './pricing-step/pricing-step';
 import { canAdvanceFromGroups, validateAllGroups } from './group-validation';
 import comboWizardHtml from './combo-wizard.html?raw';
+import pricingStepHtml from './pricing-step/pricing-step.html?raw';
 
 // ─── Stub types ──────────────────────────────────────────────────────────────
 
@@ -59,7 +69,7 @@ function specialSelectionsCacheStub() {
 
 // ─── Test data ───────────────────────────────────────────────────────────────
 
-function makeProduct(id: number, name: string, basePrice: number, categoryId: number): ProductResponse {
+function makeProduct(id: number, name: string, basePrice: Money | number, categoryId: number): ProductResponse {
   return {
     id,
     name,
@@ -130,7 +140,7 @@ async function setupWizardTestBed(
       provideHttpClient(),
       MessageService,
       { provide: ComboReferenceCache, useValue: reference },
-      { provide: SpecialSelectionsCacheService, useValue: specialSelectionsCacheStub() },
+      { provide: SpecialSelectionsCache, useValue: specialSelectionsCacheStub() },
     ],
   }).compileComponents();
   const fixture = TestBed.createComponent(ComboWizard);
@@ -160,7 +170,7 @@ async function setupHostTestBed<T extends object>(host: new () => T): Promise<{
       provideHttpClient(),
       MessageService,
       { provide: ComboReferenceCache, useValue: buildReferenceStub() },
-      { provide: SpecialSelectionsCacheService, useValue: specialSelectionsCacheStub() },
+      { provide: SpecialSelectionsCache, useValue: specialSelectionsCacheStub() },
     ],
   }).compileComponents();
   const fixture = TestBed.createComponent(host);
@@ -175,6 +185,9 @@ describe('Wizard integration', () => {
     await resolveComponentResources((url: string) => {
       if (url.endsWith('combo-wizard.html')) {
         return Promise.resolve(comboWizardHtml as unknown as string);
+      }
+      if (url.endsWith('pricing-step.html')) {
+        return Promise.resolve(pricingStepHtml as unknown as string);
       }
       return Promise.resolve('');
     });
@@ -191,7 +204,9 @@ describe('Wizard integration', () => {
       const root = host.fixture.nativeElement as HTMLElement;
       const state = TestBed.inject(ComboWizardState);
 
-      expect(root.querySelector('[data-testid="step-general"]')).toBeTruthy();
+      expect(root.querySelector('[data-testid="step-general"]')?.textContent.trim()).toBe(
+        'General Step',
+      );
       expect(root.querySelector('[data-testid="step-category"]')).toBeNull();
       expect(root.querySelector('[data-testid="step-questions"]')).toBeNull();
       expect(root.querySelector('[data-testid="step-pricing"]')).toBeNull();
@@ -202,13 +217,17 @@ describe('Wizard integration', () => {
       host.fixture.detectChanges();
 
       expect(root.querySelector('[data-testid="step-general"]')).toBeNull();
-      expect(root.querySelector('[data-testid="step-questions"]')).toBeTruthy();
+      expect(root.querySelector('[data-testid="step-questions"]')?.textContent.trim()).toBe(
+        'Questions Step',
+      );
 
       state.markStepCompleted('questions');
       state.setCurrentStep('pricing');
       host.fixture.detectChanges();
 
-      expect(root.querySelector('[data-testid="step-pricing"]')).toBeTruthy();
+      expect(root.querySelector('[data-testid="step-pricing"]')?.textContent.trim()).toBe(
+        'Pricing Step',
+      );
     });
 
     it('renders category slot inside the correct per-category pane', async () => {
@@ -220,11 +239,12 @@ describe('Wizard integration', () => {
       host.fixture.detectChanges();
 
       const root = host.fixture.nativeElement as HTMLElement;
-      expect(root.querySelector('[data-testid="step-category"]')).toBeTruthy();
-
       const pane = root.querySelector('[data-step-pane="category:1"]');
-      expect(pane).toBeTruthy();
-      expect(pane?.querySelector('[data-testid="step-category"]')).toBeTruthy();
+      const slot = pane?.querySelector('[data-testid="step-category"]');
+      expect(slot?.textContent.trim()).toBe('Category Step');
+      // The projected slot lives only in the active category pane.
+      expect(slot?.closest('[data-step-pane]')?.getAttribute('data-step-pane')).toBe('category:1');
+      expect(root.querySelectorAll('[data-testid="step-category"]').length).toBe(1);
     });
   });
 
@@ -382,7 +402,9 @@ describe('Wizard integration', () => {
       };
       const ref = { specialSelectionProductsByCategory: () => TEST_PRODUCTS.filter((p) => p.categoryId === 1) };
       const errors = validateAllGroups(formData, ref);
-      expect(errors.some((e) => e.type === 'MIN_NOT_MET')).toBe(true);
+      expect(errors).toEqual([
+        expect.objectContaining({ categoryId: 1, type: 'MIN_NOT_MET' }),
+      ]);
     });
 
     it('wizard canAdvance is false when group step not completed', async () => {
@@ -405,53 +427,113 @@ describe('Wizard integration', () => {
 
   // ── 7. Pricing cost calculation ──────────────────────────────────────
   describe('5. Pricing cost calculation from selected products', () => {
-    it('sums base prices of all selected products across groups', () => {
-      const groups = [
-        { categoryId: 1, productIds: [10, 11] }, // 100 + 200
-        { categoryId: 2, productIds: [12] },       // 300
+    async function setupPricingStep(
+      formData: WizardFormData,
+      products: ProductResponse[],
+    ): Promise<PricingStep> {
+      const data = signal<WizardFormData>(formData);
+      TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [PricingStep],
+        providers: [
+          {
+            provide: ComboWizardState,
+            useValue: {
+              data: data.asReadonly(),
+              steps: signal<readonly { id: string }[]>([{ id: 'pricing' }]),
+              updateData: vi.fn(),
+              markStepCompleted: vi.fn(),
+              markStepIncomplete: vi.fn(),
+            },
+          },
+          { provide: ComboReferenceCache, useValue: buildReferenceStub(TEST_CATEGORIES, products) },
+        ],
+      }).compileComponents();
+      const fixture = TestBed.createComponent(PricingStep);
+      fixture.detectChanges();
+      return fixture.componentInstance;
+    }
+
+    function pricingFormData(groups: WizardFormData['groups']): WizardFormData {
+      return {
+        name: 'Test',
+        description: '',
+        basePrice: null,
+        areaId: 1,
+        active: true,
+        baseRecipeEnabled: false,
+        schedulingRequired: false,
+        selectedCategoryIds: [1, 2],
+        groups,
+        additions: [],
+        questions: [],
+        schedule: [],
+      };
+    }
+
+    it('sums MoneyDto base prices of all selected products across groups', async () => {
+      // Wire shape: `{ amount: "100.00", currency: "COP" }`. PricingStep must
+      // normalize each one with `toAmount()` — reducing the raw DTOs used to
+      // produce NaN (the bug this test guards).
+      const moneyProducts: ProductResponse[] = [
+        makeProduct(20, 'Producto M1', { amount: '100.00', currency: 'COP' }, 1),
+        makeProduct(21, 'Producto M2', { amount: '200.00', currency: 'COP' }, 1),
+        makeProduct(22, 'Producto M3', { amount: '300.00', currency: 'COP' }, 2),
       ];
-      let total = 0;
-      let count = 0;
-      for (const g of groups) {
-        for (const pid of g.productIds) {
-          const p = TEST_PRODUCTS.find((x) => x.id === pid);
-          if (p) { total += p.basePrice; count++; }
-        }
-      }
-      expect(total).toBe(600);
-      expect(count).toBe(3);
+      const cmp = await setupPricingStep(
+        pricingFormData([
+          { id: null, categoryId: 1, displayOrder: 0, required: true, minSelections: 1, maxSelections: 1, productIds: [20, 21] },
+          { id: null, categoryId: 2, displayOrder: 1, required: false, minSelections: 0, maxSelections: 1, productIds: [22] },
+        ]),
+        moneyProducts,
+      );
+
+      expect(cmp.groupCosts().map((g) => g.avgPrice)).toEqual([150, 300]);
+      expect(cmp.groupCosts().map((g) => g.subtotal)).toEqual([150, 300]);
+      expect(cmp.totalCost()).toBe(450);
+      expect(Number.isNaN(cmp.totalCost())).toBe(false);
+      expect(cmp.suggestedRetailPrice()).toBe(405);
     });
 
-    it('returns 0 for empty groups', () => {
-      let total = 0;
-      for (const g of [] as { productIds: number[] }[]) {
-        for (const pid of g.productIds) {
-          const p = TEST_PRODUCTS.find((x) => x.id === pid);
-          if (p) total += p.basePrice;
-        }
-      }
-      expect(total).toBe(0);
+    it('returns 0 for empty groups', async () => {
+      const cmp = await setupPricingStep(pricingFormData([]), TEST_PRODUCTS);
+
+      expect(cmp.groupCosts()).toEqual([]);
+      expect(cmp.totalCost()).toBe(0);
+      expect(cmp.customerSelectionCount()).toBe(0);
     });
 
-    it('skips empty productIds within a group', () => {
-      const groups = [
-        { productIds: [] },
-        { productIds: [12] },
+    it('skips empty productIds within a group', async () => {
+      const cmp = await setupPricingStep(
+        pricingFormData([
+          { id: null, categoryId: 1, displayOrder: 0, required: false, minSelections: 0, maxSelections: 2, productIds: [] },
+          { id: null, categoryId: 2, displayOrder: 1, required: false, minSelections: 0, maxSelections: 1, productIds: [12] },
+        ]),
+        TEST_PRODUCTS,
+      );
+
+      expect(cmp.groupCosts().map((g) => g.avgPrice)).toEqual([0, 300]);
+      // Empty group contributes 0; group 2 = 300 × 1 selection.
+      expect(cmp.totalCost()).toBe(300);
+    });
+
+    it('resolves product names and prices from the reference cache', async () => {
+      const moneyProducts: ProductResponse[] = [
+        makeProduct(20, 'Producto M1', { amount: '100.00', currency: 'COP' }, 1),
+        makeProduct(99, 'No elegible', 500, 1),
       ];
-      let total = 0;
-      for (const g of groups) {
-        for (const pid of g.productIds) {
-          const p = TEST_PRODUCTS.find((x) => x.id === pid);
-          if (p) total += p.basePrice;
-        }
-      }
-      expect(total).toBe(300);
-    });
+      const cmp = await setupPricingStep(
+        pricingFormData([
+          { id: null, categoryId: 1, displayOrder: 0, required: false, minSelections: 0, maxSelections: 1, productIds: [20] },
+        ]),
+        moneyProducts,
+      );
 
-    it('resolves product prices from reference cache', () => {
-      const ref = buildReferenceStub(TEST_CATEGORIES, TEST_PRODUCTS);
-      expect(ref.productById(10)?.basePrice).toBe(100);
-      expect(ref.productById(999)).toBeUndefined();
+      expect(cmp.groupCosts()[0]?.products).toEqual([
+        { id: 20, name: 'Producto M1', basePrice: 100 },
+      ]);
+      // Category name is resolved through the reference cache too.
+      expect(cmp.groupCosts()[0]?.categoryName).toBe('Bebidas');
     });
   });
 });

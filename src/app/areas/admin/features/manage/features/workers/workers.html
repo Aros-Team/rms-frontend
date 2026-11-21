@@ -3,7 +3,6 @@
   <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 min-w-0 flex-shrink-0">
     <div class="min-w-0">
       <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0 break-words">Administración de trabajadores</h1>
-      <p class="text-surface-600 dark:text-surface-400 mt-1 text-sm">Gestiona los trabajadores y sus asignaciones del restaurante</p>
     </div>
     <div class="flex items-center gap-2">
       <p-button icon="pi pi-user-plus" label="Nuevo empleado" pTooltip="Registrar nuevo empleado" tooltipPosition="bottom" aria-label="Registrar nuevo empleado" (click)="showCreationModal()" />
@@ -21,8 +20,8 @@
         [attr.aria-selected]="activeEmployeeTab() === 'list'"
         class="px-4 py-2 text-sm font-medium rounded-t-lg border border-b-0 transition-colors cursor-pointer"
         [ngClass]="{
-          'bg-surface-0 dark:bg-surface-800 text-primary border-surface-200 dark:border-surface-700': activeEmployeeTab() === 'list',
-          'bg-transparent text-surface-500 border-transparent hover:text-surface-700 dark:hover:text-surface-300': activeEmployeeTab() !== 'list'
+          'bg-primary-contrast dark:bg-surface-800 text-accent border-surface-200 dark:border-surface-700': activeEmployeeTab() === 'list',
+          'bg-transparent text-muted border-transparent hover:text-surface-700 hover:text-muted': activeEmployeeTab() !== 'list'
         }"
         (click)="switchTab('list')"
         (keydown.enter)="$event.preventDefault(); switchTab('list')"
@@ -36,13 +35,28 @@
         [attr.aria-selected]="activeEmployeeTab() === 'time-logs'"
         class="px-4 py-2 text-sm font-medium rounded-t-lg border border-b-0 transition-colors cursor-pointer"
         [ngClass]="{
-          'bg-surface-0 dark:bg-surface-800 text-primary border-surface-200 dark:border-surface-700': activeEmployeeTab() === 'time-logs',
-          'bg-transparent text-surface-500 border-transparent hover:text-surface-700 dark:hover:text-surface-300': activeEmployeeTab() !== 'time-logs'
+          'bg-primary-contrast dark:bg-surface-800 text-accent border-surface-200 dark:border-surface-700': activeEmployeeTab() === 'time-logs',
+          'bg-transparent text-muted border-transparent hover:text-surface-700 hover:text-muted': activeEmployeeTab() !== 'time-logs'
         }"
         (click)="switchTab('time-logs')"
         (keydown.enter)="$event.preventDefault(); switchTab('time-logs')"
         (keydown.space)="$event.preventDefault(); switchTab('time-logs')"
       >Registros de Ingreso</button>
+      <button
+        #tabPayroll
+        role="tab"
+        id="tab-payroll"
+        aria-controls="tabpanel-payroll"
+        [attr.aria-selected]="activeEmployeeTab() === 'payroll'"
+        class="px-4 py-2 text-sm font-medium rounded-t-lg border border-b-0 transition-colors cursor-pointer"
+        [ngClass]="{
+          'bg-primary-contrast dark:bg-surface-800 text-accent border-surface-200 dark:border-surface-700': activeEmployeeTab() === 'payroll',
+          'bg-transparent text-muted border-transparent hover:text-surface-700 hover:text-muted': activeEmployeeTab() !== 'payroll'
+        }"
+        (click)="switchTab('payroll')"
+        (keydown.enter)="$event.preventDefault(); switchTab('payroll')"
+        (keydown.space)="$event.preventDefault(); switchTab('payroll')"
+      >Nómina</button>
     </div>
   </nav>
 
@@ -76,8 +90,8 @@
       </div>
     } @else if (workers().length === 0) {
       <div class="flex flex-col items-center justify-center h-full p-8">
-        <i class="pi pi-users text-4xl text-surface-300 mb-4"></i>
-        <p class="text-surface-500 text-lg">No hay trabajadores registrados</p>
+        <i class="pi pi-users text-4xl text-surface-300 mb-4" aria-hidden="true"></i>
+        <p class="text-muted text-lg">No hay trabajadores registrados</p>
       </div>
     } @else {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -107,15 +121,15 @@
     <!-- Filters -->
     <div class="flex flex-wrap gap-3 mb-4 p-4 border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-100 dark:bg-surface-800">
       <div class="flex flex-col gap-1">
-        <label class="text-xs text-surface-500" for="filter-worker-id">Worker ID</label>
+        <label class="text-xs text-muted" for="filter-worker-id">ID del trabajador</label>
         <input pInputText id="filter-worker-id" type="number" [(ngModel)]="filterWorkerId" placeholder="ID del trabajador" class="w-32" />
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-xs text-surface-500" for="filter-from">Desde</label>
+        <label class="text-xs text-muted" for="filter-from">Desde</label>
         <p-datepicker id="filter-from" [(ngModel)]="filterFrom" [showTime]="true" dateFormat="dd/mm/yy" placeholder="Fecha inicio"></p-datepicker>
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-xs text-surface-500" for="filter-to">Hasta</label>
+        <label class="text-xs text-muted" for="filter-to">Hasta</label>
         <p-datepicker id="filter-to" [(ngModel)]="filterTo" [showTime]="true" dateFormat="dd/mm/yy" placeholder="Fecha fin"></p-datepicker>
       </div>
       <div class="flex items-end gap-2">
@@ -134,13 +148,13 @@
         <app-table-skeleton [rowCount]="5" [colCount]="6" />
       } @else if (timeLogError()) {
         <div class="flex flex-col items-center justify-center h-full p-8">
-          <p class="text-surface-500">{{ timeLogError() }}</p>
+          <p class="text-muted">{{ timeLogError() }}</p>
           <p-button label="Reintentar" icon="pi pi-refresh" aria-label="Reintentar cargar registros de ingreso" (onClick)="loadTimeLogs()" class="mt-4"></p-button>
         </div>
       } @else if (timeLogs().length === 0) {
         <div class="flex flex-col items-center justify-center h-full p-8">
-          <i class="pi pi-history text-4xl text-surface-300 mb-4"></i>
-          <p class="text-surface-500 text-lg">Sin registros de ingreso</p>
+          <i class="pi pi-history text-4xl text-surface-300 mb-4" aria-hidden="true"></i>
+          <p class="text-muted text-lg">Sin registros de ingreso</p>
         </div>
       } @else {
         <p-table [value]="timeLogs()" dataKey="id" [paginator]="true" [rows]="15"
@@ -148,7 +162,7 @@
           <ng-template pTemplate="header">
             <tr>
               <th>ID</th>
-              <th>Worker ID</th>
+              <th>ID del trabajador</th>
               <th>Fecha/Hora</th>
               <th>Tipo</th>
               <th>Dentro de Turno</th>
@@ -173,12 +187,23 @@
           </ng-template>
           <ng-template pTemplate="emptymessage">
             <tr>
-              <td colspan="6" class="text-center p-4 text-surface-400">Sin registros de ingreso</td>
+              <td colspan="6" class="text-center p-4 text-muted">Sin registros de ingreso</td>
             </tr>
           </ng-template>
         </p-table>
       }
     </div>
+  </div>
+  }
+
+  @if (activeEmployeeTab() === 'payroll') {
+  <div
+    id="tabpanel-payroll"
+    role="tabpanel"
+    aria-labelledby="tab-payroll"
+    class="flex-1 min-h-0 overflow-auto min-w-0"
+  >
+    <app-payroll-panel />
   </div>
   }
 </div>
@@ -188,7 +213,7 @@
   [modal]="true"
   [(visible)]="creationModalVisible"
   draggable="false"
-  [style]="{ width: '90vw', maxWidth: '500px', padding: '2', 'z-index': '400000' }"
+  styleClass="w-[90vw] max-w-[500px] p-2 z-[400000]"
   appendTo="body"
   (onShow)="focusFirstInput()"
 >
@@ -348,7 +373,7 @@
   [modal]="true"
   [(visible)]="scheduleDialogVisible"
   draggable="false"
-  [style]="{ width: '500px', 'z-index': '400000' }"
+  styleClass="w-[500px] z-[400000]"
   appendTo="body"
   (onHide)="closeScheduleDialog()"
 >
@@ -362,7 +387,7 @@
             <div class="flex flex-col min-w-0">
               <span class="font-medium text-surface-900 dark:text-surface-0">{{ schedule.name }}</span>
               @if (schedule.description) {
-                <span class="text-sm text-surface-500">{{ schedule.description }}</span>
+                <span class="text-sm text-muted">{{ schedule.description }}</span>
               }
             </div>
             @if (isScheduleAssigned(schedule.id)) {
@@ -387,8 +412,8 @@
           </div>
         }
         @empty {
-          <div class="text-center text-surface-500 py-8">
-            <i class="pi pi-calendar text-3xl mb-3 block"></i>
+          <div class="text-center text-muted py-8">
+            <i class="pi pi-calendar text-3xl mb-3 block" aria-hidden="true"></i>
             <p>No hay horarios disponibles</p>
           </div>
         }

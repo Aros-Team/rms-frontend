@@ -17,11 +17,19 @@ export class Accessibility {
   readonly fontSize = signal<FontSize>('normal');
   readonly contrastMode = signal<ContrastMode>('normal');
 
-  private readonly fontSizeMap: Record<FontSize, string> = {
-    'small': '14px',
-    'normal': '16px',
-    'large': '18px',
-    'extra-large': '20px'
+  /**
+   * Scale factor applied on top of whatever the user configured in their
+   * browser/OS. Never hard-code an absolute `px` root size: doing so would
+   * override the browser's minimum font size and OS text scaling, which is
+   * exactly what visually impaired users rely on.
+   *
+   * `normal` (1) leaves the root font size untouched.
+   */
+  private readonly fontSizeMap: Record<FontSize, number> = {
+    'small': 0.875,
+    'normal': 1,
+    'large': 1.125,
+    'extra-large': 1.25
   };
 
   constructor() {
@@ -48,7 +56,14 @@ export class Accessibility {
 
   private applyFontSize(size: FontSize): void {
     const root = document.documentElement;
-    root.style.fontSize = this.fontSizeMap[size];
+    const scale = this.fontSizeMap[size];
+
+    // `normal` must not pin a size: leave the user's own root font-size alone.
+    if (scale === 1) {
+      root.style.removeProperty('font-size');
+    } else {
+      root.style.fontSize = `${String(scale * 100)}%`;
+    }
     root.setAttribute('data-font-size', size);
   }
 
@@ -76,12 +91,35 @@ export class Accessibility {
           if (contrastMode === 'normal' || contrastMode === 'high') {
             this.contrastMode.set(contrastMode);
           }
+          return;
         }
       } catch {
         this.fontSize.set('normal');
         this.contrastMode.set('normal');
+        return;
       }
     }
+
+    // No stored preference: honour the OS "increase contrast" setting instead
+    // of defaulting to normal, and keep following it while unlocked.
+    this.contrastMode.set(this.prefersMoreContrast() ? 'high' : 'normal');
+
+    if (typeof window.matchMedia === 'function') {
+      window
+        .matchMedia('(prefers-contrast: more)')
+        .addEventListener('change', (event) => {
+          if (!localStorage.getItem(this.STORAGE_KEY)) {
+            this.contrastMode.set(event.matches ? 'high' : 'normal');
+          }
+        });
+    }
+  }
+
+  private prefersMoreContrast(): boolean {
+    return (
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-contrast: more)').matches
+    );
   }
 
   private saveSettings(): void {

@@ -1,4 +1,4 @@
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { Injectable, inject } from "@angular/core";
 import { CategoryCreateRequest } from "@app/shared/models/dto/category/category-create-request";
 import { CategorySimpleResponse } from "@app/shared/models/dto/category/category-simple-response";
@@ -10,8 +10,12 @@ import { Observable } from "rxjs";
 export class Category {
   private http = inject(HttpClient);
 
-  public getCategories(): Observable<CategorySimpleResponse[]> {
-    return this.http.get<CategorySimpleResponse[]>('v1/categories');
+  public getCategories(search?: string): Observable<CategorySimpleResponse[]> {
+    let params = new HttpParams();
+    if (search) {
+      params = params.set('search', search);
+    }
+    return this.http.get<CategorySimpleResponse[]>('v1/categories', { params });
   }
 
   public createCategory(data: CategoryCreateRequest): Observable<object> {

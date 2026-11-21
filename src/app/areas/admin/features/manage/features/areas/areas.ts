@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, inject, computed } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Area } from '@app/core/services/areas/area';
+import { AreaRequest, AreaTypeValue } from '@app/shared/models/dto/areas/area';
 import { AreaSimpleResponse } from '@app/shared/models/dto/areas/area-simple-response';
 import { Auth } from '@app/core/services/auth/auth';
 import { ButtonModule } from 'primeng/button';
@@ -13,9 +14,9 @@ import { SelectModule } from 'primeng/select';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { FormValidation } from '@app/shared/components/form/form-validation';
-import { TablesCacheService } from '../tables/tables-cache.service';
-import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
-import { TableSkeleton } from '@shared/skeletons/table-skeleton';
+import { TablesCache } from '../tables/tables-cache';
+import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 
 @Component({
   selector: 'app-areas',
@@ -29,9 +30,9 @@ import { TableSkeleton } from '@shared/skeletons/table-skeleton';
     SelectModule,
     IconFieldModule,
     InputIconModule,
-FormValidation,
-    LazyLoadDirective,
-    TableSkeleton
+    FormValidation,
+    LazyLoad,
+    TableSkeleton,
   ],
   templateUrl: './areas.html'
 })
@@ -40,7 +41,7 @@ export class Areas implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private authService = inject(Auth);
   private areasSubscription: Subscription | null = null;
-  readonly cache = inject(TablesCacheService);
+  readonly cache = inject(TablesCache);
 
   areas = computed(() => this.cache.areas.data() ?? []);
   modalVisible = false;
@@ -52,10 +53,18 @@ export class Areas implements OnInit, OnDestroy {
     type: ['', (control: AbstractControl) => Validators.required(control)],
   });
 
-  areaTypes = [
+  /** Area types accepted by the API (`AreaType` enum). */
+  readonly areaTypes: { label: string; value: AreaTypeValue }[] = [
     { label: 'Cocina', value: 'KITCHEN' },
-    { label: 'Bartender', value: 'BARTENDER' },
+    { label: 'Servicio', value: 'SERVICE' },
+    { label: 'Bar', value: 'BAR' },
+    { label: 'Parrilla', value: 'GRILL' },
+    { label: 'Caja', value: 'CASH' },
   ];
+
+  areaTypeLabel(type: AreaTypeValue): string {
+    return this.areaTypes.find((t) => t.value === type)?.label ?? type;
+  }
 
   ngOnInit(): void {
     this.cache.areas.loadIfStale();
@@ -94,7 +103,7 @@ export class Areas implements OnInit, OnDestroy {
   saveArea = (): void => {
     if (this.form.invalid) return;
 
-    const data = this.form.value as { name: string; type: 'KITCHEN' | 'BARTENDER' };
+    const data = this.form.value as AreaRequest;
 
     if (this.editMode && this.selectedArea) {
       this.areaService.updateArea(this.selectedArea.id, data).subscribe({

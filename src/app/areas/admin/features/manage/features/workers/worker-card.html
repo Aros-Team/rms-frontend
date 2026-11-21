@@ -8,10 +8,10 @@
     </div>
     <div class="min-w-0 flex-1">
       <h3 class="font-medium text-surface-900 dark:text-surface-0 truncate">{{ worker().name }}</h3>
-      <p class="text-sm text-surface-500 truncate">{{ worker().email }}</p>
+      <p class="text-sm text-muted truncate">{{ worker().email }}</p>
     </div>
     @if (worker().status === 'ACTIVE') {
-      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-primary text-primary-contrast">{{ statusLabel() }}</span>
+      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-primary-500 text-surface-900">{{ statusLabel() }}</span>
     } @else {
       <p-tag [value]="statusLabel()" [severity]="statusSeverity()" />
     }
@@ -19,11 +19,11 @@
 
   <div class="flex flex-col gap-2 text-sm">
     <div class="flex justify-between items-center">
-      <span class="text-surface-500">Área</span>
+      <span class="text-muted">Área</span>
       <span class="text-surface-700 dark:text-surface-300 font-medium">{{ areaName() }}</span>
     </div>
     <div class="flex justify-between items-center">
-      <span class="text-surface-500">Horarios</span>
+      <span class="text-muted">Horarios</span>
       <p-tag [value]="assignedScheduleCount() + ' asignados'" [severity]="assignedScheduleCount() > 0 ? 'info' : 'secondary'" />
     </div>
   </div>

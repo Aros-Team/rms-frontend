@@ -3,7 +3,7 @@ import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { Subscription } from 'rxjs';
-import { HabeasDataService } from './habeas-data.service';
+import { HabeasDataEvents } from './habeas-data-events';
 
 @Component({
   selector: 'app-habeas-data',
@@ -16,7 +16,7 @@ export class HabeasData implements OnInit, OnDestroy {
   fontSize = 16;
 
   private readonly FONT_SIZE_KEY = 'accessibility_font_size';
-  private habeasDataService = inject(HabeasDataService);
+  private habeasDataService = inject(HabeasDataEvents);
   private subs: Subscription[] = [];
 
   ngOnInit(): void {

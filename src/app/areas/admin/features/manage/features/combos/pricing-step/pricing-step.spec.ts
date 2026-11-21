@@ -1,3 +1,10 @@
+/**
+ * Tests for the PricingStep component (combo wizard step 3).
+ *
+ * Feature: Pricing form for combo products (base price, discount, final price).
+ * Contract: Computes final price from base and discount, validates price constraints.
+ * Approach: Mount component via TestBed with test host, set prices, assert calculations.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import {
   ɵresolveComponentResources as resolveComponentResources,
@@ -131,15 +138,48 @@ describe('PricingStep', () => {
   }
 
   describe('cost breakdown', () => {
+    it('normalizes MoneyDto product prices so totalCost stays exact (regression)', () => {
+      // Wire shape: `basePrice` is `{ amount: "15000.00", currency: "COP" }`.
+      // Reducing the raw objects used to produce NaN.
+      mockProducts.push(
+        { id: 200, name: 'Costo A', basePrice: { amount: '15000.00', currency: 'COP' }, active: true, categoryId: 1, categoryName: 'Bebidas', areaId: 1, areaName: 'Cocina', recipe: [] },
+        { id: 201, name: 'Costo B', basePrice: { amount: '10000.00', currency: 'COP' }, active: true, categoryId: 1, categoryName: 'Bebidas', areaId: 1, areaName: 'Cocina', recipe: [] },
+      );
+      createComponent({
+        ...emptyFormData(),
+        groups: [
+          { id: 9, categoryId: 1, displayOrder: 0, required: true, minSelections: 1, maxSelections: 1, productIds: [200, 201] },
+        ],
+      });
+      fixture.detectChanges();
+
+      expect(component.groupCosts()[0]?.avgPrice).toBe(12500);
+      expect(component.groupCosts()[0]?.subtotal).toBe(12500);
+      expect(component.totalCost()).toBe(12500);
+      expect(Number.isNaN(component.totalCost())).toBe(false);
+      expect(component.suggestedRetailPrice()).toBeCloseTo(11250);
+
+      mockProducts.length = 3;
+    });
+
     it('renders cost breakdown with selected products', () => {
       createComponent(formDataWithGroups());
       fixture.detectChanges();
 
       const native = getNative();
-      expect(native.querySelectorAll('[data-testid="cost-product-row"]').length).toBe(3);
-      expect(native.textContent).toContain('Producto A');
-      expect(native.textContent).toContain('Producto B');
-      expect(native.textContent).toContain('Producto C');
+      const rows = Array.from(native.querySelectorAll('[data-testid="cost-product-row"]'));
+      expect(rows.length).toBe(3);
+      expect(rows.map((row) => row.querySelector('span')?.textContent.trim())).toEqual([
+        'Producto A',
+        'Producto B',
+        'Producto C',
+      ]);
+      // Prices go through the `money` pipe (COP: no decimals).
+      expect(rows.map((row) => row.querySelectorAll('span')[1].textContent.trim())).toEqual([
+        '$\u00A011',
+        '$\u00A015',
+        '$\u00A020',
+      ]);
     });
 
     it('displays total cost with customer selection count', () => {
@@ -147,9 +187,11 @@ describe('PricingStep', () => {
       fixture.detectChanges();
 
       const native = getNative();
-      expect(native.querySelector('[data-testid="total-cost"]')).toBeTruthy();
-      expect(native.textContent).toContain('Costo total');
-      expect(native.textContent).toContain('5 selecciones');
+      const totalCost = native.querySelector('[data-testid="total-cost"]');
+      expect(totalCost?.querySelector('span.text-base')?.textContent.trim()).toBe(
+        'Costo total: $\u00A086',
+      );
+      expect(totalCost?.querySelector('span.text-sm')?.textContent.trim()).toBe('(5 selecciones)');
     });
 
     it('total cost is avg × maxSelections per group', () => {
@@ -159,6 +201,11 @@ describe('PricingStep', () => {
       expect(component.groupCosts()[0]?.subtotal).toBeCloseTo(25.5);   // (10.5+15)/2 × 2
       expect(component.groupCosts()[1]?.subtotal).toBeCloseTo(60);     // 20 × 3
       expect(component.totalCost()).toBeCloseTo(85.5);
+
+      const subtotals = Array.from(
+        getNative().querySelectorAll('[data-testid="group-subtotal"]'),
+      ).map((row) => row.querySelectorAll('span')[1].textContent.trim());
+      expect(subtotals).toEqual(['$\u00A026', '$\u00A060']);
     });
 
     it('total cost updates when groups change', () => {
@@ -177,15 +224,17 @@ describe('PricingStep', () => {
       fixture.detectChanges();
 
       const native = getNative();
-      // avg = 10.5 / 1 = 10.5, × maxSelections=2 = 21
-      expect(native.textContent).toContain('21.00');
+      // avg = 10.5 / 1 = 10.5, × maxSelections=2 = 21 → COP renders 0 decimals
+      expect(native.querySelector('[data-testid="total-cost"] span.text-base')?.textContent.trim())
+        .toBe('Costo total: $\u00A021');
     });
 
     it('shows empty message when no groups', () => {
       createComponent();
       fixture.detectChanges();
 
-      expect(getNative().textContent).toContain('No hay grupos seleccionados');
+      const empty = getNative().querySelector('p.text-sm.text-muted');
+      expect(empty?.textContent.trim()).toBe('No hay grupos seleccionados para calcular costos.');
       expect(getNative().querySelector('[data-testid="total-cost"]')).toBeNull();
     });
 
@@ -203,8 +252,16 @@ describe('PricingStep', () => {
       createComponent({ basePrice: 25 });
       fixture.detectChanges();
 
-      const input = getNative().querySelector('[data-testid="final-price-input"]');
-      expect(input).toBeTruthy();
+      const host = getNative().querySelector('[data-testid="final-price-input"]');
+      // `mode="currency"` is what makes the control format in COP.
+      expect(host?.getAttribute('mode')).toBe('currency');
+      const input = host?.querySelector<HTMLInputElement>('input');
+      // The input id matches the <label for="finalPrice"> in the template.
+      expect(input?.id).toBe('finalPrice');
+      expect(input?.getAttribute('inputmode')).toBe('decimal');
+      expect(getNative().querySelector('label[for="finalPrice"]')?.textContent.trim()).toBe(
+        'Precio final',
+      );
     });
 
     it('updates wizard state on price change', () => {
@@ -223,7 +280,11 @@ describe('PricingStep', () => {
       createComponent(formDataWithGroups());
       fixture.detectChanges();
 
-      expect(getNative().querySelector('[data-testid="suggested-price-section"]')).toBeTruthy();
+      const section = getNative().querySelector('[data-testid="suggested-price-section"]');
+      expect(section?.querySelector('[data-testid="suggested-price-value"]')?.textContent.trim())
+        .toBe('$\u00A077');
+      expect(section?.querySelector('[data-testid="apply-suggested-price-btn"]')?.textContent.trim())
+        .toBe('Usar como precio final');
     });
 
     it('hides suggested price section when no groups', () => {
@@ -245,7 +306,8 @@ describe('PricingStep', () => {
       fixture.detectChanges();
 
       const priceValue = getNative().querySelector('[data-testid="suggested-price-value"]');
-      expect(priceValue?.textContent).toContain('76.95');
+      // 85.5 × 0.9 = 76.95 → COP rounds to the whole peso
+      expect(priceValue?.textContent.trim()).toBe('$\u00A077');
     });
 
     it('applySuggestedPrice sets basePrice to suggested retail price', () => {
@@ -264,7 +326,12 @@ describe('PricingStep', () => {
       fixture.detectChanges();
 
       const el = getNative().querySelector('[data-testid="active-selectbutton"]');
-      expect(el).toBeTruthy();
+      expect(el?.getAttribute('role')).toBe('group');
+      const toggles = Array.from(el?.querySelectorAll('p-togglebutton') ?? []);
+      expect(toggles.length).toBe(2);
+      expect(toggles.map((t) => t.querySelector('.p-togglebutton-label')?.textContent.trim()))
+        .toEqual(['Sí', 'No']);
+      expect(toggles.map((t) => t.getAttribute('aria-pressed'))).toEqual(['false', 'false']);
     });
 
     it('calls updateData on active change', () => {

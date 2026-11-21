@@ -25,25 +25,7 @@ import { ComboSubmission } from './combo-submission';
     PricingStep,
   ],
   providers: [MessageService],
-  template: `
-    <p-toast />
-    <app-combo-wizard>
-      <app-general-step comboWizardStep="general" />
-      @for (catId of categoryIds(); track catId) {
-        <app-group-step comboWizardStep="category" [categoryId]="catId" />
-      }
-      <app-questions-step comboWizardStep="questions" />
-      <app-pricing-step comboWizardStep="pricing" />
-
-      <p-button
-        footerActions
-        label="Guardar combo"
-        icon="pi pi-check"
-        (onClick)="save()"
-        [loading]="saving()"
-      />
-    </app-combo-wizard>
-  `,
+  templateUrl: './combo-wizard-page.html',
 })
 export class ComboWizardPage {
   private readonly wizard = inject(ComboWizardState);

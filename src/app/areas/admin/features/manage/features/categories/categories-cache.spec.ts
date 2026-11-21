@@ -1,0 +1,86 @@
+/**
+ * Tests for the CategoriesCache service.
+ *
+ * Feature: HTTP-backed cache for product categories with TTL and refresh.
+ * Contract: Fetches categories on load, caches with TTL, supports manual refresh.
+ * Approach: Use HttpTestingController to intercept requests, assert cache state transitions.
+ */
+import { TestBed } from '@angular/core/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
+
+import { CategoriesCache } from './categories-cache';
+import { Category } from '@app/core/services/category/category';
+import { Supply } from '@app/core/services/supplies/supply';
+import { SupplyCategoryResponse } from '@app/shared/models/dto/supplies/supply-category-response';
+
+describe('CategoriesCache', () => {
+  let cache: CategoriesCache;
+  let httpMock: HttpTestingController;
+
+  const mockSupplyCategories: SupplyCategoryResponse[] = [
+    { id: 1, name: 'Proteínas' },
+    { id: 2, name: 'Lácteos' },
+  ];
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        CategoriesCache,
+        Category,
+        Supply,
+      ],
+    });
+
+    cache = TestBed.inject(CategoriesCache);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify({ ignoreCancelled: true });
+    vi.useRealTimers();
+    TestBed.resetTestingModule();
+  });
+
+  it('load fetches supply categories from v1/supplies/categories and exposes the data', () => {
+    cache.supplyCategories.load();
+
+    const req = httpMock.expectOne('v1/supplies/categories');
+    expect(req.request.method).toBe('GET');
+    req.flush(mockSupplyCategories);
+
+    expect(cache.supplyCategories.hasData()).toBe(true);
+    expect(cache.supplyCategories.isLoading()).toBe(false);
+    expect(cache.supplyCategories.status()).toBe('fresh');
+    expect(cache.supplyCategories.error()).toBeUndefined();
+    expect(cache.supplyCategories.data()).toEqual(mockSupplyCategories);
+  });
+
+  it('invalidateAll marks supplyCategories stale without clearing its data', () => {
+    cache.supplyCategories.load();
+    httpMock.expectOne('v1/supplies/categories').flush(mockSupplyCategories);
+
+    expect(cache.supplyCategories.status()).toBe('fresh');
+    expect(cache.supplyCategories.hasData()).toBe(true);
+
+    cache.invalidateAll();
+
+    expect(cache.supplyCategories.status()).toBe('stale');
+    expect(cache.supplyCategories.hasData()).toBe(true);
+    expect(cache.supplyCategories.data()).toEqual(mockSupplyCategories);
+
+    expect(cache.productCategories.status()).toBe('stale');
+  });
+
+  it('setCategoriesListParams passes search to getCategories', () => {
+    cache.setCategoriesListParams({ search: 'beb' });
+
+    const req = httpMock.expectOne((r) => r.url === 'v1/categories' && r.params.get('search') === 'beb');
+    expect(req.request.method).toBe('GET');
+    req.flush([]);
+
+    expect(cache.productCategories.data()).toEqual([]);
+  });
+});

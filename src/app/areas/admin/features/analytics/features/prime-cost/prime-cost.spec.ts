@@ -1,3 +1,10 @@
+/**
+ * Tests for the PrimeCost analytics page.
+ *
+ * Feature: Displays prime cost analysis with cost breakdown by category.
+ * Contract: Loads prime cost data, renders KPI cards and breakdown chart.
+ * Approach: Mount component via TestBed, mock HTTP responses, assert rendered KPI values.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import {
   ɵresolveComponentResources as resolveComponentResources,
@@ -28,6 +35,8 @@ function makePrimeCostStub(
       invalidate: (): void => {},
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       loadIfStale: (): void => {},
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      load: (): void => {},
     },
     menuEngineering: { data: (): null => null, isLoading: (): boolean => false, error: (): null => null },
     operations: { data: (): null => null, isLoading: (): boolean => false, error: (): null => null },
@@ -77,8 +86,16 @@ function makeReport(opts: {
   };
 }
 
-// jsdom does not implement canvas — chart.js calls getContext on the canvas
-// element which would otherwise throw. Stub it with a no-op 2d context. The
+/**
+ * Exact expected output of the `money` pipe for a COP amount: currency symbol,
+ * a non-breaking space, and thousands separators (no decimals for COP).
+ * Kept explicit so a wrong amount or a bare unformatted number fails the test.
+ */
+function cop(amount: number): string {
+  return `$\u00A0${amount.toLocaleString('es-CO', { maximumFractionDigits: 0 })}`;
+}
+
+// jsdom does not implement canvas — chart.js calls getContext on the canvas// element which would otherwise throw. Stub it with a no-op 2d context. The
 // methods are no-ops because chart.js never actually renders to a real screen
 // during unit tests, but it must successfully acquire *some* context.
 function installCanvasContextStub(): void {
@@ -152,12 +169,12 @@ describe('PrimeCost', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  it('invokes cache.primeCost.loadIfStale on construction', async () => {
-    const loadIfStale = vi.fn();
+   it('invokes cache.primeCost.load via the period effect on construction', async () => {
+    const load = vi.fn();
     const stub = makePrimeCostStub();
-    (stub.primeCost as { loadIfStale: () => void }).loadIfStale = loadIfStale;
+    (stub.primeCost as { load: () => void }).load = load;
     await setup(stub);
-    expect(loadIfStale).toHaveBeenCalledTimes(1);
+    expect(load).toHaveBeenCalledTimes(1);
   });
 
   it('renders the page skeleton when isLoading() is true and report() is null', async () => {
@@ -170,8 +187,8 @@ describe('PrimeCost', () => {
     const root = getRoot(fixture);
 
     const skeletons = root.querySelectorAll('p-skeleton');
-    // 4 stat-card skeletons + 1 chart skeleton = 5
-    expect(skeletons.length).toBe(5);
+    // 4 stat-card skeletons + 2 chart skeletons = 6
+    expect(skeletons.length).toBe(6);
     expect(root.querySelector('p-chart')).toBeNull();
     expect(root.textContent).not.toContain('No hay datos en el periodo seleccionado');
   });
@@ -184,20 +201,25 @@ describe('PrimeCost', () => {
     });
     const fixture = await setup(stub);
     const root = getRoot(fixture);
-    const text = root.textContent;
 
-    // Header + first 2 stat cards contain Money-formatted numbers
-    expect(text.includes('$') || text.includes('CO')).toBe(true);
-    // 4 stat-card articles inside the 4-col grid section
-    const statCards = root.querySelectorAll(
-      'section.grid.grid-cols-1.md\\:grid-cols-2.xl\\:grid-cols-4 article',
+    const statCards = Array.from(
+      root.querySelectorAll('section[aria-label="Indicadores clave"] article'),
     );
     expect(statCards.length).toBe(4);
-    // Card labels
-    expect(text).toContain('Ventas netas');
-    expect(text).toContain('Costo primo');
-    expect(text).toContain('Costo primo %');
-    expect(text).toContain('Margen bruto');
+
+    const label = (index: number): string =>
+      statCards[index].querySelector('p.text-xs')?.textContent.trim() ?? '';
+    const value = (index: number): string =>
+      statCards[index].querySelector('p.text-2xl')?.textContent.trim() ?? '';
+
+    expect(label(0)).toBe('Ventas netas');
+    expect(value(0)).toBe(cop(125_000_000));
+    expect(label(1)).toBe('Costo operativo');
+    expect(value(1)).toBe(cop(78_125_000));
+    expect(label(2)).toBe('Ganancia bruta');
+    expect(value(2)).toBe('37.50%');
+    expect(label(3)).toBe('Ganancia neta');
+    expect(value(3)).toBe('—');
   });
 
   it('renders primeCostPct formatted as XX.XX%', async () => {
@@ -207,12 +229,21 @@ describe('PrimeCost', () => {
       data: () => makeReport({ primeCostPct: 62.5 }),
     });
     const fixture = await setup(stub);
-    const text = getRoot(fixture).textContent;
+    const root = getRoot(fixture);
 
-    // fmtPercent(62.5) -> "62.50%"
-    expect(text).toContain('62.50%');
-    // GrossProfit% 37.5 -> "37.50%"
-    expect(text).toContain('37.50%');
+    // fmtPercent(62.5) -> "62.50% de las ventas" under the prime-cost card
+    const primeCostCard = root.querySelectorAll(
+      'section[aria-label="Indicadores clave"] article',
+    )[1];
+    const primeCostSubtitle = [...primeCostCard.querySelectorAll('p')]
+      .map((p) => p.textContent.trim())
+      .find((text) => text.includes('de las ventas'));
+    expect(primeCostSubtitle).toBe('62.50% de las ventas');
+    // GrossProfit% 37.5 -> "37.50%" card value
+    const grossProfitCard = root.querySelectorAll(
+      'section[aria-label="Indicadores clave"] article',
+    )[2];
+    expect(grossProfitCard.querySelector('p.text-2xl')?.textContent.trim()).toBe('37.50%');
   });
 
   it('renders the trend chart when series.length > 1', async () => {
@@ -231,8 +262,8 @@ describe('PrimeCost', () => {
     const root = getRoot(fixture);
 
     const charts = root.querySelectorAll('p-chart');
-    // 1 line chart (trend) + 2 doughnut (cogs + labor) = 3
-    expect(charts.length).toBe(3);
+    // 2 lines (sales, margins) + 1 stacked bar (cogs) + 2 doughnut (cogs, labor) = 5
+    expect(charts.length).toBe(5);
   });
 
   it('renders the notes banner when dataCompleteness === "PARTIAL" and notes is non-empty', async () => {
@@ -246,10 +277,14 @@ describe('PrimeCost', () => {
         }),
     });
     const fixture = await setup(stub);
-    const text = getRoot(fixture).textContent;
+    const root = getRoot(fixture);
 
-    expect(text).toContain('Datos parciales');
-    expect(text).toContain('Faltaban 3 recibos de la semana 28');
+    const banner = root.querySelector('[role="status"]');
+    expect(banner).not.toBeNull();
+    expect(banner?.querySelector('p.font-semibold')?.textContent.trim()).toBe('Datos parciales');
+    expect(Array.from(banner?.querySelectorAll('li') ?? []).map((li) => li.textContent.trim())).toEqual([
+      'Faltaban 3 recibos de la semana 28',
+    ]);
   });
 
   it('does NOT render the notes banner when dataCompleteness === "FULL" and notes is empty', async () => {
@@ -276,11 +311,10 @@ describe('PrimeCost', () => {
     });
     const fixture = await setup(stub);
     const root = getRoot(fixture);
-    const text = root.textContent;
 
-    expect(root.querySelector('p-message')).toBeTruthy();
-    expect(text).toContain('No se pudieron cargar los datos');
-    expect(text).toContain('No se pudo cargar el reporte');
+    expect(root.querySelector('p-message')?.textContent.trim()).toBe(
+      'No se pudieron cargar los datos: No se pudo cargar el reporte',
+    );
   });
 
   it('renders empty state text when loading is done, no error, and latest() is null', async () => {
@@ -295,32 +329,21 @@ describe('PrimeCost', () => {
     });
     const fixture = await setup(stub);
     const root = getRoot(fixture);
-    const text = root.textContent;
 
-    expect(text).toContain('No hay datos en el periodo seleccionado');
+    const emptyMessage = root.firstElementChild?.lastElementChild;
+    expect(emptyMessage?.tagName).toBe('P');
+    expect(emptyMessage?.textContent.trim()).toBe('No hay datos en el periodo seleccionado.');
     expect(root.querySelector('p-chart')).toBeNull();
     expect(root.querySelector('p-skeleton')).toBeNull();
     // No error message
     expect(root.querySelector('p-message')).toBeNull();
   });
 
-  it('calls refresh on the cache when the reload button is clicked', async () => {
-    const refreshSpy = vi.fn();
-    const stub = makePrimeCostStub({
-      isLoading: () => false,
-      error: () => null,
-      data: () => makeReport(),
-    });
-    stub.primeCost.refresh = refreshSpy;
-    const fixture = await setup(stub);
-    const root = getRoot(fixture);
-
-    const btn = Array.from(root.querySelectorAll('button')).find(
+  it('does not render the per-feature Actualizar button (lives in the shared dock now)', async () => {
+    const fixture = await setup(makePrimeCostStub({ data: () => makeReport() }));
+    const btn = Array.from(getRoot(fixture).querySelectorAll('button')).find(
       (b) => b.textContent.trim() === 'Actualizar',
     );
-    expect(btn).toBeTruthy();
-    btn?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-
-    expect(refreshSpy).toHaveBeenCalledTimes(1);
+    expect(btn).toBeUndefined();
   });
 });

@@ -11,6 +11,14 @@ import { MessageService } from 'primeng/api';
 import { Password } from '@app/core/services/auth/password';
 import { Auth } from '@app/core/services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
+import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
+import {
+  hasLowerCase,
+  hasMinPasswordLength,
+  hasNumber,
+  hasSymbol,
+  hasUpperCase,
+} from '@app/shared/lib/password-policy/password-policy';
 
 const passwordMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
   const newPassword = String(control.get('newPassword')?.value ?? '');
@@ -63,11 +71,11 @@ export class ChangePassword {
   checkPasswordRequirement(requirement: string): boolean {
     const password = String(this.form.get('newPassword')?.value ?? '');
     switch (requirement) {
-      case 'minLength': return password.length >= 8;
-      case 'upperCase': return /[A-Z]/.test(password);
-      case 'lowerCase': return /[a-z]/.test(password);
-      case 'number': return /\d/.test(password);
-      case 'symbol': return /[@$!%*?&]/.test(password);
+      case 'minLength': return hasMinPasswordLength(password);
+      case 'upperCase': return hasUpperCase(password);
+      case 'lowerCase': return hasLowerCase(password);
+      case 'number': return hasNumber(password);
+      case 'symbol': return hasSymbol(password);
       default: return false;
     }
   }
@@ -100,10 +108,11 @@ export class ChangePassword {
       error: (err: unknown) => {
         this.loading.set(false);
         const status = typeof err === 'object' && err !== null && 'status' in err ? (err as { status: number }).status : 0;
-        if (status === 400) {
-          this.error.set('La contraseña actual es incorrecta');
+        const problemDetail = extractProblemDetail(err);
+        if (status === 400 || status === 401 || status === 422) {
+          this.error.set(problemDetail ?? 'La contraseña actual es incorrecta');
         } else {
-          this.error.set('Ocurrió un error al cambiar la contraseña');
+          this.error.set(problemDetail ?? 'Ocurrió un error al cambiar la contraseña');
         }
         this.logger.error('Change password failed', err);
       }

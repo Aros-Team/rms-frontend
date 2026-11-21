@@ -1,3 +1,10 @@
+/**
+ * Tests for the Category HTTP service.
+ *
+ * Feature: CRUD operations for product categories via HTTP.
+ * Contract: Makes correct GET/POST/PUT/DELETE requests with proper URLs and bodies.
+ * Approach: Use HttpTestingController to intercept requests, assert method, URL, and body.
+ */
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
@@ -10,6 +17,7 @@ describe('Category service', () => {
   let httpMock: HttpTestingController;
 
   beforeEach(() => {
+    TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),

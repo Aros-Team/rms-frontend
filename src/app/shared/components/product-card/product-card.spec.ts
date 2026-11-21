@@ -1,3 +1,10 @@
+/**
+ * Tests for the ProductCard component.
+ *
+ * Feature: Displays a product summary card with name, price, and status.
+ * Contract: Renders product name, formatted price, and active/inactive status badge.
+ * Approach: Mount component via TestBed with test host, set product input, assert rendered content.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources, Component } from '@angular/core';
 
@@ -9,7 +16,7 @@ import productCardHtml from './product-card.html?raw';
 const TEST_PRODUCT: ProductSimpleResponse = {
   id: 1,
   name: 'Hamburguesa',
-  basePrice: 15000,
+  basePrice: { amount: '15000.00', currency: 'COP' },
   active: true,
   categoryId: 1,
   categoryName: 'Comidas',
@@ -81,7 +88,7 @@ describe('ProductCard', () => {
     const fixture = await setupHost({ loading: true });
     const root = fixture.nativeElement as HTMLElement;
 
-    expect(root.querySelector('p-skeleton')).toBeTruthy();
+    expect(root.querySelectorAll('p-skeleton')).toHaveLength(3);
     expect(getCardEl(root)).toBeNull();
   });
 
@@ -89,13 +96,17 @@ describe('ProductCard', () => {
     const fixture = await setupHost();
     const root = fixture.nativeElement as HTMLElement;
     const card = getCardEl(root);
-    expect(card).toBeTruthy();
+    if (!card) throw new Error('card not rendered');
 
-    expect(card?.textContent).toContain('Hamburguesa');
-    expect(card?.textContent).toContain('$15,000');
+    const name = card.querySelector('.font-medium.truncate');
+    expect(name?.textContent.trim()).toBe('Hamburguesa');
+
+    // Money pipe renders COP with es-CO separators and 0 decimals.
+    const price = card.querySelector('.font-semibold.text-muted');
+    expect(price?.textContent.trim()).toMatch(/^\$\s?15\.000$/);
   });
 
-  it('renders placeholder image when no thumbnailUrl', async () => {
+  it('renders placeholder image when no imageUrl', async () => {
     const fixture = await setupHost();
     const root = fixture.nativeElement as HTMLElement;
     const img = root.querySelector('img');
@@ -106,22 +117,24 @@ describe('ProductCard', () => {
     const fixture = await setupHost({ selected: true });
     const root = fixture.nativeElement as HTMLElement;
     const card = getCardEl(root);
-    expect(card).toBeTruthy();
+    if (!card) throw new Error('card not rendered');
 
-    expect(card?.classList.contains('border-primary')).toBe(true);
-    expect(root.querySelector('.pi-check-circle')).toBeTruthy();
+    expect(card.classList.contains('border-primary')).toBe(true);
+    expect(card.getAttribute('aria-selected')).toBe('true');
+    const check = card.querySelector('.pi-check-circle');
+    expect(check?.classList.contains('text-accent')).toBe(true);
   });
 
   it('disabled state blocks click emit', async () => {
     const fixture = await setupHost({ disabled: true });
     const root = fixture.nativeElement as HTMLElement;
     const card = getCardEl(root);
-    expect(card).toBeTruthy();
+    if (!card) throw new Error('card not rendered');
 
     let emitted = false;
     fixture.componentInstance.onToggle = () => { emitted = true; };
 
-    card?.click();
+    card.click();
     expect(emitted).toBe(false);
   });
 
@@ -129,21 +142,22 @@ describe('ProductCard', () => {
     const fixture = await setupHost({ unavailable: true });
     const root = fixture.nativeElement as HTMLElement;
 
-    expect(root.textContent).toContain('No disponible');
+    const badge = root.querySelector('[role="option"] .bg-surface-600');
+    expect(badge?.textContent.trim()).toBe('No disponible');
 
     const card = getCardEl(root);
-    expect(card).toBeTruthy();
-    expect(card?.classList.contains('pointer-events-none')).toBe(true);
+    if (!card) throw new Error('card not rendered');
+    expect(card.classList.contains('pointer-events-none')).toBe(true);
 
-    const priceSpan = root.querySelector('.line-through');
-    expect(priceSpan).toBeTruthy();
+    const priceSpan = card.querySelector('.line-through');
+    expect(priceSpan?.textContent.trim()).toMatch(/^\$\s?15\.000$/);
   });
 
   it('keyboard Enter emits toggle', async () => {
     const fixture = await setupHost();
     const root = fixture.nativeElement as HTMLElement;
     const cardEl = root.querySelector('[role="option"]');
-    expect(cardEl).toBeTruthy();
+    if (!cardEl) throw new Error('card not rendered');
 
     let emitted: ProductSimpleResponse | null = null;
     fixture.debugElement.children[0]?.injector.get(ProductCard).cardToggle.subscribe((p) => { emitted = p; });
@@ -156,7 +170,7 @@ describe('ProductCard', () => {
     const fixture = await setupHost();
     const root = fixture.nativeElement as HTMLElement;
     const cardEl = root.querySelector('[role="option"]');
-    expect(cardEl).toBeTruthy();
+    if (!cardEl) throw new Error('card not rendered');
 
     let emitted: ProductSimpleResponse | null = null;
     fixture.debugElement.children[0]?.injector.get(ProductCard).cardToggle.subscribe((p) => { emitted = p; });
@@ -169,7 +183,6 @@ describe('ProductCard', () => {
     const fixture = await setupHost();
     const root = fixture.nativeElement as HTMLElement;
     const card = getCardEl(root);
-    expect(card).toBeTruthy();
 
     expect(card?.getAttribute('tabindex')).toBe('0');
   });
@@ -178,7 +191,6 @@ describe('ProductCard', () => {
     const fixture = await setupHost({ disabled: true });
     const root = fixture.nativeElement as HTMLElement;
     const card = getCardEl(root);
-    expect(card).toBeTruthy();
 
     expect(card?.getAttribute('tabindex')).toBe('-1');
   });

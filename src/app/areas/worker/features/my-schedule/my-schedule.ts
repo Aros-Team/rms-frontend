@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { WorkerSchedule } from '@app/core/services/schedules/worker-schedule';
 import { Logging } from '@app/core/services/logging/logging';
-import { WorkerScheduleResponse, WorkerScheduleDay } from '@app/shared/models/dto/schedules/worker-schedule-response.model';
+import { WorkerScheduleResponse, WorkerScheduleDay } from '@app/shared/models/dto/schedules/worker-schedule-response';
 
 import { ButtonModule } from 'primeng/button';
 import { SkeletonModule } from 'primeng/skeleton';

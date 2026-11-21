@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Logging } from '@app/core/services/logging/logging';
-import { WorkerScheduleResponse } from '@app/shared/models/dto/schedules/worker-schedule-response.model';
+import { WorkerScheduleResponse } from '@app/shared/models/dto/schedules/worker-schedule-response';
 
 @Injectable({ providedIn: 'root' })
 export class WorkerSchedule {

@@ -21,10 +21,16 @@ export class ScheduleAssignment {
     return this.http.get<number[]>(`v1/workers/${wid}/schedule-assignments`);
   }
 
-  removeAssignment(workerId: number, assignmentId: number): Observable<unknown> {
+  /**
+   * Removes the assignment of `scheduleId` from `workerId`.
+   *
+   * The API lists assignments as schedule IDs and deletes by
+   * `workerId` + `scheduleId`; assignment IDs are never exposed.
+   */
+  removeAssignment(workerId: number, scheduleId: number): Observable<unknown> {
     const wid = String(workerId);
-    const aid = String(assignmentId);
-    this.logger.debug('ScheduleAssignment: Calling DELETE assignment:', aid, 'for worker:', wid);
-    return this.http.delete<unknown>(`v1/workers/${wid}/schedule-assignments/${aid}`);
+    const sid = String(scheduleId);
+    this.logger.debug('ScheduleAssignment: Calling DELETE schedule:', sid, 'for worker:', wid);
+    return this.http.delete<unknown>(`v1/workers/${wid}/schedule-assignments/${sid}`);
   }
 }

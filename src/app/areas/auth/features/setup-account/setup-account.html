@@ -2,7 +2,7 @@
   <div class="setup-card">
     <div class="setup-header">
       <div class="setup-icon">
-        <i class="pi pi-user-edit text-white text-2xl"></i>
+        <i class="pi pi-user-edit text-white text-2xl" aria-hidden="true"></i>
       </div>
       <h1>Activar cuenta</h1>
       <p class="setup-subtitle">Completa tus datos para activar tu cuenta</p>
@@ -10,7 +10,7 @@
 
     @if (loading()) {
       <div class="loading-state">
-        <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+        <i class="pi pi-spin pi-spinner text-[2rem]" aria-hidden="true"></i>
         <p>Validando enlace...</p>
       </div>
     }
@@ -18,23 +18,26 @@
     @if (error()) {
       <div class="setup-error">
         @if (error() === 'invalid') {
-          <i class="pi pi-exclamation-triangle setup-error-icon"></i>
+          <i class="pi pi-exclamation-triangle setup-error-icon" aria-hidden="true"></i>
           <h2>Enlace inválido o expirado</h2>
           <p>Este enlace no es válido o ya expiró. Contacta al administrador para recibir uno nuevo.</p>
           <button pButton type="button" icon="pi pi-arrow-left" (click)="goToLogin()">Volver al login</button>
         }
         @if (error() === 'already_used') {
-          <i class="pi pi-check-circle setup-error-icon"></i>
+          <i class="pi pi-check-circle setup-error-icon" aria-hidden="true"></i>
           <h2>Cuenta ya activada</h2>
           <p>Esta cuenta ya fue activada anteriormente.</p>
           <button pButton type="button" icon="pi pi-sign-in" (click)="goToLogin()">Ir al login</button>
+        }
+        @if (serverDetail()) {
+          <p data-testid="setup-server-detail">{{ serverDetail() }}</p>
         }
       </div>
     }
 
     @if (success()) {
       <div class="setup-success">
-        <i class="pi pi-check-circle setup-success-icon"></i>
+        <i class="pi pi-check-circle setup-success-icon" aria-hidden="true"></i>
         <h2>¡Cuenta activada exitosamente!</h2>
         <p>Redirigiendo al login...</p>
       </div>
@@ -95,24 +98,24 @@
               <h4>Requisitos de contraseña:</h4>
               <ul>
                 <li [class.valid]="checkPasswordRequirement(getPasswordValue('newPassword'), 'minLength')">
-                  <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'minLength') ? 'pi-check' : 'pi-times'"></i>
+                  <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'minLength') ? 'pi-check' : 'pi-times'" aria-hidden="true"></i>
                   Mínimo 8 caracteres
                 </li>
                 <li [class.valid]="checkPasswordRequirement(getPasswordValue('newPassword'), 'upperCase')">
-                  <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'upperCase') ? 'pi-check' : 'pi-times'"></i>
+                  <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'upperCase') ? 'pi-check' : 'pi-times'" aria-hidden="true"></i>
                   Al menos 1 mayúscula
                 </li>
                 <li [class.valid]="checkPasswordRequirement(getPasswordValue('newPassword'), 'lowerCase')">
-                  <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'lowerCase') ? 'pi-check' : 'pi-times'"></i>
+                  <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'lowerCase') ? 'pi-check' : 'pi-times'" aria-hidden="true"></i>
                   Al menos 1 minúscula
                 </li>
                 <li [class.valid]="checkPasswordRequirement(getPasswordValue('newPassword'), 'number')">
-                  <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'number') ? 'pi-check' : 'pi-times'"></i>
+                  <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'number') ? 'pi-check' : 'pi-times'" aria-hidden="true"></i>
                   Al menos 1 número
                 </li>
                 <li [class.valid]="checkPasswordRequirement(getPasswordValue('newPassword'), 'symbol')">
-                  <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'symbol') ? 'pi-check' : 'pi-times'"></i>
-                  Al menos 1 símbolo
+                  <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'symbol') ? 'pi-check' : 'pi-times'" aria-hidden="true"></i>
+                  Al menos 1 símbolo (ej. ! @ # $ _ -)
                 </li>
               </ul>
             </div>
@@ -151,24 +154,24 @@
             <h4>Requisitos de contraseña:</h4>
             <ul>
               <li [class.valid]="checkPasswordRequirement(getPasswordValue('newPassword'), 'minLength')">
-                <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'minLength') ? 'pi-check' : 'pi-times'"></i>
+                <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'minLength') ? 'pi-check' : 'pi-times'" aria-hidden="true"></i>
                 Mínimo 8 caracteres
               </li>
               <li [class.valid]="checkPasswordRequirement(getPasswordValue('newPassword'), 'upperCase')">
-                <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'upperCase') ? 'pi-check' : 'pi-times'"></i>
+                <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'upperCase') ? 'pi-check' : 'pi-times'" aria-hidden="true"></i>
                 Al menos 1 mayúscula
               </li>
               <li [class.valid]="checkPasswordRequirement(getPasswordValue('newPassword'), 'lowerCase')">
-                <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'lowerCase') ? 'pi-check' : 'pi-times'"></i>
+                <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'lowerCase') ? 'pi-check' : 'pi-times'" aria-hidden="true"></i>
                 Al menos 1 minúscula
               </li>
               <li [class.valid]="checkPasswordRequirement(getPasswordValue('newPassword'), 'number')">
-                <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'number') ? 'pi-check' : 'pi-times'"></i>
+                <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'number') ? 'pi-check' : 'pi-times'" aria-hidden="true"></i>
                 Al menos 1 número
               </li>
               <li [class.valid]="checkPasswordRequirement(getPasswordValue('newPassword'), 'symbol')">
-                <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'symbol') ? 'pi-check' : 'pi-times'"></i>
-                Al menos 1 símbolo
+                <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'symbol') ? 'pi-check' : 'pi-times'" aria-hidden="true"></i>
+                Al menos 1 símbolo (ej. ! @ # $ _ -)
               </li>
             </ul>
           </div>

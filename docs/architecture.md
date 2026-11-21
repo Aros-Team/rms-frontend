@@ -7,71 +7,85 @@
 ## 1. Overall Structure
 
 ```
-src/app/
-├── core/                    # Singleton services, guards, interceptors
-├── shared/                  # Reusable components, models, DTOs
-├── areas/                   # Layout wrappers (shell components)
-│   ├── admin-area/
-│   ├── login-area/
-│   ├── worker-kitchen/
-│   └── worker-waiter/
-└── features/                # Feature modules (lazy-loaded)
-    ├── auth/
-    ├── admin/
-    ├── kitchen/
-    ├── waiter/
-    └── orders/
+src/
+├── environments/            # Angular environment files + theme tokens
+├── app/
+│   ├── core/                # Singleton services, guards, interceptors, cache
+│   ├── shared/              # Reusable components, models/DTOs, pipes, layouts
+│   └── areas/               # Layout shells grouped by view type
+│       ├── auth/            #   Authentication & account setup
+│       │   └── features/    #     login, password-recovery, setup-account, two-factor
+│       ├── admin/           #   Admin dashboard & management
+│       │   └── features/    #     dashboard, manage, analytics, orders, chat, …
+│       └── worker/          #   Worker views (waiter, kitchen, etc.)
+│           └── features/    #     waiter, kitchen, my-schedule
+└── index.html, styles.css, …
 ```
 
 ---
 
 ## 2. Areas
 
-Areas are layout wrappers. Each area:
-- Contains a routing module with `loadChildren` to its features
-- Has a shell component with `<router-outlet>`
-- Handles role-based access via guards
+Areas are **layout shells** that define the chrome (header, sidebar, footer) for a group of related views.
 
-| Area | Route Prefix | Role Guard |
-|------|-------------|------------|
-| `login-area` | `/login` | None |
-| `admin-area` | `/admin` | ADMIN |
-| `worker-kitchen` | `/worker/kitchen` | KITCHEN |
-| `worker-waiter` | `/worker/waiter` | WAITER |
+Each area:
+- Has a **shell component** with `<router-outlet>` for its child features
+- Is **lazy-loaded** via `loadComponent` from the root routes
+- Handles **role-based access** via guards
+
+| Area | Route Prefix(es) | Guards | Description |
+|------|-----------------|--------|-------------|
+| `auth` | `/login`, `/forgot-password`, `/reset-password`, `/login/verify`, `/setup-account` | `RedirectGuard` | Public pages: login, password recovery, 2FA, account setup |
+| `admin` | `/admin/*` | `AuthGuard` + `RoleGuard` (ADMIN) | Management dashboard, orders, restaurant config, analytics |
+| `worker` | `/worker/*` | `AuthGuard` + `RoleGuard` (WORKER) + `AreaGuard` per child | Waiter order-taking, kitchen view, personal schedule |
 
 ---
 
 ## 3. Features
 
-Features are lazy-loaded modules. Each feature folder contains:
+Features are **lazy-loaded modules** that implement a single, specific responsibility.
+
+### 3.1 Single Responsibility Principle
+
+Every feature must do **one thing only**. Examples:
+
+| Feature | Responsibility |
+|---------|---------------|
+| `login` | Authenticate the user |
+| `dashboard` | Show restaurant overview KPIs |
+| `products` | CRUD the product catalogue |
+| `orders` | List and manage today's orders |
+| `kitchen` | Display the kitchen order queue |
+
+If a feature needs to do more than one thing, it becomes a **composite feature** (see §3.3).
+
+### 3.2 Simple Feature Structure
+
+A simple feature is one component (or a component with helpers):
 
 ```
-feature-name/
-├── feature-name.ts        # Routing module + component
-├── component-a/
+areas/<area>/features/feature-name/
+├── feature-name.ts        # Lazy-loaded component
+├── feature-name.html
+├── feature-name.css
+├── component-a/           # Optional helpers scoped to this feature
 │   ├── component-a.ts
 │   ├── component-a.html
 │   └── component-a.css
-├── component-b/
-│   ├── component-b.ts
-│   ├── component-b.html
-│   └── component-b.css
 └── models/
     ├── dto-request.ts
     └── dto-response.ts
 ```
 
----
+### 3.3 Composite Features (Features with Sub-Features)
 
-### 3.1 Complex Features with Sub-Features
-
-When a feature has multiple sub-sections (CRUD for different entities), organize them with a parent component at the root and a `features/` sub-folder:
+When a view must handle multiple distinct responsibilities (e.g. "Manage restaurant" needs products, categories, tables, inventory, etc.), the feature becomes a **shell** with a `<router-outlet>` and its own `features/` sub-folder:
 
 ```
-feature-name/
-├── feature-name.ts        # Parent component with <router-outlet>
-├── feature-name.html
-├── feature-name.css
+areas/<area>/features/parent-feature/
+├── parent-feature.ts       # Shell component with <router-outlet>
+├── parent-feature.html
+├── parent-feature.css
 └── features/
     ├── entity-a/
     │   ├── entity-a.ts
@@ -81,12 +95,19 @@ feature-name/
     │   ├── entity-b.ts
     │   ├── entity-b.html
     │   └── entity-b.css
-    └── ....
+    └── ...
 ```
 
-Example: `features/manage/` has sub-features for `products/`, `categories/`, `tables/`, `areas/`, etc. under `manage/features/`.
+Each sub-feature inside `features/` is also lazy-loaded and must follow the **single-responsibility rule**.
 
-Imports from other files use the path alias with `features/`:
+**Examples in the codebase:**
+
+| Composite feature | Sub-features |
+|------------------|--------------|
+| `admin/features/manage` | `products`, `categories`, `tables`, `areas`, `combos`, `workers`, `inventory`, `schedules`, `time-logs`, `supplies` |
+| `admin/features/analytics` | `prime-cost`, `menu-engineering`, `operations`, `cohort`, `alerts` |
+
+Imports from other files use path aliases:
 ```typescript
 import('@areas/admin/features/manage/features/products/products')
 ```
@@ -99,10 +120,19 @@ Singletons registered at root level:
 
 ```
 core/
-├── services/          # API services (one file per domain)
-├── guards/            # Route guards (auth, role)
+├── services/          # Servicios agrupados por entidad (use-case pattern)
+│   ├── products/      #   get-all.ts, create.ts, update.ts, delete.ts, …
+│   ├── orders/        #   get-all.ts, create.ts, update-status.ts, …
+│   ├── auth/          #   login.ts, logout.ts, change-password.ts, …
+│   ├── inventory/     #   get-all.ts, adjust-stock.ts, …
+│   └── …              #   (una carpeta por entidad)
+├── cache/             # ResourceCache — base class para cache
+│   └── resource-cache.ts
+├── directives/        # Directivas standalone reutilizables
+│   └── lazy-load.directive.ts
+├── guards/            # Route guards (auth, role, area, redirect)
 ├── interceptors/       # HTTP interceptors (jwt, error)
-└── models/            # Shared domain models
+└── models/            # Shared domain models (pocos, la mayoría en shared/)
 ```
 
 ---
@@ -122,14 +152,47 @@ shared/
 
 ## 6. Routing Strategy
 
+Areas and features are lazy-loaded via `loadComponent` from `src/app/app.routes.ts`.
+
 ```
-/login                    → login-area (no guard)
-/admin/*                 → admin-area (ADMIN guard)
-/worker/kitchen/*        → worker-kitchen-area (KITCHEN guard)
-/worker/waiter/*         → worker-waiter-area (WAITER guard)
+/login{,/verify}         → auth area (RedirectGuard — redirects authenticated users away)
+/forgot-password         → auth area (no guard)
+/reset-password          → auth area (no guard)
+/setup-account           → auth area (no guard)
+/admin/*                 → admin area (AuthGuard + RoleGuard ADMIN)
+  /admin                 → dashboard
+  /admin/orders          → orders
+  /admin/manage/*        → manage (shell with sub-features)
+    /admin/manage/products
+    /admin/manage/categories
+    /admin/manage/tables
+    /admin/manage/areas
+    /admin/manage/combos
+    /admin/manage/workers
+    /admin/manage/inventory
+    /admin/manage/orders-create
+  /admin/analytics/*     → analytics (shell with sub-features)
+    /admin/analytics/prime-cost
+    /admin/analytics/menu-engineering
+  /admin/create-product  → product-creation
+  /admin/profile         → settings
+/worker/*                → worker area (AuthGuard + RoleGuard WORKER + AreaGuard)
+  /worker/waiter         → waiter-dashboard
+  /worker/kitchen        → kitchen
+  /worker/my-schedule    → my-schedule
+  /worker/profile        → settings
 ```
 
-Backend returns `role: 'ADMIN' | 'KITCHEN' | 'WAITER'`. Angular redirects to the appropriate area after login.
+**Guards:**
+
+| Guard | Role |
+|-------|------|
+| `RedirectGuard` | Redirects authenticated users away from public pages |
+| `AuthGuard` | Ensures user is authenticated |
+| `RoleGuard` | Ensures user has required role (`ADMIN` / `WORKER`) |
+| `AreaGuard` | Ensures worker has access to the specific area (waiter, kitchen, etc.) |
+
+Backend returns `role: 'ADMIN' | 'WORKER'` and the user's `areas` array determines worker type (`service`, `waiter`, `kitchen`, etc.). Angular redirects to the appropriate area after login.
 
 ---
 
@@ -173,9 +236,8 @@ src/app/
 │   │   └── resource-cache.ts       # Base cache class
 │   └── directives/
 │       └── lazy-load.directive.ts  # Viewport-triggered loading
-└── features/
-    └── feature-name/
-        └── feature-cache.service.ts # Domain-specific cache service
+└── areas/<area>/features/<feature-name>/
+    └── <feature>-cache.ts          # Domain-specific cache service
 ```
 
 ### 10.3 ResourceCache API
@@ -377,6 +439,112 @@ constructor() {
      }
    }
    ```
+
+### 10.9 Paginated Queries — Obligatorio
+
+> **Nunca** obtener todos los registros de una colección sin paginación.
+
+#### Reglas
+
+1. **Toda consulta GET a una lista debe incluir `size`** (page size).
+2. **Page size por defecto: 50**. Excepciones justificadas hasta 500.
+3. **Usar `HttpParams`** para construir parámetros de consulta.
+4. **El backend siempre responde con `{ items: T[], total?: number, page?: number }`**.
+
+```typescript
+// ✅ Correcto: paginado explícito
+private queryOrders(params: Record<string, string | number>): Observable<OrderResponse[]> {
+  let httpParams = new HttpParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== '') {
+      httpParams = httpParams.set(key, String(value));
+    }
+  }
+  return this.http.get<{ items: OrderResponse[] }>('v1/orders', { params: httpParams })
+    .pipe(map(page => page.items));
+}
+
+getOrders(): Observable<OrderResponse[]> {
+  return this.queryOrders({ size: 50, sort: 'date,desc' });
+}
+```
+
+#### Page size por tipo de dato
+
+| Tipo | Size máximo | TTL sugerido |
+|------|------------|--------------|
+| Listas maestras (productos, categorías, áreas) | 200 | 30 min |
+| Órdenes del día | 500 | 2 min |
+| Historial de órdenes | 50 por página | No cache (consulta directa) |
+| Empleados | 200 | 5 min |
+| Inventario | 200 | 5 min |
+| Analytics | Depende del periodo | 10 min |
+
+### 10.10 Cache Policies
+
+| Recurso | TTL | staleWhileRevalidate | Estrategia |
+|---------|-----|---------------------|------------|
+| Datos críticos (órdenes activas, mesas ocupadas) | 1-2 min | `true` | `load()` en constructor + `refresh()` post-mutación |
+| Datos de referencia (productos, categorías) | 30 min | `true` | `loadIfStale()` con `appLazyLoad` |
+| Datos analíticos | 10 min | `true` | `loadIfStale()` al entrar a la ruta |
+| Catálogos pequeños (< 50 items) | 30 min | `true` | `load()` una vez, invalidar solo tras mutación |
+| Sesión / usuario autenticado | Sesión | — | No cache (servicio singleton con señal) |
+
+#### Invalidación obligatoria
+
+Siempre que se cree, actualice o elimine un recurso:
+
+```typescript
+async onSave(): Promise<void> {
+  await firstValueFrom(this.http.post('/api/products', data));
+  this.cache.invalidate();   // ✅ Marca la entrada como stale
+  // o
+  this.cache.refresh();      // ✅ Recarga inmediata en background
+}
+```
+
+### 10.11 Lazy Loading — Obligatorio
+
+#### Reglas
+
+1. **Toda feature es lazy-loaded** vía `loadComponent` en las rutas. No hay módulos eager fuera de `core/` y `shared/`.
+2. **Datos pesados usan `appLazyLoad`** para cargar solo cuando el componente entra en el viewport.
+3. **Skeletons siempre acompañan** a datos lazy-loaded.
+
+#### Cuándo usar `appLazyLoad`
+
+| Situación | Usar |
+|-----------|------|
+| Tabla debajo del fold | ✅ `[appLazyLoad]="cache"` |
+| Stats panel visible al cargar | ✅ `loadIfStale()` en constructor (no necesita directiva) |
+| Pestaña no visible inicialmente | ✅ `[appLazyLoad]="cache"` en el contenido de la pestaña |
+| Diálogo modal | ✅ `loadIfStale()` al abrir el diálogo |
+
+#### Patrón correcto
+
+```html
+<!-- Tabla lazy: carga solo cuando es visible -->
+<div [appLazyLoad]="productCache.products" class="h-full">
+  @if (productCache.products.data(); as products) {
+    <p-table [value]="products" [loading]="productCache.products.isLoading()" />
+  } @else {
+    <p-skeleton height="400px" />
+  }
+</div>
+```
+
+```typescript
+// Stats visibles: cargar inmediatamente
+export class Dashboard {
+  private cache = inject(DayMenuCacheService);
+
+  constructor() {
+    this.cache.currentMenu.load();  // ✅ Datos visibles arriba del fold
+  }
+
+  dayMenu = computed(() => this.cache.currentMenu.data());
+}
+```
 
 ---
 

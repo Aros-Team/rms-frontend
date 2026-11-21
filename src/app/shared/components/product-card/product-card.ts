@@ -2,12 +2,13 @@ import { Component, Input, output, ChangeDetectionStrategy } from '@angular/core
 import { CommonModule } from '@angular/common';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ProductSimpleResponse } from '@app/shared/models/dto/products/product-simple-response';
+import { Money } from '@app/shared/pipes/money/money';
 
 @Component({
   selector: 'app-product-card',
   templateUrl: './product-card.html',
   styleUrl: './product-card.css',
-  imports: [CommonModule, SkeletonModule],
+  imports: [CommonModule, SkeletonModule, Money],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductCard {

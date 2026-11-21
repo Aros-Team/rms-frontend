@@ -1,0 +1,14 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+/*
+ * Visible keyboard focus for the panel's own dialog surface. PrimeNG already
+ * styles the focus ring of its inputs/buttons; the overlay container itself is
+ * not focusable, so the ring is applied to its interactive content.
+ */
+[role='dialog'] :is(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--p-primary-color);
+  outline-offset: 2px;
+}

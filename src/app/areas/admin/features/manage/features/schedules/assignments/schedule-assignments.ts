@@ -6,7 +6,7 @@ import { ScheduleAssignment } from '@app/core/services/schedules/schedule-assign
 import { Schedule } from '@app/core/services/schedules/schedule';
 import { Worker } from '@app/core/services/workers/worker';
 import { Logging } from '@app/core/services/logging/logging';
-import { WorkerResponse } from '@app/shared/models/dto/workers/worker-response.model';
+import { WorkerResponse } from '@app/shared/models/dto/workers/worker-response';
 
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
@@ -14,7 +14,7 @@ import { ToastModule } from 'primeng/toast';
 import { TagModule } from 'primeng/tag';
 import { SkeletonModule } from 'primeng/skeleton';
 import { MessageService } from 'primeng/api';
-import { TableSkeleton } from '@shared/skeletons/table-skeleton';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 
 @Component({
   selector: 'app-schedule-assignments',
@@ -147,10 +147,6 @@ export class ScheduleAssignments implements OnInit {
   private removeAssignment(workerId: number): void {
     this.assigning.update(s => new Set(s).add(workerId));
 
-    // NOTE: getAssignments returns schedule IDs, but removeAssignment expects an assignment ID.
-    // Currently passing scheduleId as assignmentId as a simplification.
-    // TODO: Update when backend provides a proper endpoint to fetch assignment IDs separately,
-    // or when getAssignments returns assignment IDs instead of schedule IDs.
     this.scheduleAssignmentService.removeAssignment(workerId, this.scheduleId()).subscribe({
       next: () => {
         const current = this.assignedScheduleIds();

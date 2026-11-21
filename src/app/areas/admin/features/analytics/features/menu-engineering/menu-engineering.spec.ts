@@ -1,3 +1,10 @@
+/**
+ * Tests for the MenuEngineering analytics page.
+ *
+ * Feature: Displays menu engineering matrix (stars, plowhorses, puzzles, dogs).
+ * Contract: Loads analytics data, renders KPI cards and chart with correct values.
+ * Approach: Mount component via TestBed, mock HTTP responses, assert rendered KPI values.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import {
   ɵresolveComponentResources as resolveComponentResources,
@@ -21,6 +28,7 @@ function makeMenuEngineeringStub(
     refresh?: () => void;
     invalidate?: () => void;
     loadIfStale?: () => void;
+    load?: () => void;
   } = {},
 ): Pick<AnalyticsCache, 'menuEngineering'> & Record<string, unknown> {
   return {
@@ -34,6 +42,8 @@ function makeMenuEngineeringStub(
       invalidate: overrides.invalidate ?? ((): void => {}),
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       loadIfStale: overrides.loadIfStale ?? ((): void => {}),
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      load: overrides.load ?? ((): void => {}),
     },
     primeCost: { data: (): null => null, isLoading: (): boolean => false, error: (): null => null },
     operations: { data: (): null => null, isLoading: (): boolean => false, error: (): null => null },
@@ -170,16 +180,16 @@ describe('MenuEngineering', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  it('calls cache.menuEngineering.loadIfStale on construction', async () => {
-    const loadIfStaleSpy = vi.fn();
+  it('calls cache.menuEngineering.load via the period effect on construction', async () => {
+    const loadSpy = vi.fn();
     const stub = makeMenuEngineeringStub({
       isLoading: () => false,
       error: () => null,
       data: () => null,
-      loadIfStale: loadIfStaleSpy,
+      load: loadSpy,
     });
     await setup(stub);
-    expect(loadIfStaleSpy).toHaveBeenCalledTimes(1);
+    expect(loadSpy).toHaveBeenCalledTimes(1);
   });
 
   it('renders two skeletons when isLoading() is true and report() is null', async () => {
@@ -192,14 +202,13 @@ describe('MenuEngineering', () => {
     const root = getRoot(fixture);
 
     const skeletons = root.querySelectorAll('p-skeleton');
-    // Template renders stat cards + chart + table placeholder skeletons;
-    // we wrap them all in a role="status" aria-live="polite" container.
-    expect(skeletons.length).toBeGreaterThanOrEqual(2);
+    // Template renders one 5rem stat skeleton plus two 20rem chart/table skeletons.
+    expect(skeletons.length).toBe(3);
     expect(root.querySelector('p-chart')).toBeNull();
     expect(root.querySelector('p-table')).toBeNull();
-    // Skeleton wrapper exposes a polite live region
+    // Skeleton wrapper exposes a polite live region containing the skeletons
     const wrapper = root.querySelector('[role="status"][aria-live="polite"]');
-    expect(wrapper).toBeTruthy();
+    expect(wrapper?.querySelectorAll('p-skeleton').length).toBe(3);
   });
 
   it('renders the BCG bubble chart when median is available', async () => {
@@ -214,15 +223,14 @@ describe('MenuEngineering', () => {
 
     const charts = root.querySelectorAll('p-chart');
     expect(charts.length).toBe(1);
-    // One dataset per quadrant (4)
     const chartData = cmp.quadrantChartData();
     expect(chartData.datasets.length).toBe(4);
-    // Chart is wrapped in a <figure> with a visible + sr-only <figcaption>
     const figure = root.querySelector('figure');
-    expect(figure).toBeTruthy();
     expect(figure?.querySelectorAll('figcaption').length).toBe(2);
     const srFig = figure?.querySelector('figcaption.sr-only');
-    expect(srFig?.textContent ?? '').toContain('Matriz BCG');
+    expect(srFig?.textContent.trim()).toBe(
+      'Mapa BCG de 1 productos. Eje X: margen por unidad. Eje Y: unidades vendidas.',
+    );
   });
 
   it('wraps the chart <figure> with a sr-only figcaption that includes the item count', async () => {
@@ -241,8 +249,9 @@ describe('MenuEngineering', () => {
     const fixture = await setup(stub);
     const root = getRoot(fixture);
     const srFig = root.querySelector('figure figcaption.sr-only');
-    expect(srFig).toBeTruthy();
-    expect(srFig?.textContent ?? '').toContain('3 productos');
+    expect(srFig?.textContent.trim()).toBe(
+      'Mapa BCG de 3 productos. Eje X: margen por unidad. Eje Y: unidades vendidas.',
+    );
   });
 
   it('renders four stat cards in an aria-labelledby section', async () => {
@@ -260,14 +269,17 @@ describe('MenuEngineering', () => {
     const root = getRoot(fixture);
 
     const section = root.querySelector('section[aria-labelledby="me-stats-heading"]');
-    expect(section).toBeTruthy();
-    const articles = section?.querySelectorAll('article') ?? [];
+    const articles = Array.from(section?.querySelectorAll('article') ?? []);
     expect(articles.length).toBe(4);
-    const text = root.textContent;
-    expect(text).toContain('Productos');
-    expect(text).toContain('Contribución total');
-    expect(text).toContain('Volumen mediana');
-    expect(text).toContain('Margen mediana');
+    expect(articles.map((a) => a.querySelector('p.text-xs')?.textContent.trim())).toEqual([
+      'Productos analizados',
+      'Ganancia que generan',
+      'Ventas típicas (mediana)',
+      'Margen típico (mediana)',
+    ]);
+    expect(
+      articles.map((a) => a.querySelector('[data-testid^="me-stat-"]')?.textContent.trim()),
+    ).toEqual(['2', '$\u00A0120.000', '25', '$\u00A09.000']);
   });
 
   it('renders median volume stat card with the numeric median value', async () => {
@@ -299,10 +311,7 @@ describe('MenuEngineering', () => {
     const fixture = await setup(stub);
     const root = getRoot(fixture);
     const cell = root.querySelector('[data-testid="me-stat-median-margin"]');
-    expect(cell).toBeTruthy();
-    const text = cell?.textContent ?? '';
-    // MoneyPipe on 9000.00 COP renders "$ 9.000" or similar localized
-    expect(text).toMatch(/9[.,\s]000/);
+    expect(cell?.textContent.trim()).toBe('$\u00A09.000');
   });
 
   it('renders total contribution stat card with the Money-pipe formatted sum', async () => {
@@ -320,8 +329,7 @@ describe('MenuEngineering', () => {
     const fixture = await setup(stub);
     const root = getRoot(fixture);
     const cell = root.querySelector('[data-testid="me-stat-total-contribution"]');
-    const text = cell?.textContent ?? '';
-    expect(text).toMatch(/100[.,\s]000/);
+    expect(cell?.textContent.trim()).toBe('$\u00A0100.000');
   });
 
   it('renders items count stat card with the filtered items length', async () => {
@@ -360,13 +368,14 @@ describe('MenuEngineering', () => {
     const root = getRoot(fixture);
 
     const table = root.querySelector('p-table');
-    expect(table).toBeTruthy();
-    const text = root.textContent;
-    expect(text).toContain('Coca Cola');
-    expect(text).toContain('Hamburguesa');
-    expect(text).toContain('Ensalada');
-    // One p-tag per item
-    expect(root.querySelectorAll('p-table p-tag').length).toBe(3);
+    expect(table).not.toBeNull();
+    const names = Array.from(
+      root.querySelectorAll('p-table tbody tr td:first-child'),
+    ).map((td) => td.textContent.trim());
+    expect(names).toEqual(['Coca Cola', 'Hamburguesa', 'Ensalada']);
+    // Three quadrant badges (icon+label spans in Cuadrante column)
+    const badges = root.querySelectorAll('p-table tbody tr td:last-child span.inline-flex');
+    expect(badges.length).toBe(3);
   });
 
   it('renders the p-table emptymessage when items.length === 0', async () => {
@@ -379,11 +388,11 @@ describe('MenuEngineering', () => {
     const root = getRoot(fixture);
 
     const table = root.querySelector('p-table');
-    expect(table).toBeTruthy();
-    const text = root.textContent;
-    expect(text).toContain('No hay SKUs para mostrar');
-    // No item tags rendered
-    expect(root.querySelectorAll('p-table p-tag').length).toBe(0);
+    expect(table).not.toBeNull();
+    expect(root.querySelector('p-table tbody tr td')?.textContent.trim()).toBe(
+      'No hay productos para mostrar.',
+    );
+    expect(root.querySelectorAll('p-table tbody tr td:last-child span.inline-flex').length).toBe(0);
   });
 
   it('maps MenuQuadrant to the expected tag severity', async () => {
@@ -410,10 +419,10 @@ describe('MenuEngineering', () => {
     const fixture = await setup(stub);
     const cmp = fixture.componentInstance;
 
-    expect(cmp.quadrantLabel('STAR')).toBe('Estrella');
-    expect(cmp.quadrantLabel('PLOWHORSE')).toBe('Caballo');
-    expect(cmp.quadrantLabel('PUZZLE')).toBe('Rompecabezas');
-    expect(cmp.quadrantLabel('DOG')).toBe('Perro');
+    expect(cmp.quadrantLabel('STAR')).toBe('Excelente');
+    expect(cmp.quadrantLabel('PLOWHORSE')).toBe('Populares');
+    expect(cmp.quadrantLabel('PUZZLE')).toBe('Oportunidad');
+    expect(cmp.quadrantLabel('DOG')).toBe('A revisar');
   });
 
   it('renders the notes banner when completeness is PARTIAL with notes', async () => {
@@ -429,38 +438,14 @@ describe('MenuEngineering', () => {
     });
     const fixture = await setup(stub);
     const root = getRoot(fixture);
-    const text = root.textContent;
 
-    expect(text).toContain('Datos parciales');
-    expect(text).toContain('Faltan recetas para 2 productos');
-    const banner = root.querySelector('[data-testid="me-data-banner"]');
-    expect(banner).toBeTruthy();
-    const items = root.querySelectorAll('[data-testid="me-data-banner"] ul li');
-    expect(items.length).toBe(1);
+    const banner = root.querySelector('[role="status"]');
+    expect(banner?.querySelector('p.font-semibold')?.textContent.trim()).toBe('Datos parciales');
+    expect(Array.from(banner?.querySelectorAll('ul li') ?? []).map((li) => li.textContent.trim()))
+      .toEqual(['Faltan recetas para 2 productos']);
   });
 
-  it('renders the banner when completeness is PARTIAL even with NO notes (severity warn)', async () => {
-    const stub = makeMenuEngineeringStub({
-      isLoading: () => false,
-      error: () => null,
-      data: () =>
-        makeReport({
-          dataCompleteness: 'PARTIAL',
-          notes: [],
-          items: [makeItem()],
-        }),
-    });
-    const fixture = await setup(stub);
-    const root = getRoot(fixture);
-    const banner = root.querySelector('[data-testid="me-data-banner"]');
-    expect(banner).toBeTruthy();
-    // Amber palette tokens applied for PARTIAL
-    expect(banner?.classList.contains('border-amber-300')).toBe(true);
-    expect(banner?.classList.contains('bg-amber-50')).toBe(true);
-    expect(root.textContent).toContain('Datos parciales');
-  });
-
-  it('renders the EMPTY banner with info severity and "Sin datos en el periodo" headline', async () => {
+  it('renders the EMPTY banner with "Aún no hay datos de productos" headline', async () => {
     const stub = makeMenuEngineeringStub({
       isLoading: () => false,
       error: () => null,
@@ -473,16 +458,14 @@ describe('MenuEngineering', () => {
     });
     const fixture = await setup(stub);
     const root = getRoot(fixture);
-    const banner = root.querySelector('[data-testid="me-data-banner"]');
-    expect(banner).toBeTruthy();
-    // Blue palette tokens applied for EMPTY (info)
-    expect(banner?.classList.contains('border-blue-300')).toBe(true);
-    expect(banner?.classList.contains('bg-blue-50')).toBe(true);
-    expect(root.textContent).toContain('Sin datos en el periodo');
-    expect(root.textContent).not.toContain('Datos parciales');
+    const banner = root.querySelector('[role="status"]');
+    expect(banner?.querySelector('p.font-semibold')?.textContent.trim()).toBe(
+      'Aún no hay datos de productos',
+    );
+    expect(root.querySelectorAll('[role="status"]').length).toBe(1);
   });
 
-  it('does NOT render the banner when completeness is FULL', async () => {
+  it('does NOT render the partial banner when completeness is FULL', async () => {
     const stub = makeMenuEngineeringStub({
       isLoading: () => false,
       error: () => null,
@@ -490,52 +473,20 @@ describe('MenuEngineering', () => {
     });
     const fixture = await setup(stub);
     const root = getRoot(fixture);
-    expect(root.querySelector('[data-testid="me-data-banner"]')).toBeNull();
+    expect(root.textContent).not.toContain('Datos parciales');
+    expect(root.textContent).not.toContain('Aún no hay datos de productos');
   });
 
-  it('banner retry button calls cache.menuEngineering.refresh', async () => {
-    const refreshSpy = vi.fn();
-    const stub = makeMenuEngineeringStub({
-      isLoading: () => false,
-      error: () => null,
-      data: () =>
-        makeReport({
-          dataCompleteness: 'PARTIAL',
-          notes: ['x'],
-          items: [makeItem()],
-        }),
-      refresh: refreshSpy,
-    });
-    const fixture = await setup(stub);
-    const root = getRoot(fixture);
-
-    const banner = root.querySelector('[data-testid="me-data-banner"]');
-    expect(banner).toBeTruthy();
-    const btn = Array.from(banner?.querySelectorAll('button') ?? []).find(
-      (b) => b.textContent.trim() === 'Reintentar',
+  it('does not render the per-feature Actualizar button (lives in the shared dock now)', async () => {
+    const fixture = await setup(
+      makeMenuEngineeringStub({
+        data: () => makeReport({ items: [makeItem()] }),
+      }),
     );
-    expect(btn).toBeTruthy();
-    btn?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-    expect(refreshSpy).toHaveBeenCalledTimes(1);
-  });
-
-  it('header reload button still calls cache.menuEngineering.refresh', async () => {
-    const refreshSpy = vi.fn();
-    const stub = makeMenuEngineeringStub({
-      isLoading: () => false,
-      error: () => null,
-      data: () => makeReport({ items: [makeItem()] }),
-      refresh: refreshSpy,
-    });
-    const fixture = await setup(stub);
-    const root = getRoot(fixture);
-
-    const btn = Array.from(root.querySelectorAll('button')).find(
+    const btn = Array.from(getRoot(fixture).querySelectorAll('button')).find(
       (b) => b.textContent.trim() === 'Actualizar',
     );
-    expect(btn).toBeTruthy();
-    btn?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-    expect(refreshSpy).toHaveBeenCalledTimes(1);
+    expect(btn).toBeUndefined();
   });
 
   it('renders the cacheStatus line when cacheStatus is non-null', async () => {
@@ -546,12 +497,11 @@ describe('MenuEngineering', () => {
     });
     const fixture = await setup(stub);
     const root = getRoot(fixture);
-    const text = root.textContent;
 
-    expect(text).toContain('Caché actualizado');
-    expect(text).toContain('2026-07-17T12:00:00Z');
-    expect(text).toContain('v1.2.3');
-    expect(text).toContain('1800');
+    const cacheLine = root.querySelector('div.text-xs.text-muted');
+    expect(cacheLine?.textContent.trim()).toBe(
+      'Última actualización de datos: 2026-07-17T12:00:00Z',
+    );
   });
 
   it('renders an error p-message when error() is truthy', async () => {
@@ -565,50 +515,8 @@ describe('MenuEngineering', () => {
     const root = getRoot(fixture);
 
     const msg = root.querySelector('p-message');
-    expect(msg).toBeTruthy();
-    const text = root.textContent;
-    expect(text).toContain('No se pudieron cargar los datos');
-    expect(text).toContain('Cache miss');
-  });
-
-  it('renders the category filter inside the table caption and filters items by categoryId', async () => {
-    const stub = makeMenuEngineeringStub({
-      isLoading: () => false,
-      error: () => null,
-      data: () =>
-        makeReport({
-          items: [
-            makeItem({ productId: 1, productName: 'Coca Cola', categoryId: 10, categoryName: 'Bebidas' }),
-            makeItem({ productId: 2, productName: 'Hamburguesa', categoryId: 20, categoryName: 'Comida' }),
-            makeItem({ productId: 3, productName: 'Jugo', categoryId: 10, categoryName: 'Bebidas' }),
-          ],
-        }),
-    });
-    const fixture = await setup(stub);
-    const cmp = fixture.componentInstance;
-    const root = getRoot(fixture);
-
-    // Filter control lives inside the table caption (PrimeNG renders
-    // pTemplate="caption" inside a div with the "header" style class).
-    const filter = root.querySelector('[data-testid="me-category-filter"]');
-    expect(filter).toBeTruthy();
-    const headerContainer = root.querySelector('p-table .p-datatable-header');
-    expect(headerContainer).toBeTruthy();
-    expect(headerContainer?.contains(filter)).toBe(true);
-
-    // 3 items before filter
-    expect(cmp.items().length).toBe(3);
-
-    // Apply category filter (id=10)
-    cmp.onCategoryChange(10);
-    fixture.detectChanges();
-    expect(cmp.items().length).toBe(2);
-    expect(cmp.items().every((it) => it.categoryId === 10)).toBe(true);
-
-    // Clear filter
-    cmp.clearCategory();
-    fixture.detectChanges();
-    expect(cmp.items().length).toBe(3);
+    expect(msg?.getAttribute('severity')).toBe('error');
+    expect(msg?.textContent.trim()).toBe('No se pudieron cargar los datos: Cache miss');
   });
 
   it('builds unique categories from report items (sorted by name)', async () => {
@@ -659,5 +567,249 @@ describe('MenuEngineering', () => {
     expect(items.map((i) => i.totalContribution.amount)).toEqual([
       '100.00', '9000.00', '100000.00',
     ]);
+  });
+
+  it('dedupes topItems by name so products with the same name do not repeat', async () => {
+    const stub = makeMenuEngineeringStub({
+      isLoading: () => false,
+      error: () => null,
+      data: () =>
+        makeReport({
+          items: [
+            makeItem({ productId: 1, productName: 'Hamburguesa', totalContribution: '900.00', quadrant: 'STAR' }),
+            makeItem({ productId: 2, productName: 'Hamburguesa', totalContribution: '800.00', quadrant: 'STAR' }),
+            makeItem({ productId: 3, productName: 'Ensalada', totalContribution: '700.00', quadrant: 'STAR' }),
+            makeItem({ productId: 4, productName: 'Té', totalContribution: '600.00', quadrant: 'STAR' }),
+          ],
+        }),
+    });
+    const fixture = await setup(stub);
+    const cmp = fixture.componentInstance;
+
+    const starQuadrant = cmp.quadrantSummary().find((q) => q.quadrant === 'STAR');
+    if (!starQuadrant) throw new Error('STAR quadrant not found');
+    expect(starQuadrant.topItems).toEqual(['Hamburguesa', 'Ensalada', 'Té']);
+    // No name appears more than once.
+    const nameCount = new Map<string, number>();
+    for (const name of starQuadrant.topItems) {
+      nameCount.set(name, (nameCount.get(name) ?? 0) + 1);
+    }
+    for (const [, count] of nameCount) {
+      expect(count).toBe(1);
+    }
+  });
+
+  it('initialises selectedQuadrant to null', async () => {
+    const fixture = await setup(makeMenuEngineeringStub({ data: () => makeReport({ items: [] }) }));
+    const cmp = fixture.componentInstance;
+    expect(cmp.selectedQuadrant()).toBeNull();
+  });
+
+  it('onQuadrantClick sets selectedQuadrant when clicking a new quadrant', async () => {
+    const fixture = await setup(makeMenuEngineeringStub({ data: () => makeReport({ items: [] }) }));
+    const cmp = fixture.componentInstance;
+
+    cmp.onQuadrantClick('STAR');
+    expect(cmp.selectedQuadrant()).toBe('STAR');
+
+    cmp.onQuadrantClick('PLOWHORSE');
+    expect(cmp.selectedQuadrant()).toBe('PLOWHORSE');
+  });
+
+  it('onQuadrantClick clears selectedQuadrant when clicking the same quadrant again', async () => {
+    const fixture = await setup(makeMenuEngineeringStub({ data: () => makeReport({ items: [] }) }));
+    const cmp = fixture.componentInstance;
+
+    cmp.onQuadrantClick('STAR');
+    expect(cmp.selectedQuadrant()).toBe('STAR');
+
+    cmp.onQuadrantClick('STAR');
+    expect(cmp.selectedQuadrant()).toBeNull();
+  });
+
+  it('clearQuadrantFilter resets selectedQuadrant to null', async () => {
+    const fixture = await setup(makeMenuEngineeringStub({ data: () => makeReport({ items: [] }) }));
+    const cmp = fixture.componentInstance;
+
+    cmp.onQuadrantClick('DOG');
+    expect(cmp.selectedQuadrant()).toBe('DOG');
+
+    cmp.clearQuadrantFilter();
+    expect(cmp.selectedQuadrant()).toBeNull();
+  });
+
+  it('items() filters by both categoryId and selectedQuadrant', async () => {
+    const fixture = await setup(
+      makeMenuEngineeringStub({
+        data: () =>
+          makeReport({
+            items: [
+              makeItem({ productId: 1, productName: 'A', categoryId: 10, quadrant: 'STAR' }),
+              makeItem({ productId: 2, productName: 'B', categoryId: 10, quadrant: 'DOG' }),
+              makeItem({ productId: 3, productName: 'C', categoryId: 20, quadrant: 'STAR' }),
+              makeItem({ productId: 4, productName: 'D', categoryId: 10, quadrant: 'STAR' }),
+            ],
+          }),
+      }),
+    );
+    const cmp = fixture.componentInstance;
+
+    // No filter
+    expect(cmp.items().length).toBe(4);
+
+    // Filter by quadrant only — DOG matches only B
+    cmp.onQuadrantClick('DOG');
+    expect(cmp.items().length).toBe(1);
+    expect(cmp.items()[0].productName).toBe('B');
+
+    // Filter by quadrant + category 10 — B has categoryId 10 + DOG, so still 1
+    cmp.onCategoryChange(10);
+    expect(cmp.items().length).toBe(1);
+    expect(cmp.items()[0].productName).toBe('B');
+  });
+
+  it('isQuadrantSelected returns true only for the selected quadrant', async () => {
+    const fixture = await setup(makeMenuEngineeringStub({ data: () => makeReport({ items: [] }) }));
+    const cmp = fixture.componentInstance;
+
+    expect(cmp.isQuadrantSelected('STAR')).toBe(false);
+    expect(cmp.isQuadrantSelected('PLOWHORSE')).toBe(false);
+    expect(cmp.isQuadrantSelected('PUZZLE')).toBe(false);
+    expect(cmp.isQuadrantSelected('DOG')).toBe(false);
+
+    cmp.onQuadrantClick('STAR');
+    expect(cmp.isQuadrantSelected('STAR')).toBe(true);
+    expect(cmp.isQuadrantSelected('DOG')).toBe(false);
+  });
+
+  it('sellPricePerUnit returns null when unitsSold is 0', async () => {
+    const fixture = await setup(makeMenuEngineeringStub({ data: () => makeReport({ items: [] }) }));
+    const cmp = fixture.componentInstance;
+
+    expect(cmp.sellPricePerUnit({ ...makeItem(), unitsSold: 0 })).toBeNull();
+    expect(cmp.sellPricePerUnit(makeItem())).toEqual({ amount: '10000.00', currency: 'COP' });
+  });
+
+  it('marginPercent returns null when unitsSold is 0', async () => {
+    const fixture = await setup(makeMenuEngineeringStub({ data: () => makeReport({ items: [] }) }));
+    const cmp = fixture.componentInstance;
+
+    expect(cmp.marginPercent({ ...makeItem(), unitsSold: 0 })).toBeNull();
+    expect(cmp.marginPercent(makeItem())).toBeCloseTo(60, 0); // 6000/10000 = 0.6 => 60%
+  });
+
+  it('fmtPercent returns formatted percentage string', async () => {
+    const fixture = await setup(makeMenuEngineeringStub({ data: () => makeReport({ items: [] }) }));
+    const cmp = fixture.componentInstance;
+
+    expect(cmp.fmtPercent(50)).toBe('50.0%');
+    expect(cmp.fmtPercent(12.34)).toBe('12.3%');
+    expect(cmp.fmtPercent(null)).toBe('—');
+  });
+
+  it('selectedQuadrantMeta returns the quadrant meta when a quadrant is selected', async () => {
+    const fixture = await setup(makeMenuEngineeringStub({ data: () => makeReport({ items: [] }) }));
+    const cmp = fixture.componentInstance;
+
+    expect(cmp.selectedQuadrantMeta()).toBeNull();
+
+    cmp.onQuadrantClick('STAR');
+    expect(cmp.selectedQuadrantMeta()?.label).toBe('Excelente');
+    expect(cmp.selectedQuadrantMeta()?.icon).toBe('pi pi-star-fill');
+  });
+
+  it('renders aria-pressed on the selected quadrant card button', async () => {
+    const fixture = await setup(
+      makeMenuEngineeringStub({
+        data: () => makeReport({ items: [makeItem()] }),
+      }),
+    );
+    const root = getRoot(fixture);
+    const cmp = fixture.componentInstance;
+
+    const starBtn = root.querySelector('[data-quadrant="STAR"]');
+    expect(starBtn?.getAttribute('aria-pressed')).toBe('false');
+
+    cmp.onQuadrantClick('STAR');
+    fixture.detectChanges();
+    expect(starBtn?.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('sorts by recipeCost numerically via onSort comparator', async () => {
+    const fixture = await setup(
+      makeMenuEngineeringStub({
+        data: () =>
+          makeReport({
+            items: [
+              makeItem({ productId: 1, productName: 'A', recipeCost: '3000.00' }),
+              makeItem({ productId: 2, productName: 'B', recipeCost: '1000.00' }),
+              makeItem({ productId: 3, productName: 'C', recipeCost: '2000.00' }),
+            ],
+          }),
+      }),
+    );
+    const cmp = fixture.componentInstance;
+    const items = cmp.items().slice();
+    cmp.onSort({ data: items, field: 'recipeCost', order: 1 });
+
+    expect(items.map((i) => i.recipeCost.amount)).toEqual(['1000.00', '2000.00', '3000.00']);
+  });
+
+  it('sorts by sellPricePerUnit numerically via onSort comparator', async () => {
+    const fixture = await setup(
+      makeMenuEngineeringStub({
+        data: () =>
+          makeReport({
+            items: [
+              makeItem({ productId: 1, productName: 'A', revenue: '50000.00', unitsSold: 5 }),
+              makeItem({ productId: 2, productName: 'B', revenue: '30000.00', unitsSold: 10 }),
+              makeItem({ productId: 3, productName: 'C', revenue: '40000.00', unitsSold: 5 }),
+            ],
+          }),
+      }),
+    );
+    const cmp = fixture.componentInstance;
+    const items = cmp.items().slice();
+    cmp.onSort({ data: items, field: 'sellPricePerUnit', order: 1 });
+
+    // sellPricePerUnit = revenue / unitsSold
+    // A: 50000/5 = 10000, B: 30000/10 = 3000, C: 40000/5 = 8000
+    expect(items.map((i) => cmp.sellPricePerUnit(i)?.amount)).toEqual(['3000.00', '8000.00', '10000.00']);
+  });
+
+  it('sorts by marginPercent numerically via onSort comparator', async () => {
+    const fixture = await setup(
+      makeMenuEngineeringStub({
+        data: () =>
+          makeReport({
+            items: [
+              makeItem({ productId: 1, productName: 'A', grossProfitPerUnit: '8000.00', revenue: '10000.00', unitsSold: 1 }),
+              makeItem({ productId: 2, productName: 'B', grossProfitPerUnit: '3000.00', revenue: '10000.00', unitsSold: 1 }),
+              makeItem({ productId: 3, productName: 'C', grossProfitPerUnit: '5000.00', revenue: '10000.00', unitsSold: 1 }),
+            ],
+          }),
+      }),
+    );
+    const cmp = fixture.componentInstance;
+    const items = cmp.items().slice();
+    cmp.onSort({ data: items, field: 'marginPercent', order: -1 });
+
+    // marginPercent = (grossProfitPerUnit / (revenue/unitsSold)) * 100
+    // For A: 8000/(10000/1) = 0.8 → 80%, B: 3000/10000 = 0.3 → 30%, C: 5000/10000 = 0.5 → 50%
+    // Descending: 80, 50, 30
+    expect(items.map((i) => cmp.marginPercent(i))).toEqual([80, 50, 30]);
+  });
+
+  it('quadrantMeta returns the full meta object for a quadrant', async () => {
+    const fixture = await setup(makeMenuEngineeringStub({ data: () => makeReport({ items: [] }) }));
+    const cmp = fixture.componentInstance;
+
+    const meta = cmp.quadrantMeta('STAR');
+    expect(meta.label).toBe('Excelente');
+    expect(meta.icon).toBe('pi pi-star-fill');
+    expect(meta.action).toBe('Venden bien y dejan buena ganancia. Protégelos: evita cambiarlos.');
+    expect(meta.borderClass).toBe('border-green-300 dark:border-green-700');
+    expect(meta.bgClass).toBe('bg-green-50 dark:bg-green-900/20');
+    expect(meta.ringClass).toBe('ring-2 ring-green-500');
   });
 });

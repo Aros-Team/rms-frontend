@@ -3,8 +3,8 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { RouterModule } from '@angular/router';
-import { WorkerResponse } from '@app/shared/models/dto/workers/worker-response.model';
-import { AreaResponse } from '@app/shared/models/dto/areas/area.model';
+import { WorkerResponse } from '@app/shared/models/dto/workers/worker-response';
+import { AreaResponse } from '@app/shared/models/dto/areas/area';
 
 @Component({
   selector: 'app-worker-card',
@@ -23,9 +23,11 @@ export class WorkerCard {
 
   avatarColor = computed(() => {
     const name = this.worker().name || '';
+    // 700-level shades: the avatar always renders white initials, and the
+    // 500-level versions of amber/lime/cyan fail 4.5:1 against white.
     const colors = [
-      '#3B82F6', '#10B981', '#F59E0B', '#EF4444',
-      '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16',
+      '#2563EB', '#047857', '#B45309', '#B91C1C',
+      '#6D28D9', '#BE185D', '#0E7490', '#4D7C0F',
     ];
     let hash = 0;
     for (let i = 0; i < name.length; i++) {

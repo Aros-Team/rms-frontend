@@ -10,7 +10,8 @@
 2. If harness detects missing files (AGENTS.md, docs/, activities.json, etc.), run `node scripts/build_harness.js` to create them.
 3. Read `progress/current.md` — understand state from last session.
 4. Read `activities.json` — identify pending activities and their tasks.
-5. Assign ONE task from ONE pending activity to a sub-agent via delegation. **Never work directly — always delegate.**
+5. **Check `http://localhost:8080/v3/api-docs` before modifying or consuming any service.** Fetch the OpenAPI spec to understand available endpoints, request/response shapes, and field semantics.
+6. Assign ONE task from ONE pending activity to a sub-agent via delegation. **Never work directly — always delegate.**
 
 ## 2. Repo Map
 
@@ -24,6 +25,7 @@
 | `docs/architecture.md` | What "good work" means in this project | Before implement |
 | `docs/conventions.md` | Style rules, names, structure | Before write code |
 | `docs/verification.md` | How verify work works | Before declare task `done` |
+| `docs/testing.md` | Testing policy (write tests that catch bugs) | Before write or review tests |
 | `docs/CHECKPOINTS.md` | Final state evaluation checklist | Before declare task `done` |
 | `scripts/harness.js` | Entry harness (verifies env + quality) | Before start |
 | `scripts/build_harness.js` | Creates activities.json + progress/ folder | For setup |

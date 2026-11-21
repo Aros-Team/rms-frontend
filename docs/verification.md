@@ -26,7 +26,9 @@
 ### Architecture Compliance
 - Components use `templateUrl` + `styleUrl` (no inline)
 - Files follow naming conventions (kebab-case, no suffix)
-- Services are one-file-per-domain
+- **Todo archivo `.ts` está dentro de una carpeta** (no hay archivos sueltos)
+- Services grouped by entity folder, named by use case (`products/get-all.ts`)
+- Each service file does ONE thing
 - Shared components in `shared/`
 - Feature components in `features/`
 
@@ -34,6 +36,19 @@
 - Only design tokens used (no hardcoded colors/sizes)
 - PrimeNG components preferred
 - No custom CSS outside design system
+
+### Reutilización
+- Se verificó que no exista un componente similar en `shared/` antes de crear uno nuevo
+- Si el componente es reusable, se creó en `shared/`, no dentro de una feature
+- No hay duplicación de lógica o UI que pueda unificarse
+
+### Data Loading
+- Toda consulta a lista incluye `size` (paginated query obligatorio)
+- Se usó `ResourceCache` para cachear datos (no llamadas HTTP directas sin cache)
+- TTL configurado según el tipo de dato (crítico: 1-2 min, referencia: 30 min)
+- Se invalidó el cache después de mutaciones (create/update/delete)
+- Componentes con datos debajo del fold usan `[appLazyLoad]`
+- Skeletons presentes en todos los estados de carga
 
 ### Tests
 - New functionality has tests
@@ -55,6 +70,14 @@ The reviewer agent must verify:
 - [ ] User-facing text in Spanish
 - [ ] Code follows naming conventions
 - [ ] No leftover debug code
+- [ ] No duplicate components — checked `shared/` before creating new ones
+- [ ] Paginated queries — every list endpoint includes `size` parameter
+- [ ] Cache used via `ResourceCache` — no raw HTTP calls without caching for list data
+- [ ] Cache invalidated after mutations
+- [ ] `[appLazyLoad]` used for data below the fold
+- [ ] Skeletons present for all loading states
+- [ ] Every `.ts` file is inside a folder (no loose files)
+- [ ] Service files grouped by entity folder, named by use case (`entidad/verbo-accion.ts`)
 
 ---
 

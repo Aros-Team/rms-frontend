@@ -1,61 +1,96 @@
-import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy, effect } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, effect, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, FormArray, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { of, EMPTY, forkJoin } from 'rxjs';
-import { catchError, switchMap, map } from 'rxjs/operators';
+import { of, EMPTY, forkJoin, merge, Observable } from 'rxjs';
+import { catchError, switchMap, tap } from 'rxjs/operators';
 
 import { Product } from '@app/core/services/products/product';
 import { MasterData } from '@app/core/services/master-data/master-data';
 import { Logging } from '@app/core/services/logging/logging';
-import { ProductCacheService } from './product-cache.service';
-import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
-import { ProductOptionService } from '@app/core/services/product-option/product-option';
+import { ProductCache } from './product-cache';
+import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
+import { ProductOption } from '@app/core/services/product-option/product-option';
 import { WebSocket } from '@app/core/services/websocket/websocket';
+import { OptionsChangedPayload } from './step3-options/step3-options';
+import { Step3Options } from './step3-options/step3-options';
+import { mapHttpError } from '@app/shared/lib/http-error-mapper/http-error-mapper';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
-import { ProductRecipeItem, ProductResponse } from '@app/shared/models/dto/products/product-response';
-import { ProductOption as ProductOptionDTO, ProductOptionResponse } from '@app/shared/models/dto/products/product-option.model';
+import { ProductResponse } from '@app/shared/models/dto/products/product-response';
+import { ProductOption as ProductOptionDTO, ProductOptionResponse } from '@app/shared/models/dto/products/product-option';
 import { ProductOptionCreateRequest, RecipeItemRequest } from '@app/shared/models/dto/products/product-create-request';
-import { ProductImage } from '@app/core/services/product-image';
+import { ProductImage } from '@app/core/services/product-image/product-image';
 import { ProductImageResponse } from '@app/shared/models/dto/products/product-image-response';
+import { ProductCostResponse } from '@app/shared/models/dto/products/product-cost-response';
+import { OptionGroupResponse } from '@app/shared/models/dto/option-groups/option-group';
 
+import { SearchInput as SearchInputComponent } from '@app/shared/components/search-input/search-input';
 import { ButtonModule } from 'primeng/button';
 import { FileUploadModule } from 'primeng/fileupload';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ImageModule } from 'primeng/image';
-import { GalleriaModule } from 'primeng/galleria';
 import { ConfirmPopupModule } from 'primeng/confirmpopup';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
-import { IconFieldModule } from 'primeng/iconfield';
 import { IftaLabelModule } from 'primeng/iftalabel';
-import { InputIconModule } from 'primeng/inputicon';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
-import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
+import { ToggleSwitch } from 'primeng/toggleswitch';
 import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
 import { SkeletonModule } from 'primeng/skeleton';
+import { MessageModule } from 'primeng/message';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService, ConfirmationService } from 'primeng/api';
-import { CurrencyPipe } from '@angular/common';
-import { TableSkeleton } from '@shared/skeletons/table-skeleton';
-import { ProductEditModal } from './componentes/product-edit-modal/product-edit-modal';
-import { NewOptionDialog } from './componentes/new-option-dialog/new-option-dialog';
-import { ProductDetailDialog } from './componentes/product-detail-dialog/product-detail-dialog';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
+
+import { PrepTimeDialog, type PrepTimeEstimate } from './componentes/prep-time-dialog/prep-time-dialog';
+import { Money } from '@app/shared/pipes/money/money';
+import { toAmount } from '@app/shared/models/dto/common/money';
 
 // Wizard steps: 1=basic data+image, 2=insumos, 3=options, 4=finalize
-type WizardStep = 1 | 2 | 3 | 4;
+type WizardStep = 1 | 2 | 3 | 4 | 5;
+
+/** A new image held in memory until the user clicks Finalizar. */
+interface StagedImage {
+  file: File;
+  previewUrl: string;
+}
+
+/** UI-facing image representation. Existing images carry the server id;
+ *  staged new images use a negative synthetic id so the template can
+ *  distinguish them. */
+interface PreviewImage {
+  id: number;
+  mobileUrl: string;
+  tabletUrl: string;
+  desktopUrl: string;
+  originalFilename: string;
+  originalSizeBytes: number;
+  createdAt: string;
+  staged: boolean;
+}
+
+interface RecipeCostRow {
+  supplyVariantId: number | null;
+  supplyName: string;
+  unitLabel: string;
+  unitCost: number | null;
+  requiredQuantity: number;
+  partial: number;
+}
 
 interface OptionFormValue {
-  id?: number | null;
-  name?: string;
-  optionCategoryId?: number | null;
-  recipe?: unknown[];
-  isExisting?: boolean;
+  id: number | null;
+  name: string;
+  optionCategoryId: number | null;
+  recipe: RecipeItemRequest[];
+  isExisting: boolean;
 }
 
 @Component({
@@ -65,33 +100,31 @@ interface OptionFormValue {
     RouterModule,
     ReactiveFormsModule,
     FormsModule,
-    CurrencyPipe,
     TableModule,
     ButtonModule,
-    IconFieldModule,
     InputTextModule,
-    InputIconModule,
     TextareaModule,
     SelectModule,
-    MultiSelectModule,
     IftaLabelModule,
     DialogModule,
     InputNumberModule,
     ToastModule,
+    ToggleSwitch,
     TagModule,
     DividerModule,
     SkeletonModule,
-    LazyLoadDirective,
+    MessageModule,
+    TooltipModule,
+    LazyLoad,
     TableSkeleton,
     FileUploadModule,
     ProgressBarModule,
     ImageModule,
-    GalleriaModule,
     ConfirmPopupModule,
-    ConfirmDialogModule,
-    ProductEditModal,
-    NewOptionDialog,
-    ProductDetailDialog,
+    PrepTimeDialog,
+    SearchInputComponent,
+    Step3Options,
+    Money,
   ],
   templateUrl: './products.html',
   providers: [MessageService, ConfirmationService],
@@ -99,63 +132,66 @@ interface OptionFormValue {
 export class Products implements OnInit {
   private fb = inject(FormBuilder);
   private productService = inject(Product);
-  private productOptionService = inject(ProductOptionService);
+  private productOptionService = inject(ProductOption);
   private masterDataService = inject(MasterData);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
   private logger = inject(Logging);
   private wsService = inject(WebSocket);
-  readonly cache = inject(ProductCacheService);
+  readonly cache = inject(ProductCache);
   readonly imageService = inject(ProductImage);
 
   title = 'Carta de Productos';
-  description = 'Gestión completa de todos los productos del restaurante';
-  currencyFormat = Intl.NumberFormat('es-Co', { style: 'currency', currency: 'COP' });
 
   // Table - usando cache service
   filterCategories = new FormControl<number[]>([], []);
-  tableSearch = signal('');
-
-  // Thumbnails map (productId -> first image url)
-  productThumbnails = signal<Map<number, string>>(new Map());
-  thumbnailsLoading = signal(false);
-  private failedThumbnailProductIds = signal<Set<number>>(new Set());
 
   // Table data - computed from cache with override support
   private _productsOverride = signal<ProductResponse[] | undefined>(undefined);
-  products = computed(() => this._productsOverride() ?? this.cache.products.data()?.content ?? undefined);
+  products = computed(() => {
+    if (this._productsOverride() !== undefined) return this._productsOverride();
+    const all = this.cache.products.data()?.content;
+    if (!all) return undefined;
+    return this.includeInactive()
+      ? all.filter(p => !p.active)
+      : all.filter(p => p.active);
+  });
   totalPages = computed(() => this.cache.products.data()?.totalPages ?? 0);
   currentPage = signal(0);
-  pageSize = signal(20);
+  pageSize = signal(6);
   includeInactive = signal(false);
 
-  // Effect to load thumbnails when products are loaded
-  private readonly thumbnailsEffect = effect(() => {
-    const prods = this.products();
-    if (prods && prods.length > 0) {
-      this.ensureThumbnails();
-    }
-  });
-  
   // Reference data - computed from cache with override support
   private _allProductOptionsOverride = signal<ProductOptionResponse[] | undefined>(undefined);
   areas = computed(() => this.cache.referenceData.data()?.areas ?? []);
   categories = computed(() => this.cache.referenceData.data()?.categories ?? []);
-  optionCategories = computed(() => this.cache.referenceData.data()?.optionCategories ?? []);
   supplyVariantOptions = computed(() => this.cache.referenceData.data()?.variants ?? []);
   allProductOptions = computed(() => this._allProductOptionsOverride() ?? this.cache.referenceData.data()?.productOptions ?? []);
+
+  // Supply search for step 2 autocomplete
+  supplySearchTerm = signal('');
+  readonly filteredSuggestions = computed(() => {
+    const term = this.supplySearchTerm().toLowerCase().trim();
+    if (term.length < 1) return [];
+    const all = this.supplyVariantOptions();
+    // Exclude variants already in the recipe
+    const usedIds = new Set<number>();
+    for (const g of this.existingRecipe.controls) {
+      const id = (g.value as { supplyVariantId?: number | null }).supplyVariantId;
+      if (id != null) usedIds.add(id);
+    }
+    for (const g of this.baseRecipe.controls) {
+      const id = (g.value as { supplyVariantId?: number | null }).supplyVariantId;
+      if (id != null) usedIds.add(id);
+    }
+    return all
+      .filter(v => !usedIds.has(v.id) && v.displayName.toLowerCase().includes(term))
+      .slice(0, 8);
+  });
 
   // Estados de carga
   productsLoading = computed(() => this.cache.products.isLoading());
   referenceDataLoading = computed(() => this.cache.referenceData.isLoading());
-
-  filteredProducts = computed(() => {
-    const all = this.products();
-    if (all === undefined) return undefined;
-    const search = this.tableSearch().toLowerCase().trim();
-    if (!search) return all;
-    return all.filter((p) => p.name.toLowerCase().includes(search));
-  });
 
   // Supply category filter maps (per recipe row)
   private baseRecipeCategoryMap = new Map<number, number | null>();
@@ -196,6 +232,23 @@ export class Products implements OnInit {
     return catId ? this.supplyVariantOptions().filter(v => v.categoryId === catId) : this.supplyVariantOptions();
   }
 
+  getExistingRecipeCategory(i: number): number | null {
+    const rowId = this.existingRecipeRowIds[i];
+    return this.existingRecipeCategoryMap.get(rowId) ?? null;
+  }
+
+  setExistingRecipeCategory(i: number, catId: number | null): void {
+    const rowId = this.existingRecipeRowIds[i];
+    this.existingRecipeCategoryMap.set(rowId, catId);
+    this.existingRecipe.at(i).get('supplyVariantId')?.setValue(null);
+  }
+
+  filteredVariantsForExistingRecipe(i: number): (SupplyVariantResponse & { displayName: string })[] {
+    const rowId = this.existingRecipeRowIds[i];
+    const catId = this.existingRecipeCategoryMap.get(rowId) ?? null;
+    return catId ? this.supplyVariantOptions().filter(v => v.categoryId === catId) : this.supplyVariantOptions();
+  }
+
   // Modal state
   modalIsOpen = signal(false);
   modalMode = signal<'create' | 'edit'>('create');
@@ -203,48 +256,187 @@ export class Products implements OnInit {
   isSubmitting = signal(false);
   createdProduct = signal<ProductResponse | null>(null);
   existingOptions = signal<ProductOptionDTO[]>([]);
-  existingRecipe = signal<ProductRecipeItem[]>([]);
-
-  // Detail dialog
-  detailDialogOpen = signal(false);
-  detailProduct = signal<ProductResponse | null>(null);
-  detailOptions = signal<ProductOptionDTO[]>([]);
-  detailOptionsLoading = signal(false);
-
-  // Image gallery state
-  productImages = signal<ProductImageResponse[]>([]);
-  imagesLoading = signal(false);
-  selectedImageIndex = signal(0);
-  galleriaVisible = signal(false);
+  optionGroups = signal<OptionGroupResponse[]>([]);
+  existingRecipe: FormArray = this.fb.array([]);
+  private existingRecipeCategoryMap = new Map<number, number | null>();
+  private existingRecipeRowIds: number[] = [];
+  private nextExistingRecipeRowId = 1;
 
   // Wizard images state
   wizardProductImages = signal<ProductImageResponse[]>([]);
   wizardImagesLoading = signal(false);
 
-  // Upload state
-  localUploadProgress = signal(0);
-  isUploadingImage = signal(false);
+  /** Per-product timestamp of the last image mutation in this session.
+   *  Used to bust the browser HTTP cache when the backend returns the same
+   *  imageUrl string but the underlying image has changed. */
+  private imageRefreshMarker = signal<Map<number, number>>(new Map());
 
-  // Edit modal state
-  editModalVisible = signal(false);
-  editingProductId = signal<number | null>(null);
+  /** Staged images to upload on save (Finalizar). Each holds the raw File
+   *  and a blob URL used for the preview. Blob URLs are revoked on
+   *  finalize or discard. */
+  readonly stagedNewImages = signal<StagedImage[]>([]);
 
-  // Galleria responsive options
-  galleriaResponsiveOptions = [
-    { breakpoint: '1024px', numVisible: 5 },
-    { breakpoint: '768px', numVisible: 3 }
-  ];
+  /** IDs of existing images the user marked for deletion. Applied on save. */
+  readonly stagedDeletedImageIds = signal<number[]>([]);
+
+  /** UI-facing image list: existing images (minus staged deletions) plus
+   *  staged new images. Staged new images use a negative synthetic id so
+   *  the template can branch on "is this a brand new image?" */
+  readonly previewImage = computed<PreviewImage[]>(() => {
+    const toDelete = new Set(this.stagedDeletedImageIds());
+    const existing = this.wizardProductImages()
+      .filter(i => !toDelete.has(i.id))
+      .map<PreviewImage>(i => ({ ...i, staged: false }));
+    const newOnes = this.stagedNewImages().map<PreviewImage>((s, idx) => ({
+      id: -1 - idx,
+      mobileUrl: s.previewUrl,
+      tabletUrl: s.previewUrl,
+      desktopUrl: s.previewUrl,
+      originalFilename: s.file.name,
+      originalSizeBytes: s.file.size,
+      createdAt: new Date().toISOString(),
+      staged: true,
+    }));
+    return [...existing, ...newOnes];
+  });
+
+  /** `true` only when there are pending image changes (uploads or deletes). */
+  readonly hasUnsavedImageChanges = computed(() =>
+    this.stagedNewImages().length > 0 || this.stagedDeletedImageIds().length > 0
+  );
+
+  /** Loading state for any image-related async op (creating the draft,
+   *  running the final upload on save). */
+  isProcessingImage = signal(false);
+
+  // Cost panel state
+  cost = signal<ProductCostResponse | null>(null);
+  costLoading = signal(false);
+  costError = signal<string | null>(null);
+
+  // Sale price (set in step 4 after seeing production cost)
+  salePrice = signal<number>(0);
+
+  // Prep time estimation dialog (step 1)
+  prepTimeDialogOpen = signal(false);
+  prepTimeEstimate = signal<PrepTimeEstimate | null>(null);
+
+  // When editing, seed the dialog from the stored single estimate so the
+  // admin can split it across the three scenarios.
+  prepTimeInitialEstimate = computed<PrepTimeEstimate | null>(() => {
+    const stored = this.prepTimeEstimate();
+    if (stored) return stored;
+    const current = this.baseForm.get('estimatedPrepMinutes')?.value as number | null;
+    if (current == null) return null;
+    return { calmMinutes: current, peakMinutes: current, interruptionMinutes: current, estimatedPrepMinutes: current };
+  });
 
   // ── Step 1: product base + base recipe ──────────────────────────
   baseForm: FormGroup = this.fb.group({
     id: [null],
     name: ['', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.minLength(2)(control)]],
-    basePrice: [null, [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.min(0)(control)]],
+    description: [''],
+    estimatedPrepMinutes: [null, (control: AbstractControl) => Validators.min(0)(control)],
     categoryId: [null, (control: AbstractControl) => Validators.required(control)],
     areaId: [null, (control: AbstractControl) => Validators.required(control)],
   });
 
   baseRecipe: FormArray = this.fb.array([]);
+
+  private destroyRef = inject(DestroyRef);
+
+  /**
+   * Re-exposes the base form value as a signal so computed signals
+   * (e.g. `canUploadImage`) can recompute reactively when the user edits
+   * a control. Reading the observable in a `computed` doesn't work because
+   * Angular's form controls don't integrate with the signal system natively.
+   * Declared after `baseForm` because class field initializers run in
+   * declaration order — `this.baseForm` must already exist.
+   */
+  private readonly baseFormValue = toSignal(this.baseForm.valueChanges, { initialValue: this.baseForm.value });
+
+  /**
+   * `true` once the user has filled the minimum required fields (name with
+   * at least 2 characters, categoryId, areaId). In edit mode the product
+   * already exists, so the upload is always enabled.
+   *
+   * Used by the image upload area to gate the file picker on Step 1 of the
+   * wizard in create mode — the product is created on demand when the user
+   * actually picks a file, instead of being auto-created on Step 1 entry.
+   */
+  readonly canUploadImage = computed(() => {
+    this.baseFormValue();
+    if (this.modalMode() === 'edit') return true;
+    const v = this.baseFormValue() as { name?: string | null; categoryId?: number | null; areaId?: number | null } | null;
+    if (!v) return false;
+    const name = (v.name ?? '').trim();
+    return name.length >= 2 && v.categoryId != null && v.areaId != null;
+  });
+
+  recipeCost = signal(0);
+  recipeBreakdown = signal<RecipeCostRow[]>([]);
+
+  private readonly variantsEffect = effect(() => {
+    this.supplyVariantOptions();
+    this.updateRecipeCost();
+  });
+
+  private recipeCostSub = merge(
+    this.existingRecipe.valueChanges,
+    this.baseRecipe.valueChanges,
+  ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => { this.updateRecipeCost(); });
+
+  findVariantById(id: number | null): (SupplyVariantResponse & { displayName: string }) | undefined {
+    if (id == null) return undefined;
+    return this.supplyVariantOptions().find(v => v.id === id);
+  }
+
+  private updateRecipeCost(): void {
+    const variants = this.supplyVariantOptions();
+    const variantById = new Map(variants.map(v => [v.id, v]));
+
+    const rows: RecipeCostRow[] = [];
+    const merged = new Map<number, number>();
+
+    const collect = (groups: FormArray): void => {
+      for (const group of groups.controls) {
+        const v = group.value as { supplyVariantId: number | null; requiredQuantity: number | null };
+        const variant = v.supplyVariantId != null ? variantById.get(v.supplyVariantId) : undefined;
+        const qty = v.requiredQuantity ?? 0;
+        rows.push({
+          supplyVariantId: v.supplyVariantId,
+          supplyName: variant?.supplyName ?? 'Insumo desconocido',
+          unitLabel: variant ? `${String(variant.quantity)} ${variant.unitAbbreviation}` : '—',
+          unitCost: variant?.unitCost != null ? toAmount(variant.unitCost) : null,
+          requiredQuantity: qty,
+          partial: variant?.unitCost != null && qty > 0 ? toAmount(variant.unitCost) * qty : 0,
+        });
+        if (v.supplyVariantId != null && qty > 0) {
+          merged.set(v.supplyVariantId, qty);
+        }
+      }
+    };
+
+    collect(this.existingRecipe);
+    collect(this.baseRecipe);
+
+    let total = 0;
+    for (const [variantId, qty] of merged) {
+      const variant = variantById.get(variantId);
+      if (variant?.unitCost != null) {
+        total += toAmount(variant.unitCost) * qty;
+      }
+    }
+
+    this.recipeBreakdown.set(rows);
+    this.recipeCost.set(total);
+  }
+
+  suggestedSalePrice = computed(() => {
+    const c = this.cost();
+    if (!c) return 0;
+    return Math.round(toAmount(c.totalCost) * 1.3);
+  });
 
   // ── Step 2: product options, each with its own recipe ───────────
   optionsArray: FormArray = this.fb.array([]);
@@ -252,31 +444,39 @@ export class Products implements OnInit {
   // Track selected option IDs (existing options)
   selectedOptionIds = signal<number[]>([]);
 
+  // Step 3 options state
+  step3OptionsChanged = signal<OptionsChangedPayload>({ optionIds: [], optionExtras: [] });
+
   ngOnInit(): void {
     // Force load on first visit if no data
     if (this.cache.products.data() === null) {
       this.cache.products.refresh();
     }
-    // Load reference data (categories, areas) for filters
-    if (this.cache.referenceData.data() === null) {
-      this.cache.referenceData.refresh();
-    }
   }
 
   loadPage(page: number): void {
     this.currentPage.set(page);
-    this.cache.products.refresh();
+    this.cache.setProductListParams({ page });
   }
 
   onPage(event: { first: number; rows: number }): void {
     const page = Math.floor(event.first / event.rows);
     this.currentPage.set(page);
     this.pageSize.set(event.rows);
-    this.cache.products.refresh();
+    this.cache.setProductListParams({ page, size: event.rows });
   }
 
   onVisible(): void {
     this.cache.products.loadIfStale();
+  }
+
+  setIncludeInactive(value: boolean): void {
+    this.includeInactive.set(value);
+    this.cache.setProductListParams({ page: 0 });
+  }
+
+  onSearch(value: string): void {
+    this.cache.setProductListParams({ search: value, page: 0 });
   }
 
   // ── Table ────────────────────────────────────────────────────────
@@ -295,60 +495,74 @@ export class Products implements OnInit {
   showCreationModal(): void {
     this.cache.referenceData.loadIfStale();
     this.baseForm.reset();
+    this.prepTimeEstimate.set(null);
     this.baseRecipe.clear();
     this.optionsArray.clear();
     this.createdProduct.set(null);
     this.existingOptions.set([]);
-    this.existingRecipe.set([]);
+    this.optionGroups.set([]);
+    this.existingRecipe.clear();
+    this.existingRecipeCategoryMap.clear();
+    this.existingRecipeRowIds = [];
+    this.nextExistingRecipeRowId = 1;
     this.selectedOptionIds.set([]);
     this.baseRecipeCategoryMap.clear();
     this.optionRecipeCategoryMap.clear();
+    this.salePrice.set(0);
     this.currentStep.set(1);
     this.modalMode.set('create');
     this.wizardProductImages.set([]);
     this.modalIsOpen.set(true);
+    // Note: no auto-create. The product is now created on demand when the
+    // user uploads an image or clicks "Siguiente". The upload area is
+    // disabled (via `canUploadImage`) until the user fills name + categoryId
+    // + areaId. Drafts are created with `basePrice: 0`, which the backend
+    // accepts (`ProductRequest.basePrice` is `@PositiveOrZero`); the real
+    // sale price is set in the final wizard step.
   }
 
-  showModificationModal(id: number): void {
-    this.cache.referenceData.loadIfStale();
-    this.baseForm.reset();
-    this.baseRecipe.clear();
-    this.optionsArray.clear();
-    this.createdProduct.set(null);
-    this.existingOptions.set([]);
-    this.existingRecipe.set([]);
-    this.selectedOptionIds.set([]);
-    this.baseRecipeCategoryMap.clear();
-    this.optionRecipeCategoryMap.clear();
-    this.currentStep.set(1);
-    this.modalMode.set('edit');
-    this.productService.findProduct(id).pipe(
-      switchMap(p => {
-        this.baseForm.patchValue({
-          id: p.id, name: p.name, basePrice: p.basePrice,
-          categoryId: p.categoryId, areaId: p.areaId,
-        });
-        this.existingRecipe.set(p.recipe);
-        this.baseRecipe.clear();
-        this.baseRecipeCategoryMap.clear();
-        this.createdProduct.set(p);
-        if (p.id) {
-          this.loadWizardProductImages(p.id);
-        }
-        return this.masterDataService.getProductOptions(p.id).pipe(
-          catchError(() => of([]))
-        );
-      })
-    ).subscribe(opts => {
-      this.existingOptions.set(opts);
-      this.selectedOptionIds.set(opts.map(o => o.id));
-      this.modalIsOpen.set(true);
-    });
+  /**
+   * Cancel handler wired to the modal's "Cancelar" button. If the wizard
+   * has unsaved image changes (the user uploaded a new image or deleted
+   * the existing one), warn them that those changes have already been
+   * committed to the server and will persist if they cancel.
+   */
+  confirmCancel(): void {
+    this.closeModal();
   }
 
   closeModal(): void {
+    // Discard any staged images (revoke blob URLs, clear staging arrays).
+    this.discardStagedImages();
+
+    // If the user opened the wizard in create mode and abandoned it before
+    // reaching Step 5 (the explicit "finish" step), treat any draft product
+    // (created on demand during the wizard) as disposable. The backend will
+    // handle cleanup via disable/enable rather than hard-delete.
+
     this.modalIsOpen.set(false);
     this.wizardProductImages.set([]);
+    this.createdProduct.set(null);
+  }
+
+  /**
+   * Programmatically opens the file picker on a hidden `<p-fileupload>`.
+   * The `p-fileupload` component exposes its underlying `<input type="file">`
+   * as `basicFileInput` (ElementRef) when rendered in `mode="basic"`.
+   */
+  triggerFileInput(fu: { basicFileInput?: { nativeElement?: HTMLInputElement | null } }): void {
+    fu.basicFileInput?.nativeElement?.click();
+  }
+
+  // ── Prep time estimation dialog ──────────────────────────────────
+
+  openPrepTimeDialog(): void {
+    this.prepTimeDialogOpen.set(true);
+  }
+
+  applyPrepTime(estimate: PrepTimeEstimate): void {
+    this.prepTimeEstimate.set(estimate);
+    this.baseForm.patchValue({ estimatedPrepMinutes: estimate.estimatedPrepMinutes });
   }
 
   // ── Base recipe rows ─────────────────────────────────────────────
@@ -360,15 +574,60 @@ export class Products implements OnInit {
     }));
   }
 
-  removeBaseRecipeItem(i: number): void { this.baseRecipe.removeAt(i); }
-
-  removeExistingRecipeItem(variantId: number): void {
-    this.existingRecipe.update(items => items.filter(item => item.supplyVariantId !== variantId));
+  /** Adds a supply variant to the base recipe with default qty=1. */
+  addSupplyVariant(variant: SupplyVariantResponse): void {
+    this.baseRecipe.push(this.fb.group({
+      supplyVariantId: [variant.id, (control: AbstractControl) => Validators.required(control)],
+      requiredQuantity: [1, [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.min(0.001)(control)]],
+    }));
+    this.supplySearchTerm.set('');
   }
 
-  /** Nombre para mostrar de un insumo existente dado su supplyVariantId */
-  getVariantDisplayName(variantId: number): string {
-    return this.supplyVariantOptions().find(v => v.id === variantId)?.displayName ?? `Insumo #${String(variantId)}`;
+  incrementQty(formArray: FormArray, idx: number): void {
+    const ctrl = formArray.at(idx).get('requiredQuantity');
+    if (!ctrl) return;
+    const current = Number(ctrl.value) || 0;
+    ctrl.setValue(Math.round((current + 1) * 1000) / 1000);
+  }
+
+  decrementQty(formArray: FormArray, idx: number): void {
+    const ctrl = formArray.at(idx).get('requiredQuantity');
+    if (!ctrl) return;
+    const current = Number(ctrl.value) || 0;
+    ctrl.setValue(Math.max(Math.round((current - 1) * 1000) / 1000, 0.001));
+  }
+
+  onSupplySearch(term: string): void {
+    this.supplySearchTerm.set(term);
+  }
+
+  onSearchKeydown(event: KeyboardEvent): void {
+    const suggestions = this.filteredSuggestions();
+    if (suggestions.length === 0) return;
+    if (event.key === 'Enter' && suggestions.length > 0) {
+      event.preventDefault();
+      this.addSupplyVariant(suggestions[0]);
+    }
+  }
+
+  /** Cost per unit for a given variant, shown in the table row. */
+  getUnitCost(variantId: number | null): number {
+    if (variantId == null) return 0;
+    return toAmount(this.supplyVariantOptions().find(v => v.id === variantId)?.unitCost);
+  }
+
+  /** Partial cost for a recipe row (unitCost × qty). */
+  getRowPartial(variantId: number | null, qty: number | null): number {
+    return this.getUnitCost(variantId) * (qty ?? 0);
+  }
+
+  removeBaseRecipeItem(i: number): void { this.baseRecipe.removeAt(i); }
+
+  removeExistingRecipeItem(i: number): void {
+    const rowId = this.existingRecipeRowIds[i];
+    this.existingRecipeCategoryMap.delete(rowId);
+    this.existingRecipeRowIds.splice(i, 1);
+    this.existingRecipe.removeAt(i);
   }
 
   // ── Option rows ──────────────────────────────────────────────────
@@ -416,7 +675,7 @@ export class Products implements OnInit {
   /** Opciones disponibles filtradas por categoría para el combobox de nombre */
   optionsByCategory(categoryId: number | null): ProductOptionResponse[] {
     if (!categoryId) return [];
-    return this.allProductOptions().filter(o => o.optionCategoryId === categoryId);
+    return this.allProductOptions().filter(o => o.optionGroupId === categoryId);
   }
 
   findOptionByName(categoryId: number | null, name: string): ProductOptionResponse | null {
@@ -539,10 +798,17 @@ export class Products implements OnInit {
   submitStep1(): void {
     if (this.baseForm.invalid) { this.baseForm.markAllAsTouched(); return; }
 
+    // If a draft product has already been created (e.g. via an early
+    // image upload in create mode), don't POST again — just advance. The
+    // form values are pushed to the server later in submitStep3.
+    if (this.modalMode() === 'create' && this.createdProduct()?.id) {
+      this.currentStep.set(2);
+      return;
+    }
+
     const v = this.baseForm.value as {
       id?: number | null;
       name: string;
-      basePrice: number;
       categoryId: number;
       areaId: number;
     };
@@ -550,10 +816,11 @@ export class Products implements OnInit {
     this.isSubmitting.set(true);
 
     if (this.modalMode() === 'create') {
-      // Create product first before proceeding to step 2 (insumos)
+      // Legacy path: no draft exists yet (e.g., reference data was empty
+      // and the auto-create was skipped). Fall back to creating now.
       this.productService.createProduct({
         name: v.name,
-        basePrice: v.basePrice,
+        basePrice: this.salePrice(),
         categoryId: v.categoryId,
         areaId: v.areaId,
         recipe: [],
@@ -589,126 +856,165 @@ export class Products implements OnInit {
     this.currentStep.set(3);
   }
 
-  backToStep2(): void {
+  goToStep1(): void {
+    this.currentStep.set(1);
+  }
+
+  goToStep2(): void {
     this.currentStep.set(2);
   }
 
-  backToStep3(): void {
+  goToStep3(): void {
     this.currentStep.set(3);
   }
 
-  submitStep3(): void {
-    if (this.optionsArray.invalid) { this.optionsArray.markAllAsTouched(); return; }
-    if (this.hasDuplicateOptions()) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'No puedes agregar la misma opción más de una vez'
-      });
-      return;
+  goToStep4(): void {
+    if (this.salePrice() === 0 && this.cost()) {
+      this.salePrice.set(this.suggestedSalePrice());
     }
+    this.currentStep.set(4);
+  }
 
+  // ── Step 3 options handler ───────────────────────────────────────
+
+  onOptionsChanged(payload: OptionsChangedPayload): void {
+    this.step3OptionsChanged.set(payload);
+  }
+
+  submitStep3(): void {
     this.isSubmitting.set(true);
 
-    // IDs de opciones existentes que el usuario NO eliminó (siguen en existingOptions)
-    const keptExistingIds: number[] = this.existingOptions().map(o => o.id);
+    const { optionIds, optionExtras } = this.step3OptionsChanged();
 
-    // Separate new options added via the form from existing ones
-    const addedExistingIds: number[] = [];
-    const newOptions: { name: string; optionCategoryId: number; recipe: { supplyVariantId: number; requiredQuantity: number }[] }[] = [];
-
-    for (const opt of this.optionsArray.value as OptionFormValue[]) {
-      if (opt.isExisting && opt.id) {
-        addedExistingIds.push(opt.id);
-      } else {
-        newOptions.push({
-          name: opt.name ?? '',
-          optionCategoryId: opt.optionCategoryId ?? 0,
-          recipe: opt.recipe as { supplyVariantId: number; requiredQuantity: number }[],
-        });
-      }
+    const v = this.baseForm.value as {
+      id?: number | null;
+      name: string;
+      categoryId: number;
+      areaId: number;
+      description: string;
+      estimatedPrepMinutes: number | null;
+    };
+    const merged = new Map<number, RecipeItemRequest>();
+    for (const r of this.existingRecipe.value as RecipeItemRequest[]) {
+      merged.set(r.supplyVariantId, r);
     }
+    for (const r of this.baseRecipe.value as RecipeItemRequest[]) {
+      merged.set(r.supplyVariantId, r);
+    }
+    const recipeItems = Array.from(merged.values());
 
-    // Merge: kept existing + newly added existing (deduplicated)
-    const existingOptionIds = [...new Set([...keptExistingIds, ...addedExistingIds])];
-
-    // Create new options first (if any)
-    const createNewOptions$ = newOptions.length > 0
-      ? forkJoin(newOptions.map(opt => this.productService.createProductOption(opt)))
-      : of([]);
-
-    createNewOptions$.pipe(
-      switchMap((createdOptions: object[]) => {
-        // Collect all option IDs (existing + newly created)
-        const allOptionIds = [
-          ...existingOptionIds,
-          ...createdOptions.map(opt => (opt as { id: number }).id)
-        ];
-
-        // Refresh allProductOptions to include newly created options
-        if (createdOptions.length > 0) {
-          return this.productOptionService.getOptions().pipe(
-            switchMap(allOpts => {
-              this._allProductOptionsOverride.set(allOpts);
-              return of(allOptionIds);
-            })
-          );
-        }
-        return of(allOptionIds);
-      }),
-      switchMap((allOptionIds: number[]) => {
-        const v = this.baseForm.value as {
-          id?: number | null;
-          name: string;
-          basePrice: number;
-          categoryId: number;
-          areaId: number;
-        };
-        const existing = this.existingRecipe();
-        const baseItems = this.baseRecipe.value as RecipeItemRequest[];
-        const recipeItems: RecipeItemRequest[] = [];
-        Object.assign(recipeItems, existing);
-        Object.assign(recipeItems, baseItems);
-
-        const productId = this.createdProduct()?.id ?? 0;
-        return this.productService.updateProduct(productId, {
-          id: productId,
-          name: v.name,
-          basePrice: v.basePrice,
-          categoryId: v.categoryId,
-          areaId: v.areaId,
-          recipe: recipeItems,
-          optionIds: allOptionIds,
-        }).pipe(
-          switchMap(() => this.productService.findProduct(productId))
-        );
-      }),
-      switchMap((product: ProductResponse) => {
-        this.createdProduct.set(product);
-        // Load the associated options for display in step 4
-        return this.masterDataService.getProductOptions(product.id);
-      }),
+    const productId = this.createdProduct()?.id ?? 0;
+    this.productService.updateProduct(productId, {
+      name: v.name,
+      description: v.description || undefined,
+      basePrice: this.salePrice(),
+      categoryId: v.categoryId,
+      areaId: v.areaId,
+      estimatedPrepMinutes: v.estimatedPrepMinutes ?? undefined,
+      recipe: recipeItems,
+      optionIds,
+      optionExtras: optionExtras.length > 0 ? optionExtras : undefined,
+    }).pipe(
       catchError(err => {
         this.logger.error('Error saving product with options', err);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo guardar el producto con sus opciones'
+          detail: mapHttpError(err as HttpErrorResponse, 'product-options'),
         });
         this.isSubmitting.set(false);
         return EMPTY;
-      })
+      }),
+      switchMap(() => this.productService.findProduct(productId).pipe(
+        catchError(err => {
+          this.logger.error('Could not refetch updated product', err);
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Guardado con observaciones',
+            detail: 'Los cambios se guardaron, pero no se pudo recargar el detalle. Recarga la página si ves datos desactualizados.'
+          });
+          return of(null);
+        }),
+      )),
+      switchMap((product: ProductResponse | null) => {
+        if (!product) {
+          this.isSubmitting.set(false);
+          this.wsService.emitCacheInvalidation('products', 'update');
+          this.refreshProducts();
+          this.currentStep.set(4);
+          return of(null);
+        }
+        this.createdProduct.set(product);
+        return this.masterDataService.getProductOptions(product.id);
+      }),
     ).subscribe(savedOptions => {
+      if (savedOptions === null) return;
       this.existingOptions.set(savedOptions);
       this.isSubmitting.set(false);
-      this.refreshProducts();
       this.wsService.emitCacheInvalidation('products', 'update');
+      this.refreshProducts();
       this.currentStep.set(4);
+      this.loadProductCost(this.createdProduct()?.id ?? 0);
+    });
+  }
+
+  confirmPrice(): void {
+    if (this.salePrice() <= 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Precio inválido',
+        detail: 'Debes definir un precio de venta válido'
+      });
+      return;
+    }
+    const saved = this.createdProduct();
+    if (!saved) return;
+    const v = this.baseForm.value as { name: string; description: string | null; categoryId: number; areaId: number; estimatedPrepMinutes: number | null };
+    const merged = new Map<number, RecipeItemRequest>();
+    for (const r of this.existingRecipe.value as RecipeItemRequest[]) {
+      merged.set(r.supplyVariantId, r);
+    }
+    for (const r of this.baseRecipe.value as RecipeItemRequest[]) {
+      merged.set(r.supplyVariantId, r);
+    }
+    this.productService.updateProduct(saved.id, {
+      name: v.name,
+      description: v.description ?? undefined,
+      basePrice: this.salePrice(),
+      categoryId: v.categoryId,
+      areaId: v.areaId,
+      estimatedPrepMinutes: v.estimatedPrepMinutes ?? undefined,
+      recipe: Array.from(merged.values()),
+      optionIds: this.selectedOptionIds(),
+    }).subscribe({
+      next: () => {
+        this.wsService.emitCacheInvalidation('products', 'update');
+        this.refreshProducts();
+        this.currentStep.set(5);
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo guardar el precio de venta'
+        });
+      }
     });
   }
 
   finish(): void {
-    this.closeModal();
+    const productId = this.createdProduct()?.id;
+    if (productId && this.hasUnsavedImageChanges()) {
+      this.isProcessingImage.set(true);
+      this.finalizeImages(productId).pipe(
+        catchError(() => of(null)),
+      ).subscribe(() => {
+        this.isProcessingImage.set(false);
+        this.closeModal();
+      });
+    } else {
+      this.closeModal();
+    }
   }
 
   // ── Helpers ──────────────────────────────────────────────────────
@@ -719,21 +1025,7 @@ export class Products implements OnInit {
   }
 
   private refreshProducts(): void {
-    this.failedThumbnailProductIds.set(new Set());
     this.cache.products.refresh();
-  }
-
-  loadProductImages(productId: number): void {
-    this.imagesLoading.set(true);
-    this.imageService.getImages(productId).pipe(
-      catchError(err => {
-        this.logger.error('Error loading product images', err);
-        return of([]);
-      })
-    ).subscribe(images => {
-      this.productImages.set(images);
-      this.imagesLoading.set(false);
-    });
   }
 
   loadWizardProductImages(productId: number): void {
@@ -746,192 +1038,178 @@ export class Products implements OnInit {
     });
   }
 
-  loadProductThumbnails(productIds: number[]): void {
-    if (productIds.length === 0) return;
-
-    // Filter out IDs we've already tried and failed for
-    const failedIds = this.failedThumbnailProductIds();
-    const idsToLoad = productIds.filter(id => !failedIds.has(id));
-    if (idsToLoad.length === 0) return;
-
-    this.thumbnailsLoading.set(true);
-
-    forkJoin(
-      idsToLoad.map(id =>
-        this.imageService.getImages(id).pipe(
-          map(images => ({ productId: id, thumbnail: images[0]?.desktopUrl ?? null })),
-          catchError(() => of({ productId: id, thumbnail: null }))
-        )
-      )
-    ).subscribe(results => {
-      const map = new Map<number, string>();
-      results.forEach(r => {
-        if (r.thumbnail) {
-          map.set(r.productId, r.thumbnail);
+  loadProductCost(productId: number): void {
+    if (!productId) { this.cost.set(null); return; }
+    this.costLoading.set(true);
+    this.costError.set(null);
+    this.productService.getCost(productId).pipe(
+      catchError(err => {
+        this.logger.error('Error loading product cost', err);
+        this.costError.set('No se pudo calcular el costo de producción');
+        return of(null);
+      })
+    ).subscribe(c => {
+      if (c) {
+        this.cost.set(c);
+        if (this.salePrice() === 0) {
+          this.salePrice.set(this.suggestedSalePrice());
         }
-      });
-      this.productThumbnails.set(map);
-      this.thumbnailsLoading.set(false);
-
-      // If ALL thumbnails are null (map is empty), mark these IDs as permanently failed
-      if (map.size === 0) {
-        const newFailed = new Set(failedIds);
-        results.forEach(r => newFailed.add(r.productId));
-        this.failedThumbnailProductIds.set(newFailed);
       }
+      this.costLoading.set(false);
     });
   }
 
-  getThumbnailUrl(productId: number): string | null {
-    return this.productThumbnails().get(productId) ?? null;
+  /**
+   * Stages a new image for later upload. If the product hasn't been created
+   * server-side yet (create mode, no draft), a draft product is created
+   * first. The image is held in memory until "Finalizar" is clicked.
+   */
+  onWizardImageSelect(event: { files: File[] }): void {
+    const file = event.files[0];
+
+    if (this.createdProduct() == null) {
+      this.createDraftAndStage(file);
+      return;
+    }
+
+    this.stageNewImage(file);
   }
 
-  private ensureThumbnails(): void {
-    const products = this.products();
-    if (!products || products.length === 0) return;
+  /** Stage a file into `stagedNewImages` with a blob URL preview. */
+  private stageNewImage(file: File): void {
+    const url = URL.createObjectURL(file);
+    this.stagedNewImages.update(images => [...images, { file, previewUrl: url }]);
+  }
 
-    const currentThumbs = this.productThumbnails();
-    if (currentThumbs.size === 0 && !this.thumbnailsLoading()) {
-      const ids = products.map(p => p.id);
-      this.loadProductThumbnails(ids);
+  /** Remove an image from the preview: stage its id for deletion or
+   *  remove a staged new image. */
+  removeImage(image: PreviewImage): void {
+    if (image.staged) {
+      const idx = this.stagedNewImages().findIndex(s => s.previewUrl === image.mobileUrl);
+      if (idx >= 0) {
+        URL.revokeObjectURL(image.mobileUrl);
+        this.stagedNewImages.update(images => images.filter((_, i) => i !== idx));
+      }
+    } else {
+      this.stagedDeletedImageIds.update(ids => [...ids, image.id]);
     }
   }
 
-  onWizardImageSelect(event: { files: File[] }): void {
-    const file = event.files[0];
-    const productId = this.createdProduct()?.id;
-    if (!productId) return;
+  /** Creates a draft product on demand using the current Step 1 form values,
+   *  then stages the image in memory. */
+  private createDraftAndStage(file: File): void {
+    const v = this.baseForm.value as { name?: string | null; categoryId?: number | null; areaId?: number | null };
+    const name = (v.name ?? '').trim();
+    const categoryId = v.categoryId ?? null;
+    const areaId = v.areaId ?? null;
+    if (name.length < 2 || categoryId == null || areaId == null) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Datos incompletos',
+        detail: 'Completa nombre, categoría y área antes de subir una imagen',
+      });
+      return;
+    }
 
-    this.isUploadingImage.set(true);
-    this.imageService.uploadImage(productId, file).subscribe({
-      next: (result) => {
-        const image = result.image;
-        if (image != null) {
-          this.wizardProductImages.update(imgs => [...imgs, image]);
-        }
-      },
-      complete: () => { 
-        this.isUploadingImage.set(false);
-        // Reload to ensure we have latest data including server-generated URLs
-        if (productId) {
-          this.loadWizardProductImages(productId);
-        }
-      }
-    });
-  }
-
-  deleteWizardImage(image: ProductImageResponse): void {
-    const productId = this.createdProduct()?.id;
-    if (!productId) return;
-    this.imageService.deleteImage(productId, image.id).pipe(
-      catchError(() => of(false))
-    ).subscribe(result => {
-      if (result) {
-        // Reload to ensure UI matches server state
-        this.loadWizardProductImages(productId);
-      }
-    });
-  }
-
-  showDetailDialog(product: ProductResponse): void {
-    this.detailProduct.set(product);
-    this.detailOptions.set([]);
-    this.detailDialogOpen.set(true);
-    this.detailOptionsLoading.set(true);
-    this.loadProductImages(product.id);
-    this.productService.getOptions(product.id).pipe(
-      catchError(() => of([] as ProductOptionDTO[]))
-    ).subscribe(opts => {
-      this.detailOptions.set(opts);
-      this.detailOptionsLoading.set(false);
-    });
-  }
-
-  closeDetailDialog(): void {
-    this.detailDialogOpen.set(false);
-    this.detailProduct.set(null);
-    this.detailOptions.set([]);
-    this.productImages.set([]);
-  }
-
-  // ── Image gallery methods ───────────────────────────────────────
-
-  openGalleria(index: number): void {
-    this.selectedImageIndex.set(index);
-    this.galleriaVisible.set(true);
-  }
-
-  closeGalleria(): void {
-    this.galleriaVisible.set(false);
-  }
-
-  getImageUrl(image: ProductImageResponse, type: 'mobile' | 'tablet' | 'desktop' = 'desktop'): string {
-    return type === 'mobile' ? image.mobileUrl : type === 'tablet' ? image.tabletUrl : image.desktopUrl;
-  }
-
-  onImageSelect(event: { files: File[] }): void {
-    const files: File[] = event.files;
-    if (files.length === 0) return;
-
-    const productId = this.detailProduct()?.id;
-    if (!productId) return;
-
-    this.isUploadingImage.set(true);
-    this.localUploadProgress.set(0);
-
-    this.imageService.uploadImage(productId, files[0]).subscribe({
-      next: (result) => {
-        this.localUploadProgress.set(result.progress);
-        const image = result.image;
-        if (image != null) {
-          this.productImages.update(imgs => [...imgs, image]);
-        }
-      },
-      error: (err) => {
-        this.logger.error('Error uploading image', err);
+    this.isProcessingImage.set(true);
+    this.productService.createProduct({
+      name,
+      basePrice: 0,
+      categoryId,
+      areaId,
+      recipe: [],
+      optionIds: [],
+    }).pipe(
+      catchError(err => {
+        this.logger.error('Error creating draft product for image staging', err);
         this.messageService.add({
           severity: 'error',
-          summary: 'Error de upload',
-          detail: 'No se pudo subir la imagen'
+          summary: 'Error',
+          detail: 'No se pudo crear el producto para subir la imagen',
         });
-        this.isUploadingImage.set(false);
-      },
-      complete: () => {
-        this.isUploadingImage.set(false);
-        this.localUploadProgress.set(0);
-        // Reload to ensure UI shows complete image data
-        this.loadProductImages(productId);
-      }
+        this.isProcessingImage.set(false);
+        return EMPTY;
+      }),
+    ).subscribe(product => {
+      this.createdProduct.set(product);
+      this.baseForm.patchValue({ id: product.id });
+      this.isProcessingImage.set(false);
+      this.stageNewImage(file);
     });
   }
 
-  confirmDeleteImage(event: Event, image: ProductImageResponse): void {
-    const productId = this.detailProduct()?.id;
-    if (!productId) return;
-    this.imageService.deleteImage(productId, image.id).pipe(
-      catchError(err => {
-        this.logger.error('Error deleting image', err);
-        return of(false);
-      })
-    ).subscribe(result => {
-      if (result) {
-        // Reload to ensure UI matches server state after delete
-        this.loadProductImages(productId);
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Imagen eliminada',
-          detail: 'La imagen fue eliminada correctamente'
-        });
-      }
+  /** Commits all staged image changes to the server. Called from finish().
+   *  Uploads new images and deletes removed ones in parallel, then refreshes
+   *  the image list. Returns an Observable that completes when done. */
+  finalizeImages(productId: number): Observable<unknown> {
+    const uploads$ = this.stagedNewImages().length > 0
+      ? forkJoin(
+          this.stagedNewImages().map(s =>
+            this.imageService.uploadImage(productId, s.file).pipe(
+              catchError(err => {
+                this.logger.error('Error uploading staged image', err);
+                return of(null);
+              })
+            )
+          )
+        )
+      : of([]);
+
+    const deletes$ = this.stagedDeletedImageIds().length > 0
+      ? forkJoin(
+          this.stagedDeletedImageIds().map(id =>
+            this.imageService.deleteImage(id).pipe(
+              catchError(err => {
+                this.logger.error('Error deleting staged image', err);
+                return of(null);
+              })
+            )
+          )
+        )
+      : of([]);
+
+    return forkJoin([uploads$, deletes$]).pipe(
+      tap(() => {
+        this.markProductImageUpdated(productId);
+        this.discardStagedImages();
+        this.loadWizardProductImages(productId);
+      }),
+    );
+  }
+
+  /** Revokes all blob URLs and clears staging state. Called on modal close
+   *  or after finalize. */
+  discardStagedImages(): void {
+    for (const s of this.stagedNewImages()) {
+      URL.revokeObjectURL(s.previewUrl);
+    }
+    this.stagedNewImages.set([]);
+    this.stagedDeletedImageIds.set([]);
+  }
+
+  /** Returns the table-row image src with a cache-busting query param
+   *  whenever the current product's image was mutated in this session. */
+  getProductImageSrc(product: ProductResponse): string {
+    const url = product.imageUrl;
+    if (!url) return '';
+    const marker = this.imageRefreshMarker().get(product.id);
+    return marker ? `${url}?v=${String(marker)}` : url;
+  }
+
+  private markProductImageUpdated(productId: number): void {
+    this.imageRefreshMarker.update(m => {
+      const nm = new Map(m);
+      nm.set(productId, Date.now());
+      return nm;
     });
   }
 
   confirmDeleteProduct(event: Event, product: ProductResponse): void {
     this.confirmationService.confirm({
       target: event.target as HTMLElement,
-      message: `¿Estás seguro de eliminar "${product.name}"? Esta acción no se puede deshacer.`,
+      message: `¿Estás seguro de desactivar "${product.name}"?`,
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Eliminar',
+      acceptLabel: 'Desactivar',
       rejectLabel: 'Cancelar',
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
@@ -940,11 +1218,25 @@ export class Products implements OnInit {
     });
   }
 
+  confirmEnableProduct(event: Event, product: ProductResponse): void {
+    this.confirmationService.confirm({
+      target: event.target as HTMLElement,
+      message: `¿Estás seguro de activar "${product.name}"?`,
+      icon: 'pi pi-check-circle',
+      acceptLabel: 'Activar',
+      rejectLabel: 'Cancelar',
+      acceptButtonStyleClass: 'p-button-success',
+      accept: () => {
+        this.enableProduct(product.id);
+      }
+    });
+  }
+
   private disableProduct(productId: number): void {
     this.productService.disableProduct(productId).pipe(
       switchMap(() => {
-        this.refreshProducts();
         this.wsService.emitCacheInvalidation('products', 'delete');
+        this.refreshProducts();
         return of(null);
       }),
       catchError(err => {
@@ -959,20 +1251,35 @@ export class Products implements OnInit {
     ).subscribe(() => {
       this.messageService.add({
         severity: 'success',
-        summary: 'Producto eliminado',
-        detail: 'El producto fue eliminado correctamente'
+        summary: 'Producto desactivado',
+        detail: 'El producto fue desactivado correctamente'
       });
     });
   }
 
-  groupByCategory(options: ProductOptionDTO[]): { category: string; items: ProductOptionDTO[] }[] {
-    const map = new Map<string, ProductOptionDTO[]>();
-    for (const o of options) {
-      const arr = map.get(o.optionCategoryName) ?? [];
-      arr.push(o);
-      map.set(o.optionCategoryName, arr);
-    }
-    return Array.from(map.entries()).map(([category, items]) => ({ category, items }));
+  private enableProduct(productId: number): void {
+    this.productService.enableProduct(productId).pipe(
+      switchMap(() => {
+        this.wsService.emitCacheInvalidation('products', 'update');
+        this.refreshProducts();
+        return of(null);
+      }),
+      catchError(err => {
+        this.logger.error('Error enabling product', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo activar el producto'
+        });
+        return of(null);
+      })
+    ).subscribe(() => {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Producto activado',
+        detail: 'El producto fue activado correctamente'
+      });
+    });
   }
 
   // ── Nueva opción de producto (dialog independiente) ──────────────
@@ -1008,6 +1315,7 @@ export class Products implements OnInit {
   }
 
   openNewOptionDialog(): void {
+    this.cache.referenceData.loadIfStale();
     this.newOptionForm.reset();
     this.newOptionRecipe.clear();
     this.newOptionRecipeCategoryMap.clear();
@@ -1033,7 +1341,7 @@ export class Products implements OnInit {
     const recipeItems: RecipeItemRequest[] = Array.isArray(rawItems) ? rawItems.map(toRecipeItem) : [];
     this.newOptionSubmitting.set(true);
      
-    const request: ProductOptionCreateRequest = { name, optionCategoryId: optionCategoryId ?? 0, recipe: recipeItems };
+    const request: ProductOptionCreateRequest = { name, optionGroupId: optionCategoryId ?? 0, recipe: recipeItems };
     this.productService.createProductOption(request).pipe(
       switchMap(() => this.productOptionService.getOptions()),
       catchError(err => {
@@ -1048,16 +1356,5 @@ export class Products implements OnInit {
       this.newOptionDialogOpen.set(false);
       this.messageService.add({ severity: 'success', summary: 'Opción creada', detail: `"${name}" agregada correctamente` });
     });
-  }
-
-  // ── Edit modal methods ─────────────────────────────────────────
-
-  openEditModal(productId: number): void {
-    this.editingProductId.set(productId);
-    this.editModalVisible.set(true);
-  }
-
-  onProductUpdated(): void {
-    this.refreshProducts();
   }
 }

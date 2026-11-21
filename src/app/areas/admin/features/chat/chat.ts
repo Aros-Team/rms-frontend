@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
-import { ChatService } from '@app/core/services/chat/chat';
+import { Chat as ChatApi } from '@app/core/services/chat/chat';
 import { ChatMessage, ChatRequest } from '@app/core/services/chat/chat.models';
 import { Logging } from '@app/core/services/logging/logging';
 
@@ -20,7 +20,7 @@ export class Chat implements OnDestroy, AfterViewChecked {
   @Output() closed = new EventEmitter<void>();
   private scrollInitialized = false;
 
-  private chatService = inject(ChatService);
+  private chatService = inject(ChatApi);
   private sanitizer = inject(DomSanitizer);
   private logger = inject(Logging);
 

@@ -3,11 +3,32 @@
 
 <head>
   <meta charset="utf-8">
-  <title>Dashboard | RMS</title>
+  <title>RMS — Sistema de gestión de restaurante</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Sistema de gestión de restaurante - Administración de pedidos, mesas, menú y operaciones de cocina">
-  <meta name="theme-color" content="#F9BB0B">
+
+  <!-- Light/dark support: lets the browser theme native UI (scrollbars, form
+       controls, canvas) and paint the correct background before CSS loads. -->
+  <meta name="color-scheme" content="light dark">
+  <script>
+    // FOUC prevention only. Applies the stored theme before first paint.
+    // Kept inline and synchronous on purpose: do not defer or make it a module.
+    try {
+      var stored = localStorage.getItem('theme');
+      var scheme = stored === 'dark' || stored === 'light'
+        ? stored
+        : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.classList.toggle('dark', scheme === 'dark');
+      document.querySelector('meta[name="color-scheme"]').content = scheme;
+    } catch (e) { /* storage blocked: fall back to the media query */ }
+  </script>
+
+  <!-- Opt into OS-level dynamic type / text scaling (Accessibility) -->
+  <meta name="text-scale" content="scale">
+
+  <meta name="theme-color" content="#F9BB0B" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
 
   <!-- PWA -->
   <link rel="manifest" href="/manifest.webmanifest">
@@ -22,9 +43,8 @@
   <!-- Security Headers -->
   <meta name="referrer" content="strict-origin-when-cross-origin">
 
-  <!-- Preload critical resources for faster FCP -->
-  <link rel="preload" href="main.js" as="script">
-  <link rel="preload" href="styles.css" as="style">
+  <!-- Preload the font used for above-the-fold text -->
+  <link rel="preload" href="/fonts/Archivo-Variable-latin.woff2" as="font" type="font/woff2" crossorigin>
 
   <!-- Preconnect for external APIs -->
   <link rel="preconnect" href="https://api.rms.aros.services">
@@ -33,6 +53,11 @@
 
 <body class="lg:overflow-hidden">
   <app-root></app-root>
+  <noscript>
+    <p style="padding: 1rem; font-family: sans-serif">
+      RMS necesita JavaScript activado para funcionar.
+    </p>
+  </noscript>
 </body>
 
 </html>

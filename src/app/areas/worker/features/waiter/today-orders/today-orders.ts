@@ -13,8 +13,8 @@ import { ButtonModule } from 'primeng/button';
 import { Order } from '@app/core/services/orders/order';
 import { OrderDock as OrderDockSvc } from '@app/core/services/order-dock/order-dock';
 import { Logging } from '@app/core/services/logging/logging';
-import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
-import { OptionNamesPipe } from '@app/shared/pipes/option-names.pipe';
+import { OrderResponse } from '@app/shared/models/dto/orders/order-response';
+import { OptionNames } from '@app/shared/pipes/option-names/option-names.pipe';
 
 import { TodayOrdersSkeleton } from './skeletons/today-orders-skeleton';
 
@@ -22,7 +22,7 @@ import { TodayOrdersSkeleton } from './skeletons/today-orders-skeleton';
   selector: 'app-today-orders',
   templateUrl: './today-orders.html',
   styleUrl: './today-orders.css',
-  imports: [RouterModule, FormsModule, OptionNamesPipe, TodayOrdersSkeleton, DatePickerModule, SelectModule, ButtonModule],
+  imports: [RouterModule, FormsModule, OptionNames, TodayOrdersSkeleton, DatePickerModule, SelectModule, ButtonModule],
 })
 export class TodayOrders implements OnInit {
   private orderService = inject(Order);
@@ -35,6 +35,10 @@ export class TodayOrders implements OnInit {
   refreshing = signal(false);
   error = signal<string | null>(null);
   orders = signal<OrderResponse[]>([]);
+  /** Server-reported total for the current filter (may exceed `orders().length`). */
+  totalCount = signal(0);
+  /** `true` when the day was too large to walk completely — surfaced in the UI. */
+  truncated = signal(false);
   private processingIds = signal(new Set<number>());
 
   selectedStatus = '';
@@ -90,11 +94,15 @@ export class TodayOrders implements OnInit {
     const status = this.selectedStatus || undefined;
 
     this.subscription?.unsubscribe();
-    this.subscription = this.orderService.getOrdersByDateRange(startDate, endDate, status).subscribe({
-      next: (data) => {
+    this.subscription = this.orderService
+      .getAllOrdersByDateRange(startDate, endDate, { status })
+      .subscribe({
+      next: (result) => {
         if (seq !== this.loadSeq) return;
-        this.log.debug('TodayOrders: loaded', data);
-        this.orders.set(data);
+        this.log.debug('TodayOrders: loaded', result.items.length, 'of', result.total);
+        this.orders.set(result.items);
+        this.totalCount.set(result.total);
+        this.truncated.set(result.truncated);
         this.loading.set(false);
         this.refreshing.set(false);
       },
@@ -221,8 +229,8 @@ export class TodayOrders implements OnInit {
 function extractError(err: unknown): string {
   if (err instanceof HttpErrorResponse) {
     const errorBody: unknown = err.error;
-    const body = errorBody as { message?: string } | null;
-    return body?.message ?? err.message;
+    const body = errorBody as { detail?: string; message?: string } | null;
+    return body?.detail ?? body?.message ?? err.message;
   }
   if (err instanceof Error) return err.message;
   return 'Error desconocido';

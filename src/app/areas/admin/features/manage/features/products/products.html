@@ -3,107 +3,115 @@
   <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 min-w-0 flex-shrink-0">
     <div class="min-w-0">
       <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0 break-words">{{ title }}</h1>
-      <p class="text-surface-600 dark:text-surface-400 mt-1 text-sm">{{ description }}</p>
     </div>
     <div class="flex gap-2 shrink-0">
       <p-button icon="pi pi-plus" label="Nuevo producto" pTooltip="Crear nuevo producto" tooltipPosition="bottom" (click)="showCreationModal()" />
-      <p-button icon="pi pi-plus" label="Nueva opción" pTooltip="Nueva opción de producto" tooltipPosition="bottom" (click)="openNewOptionDialog()" />
     </div>
   </div>
 
   <!-- Table -->
-  <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-0 dark:bg-surface-800 overflow-hidden">
+  <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 overflow-hidden">
     <p-table
       #dt1
-      [value]="filteredProducts() ?? []"
+      [value]="products() ?? []"
       [paginator]="true"
-      [rows]="6"
+      [rows]="pageSize()"
       [totalRecords]="cache.products.data()?.totalElements ?? 0"
       (onPage)="onPage($event)"
+      [lazy]="true"
+      [first]="currentPage() * pageSize()"
       [scrollable]="true"
       scrollHeight="600px"
       responsiveLayout="scroll"
-      sortMode="multiple"
       styleClass="h-full"
       [tableStyle]="{'min-width': '800px'}"
-      [loading]="productsLoading()"
+      [loading]="productsLoading() && !cache.products.hasData()"
       [showLoader]="false"
     >
       <ng-template #caption>
         <div class="flex flex-col sm:flex-row gap-2 flex-wrap">
-          <p-iconfield iconPosition="left" class="w-full lg:w-80">
-            <p-inputicon><i class="pi pi-search"></i></p-inputicon>
-            <input
-              pInputText
-              type="text"
-              class="w-full"
-              [ngModel]="tableSearch()"
-              (ngModelChange)="tableSearch.set($event)"
-              placeholder="Buscar por nombre..."
-            />
-          </p-iconfield>
+          <app-search-input
+            placeholder="Buscar por nombre..."
+            (searchChange)="onSearch($event)"
+          />
           <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="dt1.clear()" />
+          <div class="flex items-center gap-2 ml-auto">
+            <div class="flex items-center gap-2">
+              <label for="includeInactive" class="text-sm text-muted cursor-pointer select-none">Mostrar inactivos</label>
+              <p-toggleswitch [ngModel]="includeInactive()" (ngModelChange)="setIncludeInactive($event)" inputId="includeInactive" />
+            </div>
+          </div>
         </div>
       </ng-template>
       <ng-template #header>
         <tr>
-          <th pSortableColumn="name">Nombre <p-sortIcon field="name" /></th>
-          <th style="width: 100px">Imagen</th>
-          <th pSortableColumn="basePrice">Precio <p-sortIcon field="basePrice" /></th>
-          <th>Estado</th>
-          <th pSortableColumn="areaName">Área <p-sortIcon field="areaName" /></th>
-          <th pSortableColumn="categoryName">Categoría <p-sortIcon field="categoryName" /></th>
-          <th>Tipo</th>
+          <th>Nombre</th>
+          <th>Precio</th>
+          <th>Área</th>
+          <th>Categoría</th>
           <th>Acciones</th>
         </tr>
       </ng-template>
       <ng-template #body let-product>
         <tr>
-          <td>{{ product.name }}</td>
           <td>
-            @if (thumbnailsLoading() && !getThumbnailUrl(product.id)) {
-              <p-skeleton width="48px" height="48px" />
-            } @else if (getThumbnailUrl(product.id)) {
-              <img
-                [src]="getThumbnailUrl(product.id)"
-                [alt]="product.name"
-                class="w-12 h-12 object-cover rounded"
-              />
-            } @else {
-              <div class="w-12 h-12 bg-surface-200 dark:bg-surface-700 rounded flex items-center justify-center">
-                <i class="pi pi-image text-surface-400 text-sm"></i>
-              </div>
-            }
+            <div class="flex items-center gap-3">
+              @if (product.imageUrl) {
+                <img
+                  [src]="getProductImageSrc(product)"
+                  [alt]="product.name"
+                  width="48"
+                  height="48"
+                  class="w-12 h-12 object-cover rounded shrink-0"
+                  loading="lazy"
+                  decoding="async"
+                />
+              } @else {
+                <div class="w-12 h-12 bg-surface-200 dark:bg-surface-700 rounded flex items-center justify-center shrink-0">
+                  <i class="pi pi-image text-muted text-sm" aria-hidden="true"></i>
+                </div>
+              }
+              <span>{{ product.name }}</span>
+            </div>
           </td>
-          <td>{{ currencyFormat.format(product.basePrice) }}</td>
-          <td><span [class]="product.active ? 'text-green-600' : 'text-red-600'">{{ product.active ? 'Activo' : 'Inactivo' }}</span></td>
+          <td>{{ product.basePrice | money }}</td>
           <td>{{ product.areaName }}</td>
           <td>{{ product.categoryName }}</td>
-          <td><p-tag value="Producto" severity="secondary" /></td>
           <td>
             <div class="flex gap-1 items-center justify-center">
-              <p-button icon="pi pi-eye" severity="secondary" size="small" [text]="true"
-                pTooltip="Ver detalles" tooltipPosition="top" (click)="showDetailDialog(product)" />
-              <p-button icon="pi pi-pencil" severity="warn" size="small" [text]="true"
-                pTooltip="Editar" tooltipPosition="top" (click)="openEditModal(product.id)" />
-              <p-button icon="pi pi-trash" severity="danger" size="small" [text]="true"
-                pTooltip="Eliminar" tooltipPosition="top"
-                (click)="confirmDeleteProduct($event, product)" />
+              <p-button
+                icon="pi pi-book"
+                [rounded]="true"
+                [text]="true"
+                severity="info"
+                pTooltip="Ver receta"
+                tooltipPosition="top"
+                [routerLink]="['/admin/manage/products', product.id, 'recipe']"
+              />
+              @if (includeInactive()) {
+                <p-button icon="pi pi-check-circle" severity="success" size="small" [text]="true"
+                  pTooltip="Activar" tooltipPosition="top"
+                  (click)="confirmEnableProduct($event, product)" />
+              } @else {
+                <p-button icon="pi pi-ban" severity="danger" size="small" [text]="true"
+                  pTooltip="Desactivar" tooltipPosition="top"
+                  (click)="confirmDeleteProduct($event, product)" />
+              }
             </div>
           </td>
         </tr>
       </ng-template>
       <ng-template #loadingbody>
         <tr>
-          <td colspan="8">
+          <td colspan="5">
             <div class="min-h-[400px] w-full">
-              <app-table-skeleton [rowCount]="6" [colCount]="8" />
+              <app-table-skeleton [rowCount]="6" [colCount]="5" />
             </div>
           </td>
         </tr>
       </ng-template>
       <ng-template pTemplate="emptymessage">
-        <tr><td colspan="8" class="text-center text-surface-500 py-4">No hay productos registrados</td></tr>
+        <tr><td colspan="5" class="text-center text-muted py-4">{{ includeInactive() ? 'No hay productos inactivos' : 'No hay productos registrados' }}</td></tr>
       </ng-template>
     </p-table>
   </div>
@@ -113,25 +121,26 @@
      MODAL WIZARD
 ════════════════════════════════════════════════ -->
 <p-dialog [modal]="true" [(visible)]="modalIsOpen"
-  [header]="modalMode() === 'edit' ? 'Editar producto' : 'Crear producto'"
-  draggable="false" [style]="{ width: '90vw', maxWidth: '700px' }" appendTo="body">
+  header="Crear producto"
+  draggable="false" closable="false" styleClass="w-[90vw] max-w-[700px]" appendTo="body">
 
   <!-- Indicador de pasos -->
   <div class="flex items-center mb-6">
-    @for (step of [1,2,3,4]; track step; let i = $index; let last = $last) {
+    @for (step of [1,2,3,4,5]; track step; let i = $index; let last = $last) {
       <div class="flex items-center flex-1">
         <div class="flex flex-col items-center gap-1">
           <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors"
-            [class]="currentStep() >= step ? 'bg-primary-500 text-white' : 'bg-surface-200 dark:bg-surface-700 text-surface-500'">
-            @if (currentStep() > step) { <i class="pi pi-check text-xs"></i> }
+            [class]="currentStep() >= step ? 'bg-primary-500 text-surface-900' : 'bg-surface-200 dark:bg-surface-700 text-muted'">
+            @if (currentStep() > step) { <i class="pi pi-check text-xs" aria-hidden="true"></i> }
             @else { {{ i + 1 }} }
           </div>
-          <span class="text-xs text-surface-500 whitespace-nowrap">
+          <span class="text-xs text-muted whitespace-nowrap">
             @switch (step) {
               @case (1) { Datos básicos }
               @case (2) { Insumos }
               @case (3) { Opciones }
-              @case (4) { Finalizar }
+              @case (4) { Precio }
+              @case (5) { Confirmar }
             }
           </span>
         </div>
@@ -145,80 +154,116 @@
 
   <!-- ══ PASO 1: Datos básicos + imagen ══ -->
   @if (currentStep() === 1) {
-    <div class="flex flex-col gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-[35%_1fr] gap-6">
 
-      <!-- Datos base -->
-      <form [formGroup]="baseForm" class="flex flex-col gap-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <p-iftalabel class="md:col-span-2">
-          <input pInputText id="name" class="w-full" formControlName="name"
-            [invalid]="isInvalid(baseForm, 'name')" />
-          <label for="name">Nombre del producto *</label>
-        </p-iftalabel>
+      <!-- LEFT: Image upload area (35%) -->
+      <div class="flex flex-col">
+        <span class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Imagen del producto</span>
+        <div class="border-2 border-dashed border-surface-300 dark:border-surface-600 rounded-xl p-4 flex flex-col items-center justify-center text-center min-h-[260px] relative"
+          [class.cursor-pointer]="canUploadImage() && !isProcessingImage()"
+          [class.opacity-60]="!canUploadImage() || isProcessingImage()"
+          [class.border-surface-200]="!canUploadImage()"
+          [attr.aria-disabled]="!canUploadImage()"
+          tabindex="0" role="button"
+          [attr.aria-label]="'Subir imagen del producto'"
+          (click)="canUploadImage() && !isProcessingImage() && triggerFileInput(fu)"
+          (keydown.enter)="canUploadImage() && !isProcessingImage() && triggerFileInput(fu)"
+          (keydown.space)="$event.preventDefault(); canUploadImage() && !isProcessingImage() && triggerFileInput(fu)">
 
-        <p-iftalabel>
-          <p-inputnumber formControlName="basePrice" inputId="basePrice"
-            mode="currency" currency="COP" locale="es-CO" class="w-full"
-            [invalid]="isInvalid(baseForm, 'basePrice')" />
-          <label for="basePrice">Precio base *</label>
-        </p-iftalabel>
+          <p-fileupload
+            #fu
+            mode="basic"
+            [auto]="true"
+            [customUpload]="true"
+            accept="image/*"
+            maxFileSize="5000000"
+            chooseLabel=""
+            [disabled]="!canUploadImage() || isProcessingImage()"
+            (onSelect)="onWizardImageSelect($event)"
+            styleClass="hidden"
+          />
 
-        <p-iftalabel>
-          <p-select [options]="categories()" inputId="categoryId" class="w-full"
-            optionValue="id" optionLabel="name" formControlName="categoryId"
-            appendTo="body"
-            [invalid]="isInvalid(baseForm, 'categoryId')" />
-          <label for="categoryId">Categoría *</label>
-        </p-iftalabel>
-
-        <p-iftalabel>
-          <p-select [options]="areas()" inputId="areaId" class="w-full"
-            optionValue="id" optionLabel="name" formControlName="areaId"
-            appendTo="body"
-            [invalid]="isInvalid(baseForm, 'areaId')" />
-          <label for="areaId">Área de preparación *</label>
-        </p-iftalabel>
-      </div>
-      </form>
-
-      <!-- Image upload for new product -->
-      @if (createdProduct()?.id || modalMode() === 'edit') {
-        <div class="mt-4 border-t border-surface-200 dark:border-surface-700 pt-4">
-          <div class="flex items-center justify-between mb-3">
-            <h4 class="text-sm font-medium">Imagen del producto</h4>
-            <p-fileupload
-              #fuWizard
-              mode="basic"
-              name="image"
-              accept="image/*"
-              maxFileSize="5000000"
-              [auto]="true"
-              chooseLabel="Agregar imagen"
-              (onSelect)="onWizardImageSelect($event)"
-              [disabled]="isUploadingImage()"
-            />
-          </div>
-          @if (wizardImagesLoading()) {
-            <p-progressBar mode="indeterminate" styleClass="h-2" />
-          } @else if (wizardProductImages().length > 0) {
-            <div class="flex gap-2 flex-wrap">
-              @for (image of wizardProductImages(); track image.id) {
-                <div class="relative">
-                  <p-image [src]="getImageUrl(image, 'tablet')" [preview]="true" width="80" height="60" />
-                  <p-button icon="pi pi-times" severity="danger" size="small" [text]="true"
-                    class="absolute -top-2 -right-2" (onClick)="deleteWizardImage(image)" />
-                </div>
-              }
+          @if (isProcessingImage()) {
+            <p-progressBar mode="indeterminate" styleClass="h-2 w-full mb-3" />
+            <span class="text-sm text-muted">{{ createdProduct() ? 'Guardando imagen...' : 'Creando producto...' }}</span>
+          } @else if (previewImage().length > 0) {
+            <div class="relative w-full h-[220px] flex items-center justify-center">
+              <img [src]="previewImage()[0].desktopUrl" alt="Imagen del producto"
+                class="max-w-full max-h-full object-contain rounded-lg" />
+              <p-button icon="pi pi-times" severity="danger" size="small" [rounded]="true"
+                styleClass="!absolute !top-2 !right-2"
+                pTooltip="Eliminar imagen" tooltipPosition="top"
+                (onClick)="removeImage(previewImage()[0]); $event.stopPropagation()" />
             </div>
+          } @else if (!canUploadImage()) {
+            <i class="pi pi-image text-4xl text-surface-300 mb-3" aria-hidden="true"></i>
+            <span class="text-sm font-medium text-muted">Imagen del producto</span>
+            <span class="text-xs text-muted mt-2 text-center max-w-[200px]">Completa nombre, categoría y área para habilitar la carga de imagen</span>
           } @else {
-            <p class="text-sm text-surface-500 text-center py-2">Sin imágenes</p>
+            <i class="pi pi-cloud-upload text-4xl text-muted mb-3" aria-hidden="true"></i>
+            <span class="text-sm font-medium text-surface-700 dark:text-surface-300">Sube una imagen</span>
+            <span class="text-xs text-muted mt-1">JPG, PNG, WebP · max 5MB</span>
+            <span class="text-xs text-muted mt-3">Click para seleccionar</span>
           }
         </div>
-      }
+      </div>
+
+      <!-- RIGHT: Form fields (65%) -->
+      <form [formGroup]="baseForm" class="flex flex-col gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <!-- Nombre -->
+          <p-iftalabel class="md:col-span-2">
+            <input pInputText id="name" class="w-full" formControlName="name"
+              [invalid]="isInvalid(baseForm, 'name')" />
+            <label for="name">Nombre del producto *</label>
+          </p-iftalabel>
+
+          <!-- Categoría + Área (same row) -->
+          <p-iftalabel>
+            <p-select [options]="categories()" [loading]="referenceDataLoading()" inputId="categoryId" class="w-full"
+              optionValue="id" optionLabel="name" formControlName="categoryId"
+              appendTo="body"
+              [invalid]="isInvalid(baseForm, 'categoryId')" />
+            <label for="categoryId">Categoría *</label>
+          </p-iftalabel>
+
+          <p-iftalabel>
+            <p-select [options]="areas()" [loading]="referenceDataLoading()" inputId="areaId" class="w-full"
+              optionValue="id" optionLabel="name" formControlName="areaId"
+              appendTo="body" placeholder="Selecciona un área"
+              [invalid]="isInvalid(baseForm, 'areaId')" />
+            <label for="areaId">Área de preparación *</label>
+          </p-iftalabel>
+
+          <!-- Tiempo estimado (full width with prep time button + badge) -->
+          <div class="md:col-span-2">
+            <span class="text-xs text-muted block mb-1">Tiempo estimado de preparación</span>
+            <div class="flex items-center gap-3">
+              <p-button icon="pi pi-stopwatch" [rounded]="true" [outlined]="true" [text]="true"
+                pTooltip="Estimar tiempo" tooltipPosition="top"
+                (click)="openPrepTimeDialog()" />
+              @if (baseForm.get('estimatedPrepMinutes')?.value !== null) {
+                <p-tag [value]="(baseForm.get('estimatedPrepMinutes')?.value ?? 0) + ' min'" severity="info" />
+              } @else {
+                <p-tag value="Sin estimar" severity="secondary" />
+              }
+            </div>
+          </div>
+
+          <!-- Descripción -->
+          <p-iftalabel class="md:col-span-2">
+            <textarea pTextarea id="description" class="w-full" formControlName="description"
+              rows="3" autoResize="true"
+              placeholder="Descripción opcional del producto"></textarea>
+            <label for="description">Descripción</label>
+          </p-iftalabel>
+        </div>
+      </form>
     </div>
 
     <div class="flex justify-end gap-2 mt-6">
-      <p-button label="Cancelar" severity="secondary" icon="pi pi-times" (click)="closeModal()" />
+      <p-button label="Cancelar" severity="secondary" icon="pi pi-times" (click)="confirmCancel()" />
       <p-button label="Siguiente"
         icon="pi pi-arrow-right"
         iconPos="right"
@@ -229,77 +274,134 @@
   <!-- ══ PASO 2: Insumos del producto ══ -->
   @if (currentStep() === 2) {
     <div class="flex flex-col gap-4">
-      <div class="flex items-center justify-between">
-        <div>
-          <span class="font-medium text-surface-800 dark:text-surface-200">Insumos del producto</span>
-          <p class="text-xs text-surface-400 mt-0.5">Ingredientes base que consume este producto del inventario</p>
+      <!-- Header: thumbnail + name left, search right -->
+      <div class="flex items-center justify-between px-3">
+        <div class="flex items-center gap-2 min-w-0">
+          @if (previewImage().length > 0) {
+            <img [src]="previewImage()[0].desktopUrl" alt="" class="w-10 h-10 object-cover rounded-lg shrink-0" />
+          }
+          <span class="text-sm font-semibold text-surface-800 dark:text-surface-200 truncate">
+            {{ baseForm.get('name')?.value || 'Producto sin nombre' }}
+          </span>
+          <span class="text-xs text-muted shrink-0 hidden sm:inline">(Insumos)</span>
         </div>
-        <p-button icon="pi pi-plus" label="Agregar insumo" [outlined]="true" size="small" (click)="addBaseRecipeItem()" />
+        <div class="relative w-64 shrink-0">
+          <app-search-input
+            placeholder="Agregar insumo..."
+            (searchChange)="onSupplySearch($event)"
+          />
+          @if (filteredSuggestions().length > 0) {
+            <div class="absolute z-50 left-0 right-0 mt-1 bg-primary-contrast dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg max-h-60 overflow-y-auto">
+              @for (s of filteredSuggestions(); track s.id) {
+                <button type="button"
+                  class="w-full px-3 py-2 text-left text-sm hover:bg-surface-100 dark:hover:bg-surface-700 flex items-center justify-between gap-2 cursor-pointer border-none bg-transparent"
+                  (click)="addSupplyVariant(s)" (keydown.enter)="addSupplyVariant(s)">
+                  <span class="font-medium text-surface-800 dark:text-surface-200">{{ s.supplyName }}</span>
+                  <span class="text-xs text-muted shrink-0">{{ s.quantity }} {{ s.unitAbbreviation }} · {{ s.unitCost | money }}/u</span>
+                </button>
+              }
+            </div>
+          }
+        </div>
       </div>
 
-      <!-- Insumos existentes (modo edición) -->
-      @if (modalMode() === 'edit' && existingRecipe().length > 0) {
-        <div class="flex flex-col gap-2">
-          <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Insumos actuales</span>
-          @for (item of existingRecipe(); track item.supplyVariantId) {
-            <div class="flex items-center justify-between px-3 py-2 bg-surface-100 dark:bg-surface-800 rounded-lg text-sm border border-surface-200 dark:border-surface-700">
-              <span class="font-medium">{{ getVariantDisplayName(item.supplyVariantId) }}</span>
-              <div class="flex items-center gap-2">
-                <span class="text-surface-400 text-xs px-2 py-0.5 bg-surface-200 dark:bg-surface-700 rounded">
-                  {{ item.requiredQuantity }}
+      <!-- Table header + rows -->
+      @if (existingRecipe.controls.length === 0 && baseRecipe.length === 0) {
+        <p class="text-sm text-muted italic">Sin insumos — el producto no descuenta stock</p>
+      } @else {
+        <div class="flex flex-col">
+          <!-- Header -->
+          <div class="grid grid-cols-[1fr_120px_90px_36px] gap-2 px-3 py-1.5 text-xs font-semibold text-muted uppercase tracking-wide border-b border-surface-200 dark:border-surface-700">
+            <span>Insumo</span>
+            <span class="text-center">Cantidad</span>
+            <span class="text-right">Costo</span>
+            <span></span>
+          </div>
+
+          <!-- Existing recipe rows (edit mode) -->
+          @for (item of existingRecipe.controls; track $index; let i = $index) {
+            <div [formGroup]="$any(item)"
+              class="grid grid-cols-[1fr_120px_90px_36px] gap-2 items-center px-3 py-2 border-b border-surface-100 dark:border-surface-800 hover:bg-surface-50 dark:hover:bg-surface-800/50">
+              <div class="min-w-0">
+                <span class="text-sm font-medium text-surface-800 dark:text-surface-200 truncate block">
+                  {{ findVariantById($any(item).get('supplyVariantId')?.value)?.supplyName ?? 'Insumo' }}
                 </span>
-                <p-button
-                  icon="pi pi-trash"
-                  severity="danger"
-                  [text]="true"
-                  size="small"
-                  pTooltip="Quitar insumo"
-                  tooltipPosition="top"
-                  [attr.aria-label]="'Quitar insumo ' + getVariantDisplayName(item.supplyVariantId)"
-                  (click)="removeExistingRecipeItem(item.supplyVariantId)" />
+                <span class="text-xs text-muted">
+                  {{ findVariantById($any(item).get('supplyVariantId')?.value)?.quantity }}
+                  {{ findVariantById($any(item).get('supplyVariantId')?.value)?.unitAbbreviation }}
+                </span>
+              </div>
+              <div class="flex items-center justify-center gap-1">
+                <button type="button" pButton icon="pi pi-minus" [text]="true" size="small" severity="secondary" aria-label="Disminuir cantidad"
+                  (click)="decrementQty(existingRecipe, i); $event.stopPropagation()"></button>
+                <input pInputText type="number" class="w-14 text-center text-sm" formControlName="requiredQuantity"
+                  [min]="0.001" step="1" />
+                <button type="button" pButton icon="pi pi-plus" [text]="true" size="small" severity="secondary" aria-label="Aumentar cantidad"
+                  (click)="incrementQty(existingRecipe, i); $event.stopPropagation()"></button>
+              </div>
+              <div class="text-right text-sm text-muted">
+                {{ getRowPartial($any(item).get('supplyVariantId')?.value, $any(item).get('requiredQuantity')?.value) | money }}
+              </div>
+              <div class="flex justify-center">
+                <button type="button" pButton icon="pi pi-trash" [text]="true" size="small" severity="danger" aria-label="Eliminar insumo"
+                  (click)="removeExistingRecipeItem(i)"></button>
+              </div>
+            </div>
+          }
+
+          <!-- Base recipe rows (new) -->
+          @for (item of baseRecipe.controls; track $index; let i = $index) {
+            <div [formGroup]="$any(item)"
+              class="grid grid-cols-[1fr_120px_90px_36px] gap-2 items-center px-3 py-2 border-b border-surface-100 dark:border-surface-800 hover:bg-surface-50 dark:hover:bg-surface-800/50">
+              <div class="min-w-0">
+                <span class="text-sm font-medium text-surface-800 dark:text-surface-200 truncate block">
+                  {{ findVariantById($any(item).get('supplyVariantId')?.value)?.supplyName ?? 'Insumo' }}
+                </span>
+                <span class="text-xs text-muted">
+                  {{ findVariantById($any(item).get('supplyVariantId')?.value)?.quantity }}
+                  {{ findVariantById($any(item).get('supplyVariantId')?.value)?.unitAbbreviation }}
+                </span>
+              </div>
+              <div class="flex items-center justify-center gap-1">
+                <button type="button" pButton icon="pi pi-minus" [text]="true" size="small" severity="secondary" aria-label="Disminuir cantidad"
+                  (click)="decrementQty(baseRecipe, i); $event.stopPropagation()"></button>
+                <input pInputText type="number" class="w-14 text-center text-sm" formControlName="requiredQuantity"
+                  [min]="0.001" step="1" />
+                <button type="button" pButton icon="pi pi-plus" [text]="true" size="small" severity="secondary" aria-label="Aumentar cantidad"
+                  (click)="incrementQty(baseRecipe, i); $event.stopPropagation()"></button>
+              </div>
+              <div class="text-right text-sm text-muted">
+                {{ getRowPartial($any(item).get('supplyVariantId')?.value, $any(item).get('requiredQuantity')?.value) | money }}
+              </div>
+              <div class="flex justify-center">
+                <button type="button" pButton icon="pi pi-trash" [text]="true" size="small" severity="danger" aria-label="Eliminar insumo"
+                  (click)="removeBaseRecipeItem(i)"></button>
               </div>
             </div>
           }
         </div>
-        @if (baseRecipe.length > 0) {
-          <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Agregar insumos</span>
-        }
       }
 
-      @if (existingRecipe().length === 0 && baseRecipe.length === 0) {
-        <p class="text-sm text-surface-400 italic">Sin insumos — el producto no descuenta stock</p>
-      }
+      <!-- Cost summary footer -->
+      <div class="border border-surface-200 dark:border-surface-700 rounded-lg p-4 text-sm">
+        <div class="flex items-center gap-2 mb-3" pTooltip="Costo calculado en vivo según los insumos de la receta" tooltipPosition="top">
+          <i class="pi pi-calculator text-accent" aria-hidden="true"></i>
+          <span class="font-medium">Costo de materiales</span>
+        </div>
 
-      <div class="flex flex-col gap-2">
-        @for (item of baseRecipe.controls; track $index; let i = $index) {
-          <div [formGroup]="$any(item)" class="flex gap-2 items-end bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-3">
-            <div class="w-44">
-              <label class="text-xs text-surface-500 mb-1 block" for="base-recipe-category">Categoría</label>
-              <p-select id="base-recipe-category" [options]="supplyCategories()" optionLabel="name" optionValue="id"
-                [ngModel]="getBaseRecipeCategory(i)" [ngModelOptions]="{ standalone: true }"
-                (ngModelChange)="setBaseRecipeCategory(i, $event)"
-                placeholder="Todas" [showClear]="true"
-                class="w-full" appendTo="body" />
-            </div>
-            <div class="flex-1">
-              <label class="text-xs text-surface-500 mb-1 block" for="base-recipe-supply">Insumo *</label>
-              <p-select id="base-recipe-supply" [options]="filteredVariantsForBaseRecipe(i)" optionLabel="displayName" optionValue="id"
-                formControlName="supplyVariantId" placeholder="Seleccionar insumo"
-                class="w-full" [filter]="true" filterBy="displayName" appendTo="body" />
-            </div>
-            <div class="w-36">
-              <label class="text-xs text-surface-500 mb-1 block" for="base-recipe-quantity">Cantidad *</label>
-              <p-inputnumber id="base-recipe-quantity" formControlName="requiredQuantity" [min]="0.001"
-                [minFractionDigits]="0" [maxFractionDigits]="3" class="w-full" />
-            </div>
-            <p-button icon="pi pi-trash" severity="danger" [text]="true" (click)="removeBaseRecipeItem(i)" />
+        @if (recipeBreakdown().length > 0) {
+          <div class="flex justify-between items-center bg-primary-50 dark:bg-primary-900/20 rounded-lg px-4 py-3">
+            <span class="font-semibold">Materiales</span>
+            <span class="font-semibold text-base">{{ recipeCost() | money }}</span>
           </div>
+        } @else {
+          <p class="text-sm text-muted italic">Agrega insumos para calcular el costo</p>
         }
       </div>
     </div>
 
     <div class="flex justify-between mt-6">
-      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="backToStep2()" />
+      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="goToStep1()" />
       <p-button label="Siguiente"
         icon="pi pi-arrow-right"
         iconPos="right"
@@ -309,204 +411,185 @@
 
   <!-- ══ PASO 3: Opciones del producto ══ -->
   @if (currentStep() === 3) {
-    <div class="flex flex-col gap-4">
-      <p class="text-surface-500 text-sm">
-        Selecciona opciones existentes o crea nuevas. Cada opción puede tener su propia receta de insumos.
-      </p>
-
-      <!-- Opciones existentes (modo edición) -->
-      @if (modalMode() === 'edit' && existingOptions().length > 0) {
-        <div class="flex flex-col gap-2">
-          <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Opciones actuales del producto</span>
-          @for (opt of existingOptions(); track opt.id) {
-            <div class="flex items-center justify-between px-3 py-2 bg-surface-100 dark:bg-surface-800 rounded-lg text-sm border border-surface-200 dark:border-surface-700">
-              <span class="font-medium">{{ opt.name }}</span>
-              <div class="flex items-center gap-2">
-                <span class="text-surface-400 text-xs px-2 py-0.5 bg-surface-200 dark:bg-surface-700 rounded">{{ opt.optionCategoryName }}</span>
-                <p-button
-                  icon="pi pi-trash"
-                  severity="danger"
-                  [text]="true"
-                  size="small"
-                  pTooltip="Quitar opción"
-                  tooltipPosition="top"
-                  [attr.aria-label]="'Quitar opción ' + opt.name"
-                  (click)="removeExistingOption(opt.id)" />
-              </div>
-            </div>
-          }
-        </div>
-        <p-divider />
-        <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Modificar opciones</span>
-        <p class="text-xs text-surface-400 -mt-2">Las opciones seleccionadas reemplazarán las actuales</p>
-      }
-
-      <!-- Nuevas opciones o selección de existentes -->
-      <div class="flex flex-col gap-4">
-        @for (opt of optionsArray.controls; track $index; let i = $index) {
-          <div [formGroup]="$any(opt)"
-            class="border rounded-xl p-4 flex flex-col gap-3"
-            [class.border-surface-200]="!isOptionDuplicated(i)"
-            [class.dark:border-surface-700]="!isOptionDuplicated(i)"
-            [class.border-red-500]="isOptionDuplicated(i)"
-            [class.bg-red-50]="isOptionDuplicated(i)"
-            [class.dark:bg-red-900/10]="isOptionDuplicated(i)">
-
-            <div class="flex items-center justify-between">
-              <span class="font-medium text-surface-700 dark:text-surface-300">Opción {{ i + 1 }}</span>
-              <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" (click)="removeOption(i)" />
-            </div>
-
-            @if (isOptionDuplicated(i)) {
-              <div class="flex items-center gap-2 text-red-600 text-xs">
-                <i class="pi pi-exclamation-triangle"></i>
-                <span>Esta opción está duplicada</span>
-              </div>
-            }
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div class="flex flex-col gap-1">
-                <p-iftalabel>
-                  <p-select [options]="optionCategories()" [inputId]="'opt-cat-' + i"
-                    optionLabel="name" optionValue="id" formControlName="optionCategoryId"
-                    placeholder="Seleccionar" class="w-full" appendTo="body"
-                    (onChange)="$any(opt).get('id').setValue(null); $any(opt).get('name').setValue(''); $any(opt).get('isExisting').setValue(false)" />
-                  <label [for]="'opt-cat-' + i">Categoría de opción *</label>
-                </p-iftalabel>
-              </div>
-
-              <div class="flex flex-col gap-1">
-                <p-iftalabel>
-                  <p-select
-                    [options]="optionsByCategory($any(opt).get('optionCategoryId')?.value)"
-                    [inputId]="'opt-name-' + i"
-                    optionLabel="name" optionValue="name"
-                    formControlName="name"
-                    placeholder="Seleccionar existente o escribir nueva"
-                    class="w-full" appendTo="body"
-                    [disabled]="!$any(opt).get('optionCategoryId')?.value"
-                    [invalid]="$any(opt).get('name')?.invalid && $any(opt).get('name')?.touched"
-                    [filter]="true" filterBy="name" [editable]="true"
-                    (onChange)="onExistingOptionSelected(i, findOptionByName($any(opt).get('optionCategoryId')?.value, $event.value))" />
-                  <label [for]="'opt-name-' + i">Nombre de la opción *</label>
-                </p-iftalabel>
-                @if (!$any(opt).get('optionCategoryId')?.value) {
-                  <small class="text-surface-400 text-xs">Primero selecciona una categoría</small>
-                } @else if (isExistingOption(i)) {
-                  <small class="text-green-600 text-xs flex items-center gap-1">
-                    <i class="pi pi-check-circle"></i>
-                    Opción existente seleccionada
-                  </small>
-                } @else {
-                  <small class="text-blue-600 text-xs flex items-center gap-1">
-                    <i class="pi pi-plus-circle"></i>
-                    Se creará como nueva opción
-                  </small>
-                }
-              </div>
-            </div>
-
-            <!-- Recipe section - only for NEW options -->
-            @if (!isExistingOption(i)) {
-              <p-divider />
-              <div class="flex items-center justify-between">
-                <div>
-                  <span class="text-sm font-medium text-surface-800 dark:text-surface-200">Insumos de esta opción</span>
-                  <p class="text-xs text-surface-400 mt-0.5">Ingredientes que consume esta variante</p>
-                </div>
-                <p-button icon="pi pi-plus" label="Agregar insumo" [outlined]="true" size="small" (click)="addOptionRecipeItem(i)" />
-              </div>
-
-              @if (getOptionRecipe(i).length === 0) {
-                <p class="text-sm text-surface-400 italic">Sin insumos — la opción no descuenta stock</p>
-              }
-
-              <div class="flex flex-col gap-2">
-                @for (recipeItem of getOptionRecipe(i).controls; track $index; let ri = $index) {
-                  <div [formGroup]="$any(recipeItem)" class="flex gap-2 items-end bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg p-3">
-                    <div class="w-44">
-                      <label class="text-xs text-surface-500 mb-1 block" for="option-recipe-category-{{i}}-{{ri}}">Categoría</label>
-                      <p-select id="option-recipe-category-{{i}}-{{ri}}" [options]="supplyCategories()" optionLabel="name" optionValue="id"
-                        [ngModel]="getOptionRecipeCategory(i, ri)" [ngModelOptions]="{ standalone: true }"
-                        (ngModelChange)="setOptionRecipeCategory(i, ri, $event)"
-                        placeholder="Todas" [showClear]="true"
-                        class="w-full" appendTo="body" />
-                    </div>
-                    <div class="flex-1">
-                      <label class="text-xs text-surface-500 mb-1 block" for="option-recipe-supply-{{i}}-{{ri}}">Insumo *</label>
-                      <p-select id="option-recipe-supply-{{i}}-{{ri}}" [options]="filteredVariantsForOptionRecipe(i, ri)" optionLabel="displayName" optionValue="id"
-                        formControlName="supplyVariantId" placeholder="Seleccionar insumo"
-                        class="w-full" [filter]="true" filterBy="displayName" appendTo="body" />
-                    </div>
-                    <div class="w-36">
-                      <label class="text-xs text-surface-500 mb-1 block" for="option-recipe-quantity-{{i}}-{{ri}}">Cantidad *</label>
-                      <p-inputnumber id="option-recipe-quantity-{{i}}-{{ri}}" formControlName="requiredQuantity" [min]="0.001"
-                        [minFractionDigits]="0" [maxFractionDigits]="3" class="w-full" />
-                    </div>
-                    <p-button icon="pi pi-trash" severity="danger" [text]="true" (click)="removeOptionRecipeItem(i, ri)" />
-                  </div>
-                }
-              </div>
-            }
-
-          </div>
-        }
-      </div>
-
-      <p-button icon="pi pi-plus" label="Agregar opción" [outlined]="true" (click)="addOption()" />
-    </div>
+    <app-step3-options
+      [productId]="createdProduct()?.id ?? 0"
+      [modalMode]="modalMode()"
+      [existingOptions]="existingOptions()"
+      [optionGroups]="optionGroups()"
+      (optionsChanged)="onOptionsChanged($event)" />
 
     <div class="flex justify-between mt-6">
-      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="backToStep3()" />
+      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="goToStep2()" />
       <div class="flex gap-2">
-        <p-button label="Cancelar" severity="secondary" (click)="closeModal()" />
+        <p-button label="Cancelar" severity="secondary" (click)="confirmCancel()" />
         <p-button [label]="modalMode() === 'create' ? 'Crear producto' : 'Guardar cambios'"
           icon="pi pi-check"
           [loading]="isSubmitting()"
-          [disabled]="hasDuplicateOptions()"
           (click)="submitStep3()" />
       </div>
     </div>
   }
 
-  <!-- ══ PASO 4: Finalizar ══ -->
+  <!-- ══ PASO 4: Precio de venta ══ -->
   @if (currentStep() === 4) {
     <div class="flex flex-col gap-4">
+      <div class="flex items-center gap-2 px-4 py-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+        <i class="pi pi-calculator text-blue-500 text-lg" aria-hidden="true"></i>
+        <span class="text-sm text-blue-800 dark:text-blue-200">Define el precio de venta basado en el costo de producción</span>
+      </div>
+
+      @if (cost(); as c) {
+        <div class="border border-surface-200 dark:border-surface-700 rounded-lg p-4 flex flex-col gap-2 text-sm">
+          <h4 class="text-sm font-medium flex items-center gap-2 mb-1">
+            <i class="pi pi-receipt text-accent" aria-hidden="true"></i>
+            Costo de producción oficial
+          </h4>
+          <div class="flex justify-between">
+            <span class="text-muted">Materiales</span>
+            <span class="font-medium">{{ c.materialCost | money }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-muted">Mano de obra</span>
+            <span class="font-medium">{{ c.laborCost | money }}</span>
+          </div>
+          <div class="flex justify-between bg-primary-50 dark:bg-primary-900/20 -mx-4 -mb-4 px-4 py-3 mt-2 rounded-b-lg">
+            <span class="font-semibold">Costo total</span>
+            <span class="font-semibold text-base">{{ c.totalCost | money }}</span>
+          </div>
+        </div>
+      } @else if (costLoading()) {
+        <p-progressBar mode="indeterminate" styleClass="h-2" />
+      } @else if (costError()) {
+        <p-message severity="error" [text]="costError()!" />
+      }
+
+      @if (recipeCost() > 0) {
+        <div class="border border-dashed border-surface-300 dark:border-surface-600 rounded-lg p-3 flex items-center justify-between text-sm bg-surface-50 dark:bg-surface-800">
+          <span class="flex items-center gap-2 text-muted">
+            <i class="pi pi-bolt text-xs" aria-hidden="true"></i>
+            Materiales estimado (receta actual)
+          </span>
+          <span class="font-medium italic">{{ recipeCost() | money }}</span>
+        </div>
+      }
+
+      <div class="border border-surface-200 dark:border-surface-700 rounded-lg p-4 flex flex-col gap-3">
+        <h4 class="text-sm font-medium flex items-center gap-2">
+          <i class="pi pi-tag text-green-500" aria-hidden="true"></i>
+          Precio de venta
+        </h4>
+
+        @if (cost(); as c) {
+          <div class="bg-green-50 dark:bg-green-900/20 rounded-lg px-4 py-3 flex items-center justify-between border border-green-200 dark:border-green-800">
+            <div class="flex flex-col gap-1">
+              <span class="text-xs text-green-700 dark:text-green-300 font-medium">Precio sugerido</span>
+              <span class="text-lg font-bold text-green-600 dark:text-green-400">{{ suggestedSalePrice() | money }}</span>
+              <span class="text-xs text-green-600/70 dark:text-green-400/70">Costo oficial + 30% de margen</span>
+            </div>
+            <p-button label="Usar este precio" severity="success" [outlined]="true" size="small"
+              (click)="salePrice.set(suggestedSalePrice())" [disabled]="salePrice() === suggestedSalePrice()" />
+          </div>
+        }
+
+        <p-iftalabel class="mt-1">
+          <p-inputnumber [ngModel]="salePrice()" (ngModelChange)="salePrice.set($event)"
+            inputId="salePrice" mode="currency" currency="COP" locale="es-CO" class="w-full" />
+          <label for="salePrice">Precio de venta *</label>
+        </p-iftalabel>
+      </div>
+    </div>
+
+    <div class="flex justify-between mt-6">
+      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="goToStep3()" />
+      <div class="flex gap-2">
+        <p-button label="Cancelar" severity="secondary" (click)="confirmCancel()" />
+        <p-button label="Confirmar precio" icon="pi pi-check" [loading]="isSubmitting()" (click)="confirmPrice()" />
+      </div>
+    </div>
+  }
+
+  <!-- ══ PASO 5: Confirmar ══ -->
+  @if (currentStep() === 5) {
+    <div class="flex flex-col gap-4">
       <div class="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-        <i class="pi pi-check-circle text-green-500 text-2xl"></i>
+        <i class="pi pi-check-circle text-green-500 text-2xl" aria-hidden="true"></i>
         <div>
           <p class="font-semibold text-surface-900 dark:text-surface-0">Producto guardado correctamente</p>
-          <p class="text-sm text-surface-500">Todos los datos han sido registrados.</p>
+          <p class="text-sm text-muted">Todos los datos han sido registrados.</p>
         </div>
       </div>
 
       @if (createdProduct()) {
         <div class="border border-surface-200 dark:border-surface-700 rounded-lg p-4 flex flex-col gap-2 text-sm">
           <div class="flex justify-between">
-            <span class="text-surface-500">Nombre</span>
+            <span class="text-muted">Nombre</span>
             <span class="font-medium">{{ createdProduct()!.name }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-surface-500">Precio base</span>
-            <span class="font-medium">{{ createdProduct()!.basePrice | currency:'COP':'symbol':'1.0-0':'es-CO' }}</span>
+            <span class="text-muted">Descripción</span>
+            <span class="text-right max-w-[60%]">{{ createdProduct()!.description || 'Sin descripción' }}</span>
+          </div>
+          @if (cost() !== null) {
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2" pTooltip="Calculado por el servidor con base en la receta e insumos" tooltipPosition="top">
+                <i class="pi pi-calculator text-accent" aria-hidden="true"></i>
+                <span class="font-medium">Costo de producción</span>
+              </div>
+              @if (costLoading()) {
+                <p-progressBar mode="indeterminate" styleClass="h-2" />
+              } @else if (costError()) {
+                <p-message severity="error" [text]="costError()!" />
+              } @else if (cost(); as c) {
+                <div class="flex justify-between">
+                  <span class="text-muted">Materiales</span>
+                  <span class="font-medium">{{ c.materialCost | money }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-muted">Mano de obra</span>
+                  <span class="font-medium">{{ c.laborCost | money }}</span>
+                </div>
+                <div class="flex justify-between items-center bg-primary-50 dark:bg-primary-900/20 -mx-4 -mb-4 px-4 py-3 mt-2 rounded-b-lg">
+                  <span class="font-semibold">Total</span>
+                  <span class="font-semibold text-base">{{ c.totalCost | money }}</span>
+                </div>
+                @if (c.breakdown.length > 0) {
+                  <div class="flex flex-col gap-2 mt-3 pt-3 border-t border-surface-200 dark:border-surface-700">
+                    <span class="text-xs font-semibold text-muted uppercase tracking-wide">Desglose</span>
+                    @for (item of c.breakdown; track $index) {
+                      <div class="flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                          <i [class]="item.type === 'MATERIAL' ? 'pi pi-box' : 'pi pi-clock'" class="text-muted" aria-hidden="true"></i>
+                          <span>{{ item.description }}</span>
+                        </span>
+                        <span class="font-medium">{{ item.amount | money }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              }
+            </div>
+          }
+          <div class="flex justify-between">
+            <span class="text-muted">Precio de venta</span>
+            <span class="font-medium">{{ createdProduct()!.basePrice | money }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-surface-500">Tipo</span>
+            <span class="text-muted">Tipo</span>
             <p-tag [value]="existingOptions().length > 0 ? 'Personalizable' : 'Simple'"
               [severity]="existingOptions().length > 0 ? 'info' : 'secondary'" />
           </div>
           <div class="flex justify-between">
-            <span class="text-surface-500">Categoría</span>
+            <span class="text-muted">Categoría</span>
             <span>{{ createdProduct()!.categoryName }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-surface-500">Área</span>
+            <span class="text-muted">Área</span>
             <span>{{ createdProduct()!.areaName }}</span>
           </div>
-          @if (baseRecipe.length > 0) {
+          @if (existingRecipe.controls.length + baseRecipe.length > 0) {
             <div class="flex justify-between">
-              <span class="text-surface-500">Insumos base</span>
-              <span>{{ baseRecipe.length }}</span>
+              <span class="text-muted">Insumos base</span>
+              <span>{{ existingRecipe.controls.length + baseRecipe.length }}</span>
             </div>
           }
         </div>
@@ -514,52 +597,11 @@
         <!-- Opciones guardadas (confirmadas desde la API) -->
         @if (existingOptions().length > 0) {
           <div class="flex flex-col gap-2">
-            <span class="text-xs font-semibold text-surface-500 uppercase tracking-wide">Opciones registradas</span>
+            <span class="text-xs font-semibold text-muted uppercase tracking-wide">Opciones registradas</span>
             @for (opt of existingOptions(); track opt.id) {
               <div class="flex items-center justify-between px-3 py-2 bg-surface-50 dark:bg-surface-800 rounded-lg text-sm border border-surface-200 dark:border-surface-700">
                 <span class="font-medium">{{ opt.name }}</span>
-                <span class="text-surface-400 text-xs px-2 py-0.5 bg-surface-200 dark:bg-surface-700 rounded">{{ opt.optionCategoryName }}</span>
-              </div>
-            }
-          </div>
-        }
-
-        <!-- Images Section in Step 4 -->
-        @if (createdProduct()?.id) {
-          <div class="mt-4 border-t border-surface-200 dark:border-surface-700 pt-4">
-            <div class="flex items-center justify-between mb-3">
-              <h4 class="text-sm font-medium">Imágenes</h4>
-              <p-fileupload
-                #fuWizard
-                mode="basic"
-                name="image"
-                accept="image/*"
-                maxFileSize="5000000"
-                [auto]="true"
-                chooseLabel="Agregar"
-                (onSelect)="onWizardImageSelect($event)"
-                [disabled]="isUploadingImage()"
-              />
-            </div>
-            @if (wizardImagesLoading()) {
-              <p-progressBar mode="indeterminate" styleClass="h-2" />
-            } @else if (wizardProductImages().length === 0) {
-              <p class="text-sm text-surface-500 text-center py-2">Sin imágenes</p>
-            } @else {
-              <div class="flex gap-2 flex-wrap">
-                @for (image of wizardProductImages(); track image.id) {
-                  <div class="relative">
-                    <p-image [src]="getImageUrl(image, 'tablet')" [preview]="true" width="80" height="60" />
-                    <p-button
-                      icon="pi pi-times"
-                      severity="danger"
-                      size="small"
-                      [text]="true"
-                      class="absolute -top-2 -right-2"
-                      (onClick)="deleteWizardImage(image)"
-                    />
-                  </div>
-                }
+                <span class="text-muted text-xs px-2 py-0.5 bg-surface-200 dark:bg-surface-700 rounded">{{ opt.optionGroupName }}</span>
               </div>
             }
           </div>
@@ -567,38 +609,19 @@
       }
     </div>
 
-    <div class="flex justify-end mt-6">
+    <div class="flex justify-between mt-6">
+      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="goToStep4()" />
       <p-button label="Finalizar" icon="pi pi-check" (click)="finish()" />
     </div>
   }
 
 </p-dialog>
 
-<app-new-option-dialog
-  [visible]="newOptionDialogOpen"
-  (visibleChange)="newOptionDialogOpen.set($event)"
-  (optionCreated)="cache.referenceData.refresh()"
-/>
-
-<!-- ════════════════════════════════════════════════
-     DIALOG DETALLES DE PRODUCTO
-════════════════════════════════════════════════ -->
-<app-product-detail-dialog
-  [product]="detailProduct()"
-  [visible]="detailDialogOpen"
-  (visibleChange)="detailDialogOpen.set($event)"
-  (editProduct)="openEditModal($event)"
-  (productUpdated)="onProductUpdated()"
-/>
-
-<!-- ════════════════════════════════════════════════
-     SIMPLE EDIT MODAL
-════════════════════════════════════════════════ -->
-<app-product-edit-modal
-  [productId]="editingProductId()"
-  [visible]="editModalVisible"
-  (visibleChange)="editModalVisible.set($event)"
-  (productUpdated)="onProductUpdated()"
+<app-prep-time-dialog
+  [visible]="prepTimeDialogOpen"
+  [initialEstimate]="prepTimeInitialEstimate()"
+  (visibleChange)="prepTimeDialogOpen.set($event)"
+  (estimateApplied)="applyPrepTime($event)"
 />
 
 <p-confirmpopup />

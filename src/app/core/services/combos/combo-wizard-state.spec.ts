@@ -1,9 +1,16 @@
+/**
+ * Tests for the ComboWizardState service.
+ *
+ * Feature: Manages combo wizard form state with Angular signals and localStorage persistence.
+ * Contract: Tracks wizard draft, persists across reloads, supports reset and step navigation.
+ * Approach: Inject service via TestBed, manipulate state, assert signal values and localStorage.
+ */
 import { TestBed } from '@angular/core/testing';
 import { effect, signal } from '@angular/core';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ComboWizardState, COMBO_WIZARD_DRAFT_STORAGE_KEY } from './combo-wizard-state';
-import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
+import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';
 import { SpecialSelectionGroupResponse } from '@app/shared/models/dto/special-selections/special-selection-group';
 import { SpecialSelectionAdditionResponse } from '@app/shared/models/dto/special-selections/special-selection-addition';
@@ -61,10 +68,10 @@ function makeScheduleEntry(id: number): ScheduleEntryResponse {
 }
 
 const mockResponse: SpecialSelectionResponse = {
-  id: 42,
+  productId: 42,
   name: 'Combo Almuerzo',
   description: 'Sopa + plato fuerte',
-  basePrice: 12.5,
+  basePrice: { amount: '12.50', currency: 'COP' },
   active: true,
   preparationAreaId: 1,
   selectionType: 'SPECIAL_SELECTION',
@@ -99,10 +106,11 @@ function buildCacheStub(initialResponse: SpecialSelectionResponse | null = null)
 
 function setupTestBed(cacheStub?: ReturnType<typeof buildCacheStub>): ComboWizardState {
   const stub = cacheStub ?? buildCacheStub(null);
+  TestBed.resetTestingModule();
   TestBed.configureTestingModule({
     providers: [
       ComboWizardState,
-      { provide: SpecialSelectionsCacheService, useValue: stub },
+      { provide: SpecialSelectionsCache, useValue: stub },
     ],
   });
   return TestBed.inject(ComboWizardState);
@@ -156,6 +164,7 @@ describe('ComboWizardState', () => {
     });
 
     it('hydrateFromResponse(response) populates the draft from cache detail payload', () => {
+      const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(1_752_577_200_000);
       const state = setupTestBed();
 
       state.hydrateFromResponse(mockResponse);
@@ -177,7 +186,28 @@ describe('ComboWizardState', () => {
       expect(state.data().questions[0].question).toBe('¿Sin picante?');
       expect(state.data().schedule[0].dayOfWeek).toBe('MONDAY');
       expect(state.dirty()).toBe(false);
-      expect(state.lastSavedAt()).not.toBeNull();
+      expect(state.lastSavedAt()).toBe(1_752_577_200_000);
+      nowSpy.mockRestore();
+    });
+
+    it('normalizes MoneyDto basePrice and addition extraPrice on hydrate (regression)', () => {
+      // The backend sends money as `{ amount: "15000.00", currency: "COP" }`.
+      // Putting those objects into the numeric draft made the wizard's
+      // `basePrice > 0` check and every later sum wrong (NaN).
+      const state = setupTestBed();
+      const response: SpecialSelectionResponse = {
+        ...mockResponse,
+        basePrice: { amount: '15000.00', currency: 'COP' },
+        additions: [
+          { id: 1, name: 'Queso', optionId: 1, extraPrice: { amount: '1500.00', currency: 'COP' }, displayOrder: 1, optionName: 'Queso' },
+        ],
+      };
+
+      state.hydrateFromResponse(response);
+
+      expect(state.data().basePrice).toBe(15000);
+      expect(state.data().additions[0].extraPrice).toBe(1500);
+      expect(Number.isNaN(Number(state.data().basePrice))).toBe(false);
     });
 
     it('hydrateFromResponse clears any persisted localStorage draft', () => {
@@ -522,7 +552,12 @@ describe('ComboWizardState', () => {
       state.hydrateFromResponse(mockResponse);
       state.updateData({ name: 'Para descartar' });
       state.persistDraft();
-      expect(window.localStorage.getItem(STORAGE_KEY)).not.toBeNull();
+      const persisted = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? 'null') as {
+        sourceId: number | null;
+        data: { name: string };
+      } | null;
+      expect(persisted?.sourceId).toBe(42);
+      expect(persisted?.data.name).toBe('Para descartar');
 
       state.discardDraft();
 
@@ -537,17 +572,13 @@ describe('ComboWizardState', () => {
       state.hydrateFromResponse(mockResponse);
       state.updateData({ name: 'Para guardar' });
       state.persistDraft();
-      const before = Date.now();
+      const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(1_752_577_200_000);
 
       state.markSaved();
 
       expect(state.dirty()).toBe(false);
-      const savedAt = state.lastSavedAt();
-      expect(savedAt).not.toBeNull();
-      if (savedAt === null) {
-        throw new Error('expected lastSavedAt');
-      }
-      expect(savedAt).toBeGreaterThanOrEqual(before);
+      expect(state.lastSavedAt()).toBe(1_752_577_200_000);
+      nowSpy.mockRestore();
       expect(state.lastPersistedAt()).toBeNull();
       expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
     });

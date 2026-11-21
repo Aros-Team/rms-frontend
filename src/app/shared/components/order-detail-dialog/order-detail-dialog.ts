@@ -1,11 +1,17 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DialogModule } from 'primeng/dialog';
-import { OrderResponse } from '@app/shared/models/dto/orders/order-response.model';
+import {
+  type OrderDetailItem,
+  type OrderResponse,
+  calculateLineTotal,
+  calculateTotalPrice,
+} from '@app/shared/models/dto/orders/order-response';
+import { Money } from '@app/shared/pipes/money/money';
 
 @Component({
   selector: 'app-order-detail-dialog',
-  imports: [CommonModule, DialogModule],
+  imports: [CommonModule, DialogModule, Money],
   templateUrl: './order-detail-dialog.html',
 })
 export class OrderDetailDialog {
@@ -15,9 +21,21 @@ export class OrderDetailDialog {
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() closed = new EventEmitter<void>();
 
+  /**
+   * Per-line money total.
+   *
+   * `unitPrice` is a `MoneyDto` on the wire and already includes the line's
+   * option surcharge, so `extraCharge` is not added again. Normalization
+   * happens here, in TS, via `calculateLineTotal`.
+   */
+  getLineTotal(item: OrderDetailItem): number {
+    return calculateLineTotal(item);
+  }
+
+  /** Delegates to the DTO helper, which prefers the server-computed total. */
   getTotalPrice(): number {
-    if (!this.order?.details) return 0;
-    return this.order.details.reduce((sum, item) => sum + (item.unitPrice || 0), 0);
+    if (!this.order) return 0;
+    return calculateTotalPrice(this.order);
   }
 
   getStatusBadgeClass(status: string): string {

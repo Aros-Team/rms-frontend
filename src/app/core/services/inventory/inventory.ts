@@ -6,7 +6,7 @@ import { TransferRequest } from '@models/dto/inventory/transfer-request';
 import { TransferResponse } from '@models/dto/inventory/transfer-response';
 
 @Injectable({ providedIn: 'root' })
-export class InventoryService {
+export class Inventory {
   private http = inject(HttpClient);
 
   public transferToKitchen(data: TransferRequest): Observable<TransferResponse[]> {

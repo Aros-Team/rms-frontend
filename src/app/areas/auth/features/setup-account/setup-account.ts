@@ -7,11 +7,20 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { SetupAccount as SetupAccountService } from '@services/auth/setup-account';
-import { SetupAccountResponse } from '@models/dto/auth/setup-account-response.model';
-import { SetupPasswordRequest } from '@models/dto/auth/setup-password-request.model';
+import { SetupAccountResponse } from '@models/dto/auth/setup-account-response';
+import { SetupPasswordRequest } from '@models/dto/auth/setup-password-request';
 import { MessageService } from 'primeng/api';
 import { Logging } from '@app/core/services/logging/logging';
 import { NgClass } from '@angular/common';
+import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
+import {
+  hasLowerCase,
+  hasMinPasswordLength,
+  hasNumber,
+  hasSymbol,
+  hasUpperCase,
+  isPasswordValid,
+} from '@app/shared/lib/password-policy/password-policy';
 
 @Component({
   selector: 'app-setup-account',
@@ -36,6 +45,8 @@ export class SetupAccount implements OnInit {
 
   loading = signal(true);
   error = signal<string | null>(null);
+  /** Server's RFC-7807 `detail`, when the failure carried one. */
+  serverDetail = signal<string | null>(null);
   success = signal(false);
   userData = signal<SetupAccountResponse | null>(null);
   currentStep = signal(1);
@@ -70,6 +81,7 @@ export class SetupAccount implements OnInit {
       },
       error: (err: HttpErrorResponse) => {
         this.loading.set(false);
+        this.serverDetail.set(extractProblemDetail(err));
         if (err.status === 409) {
           this.error.set('already_used');
         } else {
@@ -141,15 +153,17 @@ export class SetupAccount implements OnInit {
       },
       error: (err: HttpErrorResponse) => {
         this.loading.set(false);
+        const problemDetail = extractProblemDetail(err);
+        this.serverDetail.set(problemDetail);
         if (err.status === 409) {
           this.error.set('already_used');
-        } else if (err.status === 400) {
+        } else if (err.status === 400 || err.status === 422) {
           this.error.set('invalid');
         } else {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'No se pudo activar la cuenta. Intente más tarde.',
+            detail: problemDetail ?? 'No se pudo activar la cuenta. Intente más tarde.',
             life: 5000,
           });
         }
@@ -158,13 +172,7 @@ export class SetupAccount implements OnInit {
   }
 
   private validatePasswordStrength(password: string): boolean {
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-    const hasSymbol = /[!@#$%^&*()+\-=[\]{};':"\\|,.<>?]/.test(password);
-    const hasMinLength = password.length >= 8;
-
-    if (!hasMinLength || !hasUpperCase || !hasLowerCase || !hasNumbers || !hasSymbol) {
+    if (!isPasswordValid(password)) {
       this.messageService.add({
         severity: 'error',
         summary: 'Contraseña débil',
@@ -178,11 +186,11 @@ export class SetupAccount implements OnInit {
 
   checkPasswordRequirement(password: string, requirement: string): boolean {
     switch (requirement) {
-      case 'minLength': return password.length >= 8;
-      case 'upperCase': return /[A-Z]/.test(password);
-      case 'lowerCase': return /[a-z]/.test(password);
-      case 'number': return /\d/.test(password);
-      case 'symbol': return /[!@#$%^&*()+\-=[\]{};':"\\|,.<>?]/.test(password);
+      case 'minLength': return hasMinPasswordLength(password);
+      case 'upperCase': return hasUpperCase(password);
+      case 'lowerCase': return hasLowerCase(password);
+      case 'number': return hasNumber(password);
+      case 'symbol': return hasSymbol(password);
       default: return false;
     }
   }

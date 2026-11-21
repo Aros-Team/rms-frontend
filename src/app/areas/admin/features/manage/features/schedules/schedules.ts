@@ -6,9 +6,9 @@ import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, Abs
 
 import { Schedule } from '@app/core/services/schedules/schedule';
 import { Logging } from '@app/core/services/logging/logging';
-import { Schedule as ScheduleModel } from '@app/shared/models/dto/schedules/schedule.model';
-import { DayOfWeek, Shift as ShiftModel } from '@app/shared/models/dto/schedules/shift.model';
-import { CreateScheduleRequest } from '@app/shared/models/dto/schedules/create-schedule-request.model';
+import { Schedule as ScheduleModel } from '@app/shared/models/dto/schedules/schedule';
+import { DayOfWeek, Shift as ShiftModel } from '@app/shared/models/dto/schedules/shift';
+import { CreateScheduleRequest } from '@app/shared/models/dto/schedules/create-schedule-request';
 
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
@@ -22,7 +22,7 @@ import { SelectModule } from 'primeng/select';
 import { TooltipModule } from 'primeng/tooltip';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { MessageService, ConfirmationService } from 'primeng/api';
-import { TableSkeleton } from '@shared/skeletons/table-skeleton';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 
 const errorTranslations: Record<string, string> = {
   'Schedule name already exists': 'El nombre del horario ya existe',

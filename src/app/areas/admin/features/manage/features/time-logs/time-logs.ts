@@ -4,7 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 import { TimeLog, TimeLogFilterParams } from '@app/core/services/schedules/time-log';
 import { Logging } from '@app/core/services/logging/logging';
-import { TimeLogEntry } from '@app/shared/models/dto/schedules/time-log-entry.model';
+import { TimeLogEntry } from '@app/shared/models/dto/schedules/time-log-entry';
 
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
@@ -14,7 +14,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
-import { TableSkeleton } from '@shared/skeletons/table-skeleton';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 
 @Component({
   selector: 'app-time-logs',

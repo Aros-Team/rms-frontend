@@ -1,3 +1,10 @@
+/**
+ * Tests for the GeneralStep component (combo wizard step 1).
+ *
+ * Feature: General info form for combo (name, description, image).
+ * Contract: Renders form fields, validates required fields, emits valid state.
+ * Approach: Mount component via TestBed with test host, fill fields, assert validation state.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import {
   ɵresolveComponentResources as resolveComponentResources,
@@ -130,28 +137,54 @@ describe('GeneralStep', () => {
   }
 
   describe('form fields rendering', () => {
-    it('renders name input', () => {
-      createComponent();
-      const input = getNative().querySelector('[data-testid="name-input"]');
-      expect(input).toBeTruthy();
+    it('renders name input', async () => {
+      createComponent({ name: 'Combo Test' });
+      await Promise.resolve();
+      fixture.detectChanges();
+      const input = getNative().querySelector<HTMLInputElement>('[data-testid="name-input"]');
+      expect(input?.id).toBe('name');
+      expect(input?.value).toBe('Combo Test');
+      expect(getNative().querySelector('label[for="name"]')?.textContent.trim()).toBe(
+        'Nombre del combo',
+      );
     });
 
-    it('renders description textarea', () => {
-      createComponent();
-      const textarea = getNative().querySelector('[data-testid="description-input"]');
-      expect(textarea).toBeTruthy();
+    it('renders description textarea', async () => {
+      createComponent({ description: 'Sopa + plato' });
+      await Promise.resolve();
+      fixture.detectChanges();
+      const textarea = getNative().querySelector<HTMLTextAreaElement>(
+        '[data-testid="description-input"]',
+      );
+      expect(textarea?.id).toBe('description');
+      expect(textarea?.rows).toBe(3);
+      expect(textarea?.value).toBe('Sopa + plato');
+      expect(getNative().querySelector('label[for="description"]')?.textContent.trim()).toBe(
+        'Descripción',
+      );
     });
 
     it('renders scheduling required checkbox', () => {
       createComponent();
-      const el = getNative().querySelector('[data-testid="scheduling-required-checkbox"]');
-      expect(el).toBeTruthy();
+      const host = getNative().querySelector('[data-testid="scheduling-required-checkbox"]');
+      expect(host?.querySelector('input[type="checkbox"]')?.getAttribute('id')).toBe(
+        'schedulingRequired',
+      );
+      expect(getNative().querySelector('label[for="schedulingRequired"]')?.textContent.trim()).toBe(
+        'Horario requerido',
+      );
     });
 
     it('renders category chips', () => {
       createComponent();
-      const el = getNative().querySelector('[data-testid="category-chips"]');
-      expect(el).toBeTruthy();
+      const chips = Array.from(
+        getNative().querySelectorAll('[data-testid="category-chips"] p-chip'),
+      );
+      expect(chips.map((chip) => chip.textContent.trim())).toEqual([
+        'Bebidas',
+        'Entradas',
+        'Postres',
+      ]);
     });
 
     it('sets name from wizard initial data', () => {
@@ -164,13 +197,13 @@ describe('GeneralStep', () => {
   describe('name input updates wizard state', () => {
     it('calls updateData on name change', () => {
       createComponent({ name: 'Original' });
-      const input = getNative().querySelector('[data-testid="name-input"]');
-      expect(input).toBeTruthy();
-
-      if (input instanceof HTMLInputElement) {
-        input.value = 'Nuevo nombre';
-        input.dispatchEvent(new Event('input'));
+      const input = getNative().querySelector<HTMLInputElement>('[data-testid="name-input"]');
+      if (!(input instanceof HTMLInputElement)) {
+        throw new Error('name input not found');
       }
+
+      input.value = 'Nuevo nombre';
+      input.dispatchEvent(new Event('input'));
       fixture.detectChanges();
 
       expect(wizardMock.updateData).toHaveBeenCalledWith({ name: 'Nuevo nombre' });
@@ -266,7 +299,7 @@ describe('GeneralStep', () => {
       fixture.detectChanges();
 
       const editor = getNative().querySelector('[data-testid="schedule-editor"]');
-      expect(editor).toBeTruthy();
+      expect(editor?.querySelector('span')?.textContent.trim()).toBe('Horario');
     });
 
     it('adds a schedule block', () => {
@@ -322,7 +355,8 @@ describe('GeneralStep', () => {
       fixture.detectChanges();
 
       const skeleton = getNative().querySelector('[data-testid="loading-skeleton"]');
-      expect(skeleton).toBeTruthy();
+      expect(skeleton?.querySelectorAll('p-skeleton').length).toBe(6);
+      expect(getNative().querySelector('[data-testid="name-input"]')).toBeNull();
     });
 
     it('hides skeleton when reference cache finishes loading', () => {

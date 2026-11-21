@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { SetupAccountResponse } from '@models/dto/auth/setup-account-response.model';
-import { SetupPasswordRequest } from '@models/dto/auth/setup-password-request.model';
+import { SetupAccountResponse } from '@models/dto/auth/setup-account-response';
+import { SetupPasswordRequest } from '@models/dto/auth/setup-password-request';
 import { Logging } from '@app/core/services/logging/logging';
 
 @Injectable({

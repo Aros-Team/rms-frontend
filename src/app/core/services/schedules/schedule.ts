@@ -2,8 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Logging } from '@app/core/services/logging/logging';
-import { Schedule as ScheduleModel } from '@app/shared/models/dto/schedules/schedule.model';
-import { CreateScheduleRequest } from '@app/shared/models/dto/schedules/create-schedule-request.model';
+import { Schedule as ScheduleModel } from '@app/shared/models/dto/schedules/schedule';
+import { CreateScheduleRequest } from '@app/shared/models/dto/schedules/create-schedule-request';
 
 @Injectable({ providedIn: 'root' })
 export class Schedule {

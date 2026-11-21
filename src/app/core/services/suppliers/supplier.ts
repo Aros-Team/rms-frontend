@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -10,8 +10,12 @@ import { SupplierUpdateRequest } from '@models/dto/suppliers/supplier-update-req
 export class Supplier {
   private http = inject(HttpClient);
 
-  public getSuppliers(): Observable<SupplierResponse[]> {
-    return this.http.get<SupplierResponse[]>('v1/suppliers');
+  public getSuppliers(search?: string): Observable<SupplierResponse[]> {
+    let params = new HttpParams();
+    if (search) {
+      params = params.set('search', search);
+    }
+    return this.http.get<SupplierResponse[]>('v1/suppliers', { params });
   }
 
   public createSupplier(data: SupplierCreateRequest): Observable<SupplierResponse> {

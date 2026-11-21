@@ -1,7 +1,7 @@
 <div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0">
   <div class="mb-6">
     <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0">Mi Horario Semanal</h1>
-    <p class="text-surface-600 dark:text-surface-400 mt-1 text-sm">Tus turnos asignados para esta semana</p>
+    <p class="text-muted mt-1 text-sm">Tus turnos asignados para esta semana</p>
   </div>
 
   @if (loading()) {
@@ -15,8 +15,8 @@
     </div>
   } @else if (error()) {
     <div class="flex flex-col items-center justify-center p-8">
-      <i class="pi pi-exclamation-triangle text-4xl text-surface-300 mb-4"></i>
-      <p class="text-surface-500">{{ error() }}</p>
+      <i class="pi pi-exclamation-triangle text-4xl text-surface-300 mb-4" aria-hidden="true"></i>
+      <p class="text-muted">{{ error() }}</p>
       <p-button label="Reintentar" icon="pi pi-refresh" (onClick)="loadSchedule()" class="mt-4"></p-button>
     </div>
   } @else if (scheduleData(); as data) {
@@ -29,21 +29,21 @@
             <h3 class="font-semibold text-surface-900 dark:text-surface-0">
               {{ DAY_LABELS[day.dayOfWeek] || day.dayOfWeek }}
               @if (isToday(day.dayOfWeek)) {
-                <span class="text-primary-600 dark:text-primary-400 text-sm ml-2">(Hoy)</span>
+                <span class="text-accent text-sm ml-2">(Hoy)</span>
               }
             </h3>
           </div>
           <div class="p-4">
             @if (day.shifts.length === 0) {
-              <p class="text-surface-400 text-sm text-center py-4">Sin turnos asignados</p>
+              <p class="text-muted text-sm text-center py-4">Sin turnos asignados</p>
             } @else {
               <div class="flex flex-col gap-3">
                 @for (shift of day.shifts; track $index) {
                   <div class="flex items-center gap-3 p-2 rounded-lg bg-surface-50 dark:bg-surface-800">
-                    <i class="pi pi-clock text-primary-500"></i>
+                    <i class="pi pi-clock text-accent" aria-hidden="true"></i>
                     <div class="flex flex-col">
                       <span class="text-sm font-medium text-surface-900 dark:text-surface-0">{{ shift.scheduleName }}</span>
-                      <span class="text-xs text-surface-500">{{ shift.startTime }} - {{ shift.endTime }}</span>
+                      <span class="text-xs text-muted">{{ shift.startTime }} - {{ shift.endTime }}</span>
                     </div>
                   </div>
                 }

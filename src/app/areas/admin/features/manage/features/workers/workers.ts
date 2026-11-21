@@ -19,25 +19,28 @@ import { TagModule } from 'primeng/tag';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DatePickerModule } from 'primeng/datepicker';
-import { WorkerResponse } from '@app/shared/models/dto/workers/worker-response.model';
+import { WorkerResponse } from '@app/shared/models/dto/workers/worker-response';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Worker } from '@app/core/services/workers/worker';
-import { CreateWorkerRequest } from '@app/shared/models/dto/workers/create-worker-request.model';
+import { CreateWorkerRequest } from '@app/shared/models/dto/workers/create-worker-request';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { FormValidation } from '@app/shared/components/form/form-validation';
 import { Logging } from '@app/core/services/logging/logging';
-import { UpdateWorkerRequest } from '@app/shared/models/dto/workers/worker-response.model';
-import { WorkersCacheService } from './workers-cache.service';
-import { LazyLoadDirective } from '@app/core/directives/lazy-load.directive';
-import { AreaResponse } from '@app/shared/models/dto/areas/area.model';
+import { UpdateWorkerRequest } from '@app/shared/models/dto/workers/worker-response';
+import { tryToAmount } from '@app/shared/models/dto/common/money';
+import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
+import { WorkersCache } from './workers-cache';
+import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
+import { AreaResponse } from '@app/shared/models/dto/areas/area';
 import { Area } from '@app/core/services/areas/area';
-import { TableSkeleton } from '@shared/skeletons/table-skeleton';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 import { WorkerCard } from './worker-card';
+import { PayrollPanel } from './payroll-panel/payroll-panel';
 import { TimeLog, TimeLogFilterParams } from '@app/core/services/schedules/time-log';
-import { TimeLogEntry } from '@app/shared/models/dto/schedules/time-log-entry.model';
+import { TimeLogEntry } from '@app/shared/models/dto/schedules/time-log-entry';
 import { Schedule } from '@app/core/services/schedules/schedule';
 import { ScheduleAssignment } from '@app/core/services/schedules/schedule-assignment';
-import { Schedule as ScheduleModel } from '@app/shared/models/dto/schedules/schedule.model';
+import { Schedule as ScheduleModel } from '@app/shared/models/dto/schedules/schedule';
 
 interface WorkerFormValue {
   document: string;
@@ -54,6 +57,7 @@ interface WorkerFormValue {
 @Component({
   selector: 'app-workers',
   imports: [
+    NgClass,
     RouterModule,
     FormsModule,
     TableModule,
@@ -72,13 +76,12 @@ interface WorkerFormValue {
     ConfirmDialogModule,
     DatePickerModule,
     FormValidation,
-    LazyLoadDirective,
+    LazyLoad,
     TableSkeleton,
     WorkerCard,
-    NgClass,
+    PayrollPanel,
   ],
   templateUrl: './workers.html',
-  styles: ``,
 })
 export class Workers implements OnInit {
   private workerService = inject(Worker);
@@ -87,7 +90,7 @@ export class Workers implements OnInit {
   private logger = inject(Logging);
   private confirmationService = inject(ConfirmationService);
   private destroyRef = inject(DestroyRef);
-  readonly cache = inject(WorkersCacheService);
+  readonly cache = inject(WorkersCache);
   private timeLogService = inject(TimeLog);
   private scheduleService = inject(Schedule);
   private scheduleAssignmentService = inject(ScheduleAssignment);
@@ -95,13 +98,11 @@ export class Workers implements OnInit {
   // Template refs for focus management
   @ViewChild('tabEmpleados') tabEmpleados?: ElementRef<HTMLButtonElement>;
   @ViewChild('tabTimeLogs') tabTimeLogs?: ElementRef<HTMLButtonElement>;
+  @ViewChild('tabPayroll') tabPayroll?: ElementRef<HTMLButtonElement>;
   @ViewChild('firstInputRef') firstInputRef?: ElementRef<HTMLElement>;
 
   // Tab navigation
-  activeEmployeeTab = signal<'list' | 'time-logs'>('list');
-
-  title = 'Administración de trabajadores';
-  description = 'Gestión completa de todos los trabajadores del restaurante';
+  activeEmployeeTab = signal<'list' | 'time-logs' | 'payroll'>('list');
 
   // Time-log state
   timeLogs = signal<TimeLogEntry[]>([]);
@@ -173,8 +174,10 @@ export class Workers implements OnInit {
     this.editing = true;
     this.backendFieldErrors = {};
     this.fillFormWithData(worker);
-    this.originalSalary.set(worker.salary ?? null);
-    this.salaryValue.set(worker.salary ?? null);
+    // `salary` is a `Money` DTO on the wire; the form/request work with numbers.
+    const salary = tryToAmount(worker.salary);
+    this.originalSalary.set(salary);
+    this.salaryValue.set(salary);
     this.userForm.patchValue({ reason: null, observations: null });
     this.creationModalVisible = true;
   }
@@ -217,9 +220,10 @@ export class Workers implements OnInit {
           life: 5000,
         });
       },
-      error: (err: { status?: number; error?: { message?: string } }) => {
+      error: (err: HttpErrorResponse) => {
         this.logger.error('Error creating worker:', err);
-        const backendMessage = err.error?.message;
+        // RFC 7807: the API reports the reason in `detail`, never in `message`.
+        const backendMessage = extractProblemDetail(err);
 
         if (err.status === 400 && backendMessage) {
           this.parseBackendValidationErrors(backendMessage);
@@ -319,9 +323,9 @@ export class Workers implements OnInit {
           life: 5000,
         });
       },
-      error: (err: { status?: number; error?: { message?: string } }) => {
+      error: (err: HttpErrorResponse) => {
         this.logger.error('Error updating worker:', err);
-        const backendMessage = err.error?.message;
+        const backendMessage = extractProblemDetail(err);
 
         if (err.status === 400 && backendMessage) {
           this.parseBackendValidationErrors(backendMessage);
@@ -399,9 +403,9 @@ export class Workers implements OnInit {
               life: 5000,
             });
           },
-          error: (err: { status?: number; error?: { message?: string } }) => {
+          error: (err: HttpErrorResponse) => {
             this.logger.error('Error deleting worker:', err);
-            const backendMessage = err.error?.message;
+            const backendMessage = extractProblemDetail(err);
 
             if (err.status === 404) {
               this.messageService.add({
@@ -444,9 +448,9 @@ export class Workers implements OnInit {
           life: 5000,
         });
       },
-      error: (err: { status?: number; error?: { message?: string } }) => {
+      error: (err: HttpErrorResponse) => {
         this.logger.error('Error retrying setup email:', err);
-        const backendMessage = err.error?.message;
+        const backendMessage = extractProblemDetail(err);
 
         if (err.status === 404) {
           this.messageService.add({
@@ -482,7 +486,7 @@ export class Workers implements OnInit {
       phone: data.phone ?? '',
       address: data.address ?? '',
       areaId: data.assignedAreas?.[0] ?? null,
-      salary: data.salary ?? null,
+      salary: tryToAmount(data.salary),
     });
   }
 
@@ -560,18 +564,22 @@ export class Workers implements OnInit {
 
   // ── Time-log methods ──
 
-  switchTab(tab: 'list' | 'time-logs'): void {
+  switchTab(tab: 'list' | 'time-logs' | 'payroll'): void {
     if (this.activeEmployeeTab() === tab) return;
     this.activeEmployeeTab.set(tab);
     if (tab === 'time-logs') {
       this.loadTimeLogs();
     }
+    // `payroll` needs no call here: the panel is mounted by `@if` on first
+    // activation and loads its three caches in its own constructor.
     // Focus the active tab for keyboard/AT users
     setTimeout(() => {
       if (tab === 'list') {
         this.tabEmpleados?.nativeElement.focus();
-      } else {
+      } else if (tab === 'time-logs') {
         this.tabTimeLogs?.nativeElement.focus();
+      } else {
+        this.tabPayroll?.nativeElement.focus();
       }
     });
   }

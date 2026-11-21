@@ -7,8 +7,10 @@ import { ButtonModule } from 'primeng/button';
 import { SkeletonModule } from 'primeng/skeleton';
 
 import { Worker } from '@app/core/services/workers/worker';
-import { SalaryHistoryEntry } from '@app/shared/models/dto/workers/salary-history-entry.model';
+import { SalaryHistoryEntry } from '@app/shared/models/dto/workers/salary-history-entry';
 import { Logging } from '@app/core/services/logging/logging';
+import { formatInstant } from '@app/shared/lib/date-format/date-format';
+import { Money } from '@app/shared/pipes/money/money';
 
 @Component({
   selector: 'app-salary-history',
@@ -17,7 +19,7 @@ import { Logging } from '@app/core/services/logging/logging';
     TableModule,
     ButtonModule,
     SkeletonModule,
-
+    Money,
   ],
   templateUrl: './salary-history.html',
 })
@@ -34,8 +36,6 @@ export class SalaryHistory implements OnInit {
     return data !== undefined && data.length > 0;
   });
 
-  currencyFormat = Intl.NumberFormat('es-Co', { style: 'currency', currency: 'COP' });
-
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!id) {
@@ -46,16 +46,12 @@ export class SalaryHistory implements OnInit {
     this.loadHistory();
   }
 
-  formatSalary(value: number | null): string {
-    if (value === null) return '-';
-    return this.currencyFormat.format(value);
-  }
-
+  /**
+   * Renders the change instant as `dd/mm/aaaa HH:mm` (shared helper — never a
+   * local `Intl.DateTimeFormat`, which produced `15T18:00:00/06/2026`).
+   */
   formatDateTime(iso: string): string {
-    return new Intl.DateTimeFormat('es-CO', {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    }).format(new Date(iso));
+    return formatInstant(iso);
   }
 
   private loadHistory(): void {

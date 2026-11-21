@@ -1,18 +1,23 @@
+/**
+ * Tests for combo foundation DTO type contracts.
+ *
+ * Feature: TypeScript interfaces for combo wizard data structures.
+ * Contract: DTOs accept expected shapes; type narrowing works correctly.
+ * Approach: Create objects matching DTO interfaces, assert they compile and have correct properties.
+ */
 import type { DockItem } from '@app/core/services/order-dock/order-dock';
 import type {
   ClientOrderDetail,
-} from '@app/shared/models/dto/orders/order-details-response.model';
+} from '@app/shared/models/dto/orders/order-details-response';
 import type {
   OrderDetailItem,
-} from '@app/shared/models/dto/orders/order-response.model';
+} from '@app/shared/models/dto/orders/order-response';
 import type {
   CreateOrderDetail,
   CreateOrderRequest,
-} from '@app/shared/models/dto/orders/create-order-request.model';
-import type { ProductCreateRequest } from '@app/shared/models/dto/products/product-create-request';
-import type { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
+} from '@app/shared/models/dto/orders/create-order-request';
+import type { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
 import type { ProductResponse } from '@app/shared/models/dto/products/product-response';
-import type { ProductUpdateRequest } from '@app/shared/models/dto/products/product-update-request';
 import type {
   SpecialSelectionGroupRequest,
   SpecialSelectionGroupResponse,
@@ -95,7 +100,7 @@ describe('Combo foundation DTO contracts', () => {
     const product: ProductListResponse = {
       id: 90,
       name: 'Combo Ejecutivo',
-      basePrice: 25,
+      basePrice: { amount: '25.00', currency: 'COP' },
       active: true,
       categoryId: 5,
       categoryName: 'Combos',
@@ -144,12 +149,6 @@ describe('Combo foundation DTO contracts', () => {
 
     expect(values).toEqual(['STANDARD', 'SPECIAL_SELECTION']);
     expectTypeOf<SelectionType>().toEqualTypeOf<'STANDARD' | 'SPECIAL_SELECTION'>();
-    expectTypeOf<ProductCreateRequest['selectionType']>().toEqualTypeOf<
-      SelectionType | undefined
-    >();
-    expectTypeOf<ProductUpdateRequest['selectionType']>().toEqualTypeOf<
-      SelectionType | undefined
-    >();
     expectTypeOf<ProductResponse['selectionType']>().toEqualTypeOf<
       SelectionType | undefined
     >();

@@ -8,9 +8,18 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
-import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
-import type { SpecialSelectionHistoryEntry } from '@app/shared/models/dto/special-selections/special-selection-history';
+import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
+import {
+  parseHistorySnapshot,
+  type SpecialSelectionHistoryEntry,
+  type SpecialSelectionSnapshot,
+} from '@app/shared/models/dto/special-selections/special-selection-history';
 import type { ChangeType } from '@app/shared/models/dto/special-selections/special-selection-ws-payload';
+
+/** History row plus the parsed snapshot for rendering. */
+interface HistoryEntryView extends SpecialSelectionHistoryEntry {
+  snapshot: SpecialSelectionSnapshot | null;
+}
 
 @Component({
   selector: 'app-combo-history',
@@ -27,7 +36,7 @@ import type { ChangeType } from '@app/shared/models/dto/special-selections/speci
   styleUrl: './combo-history.css',
 })
 export class ComboHistory {
-  private readonly cache = inject(SpecialSelectionsCacheService);
+  private readonly cache = inject(SpecialSelectionsCache);
   private readonly messageService = inject(MessageService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly router = inject(Router);
@@ -35,7 +44,14 @@ export class ComboHistory {
   readonly id = input.required<number>();
 
   private readonly historyRes = computed(() => this.cache.history(this.id()));
-  readonly entries = computed(() => this.historyRes().data()?.content ?? []);
+  private readonly historyPage = computed(() => this.historyRes().data());
+
+  readonly entries = computed<HistoryEntryView[]>(() =>
+    (this.historyPage()?.content ?? []).map((entry) => ({
+      ...entry,
+      snapshot: parseHistorySnapshot(entry),
+    })),
+  );
   readonly isLoading = computed(() => this.historyRes().isLoading());
   readonly expandedVersions = signal<Set<number>>(new Set());
 
@@ -50,7 +66,6 @@ export class ComboHistory {
       SCHEDULE_CHANGE: 'Cambio de horario',
       PRICE_CHANGE: 'Cambio de precio',
       DELETE: 'Eliminación',
-      REVERT: 'Reversión',
     };
     return labels[type];
   }
@@ -62,7 +77,6 @@ export class ComboHistory {
       SCHEDULE_CHANGE: 'info',
       PRICE_CHANGE: 'info',
       DELETE: 'danger',
-      REVERT: 'success',
     };
     return sevs[type];
   }

@@ -9,17 +9,17 @@
     <!-- Error -->
     @if (error()) {
       <div class="mb-4 p-4 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-xl flex items-center gap-3">
-        <i class="pi pi-exclamation-circle text-red-700 dark:text-red-300"></i>
+        <i class="pi pi-exclamation-circle text-red-700 dark:text-red-300" aria-hidden="true"></i>
         <span class="text-red-700 dark:text-red-300 text-sm">{{ error() }}</span>
         <button class="ml-auto text-red-700 dark:text-red-300 hover:text-red-900" (click)="error.set(null)">
-          <i class="pi pi-times"></i>
+          <i class="pi pi-times" aria-hidden="true"></i>
         </button>
       </div>
     }
 
     <!-- Search bar -->
     <p-iconfield iconPosition="left" class="mb-4">
-      <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+      <p-inputicon><i class="pi pi-search" aria-hidden="true"></i></p-inputicon>
       <input pInputText type="text" [(ngModel)]="searchQuery" placeholder="Buscar producto..." class="w-full" />
     </p-iconfield>
 
@@ -30,7 +30,7 @@
           class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
           [class]="activeCategory() === cat
             ? 'bg-primary-500 text-surface-900'
-            : 'bg-surface-100 dark:bg-surface-800 text-surface-600 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700'"
+            : 'bg-surface-100 dark:bg-surface-800 text-muted hover:bg-surface-200 dark:hover:bg-surface-700'"
           (click)="selectCategory(cat)">
           {{ cat }}
         </button>
@@ -39,8 +39,8 @@
 
     <!-- Product cards grid -->
     @if (filteredProducts().length === 0) {
-      <div class="text-center py-16 text-surface-500">
-        <i class="pi pi-search text-4xl mb-3 block"></i>
+      <div class="text-center py-16 text-muted">
+        <i class="pi pi-search text-4xl mb-3 block" aria-hidden="true"></i>
         <p class="text-sm">No se encontraron productos</p>
       </div>
     }
@@ -59,11 +59,12 @@
                 [alt]="product.name"
                 class="group-hover:scale-105 transition-transform duration-300"
                 loading="lazy"
+                decoding="async"
                 (error)="$any($event.target).src = defaultImage"
               />
             } @else {
-              <div class="flex flex-col items-center gap-1 text-surface-400">
-                <i class="pi pi-image text-2xl"></i>
+              <div class="flex flex-col items-center gap-1 text-muted">
+                <i class="pi pi-image text-2xl" aria-hidden="true"></i>
                 <span class="text-[10px]">Sin imagen</span>
               </div>
             }
@@ -75,14 +76,14 @@
               {{ product.name }}
             </span>
             @if (product.description) {
-              <p class="text-xs text-surface-500 dark:text-surface-400 line-clamp-2">{{ product.description }}</p>
+              <p class="text-xs text-muted line-clamp-2">{{ product.description }}</p>
             }
             <div class="flex items-center justify-between mt-1">
-              <span class="text-primary-700 dark:text-primary-300 font-semibold text-sm">
-                ${{ product.basePrice | number:'1.2-2' }}
+              <span class="text-primary-700 dark:text-primary-300 font-semibold text-sm" data-testid="product-price">
+                {{ product.basePrice | money }}
               </span>
-              <span class="text-[10px] text-surface-400 flex items-center gap-0.5">
-                <i class="pi pi-plus-circle text-xs"></i>
+              <span class="text-[10px] text-muted flex items-center gap-0.5">
+                <i class="pi pi-plus-circle text-xs" aria-hidden="true"></i>
                 Agregar
               </span>
             </div>

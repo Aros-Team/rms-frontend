@@ -6,7 +6,6 @@ import { OrdersTable } from '@areas/admin/features/orders/components/orders-tabl
   selector: 'app-orders',
   imports: [OrdersTable],
   templateUrl: './orders.html',
-  styles: ``
 })
 export class Orders {
   title = 'Gestión de Pedidos';

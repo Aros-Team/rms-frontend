@@ -1,360 +1,1366 @@
 [
   {
-    "id": "analytics-foundation",
-    "name": "Analytics contract and data foundation",
+    "id": 21,
     "type": "feat",
-    "status": "done",
-    "priority": "critical",
-    "description": "Generate DTOs from OpenAPI, implement Analytics HTTP service + ResourceCache layer, Money pipe, and shared utilities.",
-    "dependsOn": [],
-    "tasks": [
-      {
-        "id": "AN-01-01",
-        "description": "Produce a decision register for analytics covering: Money serialization (decimal string + ISO currency) display strategy, bucket-aware period key formatting and validation rules, default period selection per module (monthly last-6 months), cache TTL strategy by module, error mapping for RFC 7807 problem+json, navigation structure (horizontal tabs mirroring manage pattern), shared period store scope, charts library choice (PrimeNG p-chart with chart.js), fallback strategy when dataCompleteness != FULL, accessibility expectations, and screen structure for each module.",
-        "status": "done",
-        "agent": "reviewer"
-      },
-      {
-        "id": "AN-01-02",
-        "description": "Create TypeScript DTO models under src/app/shared/models/dto/analytics/ matching the analytics.yaml schemas: Money, MetricValue, Period, DataCompleteness, TimeBucket, PrimeCostReport, MenuEngineeringReport, OperationsReport, CohortReport, Alert, AlertsPage, AlertSeverity, AlertStatus, AlertType, ProblemDetail, and sub-types.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-01-03",
-        "description": "Replace existing single-method Analytics service at src/app/core/services/analytics/analytics.ts with full coverage: getPrimeCost, getMenuEngineering, getOperations, getCohort, listAlerts (with filters), markAlertRead, getTopSellingProducts kept for back-compat.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-01-04",
-        "description": "Create AnalyticsCacheService with one ResourceCache per module (primeCost, menuEngineering, operations, cohort, alerts) using appropriate TTLs, plus a shared period signal store at src/app/core/services/analytics/analytics-period-state.ts that the shell and sub-pages consume.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-01-05",
-        "description": "Implement MoneyPipe (displays COP with thousands sep and no decimals) and MetricValuePipe (generic decimal formatting) plus period key utility (formatPeriodKey bucket-aware) at src/app/shared/pipes/ and src/app/core/services/analytics/analytics-utils.ts.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-01-06",
-        "description": "Add foundation tests at src/app/core/services/analytics/ covering HTTP URLs and params (query string, limits, offsets), problem+json error mapping, Money/MetricValue pipe localization, period key formatting, and cache TTL/invalidation.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-01-07",
-        "description": "Review foundation DTO alignment with analytics.yaml, resource/service/cache separation, period state contract, and Money/MetricValue rounding rules.",
-        "status": "done",
-        "agent": "reviewer"
-      }
-    ]
-  },
-  {
-    "id": "analytics-shell",
-    "name": "Analytics shell, navigation, and period selector",
-    "type": "feat",
-    "status": "done",
-    "priority": "high",
-    "description": "Refactor existing analytics page into a parent shell with router-outlet, internal sub-routes for the five modules, horizontal tab navigation, and a shared period selector that writes to the period state.",
-    "dependsOn": [
-      "analytics-foundation"
+    "name": "search-input-component",
+    "title": "Componente compartido SearchInput con debounce de 500ms",
+    "description": "Crear un Input component reutilizable con debounce de 500ms.",
+    "acceptance": [
+      "Existe src/app/shared/components/search-input/search-input.ts + search-input.html",
+      "Selector: app-search-input. Inputs: placeholder, debounceMs. Output: searchChange.",
+      "El componente emite searchChange solo tras el debounceMs de inactividad.",
+      "Spec cubre debounce, distinctUntilChanged, trim, destroy.",
+      "Harness verde"
     ],
     "tasks": [
       {
-        "id": "AN-02-01",
-        "description": "Convert src/app/areas/admin/features/analytics/analytics.ts into a parent component with router-outlet and add five child routes (prime-cost, menu-engineering, operations, cohort, alerts) in src/app/app.routes.ts so each module lives at /admin/analytics/<module>; keep top-level redirect to 'prime-cost'.",
+        "id": "a",
+        "description": "Crear search-input.ts + search-input.html",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "AN-02-02",
-        "description": "Build AnalyticsNav horizontal tab nav at src/app/areas/admin/features/analytics/components/analytics-nav/ mirroring the manage.ts nav style with five tabs (Prime Cost, Menu, Operations, Cohort, Alerts) and active state via routerLinkActive.",
+        "id": "b",
+        "description": "Crear search-input.spec.ts",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "AN-02-03",
-        "description": "Build PeriodSelectorComponent at src/app/areas/admin/features/analytics/components/period-selector/ with bucket dropdown (daily/weekly/monthly/yearly), from/to inputs, validation (to >= from), and default = last-6-months monthly; bound to AnalyticsPeriodState.",
+        "id": "c",
+        "description": "Doc docs/server-side-search.md",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "AN-02-04",
-        "description": "Wire PeriodSelector + AnalyticsNav into the analytics shell; ensure five placeholder module pages (each showing its title and stub skeleton) so navigation lands somewhere useful while modules are built.",
+        "id": "d",
+        "description": "Verify: harness verde",
         "status": "done",
         "agent": "implementer"
-      },
-      {
-        "id": "AN-02-05",
-        "description": "Add shell tests covering active-route highlighting, default period initialization, validation error display, and child navigation.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-02-06",
-        "description": "Review shell navigation accessibility (keyboard tab order, ARIA), shared period store reactivity across pages, responsive layout mobile/tablet/desktop, and route guard behavior.",
-        "status": "done",
-        "agent": "reviewer"
       }
-    ]
+    ],
+    "status": "done"
   },
   {
-    "id": "analytics-prime-cost",
-    "name": "Prime Cost and Margins module",
+    "id": 22,
     "type": "feat",
-    "status": "done",
-    "priority": "high",
-    "description": "Implement Prime Cost page with time-series chart, COGS-by-category donut, labor-by-area donut, and margins card honoring dataCompleteness banner.",
-    "dependsOn": [
-      "analytics-shell"
+    "name": "migrate-server-side-search",
+    "title": "Migrar manage modules a búsqueda server-side",
+    "description": "Migrar los 10 módulos de manage del filtro client-side a la búsqueda server-side.",
+    "acceptance": [
+      "Cada módulo: service acepta search, cache lo propaga, componente usa app-search-input.",
+      "Harness verde"
     ],
     "tasks": [
       {
-        "id": "AN-03-01",
-        "description": "Build Prime Cost page at src/app/areas/admin/features/analytics/features/prime-cost/ with stat cards (net sales, prime cost, primeCost%, grossProfitPct) wired to AnalyticsCacheService.primeCost.",
+        "id": "a",
+        "description": "Products migration",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "AN-03-02",
-        "description": "Add a p-chart line/bar chart for primeCostPct over the chosen period keys (x = period key, y = pct) with proper labels, currency tick fallback and skeleton while loading.",
+        "id": "b",
+        "description": "Inventory/Supplies migration",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "AN-03-03",
-        "description": "Add COGS-by-category doughnut chart and labor-by-area doughnut chart using the latest period's byCategory/byArea data, plus a sortable breakdown table.",
+        "id": "c",
+        "description": "Tables migration",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "AN-03-04",
-        "description": "Add data-completeness banner that renders the response notes[] when status is PARTIAL/EMPTY, plus empty-state and error-state skeletons matching conventions.md surface layering.",
+        "id": "d",
+        "description": "Workers migration",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "AN-03-05",
-        "description": "Add Prime Cost tests covering chart rendering with mocked service, percent formatting, banner visibility, and PERIOD changes triggering data refresh.",
+        "id": "e",
+        "description": "Areas migration",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "AN-03-06",
-        "description": "Review Prime Cost UX against conventions, accessibility, data completeness handling, and number currency/formatter consistency.",
+        "id": "f",
+        "description": "Categories migration",
         "status": "done",
-        "agent": "reviewer"
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Option Categories migration",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "h",
+        "description": "Suppliers migration",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "i",
+        "description": "Purchases migration",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "j",
+        "description": "Orders migration",
+        "status": "done",
+        "agent": "implementer"
       }
-    ]
+    ],
+    "status": "done"
   },
   {
-    "id": "analytics-menu-engineering",
-    "name": "Menu Engineering (BCG matrix) module",
+    "id": 23,
     "type": "feat",
-    "status": "done",
-    "priority": "high",
-    "description": "Implement BCG-style menu engineering matrix quadrant visualization, per-item table, median reference, and cacheStatus banner with categoryId filter.",
-    "dependsOn": [
-      "analytics-shell"
+    "name": "improve-product-wizard-step1",
+    "title": "Mejorar UI del Paso 1 del wizard de producto",
+    "description": "Rediseñar el Paso 1 con layout 2 columnas, imagen, auto-create draft.",
+    "acceptance": [
+      "Layout 2 columnas en md+.",
+      "Auto-create draft on Step 1 entry.",
+      "Cleanup on cancel.",
+      "Harness verde"
     ],
     "tasks": [
       {
-        "id": "AN-04-01",
-        "description": "Build Menu Engineering page at src/app/areas/admin/features/analytics/features/menu-engineering/ with stat cards (items count, total contribution, median volume and margin) wired to AnalyticsCacheService.menuEngineering; include category filter.",
+        "id": "a",
+        "description": "Auto-create on Step 1 entry",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "AN-04-02",
-        "description": "Add BCG quadrant scatter/bubble chart (x = grossProfitPerUnit, y = unitsSold, color = quadrant) using p-chart and an item table grouped by quadrant with sortable columns (unitsSold, revenue, contribution) and paginator.",
+        "id": "b",
+        "description": "Cleanup on cancel",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "AN-04-03",
-        "description": "Add cacheStatus banner (lastRefreshedAt, sourceVersion, ttlSeconds) plus notes[] banner for partial data, and skeleton states matching conventions.md.",
+        "id": "c",
+        "description": "Restructure Step 1 layout",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "AN-04-04",
-        "description": "Add Menu Engineering tests covering quadrant math assignment, median reference, category filter trigger, cache status rendering, and skeleton/empty/error states.",
+        "id": "d",
+        "description": "Image upload area",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "AN-04-05",
-        "description": "Review Menu Engineering UX for color-blind-safe quadrant palette, accessible table sort, category filter bounds, and performance with many SKUs.",
+        "id": "e",
+        "description": "Polish prep time + area placeholder",
         "status": "done",
-        "agent": "reviewer"
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Tests",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "h",
+        "description": "Fix: replace auto-create with on-demand create",
+        "status": "done",
+        "agent": "implementer"
       }
-    ]
-  },
-  {
-    "id": "analytics-operations",
-    "name": "Operational Efficiency (RevPASH & Turns) module",
-    "type": "feat",
-    "status": "done",
-    "priority": "medium",
-    "description": "Implement RevPASH stat cards, table-turnover by day-part chart, occupancy minutes display, and notes banner for fallback to created_at/updated_at approximation.",
-    "dependsOn": [
-      "analytics-shell"
     ],
-    "tasks": [
-      {
-        "id": "AN-05-01",
-        "description": "Build Operations page at src/app/areas/admin/features/analytics/features/operations/ with RevPASH stat cards (value, totalNetSales, totalAvailableSeatHours) wired to AnalyticsCacheService.operations.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-05-02",
-        "description": "Add table-turnover by day-part bar chart (overall + per-dayPart), avgOccupancyMinutes display, and notes[] banner for fallback (orders.open_time/close_time approximation).",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-05-03",
-        "description": "Add Operations tests covering day-part segmentation (LUNCH 11-15, DINNER 18-23, OTHER), chart rendering, fallback note visibility, and refresh-on-period-change.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-05-04",
-        "description": "Review Operations UX for day-part visualization clarity, accessibility, error handling, and notes section placement.",
-        "status": "done",
-        "agent": "reviewer"
-      }
-    ]
+    "status": "done"
   },
   {
-    "id": "analytics-cohort",
-    "name": "Customer Cohort module",
-    "type": "feat",
-    "status": "done",
-    "priority": "medium",
-    "description": "Implement Cohort page with new vs recurring clients KPI cards, recurring rate visualization, and fingerprintStrategy banner.",
-    "dependsOn": [
-      "analytics-shell"
-    ],
-    "tasks": [
-      {
-        "id": "AN-06-01",
-        "description": "Build Cohort page at src/app/areas/admin/features/analytics/features/cohort/ with stat cards (newClients, recurringClients, totalOrders, recurringRatePct, averageTicketPerOrder, averageTicketPerCover) wired to AnalyticsCacheService.cohort.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-06-02",
-        "description": "Add new-vs-recurring doughnut visualization, fingerprintStrategy banner showing PHONE/PHONE_OR_TABLE/TABLE_ONLY with translated label, and notes[] fallback banner.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-06-03",
-        "description": "Add Cohort tests covering stat rendering, fingerprint strategy localized labels, and refresh on period change.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-06-04",
-        "description": "Review Cohort UX for clarity of new vs recurring definitions, ticket size formatting, and fallback messaging.",
-        "status": "done",
-        "agent": "reviewer"
-      }
-    ]
-  },
-  {
-    "id": "analytics-alerts",
-    "name": "Variance Alerts module",
-    "type": "feat",
-    "status": "done",
-    "priority": "medium",
-    "description": "Implement Alerts list with severity/type/status filters, pagination, mark-read action, and RFC 7807 error handling for PATCH endpoint.",
-    "dependsOn": [
-      "analytics-shell"
-    ],
-    "tasks": [
-      {
-        "id": "AN-07-01",
-        "description": "Build Alerts page at src/app/areas/admin/features/analytics/features/alerts/ with filter controls (status, severity, bucket/from/to, limit/offset) wired to AnalyticsCacheService.alerts.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-07-02",
-        "description": "Add alert list rendering (severity color, type icon, message, baseline vs current, deviation%, period, detectedAt) with PrimeNG paginator; wire markRead PATCH endpoint with optimistic update and toast feedback.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-07-03",
-        "description": "Add Alerts tests covering filter application, pagination, mark-read optimistic update, error handling for 404 and network failures, and 204 idempotent behavior.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "AN-07-04",
-        "description": "Review Alerts UX for severity readability, filter clarity, action feedback, and accessibility (announce updated status).",
-        "status": "done",
-        "agent": "reviewer"
-      }
-    ]
-  },
-  {
-    "id": "analytics-pre-harness-chore",
-    "name": "Pre-harness lint cleanup so analytics tasks can be marked done",
+    "id": 24,
     "type": "chore",
-    "status": "done",
-    "priority": "high",
-    "description": "Fix the 12 pre-existing lint errors in combo module files so harness is green before declaring analytics tasks done.",
-    "dependsOn": [],
-    "tasks": [
-      {
-        "id": "AN-CH-01",
-        "description": "Fix 12 pre-existing lint errors in combo module files (general-step: unused DAY_LABELS + non-null assertions; group-step: unnecessary optional chains + unsafe any[] return; pricing-step: unused signal + specialSelectionsMock) by removing dead code, replacing non-null assertions with guarded expressions, and tightening types.",
-        "status": "done",
-        "agent": "implementer"
-      }
-    ]
-  },
-  {
-    "id": "analytics-review-hardening",
-    "name": "Final analytics review, harness and doc hardening",
-    "type": "chore",
-    "status": "done",
-    "priority": "high",
-    "description": "Cross-module review of accessibility, performance, docs, and full harness pass.",
-    "dependsOn": [
-      "analytics-prime-cost",
-      "analytics-menu-engineering",
-      "analytics-operations",
-      "analytics-cohort",
-      "analytics-alerts",
-      "analytics-pre-harness-chore"
+    "name": "rename-option-category-to-option-group",
+    "title": "Renombrar option_category → option_group",
+    "description": "Renombrar modelos, services, rutas de option-category a option-group. Eliminar sección de Option Categories de Categories.",
+    "acceptance": [
+      "Ya no existen archivos o carpetas option-category.",
+      "Models renombrados a OptionGroupResponse/Request.",
+      "Service renombrado a OptionGroup.",
+      "Sección de Option Categories eliminada de Categories.",
+      "Harness verde"
     ],
     "tasks": [
       {
-        "id": "AN-08-01",
-        "description": "Run node scripts/harness.js end-to-end and ensure exit code 0 across all blocks. Fix any introduced lint errors or failing tests.",
+        "id": "a",
+        "description": "Renombrar archivos y carpetas",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "AN-08-02",
-        "description": "Update progress/history.md with a summary entry for analytics section work; confirm progress/current.md is reset to template at session close.",
+        "id": "b",
+        "description": "Actualizar importaciones",
         "status": "done",
         "agent": "implementer"
       },
       {
-        "id": "AN-08-03",
-        "description": "Final implementation review: contract alignment for all five modules, RFC 7807 mapping consistency, palette/legibility across charts, footer/breadcrumb of analytics nav, navigation back behavior and route guard.",
+        "id": "c",
+        "description": "Eliminar sección de Option Categories",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 25,
+    "type": "feat",
+    "name": "option-groups-orgchart",
+    "title": "CRUD de Option Groups con vista Orgchart dentro de Products",
+    "description": "Crear CRUD de Option Groups con vista de jerarquía como pestaña dentro de Products. Patrón two-call: GET /option-groups?productId={id} + GET /products/{id}/options.",
+    "acceptance": [
+      "Existe pestaña 'Grupos de opciones' en Products.",
+      "La pestaña muestra productos con optionGroupsIds.",
+      "Al expandir, carga groups + options en paralelo.",
+      "Frontend bucketea options por optionGroupId.",
+      "Cada grupo muestra badge de selectionType.",
+      "Creación inline de grupos y opciones.",
+      "Lazy loading con skeleton.",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Agregar métodos getProductOptionGroups y getProductOptions a services",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Crear componente option-groups-view",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Implementar UI del orgchart con tree-node-card",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Implementar creación inline con inline-create-popover",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Integrar en Products: agregar tab",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Tests",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 26,
+    "type": "feat",
+    "name": "option-selection-type-mapper-models",
+    "title": "OptionSelectionType enum interno + mapper + Money + modelos",
+    "description": "Crear enum interno OptionSelectionType + mapper toApi/fromApi. Crear Money. Actualizar models.",
+    "acceptance": [
+      "Existe enum OptionSelectionType con valores INTERNOS.",
+      "Existe mapper toApi/fromApi.",
+      "Existe Money interface.",
+      "OptionGroupRequest tiene selectionType.",
+      "OptionGroupResponse tiene productIds.",
+      "ProductOption tiene cost, extraPrice, categorySelectionType.",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Crear Money interface",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Crear OptionSelectionType enum",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Crear mapper toApi/fromApi",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Actualizar OptionGroupRequest/Response",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Actualizar ProductOption",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 27,
+    "type": "feat",
+    "name": "product-request-extras-and-group-ids",
+    "title": "optionExtras en ProductRequest y optionGroupIds en ProductResponse",
+    "description": "Agregar optionExtras al payload de productos y optionGroupIds a ProductResponse.",
+    "acceptance": [
+      "ProductCreateRequest tiene optionExtras.",
+      "ProductUpdateRequest tiene optionExtras.",
+      "ProductResponse tiene optionGroupIds.",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Actualizar ProductCreateRequest",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Actualizar ProductUpdateRequest",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Actualizar ProductResponse y ProductListResponse",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 28,
+    "type": "feat",
+    "name": "cost-projection-endpoint",
+    "title": "Servicio getCostBreakdown con ProductCostBreakdownResponse",
+    "description": "Crear método getCostBreakdown en ProductService con modelo rico.",
+    "acceptance": [
+      "ProductService tiene getCostBreakdown.",
+      "ProductCostBreakdownResponse tiene shape completo.",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Crear interfaces de cost breakdown",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Agregar getCostBreakdown a ProductService",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Tests",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 29,
+    "type": "feat",
+    "name": "waiter-modal-order-options",
+    "title": "Refactorizar ProductOptionsModal + error handling",
+    "description": "Actualizar ProductOptionsModal para soportar modos de selección con mapper. Manejo de error 400. OrderDetailResponse.extraCharge.",
+    "acceptance": [
+      "ProductOptionsModal compone app-option-selection-list por grupo.",
+      "Header muestra app-option-group-badge.",
+      "Selecciones se muestran como app-removable-chip.",
+      "Error 400 manejado con mapHttpError('product-options').",
+      "OrderDetailResponse tiene extraCharge.",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Refactorizar ProductOptionsModal",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Manejo de errores con mapHttpError",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Actualizar OrderDetailResponse con extraCharge",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Tests",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 30,
+    "type": "feat",
+    "name": "step3-redesign-massive-option-selection",
+    "title": "Rediseñar Paso 3: selección masiva de opciones por Option Groups",
+    "description": "Refactorización completa del Paso 3 con selección masiva por grupos, creación inline, cost breakdown, error handling.",
+    "acceptance": [
+      "Step3Options componente standalone.",
+      "Buscador de grupos con app-search-input.",
+      "Creación inline con app-inline-create-popover.",
+      "Checklist dinámico con app-option-selection-list.",
+      "Visor de opciones activas con app-removable-chip.",
+      "Resumen de costos con app-cost-breakdown-panel.",
+      "Error 400 con mapHttpError.",
+      "optionExtras en payload.",
+      "NewOptionDialog eliminado.",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Crear componente Step3Options",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Implementar buscador de grupos",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Implementar creación inline de grupo",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Componer checklist dinámico",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Componer visor de opciones activas",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Componer resumen de costos",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Integrar en products.ts",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "h",
+        "description": "Eliminar NewOptionDialog",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "i",
+        "description": "Manejo de errores con mapHttpError",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "j",
+        "description": "Tests",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "k",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "l",
+        "description": "API integration review (post-API-changes)",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 31,
+    "type": "feat",
+    "name": "option-groups-shared-components",
+    "title": "Componentes compartidos para Option Groups",
+    "description": "Crear componentes compartidos: badge, selection-list, chip, popover, cost panel, tree card, skeleton, http-error-mapper extension.",
+    "acceptance": [
+      "Existe option-selection-type-helper con config central.",
+      "Existe option-group-badge.",
+      "Existe option-selection-list.",
+      "Existe removable-chip.",
+      "Existe inline-create-popover.",
+      "Existe cost-breakdown-panel.",
+      "Existe tree-node-card.",
+      "Existe tree-node-skeleton.",
+      "http-error-mapper extendido.",
+      "Cada componente tiene spec.",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Crear option-selection-type-helper",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Crear option-group-badge",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Crear option-selection-list",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Crear removable-chip",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Crear inline-create-popover",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Crear cost-breakdown-panel",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Crear tree-node-card",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "h",
+        "description": "Crear tree-node-skeleton",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "i",
+        "description": "Extender http-error-mapper",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "j",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 32,
+    "type": "chore",
+    "name": "remove-dead-endpoint-code",
+    "title": "Eliminar código muerto de endpoints inexistentes",
+    "description": "Eliminar services, imports, UI sections y specs que llaman endpoints que ya no existen en el backend: option-categories (renombrado a option-groups), DELETE /products/{id} (no existe), analytics/operations|cohort|alerts (no existen).",
+    "acceptance": [
+      "OptionCategory service eliminado",
+      "OptionCategory DTO eliminado",
+      "categories-cache.ts ya no tiene optionCategories",
+      "categories.ts ya no tiene sección de Option Categories",
+      "product-cache.ts ya no importa OptionCategory ni tiene optionCategories en referenceData",
+      "deleteProduct() eliminado de product.ts",
+      "analytics/operations, analytics/cohort, analytics/alerts eliminados de analytics.ts",
+      "DTOs de operations, cohort, alert eliminados",
+      "master-data.ts ya no llama option-categories",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Eliminar OptionCategory service + DTO",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Limpiar categories-cache.ts y categories.ts (quitar option categories)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Limpiar product-cache.ts (quitar optionCategories de referenceData)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Eliminar deleteProduct de product.ts",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Eliminar endpoints falsos de analytics (operations, cohort, alerts) + DTOs",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Limpiar master-data.ts",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Actualizar specs afectados",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "h",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 33,
+    "type": "fix",
+    "name": "fix-incorrect-endpoint-paths",
+    "title": "Corregir rutas mal mapeadas en special-selections",
+    "description": "Corregir las rutas del service special-selections.ts que no coinciden con el backend: available-now → available, revert path, history/range path. Corregir HTTP methods (PATCH → PUT para price/schedule).",
+    "acceptance": [
+      "availableNow() llama GET /v1/special-selections/available (no /available-now)",
+      "revertHistory() llama POST /v1/admin/special-selections/{id}/revert/{version} (no /history/{version}/revert)",
+      "getHistoryRange() eliminado o corregido (endpoint no existe en backend)",
+      "patchPrice() usa PUT no PATCH",
+      "patchSchedule() usa PUT no PATCH",
+      "Specs actualizados",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Corregir rutas en special-selections.ts",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Corregir HTTP methods (PATCH → PUT)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Eliminar getHistoryRange (endpoint no existe)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Actualizar specs de special-selections",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 34,
+    "type": "feat",
+    "name": "implement-payroll-endpoints",
+    "title": "Implementar endpoints de Payroll en el frontend",
+    "description": "Crear services, models, cache y componentes para los endpoints de payroll del backend: Payroll CRUD, Payroll Events, Payroll Settlements.",
+    "acceptance": [
+      "Payroll service con CRUD completo",
+      "PayrollEvent service con CRUD",
+      "PayrollSettlement service",
+      "Models/DTOs para todas las respuestas",
+      "Cache con ResourceCache",
+      "Componentes UI para gestión de nómina",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Crear models/DTOs de payroll",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Crear Payroll service",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Crear PayrollEvent service",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Crear PayrollSettlement service",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Crear PayrollCache",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Crear componentes UI",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Tests",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "h",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 35,
+    "type": "chore",
+    "name": "fix-test-policy-violations",
+    "title": "Corregir tests que no aprueban la testing policy",
+    "description": "Agregar headers obligatorios a todos los .spec.ts, eliminar asserts débiles (toContain como único assert de rendering,toBeTruthy como único assert), agregar httpMock.verify() donde falta, agregar resetTestingModule donde falta. Ver docs/TEST_POLICY_VIOLATIONS.md para la lista completa.",
+    "acceptance": [
+      "Todos los .spec.ts tienen header con feature/contract/approach",
+      "WEAK_RENDER_ASSERT eliminado: usar selector contextual en vez detoContain",
+      "WEAK_EXIST_ASSERT eliminado: assert valor exacto en vez detoBeTruthy",
+      "httpMock.verify() en afterEach de todos los tests HTTP",
+      "resetTestingModule entre tests de TestBed",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Agregar headers a todos los .spec.ts (60 archivos)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Corregir WEAK_RENDER_ASSERT (money, operations, cohort, alerts)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Corregir WEAK_EXIST_ASSERT (app, skeleton, helper, selection-list, nav, theme)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Agregar httpMock.verify() y resetTestingModule donde falta",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 36,
+    "type": "feat",
+    "name": "product-recipe-page",
+    "title": "Página dedicada 'Ver Receta' para edición de productos",
+    "description": "Reemplazar 'Ver detalles' + 'Editar' (wizard) + tab 'Grupos de Opciones' por una página dedicada /admin/manage/products/:id/recipe con toda la info del producto editable inline. El wizard se mantiene solo para creación.",
+    "acceptance": [
+      "Existe ruta products/:id/recipe dentro de manage",
+      "Existe componente product-recipe-page standalone",
+      "Sección Datos básicos: nombre, descripción, categoría, área, prep time, estado — editable inline",
+      "Sección Imagen: preview + upload + delete",
+      "Sección Receta/Insumos: tabla con insumos existentes + buscador para agregar + costo total en tiempo real",
+      "Sección Precio de venta: costo producción oficial + input precio + precio sugerido (costo × 1.3)",
+      "Sección Grupos de opciones: lista de grupos con badge, creación inline, opciones por grupo, agregar/quitar opciones",
+      "Sección Costo de producción: materiales, mano de obra, total, desglose — solo lectura",
+      "Botón 'Guardar cambios' que persiste todos los edits",
+      "Botón '← Volver a productos' con routerLink",
+      "Botón 'Ver detalles' eliminado de la tabla",
+      "Botón 'Editar' (pencil) eliminado de la tabla, reemplazado por 'Ver receta' (book icon)",
+      "Tab 'Grupos de Opciones' eliminado de products.html",
+      "Wizard (5 pasos) se mantiene solo para creación via 'Nuevo producto'",
+      "Tests del nuevo componente",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Crear product-recipe-page.ts/html/css con layout y header (navegación + nombre producto + guardar)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Sección Datos básicos: formulario editable con nombre, descripción, categoría, área, prep time, estado",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Sección Imagen: preview de imagen actual, upload nueva, eliminar",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Sección Receta/Insumos: tabla de insumos existentes + buscador autocomplete para agregar + costo total real-time + botón eliminar",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Sección Precio de venta: costo oficial server + costo estimado + input precio + precio sugerido",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Sección Grupos de opciones: lista de grupos con badge + creación inline + opciones por grupo + agregar/quitar",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Sección Costo de producción: materiales, mano de obra, total, desglose (solo lectura)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "h",
+        "description": "Guardar cambios: método save que persiste todos los edits via updateProduct",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "i",
+        "description": "Agregar ruta products/:id/recipe en app.routes.ts",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "j",
+        "description": "Modificar products.html/ts: reemplazar Ver detalles + Editar por Ver receta (book icon), eliminar tab Grupos de Opciones",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "k",
+        "description": "Eliminar archivos obsoletos: product-option-groups/*, product-detail-dialog/*",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "l",
+        "description": "Tests del componente product-recipe-page",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "m",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 37,
+    "type": "fix",
+    "name": "p0-money-and-auth-hardening",
+    "title": "P0: capa de dinero unificada y endurecimiento de auth/guards",
+    "description": "Cerrar los dos P0 del critique de impeccable: (1) unificar el renderizado de dinero en el pipe compartido money, eliminar hardcodes de moneda y arreglar el bug de precedencia pipe-before-?? en orders-table; (2) 401/403 no deben terminar en /server-error, respetar returnUrl y honrar POST /auth/refresh en el interceptor 401.",
+    "acceptance": [
+      "Ninguna plantilla de combos usa '| currency' con moneda hardcodeada",
+      "No quedan literales '$ {{' en src/ (todo pasa por el pipe money o Intl)",
+      "orders-table.html:99 agrupa correctamente (order.total ?? getOrderTotal(order)) | money",
+      "extraCharge se refleja en calculateTotalPrice cuando el backend lo expone",
+      "Un solo tipo Money normalizado en el borde del wire",
+      "Paginación de orders deja de usar size: 500",
+      "Un 401/403 no navega a /server-error",
+      "returnUrl se preserva y se aplica tras login",
+      "El interceptor 401 intenta POST /auth/refresh antes de desloguear",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Money adapter: money pipe accepts Money | number | string | null (backend sends bare number), single currency constant (COP), normalize at wire boundary",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Migrate combos pricing-step + combos.html (9 currency:'USD' sites), product-card, order-creation-form to money pipe",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "orders-table: fix pipe-before-?? precedence, fold extraCharge into getOrderTotal, migrate 4 currency:'COP' sites",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "dashboard.html: remove 10 hardcoded '$ {{ }}' renderings, route through money pipe",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Pagination adapter: one tolerant unwrapPage() for items/content + total/totalElements + total_pages/totalPages + bare arrays; drop size:500 in orders",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Auth: 403 → dedicated forbidden (never /server-error), 401 → refresh-or-login with returnUrl round-trip",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Auth: honour POST /auth/refresh in the 401 interceptor before logging out (single-flight, no redirect loop)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "h",
+        "description": "Verify: full harness green + reviewer pass",
         "status": "done",
         "agent": "reviewer"
       }
-    ]
+    ],
+    "status": "done"
+  },
+  {
+    "id": 38,
+    "type": "fix",
+    "name": "data-envelope-adapter",
+    "title": "Adaptador del envelope {data} y hotfix de login",
+    "description": "El backend empezó a envolver todo payload 2xx en {\"data\": ...} sin actualizar /v3/api-docs. El frontend leía plano, así que el login guardaba tokens undefined y toda petición autenticada salía sin bearer (401). Se centraliza el desempaquetado en un interceptor tolerante.",
+    "acceptance": [
+      "envelopeInterceptor desempaqueta {data} y es tolerante a payloads planos (rollback-safe)",
+      "Blob/ArrayBuffer/streams/escalares/arrays/null pasan sin tocar",
+      "Errores no se tocan (se ramifica solo por status)",
+      "Login guarda tokens reales y GET /auth sale con bearer",
+      "Spec con el payload real ({data:{type:SUCCESS,...}}) que habría detectado la caída",
+      "Harness verde",
+      "Ninguna agregacion en TS opera sobre MoneyDto sin normalizar (sin NaN en totales)"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Crear envelopeInterceptor + registro en app.config",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Spec del interceptor (11 casos) + regresión e2e de auth con payload real",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Auditar 120 schemas por campos data de nivel superior y rutas responseType blob",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Verify: harness verde (848 tests)",
+        "status": "done",
+        "agent": "reviewer"
+      },
+      {
+        "id": "g",
+        "description": "MoneyDto adoption: money pipe acepta {amount,currency}; arreglar aritmetica en TS (totalizadores, cost breakdowns) que hoy haria NaN",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 39,
+    "type": "chore",
+    "name": "contract-followups",
+    "title": "Seguimientos del contrato backend",
+    "description": "Pendientes que dependen del equipo de backend o de una segunda pasada: surfacear el detail de ProblemDetail en mensajes de login/validación, regenerar /v3/api-docs, y migrar los DTOs restantes (SalaryHistoryEntry, inventory, admin-products) a Money. Bloqueada únicamente por (f): regenerar /v3/api-docs depende del equipo backend.",
+    "acceptance": [
+      "detail de ProblemDetail visible en login/validación",
+      "/v3/api-docs regenerado por el equipo backend",
+      "DTOs restantes migrados a Money sin Intl.NumberFormat ad-hoc sobre dinero",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "e",
+        "description": "Pendiente: surfacear detail de ProblemDetail en mensajes de login/validación",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Pendiente: pedir al equipo backend regenerar /v3/api-docs (spec sigue plano) (BLOQUEADO: depende del equipo backend; el spec sigue publicando payloads planos mientras runtime envuelve en {data})",
+        "status": "blocked",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Migrar DTOs restantes a Money (SalaryHistoryEntry, inventory, admin-products, product-recipe-page) y eliminar Intl.NumberFormat ad-hoc sobre dinero",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "blocked"
+  },
+  {
+    "id": 40,
+    "type": "chore",
+    "name": "modern-web-audit",
+    "title": "Auditoría web moderna (CSS, dark mode, a11y, tipografía)",
+    "description": "Revisión en profundidad del frontend contra las guías de la plataforma web. Corregido CSS global roto (orden de @import, selector `body &` inválido, variables --surface-* inexistentes, scrollbars duplicadas), dark mode real (color-scheme + meta + anti-FOUC), tipografía variable Archivo 400-900, títulos por ruta, 404, accesibilidad (subrayado de teclado en tabs, radios ARIA, iconos decorativos, prefers-reduced-motion, prefers-contrast, escala de texto del SO) y precarga condicional de chunks.",
+    "acceptance": [
+      "Harness verde",
+      "CSS global sin selectores inválidos ni variables inexistentes",
+      "El tema claro/oscuro se aplica antes del primer paint y themea UI nativa",
+      "Cada ruta declara title y las URLs desconocidas muestran 404",
+      "Preferencias del SO (reduced motion, more contrast, text scale) respetadas",
+      "Sin dependencias muertas (zone.js, idb, componente sin uso)"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Reparar styles.css: @import, selector `body &`, tokens --surface-*, scrollbars, max-width 100vw",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Dark mode: meta color-scheme, script anti-FOUC, Theme service sin pin",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Tipografía variable Archivo 400-900 y limpieza de fuentes estáticas",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Títulos por ruta + TitleStrategy + página 404",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Accesibilidad: tabs con teclado, radios ARIA, iconos aria-hidden, reduced motion, prefers-contrast, escala de texto",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Rendimiento: precarga condicional, imágenes con dimensiones, service worker sin dataGroups muertos",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Dependencias y código muerto: zone.js, idb, dark-mode-button, template duplicado",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 41,
+    "type": "fix",
+    "name": "contract-auth-users",
+    "title": "Align auth and users/workers contract with the live API",
+    "description": "Audit and fix every API/frontend incoherence in auth (login, 2FA, refresh, password reset/setup, password policy) and users/workers (CRUD, errors, salary history).",
+    "acceptance": [
+      "Auth flow field names, error statuses and password policy match the API",
+      "Worker CRUD surfaces ProblemDetail detail messages and validation fields",
+      "Worker salary history readable by the owning worker",
+      "Frontend typecheck and targeted specs green"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Audit auth flow against live API and fix mismatches",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Audit workers CRUD/errors/salary history and fix mismatches",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Update specs and verify typecheck/gradle",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 42,
+    "type": "fix",
+    "name": "contract-catalog-products",
+    "title": "Align catalog, products and analytics contract with the live API",
+    "description": "Audit and fix areas/categories/option groups/tables/product options/products/images/analytics contracts, including money shapes, pagination and enums.",
+    "acceptance": [
+      "Area types, optionGroupId and selection type enums match the API",
+      "Product list pagination and money fields match the wire",
+      "Image request/response fields and errors match the wire",
+      "Frontend typecheck and targeted specs green"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Audit catalog CRUD (areas, categories, option groups, tables, product options)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Audit products, images and analytics; fix DTOs and mappings",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Update specs and verify typecheck/gradle",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 43,
+    "type": "fix",
+    "name": "contract-orders-inventory",
+    "title": "Align orders, inventory, supplies, purchases and suppliers contract",
+    "description": "Audit and fix order lifecycle/pagination, inventory transfers, supply catalog paging, purchases and suppliers, plus RFC 7807 domain errors.",
+    "acceptance": [
+      "Order totals are not double counted and detail fields match the wire",
+      "Order update body/handling matches the API",
+      "Supply and purchase paging no longer truncates",
+      "Domain errors return 400/404/409 problem documents"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Audit orders lifecycle, totals and detail fields",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Audit inventory, supplies, purchases and suppliers",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Add missing exception handlers and verify",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 44,
+    "type": "fix",
+    "name": "contract-schedules-payroll",
+    "title": "Align schedules, time logs and payroll contract",
+    "description": "Audit and fix schedule assignments, time logs and payroll (records, events, settlements), including numeric money requests and partial updates.",
+    "acceptance": [
+      "Schedule assignment deletion targets the right row",
+      "Payroll create/patch/settle request shapes match the API",
+      "Payroll money responses are consumed through Money",
+      "Targeted API and frontend tests green"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Audit schedules, assignments and time logs",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Audit payroll, events and settlements; fix request/response shapes",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Add RFC 7807 404s, tests and verify",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 45,
+    "type": "fix",
+    "name": "contract-special-selections-realtime",
+    "title": "Align special selections, system configuration and realtime contract",
+    "description": "Audit and fix special selection admin/public flows (identity, history, schedule patch, persistence warnings), system configuration and WebSocket topics.",
+    "acceptance": [
+      "Special selection identity and history shapes match the wire",
+      "Schedule patch, active and price updates persist without 500s",
+      "System configuration PUT upserts by key without 500s",
+      "WebSocket topics and payloads match; specs green"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Audit special selections admin/public and fix DTOs/persistence",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Audit system configuration and realtime topics",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Add handlers/tests and verify",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
   }
 ]

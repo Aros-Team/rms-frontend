@@ -6,6 +6,4 @@ export * from './period';
 export * from './problem-detail';
 export * from './prime-cost-report';
 export * from './menu-engineering-report';
-export * from './operations-report';
-export * from './cohort-report';
-export * from './alert';
+export * from './top-selling-product';

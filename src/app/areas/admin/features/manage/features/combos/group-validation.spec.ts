@@ -1,3 +1,10 @@
+/**
+ * Tests for combo group validation logic.
+ *
+ * Feature: Validates wizard group drafts against product option constraints.
+ * Contract: Rejects invalid min/max values, validates selection type compatibility.
+ * Approach: Import validation functions directly, pass controlled inputs, assert results.
+ */
 import { describe, expect, it } from 'vitest';
 
 import type { WizardFormData, WizardGroupDraft } from '@app/core/services/combos/combo-wizard-state';
@@ -212,8 +219,8 @@ describe('validateAllGroups', () => {
     const errors = validateAllGroups(formData, ref);
 
     const types = errors.map((e) => e.type);
-    expect(types).toContain('EMPTY_GROUP');
-    expect(types).toContain('MAX_EXCEEDED');
+    expect(types).toEqual(['EMPTY_GROUP', 'MAX_EXCEEDED']);
+    expect(errors.map((e) => e.categoryId)).toEqual([1, 2]);
   });
 });
 
@@ -278,7 +285,7 @@ describe('computeEligibleProducts', () => {
     const products = mockProducts();
     const group = mockGroup({ categoryId: 1 });
     const eligible = computeEligibleProducts(group, products);
-    expect(eligible).toHaveLength(2);
+    expect(eligible.map((p) => p.id)).toEqual([10, 11]);
     expect(eligible.every((p) => p.categoryId === 1)).toBe(true);
     expect(eligible.every((p) => p.active)).toBe(true);
     expect(eligible.every((p) => p.selectionType === SELECTION_TYPE.SPECIAL_SELECTION)).toBe(true);

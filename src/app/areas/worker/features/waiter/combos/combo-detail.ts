@@ -8,19 +8,21 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 
-import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
+import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import { OrderDock, DockItem } from '@app/core/services/order-dock/order-dock';
 import { MasterData } from '@app/core/services/master-data/master-data';
+import { Money } from '@app/shared/pipes/money/money';
+import type { SpecialSelectionAdditionResponse } from '@app/shared/models/dto/special-selections/special-selection-addition';
 
 @Component({
   selector: 'app-combo-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './combo-detail.html',
   styleUrl: './combo-detail.css',
-  imports: [ButtonModule, ChipModule, InputTextModule, ToastModule],
+  imports: [ButtonModule, ChipModule, InputTextModule, ToastModule, Money],
 })
 export class ComboDetail {
-  private cache = inject(SpecialSelectionsCacheService);
+  private cache = inject(SpecialSelectionsCache);
   private dock = inject(OrderDock);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -44,14 +46,28 @@ export class ComboDetail {
 
   loading = signal(true);
 
+  /** Shared money pipe, reused to build composite labels (pipes cannot be concatenated in templates). */
+  private readonly moneyPipe = new Money();
+
+  /** addition id → `"Name (+$ 12.500)"`, keeping money formatting out of the template. */
+  additionLabels = computed(() => {
+    const labels = new Map<number, string>();
+    for (const add of this.detail()?.additions ?? []) {
+      labels.set(add.id, `${add.name} (+${this.moneyPipe.transform(add.extraPrice)})`);
+    }
+    return labels;
+  });
+
+  additionLabel(add: SpecialSelectionAdditionResponse): string {
+    return this.additionLabels().get(add.id) ?? add.name;
+  }
+
   /** groupId → selected optionIds */
   selectedOptions = signal<Map<number, number[]>>(new Map());
   selectedAdditionIds = signal<number[]>([]);
 
   /** questionId → answer */
   clarifications = signal<Map<number, string>>(new Map());
-
-  currencyFormat = Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' });
 
   canSubmit = computed(() => this.detail() !== null);
 
@@ -171,7 +187,7 @@ export class ComboDetail {
 
     const item: DockItem = {
       product: {
-        id: combo.id,
+        id: combo.productId,
         name: combo.name,
         basePrice: combo.basePrice,
         active: true,

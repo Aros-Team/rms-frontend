@@ -3,9 +3,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Order } from '@app/core/services/orders/order';
 import { Logging } from '@app/core/services/logging/logging';
 import { MasterData } from '@app/core/services/master-data/master-data';
-import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
-import { CreateOrderDetail } from '@app/shared/models/dto/orders/create-order-request.model';
-import { TableResponse } from '@app/shared/models/dto/tables/table-response.model';
+import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
+import { CreateOrderDetail } from '@app/shared/models/dto/orders/create-order-request';
+import { TableResponse } from '@app/shared/models/dto/tables/table-response';
 export interface DockItem {
   product: ProductListResponse;
   instructions: string;
@@ -235,8 +235,8 @@ export class OrderDock {
 function extractError(err: unknown): string {
   if (err instanceof HttpErrorResponse) {
     const errorBody: unknown = err.error;
-    const body = errorBody as { message?: string } | null;
-    return body?.message ?? err.message;
+    const body = errorBody as { detail?: string; message?: string } | null;
+    return body?.detail ?? body?.message ?? err.message;
   }
   if (err instanceof Error) return err.message;
   return 'Error desconocido';

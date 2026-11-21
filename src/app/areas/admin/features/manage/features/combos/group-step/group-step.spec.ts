@@ -1,3 +1,10 @@
+/**
+ * Tests for the GroupStep component (combo wizard step 2).
+ *
+ * Feature: Group configuration form for combo options (selection type, min/max).
+ * Contract: Renders group forms, validates constraints, emits group data.
+ * Approach: Mount component via TestBed with test host, configure groups, assert output.
+ */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import {
   ɵresolveComponentResources as resolveComponentResources,
@@ -168,7 +175,7 @@ describe('GroupStep', () => {
       fixture.detectChanges();
 
       const root = getNative();
-      expect(root.textContent).toContain('Comidas');
+      expect(root.querySelector('h2')?.textContent.trim()).toBe('Comidas');
     });
 
     it('renders product cards from specialSelectionProductsByCategory', () => {
@@ -183,7 +190,11 @@ describe('GroupStep', () => {
       createComponent({ groups: [mockGroup()] });
       fixture.detectChanges();
 
-      expect(getNative().textContent).not.toContain('Inactivo');
+      const names = Array.from(
+        getNative().querySelectorAll('[data-testid="available-product"]'),
+      ).map((card) => card.textContent.trim());
+      expect(names.some((name) => name.includes('Inactivo'))).toBe(false);
+      expect(names.length).toBe(3);
     });
 
     it('renders selected products with remove button', () => {
@@ -194,7 +205,10 @@ describe('GroupStep', () => {
       expect(selected.length).toBe(2);
 
       const removeBtns = getNative().querySelectorAll('[data-testid="remove-product-btn"]');
-      expect(removeBtns.length).toBe(2);
+      expect(Array.from(removeBtns).map((btn) => btn.getAttribute('aria-label'))).toEqual([
+        'Eliminar Hamburguesa',
+        'Eliminar Papas fritas',
+      ]);
     });
 
     it('shows max selection limit for customer', () => {
@@ -202,24 +216,27 @@ describe('GroupStep', () => {
       fixture.detectChanges();
 
       const maxInput = getNative().querySelector('[data-testid="max-selections-input"]');
-      expect(maxInput).toBeTruthy();
-      expect(getNative().textContent).toContain('Máximo de productos por cliente');
+      expect(maxInput?.getAttribute('inputid')).toBe('max-selections');
+      expect(getNative().querySelector('label[for="max-selections"]')?.textContent.trim()).toBe(
+        'Máximo de productos por cliente',
+      );
     });
 
     it('shows required badge when group is required', () => {
       createComponent({ groups: [mockGroup({ required: true, minSelections: 1, maxSelections: 3 })] });
       fixture.detectChanges();
 
-      expect(getNative().textContent).toContain('Obligatorio');
-      expect(getNative().textContent).toContain('Mín 1');
-      expect(getNative().textContent).toContain('Máx 3');
+      expect(getNative().querySelector('h2')?.nextElementSibling?.textContent.trim()).toBe(
+        'Obligatorio • Mín 1 • Máx 3',
+      );
     });
 
     it('does not show required badge when group is not required', () => {
       createComponent({ groups: [mockGroup({ required: false })] });
       fixture.detectChanges();
 
-      expect(getNative().textContent).not.toContain('Obligatorio');
+      // Only the <h2> remains in the header row — no constraint badge span.
+      expect(getNative().querySelector('h2')?.nextElementSibling).toBeNull();
     });
 
     it('shows selection count text', () => {
@@ -227,7 +244,7 @@ describe('GroupStep', () => {
       fixture.detectChanges();
 
       const countEl = getNative().querySelector('[data-testid="selection-count"]');
-      expect((countEl?.textContent ?? '').trim()).toContain('1 / 3 seleccionados');
+      expect(countEl?.textContent.trim()).toBe('1 / 3 seleccionados');
     });
 
     it('shows empty search message when search has no results', () => {
@@ -239,7 +256,8 @@ describe('GroupStep', () => {
       vi.useRealTimers();
 
       const empty = getNative().querySelector('[data-testid="empty-search"]');
-      expect(empty).toBeTruthy();
+      expect(empty?.textContent.trim()).toBe('Sin resultados');
+      expect(getNative().querySelectorAll('[data-testid="available-product"]').length).toBe(0);
     });
   });
 
@@ -254,7 +272,7 @@ describe('GroupStep', () => {
 
       const updatedGroups = wizardMock.data().groups;
       const group = updatedGroups.find((g: WizardGroupDraft) => g.categoryId === TEST_CATEGORY_ID);
-      expect(group?.productIds).toContain(1);
+      expect(group?.productIds).toEqual([1]);
     });
 
     it('admin can add beyond maxSelections (customer limit)', () => {
@@ -301,8 +319,7 @@ describe('GroupStep', () => {
       fixture.detectChanges();
 
       const warning = getNative().querySelector('[data-testid="min-warning"]');
-      expect(warning).toBeTruthy();
-      expect(warning?.textContent).toContain('Debe seleccionar al menos 2 producto(s)');
+      expect(warning?.textContent.trim()).toBe('Debe seleccionar al menos 2 producto(s)');
     });
 
     it('does not remove product when it would violate minimum', () => {
@@ -323,7 +340,9 @@ describe('GroupStep', () => {
 
       component.removeProduct(1);
       fixture.detectChanges();
-      expect(getNative().querySelector('[data-testid="min-warning"]')).toBeTruthy();
+      expect(getNative().querySelector('[data-testid="min-warning"]')?.textContent.trim()).toBe(
+        'Debe seleccionar al menos 1 producto(s)',
+      );
 
       component.addProduct(2);
       fixture.detectChanges();

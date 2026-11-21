@@ -8,16 +8,16 @@ import { MessageService } from 'primeng/api';
 
 import { ComboWizardState, type WizardFormData } from '@app/core/services/combos/combo-wizard-state';
 import { Product } from '@app/core/services/products/product';
-import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
+import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import type { ProductCreateRequest } from '@app/shared/models/dto/products/product-create-request';
 import { SpecialSelectionRequest } from '@app/shared/models/dto/special-selections/special-selection-request';
 import type { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';
-import { mapHttpError } from '@app/shared/lib/http-error-mapper';
+import { mapHttpError } from '@app/shared/lib/http-error-mapper/http-error-mapper';
 
 @Injectable({ providedIn: 'root' })
 export class ComboSubmission {
   private readonly wizard = inject(ComboWizardState);
-  private readonly cache = inject(SpecialSelectionsCacheService);
+  private readonly cache = inject(SpecialSelectionsCache);
   private readonly productService = inject(Product);
   private readonly message = inject(MessageService);
   private readonly router = inject(Router);
@@ -56,9 +56,6 @@ export class ComboSubmission {
       categoryId: data.selectedCategoryIds[0] ?? 1,
       areaId: data.areaId ?? 1,
       recipe: [],
-      selectionType: 'SPECIAL_SELECTION',
-      baseRecipeEnabled: data.baseRecipeEnabled,
-      schedulingRequired: data.schedulingRequired,
     };
 
     return this.productService.createProduct(createReq).pipe(

@@ -1,11 +1,21 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Observable, tap, throwError, BehaviorSubject, catchError, switchMap, of } from 'rxjs';
-import { UserInfo } from '@models/domain/user/user-info.model';
-import { AuthRequest } from '@models/dto/auth/auth-request.model';
-import { AuthResponse } from '@models/dto/auth/auth-response.model';
-import { TwoFactorVerifyRequest } from '@models/dto/auth/two-factor-verify-request.model';
+import {
+  Observable,
+  tap,
+  throwError,
+  BehaviorSubject,
+  catchError,
+  switchMap,
+  of,
+  finalize,
+  shareReplay,
+} from 'rxjs';
+import { UserInfo } from '@models/domain/user/user-info';
+import { AuthRequest } from '@models/dto/auth/auth-request';
+import { AuthResponse } from '@models/dto/auth/auth-response';
+import { TwoFactorVerifyRequest } from '@models/dto/auth/two-factor-verify-request';
 import { jwtDecode } from 'jwt-decode';
 import { Logging } from '@app/core/services/logging/logging';
 import { Fingerprint } from '@app/core/services/fingerprint/fingerprint';
@@ -25,6 +35,9 @@ export class Auth {
   
   private tfaTokenSubject = new BehaviorSubject<string | null>(null);
   tfaToken$ = this.tfaTokenSubject.asObservable();
+
+  /** In-flight refresh shared by every concurrent 401 (single-flight). */
+  private refreshInFlight$: Observable<AuthResponse> | undefined;
   
   private pendingUsername: string | null = null;
 
@@ -175,6 +188,24 @@ export class Auth {
         return throwError(() => err);
       })
     );
+  }
+
+  /**
+   * Single-flight wrapper around {@link refresh}.
+   *
+   * Concurrent callers (several requests failing with 401 at once, or a guard
+   * racing the interceptor) share ONE `POST auth/refresh`; the resulting
+   * observable is multicast. The in-flight slot is released as soon as the
+   * refresh settles, so a later 401 starts a new refresh.
+   */
+  refreshOnce(): Observable<AuthResponse> {
+    this.refreshInFlight$ ??= this.refresh().pipe(
+      finalize(() => {
+        this.refreshInFlight$ = undefined;
+      }),
+      shareReplay({ bufferSize: 1, refCount: false }),
+    );
+    return this.refreshInFlight$;
   }
 
   logout(): void {

@@ -1,6 +1,5 @@
 import { Component, inject, computed } from '@angular/core';
 import { Router } from '@angular/router';
-import { CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { ButtonModule } from 'primeng/button';
@@ -11,15 +10,16 @@ import { ToastModule } from 'primeng/toast';
 import { SkeletonModule } from 'primeng/skeleton';
 import { MessageService } from 'primeng/api';
 
-import { TableSkeleton } from '@shared/skeletons/table-skeleton';
-import { SpecialSelectionsCacheService } from '@app/core/services/special-selections/special-selections-cache.service';
+import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
+import { Money } from '@shared/pipes/money/money';
+import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';
 
 @Component({
   selector: 'app-combos',
   imports: [
     FormsModule,
-    CurrencyPipe,
+    Money,
     ButtonModule,
     TableModule,
     ToggleSwitch,
@@ -33,7 +33,7 @@ import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selecti
   styleUrl: './combos.css',
 })
 export class Combos {
-  readonly cache = inject(SpecialSelectionsCacheService);
+  readonly cache = inject(SpecialSelectionsCache);
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
 

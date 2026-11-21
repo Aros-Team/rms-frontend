@@ -10,7 +10,7 @@ import { Logging } from '@app/core/services/logging/logging';
 import { Menu, MenuItem } from '@app/core/services/menu/menu';
 import { Notification } from '@app/core/services/notifications/notification';
 import { OrderDock } from '@app/core/services/order-dock/order-dock';
-import { WorkerLayout } from '@app/shared/layout/worker-layout';
+import { WorkerLayout } from '@app/shared/layout/worker-layout/worker-layout';
 import { OrderDock as OrderDockPanel } from '@app/shared/components/order-dock/order-dock';
 
 @Component({
@@ -73,7 +73,7 @@ export class WorkerArea implements OnInit, OnDestroy {
   private computeCanOrder(): void {
     const userData = this.authService.getData();
     const canOrder = userData?.areas.some(
-      a => a.type === 'SERVICE' || a.type === 'WAITER'
+      a => a.type === 'SERVICE'
     ) ?? false;
     this.canOrder.set(canOrder);
     this.logger.debug(`WorkerArea: canOrder=${String(canOrder)} based on user areas`);

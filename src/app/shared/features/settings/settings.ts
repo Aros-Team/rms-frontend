@@ -6,8 +6,10 @@ import { Schedules } from '@areas/admin/features/manage/features/schedules/sched
 import { Auth } from '@app/core/services/auth/auth';
 import { Worker } from '@app/core/services/workers/worker';
 import { Accessibility, FontSize, ContrastMode } from '@app/core/services/accessibility/accessibility';
-import { Theme } from '@app/core/services/theme/theme';
-import { SalaryHistoryEntry } from '@app/shared/models/dto/workers/salary-history-entry.model';
+import { Theme, ThemeName } from '@app/core/services/theme/theme';
+import { SalaryHistoryEntry } from '@app/shared/models/dto/workers/salary-history-entry';
+import { tryToAmount, type MoneyLike } from '@app/shared/models/dto/common/money';
+import { Money } from '@app/shared/pipes/money/money';
 
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
@@ -15,6 +17,12 @@ import { TableModule } from 'primeng/table';
 import { SkeletonModule } from 'primeng/skeleton';
 
 type TabId = 'accesibilidad' | 'horarios' | 'cuenta' | 'cerrar-session';
+
+interface SettingsTab {
+  id: TabId;
+  label: string;
+  icon: string;
+}
 
 @Component({
   selector: 'app-settings',
@@ -56,6 +64,24 @@ export class Settings implements OnInit {
   // Computed
   isAdmin = computed(() => this.authService.getData()?.role === 'ADMIN');
 
+  /** Visible tabs, in order. Drives both the tablist and keyboard navigation. */
+  tabs = computed<SettingsTab[]>(() => {
+    const tabs: SettingsTab[] = [
+      { id: 'accesibilidad', label: 'Accesibilidad', icon: 'pi pi-cog' },
+    ];
+
+    if (this.isAdmin()) {
+      tabs.push({ id: 'horarios', label: 'Horarios', icon: 'pi pi-calendar' });
+    }
+
+    tabs.push(
+      { id: 'cuenta', label: 'Cuenta', icon: 'pi pi-user' },
+      { id: 'cerrar-session', label: 'Cerrar sesión', icon: 'pi pi-sign-out' },
+    );
+
+    return tabs;
+  });
+
   // Theme
   currentTheme = signal<string>(this.themeService.get());
 
@@ -67,7 +93,8 @@ export class Settings implements OnInit {
   salaryHistory = signal<SalaryHistoryEntry[] | undefined>(undefined);
   salaryHistoryLoading = computed(() => this.salaryHistory() === undefined);
 
-  currencyFormat = Intl.NumberFormat('es-Co', { style: 'currency', currency: 'COP' });
+  /** Shared money pipe; the backend sends `MoneyDto`, not a raw number. */
+  private readonly moneyPipe = new Money();
 
   ngOnInit(): void {
     const userData = this.authService.getData();
@@ -92,9 +119,14 @@ export class Settings implements OnInit {
     });
   }
 
-  formatSalary(value: number | null): string {
-    if (value === null) return '-';
-    return this.currencyFormat.format(value);
+  /**
+   * Renders a salary. The wire shape is `MoneyDto` (`{ amount, currency }`), so
+   * `Intl.NumberFormat` on the raw value yields `$ NaN`; normalize with
+   * `tryToAmount` and format through the shared `money` pipe. Missing → `-`.
+   */
+  formatSalary(value: MoneyLike): string {
+    if (tryToAmount(value) === null) return '-';
+    return this.moneyPipe.transform(value);
   }
 
   formatDateTime(iso: string): string {
@@ -102,6 +134,45 @@ export class Settings implements OnInit {
       dateStyle: 'short',
       timeStyle: 'short',
     }).format(new Date(iso));
+  }
+
+  // ---- Tabs ----
+
+  selectTab(id: TabId): void {
+    this.activeTab.set(id);
+  }
+
+  /**
+   * WAI-ARIA tabs keyboard pattern: arrows move the selection and the focus,
+   * Home/End jump to the first/last tab.
+   */
+  onTabKeydown(event: KeyboardEvent, index: number): void {
+    const tabs = this.tabs();
+    let nextIndex: number;
+
+    switch (event.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+        nextIndex = (index + 1) % tabs.length;
+        break;
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        nextIndex = (index - 1 + tabs.length) % tabs.length;
+        break;
+      case 'Home':
+        nextIndex = 0;
+        break;
+      case 'End':
+        nextIndex = tabs.length - 1;
+        break;
+      default:
+        return;
+    }
+
+    event.preventDefault();
+    const next = tabs[nextIndex];
+    this.selectTab(next.id);
+    document.getElementById(`tab-${next.id}`)?.focus();
   }
 
   // ---- Accesibilidad ----
@@ -114,7 +185,7 @@ export class Settings implements OnInit {
     this.accessibilityService.setContrastMode(mode);
   }
 
-  setTheme(theme: string): void {
+  setTheme(theme: ThemeName): void {
     this.themeService.set(theme);
     this.currentTheme.set(theme);
   }

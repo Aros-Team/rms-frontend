@@ -1,3 +1,5 @@
+import type { Money } from '@app/shared/models/dto/common/money';
+
 export interface SupplyVariantResponse {
   id: number;
   supplyId: number;
@@ -9,5 +11,6 @@ export interface SupplyVariantResponse {
   quantity: number;
   stockBodega: number;
   stockCocina: number;
-  unitCost: number;
+  /** `MoneyDto` on the wire. Use `toAmount()` for math. */
+  unitCost: Money;
 }

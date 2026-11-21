@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { mapHttpError } from '@app/shared/lib/http-error-mapper';
+import { mapHttpError } from '@app/shared/lib/http-error-mapper/http-error-mapper';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
@@ -11,8 +11,8 @@ import { InputTextModule } from 'primeng/inputtext';
 import { OrderDock as OrderDockSvc, DockItem } from '@app/core/services/order-dock/order-dock';
 import { Order } from '@app/core/services/orders/order';
 import { MasterData } from '@app/core/services/master-data/master-data';
-import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response.model';
-import { ProductOption } from '@app/shared/models/dto/products/product-option.model';
+import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
+import { ProductOption } from '@app/shared/models/dto/products/product-option';
 import { ProductOptionsModal, ProductOptionsConfirmEvent } from '@app/shared/components/product-options-modal/product-options-modal';
 
 @Component({
@@ -238,7 +238,7 @@ export class OrderDock {
     this.showNarrativeSummary.set(false);
   }
 
-  private submitOrders(allDinerOrders: { dinerId: number; details: import('@app/shared/models/dto/orders/create-order-request.model').CreateOrderDetail[] }[]): void {
+  private submitOrders(allDinerOrders: { dinerId: number; details: import('@app/shared/models/dto/orders/create-order-request').CreateOrderDetail[] }[]): void {
     this.submitting.set(true);
 
     const tableId = this.dock.selectedTableId();

@@ -8,7 +8,6 @@
       "updateMode": "prefetch",
       "resources": {
         "files": [
-          "/favicon.ico",
           "/index.html",
           "/manifest.webmanifest",
           "/*.css",
@@ -27,34 +26,6 @@
           "/fonts/**",
           "/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"
         ]
-      }
-    }
-  ],
-  "dataGroups": [
-    {
-      "name": "api-auth",
-      "urls": [
-        "/auth/**",
-        "/v1/auth/**"
-      ],
-      "cacheConfig": {
-        "strategy": "freshness",
-        "maxSize": 10,
-        "maxAge": "10m",
-        "timeout": "10s"
-      }
-    },
-    {
-      "name": "api-business",
-      "urls": [
-        "/v1/**",
-        "/api/**"
-      ],
-      "cacheConfig": {
-        "strategy": "freshness",
-        "maxSize": 100,
-        "maxAge": "1h",
-        "timeout": "10s"
       }
     }
   ]

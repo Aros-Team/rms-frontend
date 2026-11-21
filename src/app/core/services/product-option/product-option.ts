@@ -1,12 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ProductOptionRequest, ProductOptionResponse } from '@app/shared/models/dto/products/product-option.model';
+import { ProductOptionRequest, ProductOptionResponse } from '@app/shared/models/dto/products/product-option';
 
 @Injectable({
   providedIn: 'root',
 })
-export class ProductOptionService {
+export class ProductOption {
   private http = inject(HttpClient);
 
   public getOptions(): Observable<ProductOptionResponse[]> {

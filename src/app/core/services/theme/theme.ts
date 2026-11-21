@@ -1,59 +1,92 @@
 import { Injectable } from '@angular/core';
 
+export type ThemeName = 'light' | 'dark';
+
+const STORAGE_KEY = 'theme';
+
 @Injectable({
   providedIn: 'root'
 })
 export class Theme {
+  private mediaQuery?: MediaQueryList;
 
+  /**
+   * Applies the user's stored preference, or the system preference when they
+   * have none. Deliberately does NOT persist anything on first run: writing a
+   * value here would pin the theme forever and stop it from following the OS
+   * (many systems switch automatically at sunset).
+   */
   setDefault(): void {
-    const theme = localStorage.getItem('theme');
+    const stored = this.readStored();
 
-    if (!theme) {
-      const isdark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      if (isdark) {
-        this.set('dark');
-      } else {
-        this.set('light');
-      }
-    } else {
-      this.set(theme);
+    this.apply(stored ?? this.systemTheme());
+
+    // Keep following the OS while the user has no explicit override.
+    if (!stored && typeof window.matchMedia === 'function' && !this.mediaQuery) {
+      this.mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      this.mediaQuery.addEventListener('change', () => {
+        if (!this.readStored()) {
+          this.apply(this.systemTheme());
+        }
+      });
     }
   }
 
-  // Get current theme (default: light)
-  get(): string {
-    return localStorage.getItem('theme') ?? 'light';
+  // Get the effective theme (stored preference, else the system preference)
+  get(): ThemeName {
+    return this.readStored() ?? this.systemTheme();
   }
 
-  // Set theme and handle light/dark classes
-  set(theme: string): void {
-    const element = document.querySelector('html');
-    if (!element) return;
-
-    // Remove both light and dark classes first
-    element.classList.remove('light', 'dark');
-
-    // Add the new theme class and save to localStorage
-    if (theme === 'dark') {
-      element.classList.add('dark');
-    }
-    // For light, we just don't add the dark class (default)
-
-    localStorage.setItem('theme', theme);
-
-    // Also update body class for better CSS selectors
-    document.body.classList.remove('light-theme', 'dark-theme');
-    document.body.classList.add(theme === 'dark' ? 'dark-theme' : 'light-theme');
+  // Set theme, persist it and apply it
+  set(theme: ThemeName): void {
+    localStorage.setItem(STORAGE_KEY, theme);
+    this.apply(theme);
   }
 
-  // Toggle between light and dark
+  /**
+   * Two-state toggle: flips what the user currently sees. When the result
+   * matches the system preference the override is dropped, so the app goes
+   * back to following the OS.
+   */
   toggle(): void {
-    const current = this.get();
-    this.set(current === 'light' ? 'dark' : 'light');
+    const target: ThemeName = this.get() === 'light' ? 'dark' : 'light';
+
+    if (target === this.systemTheme()) {
+      localStorage.removeItem(STORAGE_KEY);
+      this.apply(target);
+      return;
+    }
+
+    this.set(target);
   }
 
   // Check if dark mode is active
   isDark(): boolean {
     return this.get() === 'dark';
+  }
+
+  private readStored(): ThemeName | null {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored === 'dark' || stored === 'light' ? stored : null;
+  }
+
+  private systemTheme(): ThemeName {
+    const prefersDark =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return prefersDark ? 'dark' : 'light';
+  }
+
+  /** Applies a theme to the DOM without persisting it. */
+  private apply(theme: ThemeName): void {
+    const element = document.documentElement;
+
+    element.classList.toggle('dark', theme === 'dark');
+
+    // Keep the <meta> in sync: it drives `color-scheme`, which themes native
+    // UI (scrollbars, form controls, canvas) and prevents FOUC on reload.
+    document
+      .querySelector('meta[name="color-scheme"]')
+      ?.setAttribute('content', theme);
   }
 }

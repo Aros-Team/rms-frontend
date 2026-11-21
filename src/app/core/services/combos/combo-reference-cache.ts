@@ -2,7 +2,7 @@ import { Injectable, computed, inject, type Signal } from '@angular/core';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
-import { ResourceCache } from '@app/core/cache/resource-cache';
+import { ResourceCache } from '@app/core/cache/resource-cache/resource-cache';
 import { Category } from '@app/core/services/category/category';
 import { Product } from '@app/core/services/products/product';
 import { CategorySimpleResponse } from '@app/shared/models/dto/category/category-simple-response';
