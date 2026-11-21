@@ -1,5 +1,52 @@
 # Changelog
 
+## [v3.2.0](https://github.com/Aros-Team/rms-frontend/releases/tag/v3.2.0)
+
+### Features
+
+- **combo-builder**: foundation + real-time cache sync
+- **analytics**: admin analytics section per docs/analytics.md
+- analytics improvements — monthly-only bucket, period-selector dock, chart sizing, shell wiring
+- menu-engineering quadrant UX, linear Y-axis, simplified columns
+- server-down handling — offline banner, error page, health check, fix guards loop
+- **categories**: move supply-category management from inventory
+- **products**: toggle 'Mostrar inactivos' + activate button
+- **search**: shared SearchInput component + server-side search in products and inventory
+- option groups system — shared components, orgchart CRUD, Step 3 redesign, modal refactor
+- **products**: add dedicated 'Ver Receta' page for editing products
+- **payroll**: DTOs, service and cache for the payroll endpoints
+- **payroll**: payroll panel UI as a third tab in Workers
+- **money,auth**: finish the MoneyDto migration and surface ProblemDetail
+- **ui**: real font weights, per-route titles and a11y for tabs and icons
+- **routing**: 404 page for unknown URLs, drop the dead theme button
+- **a11y**: honour the OS "increase contrast" preference by default
+- **theme**: accent text token for the brand gold
+
+### Bug Fixes
+
+- align SpecialSelection DTOs with backend OpenAPI spec
+- wire combo wizard into routes + add footerActions slot
+- use computed for categoryIds and snapshot for route params
+- update special-selections API path to v1/admin/special-selections
+- **combo-wizard**: responsive product cards, auto suggested price, fix save flow
+- **styles**: replace bg-black/50 and bg-surface-0 with design tokens
+- **i18n**: replace English user-facing text with Spanish
+- **products**: table pagination and reference-data loading
+- **inventory**: server-side pagination and lazy-loading table
+- resolve 39 lint errors and 18 test failures in harness
+- toggle 'Mostrar inactivos' ahora muestra SOLO inactivos
+- toggle 'Mostrar inactivos' y rename Eliminar a Desactivar
+- **http**: unwrap the {data} response envelope at the wire boundary
+- **money,auth**: close the two P0 findings of the impeccable critique
+- **money**: handle MoneyDto in arithmetic and kill the resulting NaN totals
+- **ui**: repair broken global CSS, dark-mode plumbing and a11y contracts
+- **a11y**: unbreak text colours, primary contrast and OS preferences
+- **ui**: restore max-w-* containers, semantic button contrast, wrapping
+- **auth**: dark variants, reflow and secondary action contrast
+- **a11y**: authenticated audit — 207 contrast failures down to 0
+- **contract**: align frontend with the API across all domains
+- **ci**: drop unused hyperframes devDependency
+
 ## [v3.1.0](https://github.com/Aros-Team/rms-frontend/releases/tag/v3.1.0)
 
 ### Features
