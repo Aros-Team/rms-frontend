@@ -38,7 +38,7 @@ import { RmsTreemap } from '@shared/ui/treemap/treemap';
 import { HourlySalesChart } from './components/hourly-sales-chart/hourly-sales-chart';
 import type { RmsStatus } from '@shared/ui/types/ui-types';
 
-/** Row rendered by the "Top 8 productos" panel (server ranking or local fallback). */
+/** Row rendered by the "Top 6 productos" panel (server ranking or local fallback). */
 interface TopProductRow {
   productId: number;
   product: string;
@@ -185,7 +185,7 @@ export class Dashboard implements OnInit {
   });
 
   /**
-   * Local aggregation fallback for the Top 8 panel.
+   * Local aggregation fallback for the Top 6 panel.
    *
    * Used only when `GET /v1/products/top-selling` fails or returns no rows for
    * today; the server ranking is the source of truth.
@@ -206,17 +206,17 @@ export class Dashboard implements OnInit {
     }
     return Array.from(map, ([product, v]) => ({ product, category: v.category, total: v.total, units: v.units }))
       .sort((a, b) => b.total - a.total)
-      .slice(0, 8);
+      .slice(0, 6);
   });
 
   /**
-   * Rows for the Top 8 panel: the real server ranking when available, else the
+   * Rows for the Top 6 panel: the real server ranking when available, else the
    * local aggregation so the panel never goes blank on an endpoint failure.
    */
   readonly topProducts = computed<TopProductRow[]>(() => {
     const ranking = this.topSelling();
     if (ranking.length > 0) {
-      return ranking.map((row) => ({
+      return ranking.slice(0, 6).map((row) => ({
         productId: row.productId,
         product: row.productName.trim() || 'Sin nombre',
         category: this.categoryForProductId(row.productId),
@@ -383,7 +383,7 @@ export class Dashboard implements OnInit {
     const today = this.localDateKey(new Date());
 
     this.analyticsService
-      .getTopSellingProducts(today, today, 8)
+      .getTopSellingProducts(today, today, 6)
       .pipe(
         catchError((error: unknown) => {
           this.logger.warn('Dashboard: top-selling unavailable', error);

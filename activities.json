@@ -1498,5 +1498,33 @@
       }
     ],
     "status": "done"
+  },
+  {
+    "id": 50,
+    "type": "fix",
+    "name": "dashboard-top-six",
+    "title": "Limit the dashboard ranking to six products",
+    "description": "The Top products panel should show six rows, both for the server ranking and the local fallback.",
+    "acceptance": [
+      "The panel heading and copy say Top 6",
+      "The top-selling request asks for six rows",
+      "No more than six products render",
+      "Tests and visuals green"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Cap the request, fallback and panel at six",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Add regression test and refresh the baseline",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
   }
 ]
