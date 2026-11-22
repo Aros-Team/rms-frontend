@@ -67,7 +67,7 @@
         dataMode="disclosure"
         dataLabel="Ver datos de ventas"
         (retry)="reload()">
-        <p-chart type="line" [data]="salesData()" [options]="salesOptions" />
+        <p-chart type="line" [data]="salesData()" [options]="salesOptions" ariaLabel="Ventas brutas y netas por periodo" />
         <ul rmsChartLegend class="chart-legend">
           <li><span class="chart-legend__swatch" [style.background]="salesColors().net"></span>Ventas netas</li>
           <li><span class="chart-legend__swatch chart-legend__swatch--dashed" [style.border-color]="salesColors().gross"></span>Ventas brutas</li>
@@ -102,7 +102,7 @@
         dataMode="disclosure"
         dataLabel="Ver datos de márgenes"
         (retry)="reload()">
-        <p-chart type="line" [data]="marginData()" [options]="marginOptions" />
+        <p-chart type="line" [data]="marginData()" [options]="marginOptions" ariaLabel="Costo primo y márgenes por periodo" />
         <ul rmsChartLegend class="chart-legend">
           <li><span class="chart-legend__swatch" [style.background]="marginColors().prime"></span>Costo primo</li>
           <li><span class="chart-legend__swatch" [style.background]="marginColors().gross"></span>Margen bruto</li>
@@ -140,7 +140,7 @@
       dataMode="disclosure"
       dataLabel="Ver datos de COGS"
       (retry)="reload()">
-      <p-chart type="bar" [data]="cogsData()" [options]="cogsOptions" />
+      <p-chart type="bar" [data]="cogsData()" [options]="cogsOptions" ariaLabel="Costo de lo vendido por categoría" />
       <ul rmsChartLegend class="chart-legend">
         @for (row of cogsRows(); track row.key) {
           <li><span class="chart-legend__swatch" [style.background]="cogsColor(row.key)"></span>{{ row.label }}</li>
@@ -169,7 +169,7 @@
     <section class="table-grid" aria-label="Detalle del periodo">
       <div class="panel">
         <h2 class="panel__title">Detalle por periodo</h2>
-        <div class="panel__scroll">
+        <div class="panel__scroll" role="region" tabindex="0" aria-label="Detalle por periodo, desplazable">
           <table class="data-table">
             <caption class="sr-only">Ventas, costos y márgenes por periodo</caption>
             <thead>

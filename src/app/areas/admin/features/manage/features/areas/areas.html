@@ -21,14 +21,14 @@
           <td class="font-medium">{{ area.name }}</td>
           <td class="text-sm">{{ areaTypeLabel(area.type) }}</td>
           <td>
-            <span [class]="area.enabled ? 'text-green-600' : 'text-red-600'" class="text-sm">
+            <span [class]="area.enabled ? 'text-rms-success' : 'text-rms-danger'" class="text-sm">
               {{ area.enabled ? 'Activo' : 'Inactivo' }}
             </span>
           </td>
           <td>
             <div class="flex gap-1 items-center justify-center">
-              <p-button icon="pi pi-pencil" [text]="true" severity="warn" size="small" class="btn-icon-only-sm" (onClick)="showEditModal(area)"></p-button>
-              <p-button icon="pi pi-power-off" [text]="true" [severity]="area.enabled ? 'danger' : 'success'" size="small" class="btn-icon-only-sm" (onClick)="toggleArea(area)"></p-button>
+              <p-button icon="pi pi-pencil" [text]="true" severity="warn" size="small" class="btn-icon-only-sm" [ariaLabel]="'Editar área ' + area.name" (onClick)="showEditModal(area)"></p-button>
+              <p-button icon="pi pi-power-off" [text]="true" [severity]="area.enabled ? 'danger' : 'success'" size="small" class="btn-icon-only-sm" [ariaLabel]="(area.enabled ? 'Desactivar área ' : 'Activar área ') + area.name" (onClick)="toggleArea(area)"></p-button>
             </div>
           </td>
         </tr>

@@ -69,7 +69,7 @@
   /* Text */
   --rms-text: var(--rms-neutral-900); /* 17.6:1 on page */
   --rms-text-secondary: var(--rms-neutral-600); /* 7.24:1 on page */
-  --rms-text-muted: var(--rms-neutral-500); /* 4.76:1 on surface */
+  --rms-text-muted: #5f6b7d; /* 5.4:1 on surface, 4.9:1 on subtle/sunken */
   --rms-text-inverse: #ffffff;
   --rms-text-on-brand: var(--rms-on-brand);
   --rms-text-disabled: var(--rms-neutral-400);

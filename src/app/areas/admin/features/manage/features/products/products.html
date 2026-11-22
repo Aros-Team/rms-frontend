@@ -86,15 +86,18 @@
                 severity="info"
                 pTooltip="Ver receta"
                 tooltipPosition="top"
+                [ariaLabel]="'Ver receta de ' + product.name"
                 [routerLink]="['/admin/manage/products', product.id, 'recipe']"
               />
               @if (includeInactive()) {
                 <p-button icon="pi pi-check-circle" severity="success" size="small" [text]="true"
                   pTooltip="Activar" tooltipPosition="top"
+                  [ariaLabel]="'Activar ' + product.name"
                   (click)="confirmEnableProduct($event, product)" />
               } @else {
                 <p-button icon="pi pi-ban" severity="danger" size="small" [text]="true"
                   pTooltip="Desactivar" tooltipPosition="top"
+                  [ariaLabel]="'Desactivar ' + product.name"
                   (click)="confirmDeleteProduct($event, product)" />
               }
             </div>

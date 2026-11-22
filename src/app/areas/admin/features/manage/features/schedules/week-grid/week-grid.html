@@ -103,19 +103,18 @@
         type="button"
         class="palette-chip"
         draggable="true"
-        [attr.aria-label]="
-          'Plantilla ' +
-          schedule.name +
-          '. Arrástrala a un trabajador o pulsa para elegir el trabajador.'
-        "
         (dragstart)="onDragStart($event, schedule)"
         (dragend)="onDragEnd()"
         (click)="openPaletteDialog(schedule)"
       >
+        <span class="sr-only">Plantilla </span>
         <i class="pi pi-calendar" aria-hidden="true"></i>
         <span class="palette-chip__name">{{ schedule.name }}</span>
         <span class="palette-chip__meta rms-caption">
           {{ schedule.shifts.length }} turnos · {{ scheduleHours(schedule) }}
+        </span>
+        <span class="sr-only">
+          Arrástrala a un trabajador o pulsa para elegir el trabajador.
         </span>
       </button>
     } @empty {
@@ -257,18 +256,6 @@
                     class="shift-block"
                     draggable="true"
                     [class.shift-block--conflict]="row.overlapKeys.has(shift.key)"
-                    [attr.aria-label]="
-                      'Quitar ' +
-                      shift.scheduleName +
-                      ' de ' +
-                      row.worker.name +
-                      ': ' +
-                      dayLabel(shift.dayOfWeek) +
-                      ' de ' +
-                      shift.startTime +
-                      ' a ' +
-                      shift.endTime
-                    "
                     [title]="
                       row.overlapKeys.has(shift.key)
                         ? 'Turnos superpuestos: revisa la franja'
@@ -278,6 +265,7 @@
                     (dragend)="onShiftDragEnd()"
                     (click)="removeShift(row.worker, shift)"
                   >
+                    <span class="sr-only">Quitar turno: </span>
                     <span class="shift-block__time rms-tabular">
                       <span>{{ shift.startTime }}</span>
                       <span class="shift-block__sep" aria-hidden="true">–</span>
@@ -290,6 +278,9 @@
                         Cruce
                       </span>
                     }
+                    <span class="sr-only">
+                      de {{ row.worker.name }}, {{ dayLabel(shift.dayOfWeek) }}
+                    </span>
                   </button>
                 } @empty {
                   <span class="week-grid__empty" aria-hidden="true">—</span>

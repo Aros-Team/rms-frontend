@@ -10,6 +10,7 @@
         type="button"
         [id]="'tab-' + tab.id"
         role="tab"
+        [attr.aria-label]="tab.label"
         [attr.aria-selected]="activeTab() === tab.id"
         [attr.aria-controls]="'panel-' + tab.id"
         [attr.tabindex]="activeTab() === tab.id ? 0 : -1"

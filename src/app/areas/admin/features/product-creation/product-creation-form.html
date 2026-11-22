@@ -30,14 +30,14 @@
       class="border rounded p-1 mb-2"
     ></textarea>
     <br />
-    <select formControlName="categoryId" class="border rounded p-1 mb-2">
+    <select formControlName="categoryId" aria-label="Categoría" class="border rounded p-1 mb-2">
       <option [ngValue]="null" disabled>Select category</option>
       @for (category of categories(); track category.id) {
         <option [ngValue]="category.id">{{ category.name }}</option>
       }
     </select>
     <br />
-    <select formControlName="areaId" class="border rounded p-1 mb-2">
+    <select formControlName="areaId" aria-label="Área de preparación" class="border rounded p-1 mb-2">
       <option [ngValue]="null" disabled>Select preparation area</option>
       @for (area of areas(); track area.id) {
         <option [ngValue]="area.id">{{ area.name }}</option>

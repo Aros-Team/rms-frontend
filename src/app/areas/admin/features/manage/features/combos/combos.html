@@ -28,13 +28,13 @@
             <td>{{ combo.basePrice | money }}</td>
             <td>{{ scheduleSummary(combo.schedule) }}</td>
             <td>
-              <p-toggleswitch [ngModel]="combo.active" [disabled]="true" />
+              <p-toggleswitch [ngModel]="combo.active" [disabled]="true" [ariaLabel]="'Combo activo: ' + combo.name" />
             </td>
             <td>
               <div class="flex gap-1">
-                <p-button icon="pi pi-pencil" severity="secondary" (onClick)="navigateToEdit(combo.productId)" pTooltip="Editar" />
-                <p-button icon="pi pi-history" severity="secondary" (onClick)="navigateToHistory(combo.productId)" pTooltip="Historial" />
-                <p-button icon="pi pi-calculator" severity="secondary" (onClick)="suggestPrice()" pTooltip="Precio sugerido" />
+                <p-button icon="pi pi-pencil" severity="secondary" [ariaLabel]="'Editar combo ' + combo.name" (onClick)="navigateToEdit(combo.productId)" pTooltip="Editar" />
+                <p-button icon="pi pi-history" severity="secondary" [ariaLabel]="'Ver historial de ' + combo.name" (onClick)="navigateToHistory(combo.productId)" pTooltip="Historial" />
+                <p-button icon="pi pi-calculator" severity="secondary" [ariaLabel]="'Sugerir precio para ' + combo.name" (onClick)="suggestPrice()" pTooltip="Precio sugerido" />
               </div>
             </td>
           </tr>
