@@ -2,7 +2,8 @@
 
 Evidence suite for the full refactor. It crawls every route in `app.routes.ts`,
 captures console/page/network failures, runs axe (WCAG A+AA), and stores light
-theme screenshots for four role viewports.
+theme screenshots for the role viewports. Kitchen runs twice: `kitchen-tv`
+(1920x1080, primary) and `kitchen-tablet` (1024x768, fallback).
 
 ## Run
 
@@ -23,8 +24,18 @@ Artifacts default to
 `/home/jorge/Projects/aros/rms/docs/sprint-0/artifacts/playwright/`
 (`PW_ARTIFACTS` overrides): `html-report/`, `results/` (traces on failure),
 `a11y/<role>/`, `results.json`, `run.log`. Visual baselines live in the worktree
-under `tests/e2e/visual/__screenshots__/<project>/` (54 snapshots) so they can be
+under `tests/e2e/visual/__screenshots__/<project>/` (64 snapshots) so they can be
 reviewed and committed with the lane.
+
+## Deterministic visuals (P1-QA-09)
+
+`support/visual-determinism.ts` freezes the browser clock to the seed anchor
+(2026-11-21 20:00 Bogota) so dashboard/analytics "today" ranges do not move, and
+masks every visible leaf containing a digit (dates, clock, totals, ids, KPI
+numbers, relative times), all chart canvases, form values and worker toasts.
+Static labels, cards and table structure stay visible. The client-side token-expiry cookie is
+extended beyond the frozen instant in `global-setup.ts`; the API still validates
+the real JWT expiry.
 
 Accessibility failures are tracked in `KNOWN_A11Y.md` and mapped to P1-QA-07.
 They must keep failing until that task closes; the suite is not allowed to

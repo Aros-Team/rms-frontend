@@ -75,7 +75,7 @@ export function defineA11ySuite(
           violations,
         };
 
-        const out = a11yArtifactPath(role, route.slug);
+        const out = a11yArtifactPath(role, route.slug, testInfo.project.name);
         fs.mkdirSync(path.dirname(out), { recursive: true });
         fs.writeFileSync(out, `${JSON.stringify(artifact, null, 2)}\n`, 'utf8');
         await testInfo.attach('axe-results', {

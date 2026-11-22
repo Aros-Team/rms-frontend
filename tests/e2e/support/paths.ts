@@ -22,8 +22,13 @@ export function authStatePath(role: RoleKey): string {
   return path.join(AUTH_DIR, `${role}.json`);
 }
 
-export function a11yArtifactPath(role: RoleKey | 'public', slug: string): string {
-  return path.join(ARTIFACTS_DIR, 'a11y', role, `${slug}.json`);
+export function a11yArtifactPath(
+  role: RoleKey | 'public',
+  slug: string,
+  projectName?: string,
+): string {
+  const suffix = projectName ? `--${projectName}` : '';
+  return path.join(ARTIFACTS_DIR, 'a11y', role, `${slug}${suffix}.json`);
 }
 
 /**

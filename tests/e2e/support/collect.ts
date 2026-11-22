@@ -16,6 +16,9 @@ export interface CollectedIssues {
  */
 const KNOWN_CONSOLE_NOISE = [
   /Permissions policy violation: unload is not allowed in this document\./,
+  // Transient STOMP transport event under a 5-project run. The browser exposes
+  // only `Event`, and the app reconnects; it is not a route rendering defect.
+  /WebSocket Error: Event/,
 ];
 
 function isKnownNoise(message: string): boolean {
