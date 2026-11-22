@@ -185,7 +185,7 @@
                     <div class="flex justify-between items-start mb-2">
                       <div class="flex items-center gap-2">
                         <span class="font-mono text-sm text-muted">#{{ order.id }}</span>
-                        <span class="font-medium">{{ order.table }}</span>
+                        <span class="font-medium">{{ tableLabel(order) }}</span>
                       </div>
                       <app-rms-status-pill [label]="getStatusText(order.status)" [status]="getStatusRole(order.status)" />
                     </div>
@@ -380,8 +380,7 @@
               <div class="bg-rms-subtle rounded-lg p-2 border border-rms-border">
                 <div class="flex justify-between items-start mb-1">
                   <div class="flex items-center gap-2">
-                    <span class="font-mono text-xs text-muted">#{{ order.id }}</span>
-                    <span class="font-medium text-sm">{{ order.table }}</span>
+                    <span class="font-medium text-sm">{{ tableLabel(order) }}</span>
                   </div>
                   <app-rms-status-pill [label]="getStatusText(order.status)" [status]="getStatusRole(order.status)" />
                 </div>
@@ -407,7 +406,7 @@
   </div>
 
   <div class="hidden lg:grid lg:grid-cols-5 gap-6 min-w-0 h-full">
-    <div class="col-span-3 flex flex-col gap-4 min-h-0 overflow-y-auto">
+    <div class="col-span-3 flex min-h-0 flex-col gap-4">
       <header class="flex-shrink-0 border border-rms-border rounded-2xl bg-rms-subtle overflow-hidden relative">
 
         <div class="relative z-10 flex flex-row justify-between items-center px-4 py-1.5 border-b border-rms-border">
@@ -482,14 +481,6 @@
         </section>
       </header>
 
-      <section class="flex-shrink-0 rounded-2xl border border-rms-border bg-rms-surface p-3">
-        <app-dashboard-hourly-chart
-          [bars]="hourlyRhythm()"
-          [loading]="isOrdersLoading() && orders().length === 0"
-          [error]="ordersError() ?? ''"
-          (retry)="retryDashboard()" />
-      </section>
-
       <section class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-rms-border bg-rms-surface">
         <header class="flex flex-wrap justify-between items-center gap-2 px-4 py-2.5 border-b border-rms-border flex-shrink-0">
           <div class="flex flex-col">
@@ -539,10 +530,10 @@
             }
           </div>
 
-          <div class="lg:col-span-2 flex flex-col min-h-0 lg:border-l lg:border-rms-border lg:pl-4">
+          <div class="flex min-h-0 flex-col lg:col-span-2 lg:border-l lg:border-rms-border lg:pl-4">
             <app-rms-chart-frame
               title="Ventas por categoría"
-              [height]="130"
+              [fill]="true"
               [loading]="isOrdersLoading() && orders().length === 0"
               [empty]="!isOrdersLoading() && salesByCategory().length === 0"
               [error]="ordersError() ?? ''"
@@ -566,8 +557,9 @@
       </section>
     </div>
 
-    <section class="col-span-2 border border-rms-border rounded-2xl bg-rms-surface flex flex-col overflow-hidden min-h-0">
-      <header class="flex justify-between items-center p-4 flex-shrink-0">
+    <div class="col-span-2 flex min-h-0 flex-col gap-4">
+    <section class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-rms-border bg-rms-surface">
+      <header class="flex items-center justify-between p-4 flex-shrink-0">
         <h2 class="text-lg font-bold text-rms-ink break-words">
           Pedidos del Día
         </h2>
@@ -581,19 +573,17 @@
           [stripedRows]="true" [loading]="isOrdersLoading()" [showLoader]="false">
           <ng-template pTemplate="header">
             <tr>
-              <th class="text-left">ID</th>
               <th class="text-left">Mesa</th>
               <th class="text-left">Fecha</th>
               <th class="text-left">Estado</th>
               <th class="text-right">Total</th>
-              <th class="text-center">Detalles</th>
+              <th class="w-10 text-center"><span class="sr-only">Detalles</span></th>
             </tr>
           </ng-template>
 
           <ng-template pTemplate="body" let-order>
             <tr>
-              <td class="font-mono text-sm">{{ order.id }}</td>
-              <td class="font-medium">{{ order.table }}</td>
+              <td class="font-medium"><span class="whitespace-nowrap">{{ tableLabel(order) }}</span></td>
               <td class="text-sm text-muted whitespace-nowrap">
                 {{ formatDate(order.date) }}
               </td>
@@ -611,9 +601,9 @@
 
           <ng-template pTemplate="loadingbody">
             <tr>
-              <td colspan="6" class="p-0">
+              <td colspan="5" class="p-0">
                 <div class="min-h-[300px] w-full">
-                  <app-table-skeleton [colCount]="6" />
+                  <app-table-skeleton [colCount]="5" />
                 </div>
               </td>
             </tr>
@@ -621,7 +611,7 @@
 
           <ng-template pTemplate="emptymessage">
             <tr>
-              <td colspan="6">
+              <td colspan="5">
                 <app-rms-empty-state
                   icon="pi pi-inbox"
                   title="No hay pedidos para mostrar"
@@ -632,6 +622,15 @@
         </p-table>
       </div>
     </section>
+
+      <section class="flex-shrink-0 rounded-2xl border border-rms-border bg-rms-surface p-3">
+        <app-dashboard-hourly-chart
+          [bars]="hourlyRhythm()"
+          [loading]="isOrdersLoading() && orders().length === 0"
+          [error]="ordersError() ?? ''"
+          (retry)="retryDashboard()" />
+      </section>
+    </div>
   </div>
 </div>
 }

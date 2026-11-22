@@ -1457,5 +1457,46 @@
       }
     ],
     "status": "done"
+  },
+  {
+    "id": 48,
+    "type": "fix",
+    "name": "dashboard-layout-polish",
+    "title": "Move the hourly chart, surface the table and fill the treemap",
+    "description": "Dashboard follow-ups: hourly chart under the orders list, remove the ID column and resolve the table number, treemap fills the available height, and remove the admin breadcrumb bar.",
+    "acceptance": [
+      "Pedidos por hora sits below Pedidos del Día",
+      "Orders list has no ID column and shows the table number",
+      "Treemap uses the full height of its card",
+      "Admin modules have no breadcrumb bar",
+      "Gates green"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Move hourly chart and restructure dashboard columns",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Drop the orders ID column and resolve table numbers from tableId",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Make the chart frame fill the treemap card height",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Remove the admin breadcrumbs and refresh baselines",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
   }
 ]
