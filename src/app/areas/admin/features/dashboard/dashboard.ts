@@ -17,7 +17,7 @@ import { Logging } from '@app/core/services/logging/logging';
 import { WebSocket } from '@app/core/services/websocket/websocket';
 import { Auth } from '@app/core/services/auth/auth';
 import { ServerStatus } from '@core/services/server-status/server-status';
-import { OrderResponse } from '@app/shared/models/dto/orders/order-response';
+import { OrderDetailItem, OrderResponse } from '@app/shared/models/dto/orders/order-response';
 import { OrderDetailsResponse } from '@app/shared/models/dto/orders/order-details-response';
 import { TableResponse } from '@app/shared/models/dto/tables/table-response';
 import { environment } from '@environments/environment';
@@ -100,6 +100,9 @@ export class Dashboard implements OnInit {
       .reduce((sum, o) => sum + calculateTotalPrice(o), 0)
   );
 
+  /** productId -> category name, used because order details omit categoryName. */
+  private categoryByProductId = signal<Map<number, string>>(new Map());
+
   private allTables = signal<TableResponse[]>([]);
   occupiedTablesCount = computed(() =>
     this.allTables().filter(t => t.status === 'OCCUPIED').length
@@ -179,7 +182,7 @@ export class Dashboard implements OnInit {
       if (order.status !== 'DELIVERED') continue;
       for (const detail of order.details) {
         const productName = detail.productName.trim() || 'Sin nombre';
-        const categoryName = detail.categoryName?.trim() ?? 'Sin categoría';
+        const categoryName = this.categoryFor(detail);
         const current = map.get(productName) ?? { category: categoryName, total: 0, units: 0 };
         current.total += calculateLineTotal(detail);
         current.units += 1;
@@ -197,7 +200,7 @@ export class Dashboard implements OnInit {
     for (const order of this.orders()) {
       if (order.status !== 'DELIVERED') continue;
       for (const detail of order.details) {
-        const categoryName = detail.categoryName?.trim() ?? 'Sin categoría';
+        const categoryName = this.categoryFor(detail);
         const current = map.get(categoryName) ?? { total: 0, units: 0 };
         current.total += calculateLineTotal(detail);
         current.units += 1;
@@ -267,12 +270,50 @@ export class Dashboard implements OnInit {
     this.updateDateTime();
     this.loadSalesVisibility();
 
+    this.loadProductCategories();
     setTimeout(() => {
       this.loadStatsThenOrders();
     }, 0);
 
     this.connectWebSocket();
     setInterval(() => { this.updateDateTime(); }, 60000);
+  }
+
+  /**
+   * Loads product categories once so the dashboard can attribute order lines to
+   * a category. The order response intentionally omits `categoryName`.
+   */
+  private loadProductCategories(): void {
+    this.productService
+      .getProducts()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (products) => {
+          const map = new Map<number, string>();
+          for (const product of products) {
+            if (product.categoryName) {
+              map.set(product.id, product.categoryName);
+            } else if (product.selectionType === 'SPECIAL_SELECTION') {
+              map.set(product.id, 'Combos');
+            }
+          }
+          this.categoryByProductId.set(map);
+          this.cdr.markForCheck();
+        },
+        error: (err: unknown) => {
+          this.logger.warn('Dashboard: product categories unavailable', err);
+        },
+      });
+  }
+
+  /**
+   * Resolves the category label for an order line, falling back to the product
+   * catalogue because the order response omits `categoryName`.
+   */
+  private categoryFor(detail: OrderDetailItem): string {
+    const fromOrder = detail.categoryName?.trim();
+    if (fromOrder) return fromOrder;
+    return this.categoryByProductId().get(detail.productId) ?? 'Sin categoría';
   }
 
   private connectWebSocket(): void {

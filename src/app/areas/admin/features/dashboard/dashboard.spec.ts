@@ -84,7 +84,7 @@ describe('Dashboard order aggregates', () => {
         provideHttpClientTesting(),
         Order,
         { provide: Table, useValue: { getTables: () => of<TableResponse[]>([]) } },
-        { provide: Product, useValue: { getProductById: () => of(null) } },
+        { provide: Product, useValue: { getProductById: () => of(null), getProducts: () => of([]) } },
         {
           provide: Logging,
           useValue: { debug: vi.fn(), error: vi.fn(), warn: vi.fn() },
