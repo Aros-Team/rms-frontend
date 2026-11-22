@@ -50,3 +50,10 @@ audit/*
 # System files
 .DS_Store
 Thumbs.db
+
+# Playwright baseline: generated auth state contains short-lived tokens
+/tests/e2e/.auth/
+
+# Local screenshot helper (uses host token files)
+/shot.mjs
+/test-results/
