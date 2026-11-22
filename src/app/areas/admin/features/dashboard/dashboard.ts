@@ -1,17 +1,15 @@
 import { Component, inject, OnInit, signal, HostListener, computed, DestroyRef, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { ButtonModule } from 'primeng/button';
+import type { ChartOptions, TooltipItem } from 'chart.js';
 import { TableModule } from 'primeng/table';
-import { BadgeModule } from 'primeng/badge';
-import { CardModule } from 'primeng/card';
 import { SkeletonModule } from 'primeng/skeleton';
-import { TagModule } from 'primeng/tag';
 import { ChartModule } from 'primeng/chart';
 import { CommonModule } from '@angular/common';
 import { Order } from '@app/core/services/orders/order';
 import { Table } from '@app/core/services/tables/table';
 import { Product, ProductData } from '@app/core/services/products/product';
+import { Analytics } from '@app/core/services/analytics/analytics';
 import { OrderDetailDialog } from '@shared/components/order-detail-dialog/order-detail-dialog';
 import { Logging } from '@app/core/services/logging/logging';
 import { WebSocket } from '@app/core/services/websocket/websocket';
@@ -20,6 +18,9 @@ import { ServerStatus } from '@core/services/server-status/server-status';
 import { OrderDetailItem, OrderResponse } from '@app/shared/models/dto/orders/order-response';
 import { OrderDetailsResponse } from '@app/shared/models/dto/orders/order-details-response';
 import { TableResponse } from '@app/shared/models/dto/tables/table-response';
+import type { TopSellingProduct } from '@app/shared/models/dto/analytics/top-selling-product';
+import { toAmount, type MoneyLike } from '@app/shared/models/dto/common/money';
+import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
 import { environment } from '@environments/environment';
 import { of } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
@@ -28,9 +29,55 @@ import { ListSkeleton } from '@shared/skeletons/list-skeleton/list-skeleton';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 import { ServerDownPage } from '@shared/components/server-down-page/server-down-page';
 import { Money } from '@shared/pipes/money/money';
+import { rmsChartPalette, rmsDoughnutOptions } from '@app/shared/ui/chart/chart-theme';
+import { RmsBadge } from '@shared/ui/badge/badge';
+import { RmsButton } from '@shared/ui/button/button';
+import { RmsChartFrame } from '@shared/ui/chart-frame/chart-frame';
+import { RmsEmptyState } from '@shared/ui/empty-state/empty-state';
+import { RmsIconButton } from '@shared/ui/icon-button/icon-button';
+import { RmsStatusPill } from '@shared/ui/status-pill/status-pill';
+import type { RmsStatus } from '@shared/ui/types/ui-types';
 
 /** Chart tooltips format money through the same pipe the templates use. */
 const moneyPipe = new Money();
+
+/** Row rendered by the "Top 8 productos" panel (server ranking or local fallback). */
+interface TopProductRow {
+  productId: number;
+  product: string;
+  category: string;
+  total: MoneyLike;
+  units: number;
+}
+
+/**
+ * Category doughnut options from the DS chart theme.
+ *
+ * The canvas legend is off: the dashboard renders an HTML legend below the plot
+ * so it can never overprint the data (F-002). Tooltips keep the percentage.
+ */
+function categoryDoughnutOptions(total: () => number): ChartOptions<'doughnut'> {
+  const base = rmsDoughnutOptions();
+  return {
+    ...base,
+    cutout: '60%',
+    plugins: {
+      ...base.plugins,
+      legend: { display: false },
+      tooltip: {
+        ...base.plugins?.tooltip,
+        callbacks: {
+          label: (ctx: TooltipItem<'doughnut'>) => {
+            const value = typeof ctx.parsed === 'number' ? ctx.parsed : 0;
+            const sum = total();
+            const pct = sum > 0 ? (value / sum) * 100 : 0;
+            return ` ${ctx.label}: ${moneyPipe.transform(value)} (${pct.toFixed(1)}%)`;
+          },
+        },
+      },
+    },
+  };
+}
 
 const RHYTHM_START_HOUR = 8;
 const RHYTHM_END_HOUR = 23;
@@ -50,24 +97,27 @@ const WS_TOPICS = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
-    ButtonModule,
     TableModule,
-    BadgeModule,
-    CardModule,
     SkeletonModule,
-    TagModule,
     ChartModule,
     OrderDetailDialog,
     ListSkeleton,
     TableSkeleton,
     ServerDownPage,
     Money,
+    RmsBadge,
+    RmsButton,
+    RmsChartFrame,
+    RmsEmptyState,
+    RmsIconButton,
+    RmsStatusPill,
   ],
 })
 export class Dashboard implements OnInit {
   private orderService = inject(Order);
   private tableService = inject(Table);
   private productService = inject(Product);
+  private analyticsService = inject(Analytics);
   private logger = inject(Logging);
   private wsService = inject(WebSocket);
   private authService = inject(Auth);
@@ -80,6 +130,8 @@ export class Dashboard implements OnInit {
   orders = signal<OrderResponse[]>([]);
   isOrdersLoading = signal(true);
   isStatsLoaded = signal(false);
+  /** RFC 7807 `detail` when today's orders could not be loaded. */
+  ordersError = signal<string | null>(null);
   /**
    * `true` when the day was too large to walk completely; the KPIs then cover
    * only the first `MAX_ORDER_PAGES` pages and the UI says so instead of
@@ -87,6 +139,11 @@ export class Dashboard implements OnInit {
    */
   ordersTruncated = signal(false);
   orderDetails = signal<OrderDetailsResponse[]>([]);
+
+  /** Server ranking from `GET /v1/products/top-selling` for today. */
+  topSelling = signal<TopSellingProduct[]>([]);
+  topSellingLoading = signal(true);
+  topSellingError = signal<string | null>(null);
 
   completedOrdersCount = computed(() =>
     this.orders().filter(o => o.status === 'DELIVERED').length
@@ -176,6 +233,12 @@ export class Dashboard implements OnInit {
     return 5 + (delivered / peak) * 85;
   }
 
+  /**
+   * Local aggregation fallback for the Top 8 panel.
+   *
+   * Used only when `GET /v1/products/top-selling` fails or returns no rows for
+   * today; the server ranking is the source of truth.
+   */
   readonly topProductsBySales = computed<{ product: string; category: string; total: number; units: number }[]>(() => {
     const map = new Map<string, { category: string; total: number; units: number }>();
     for (const order of this.orders()) {
@@ -193,6 +256,45 @@ export class Dashboard implements OnInit {
     return Array.from(map, ([product, v]) => ({ product, category: v.category, total: v.total, units: v.units }))
       .sort((a, b) => b.total - a.total)
       .slice(0, 8);
+  });
+
+  /**
+   * Rows for the Top 8 panel: the real server ranking when available, else the
+   * local aggregation so the panel never goes blank on an endpoint failure.
+   */
+  readonly topProducts = computed<TopProductRow[]>(() => {
+    const ranking = this.topSelling();
+    if (ranking.length > 0) {
+      return ranking.map((row) => ({
+        productId: row.productId,
+        product: row.productName.trim() || 'Sin nombre',
+        category: this.categoryForProductId(row.productId),
+        total: row.revenue,
+        units: row.unitsSold,
+      }));
+    }
+    return this.topProductsBySales().map((row, index) => ({
+      productId: index,
+      product: row.product,
+      category: row.category,
+      total: row.total,
+      units: row.units,
+    }));
+  });
+
+  /** True while the ranking request or the order walk is still loading. */
+  readonly topProductsLoading = computed(
+    () => this.topSellingLoading() || (this.isOrdersLoading() && this.orders().length === 0),
+  );
+
+  /** Honest note when the panel fell back to local aggregation. */
+  readonly topSellingNotice = computed(() => {
+    const error = this.topSellingError();
+    if (error) return `Ranking del servidor no disponible (${error}). Se muestra el cálculo local.`;
+    if (!this.topSellingLoading() && this.topSelling().length === 0 && this.topProductsBySales().length > 0) {
+      return 'El servidor no devolvió un ranking para hoy; se muestra el cálculo local.';
+    }
+    return '';
   });
 
   readonly salesByCategory = computed<{ category: string; total: number; units: number }[]>(() => {
@@ -215,18 +317,27 @@ export class Dashboard implements OnInit {
     this.salesByCategory().reduce((sum, c) => sum + c.total, 0),
   );
 
+  /** DS chart palette resolved for the active theme. */
+  readonly categoryColors = computed<string[]>(() => {
+    const palette = rmsChartPalette();
+    return this.salesByCategory().map((_, index) => palette[index % palette.length]);
+  });
+
+  /** Colour for the i-th category; wraps the eight-series DS palette. */
+  categoryColor(index: number): string {
+    const colors = this.categoryColors();
+    return colors.length > 0 ? colors[index % colors.length] : 'currentColor';
+  }
+
   readonly salesByCategoryChartData = computed(() => {
     const rows = this.salesByCategory();
-    const palette = [
-      '#F9BB0B', '#42A5F5', '#26A69A', '#AB47BC', '#FFA726',
-      '#EC407A', '#78909C', '#66BB6A', '#5C6BC0', '#8D6E63',
-    ];
+    const colors = this.categoryColors();
     return {
       labels: rows.map(r => r.category),
       datasets: [
         {
           data: rows.map(r => r.total),
-          backgroundColor: rows.map((_, i) => palette[i % palette.length]),
+          backgroundColor: colors,
           hoverOffset: 6,
           borderWidth: 0,
         },
@@ -234,35 +345,22 @@ export class Dashboard implements OnInit {
     };
   });
 
-  readonly salesByCategoryChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '55%',
-    animation: { duration: 250 },
-    plugins: {
-      legend: {
-        position: 'bottom' as const,
-        labels: {
-          font: { size: 11 },
-          boxWidth: 10,
-          boxHeight: 10,
-          padding: 8,
-        },
-      },
-      tooltip: {
-        callbacks: {
-          label: (ctx: { label: string; parsed: number }): string => {
-            const total = this.salesByCategoryTotal();
-            const pct = total > 0 ? (ctx.parsed / total) * 100 : 0;
-            return ` ${ctx.label}: ${moneyPipe.transform(ctx.parsed)} (${pct.toFixed(1)}%)`;
-          },
-        },
-      },
-    },
-  };
+  readonly salesByCategoryChartOptions = categoryDoughnutOptions(() => this.salesByCategoryTotal());
+
+  /** Text alternative summarising the doughnut for screen readers. */
+  readonly categoryChartSummary = computed(() => {
+    const rows = this.salesByCategory();
+    if (rows.length === 0) return '';
+    const total = this.salesByCategoryTotal();
+    const parts = rows.map((row) => {
+      const pct = total > 0 ? Math.round((row.total / total) * 100) : 0;
+      return `${row.category} ${String(pct)}%`;
+    });
+    return `Distribución de ventas por categoría: ${parts.join(', ')}.`;
+  });
 
   readonly topProductsTotal = computed(() =>
-    this.topProductsBySales().reduce((sum, p) => sum + p.total, 0),
+    this.topProducts().reduce((sum, product) => sum + toAmount(product.total), 0),
   );
 
   ngOnInit(): void {
@@ -271,6 +369,7 @@ export class Dashboard implements OnInit {
     this.loadSalesVisibility();
 
     this.loadProductCategories();
+    this.loadTopSelling();
     setTimeout(() => {
       this.loadStatsThenOrders();
     }, 0);
@@ -313,7 +412,53 @@ export class Dashboard implements OnInit {
   private categoryFor(detail: OrderDetailItem): string {
     const fromOrder = detail.categoryName?.trim();
     if (fromOrder) return fromOrder;
-    return this.categoryByProductId().get(detail.productId) ?? 'Sin categoría';
+    return this.categoryForProductId(detail.productId);
+  }
+
+  /** Category for a catalogue product id; the top-selling payload omits it. */
+  private categoryForProductId(productId: number): string {
+    return this.categoryByProductId().get(productId) ?? 'Sin categoría';
+  }
+
+  /** `YYYY-MM-DD` in the browser's local day, which is what the API ranks. */
+  private localDateKey(date: Date): string {
+    const year = String(date.getFullYear());
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  /**
+   * Loads today's real product ranking.
+   *
+   * The endpoint is admin-only and concrete (`from`/`to` are ISO dates). Any
+   * failure is recorded and the panel falls back to `topProductsBySales()`.
+   */
+  private loadTopSelling(): void {
+    this.topSellingLoading.set(true);
+    this.topSellingError.set(null);
+    const today = this.localDateKey(new Date());
+
+    this.analyticsService
+      .getTopSellingProducts(today, today, 8)
+      .pipe(
+        catchError((error: unknown) => {
+          this.logger.warn('Dashboard: top-selling unavailable', error);
+          this.topSellingError.set(
+            extractProblemDetail(error) ?? 'No se pudo cargar el ranking de productos.',
+          );
+          return of<TopSellingProduct[]>([]);
+        }),
+        finalize(() => {
+          this.topSellingLoading.set(false);
+          this.cdr.markForCheck();
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((rows) => {
+        this.topSelling.set(Array.isArray(rows) ? rows : []);
+        this.cdr.markForCheck();
+      });
   }
 
   private connectWebSocket(): void {
@@ -370,13 +515,35 @@ export class Dashboard implements OnInit {
     this.serverStatusService.check();
   }
 
+  /** Retries the order walk and the top-selling request (error/empty states). */
+  retryDashboard(): void {
+    this.ordersError.set(null);
+    this.isStatsLoaded.set(false);
+    this.isOrdersLoading.set(true);
+    this.retryTopSelling();
+    this.loadStatsThenOrders();
+  }
+
+  /** Retries only the ranking request; drops stale rows so the fallback is real. */
+  retryTopSelling(): void {
+    this.topSelling.set([]);
+    this.loadTopSelling();
+  }
+
   private loadStatsThenOrders() {
     const now = new Date();
     const todayStart = new Date(now);
     todayStart.setHours(0, 0, 0, 0);
 
+    this.ordersError.set(null);
     this.orderService.getAllOrdersByDateRange(todayStart, now).pipe(
-      catchError(() => of(null)),
+      catchError((error: unknown) => {
+        this.logger.warn('Dashboard: today orders unavailable', error);
+        this.ordersError.set(
+          extractProblemDetail(error) ?? 'No se pudieron cargar los pedidos de hoy.',
+        );
+        return of(null);
+      }),
       finalize(() => { this.isOrdersLoading.set(false); })
     ).subscribe(result => {
       if (result !== null) {
@@ -430,27 +597,36 @@ export class Dashboard implements OnInit {
     return calculateTotalPrice(order);
   }
 
-  getStatusBadgeClass(status: string): string {
+  /**
+   * Domain status mapped to the DS status roles (docs/DESIGN.md §2.3).
+   * QUEUE is a pending warning, PREPARING is in-progress info.
+   */
+  getStatusRole(status: string): RmsStatus {
     switch (status) {
-      case 'DELIVERED': return 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-300';
-      case 'PREPARING':  return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-300';
-      case 'READY':      return 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-300';
-      case 'QUEUE':      return 'bg-orange-100 text-orange-800 dark:bg-orange-800 dark:text-orange-300';
-      case 'CANCELLED':  return 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-300';
-      default:           return 'bg-surface-100 text-surface-800 dark:bg-surface-800 dark:text-surface-300';
+      case 'READY':      return 'success';
+      case 'PREPARING':  return 'info';
+      case 'QUEUE':      return 'warning';
+      case 'CANCELLED':  return 'danger';
+      case 'DELIVERED':
+      default:           return 'neutral';
     }
   }
 
-  getStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'secondary' | 'danger' {
-    switch (status) {
-      case 'QUEUE':      return 'info';
-      case 'PREPARING':  return 'warn';
-      case 'READY':      return 'success';
-      case 'DELIVERED':  return 'secondary';
-      case 'CANCELLED':  return 'danger';
-      default:           return 'secondary';
+  readonly serverStatusTone = computed<RmsStatus>(() => {
+    switch (this.serverStatus()) {
+      case 'online':   return 'success';
+      case 'offline':  return 'danger';
+      default:         return 'warning';
     }
-  }
+  });
+
+  readonly serverStatusLabel = computed(() => {
+    switch (this.serverStatus()) {
+      case 'online':   return 'Servidor online';
+      case 'offline':  return 'Servidor offline';
+      default:         return 'Verificando servidor';
+    }
+  });
 
   getStatusText(status: string): string {
     switch (status) {

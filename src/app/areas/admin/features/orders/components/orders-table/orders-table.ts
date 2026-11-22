@@ -4,11 +4,7 @@ import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
-import { ButtonModule } from 'primeng/button';
-import { SkeletonModule } from 'primeng/skeleton';
-import { TagModule } from 'primeng/tag';
 import { DialogModule } from 'primeng/dialog';
-import { TooltipModule } from 'primeng/tooltip';
 import { InputTextModule } from 'primeng/inputtext';
 import { Subscription } from 'rxjs';
 import { Order, OrderStatus } from '@app/core/services/orders/order';
@@ -24,6 +20,12 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 import { Money } from '@shared/pipes/money/money';
+import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
+import { RmsButton } from '@shared/ui/button/button';
+import { RmsEmptyState } from '@shared/ui/empty-state/empty-state';
+import { RmsIconButton } from '@shared/ui/icon-button/icon-button';
+import { RmsStatusPill } from '@shared/ui/status-pill/status-pill';
+import type { RmsStatus } from '@shared/ui/types/ui-types';
 
 const WS_TOPICS = {
   created:   '/topic/orders/created',
@@ -42,14 +44,14 @@ const WS_TOPICS = {
     SharedDatepicker,
     SelectModule,
     FormsModule,
-    ButtonModule,
-    SkeletonModule,
-    TagModule,
     DialogModule,
-    TooltipModule,
     InputTextModule,
     TableSkeleton,
-    Money
+    Money,
+    RmsButton,
+    RmsEmptyState,
+    RmsIconButton,
+    RmsStatusPill,
   ],
   templateUrl: './orders-table.html',
 })
@@ -66,6 +68,12 @@ export class OrdersTable implements OnInit, OnDestroy {
   first = 0;
   rows = 10;
   totalRecords = 0;
+  /**
+   * Server-side sort, reflected by the sortable headers. Defaults to the
+   * newest order first; the API accepts `sort=<field>,<asc|desc>`.
+   */
+  sortField = 'date';
+  sortOrder = -1;
   private loadedOnce = false;
   /** Identifies the request currently in flight, to avoid duplicate round-trips. */
   private inFlightKey: string | null = null;
@@ -141,6 +149,8 @@ export class OrdersTable implements OnInit, OnDestroy {
     this.selectedStatus = 'ALL';
     this.selectedDate = new Date();
     this.first = 0;
+    this.sortField = 'date';
+    this.sortOrder = -1;
     this.table?.clear();
     this.fetchOrders();
   }
@@ -213,12 +223,29 @@ export class OrdersTable implements OnInit, OnDestroy {
    * ever in memory.
    */
   onLazyLoad(event: TableLazyLoadEvent): void {
-    const first = event.first ?? 0;
     const rows = event.rows ?? this.rows;
-    const unchanged = this.loadedOnce && first === this.first && rows === this.rows;
+
+    // `sortOrder` is 1 (asc), -1 (desc) or 0 when the header cycles sorting off.
+    // The third state falls back to the documented default: newest first.
+    const requestedField =
+      typeof event.sortField === 'string' ? event.sortField : this.sortField;
+    const requestedOrder = event.sortOrder ?? this.sortOrder;
+    const sortField = requestedOrder === 0 ? 'date' : requestedField;
+    const sortOrder = requestedOrder === 0 ? -1 : requestedOrder;
+
+    const sortChanged = sortField !== this.sortField || sortOrder !== this.sortOrder;
+    const first = sortChanged ? 0 : (event.first ?? 0);
+    const unchanged =
+      this.loadedOnce &&
+      first === this.first &&
+      rows === this.rows &&
+      sortField === this.sortField &&
+      sortOrder === this.sortOrder;
 
     this.first = first;
     this.rows = rows;
+    this.sortField = sortField;
+    this.sortOrder = sortOrder;
 
     if (unchanged) return;
     this.fetchOrders();
@@ -233,12 +260,14 @@ export class OrdersTable implements OnInit, OnDestroy {
     // Date/status/search filtering and paging all happen server-side.
     const date = this.selectedDate ?? new Date();
     const page = this.rows > 0 ? Math.floor(this.first / this.rows) : 0;
+    const sort = `${this.sortField},${this.sortOrder === 1 ? 'asc' : 'desc'}`;
     const requestKey = [
       page,
       this.rows,
       status ?? 'ALL',
       date.toDateString(),
       this.search,
+      sort,
     ].join('|');
 
     // The initial `(onLazyLoad)` emission fires right after `ngOnInit`, with the
@@ -255,7 +284,7 @@ export class OrdersTable implements OnInit, OnDestroy {
         search: this.search || undefined,
         page,
         size: this.rows,
-        sort: 'date,desc',
+        sort,
       })
       .subscribe({
         next: (res) => {
@@ -273,12 +302,19 @@ export class OrdersTable implements OnInit, OnDestroy {
         },
         error: (err: unknown) => {
           console.error(err);
-          this.error = 'No se pudieron cargar los pedidos.';
+          this.error =
+            extractProblemDetail(err) ?? 'No se pudieron cargar los pedidos.';
           this.inFlightKey = null;
           this.loading = false;
           this.cdr.markForCheck();
         },
       });
+  }
+
+  /** Retry hook for the error banner. */
+  retry(): void {
+    this.inFlightKey = null;
+    this.fetchOrders();
   }
 
   formatDate(date: string | Date): string {
@@ -299,14 +335,15 @@ export class OrdersTable implements OnInit, OnDestroy {
     return option ? option.label : status;
   }
 
-  getStatusSeverity(status: string): 'info' | 'warn' | 'success' | 'danger' | 'secondary' {
+  /** Domain status mapped to the DS status roles (docs/DESIGN.md §2.3). */
+  getStatusRole(status: string): RmsStatus {
     switch (status) {
-      case 'QUEUE': return 'info';
-      case 'PREPARING': return 'warn';
       case 'READY': return 'success';
-      case 'DELIVERED': return 'secondary';
+      case 'PREPARING': return 'info';
+      case 'QUEUE': return 'warning';
       case 'CANCELLED': return 'danger';
-      default: return 'secondary';
+      case 'DELIVERED':
+      default: return 'neutral';
     }
   }
 
