@@ -13,12 +13,15 @@
       <span class="cart-fab__badge">{{ dock.totalItems() }}</span>
     }
   </span>
+  {{ ' ' }}
   <span class="cart-fab__body" aria-hidden="true">
     @if (dock.totalItems() === 0) {
       <span class="cart-fab__title">Pedido vacío</span>
+      {{ ' ' }}
       <span class="cart-fab__subtitle">{{ dock.selectedTableLabel() }}</span>
     } @else {
       <span class="cart-fab__title">{{ dock.selectedTableLabel() }}</span>
+      {{ ' ' }}
       <span class="cart-fab__subtitle">{{ dock.totalAmount() | money }}</span>
     }
   </span>

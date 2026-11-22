@@ -29,12 +29,12 @@
   </div>
 
   <div class="flex gap-2 pt-2 border-t border-surface-100 dark:border-surface-700 flex-wrap">
-    <p-button severity="secondary" [text]="true" icon="pi pi-calendar" pTooltip="Asignar horarios" tooltipPosition="top" size="small" styleClass="flex-1" (click)="onAssignSchedule()"></p-button>
-    <p-button severity="secondary" [text]="true" icon="pi pi-pencil" pTooltip="Editar trabajador" tooltipPosition="top" size="small" styleClass="flex-1" (click)="onEdit()"></p-button>
+    <p-button severity="secondary" [text]="true" icon="pi pi-calendar" pTooltip="Asignar horarios" tooltipPosition="top" size="small" styleClass="flex-1" [ariaLabel]="'Asignar horarios a ' + worker().name" (click)="onAssignSchedule()"></p-button>
+    <p-button severity="secondary" [text]="true" icon="pi pi-pencil" pTooltip="Editar trabajador" tooltipPosition="top" size="small" styleClass="flex-1" [ariaLabel]="'Editar trabajador ' + worker().name" (click)="onEdit()"></p-button>
     @if (worker().status === 'PENDING') {
-      <p-button severity="secondary" [text]="true" icon="pi pi-envelope" pTooltip="Reenviar invitación" tooltipPosition="top" size="small" styleClass="flex-1" (click)="onRetryEmail()"></p-button>
+      <p-button severity="secondary" [text]="true" icon="pi pi-envelope" pTooltip="Reenviar invitación" tooltipPosition="top" size="small" styleClass="flex-1" [ariaLabel]="'Reenviar invitación a ' + worker().name" (click)="onRetryEmail()"></p-button>
     }
-    <p-button severity="secondary" [text]="true" icon="pi pi-history" pTooltip="Ver historial salarial" tooltipPosition="top" size="small" styleClass="flex-1" [routerLink]="['/admin/manage/workers', worker().id, 'salary-history']"></p-button>
-    <p-button severity="danger" [text]="true" icon="pi pi-trash" pTooltip="Eliminar trabajador" tooltipPosition="top" size="small" styleClass="flex-1" (click)="onDelete()"></p-button>
+    <p-button severity="secondary" [text]="true" icon="pi pi-history" pTooltip="Ver historial salarial" tooltipPosition="top" size="small" styleClass="flex-1" [ariaLabel]="'Ver historial salarial de ' + worker().name" [routerLink]="['/admin/manage/workers', worker().id, 'salary-history']"></p-button>
+    <p-button severity="danger" [text]="true" icon="pi pi-trash" pTooltip="Eliminar trabajador" tooltipPosition="top" size="small" styleClass="flex-1" [ariaLabel]="'Eliminar trabajador ' + worker().name" (click)="onDelete()"></p-button>
   </div>
 </div>

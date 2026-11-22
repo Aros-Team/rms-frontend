@@ -37,6 +37,13 @@
       responsiveLayout="scroll"
       styleClass="h-full"
       [tableStyle]="{'min-width': '700px'}"
+      [pt]="{
+        tableContainer: {
+          tabindex: '0',
+          role: 'region',
+          'aria-label': 'Insumos de bodega y cocina, desplazable'
+        }
+      }"
       [loading]="loading()"
       [showLoader]="false"
     >
@@ -79,12 +86,12 @@
             </span>
           </td>
           <td>
-            <span [class]="supply.stockBodega <= 0 ? 'text-red-500 font-semibold' : 'text-green-600'" class="text-sm">
+            <span [class]="supply.stockBodega <= 0 ? 'text-rms-danger font-semibold' : 'text-rms-success'" class="text-sm">
               {{ supply.stockBodega }}
             </span>
           </td>
           <td>
-            <span [class]="supply.stockCocina <= 0 ? 'text-red-500 font-semibold' : 'text-green-600'" class="text-sm">
+            <span [class]="supply.stockCocina <= 0 ? 'text-rms-danger font-semibold' : 'text-rms-success'" class="text-sm">
               {{ supply.stockCocina }}
             </span>
           </td>
@@ -467,7 +474,7 @@
       <label for="supplierName">Nombre *</label>
     </p-iftalabel>
     @if (isInvalid(newSupplierForm, 'name')) {
-      <small class="text-red-500 -mt-3">El nombre es requerido</small>
+      <small class="text-rms-danger -mt-3">El nombre es requerido</small>
     }
 
     <p-iftalabel>

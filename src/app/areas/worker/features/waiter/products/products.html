@@ -62,11 +62,11 @@
             <button
               type="button"
               class="product-row"
-              [attr.aria-label]="'Agregar ' + product.name + ', ' + (product.basePrice | money)"
               (click)="addProduct(product)"
             >
-              <span class="product-row__media" aria-hidden="true">
-                <span class="product-row__monogram">{{ monogram(product.name) }}</span>
+              <span class="sr-only">Agregar </span>
+              <span class="product-row__media">
+                <span class="product-row__monogram" aria-hidden="true" [attr.data-monogram]="monogram(product.name)"></span>
                 @if (product.imageUrl) {
                   <img
                     class="product-row__image"

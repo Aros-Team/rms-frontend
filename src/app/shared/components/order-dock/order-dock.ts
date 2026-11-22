@@ -129,7 +129,12 @@ export class OrderDock {
     const count = this.dock.totalItems();
     const total = this.moneyPipe.transform(this.dock.totalAmount());
     const productWord = count === 1 ? 'producto' : 'productos';
-    return `Abrir pedido. ${table}. ${String(count)} ${productWord}. Total ${total}`;
+    if (count === 0) {
+      return `Pedido vacío. ${table}. Abre el pedido para revisarlo.`;
+    }
+    // The accessible name must start with the visible badge, table and total so
+    // `label-content-name-mismatch` holds; the summary follows the same order.
+    return `${String(count)} ${table}. ${total}. Abrir el pedido: ${String(count)} ${productWord}.`;
   });
 
   readonly sheetTitle = computed(() => (this.confirmOpen() ? 'Confirmar envío' : 'Tu pedido'));

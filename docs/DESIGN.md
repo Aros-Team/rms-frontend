@@ -61,7 +61,7 @@ The theme boots in `index.html` before first paint and is kept in sync by
 | `--rms-neutral-200` | `#e2e8f0` | Hairline border |
 | `--rms-neutral-300` | `#cbd5e1` | Input border (light), strong border |
 | `--rms-neutral-400` | `#94a3b8` | Placeholder, muted text (dark) |
-| `--rms-neutral-500` | `#64748b` | Muted text (light, 4.76:1) |
+| `--rms-neutral-500` | `#64748b` | Slate mid-tone primitive (see `--rms-text-muted`) |
 | `--rms-neutral-600` | `#475569` | Secondary text (light, 7.24:1) |
 | `--rms-neutral-700` | `#334155` | Border (dark), body text (light) |
 | `--rms-neutral-800` | `#1e293b` | Card surface (dark) |
@@ -93,7 +93,7 @@ Hard rule: `#f9bb0b` is never text and never a small icon. On a gold fill use
 | `--rms-border-strong` | `#cbd5e1` | `#475569` | Input/control border |
 | `--rms-text` | `#0f172a` | `#e2e8f0` | Body and headings |
 | `--rms-text-secondary` | `#475569` | `#cbd5e1` | Labels, support copy |
-| `--rms-text-muted` | `#64748b` | `#94a3b8` | Captions, hints |
+| `--rms-text-muted` | `#5f6b7d` | `#94a3b8` | Captions, hints (4.9:1 on subtle/sunken) |
 | `--rms-text-inverse` | `#ffffff` | `#0f172a` | On inverse surfaces |
 | `--rms-text-on-brand` | `#1e1b19` | `#1e1b19` | On a gold fill |
 | `--rms-text-disabled` | `#94a3b8` | `#64748b` | Disabled text |

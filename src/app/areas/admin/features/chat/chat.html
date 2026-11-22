@@ -153,6 +153,8 @@
         </textarea>
       <button
         class="p-2.5 rounded-xl transition-colors flex-shrink-0"
+        [attr.aria-label]="loading() ? 'Detener respuesta' : 'Enviar mensaje'"
+        type="button"
         [class.bg-red-500]="loading()"
         [class.hover:bg-red-600]="loading()"
         [class.bg-primary-500]="!loading()"

@@ -3,96 +3,41 @@
 Owner task: **P1-QA-07** — close the Sprint 0 axe failures on existing routes.
 Gate: zero `serious` or `critical` violations in the baseline suite.
 
-This file is the explicit allowlist-free inventory of what is still red. The a11y
-specs keep failing on these; nothing is silenced in the test code. `/dev/ui` is
-exempt from the axe gate by request and is not counted here.
+## Status: gate met (2026-11-22, `feat/a11y-fixes`)
 
-Last verified: 2026-11-22 (refactor wave merged: settings, schedules, live
-analytics, recipe editor, kitchen TV, cashier board).
-Result: **40 unique failing role-routes, 81 rule-route pairs, 9 rule types**. The
-suite reports **43 failing tests** because the three kitchen routes run in both
-`kitchen-tv` (1920x1080) and `kitchen-tablet` (1024x768).
+The last full run reports **63 passed, 0 failed** and **zero violations of any
+impact** across the 63 role-route executions (40 unique role-routes; the kitchen
+routes run in both `kitchen-tv` and `kitchen-tablet`). `/dev/ui` remains exempt
+from the axe gate by request.
+
+What used to be red and is now fixed (details in
+`docs/reports/a11y-lane.md`):
+
+| Rule | Was | Now |
+|---|---|---|
+| `button-name` | 29 role-routes | fixed — icon-only controls have names |
+| `color-contrast` | 24 role-routes | fixed — semantic tokens (muted text darkened to 4.9:1 on subtle/sunken) |
+| `label-content-name-mismatch` | 14 role-routes | fixed — accessible names derive from visible content |
+| `role-img-alt` | 5 role-routes | fixed — charts expose a summary |
+| `scrollable-region-focusable` | 4 role-routes | fixed — scroll panels and the inventory table are focusable |
+| `aria-prohibited-attr` | 2 role-routes | fixed — step markers carry `role="img"` |
+| `aria-hidden-focus` | 1 role-route | fixed — category toggle is no longer hidden from AT |
+| `label` | 1 role-route | fixed — read-only combo switches have names |
+| `select-name` | 1 role-route | fixed — create-product selects are labelled |
+
 Axe artifacts: `docs/sprint-0/artifacts/playwright/a11y/<role>/<route>--<project>.json`.
-
-## Violation id → routes
-
-### `button-name` (critical, 29 role-routes)
-
-Admin: `/admin`, `/admin/orders`, `/admin/schedules`,
-`/admin/schedules?tab=plantillas`, `/admin/schedules?tab=registros`,
-`/admin/manage`, `/admin/manage/products`, `/admin/manage/products/1/recipe`,
-`/admin/manage/categories`, `/admin/manage/tables`, `/admin/manage/areas`,
-`/admin/manage/combos`, `/admin/manage/combos/new`,
-`/admin/manage/combos/1/edit`, `/admin/manage/combos/1/history`,
-`/admin/manage/orders-create`, `/admin/manage/workers`,
-`/admin/manage/workers/1001/salary-history`, `/admin/manage/inventory`,
-`/admin/analytics`, `/admin/analytics/prime-cost`,
-`/admin/analytics/menu-engineering`, `/admin/analytics/operations`,
-`/admin/analytics/cohort`, `/admin/analytics/alerts`, `/admin/settings`,
-`/admin/create-product`, `/admin/profile`.
-Waiter: `/worker/profile`.
-
-### `color-contrast` (serious, 24 role-routes)
-
-Admin: `/admin/analytics`, `/admin/analytics/prime-cost`,
-`/admin/analytics/menu-engineering`, `/admin/analytics/operations`,
-`/admin/analytics/cohort`, `/admin/analytics/alerts`, `/admin/manage/areas`,
-`/admin/manage/inventory`, `/admin/schedules`, `/admin/settings`.
-Waiter: `/worker`, `/worker/waiter`, `/worker/waiter?tab=carta`,
-`/worker/waiter?tab=pedidos`, `/worker/combos/1`, `/worker/my-schedule`.
-Kitchen: `/worker`, `/worker/kitchen`, `/worker/my-schedule` (both kitchen
-projects).
-Cashier: `/worker/my-schedule`.
-Public: `/setup-account`.
-
-### `label-content-name-mismatch` (serious, 14 role-routes)
-
-Admin: `/admin/analytics`, `/admin/analytics/prime-cost`,
-`/admin/analytics/menu-engineering`, `/admin/analytics/operations`,
-`/admin/analytics/cohort`, `/admin/analytics/alerts`, `/admin/schedules`.
-Waiter: `/worker`, `/worker/waiter`, `/worker/waiter?tab=carta`,
-`/worker/waiter?tab=pedidos`, `/worker/combos/1`, `/worker/my-schedule`,
-`/worker/profile`.
-
-### `role-img-alt` (serious, 5 role-routes)
-
-`/admin/analytics`, `/admin/analytics/prime-cost`,
-`/admin/analytics/menu-engineering`, `/admin/analytics/operations`,
-`/admin/analytics/cohort`.
-
-### `scrollable-region-focusable` (serious, 4 role-routes)
-
-`/admin/analytics`, `/admin/analytics/prime-cost`,
-`/admin/analytics/menu-engineering`, `/admin/manage/inventory`.
-
-### `aria-prohibited-attr` (serious, 2 role-routes)
-
-`/admin/manage/combos/new`, `/admin/manage/combos/1/edit`.
-
-### `aria-hidden-focus` (serious, 1 role-route)
-
-`/admin/manage/categories`.
-
-### `label` (critical, 1 role-route)
-
-`/admin/manage/combos`.
-
-### `select-name` (critical, 1 role-route)
-
-`/admin/create-product`.
 
 ## Commands
 
 ```bash
 cd /home/jorge/Projects/aros/worktrees/fe-playwright
 
-# The gate: expected red until P1-QA-07 is closed
+# The gate
 npx playwright test --grep "a11y /"
 
 # Green mode for local work on unrelated features (not configured in CI)
 npx playwright test --grep-invert "a11y /"
 ```
 
-The inventory is regenerated from `a11y/<role>/*.json` on every run. When a rule
-is fixed, update this file in the same change so the document and the red test
-list stay aligned.
+The inventory is regenerated from `a11y/<role>/*.json` on every run. Keep this
+file aligned with the red test list when a rule regresses.
