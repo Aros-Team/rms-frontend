@@ -1,0 +1,254 @@
+<app-rms-section
+  title="Usuarios y roles"
+  description="Cambia el rol, las áreas y el estado de acceso de cada persona."
+>
+  <div rmsSectionActions>
+    <app-rms-button
+      variant="secondary"
+      size="sm"
+      iconStart="pi pi-refresh"
+      [disabled]="loading()"
+      (click)="load()"
+    >
+      Actualizar
+    </app-rms-button>
+  </div>
+
+  @if (loading()) {
+    <div class="flex flex-col gap-3">
+      <app-rms-skeleton height="2.5rem" ariaLabel="Cargando usuarios" />
+      <app-rms-skeleton height="2.5rem" />
+      <app-rms-skeleton height="2.5rem" />
+      <app-rms-skeleton height="2.5rem" />
+    </div>
+  } @else if (loadError()) {
+    <app-rms-empty-state
+      icon="pi pi-exclamation-triangle"
+      title="No se pudieron cargar los usuarios"
+      [message]="loadError()"
+      actionLabel="Reintentar"
+      actionIcon="pi pi-refresh"
+      (action)="load()"
+    />
+  } @else {
+    <div class="flex flex-col gap-4">
+      <div class="grid gap-3 md:grid-cols-3">
+        <app-rms-input
+          id="users-search"
+          type="search"
+          label="Buscar"
+          placeholder="Nombre, correo o documento"
+          [ngModel]="search()"
+          (ngModelChange)="search.set($event)"
+        />
+        <app-rms-select
+          id="users-role-filter"
+          label="Rol"
+          [options]="roleFilterOptions"
+          [ngModel]="roleFilter()"
+          (ngModelChange)="onRoleFilterChange($event)"
+        />
+        <app-rms-select
+          id="users-status-filter"
+          label="Estado"
+          [options]="statusFilterOptions"
+          [ngModel]="statusFilter()"
+          (ngModelChange)="onStatusFilterChange($event)"
+        />
+      </div>
+
+      @if (users().length === 0) {
+        <app-rms-empty-state
+          icon="pi pi-users"
+          title="No hay usuarios registrados"
+          message="Crea trabajadores desde la sección Restaurante para verlos aquí."
+        />
+      } @else if (filteredUsers().length === 0) {
+        <app-rms-empty-state
+          icon="pi pi-filter-slash"
+          title="Ningún usuario coincide con los filtros"
+          message="Prueba con otro nombre, rol o estado."
+          actionLabel="Limpiar filtros"
+          actionIcon="pi pi-filter-slash"
+          (action)="clearFilters()"
+        />
+      } @else {
+        <p class="text-rms-caption text-rms-ink-muted" aria-live="polite">
+          {{ filteredUsers().length }} de {{ users().length }} usuarios
+        </p>
+
+        <div class="overflow-x-auto rounded-lg border border-rms-border">
+          <table class="w-full text-rms-body" aria-label="Usuarios del restaurante">
+            <thead class="bg-rms-subtle">
+              <tr>
+                <th scope="col" class="px-3 py-2 text-left text-rms-label text-rms-ink-secondary">
+                  Persona
+                </th>
+                <th scope="col" class="px-3 py-2 text-left text-rms-label text-rms-ink-secondary">
+                  Rol
+                </th>
+                <th scope="col" class="px-3 py-2 text-left text-rms-label text-rms-ink-secondary">
+                  Estado
+                </th>
+                <th scope="col" class="px-3 py-2 text-left text-rms-label text-rms-ink-secondary">
+                  Áreas
+                </th>
+                <th scope="col" class="px-3 py-2 text-right text-rms-label text-rms-ink-secondary">
+                  Acciones
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (user of filteredUsers(); track user.id) {
+                <tr class="border-t border-rms-border">
+                  <td class="px-3 py-3 align-top">
+                    <span class="block font-semibold text-rms-ink">{{ user.name }}</span>
+                    <span class="block text-rms-caption text-rms-ink-muted">{{ user.email }}</span>
+                    <span class="block text-rms-caption text-rms-ink-muted">
+                      Documento {{ user.document }}
+                    </span>
+                  </td>
+                  <td class="px-3 py-3 align-top">
+                    <app-rms-badge
+                      [label]="roleLabel(user.role)"
+                      [tone]="roleTone(user.role)"
+                      variant="soft"
+                    />
+                  </td>
+                  <td class="px-3 py-3 align-top">
+                    <app-rms-status-pill
+                      [label]="statusLabel(user.status)"
+                      [status]="statusTone(user.status)"
+                    />
+                  </td>
+                  <td class="px-3 py-3 align-top text-rms-ink-secondary">
+                    {{ areaNames(user) }}
+                  </td>
+                  <td class="px-3 py-3 align-top text-right">
+                    <app-rms-button
+                      variant="secondary"
+                      size="sm"
+                      iconStart="pi pi-pencil"
+                      (click)="openEdit(user)"
+                    >
+                      Editar
+                    </app-rms-button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+</app-rms-section>
+
+<app-rms-dialog
+  header="Editar acceso"
+  width="640px"
+  [visible]="editVisible()"
+  (visibleChange)="editVisible.set($event)"
+>
+  @if (selectedUser(); as user) {
+    <div class="flex flex-col gap-4">
+      <div class="rounded-lg border border-rms-border bg-rms-subtle px-4 py-3">
+        <p class="text-rms-h4 text-rms-ink">{{ user.name }}</p>
+        <p class="text-rms-caption text-rms-ink-muted">{{ user.email }} · {{ user.document }}</p>
+        @if (isSelf(user)) {
+          <p class="mt-2 text-rms-caption text-rms-ink-secondary">
+            Esta es tu cuenta: no puedes cambiar tu propio rol ni desactivarla.
+          </p>
+        }
+        @if (statusNeedsPromotion(user)) {
+          <p class="mt-2 text-rms-caption text-rms-warning">
+            Estado actual: {{ statusLabel(user.status) }}. Al guardar el estado pasará a Activo o
+            Inactivo según tu selección.
+          </p>
+        }
+      </div>
+
+      @if (dialogError()) {
+        <p
+          role="alert"
+          class="rounded-lg border border-rms-danger bg-rms-surface px-4 py-3 text-rms-body text-rms-danger"
+        >
+          {{ dialogError() }}
+        </p>
+      }
+
+      <app-rms-select
+        id="user-role"
+        label="Rol"
+        [required]="true"
+        [options]="roleOptions"
+        [disabled]="isSelf(user)"
+        [ngModel]="roleDraft()"
+        (ngModelChange)="onRoleChange($event)"
+      />
+
+      <app-rms-select
+        id="user-status"
+        label="Estado"
+        [required]="true"
+        [options]="statusOptions"
+        [disabled]="isSelf(user)"
+        [ngModel]="statusDraft()"
+        (ngModelChange)="onStatusChange($event)"
+      />
+
+      <div>
+        <label for="user-areas" class="mb-2 block text-rms-label text-rms-ink-secondary">
+          Áreas asignadas
+        </label>
+        <p-multiSelect
+          inputId="user-areas"
+          [options]="areas()"
+          optionLabel="name"
+          optionValue="id"
+          display="chip"
+          placeholder="Sin áreas"
+          appendTo="body"
+          [ngModel]="areaDraft()"
+          (ngModelChange)="areaDraft.set($event)"
+        />
+        <p class="mt-1 text-rms-caption text-rms-ink-muted">
+          Un trabajador sin áreas asignadas no puede entrar a ninguna estación.
+        </p>
+      </div>
+    </div>
+  }
+
+  <div rmsDialogFooter class="flex flex-wrap justify-end gap-3">
+    <app-rms-button variant="secondary" (click)="closeEdit()">Cancelar</app-rms-button>
+    <app-rms-button [loading]="saving()" [disabled]="saving()" (click)="requestSave()">
+      Guardar cambios
+    </app-rms-button>
+  </div>
+</app-rms-dialog>
+
+<app-rms-dialog
+  header="Confirmar cambio sensible"
+  width="520px"
+  [visible]="confirmVisible()"
+  (visibleChange)="confirmVisible.set($event)"
+>
+  @if (selectedUser(); as user) {
+    <p class="text-rms-body text-rms-ink">
+      Vas a
+      @if (user.role === 'ADMIN' && roleDraft() === 'WORKER') {
+        quitar el rol de administrador a <strong>{{ user.name }}</strong>.
+      } @else {
+        desactivar la cuenta de <strong>{{ user.name }}</strong>.
+      }
+      Esta acción cambia sus permisos de inmediato.
+    </p>
+  }
+
+  <div rmsDialogFooter class="flex flex-wrap justify-end gap-3">
+    <app-rms-button variant="secondary" (click)="confirmVisible.set(false)">
+      Seguir editando
+    </app-rms-button>
+    <app-rms-button variant="danger" (click)="confirmSave()">Confirmar cambio</app-rms-button>
+  </div>
+</app-rms-dialog>

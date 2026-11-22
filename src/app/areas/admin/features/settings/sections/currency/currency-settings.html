@@ -1,0 +1,113 @@
+<app-rms-section
+  title="Moneda"
+  description="Define la moneda que usan los nuevos importes y los totales del sistema."
+>
+  @if (loading()) {
+    <div class="flex flex-col gap-3">
+      <app-rms-skeleton height="2.5rem" ariaLabel="Cargando la moneda activa" />
+      <app-rms-skeleton height="2rem" />
+    </div>
+  } @else if (loadError()) {
+    <app-rms-empty-state
+      icon="pi pi-exclamation-triangle"
+      title="No se pudo cargar la moneda"
+      [message]="loadError()"
+      actionLabel="Reintentar"
+      actionIcon="pi pi-refresh"
+      (action)="load()"
+    />
+  } @else {
+    <div class="flex flex-col gap-5">
+      <div
+        class="rounded-lg border border-rms-warning bg-rms-surface px-4 py-3"
+        role="note"
+        aria-label="Aviso sobre el cambio de moneda"
+      >
+        <p class="flex items-start gap-2 text-rms-body text-rms-ink">
+          <i class="pi pi-exclamation-triangle mt-0.5 text-rms-warning" aria-hidden="true"></i>
+          <span>
+            <strong>Cambiar la moneda no convierte los importes guardados.</strong>
+            Solo define la moneda de los nuevos registros y de los totales agregados. Los pedidos,
+            compras y nóminas históricos conservan su valor numérico original.
+          </span>
+        </p>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate class="flex flex-col gap-5">
+        @if (saveError()) {
+          <p
+            role="alert"
+            class="rounded-lg border border-rms-danger bg-rms-surface px-4 py-3 text-rms-body text-rms-danger"
+          >
+            {{ saveError() }}
+          </p>
+        }
+
+        <div class="grid gap-4 lg:grid-cols-2">
+          <app-rms-select
+            id="currency-code"
+            formControlName="code"
+            label="Código ISO 4217"
+            hint="La moneda activa se aplica a nuevos importes y respuestas agregadas."
+            [required]="true"
+            [options]="options()"
+            [filter]="true"
+            [error]="codeError()"
+          />
+
+          <div
+            class="rounded-lg border border-rms-border bg-rms-subtle px-4 py-3"
+            aria-live="polite"
+          >
+            <p class="text-rms-label uppercase tracking-wide text-rms-ink-muted">Vista previa</p>
+            @if (preview(); as p) {
+              <p class="mt-1 text-rms-h3 text-rms-ink">{{ p.displayName }}</p>
+              <dl class="mt-2 grid grid-cols-3 gap-2 text-rms-caption">
+                <div>
+                  <dt class="text-rms-ink-muted">Símbolo</dt>
+                  <dd class="rms-tabular text-rms-ink">{{ p.symbol }}</dd>
+                </div>
+                <div>
+                  <dt class="text-rms-ink-muted">Decimales</dt>
+                  <dd class="rms-tabular text-rms-ink">{{ p.fractionDigits }}</dd>
+                </div>
+                <div>
+                  <dt class="text-rms-ink-muted">Código</dt>
+                  <dd class="rms-tabular text-rms-ink">{{ p.code }}</dd>
+                </div>
+              </dl>
+            } @else {
+              <p class="mt-1 text-rms-body text-rms-warning">
+                El código no corresponde a una moneda ISO 4217 conocida.
+              </p>
+            }
+          </div>
+        </div>
+
+        <div class="grid gap-2 rounded-lg border border-rms-border px-4 py-3 sm:grid-cols-2">
+          <p class="text-rms-caption text-rms-ink-muted">Moneda activa</p>
+          @if (current(); as active) {
+            <p class="text-right text-rms-body text-rms-ink">
+              <span class="rms-tabular font-semibold">{{ active.code }}</span>
+              · {{ active.displayName }} · {{ active.symbol }}
+            </p>
+          }
+        </div>
+
+        <div class="flex flex-wrap items-center justify-end gap-3 border-t border-rms-border pt-4">
+          <app-rms-button
+            variant="secondary"
+            type="button"
+            [disabled]="!dirty() || saving()"
+            (click)="reset()"
+          >
+            Descartar cambios
+          </app-rms-button>
+          <app-rms-button type="submit" [disabled]="!dirty() || saving()" [loading]="saving()">
+            Guardar moneda
+          </app-rms-button>
+        </div>
+      </form>
+    </div>
+  }
+</app-rms-section>

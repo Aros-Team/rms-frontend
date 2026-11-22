@@ -1,0 +1,121 @@
+<app-rms-section
+  title="Apariencia"
+  description="Preferencias de este dispositivo. No cambian la configuración del restaurante."
+>
+  <div class="flex flex-col gap-6">
+    <fieldset class="rounded-lg border border-rms-border px-4 py-3">
+      <legend class="px-1 text-rms-label text-rms-ink-secondary">Tema de color</legend>
+      <p id="theme-hint" class="mb-3 text-rms-caption text-rms-ink-muted">
+        El tema oscuro sigue la preferencia del sistema hasta que elijas uno.
+      </p>
+      <div class="grid gap-2 sm:grid-cols-2">
+        <label
+          class="flex cursor-pointer items-center gap-3 rounded-lg border border-rms-border px-3 py-3 text-rms-body text-rms-ink"
+        >
+          <input
+            type="radio"
+            name="settings-theme"
+            value="light"
+            [checked]="theme() === 'light'"
+            (change)="setTheme('light')"
+            aria-describedby="theme-hint"
+          />
+          <span class="flex items-center gap-2">
+            <i class="pi pi-sun" aria-hidden="true"></i>
+            Claro
+          </span>
+        </label>
+
+        <label
+          class="flex cursor-pointer items-center gap-3 rounded-lg border border-rms-border px-3 py-3 text-rms-body text-rms-ink"
+        >
+          <input
+            type="radio"
+            name="settings-theme"
+            value="dark"
+            [checked]="theme() === 'dark'"
+            (change)="setTheme('dark')"
+            aria-describedby="theme-hint"
+          />
+          <span class="flex items-center gap-2">
+            <i class="pi pi-moon" aria-hidden="true"></i>
+            Oscuro
+          </span>
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset class="rounded-lg border border-rms-border px-4 py-3">
+      <legend class="px-1 text-rms-label text-rms-ink-secondary">Tamaño del texto</legend>
+      <p id="font-size-hint" class="mb-3 text-rms-caption text-rms-ink-muted">
+        Se aplica sobre el tamaño configurado en tu navegador o sistema operativo.
+      </p>
+      <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        @for (size of fontSizes; track size.id) {
+          <label
+            class="flex cursor-pointer items-center gap-3 rounded-lg border border-rms-border px-3 py-3 text-rms-body text-rms-ink"
+          >
+            <input
+              type="radio"
+              name="settings-font-size"
+              [value]="size.id"
+              [checked]="fontSize() === size.id"
+              (change)="setFontSize(size.id)"
+              aria-describedby="font-size-hint"
+            />
+            <span class="flex flex-col">
+              <span class="text-rms-ink">A</span>
+              <span class="text-rms-caption text-rms-ink-muted">{{ size.label }}</span>
+            </span>
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <fieldset class="rounded-lg border border-rms-border px-4 py-3">
+      <legend class="px-1 text-rms-label text-rms-ink-secondary">Contraste</legend>
+      <div class="grid gap-2 sm:grid-cols-2">
+        @for (contrast of contrasts; track contrast.id) {
+          <label
+            class="flex cursor-pointer items-start gap-3 rounded-lg border border-rms-border px-3 py-3 text-rms-body text-rms-ink"
+          >
+            <input
+              type="radio"
+              name="settings-contrast"
+              [value]="contrast.id"
+              [checked]="contrastMode() === contrast.id"
+              (change)="setContrast(contrast.id)"
+            />
+            <span>
+              <span class="block">{{ contrast.label }}</span>
+              <span class="block text-rms-caption text-rms-ink-muted">
+                {{ contrast.description }}
+              </span>
+            </span>
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <div class="rounded-lg border border-rms-border bg-rms-subtle px-4 py-3">
+      <h3 class="text-rms-h4 text-rms-ink">Densidad</h3>
+      <p class="mt-1 text-rms-caption text-rms-ink-secondary">
+        La densidad de tablas todavía no es una preferencia configurable. Las tablas de
+        administración usan la densidad compacta del sistema.
+      </p>
+    </div>
+
+    <a
+      routerLink="/admin/profile"
+      class="flex min-h-12 items-center justify-between gap-3 rounded-lg border border-rms-border px-4 py-3 text-rms-ink no-underline hover:bg-rms-subtle"
+    >
+      <span>
+        <span class="block text-rms-h4">Cuenta y contraseña</span>
+        <span class="block text-rms-caption text-rms-ink-muted">
+          Cambia tu contraseña, revisa tu perfil y el aviso de privacidad.
+        </span>
+      </span>
+      <i class="pi pi-chevron-right text-rms-ink-muted" aria-hidden="true"></i>
+    </a>
+  </div>
+</app-rms-section>
