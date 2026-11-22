@@ -1,0 +1,204 @@
+<section class="time-logs" aria-labelledby="time-logs-heading">
+  <header class="time-logs__header">
+    <div>
+      <h2 id="time-logs-heading" class="rms-h3">Registros de asistencia</h2>
+      <p class="rms-caption">
+        Horas por trabajador y día, calculadas emparejando entrada y salida. Un turno sin salida se
+        muestra como incidencia, nunca como una jornada completa.
+      </p>
+    </div>
+    <app-rms-button
+      variant="secondary"
+      iconStart="pi pi-refresh"
+      [loading]="loading()"
+      (click)="load()"
+    >
+      Actualizar
+    </app-rms-button>
+  </header>
+
+  <div class="time-logs__note" role="note">
+    <i class="pi pi-info-circle" aria-hidden="true"></i>
+    <p>
+      La API registra el ingreso automáticamente al iniciar sesión. No existe todavía un endpoint de
+      salida o de marcaje manual (P3-BE-RL-11), así que esta vista no ofrece botones de reloj.
+    </p>
+  </div>
+
+  <form class="time-logs__filters" (ngSubmit)="applyFilters()">
+    <app-rms-select
+      id="time-log-worker"
+      label="Trabajador"
+      [options]="workerOptions()"
+      [ngModel]="workerFilter()"
+      (ngModelChange)="workerFilter.set($event)"
+      name="time-log-worker"
+      size="sm"
+    />
+
+    <app-rms-field label="Desde" controlId="time-log-from">
+      <input
+        id="time-log-from"
+        class="rms-date-input"
+        type="date"
+        [value]="fromDate()"
+        (input)="onFromChange($event)"
+        required
+      />
+    </app-rms-field>
+
+    <app-rms-field label="Hasta" controlId="time-log-to">
+      <input
+        id="time-log-to"
+        class="rms-date-input"
+        type="date"
+        [value]="toDate()"
+        (input)="onToChange($event)"
+        required
+      />
+    </app-rms-field>
+
+    <app-rms-checkbox
+      id="time-log-within-shift"
+      label="Solo dentro de turno"
+      [ngModel]="withinShift()"
+      (ngModelChange)="withinShift.set($event)"
+      name="time-log-within-shift"
+    />
+
+    <div class="time-logs__filter-actions">
+      <app-rms-button type="submit" size="sm" iconStart="pi pi-search">Filtrar</app-rms-button>
+      <app-rms-button type="button" size="sm" variant="ghost" (click)="clearFilters()">
+        Hoy
+      </app-rms-button>
+    </div>
+  </form>
+
+  @if (error(); as message) {
+    <div class="time-logs__error" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span>{{ message }}</span>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="time-logs__loading" role="status" aria-label="Cargando registros de asistencia">
+      @for (row of [1, 2, 3, 4, 5]; track row) {
+        <app-rms-skeleton height="2.75rem" ariaLabel="Cargando registros de asistencia" />
+      }
+    </div>
+  } @else if (forbidden()) {
+    <app-rms-empty-state
+      icon="pi pi-lock"
+      title="Sin permiso"
+      message="Solo administración puede consultar los registros de asistencia."
+    />
+  } @else if (summaries().length === 0) {
+    <app-rms-empty-state
+      icon="pi pi-clock"
+      title="Sin registros en el rango"
+      message="No hay marcajes para el trabajador y las fechas seleccionadas. Amplía el rango o limpia los filtros."
+      actionLabel="Ver hoy"
+      actionIcon="pi pi-calendar"
+      (action)="clearFilters()"
+    />
+  } @else {
+    <div class="time-logs__summary" aria-label="Resumen del rango">
+      <div class="time-logs__stat">
+        <span class="rms-caption">Horas registradas</span>
+        <strong class="rms-numeric">{{ formatMinutes(totalMinutes()) }}</strong>
+      </div>
+      <div class="time-logs__stat">
+        <span class="rms-caption">Sesiones</span>
+        <strong class="rms-numeric">{{ sessionCount() }}</strong>
+      </div>
+      <div class="time-logs__stat">
+        <span class="rms-caption">Jornadas abiertas</span>
+        <strong class="rms-numeric">{{ openSessions() }}</strong>
+      </div>
+      <div class="time-logs__stat">
+        <span class="rms-caption">Incidencias</span>
+        <strong class="rms-numeric">{{ exceptionCount() }}</strong>
+      </div>
+      <div class="time-logs__stat">
+        <span class="rms-caption">Filas</span>
+        <strong class="rms-numeric">{{ summaries().length }}</strong>
+      </div>
+    </div>
+
+    <div class="time-logs__table-wrap">
+      <table class="rms-table">
+        <caption class="sr-only">Horas por trabajador y día</caption>
+        <thead>
+          <tr>
+            <th scope="col">Día</th>
+            <th scope="col">Trabajador</th>
+            <th scope="col">Entrada</th>
+            <th scope="col">Salida</th>
+            <th scope="col" class="rms-tabular">Horas</th>
+            <th scope="col">Incidencias</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (summary of pagedSummaries(); track summary.key) {
+            <tr [class.time-logs__row--exception]="hasExceptions(summary)">
+              <th scope="row">
+                <span class="time-logs__day">{{ dayLabel(summary) }}</span>
+                <span class="rms-caption">{{ dateLabel(summary) }}</span>
+              </th>
+              <td>{{ workerLabel(summary.workerId) }}</td>
+              <td class="rms-tabular">{{ firstClockIn(summary) }}</td>
+              <td class="rms-tabular">{{ lastClockOut(summary) }}</td>
+              <td class="rms-tabular">
+                @if (summary.minutes === 0 && summary.openSessions > 0) {
+                  <span class="time-logs__hours">En curso</span>
+                } @else {
+                  <span class="time-logs__hours">{{ formatMinutes(summary.minutes) }}</span>
+                }
+                @if (summary.sessions.length > 1) {
+                  <span class="rms-caption time-logs__sessions">
+                    {{ summary.sessions.length }} sesiones
+                  </span>
+                }
+              </td>
+              <td>
+                @if (hasExceptions(summary)) {
+                  <ul class="time-logs__incidents">
+                    @for (exception of summary.exceptions; track exception) {
+                      <li>
+                        <app-rms-badge [label]="exception" tone="danger" />
+                      </li>
+                    }
+                  </ul>
+                } @else {
+                  <app-rms-badge label="Sin incidencias" tone="success" />
+                }
+                @if (summary.sessions.length > 0) {
+                  <span class="rms-caption time-logs__detail">{{ sessionDetail(summary) }}</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPages() > 1) {
+      <nav class="time-logs__pager" aria-label="Paginación de registros">
+        <app-rms-icon-button
+          icon="pi pi-chevron-left"
+          ariaLabel="Página anterior de registros"
+          [disabled]="page() === 0"
+          (click)="previousPage()"
+        />
+        <span class="rms-caption">Página {{ page() + 1 }} de {{ totalPages() }}</span>
+        <app-rms-icon-button
+          icon="pi pi-chevron-right"
+          ariaLabel="Página siguiente de registros"
+          [disabled]="page() >= totalPages() - 1"
+          (click)="nextPage()"
+        />
+      </nav>
+    }
+  }
+</section>

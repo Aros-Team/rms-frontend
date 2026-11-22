@@ -1,160 +1,265 @@
-<p-toast></p-toast>
-<p-confirmdialog></p-confirmdialog>
-
-<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0">
-  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+<section class="schedule-templates" aria-labelledby="schedule-templates-heading">
+  <header class="schedule-templates__head">
     <div>
-      <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0">Horarios</h1>
+      <h2 id="schedule-templates-heading" class="rms-h3">Plantillas de horario</h2>
+      <p class="rms-caption">
+        Una plantilla agrupa turnos semanales. Asígnala a un trabajador desde la pestaña Semana.
+      </p>
     </div>
-    <p-button label="Crear Horario" icon="pi pi-plus" (onClick)="openCreateModal()"></p-button>
-  </div>
+    <app-rms-button iconStart="pi pi-plus" (click)="openCreateModal()">
+      Nueva plantilla
+    </app-rms-button>
+  </header>
 
-  <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast overflow-hidden">
-    @if (loading()) {
-      <app-table-skeleton [rowCount]="5" [colCount]="4" />
-    } @else if (error()) {
-      <div class="flex flex-col items-center justify-center h-full p-8">
-        <p class="text-muted">{{ error() }}</p>
-        <p-button label="Reintentar" icon="pi pi-refresh" (onClick)="loadSchedules()" class="mt-4"></p-button>
-      </div>
-    } @else if (schedules().length === 0) {
-      <div class="flex flex-col items-center justify-center h-full p-8">
-        <i class="pi pi-calendar text-4xl text-surface-300 mb-4" aria-hidden="true"></i>
-        <p class="text-muted text-lg">No hay horarios creados</p>
-        <p class="text-muted text-sm mt-1">Crea tu primer horario para empezar</p>
-      </div>
-    } @else {
-      <p-table [value]="schedules()" dataKey="id" [paginator]="true" [rows]="10"
-        [rowsPerPageOptions]="[5, 10, 20]" [loading]="loading()">
-        <ng-template pTemplate="header">
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Descripción</th>
-            <th>Turnos</th>
-            <th>Acciones</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-schedule>
-          <tr>
-            <td>{{ schedule.id }}</td>
-            <td>{{ schedule.name }}</td>
-            <td>{{ schedule.description || '-' }}</td>
-            <td>
-              <p-tag [value]="getShiftCount(schedule) + ' turnos'" [severity]="getShiftCount(schedule) > 0 ? 'info' : 'secondary'"></p-tag>
-            </td>
-            <td>
-              <div class="flex gap-2">
-                <p-button icon="pi pi-pencil" severity="secondary" variant="text" pTooltip="Editar" (onClick)="openEditModal(schedule)"></p-button>
-                <p-button icon="pi pi-trash" severity="danger" variant="text" pTooltip="Eliminar" (onClick)="deleteSchedule(schedule, $event)"></p-button>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="5" class="text-center p-4 text-muted">No hay horarios registrados</td>
-          </tr>
-        </ng-template>
-      </p-table>
-    }
-  </div>
-</div>
-
-<!-- Schedule form modal -->
-<p-dialog [(visible)]="modalVisible" [header]="editingSchedule() ? 'Editar Horario' : 'Crear Horario'" [modal]="true" styleClass="w-[700px]" [closable]="!saving()">
-  <div [formGroup]="scheduleForm" class="flex flex-col gap-4 p-4">
-    <!-- Name -->
-    <div class="flex flex-col gap-1">
-      <label for="name" class="font-medium text-surface-700 dark:text-surface-200">
-        Nombre <span class="text-red-500">*</span>
-      </label>
-      <input pInputText id="name" formControlName="name" placeholder="Ej: Turno Mañana" />
-      @if ((scheduleForm.get('name')?.invalid && (scheduleForm.get('name')?.touched || formSubmitted()))) {
-        <small class="text-red-500">El nombre es requerido</small>
-      }
+  @if (notice(); as message) {
+    <div class="schedule-templates__feedback" role="status">
+      <i class="pi pi-check-circle" aria-hidden="true"></i>
+      <span>{{ message }}</span>
+      <app-rms-icon-button
+        icon="pi pi-times"
+        ariaLabel="Cerrar confirmación"
+        (click)="dismissNotice()"
+      />
     </div>
+  }
 
-    <!-- Description -->
-    <div class="flex flex-col gap-1">
-      <label for="description" class="font-medium text-surface-700 dark:text-surface-200">Descripción</label>
-      <input pInputText id="description" formControlName="description" placeholder="Opcional" />
+  @if (actionError(); as message) {
+    <div class="schedule-templates__feedback schedule-templates__feedback--error" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span>{{ message }}</span>
+      <app-rms-icon-button
+        icon="pi pi-times"
+        ariaLabel="Cerrar error"
+        (click)="dismissError()"
+      />
     </div>
+  }
 
-    <!-- Shifts section -->
-    <div class="flex flex-col gap-3">
-      <div class="flex items-center justify-between">
-        <span class="font-medium text-surface-700 dark:text-surface-200">Turnos</span>
-        <p-button label="+ Agregar Turno" severity="secondary" size="small" (onClick)="addShiftEntry()" [disabled]="saving()"></p-button>
-      </div>
-
-      <!-- Shift validation error -->
-      @if (shiftError()) {
-        <small class="text-red-500">{{ shiftError() }}</small>
-      }
-
-      <div formArrayName="shifts" class="flex flex-col gap-3">
-        @for (shift of shifts.controls; track i; let i = $index) {
-          <div [formGroupName]="i" class="flex flex-col gap-2 p-3 border border-surface-200 dark:border-surface-700 rounded-lg bg-surface-50 dark:bg-surface-800">
-            <!-- Day toggle buttons row -->
-            <div class="flex flex-col gap-1">
-              <span [id]="'days-label-' + i" class="text-xs text-muted font-medium">Días</span>
-              <p-selectbutton
-                [ariaLabelledBy]="'days-label-' + i"
-                [options]="dayOptions"
-                formControlName="days"
-                [multiple]="true"
-                optionLabel="label"
-                optionValue="value"
-                class="day-selector"
-              ></p-selectbutton>
-              @if (shift.get('days')?.invalid && (shift.get('days')?.touched || formSubmitted())) {
-                <small class="text-red-500">Seleccione al menos un día</small>
-              }
-            </div>
-
-            <!-- Time inputs row -->
-            <div class="flex gap-2 items-end">
-              <div class="flex-1">
-                <label [attr.for]="'start-' + i" class="text-xs text-muted font-medium block mb-1">Inicio</label>
-                <input [id]="'start-' + i" type="time" formControlName="startTime" class="w-full p-inputtext" />
-                @if (shift.get('startTime')?.invalid && (shift.get('startTime')?.touched || formSubmitted())) {
-                  <small class="text-red-500">Requerido</small>
+  @if (loading()) {
+    <div class="schedule-templates__loading" role="status" aria-label="Cargando plantillas de horario">
+      <app-rms-skeleton height="3rem" ariaLabel="Cargando plantillas de horario" />
+      <app-rms-skeleton height="3rem" ariaLabel="Cargando plantillas de horario" />
+      <app-rms-skeleton height="3rem" ariaLabel="Cargando plantillas de horario" />
+    </div>
+  } @else if (loadError(); as message) {
+    <app-rms-empty-state
+      icon="pi pi-exclamation-triangle"
+      [title]="forbidden() ? 'Sin permiso para administrar plantillas' : 'No se pudieron cargar las plantillas'"
+      [message]="message"
+      [actionLabel]="forbidden() ? '' : 'Reintentar'"
+      actionIcon="pi pi-refresh"
+      (action)="loadSchedules()"
+    />
+  } @else if (schedules().length === 0) {
+    <app-rms-empty-state
+      icon="pi pi-calendar"
+      title="Todavía no hay plantillas"
+      message="Crea la primera plantilla con sus turnos para empezar a asignar horarios."
+      actionLabel="Crear plantilla"
+      actionIcon="pi pi-plus"
+      (action)="openCreateModal()"
+    />
+  } @else {
+    <div class="schedule-templates__table-wrap">
+      <table class="rms-table">
+        <caption class="sr-only">Plantillas de horario registradas</caption>
+        <thead>
+          <tr>
+            <th scope="col">Plantilla</th>
+            <th scope="col">Turnos</th>
+            <th scope="col" class="rms-tabular">Horas semanales</th>
+            <th scope="col"><span class="sr-only">Acciones</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (schedule of schedules(); track schedule.id) {
+            <tr>
+              <th scope="row">
+                <span class="schedule-templates__name">{{ schedule.name }}</span>
+                @if (schedule.description) {
+                  <span class="schedule-templates__description">{{ schedule.description }}</span>
                 }
-              </div>
-              <div class="flex-1">
-                <label [attr.for]="'end-' + i" class="text-xs text-muted font-medium block mb-1">Fin</label>
-                <input [id]="'end-' + i" type="time" formControlName="endTime" class="w-full p-inputtext" />
-                @if (shift.get('endTime')?.invalid && (shift.get('endTime')?.touched || formSubmitted())) {
-                  <small class="text-red-500">Requerido</small>
-                }
-              </div>
-              <!-- Remove entry -->
-              @if (shifts.controls.length > 1) {
-                <p-button icon="pi pi-trash" severity="danger" variant="text" (onClick)="removeShiftEntry(i)" [disabled]="saving()" pTooltip="Quitar turno"></p-button>
-              }
-            </div>
+              </th>
+              <td>
+                <span class="schedule-templates__count">{{ schedule.shifts.length }} turnos</span>
+              </td>
+              <td class="rms-tabular">{{ scheduleHours(schedule) }}</td>
+              <td>
+                <div class="schedule-templates__actions">
+                  <app-rms-icon-button
+                    icon="pi pi-pencil"
+                    [ariaLabel]="'Editar plantilla ' + schedule.name"
+                    tooltip="Editar"
+                    (click)="openEditModal(schedule)"
+                  />
+                  <app-rms-icon-button
+                    icon="pi pi-trash"
+                    [ariaLabel]="'Eliminar plantilla ' + schedule.name"
+                    tooltip="Eliminar"
+                    variant="danger"
+                    (click)="requestDelete(schedule)"
+                  />
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
 
-            <!-- Preview -->
-            @if (getShiftPreview(i) && !shift.invalid) {
-              <div class="text-xs text-muted italic">
-                {{ getShiftPreview(i) }}
-              </div>
+<app-rms-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [header]="editingSchedule() ? 'Editar plantilla' : 'Nueva plantilla'"
+  width="680px"
+  [closeOnEscape]="!saving()"
+>
+  <form [formGroup]="scheduleForm" class="schedule-form" (ngSubmit)="saveSchedule()">
+    <app-rms-input
+      id="schedule-name"
+      label="Nombre"
+      placeholder="Ej. Turno de apoyo"
+      formControlName="name"
+      [required]="true"
+      [error]="nameError()"
+    />
+
+    <app-rms-input
+      id="schedule-description"
+      label="Descripción"
+      placeholder="Opcional"
+      optionalLabel="Opcional"
+      formControlName="description"
+    />
+
+    <div class="schedule-form__shifts" formArrayName="shifts">
+      <div class="schedule-form__shifts-head">
+        <span class="rms-label">Turnos de la plantilla</span>
+        <app-rms-button
+          size="sm"
+          variant="secondary"
+          iconStart="pi pi-plus"
+          [disabled]="saving()"
+          (click)="addShiftEntry()"
+        >
+          Agregar turno
+        </app-rms-button>
+      </div>
+
+      @if (shiftError(); as message) {
+        <p class="schedule-form__error" role="alert">{{ message }}</p>
+      }
+
+      @for (shift of shifts.controls; track $index; let index = $index) {
+        <fieldset class="schedule-form__shift" [formGroupName]="index">
+          <legend class="sr-only">Turno {{ index + 1 }}</legend>
+
+          <div class="schedule-form__days" role="group" aria-label="Días del turno">
+            @for (day of dayOrder; track day) {
+              <button
+                type="button"
+                class="schedule-form__day"
+                [class.schedule-form__day--selected]="isDaySelected(index, day)"
+                [attr.aria-pressed]="isDaySelected(index, day)"
+                [attr.aria-label]="dayLabels[day]"
+                (click)="toggleDay(index, day)"
+              >
+                {{ dayShortLabels[day] }}
+              </button>
             }
           </div>
-        }
-      </div>
+          @if (daysError(index); as message) {
+            <p class="schedule-form__error" role="alert">{{ message }}</p>
+          }
 
-      @if (shifts.controls.length === 0) {
-        <p class="text-muted text-sm text-center py-4">No hay turnos. Agregue al menos un turno.</p>
+          <div class="schedule-form__times">
+            <app-rms-field
+              [label]="'Inicio'"
+              [controlId]="'shift-start-' + index"
+              [error]="shiftFieldError(index, 'startTime')"
+              [required]="true"
+            >
+              <input
+                [id]="'shift-start-' + index"
+                class="rms-time-input"
+                type="time"
+                formControlName="startTime"
+                [required]="true"
+              />
+            </app-rms-field>
+
+            <app-rms-field
+              [label]="'Fin'"
+              [controlId]="'shift-end-' + index"
+              [error]="shiftFieldError(index, 'endTime')"
+              [required]="true"
+            >
+              <input
+                [id]="'shift-end-' + index"
+                class="rms-time-input"
+                type="time"
+                formControlName="endTime"
+                [required]="true"
+              />
+            </app-rms-field>
+
+            <app-rms-icon-button
+              icon="pi pi-trash"
+              [ariaLabel]="'Quitar turno ' + (index + 1)"
+              tooltip="Quitar turno"
+              variant="danger"
+              [disabled]="shifts.length === 1 || saving()"
+              (click)="removeShiftEntry(index)"
+            />
+          </div>
+
+          <p class="rms-caption schedule-form__preview">{{ shiftPreview(index) }}</p>
+        </fieldset>
       }
-    </div>
-  </div>
 
-  <ng-template pTemplate="footer">
-    <div class="flex gap-2 justify-end">
-      <p-button label="Cancelar" severity="secondary" (onClick)="modalVisible.set(false)" [disabled]="saving()"></p-button>
-      <p-button label="Guardar" (onClick)="saveSchedule()" [loading]="saving()" [disabled]="saving()"></p-button>
+      <p class="schedule-form__total">
+        Total semanal de la plantilla:
+        <strong class="rms-tabular">{{ weeklyPreview }}</strong>
+      </p>
     </div>
-  </ng-template>
-</p-dialog>
+  </form>
+
+  <div rmsDialogFooter class="schedule-form__footer">
+    <app-rms-button
+      variant="secondary"
+      [disabled]="saving()"
+      (click)="dialogVisible.set(false)"
+    >
+      Cancelar
+    </app-rms-button>
+    <app-rms-button [loading]="saving()" (click)="saveSchedule()">Guardar plantilla</app-rms-button>
+  </div>
+</app-rms-dialog>
+
+<app-rms-dialog
+  [visible]="pendingDelete() !== null"
+  (visibleChange)="cancelDelete()"
+  header="Eliminar plantilla"
+  width="460px"
+  [closeOnEscape]="!deleting()"
+>
+  @if (pendingDelete(); as schedule) {
+    <p class="schedule-delete__text">
+      ¿Eliminar la plantilla <strong>{{ schedule.name }}</strong>? Esta acción no se puede deshacer.
+    </p>
+    <p class="rms-caption">
+      Solo es posible si ningún trabajador la tiene asignada. Si la tiene, quítala primero desde la
+      pestaña Semana.
+    </p>
+  }
+  <div rmsDialogFooter class="schedule-form__footer">
+    <app-rms-button variant="secondary" [disabled]="deleting()" (click)="cancelDelete()">
+      Cancelar
+    </app-rms-button>
+    <app-rms-button variant="danger" [loading]="deleting()" (click)="confirmDelete()">
+      Eliminar plantilla
+    </app-rms-button>
+  </div>
+</app-rms-dialog>

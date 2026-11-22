@@ -82,6 +82,13 @@ export const ADMIN_NAV: readonly NavItem[] = [
     routerLink: '/admin/orders',
   },
   {
+    id: 'schedules',
+    label: 'Horarios',
+    description: 'Planifica turnos y asistencia',
+    icon: 'pi pi-calendar',
+    routerLink: '/admin/schedules',
+  },
+  {
     id: 'manage',
     label: 'Restaurante',
     description: 'Gestiona tu restaurante',

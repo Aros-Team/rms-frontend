@@ -105,6 +105,14 @@ export const routes: Routes = [
         loadComponent: () => import('@areas/admin/features/orders/orders').then((m) => m.Orders),
       },
       {
+        path: 'schedules',
+        title: 'Horarios',
+        loadComponent: () =>
+          import('@areas/admin/features/manage/features/schedules/schedules-page').then(
+            (m) => m.SchedulesPage,
+          ),
+      },
+      {
         path: 'manage',
         title: 'Gestión',
         loadComponent: () => import('@areas/admin/features/manage/manage').then((m) => m.Manage),

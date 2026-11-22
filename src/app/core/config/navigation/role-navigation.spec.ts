@@ -147,6 +147,7 @@ describe('role navigation config', () => {
       expect(ADMIN_NAV.map((item) => item.id)).toEqual([
         'dashboard',
         'orders',
+        'schedules',
         'manage',
         'analytics',
         'settings',
