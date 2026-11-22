@@ -3,13 +3,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { RouterModule } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { TableModule } from 'primeng/table';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { DialogModule } from 'primeng/dialog';
-import { TagModule } from 'primeng/tag';
 import { SkeletonModule } from 'primeng/skeleton';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -21,6 +19,10 @@ import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 import { WebSocket } from '@app/core/services/websocket/websocket';
 import { Auth } from '@app/core/services/auth/auth';
 import { environment } from '@environments/environment';
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
+import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
+import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
 
 const WS_TOPICS = {
   tableStatus: '/topic/tables/status',
@@ -32,17 +34,19 @@ const WS_TOPICS = {
   imports: [
     RouterModule,
     ReactiveFormsModule,
-    ButtonModule,
     InputTextModule,
     InputNumberModule,
     TableModule,
     IftaLabelModule,
     DialogModule,
-    TagModule,
     SkeletonModule,
     IconFieldModule,
     InputIconModule,
     LazyLoad,
+    RmsButton,
+    RmsEmptyState,
+    RmsPageHeader,
+    RmsStatusPill,
   ],
   templateUrl: './tables.html',
 })
@@ -205,6 +209,19 @@ export class Tables implements OnInit {
         return 'secondary';
       default:
         return 'secondary';
+    }
+  }
+
+  getStatusTone(status: string): 'success' | 'warning' | 'info' | 'neutral' {
+    switch (status) {
+      case 'AVAILABLE':
+        return 'success';
+      case 'OCCUPIED':
+        return 'info';
+      case 'RESERVED':
+        return 'warning';
+      default:
+        return 'neutral';
     }
   }
 

@@ -44,7 +44,7 @@
   </div>
 
   <ng-template #footer>
-    <p-button label="Cancelar" severity="secondary" icon="pi pi-times" (click)="close()" />
-    <p-button label="Aplicar" icon="pi pi-check" (click)="apply()" />
+    <app-rms-button variant="secondary" iconStart="pi pi-times" (click)="close()">Cancelar</app-rms-button>
+    <app-rms-button iconStart="pi pi-check" (click)="apply()">Aplicar</app-rms-button>
   </ng-template>
 </p-dialog>

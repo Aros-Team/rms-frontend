@@ -1,10 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
-import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
+import { RmsButton } from '@app/shared/ui/button/button';
 import { ComboWizard, categoryStepId } from './combo-wizard';
 import { GeneralStep } from './general-step/general-step';
 import { GroupStep } from './group-step/group-step';
@@ -16,8 +16,8 @@ import { ComboSubmission } from './combo-submission';
 @Component({
   selector: 'app-combo-wizard-page',
   imports: [
-    ButtonModule,
     ToastModule,
+    RmsButton,
     ComboWizard,
     GeneralStep,
     GroupStep,

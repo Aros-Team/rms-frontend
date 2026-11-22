@@ -48,6 +48,9 @@ import { MessageModule } from 'primeng/message';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
+import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 
 import { PrepTimeDialog, type PrepTimeEstimate } from './componentes/prep-time-dialog/prep-time-dialog';
 import { Money } from '@app/shared/pipes/money/money';
@@ -125,6 +128,9 @@ interface OptionFormValue {
     SearchInputComponent,
     Step3Options,
     Money,
+    RmsButton,
+    RmsIconButton,
+    RmsPageHeader,
   ],
   templateUrl: './products.html',
   providers: [MessageService, ConfirmationService],

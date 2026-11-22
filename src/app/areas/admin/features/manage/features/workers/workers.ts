@@ -34,6 +34,11 @@ import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 import { AreaResponse } from '@app/shared/models/dto/areas/area';
 import { Area } from '@app/core/services/areas/area';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
+import { RmsBadge } from '@app/shared/ui/badge/badge';
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
+import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
+import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
 import { WorkerCard } from './worker-card';
 import { PayrollPanel } from './payroll-panel/payroll-panel';
 import { TimeLog, TimeLogFilterParams } from '@app/core/services/schedules/time-log';
@@ -78,6 +83,11 @@ interface WorkerFormValue {
     FormValidation,
     LazyLoad,
     TableSkeleton,
+    RmsBadge,
+    RmsButton,
+    RmsEmptyState,
+    RmsPageHeader,
+    RmsStatusPill,
     WorkerCard,
     PayrollPanel,
   ],

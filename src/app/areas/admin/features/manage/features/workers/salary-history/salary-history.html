@@ -1,12 +1,9 @@
 <div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full">
-  <!-- Header -->
-  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 min-w-0 flex-shrink-0">
-    <div class="min-w-0">
-      <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0 break-words">Historial Salarial</h1>
-      <p class="text-muted mt-1 text-sm">Consulta el historial de cambios salariales del empleado</p>
-    </div>
-    <p-button icon="pi pi-arrow-left" label="Volver a trabajadores" severity="secondary" routerLink="/admin/manage/workers" />
-  </div>
+  <app-rms-page-header
+    title="Historial Salarial"
+    subtitle="Consulta el historial de cambios salariales del empleado"
+    backLabel="Volver a trabajadores"
+    (back)="goBack()" />
 
   <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 overflow-hidden">
     @if (isLoading()) {
@@ -17,11 +14,10 @@
         <p-skeleton height="40px" borderRadius="8px" />
       </div>
     } @else if (!hasEntries()) {
-      <div class="flex flex-col items-center justify-center py-16 text-muted">
-        <i class="pi pi-history text-4xl mb-4 opacity-50" aria-hidden="true"></i>
-        <p class="text-lg font-medium">Sin cambios salariales registrados</p>
-        <p class="text-sm mt-1">No hay entradas en el historial de salarios para este empleado.</p>
-      </div>
+      <app-rms-empty-state
+        icon="pi pi-history"
+        title="Sin cambios salariales registrados"
+        message="No hay entradas en el historial de salarios para este empleado." />
     } @else {
       <p-table
         [value]="entries() ?? []"

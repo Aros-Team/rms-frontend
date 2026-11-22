@@ -1,32 +1,34 @@
 import { Component, inject, computed } from '@angular/core';
 import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 
-import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
-import { ToggleSwitch } from 'primeng/toggleswitch';
-import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { SkeletonModule } from 'primeng/skeleton';
 import { MessageService } from 'primeng/api';
 
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 import { Money } from '@shared/pipes/money/money';
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
+import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
+import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
+import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
 import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';
 
 @Component({
   selector: 'app-combos',
   imports: [
-    FormsModule,
     Money,
-    ButtonModule,
     TableModule,
-    ToggleSwitch,
-    TagModule,
     ToastModule,
     SkeletonModule,
     TableSkeleton,
+    RmsButton,
+    RmsEmptyState,
+    RmsIconButton,
+    RmsPageHeader,
+    RmsStatusPill,
   ],
   providers: [MessageService],
   templateUrl: './combos.html',

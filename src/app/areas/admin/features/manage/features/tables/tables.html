@@ -1,14 +1,9 @@
 <div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.tables" (appLazyLoadVisible)="onVisible()">
-  <!-- Header -->
-  <div class="flex items-center justify-between gap-4 mb-2 md:mb-4 min-w-0 flex-shrink-0">
-    <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0 break-words min-w-0">{{ title }}</h1>
-    <p-button
-      icon="pi pi-plus"
-      label="Nueva mesa"
-      class="btn-icon-text-sm"
-      (onClick)="showCreationModal()"
-    ></p-button>
-  </div>
+  <app-rms-page-header [title]="title">
+    <div rmsPageHeaderActions>
+      <app-rms-button iconStart="pi pi-plus" (click)="showCreationModal()">Nueva mesa</app-rms-button>
+    </div>
+  </app-rms-page-header>
 
   <!-- Creation Form -->
   @if (modalMode() === 'create' && modalIsOpen()) {
@@ -24,8 +19,8 @@
           <input pInputText id="newCapacity" type="number" formControlName="capacity" class="w-24" />
         </div>
         <div class="flex gap-2">
-          <p-button label="Crear" type="submit" [disabled]="tableForm.invalid" icon="pi pi-check"></p-button>
-          <p-button label="Cancelar" severity="secondary" (onClick)="closeModal()"></p-button>
+          <app-rms-button type="submit" [disabled]="tableForm.invalid" iconStart="pi pi-check">Crear</app-rms-button>
+          <app-rms-button variant="secondary" (click)="closeModal()">Cancelar</app-rms-button>
         </div>
       </form>
     </div>
@@ -38,10 +33,14 @@
         <div class="h-32 bg-surface-100 dark:bg-surface-700 rounded-xl animate-pulse"></div>
       }
     } @else if (tables().length === 0) {
-      <div class="col-span-full text-center py-20 text-muted">
-        <i class="pi pi-table text-4xl mb-4 block" aria-hidden="true"></i>
-        <p>No hay mesas configuradas</p>
-        <p-button label="Crear primera mesa" icon="pi pi-plus" class="mt-4" (onClick)="showCreationModal()" />
+      <div class="col-span-full">
+        <app-rms-empty-state
+          icon="pi pi-table"
+          title="No hay mesas configuradas"
+          message="Crea la primera mesa para empezar a tomar pedidos."
+          actionLabel="Crear primera mesa"
+          actionIcon="pi pi-plus"
+          (action)="showCreationModal()" />
       </div>
     } @else {
       @for (table of tables(); track table.id) {
@@ -62,7 +61,9 @@
           </div>
           
           <div class="flex justify-center mt-auto">
-            <p-tag [value]="getStatusLabel(table.status)" [severity]="getStatusSeverity(table.status)" />
+            <app-rms-status-pill
+              [label]="getStatusLabel(table.status)"
+              [status]="getStatusTone(table.status)" />
           </div>
 
           <div class="absolute top-2 right-2 opacity-0 hover:opacity-100 transition-opacity">
@@ -88,8 +89,8 @@
             <input pInputText id="editCapacity" type="number" formControlName="capacity" class="w-full" />
           </div>
           <div class="flex gap-2 mt-2">
-            <p-button label="Guardar" type="submit" [disabled]="tableForm.invalid" class="flex-1"></p-button>
-            <p-button label="Cancelar" severity="secondary" (onClick)="closeModal()" class="flex-1"></p-button>
+            <app-rms-button class="flex-1" type="submit" [disabled]="tableForm.invalid" [block]="true">Guardar</app-rms-button>
+            <app-rms-button class="flex-1" variant="secondary" (click)="closeModal()" [block]="true">Cancelar</app-rms-button>
           </div>
         </form>
       </div>

@@ -9,7 +9,6 @@ import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 
 import { FormValidation } from '@app/shared/components/form/form-validation';
 
-import { ButtonModule } from 'primeng/button';
 import { ChipModule } from 'primeng/chip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
@@ -18,6 +17,9 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
+import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 
 @Component({
   selector: 'app-categories',
@@ -27,13 +29,15 @@ import { ConfirmationService, MessageService } from 'primeng/api';
     IftaLabelModule,
     InputTextModule,
     TextareaModule,
-    ButtonModule,
     FormValidation,
     ChipModule,
     DialogModule,
     ConfirmDialogModule,
     ToastModule,
     LazyLoad,
+    RmsButton,
+    RmsIconButton,
+    RmsPageHeader,
   ],
   templateUrl: './categories.html',
   providers: [MessageService],

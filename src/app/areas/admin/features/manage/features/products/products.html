@@ -1,13 +1,11 @@
 <div class="flex flex-col  md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.products" (appLazyLoadVisible)="onVisible()">
-  <!-- Header -->
-  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 min-w-0 flex-shrink-0">
-    <div class="min-w-0">
-      <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0 break-words">{{ title }}</h1>
+  <app-rms-page-header [title]="title">
+    <div rmsPageHeaderActions>
+      <app-rms-button iconStart="pi pi-plus" (click)="showCreationModal()">
+        Nuevo producto
+      </app-rms-button>
     </div>
-    <div class="flex gap-2 shrink-0">
-      <p-button icon="pi pi-plus" label="Nuevo producto" pTooltip="Crear nuevo producto" tooltipPosition="bottom" (click)="showCreationModal()" />
-    </div>
-  </div>
+  </app-rms-page-header>
 
   <!-- Table -->
   <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 overflow-hidden">
@@ -34,7 +32,9 @@
             placeholder="Buscar por nombre..."
             (searchChange)="onSearch($event)"
           />
-          <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="dt1.clear()" />
+          <app-rms-button variant="secondary" size="sm" iconStart="pi pi-filter-slash" (click)="dt1.clear()">
+            Limpiar
+          </app-rms-button>
           <div class="flex items-center gap-2 ml-auto">
             <div class="flex items-center gap-2">
               <label for="includeInactive" class="text-sm text-muted cursor-pointer select-none">Mostrar inactivos</label>
@@ -79,25 +79,27 @@
           <td>{{ product.categoryName }}</td>
           <td>
             <div class="flex gap-1 items-center justify-center">
-              <p-button
+              <app-rms-icon-button
                 icon="pi pi-book"
-                [rounded]="true"
-                [text]="true"
-                severity="info"
-                pTooltip="Ver receta"
-                tooltipPosition="top"
                 [ariaLabel]="'Ver receta de ' + product.name"
+                tooltip="Ver receta"
+                size="sm"
                 [routerLink]="['/admin/manage/products', product.id, 'recipe']"
               />
               @if (includeInactive()) {
-                <p-button icon="pi pi-check-circle" severity="success" size="small" [text]="true"
-                  pTooltip="Activar" tooltipPosition="top"
+                <app-rms-icon-button
+                  icon="pi pi-check-circle"
                   [ariaLabel]="'Activar ' + product.name"
+                  tooltip="Activar"
+                  size="sm"
                   (click)="confirmEnableProduct($event, product)" />
               } @else {
-                <p-button icon="pi pi-ban" severity="danger" size="small" [text]="true"
-                  pTooltip="Desactivar" tooltipPosition="top"
+                <app-rms-icon-button
+                  icon="pi pi-ban"
                   [ariaLabel]="'Desactivar ' + product.name"
+                  tooltip="Desactivar"
+                  variant="danger"
+                  size="sm"
                   (click)="confirmDeleteProduct($event, product)" />
               }
             </div>
@@ -133,7 +135,7 @@
       <div class="flex items-center flex-1">
         <div class="flex flex-col items-center gap-1">
           <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors"
-            [class]="currentStep() >= step ? 'bg-primary-500 text-surface-900' : 'bg-surface-200 dark:bg-surface-700 text-muted'">
+            [class]="currentStep() >= step ? 'bg-rms-brand text-rms-on-brand' : 'bg-rms-subtle text-rms-ink-muted'">
             @if (currentStep() > step) { <i class="pi pi-check text-xs" aria-hidden="true"></i> }
             @else { {{ i + 1 }} }
           </div>
@@ -149,7 +151,7 @@
         </div>
         @if (!last) {
           <div class="flex-1 h-px mx-2 mt-[-1rem]"
-            [class]="currentStep() > step ? 'bg-primary-500' : 'bg-surface-200 dark:bg-surface-700'"></div>
+            [class]="currentStep() > step ? 'bg-rms-brand' : 'bg-rms-border'"></div>
         }
       </div>
     }
@@ -243,8 +245,8 @@
           <div class="md:col-span-2">
             <span class="text-xs text-muted block mb-1">Tiempo estimado de preparación</span>
             <div class="flex items-center gap-3">
-              <p-button icon="pi pi-stopwatch" [rounded]="true" [outlined]="true" [text]="true"
-                pTooltip="Estimar tiempo" tooltipPosition="top"
+              <app-rms-icon-button icon="pi pi-stopwatch" ariaLabel="Estimar tiempo de preparación"
+                tooltip="Estimar tiempo" variant="secondary"
                 (click)="openPrepTimeDialog()" />
               @if (baseForm.get('estimatedPrepMinutes')?.value !== null) {
                 <p-tag [value]="(baseForm.get('estimatedPrepMinutes')?.value ?? 0) + ' min'" severity="info" />
@@ -393,7 +395,7 @@
         </div>
 
         @if (recipeBreakdown().length > 0) {
-          <div class="flex justify-between items-center bg-primary-50 dark:bg-primary-900/20 rounded-lg px-4 py-3">
+          <div class="flex justify-between items-center bg-rms-brand-soft rounded-lg px-4 py-3">
             <span class="font-semibold">Materiales</span>
             <span class="font-semibold text-base">{{ recipeCost() | money }}</span>
           </div>
@@ -436,9 +438,9 @@
   <!-- ══ PASO 4: Precio de venta ══ -->
   @if (currentStep() === 4) {
     <div class="flex flex-col gap-4">
-      <div class="flex items-center gap-2 px-4 py-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-        <i class="pi pi-calculator text-blue-500 text-lg" aria-hidden="true"></i>
-        <span class="text-sm text-blue-800 dark:text-blue-200">Define el precio de venta basado en el costo de producción</span>
+      <div class="flex items-center gap-2 px-4 py-3 bg-rms-subtle rounded-lg border border-rms-border">
+        <i class="pi pi-calculator text-rms-info text-lg" aria-hidden="true"></i>
+        <span class="text-sm text-rms-ink-secondary">Define el precio de venta basado en el costo de producción</span>
       </div>
 
       @if (cost(); as c) {
@@ -455,7 +457,7 @@
             <span class="text-muted">Mano de obra</span>
             <span class="font-medium">{{ c.laborCost | money }}</span>
           </div>
-          <div class="flex justify-between bg-primary-50 dark:bg-primary-900/20 -mx-4 -mb-4 px-4 py-3 mt-2 rounded-b-lg">
+          <div class="flex justify-between bg-rms-brand-soft -mx-4 -mb-4 px-4 py-3 mt-2 rounded-b-lg">
             <span class="font-semibold">Costo total</span>
             <span class="font-semibold text-base">{{ c.totalCost | money }}</span>
           </div>
@@ -478,19 +480,21 @@
 
       <div class="border border-surface-200 dark:border-surface-700 rounded-lg p-4 flex flex-col gap-3">
         <h4 class="text-sm font-medium flex items-center gap-2">
-          <i class="pi pi-tag text-green-500" aria-hidden="true"></i>
+          <i class="pi pi-tag text-rms-success" aria-hidden="true"></i>
           Precio de venta
         </h4>
 
         @if (cost(); as c) {
-          <div class="bg-green-50 dark:bg-green-900/20 rounded-lg px-4 py-3 flex items-center justify-between border border-green-200 dark:border-green-800">
+          <div class="bg-rms-subtle rounded-lg px-4 py-3 flex items-center justify-between border border-rms-border">
             <div class="flex flex-col gap-1">
-              <span class="text-xs text-green-700 dark:text-green-300 font-medium">Precio sugerido</span>
-              <span class="text-lg font-bold text-green-600 dark:text-green-400">{{ suggestedSalePrice() | money }}</span>
-              <span class="text-xs text-green-600/70 dark:text-green-400/70">Costo oficial + 30% de margen</span>
+              <span class="text-xs text-rms-ink-muted font-medium">Precio sugerido</span>
+              <span class="text-lg font-bold text-rms-success">{{ suggestedSalePrice() | money }}</span>
+              <span class="text-xs text-rms-ink-muted">Costo oficial + 30% de margen</span>
             </div>
-            <p-button label="Usar este precio" severity="success" [outlined]="true" size="small"
-              (click)="salePrice.set(suggestedSalePrice())" [disabled]="salePrice() === suggestedSalePrice()" />
+            <app-rms-button variant="secondary" size="sm"
+              (click)="salePrice.set(suggestedSalePrice())" [disabled]="salePrice() === suggestedSalePrice()">
+              Usar este precio
+            </app-rms-button>
           </div>
         }
 
@@ -514,8 +518,8 @@
   <!-- ══ PASO 5: Confirmar ══ -->
   @if (currentStep() === 5) {
     <div class="flex flex-col gap-4">
-      <div class="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-        <i class="pi pi-check-circle text-green-500 text-2xl" aria-hidden="true"></i>
+      <div class="flex items-center gap-3 p-4 bg-rms-subtle rounded-lg border border-rms-border">
+        <i class="pi pi-check-circle text-rms-success text-2xl" aria-hidden="true"></i>
         <div>
           <p class="font-semibold text-surface-900 dark:text-surface-0">Producto guardado correctamente</p>
           <p class="text-sm text-muted">Todos los datos han sido registrados.</p>
@@ -551,7 +555,7 @@
                   <span class="text-muted">Mano de obra</span>
                   <span class="font-medium">{{ c.laborCost | money }}</span>
                 </div>
-                <div class="flex justify-between items-center bg-primary-50 dark:bg-primary-900/20 -mx-4 -mb-4 px-4 py-3 mt-2 rounded-b-lg">
+                <div class="flex justify-between items-center bg-rms-brand-soft -mx-4 -mb-4 px-4 py-3 mt-2 rounded-lg">
                   <span class="font-semibold">Total</span>
                   <span class="font-semibold text-base">{{ c.totalCost | money }}</span>
                 </div>
