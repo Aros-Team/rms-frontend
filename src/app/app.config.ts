@@ -385,9 +385,13 @@ export const appConfig: ApplicationConfig = {
     { provide: TitleStrategy, useClass: AppTitleStrategy },
     MessageService,
     ConfirmationService,
+    // Production only: `isDevMode()` is true for the development configuration
+    // served by `npm start`, so the dev server never registers the worker and
+    // can never serve a stale shell. In production the worker waits for the app
+    // to be stable (max 5 s) and then caches the assets actually visited.
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode,
-      registrationStrategy: 'registerWhenStable:15000'
+      registrationStrategy: 'registerWhenStable:5000'
     }),
 
   ],

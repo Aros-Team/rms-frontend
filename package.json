@@ -11,7 +11,10 @@
     "watch": "ng build --watch --configuration development",
     "test": "vitest run",
     "lint": "ng lint --fix",
-    "lint:check": "ng lint"
+    "lint:check": "ng lint",
+    "contract:shapes": "node scripts/check-request-shapes.mjs",
+    "lighthouse": "lhci autorun",
+    "lighthouse:admin": "lhci autorun --config=./.lighthouserc.admin.json"
   },
   "prettier": {
     "printWidth": 100,
@@ -59,6 +62,7 @@
     "@angular/compiler-cli": "^21.2.11",
     "@angular/platform-browser-dynamic": "^21.2.11",
     "@axe-core/playwright": "^4.14.0",
+    "@lhci/cli": "^0.16.1",
     "@playwright/test": "^1.65.1",
     "@types/dompurify": "^3.0.5",
     "angular-eslint": "21.3.1",

@@ -58,3 +58,8 @@ Thumbs.db
 /shot.mjs
 /test-results/
 /dashboard-debug.mjs
+
+# Lighthouse CI (reports and temporary runs)
+/.lighthouseci
+/build/lighthouse
+/build/lighthouse-admin
