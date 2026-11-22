@@ -150,7 +150,7 @@
                   dataMode="hidden"
                   dataLabel="Ver datos por categoría"
                   (retry)="retryDashboard()">
-                  <p-chart type="doughnut" [data]="salesByCategoryChartData()" [options]="salesByCategoryChartOptions" />
+                  <p-chart type="doughnut" [data]="salesByCategoryChartData()" [options]="salesByCategoryChartOptions" ariaLabel="Distribución de ventas por categoría" />
                   <ul rmsChartLegend class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted">
                     @for (row of salesByCategory(); track row.category; let i = $index) {
                       <li class="flex items-center gap-1.5">
@@ -347,7 +347,7 @@
             dataMode="hidden"
             dataLabel="Ver datos por categoría"
             (retry)="retryDashboard()">
-            <p-chart type="doughnut" [data]="salesByCategoryChartData()" [options]="salesByCategoryChartOptions" />
+            <p-chart type="doughnut" [data]="salesByCategoryChartData()" [options]="salesByCategoryChartOptions" ariaLabel="Distribución de ventas por categoría" />
             <ul rmsChartLegend class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted">
               @for (row of salesByCategory(); track row.category; let i = $index) {
                 <li class="flex items-center gap-1.5">
@@ -566,7 +566,7 @@
               dataMode="hidden"
               dataLabel="Ver datos por categoría"
               (retry)="retryDashboard()">
-              <p-chart type="doughnut" [data]="salesByCategoryChartData()" [options]="salesByCategoryChartOptions" />
+              <p-chart type="doughnut" [data]="salesByCategoryChartData()" [options]="salesByCategoryChartOptions" ariaLabel="Distribución de ventas por categoría" />
               <ul rmsChartLegend class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted">
                 @for (row of salesByCategory(); track row.category; let i = $index) {
                   <li class="flex items-center gap-1.5">
