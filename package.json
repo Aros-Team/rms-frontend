@@ -58,6 +58,8 @@
     "@angular/cli": "^21.2.9",
     "@angular/compiler-cli": "^21.2.11",
     "@angular/platform-browser-dynamic": "^21.2.11",
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.65.1",
     "@types/dompurify": "^3.0.5",
     "angular-eslint": "21.3.1",
     "eslint": "^9.38.0",
