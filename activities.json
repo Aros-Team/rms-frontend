@@ -1568,10 +1568,10 @@
       {
         "id": "e",
         "description": "Tests, baselines and release",
-        "status": "in_progress",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "in_progress"
+    "status": "done"
   }
 ]
