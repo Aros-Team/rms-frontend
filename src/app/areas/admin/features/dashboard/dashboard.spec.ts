@@ -31,6 +31,7 @@ import { Logging } from '@app/core/services/logging/logging';
 import { WebSocket } from '@app/core/services/websocket/websocket';
 import { Auth } from '@app/core/services/auth/auth';
 import { ServerStatus } from '@app/core/services/server-status/server-status';
+import { SettingsApi } from '@app/core/services/settings/settings-api';
 import type { OrderResponse } from '@app/shared/models/dto/orders/order-response';
 import type { TopSellingProduct } from '@app/shared/models/dto/analytics/top-selling-product';
 import type { MoneyLike } from '@app/shared/models/dto/common/money';
@@ -100,6 +101,7 @@ describe('Dashboard order aggregates', () => {
         },
         { provide: Auth, useValue: { getToken: () => null } },
         { provide: ServerStatus, useValue: { status: () => 'online', check: vi.fn() } },
+        { provide: SettingsApi, useValue: { getOpeningHours: () => of({ days: [] }) } },
         {
           provide: ChangeDetectorRef,
           useValue: { markForCheck: vi.fn(), detectChanges: vi.fn() },

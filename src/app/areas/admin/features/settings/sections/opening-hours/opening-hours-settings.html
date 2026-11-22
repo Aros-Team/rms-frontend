@@ -1,0 +1,85 @@
+<app-rms-section
+  title="Horario de atención"
+  description="Define cuándo abre el restaurante cada día. El dashboard y la cobertura de turnos usan esta ventana."
+>
+  @if (loading()) {
+    <div class="flex flex-col gap-2">
+      @for (row of [1, 2, 3, 4, 5, 6, 7]; track row) {
+        <app-rms-skeleton height="2.75rem" ariaLabel="Cargando horario de atención" />
+      }
+    </div>
+  } @else if (loadError(); as message) {
+    <app-rms-empty-state
+      icon="pi pi-exclamation-triangle"
+      title="No se pudo cargar el horario de atención"
+      [message]="message"
+      actionLabel="Reintentar"
+      actionIcon="pi pi-refresh"
+      (action)="load()"
+    />
+  } @else {
+    <div class="opening-hours">
+      @if (saveError(); as message) {
+        <p role="alert" class="opening-hours__alert">{{ message }}</p>
+      }
+      @if (notice(); as message) {
+        <p role="status" class="opening-hours__notice">{{ message }}</p>
+      }
+
+      <div class="opening-hours__intro">
+        <p>
+          Los festivos usan el horario del domingo hasta que exista un calendario de festivos.
+          Los días cerrados no generan alertas de cobertura.
+        </p>
+      </div>
+
+      <ul class="opening-hours__list" aria-label="Horario de atención por día">
+        @for (name of weekdays; track name) {
+          <li class="opening-hours__row">
+            <label class="opening-hours__day">
+              <input
+                type="checkbox"
+                [checked]="!day(name).closed"
+                (change)="setClosed(name, !$any($event.target).checked)"
+              />
+              <span>{{ labels[name] }}</span>
+            </label>
+
+            <div class="opening-hours__times">
+              <label class="opening-hours__time">
+                <span class="opening-hours__caption">Apertura</span>
+                <input
+                  type="time"
+                  [disabled]="day(name).closed"
+                  [ngModel]="day(name).openTime ?? '08:00'"
+                  (ngModelChange)="setTime(name, 'openTime', $event)"
+                  [attr.aria-label]="'Apertura del ' + labels[name]"
+                />
+              </label>
+              <label class="opening-hours__time">
+                <span class="opening-hours__caption">Cierre</span>
+                <input
+                  type="time"
+                  [disabled]="day(name).closed"
+                  [ngModel]="day(name).closeTime ?? '22:00'"
+                  (ngModelChange)="setTime(name, 'closeTime', $event)"
+                  [attr.aria-label]="'Cierre del ' + labels[name]"
+                />
+              </label>
+            </div>
+
+            <span class="opening-hours__state" [class.opening-hours__state--closed]="day(name).closed">
+              {{ day(name).closed ? 'Cerrado' : 'Abierto' }}
+            </span>
+          </li>
+        }
+      </ul>
+
+      <div class="opening-hours__actions">
+        <app-rms-button [disabled]="!dirty() || saving()" (click)="save()">
+          {{ saving() ? 'Guardando…' : 'Guardar horario' }}
+        </app-rms-button>
+      </div>
+    </div>
+  }
+</app-rms-section>

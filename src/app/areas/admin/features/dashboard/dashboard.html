@@ -87,6 +87,7 @@
               [bars]="hourlyRhythm()"
               [loading]="isOrdersLoading() && orders().length === 0"
               [error]="ordersError() ?? ''"
+              [closed]="todayClosed()"
               (retry)="retryDashboard()" />
           </section>
 
@@ -276,6 +277,7 @@
         [bars]="hourlyRhythm()"
         [loading]="isOrdersLoading() && orders().length === 0"
         [error]="ordersError() ?? ''"
+        [closed]="todayClosed()"
         (retry)="retryDashboard()" />
     </section>
 
@@ -628,6 +630,7 @@
           [bars]="hourlyRhythm()"
           [loading]="isOrdersLoading() && orders().length === 0"
           [error]="ordersError() ?? ''"
+          [closed]="todayClosed()"
           (retry)="retryDashboard()" />
       </section>
     </div>

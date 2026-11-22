@@ -23,10 +23,12 @@ import { DemoDataSettingsSection } from './sections/demo-data/demo-data-settings
 import { IntegrationsSettingsSection } from './sections/integrations/integrations-settings';
 import { LaborSettingsSection } from './sections/labor/labor-settings';
 import { NotificationsSettingsSection } from './sections/notifications/notifications-settings';
+import { OpeningHoursSettingsSection } from './sections/opening-hours/opening-hours-settings';
 import { UsersSettingsSection } from './sections/users/users-settings';
 
 export type SettingsSectionId =
   | 'business'
+  | 'openingHours'
   | 'currency'
   | 'labor'
   | 'notifications'
@@ -52,6 +54,12 @@ const SECTIONS: readonly SettingsSection[] = [
     label: 'Negocio',
     description: 'Identidad, contacto y zona horaria',
     icon: 'pi pi-shop',
+  },
+  {
+    id: 'openingHours',
+    label: 'Horario de atención',
+    description: 'Apertura por día y alertas de cobertura',
+    icon: 'pi pi-clock',
   },
   {
     id: 'currency',
@@ -130,6 +138,7 @@ const SECTIONS: readonly SettingsSection[] = [
     CurrencySettingsSection,
     LaborSettingsSection,
     NotificationsSettingsSection,
+    OpeningHoursSettingsSection,
     UsersSettingsSection,
     AppearanceSettingsSection,
     AccountSettingsSection,

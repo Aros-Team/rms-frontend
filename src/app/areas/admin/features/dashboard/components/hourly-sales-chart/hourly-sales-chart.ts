@@ -39,6 +39,8 @@ export class HourlySalesChart {
 
   @Input() loading = false;
   @Input() error = '';
+  /** The restaurant does not open today: empty state uses a different message. */
+  @Input() closed = false;
   @Output() readonly retry = new EventEmitter<void>();
 
   rows: HourlySalesBar[] = [];

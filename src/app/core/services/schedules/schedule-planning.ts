@@ -735,3 +735,44 @@ export function buildCoverage(
     })),
   };
 }
+
+export interface OpeningDay {
+  readonly closed: boolean;
+  readonly openHour: number;
+  readonly closeHour: number;
+}
+
+export interface CoverageGap {
+  readonly dayOfWeek: DayOfWeek;
+  readonly hour: number;
+  readonly count: number;
+}
+
+/** True when `hour` falls inside the opening window of `day`. */
+export function isHourOpen(day: OpeningDay | undefined, hour: number): boolean {
+  return day !== undefined && !day.closed && hour >= day.openHour && hour < day.closeHour;
+}
+
+/**
+ * Opening hours with no scheduled worker.
+ *
+ * Used by the weekly grid to raise the staffing alert: a day/hour inside the
+ * business window whose coverage count is zero is a real gap, while closed
+ * days and hours outside the window are not.
+ */
+export function findCoverageGaps(
+  matrix: CoverageMatrix,
+  openings: Partial<Record<DayOfWeek, OpeningDay>>,
+): CoverageGap[] {
+  const gaps: CoverageGap[] = [];
+  for (const row of matrix.rows) {
+    const opening = openings[row.dayOfWeek];
+    if (opening === undefined || opening.closed) continue;
+    matrix.hours.forEach((hour, index) => {
+      if (isHourOpen(opening, hour) && (row.counts[index] ?? 0) === 0) {
+        gaps.push({ dayOfWeek: row.dayOfWeek, hour, count: 0 });
+      }
+    });
+  }
+  return gaps;
+}

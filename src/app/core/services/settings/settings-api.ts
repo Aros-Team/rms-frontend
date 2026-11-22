@@ -13,6 +13,7 @@ import type {
   LaborSettings,
   LaborSettingsRequest,
   NotificationSettings,
+  OpeningHours,
   UserSummary,
   UserRoleValue,
 } from '@models/dto/settings/settings';
@@ -57,6 +58,14 @@ export class SettingsApi {
 
   updateLabor(settings: LaborSettingsRequest): Observable<LaborSettings> {
     return this.http.put<LaborSettings>('v1/settings/labor', settings);
+  }
+
+  getOpeningHours(): Observable<OpeningHours> {
+    return this.http.get<OpeningHours>('v1/settings/opening-hours');
+  }
+
+  updateOpeningHours(hours: OpeningHours): Observable<OpeningHours> {
+    return this.http.put<OpeningHours>('v1/settings/opening-hours', hours);
   }
 
   getNotifications(): Observable<NotificationSettings> {

@@ -28,6 +28,7 @@ import { Area } from '@app/core/services/areas/area';
 import { Logging } from '@app/core/services/logging/logging';
 import { ScheduleAssignment } from '@app/core/services/schedules/schedule-assignment';
 import { Schedule } from '@app/core/services/schedules/schedule';
+import { SettingsApi } from '@app/core/services/settings/settings-api';
 import { Worker } from '@app/core/services/workers/worker';
 import type { AreaResponse } from '@app/shared/models/dto/areas/area';
 import type { Schedule as ScheduleModel } from '@app/shared/models/dto/schedules/schedule';
@@ -114,6 +115,7 @@ describe('WeekGrid', () => {
         { provide: ScheduleAssignment, useValue: assignmentApi },
         { provide: Worker, useValue: workerApi },
         { provide: Area, useValue: { getAreas: vi.fn(() => of([AREA])) } },
+        { provide: SettingsApi, useValue: { getOpeningHours: vi.fn(() => of({ days: [] })) } },
         { provide: Logging, useValue: { debug: vi.fn(), error: vi.fn() } },
       ],
     });

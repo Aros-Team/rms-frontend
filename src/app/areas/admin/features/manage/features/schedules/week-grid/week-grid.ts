@@ -19,10 +19,13 @@ import { Area } from '@app/core/services/areas/area';
 import { Logging } from '@app/core/services/logging/logging';
 import { ScheduleAssignment } from '@app/core/services/schedules/schedule-assignment';
 import { Schedule } from '@app/core/services/schedules/schedule';
+import { SettingsApi } from '@app/core/services/settings/settings-api';
 import { Worker } from '@app/core/services/workers/worker';
 import type { AreaResponse } from '@app/shared/models/dto/areas/area';
 import type { Schedule as ScheduleModel } from '@app/shared/models/dto/schedules/schedule';
 import type { WorkerResponse } from '@app/shared/models/dto/workers/worker-response';
+import type { OpeningHoursDay } from '@app/shared/models/dto/settings/settings';
+import type { DayOfWeek } from '@app/shared/models/dto/schedules/shift';
 import {
   DAY_LABELS,
   LEGAL_WEEKLY_HOURS,
@@ -30,13 +33,16 @@ import {
   buildCoverage,
   buildWorkerWeek,
   detectAssignmentConflicts,
+  findCoverageGaps,
   findWeekOverlaps,
+  isHourOpen,
   formatMinutes,
   isSameLocalDay,
   scheduleMinutes,
   startOfWeek,
   weekDates,
   type AssignmentConflictReport,
+  type OpeningDay,
   type PlannedShift,
   type WorkerWeek,
 } from '@app/core/services/schedules/schedule-planning';
@@ -124,6 +130,7 @@ export class WeekGrid implements OnInit, OnChanges {
   private scheduleService = inject(Schedule);
   private assignmentService = inject(ScheduleAssignment);
   private workerService = inject(Worker);
+  private settingsApi = inject(SettingsApi);
   private areaService = inject(Area);
   private logger = inject(Logging);
 
@@ -133,6 +140,7 @@ export class WeekGrid implements OnInit, OnChanges {
   @Output() readonly openTimeLogs = new EventEmitter<void>();
 
   readonly schedules = signal<readonly ScheduleModel[]>([]);
+  readonly openingHours = signal<readonly OpeningHoursDay[]>([]);
   readonly workers = signal<readonly WorkerResponse[]>([]);
   readonly areas = signal<readonly AreaResponse[]>([]);
   readonly assignments = signal<ReadonlyMap<number, readonly number[]>>(new Map());
@@ -229,12 +237,44 @@ export class WeekGrid implements OnInit, OnChanges {
     });
   });
 
-  /** Workers per day/hour for the filtered rows. */
-  readonly coverage = computed(() =>
-    buildCoverage(
+  /** Opening windows indexed by weekday, parsed to hours. */
+  readonly openingsByDay = computed<Partial<Record<DayOfWeek, OpeningDay>>>(() => {
+    const map: Partial<Record<DayOfWeek, OpeningDay>> = {};
+    for (const day of this.openingHours()) {
+      map[day.dayOfWeek] = {
+        closed: day.closed,
+        openHour: Number(day.openTime?.slice(0, 2) ?? 0),
+        closeHour: Number(day.closeTime?.slice(0, 2) ?? 24),
+      };
+    }
+    return map;
+  });
+
+  /** Workers per day/hour for the filtered rows, bounded by the opening window. */
+  readonly coverage = computed(() => {
+    const openings = Object.values(this.openingsByDay()).filter((day) => !day.closed);
+    const start = openings.length > 0 ? Math.min(...openings.map((day) => day.openHour)) : 6;
+    const end = openings.length > 0 ? Math.max(...openings.map((day) => day.closeHour)) : 24;
+    return buildCoverage(
       this.filteredRows().map((row) => row.week),
-    ),
-  );
+      start,
+      end,
+    );
+  });
+
+  /** Open day/hour pairs without a scheduled worker. */
+  readonly coverageGaps = computed(() => findCoverageGaps(this.coverage(), this.openingsByDay()));
+
+  isOpenHour(day: DayOfWeek, hour: number): boolean {
+    const opening = this.openingsByDay()[day];
+    // Without configured hours the matrix keeps the old shift-derived behaviour.
+    if (opening === undefined) return true;
+    return isHourOpen(opening, hour);
+  }
+
+  dayClosed(day: DayOfWeek): boolean {
+    return this.openingsByDay()[day]?.closed === true;
+  }
 
   coverageTone(count: number): string {
     if (count <= 0) return '';
@@ -279,6 +319,9 @@ export class WeekGrid implements OnInit, OnChanges {
       schedules: this.scheduleService.getAll(),
       workers: this.workerService.getWorkers(),
       areas: this.areaService.getAreas(),
+      opening: this.settingsApi
+        .getOpeningHours()
+        .pipe(catchError(() => of({ days: [] as OpeningHoursDay[] }))),
     })
       .pipe(
         switchMap((data) =>
@@ -291,6 +334,7 @@ export class WeekGrid implements OnInit, OnChanges {
           this.workers.set(data.workers);
           this.areas.set(data.areas);
           this.assignments.set(data.assignments);
+          this.openingHours.set(data.opening.days);
           this.loading.set(false);
         },
         error: (err: HttpErrorResponse) => {

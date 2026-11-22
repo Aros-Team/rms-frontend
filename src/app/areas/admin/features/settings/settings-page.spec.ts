@@ -3,7 +3,7 @@
  *
  * Feature: `/admin/settings` with one tab per section.
  * Contract:
- *  - ten sections exist in development, including Cuenta and the dev-only demo card;
+ *  - eleven sections exist in development, including Cuenta and the dev-only demo card;
  *  - only the active section is mounted, so switching issues that section's
  *    request and nothing else;
  *  - the tablist supports arrow/Home/End navigation and exposes ARIA state;
@@ -52,6 +52,7 @@ describe('SettingsPage', () => {
   let api: {
     getBusiness: ReturnType<typeof vi.fn>;
     getCurrency: ReturnType<typeof vi.fn>;
+    getOpeningHours: ReturnType<typeof vi.fn>;
   };
 
   beforeAll(async () => {
@@ -69,6 +70,7 @@ describe('SettingsPage', () => {
     api = {
       getBusiness: vi.fn(() => of({ ...BUSINESS })),
       getCurrency: vi.fn(() => of({ ...CURRENCY })),
+      getOpeningHours: vi.fn(() => of({ days: [] })),
     };
 
     TestBed.configureTestingModule({
@@ -101,6 +103,7 @@ describe('SettingsPage', () => {
   it('exposes every section, including the dev-only demo card', () => {
     expect(component.sections.map((section) => section.id)).toEqual([
       'business',
+      'openingHours',
       'currency',
       'labor',
       'notifications',
@@ -111,7 +114,7 @@ describe('SettingsPage', () => {
       'integrations',
       'demo',
     ]);
-    expect(tabs().length).toBe(10);
+    expect(tabs().length).toBe(11);
     expect(tab('business').getAttribute('aria-selected')).toBe('true');
     expect(tab('currency').getAttribute('aria-selected')).toBe('false');
   });
@@ -136,7 +139,7 @@ describe('SettingsPage', () => {
     );
     fixture.detectChanges();
 
-    expect(component.activeSection()).toBe('currency');
+    expect(component.activeSection()).toBe('openingHours');
   });
 
   it('jumps to the last section with End', () => {

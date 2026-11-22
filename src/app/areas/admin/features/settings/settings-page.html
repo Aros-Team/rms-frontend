@@ -60,6 +60,9 @@
         @case ('business') {
           <app-settings-business (dirtyChange)="markDirty('business', $event)" />
         }
+        @case ('openingHours') {
+          <app-settings-opening-hours (dirtyChange)="markDirty('openingHours', $event)" />
+        }
         @case ('currency') {
           <app-settings-currency (dirtyChange)="markDirty('currency', $event)" />
         }

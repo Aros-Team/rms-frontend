@@ -148,3 +148,48 @@ export interface UserAreasUpdateRequest {
 export interface UserStatusUpdateRequest {
   status: 'ACTIVE' | 'INACTIVE';
 }
+
+export type WeekdayName =
+  | 'MONDAY'
+  | 'TUESDAY'
+  | 'WEDNESDAY'
+  | 'THURSDAY'
+  | 'FRIDAY'
+  | 'SATURDAY'
+  | 'SUNDAY';
+
+/** `OpeningHoursResponse.Day`: one weekday window. */
+export interface OpeningHoursDay {
+  dayOfWeek: WeekdayName;
+  closed: boolean;
+  /** `HH:mm` when open, `null` when closed. */
+  openTime: string | null;
+  /** `HH:mm` when open, `null` when closed. */
+  closeTime: string | null;
+}
+
+/** `OpeningHoursResponse`. */
+export interface OpeningHours {
+  days: OpeningHoursDay[];
+}
+
+/** Weekday key of the active business day, Monday-first index. */
+export const WEEKDAY_ORDER: readonly WeekdayName[] = [
+  'MONDAY',
+  'TUESDAY',
+  'WEDNESDAY',
+  'THURSDAY',
+  'FRIDAY',
+  'SATURDAY',
+  'SUNDAY',
+];
+
+export const WEEKDAY_LABELS: Readonly<Record<WeekdayName, string>> = {
+  MONDAY: 'Lunes',
+  TUESDAY: 'Martes',
+  WEDNESDAY: 'Miércoles',
+  THURSDAY: 'Jueves',
+  FRIDAY: 'Viernes',
+  SATURDAY: 'Sábado',
+  SUNDAY: 'Domingo',
+};

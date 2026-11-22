@@ -568,3 +568,48 @@
   color: var(--rms-on-brand);
   font-weight: var(--rms-weight-bold);
 }
+
+.week-grid__coverage-alert {
+  display: flex;
+  gap: var(--rms-space-2);
+  align-items: flex-start;
+  border: 1px solid var(--rms-danger);
+  border-radius: var(--rms-radius-md);
+  background: var(--rms-surface);
+  padding: var(--rms-space-2) var(--rms-space-3);
+  color: var(--rms-text);
+  font-size: var(--rms-type-caption-size);
+}
+
+.week-grid__coverage-alert .pi {
+  margin-top: 2px;
+  color: var(--rms-danger);
+}
+
+.week-grid__gap-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rms-space-1) var(--rms-space-3);
+  margin: var(--rms-space-1) 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--rms-danger);
+}
+
+.coverage-day-closed {
+  margin-left: var(--rms-space-1);
+  color: var(--rms-text-muted);
+  font-weight: var(--rms-weight-regular);
+}
+
+.week-grid__cov--closed {
+  background: var(--rms-bg-subtle);
+  color: var(--rms-text-muted);
+}
+
+.week-grid__cov--gap {
+  background: var(--rms-surface);
+  color: var(--rms-danger);
+  font-weight: var(--rms-weight-bold);
+  border-color: var(--rms-danger);
+}
