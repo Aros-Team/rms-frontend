@@ -31,6 +31,7 @@ import { Logging } from '@app/core/services/logging/logging';
 import { WebSocket } from '@app/core/services/websocket/websocket';
 import { Auth } from '@app/core/services/auth/auth';
 import { ServerStatus } from '@app/core/services/server-status/server-status';
+import { SettingsApi } from '@app/core/services/settings/settings-api';
 import type { OrderResponse } from '@app/shared/models/dto/orders/order-response';
 import type { TopSellingProduct } from '@app/shared/models/dto/analytics/top-selling-product';
 import type { MoneyLike } from '@app/shared/models/dto/common/money';
@@ -100,6 +101,7 @@ describe('Dashboard order aggregates', () => {
         },
         { provide: Auth, useValue: { getToken: () => null } },
         { provide: ServerStatus, useValue: { status: () => 'online', check: vi.fn() } },
+        { provide: SettingsApi, useValue: { getOpeningHours: () => of({ days: [] }) } },
         {
           provide: ChangeDetectorRef,
           useValue: { markForCheck: vi.fn(), detectChanges: vi.fn() },
@@ -191,7 +193,28 @@ describe('Dashboard order aggregates', () => {
     expect(dashboard.topProductsTotal()).toBe(25_000);
   });
 
-  it('requests the real ranking for today and renders it in the Top 8 panel', () => {
+  it('caps the panel at six products even when the ranking returns more', () => {
+    topSellingRequest.mockReturnValue(
+      of<TopSellingProduct[]>(
+        Array.from({ length: 8 }, (_, index) => ({
+          rank: index + 1,
+          productId: index + 1,
+          productName: `Producto ${String(index + 1)}`,
+          unitsSold: 10 - index,
+          revenue: { amount: `${String((10 - index) * 1000)}.00`, currency: 'COP' },
+        })),
+      ),
+    );
+
+    startLoad();
+    httpMock
+      .expectOne((r) => r.url === 'v1/orders' && r.params.get('page') === '0')
+      .flush({ items: [], total: 0, page: 0, size: 50, total_pages: 0 });
+
+    expect(dashboard.topProducts()).toHaveLength(6);
+  });
+
+  it('requests the real ranking for today and renders it in the Top 6 panel', () => {
     topSellingRequest.mockReturnValue(
       of<TopSellingProduct[]>([
         {
@@ -219,7 +242,7 @@ describe('Dashboard order aggregates', () => {
     const [from, to, limit] = topSellingRequest.mock.calls[0] as [string, string, number];
     expect(from).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(to).toBe(from);
-    expect(limit).toBe(8);
+    expect(limit).toBe(6);
 
     expect(dashboard.topProducts().map((row) => row.product)).toEqual([
       'Limonada / Jugo Natural',

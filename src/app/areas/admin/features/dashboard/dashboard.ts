@@ -13,6 +13,8 @@ import { Logging } from '@app/core/services/logging/logging';
 import { WebSocket } from '@app/core/services/websocket/websocket';
 import { Auth } from '@app/core/services/auth/auth';
 import { ServerStatus } from '@core/services/server-status/server-status';
+import { SettingsApi } from '@app/core/services/settings/settings-api';
+import type { OpeningHoursDay } from '@app/shared/models/dto/settings/settings';
 import { OrderDetailItem, OrderResponse } from '@app/shared/models/dto/orders/order-response';
 import { OrderDetailsResponse } from '@app/shared/models/dto/orders/order-details-response';
 import { TableResponse } from '@app/shared/models/dto/tables/table-response';
@@ -38,7 +40,7 @@ import { RmsTreemap } from '@shared/ui/treemap/treemap';
 import { HourlySalesChart } from './components/hourly-sales-chart/hourly-sales-chart';
 import type { RmsStatus } from '@shared/ui/types/ui-types';
 
-/** Row rendered by the "Top 8 productos" panel (server ranking or local fallback). */
+/** Row rendered by the "Top 6 productos" panel (server ranking or local fallback). */
 interface TopProductRow {
   productId: number;
   product: string;
@@ -48,7 +50,6 @@ interface TopProductRow {
 }
 
 const RHYTHM_START_HOUR = 8;
-const RHYTHM_END_HOUR = 23;
 
 const WS_TOPICS = {
   created:     '/topic/orders/created',
@@ -93,6 +94,7 @@ export class Dashboard implements OnInit {
   private destroyRef = inject(DestroyRef);
   private cdr = inject(ChangeDetectorRef);
   private serverStatusService = inject(ServerStatus);
+  private settingsApi = inject(SettingsApi);
 
   readonly serverStatus = computed(() => this.serverStatusService.status());
 
@@ -142,7 +144,30 @@ export class Dashboard implements OnInit {
   showOrderDetail = signal(false);
   selectedOrder = signal<OrderResponse | null>(null);
   selectedProduct = signal<ProductData | null>(null);
+  /** Weekly opening hours; `null` until loaded, then the chart falls back to 08-23. */
+  readonly openingHours = signal<readonly OpeningHoursDay[] | null>(null);
+  readonly todayClosed = computed(() => this.todayOpening()?.closed === true);
   private isMobile = signal(false);
+
+  readonly todayOpening = computed<OpeningHoursDay | null>(() => {
+    const days = this.openingHours();
+    if (days === null) return null;
+    const weekday = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'][
+      new Date().getDay()
+    ];
+    return days.find((day) => day.dayOfWeek === weekday) ?? null;
+  });
+
+  private readonly rhythmWindow = computed(() => {
+    const today = this.todayOpening();
+    if (today?.closed) return null;
+    const open = today?.openTime?.slice(0, 2);
+    const close = today?.closeTime?.slice(0, 2);
+    const start = open === undefined ? RHYTHM_START_HOUR : Number(open);
+    const closeHour = close === undefined ? 24 : Number(close);
+    const end = Number.isFinite(closeHour) && closeHour > start ? closeHour : 24;
+    return { start, end };
+  });
 
   readonly hourlyRhythm = computed<{ hour: number; label: string; delivered: number; revenue: number; isCurrent: boolean }[]>(() => {
     const now = new Date();
@@ -153,9 +178,11 @@ export class Dashboard implements OnInit {
     const todayStartMs = todayStart.getTime();
     const todayEndMs = todayEnd.getTime();
     const currentHour = now.getHours();
+    const window = this.rhythmWindow();
+    if (window === null) return [];
 
     const buckets: { delivered: number; revenue: number }[] = [];
-    for (let h = RHYTHM_START_HOUR; h <= RHYTHM_END_HOUR; h++) {
+    for (let h = window.start; h < window.end; h++) {
       buckets.push({ delivered: 0, revenue: 0 });
     }
 
@@ -164,16 +191,16 @@ export class Dashboard implements OnInit {
       const ms = orderDate.getTime();
       if (ms < todayStartMs || ms >= todayEndMs) continue;
       const hour = orderDate.getHours();
-      if (hour < RHYTHM_START_HOUR || hour > RHYTHM_END_HOUR) continue;
+      if (hour < window.start || hour >= window.end) continue;
       if (order.status === 'DELIVERED') {
-        const bucket = buckets[hour - RHYTHM_START_HOUR];
+        const bucket = buckets[hour - window.start];
         bucket.delivered++;
         bucket.revenue += calculateTotalPrice(order);
       }
     }
 
     return buckets.map((b, idx) => {
-      const hour = idx + RHYTHM_START_HOUR;
+      const hour = idx + window.start;
       return {
         hour,
         label: `${String(hour).padStart(2, '0')}:00`,
@@ -185,7 +212,7 @@ export class Dashboard implements OnInit {
   });
 
   /**
-   * Local aggregation fallback for the Top 8 panel.
+   * Local aggregation fallback for the Top 6 panel.
    *
    * Used only when `GET /v1/products/top-selling` fails or returns no rows for
    * today; the server ranking is the source of truth.
@@ -206,17 +233,17 @@ export class Dashboard implements OnInit {
     }
     return Array.from(map, ([product, v]) => ({ product, category: v.category, total: v.total, units: v.units }))
       .sort((a, b) => b.total - a.total)
-      .slice(0, 8);
+      .slice(0, 6);
   });
 
   /**
-   * Rows for the Top 8 panel: the real server ranking when available, else the
+   * Rows for the Top 6 panel: the real server ranking when available, else the
    * local aggregation so the panel never goes blank on an endpoint failure.
    */
   readonly topProducts = computed<TopProductRow[]>(() => {
     const ranking = this.topSelling();
     if (ranking.length > 0) {
-      return ranking.map((row) => ({
+      return ranking.slice(0, 6).map((row) => ({
         productId: row.productId,
         product: row.productName.trim() || 'Sin nombre',
         category: this.categoryForProductId(row.productId),
@@ -307,6 +334,7 @@ export class Dashboard implements OnInit {
   );
 
   ngOnInit(): void {
+    this.loadOpeningHours();
     this.checkScreenSize();
     this.updateDateTime();
     this.loadSalesVisibility();
@@ -383,7 +411,7 @@ export class Dashboard implements OnInit {
     const today = this.localDateKey(new Date());
 
     this.analyticsService
-      .getTopSellingProducts(today, today, 8)
+      .getTopSellingProducts(today, today, 6)
       .pipe(
         catchError((error: unknown) => {
           this.logger.warn('Dashboard: top-selling unavailable', error);
@@ -522,6 +550,17 @@ export class Dashboard implements OnInit {
       minute: '2-digit',
       hour12: true
     }));
+  }
+
+  private loadOpeningHours(): void {
+    this.settingsApi.getOpeningHours().subscribe({
+      next: (response) => {
+        this.openingHours.set(response.days);
+      },
+      error: () => {
+        this.openingHours.set(null);
+      },
+    });
   }
 
   formatDate(date: string | Date): string {

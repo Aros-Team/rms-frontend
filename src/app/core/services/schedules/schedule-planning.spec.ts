@@ -28,6 +28,8 @@ import {
   MAX_WEEKLY_HOURS,
   buildCoverage,
   buildWorkerWeek,
+  findCoverageGaps,
+  isHourOpen,
   describeUpcomingShift,
   detectAssignmentConflicts,
   findUpcomingShift,
@@ -400,5 +402,41 @@ describe('time-log summary', () => {
       expect(coverage.max).toBe(0);
       expect(coverage.rows.every((row) => row.counts.every((count) => count === 0))).toBe(true);
     });
+  });
+});
+
+describe('opening hours coverage', () => {
+  function matrixFor(counts: number[]): import('./schedule-planning').CoverageMatrix {
+    return {
+      startHour: 10,
+      endHour: 13,
+      hours: [10, 11, 12],
+      max: Math.max(...counts),
+      rows: [
+        { dayOfWeek: 'MONDAY', label: 'Lun', counts },
+        { dayOfWeek: 'TUESDAY', label: 'Mar', counts: [0, 0, 0] },
+      ],
+    };
+  }
+
+  it('reports only open hours with zero staff', () => {
+    const gaps = findCoverageGaps(matrixFor([1, 0, 2]), {
+      MONDAY: { closed: false, openHour: 10, closeHour: 13 },
+      TUESDAY: { closed: true, openHour: 10, closeHour: 13 },
+    });
+
+    expect(gaps).toEqual([{ dayOfWeek: 'MONDAY', hour: 11, count: 0 }]);
+  });
+
+  it('ignores days without a configured window', () => {
+    const gaps = findCoverageGaps(matrixFor([0, 0, 0]), {});
+
+    expect(gaps).toEqual([]);
+  });
+
+  it('treats hours outside the window as closed', () => {
+    expect(isHourOpen({ closed: false, openHour: 10, closeHour: 13 }, 9)).toBe(false);
+    expect(isHourOpen({ closed: false, openHour: 10, closeHour: 13 }, 12)).toBe(true);
+    expect(isHourOpen({ closed: true, openHour: 10, closeHour: 13 }, 12)).toBe(false);
   });
 });

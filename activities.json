@@ -1498,5 +1498,80 @@
       }
     ],
     "status": "done"
+  },
+  {
+    "id": 50,
+    "type": "fix",
+    "name": "dashboard-top-six",
+    "title": "Limit the dashboard ranking to six products",
+    "description": "The Top products panel should show six rows, both for the server ranking and the local fallback.",
+    "acceptance": [
+      "The panel heading and copy say Top 6",
+      "The top-selling request asks for six rows",
+      "No more than six products render",
+      "Tests and visuals green"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Cap the request, fallback and panel at six",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Add regression test and refresh the baseline",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 51,
+    "type": "feat",
+    "name": "opening-hours-coverage",
+    "title": "Configure opening hours and flag staffing gaps",
+    "description": "Weekly opening hours editable in Configuración; dashboard hourly chart bounded by today's window; schedule coverage flags open hours without staff.",
+    "acceptance": [
+      "V62 opening_hours with GET/PUT /v1/settings/opening-hours",
+      "Configuración → Horario de atención edits seven weekdays",
+      "Dashboard uses today's window and shows a closed state",
+      "Coverage matrix marks closed hours and zero-staff gaps with an alert",
+      "Gates green"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Add opening-hours persistence, use cases and endpoints",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Add the settings section",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Bound the dashboard chart by today's window",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Flag coverage gaps in the weekly grid",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Tests, baselines and release",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
   }
 ]

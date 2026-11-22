@@ -63,10 +63,30 @@
       <div class="week-grid__coverage-head">
         <h3 id="coverage-heading" class="rms-h4">Cobertura por hora</h3>
         <p class="rms-caption">
-          Trabajadores programados en cada día y hora. El máximo de la semana es
-          {{ coverage().max }} {{ coverage().max === 1 ? 'persona' : 'personas' }}.
+          Trabajadores programados en cada día y hora dentro del horario de atención. El máximo
+          de la semana es {{ coverage().max }} {{ coverage().max === 1 ? 'persona' : 'personas' }}.
         </p>
       </div>
+
+      @if (coverageGaps().length > 0) {
+        <div class="week-grid__coverage-alert" role="alert">
+          <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+          <div>
+            <strong>
+              Faltan trabajadores en {{ coverageGaps().length }}
+              {{ coverageGaps().length === 1 ? 'hora' : 'horas' }} del horario de atención.
+            </strong>
+            <ul class="week-grid__gap-list">
+              @for (gap of coverageGaps().slice(0, 8); track gap.dayOfWeek + '-' + gap.hour) {
+                <li>{{ dayLabel(gap.dayOfWeek) }} {{ gap.hour }}:00</li>
+              }
+              @if (coverageGaps().length > 8) {
+                <li>y {{ coverageGaps().length - 8 }} más</li>
+              }
+            </ul>
+          </div>
+        </div>
+      }
       <div class="week-grid__coverage-scroll" tabindex="0" role="group" aria-label="Tabla de cobertura por hora">
         <table class="coverage-table">
           <caption class="sr-only">
@@ -83,16 +103,32 @@
           <tbody>
             @for (row of coverage().rows; track row.dayOfWeek) {
               <tr>
-                <th scope="row">{{ row.label }}</th>
-                @for (count of row.counts; track $index) {
+                <th scope="row">
+                  {{ row.label }}
+                  @if (dayClosed(row.dayOfWeek)) {
+                    <span class="coverage-day-closed">cerrado</span>
+                  }
+                </th>
+                @for (count of row.counts; track $index; let i = $index) {
                   <td
                     class="coverage-cell"
-                    [class.week-grid__cov--low]="count === 1"
-                    [class.week-grid__cov--mid]="count === 2"
-                    [class.week-grid__cov--high]="count >= 3"
-                    [attr.aria-label]="count + (count === 1 ? ' trabajador' : ' trabajadores')"
+                    [class.week-grid__cov--closed]="!isOpenHour(row.dayOfWeek, coverage().hours[i])"
+                    [class.week-grid__cov--gap]="isOpenHour(row.dayOfWeek, coverage().hours[i]) && count === 0"
+                    [class.week-grid__cov--low]="isOpenHour(row.dayOfWeek, coverage().hours[i]) && count === 1"
+                    [class.week-grid__cov--mid]="isOpenHour(row.dayOfWeek, coverage().hours[i]) && count === 2"
+                    [class.week-grid__cov--high]="isOpenHour(row.dayOfWeek, coverage().hours[i]) && count >= 3"
+                    [attr.aria-label]="
+                      dayLabel(row.dayOfWeek) + ' ' + coverage().hours[i] + ':00, ' +
+                      (isOpenHour(row.dayOfWeek, coverage().hours[i])
+                        ? (count + (count === 1 ? ' trabajador' : ' trabajadores'))
+                        : 'cerrado')
+                    "
                   >
-                    {{ count > 0 ? count : '·' }}
+                    @if (!isOpenHour(row.dayOfWeek, coverage().hours[i])) {
+                      ·
+                    } @else {
+                      {{ count }}
+                    }
                   </td>
                 }
               </tr>
