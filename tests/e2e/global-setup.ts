@@ -79,7 +79,11 @@ function storageState(role: RoleKey): object {
       },
       {
         name: 'rms_token_expiry',
-        value: String(expires * 1000),
+        // The visual suite freezes the browser clock to the seed anchor. Keep
+        // the client-side expiry beyond that frozen instant; the API still
+        // validates the real JWT exp. Global setup aborts if the JWT is near
+        // expiry, so this only prevents a false "session expired" redirect.
+        value: String((expires + 7 * 24 * 60 * 60) * 1000),
         domain: 'localhost',
         path: '/',
         expires,

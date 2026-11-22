@@ -57,3 +57,4 @@ Thumbs.db
 # Local screenshot helper (uses host token files)
 /shot.mjs
 /test-results/
+/dashboard-debug.mjs
