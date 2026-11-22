@@ -74,6 +74,17 @@ describe('SpecialSelections service', () => {
     req.flush(mockSelection);
   });
 
+  it('getPublicById hits the waiter-safe GET v1/special-selections/{id}', () => {
+    service.getPublicById(7).subscribe(res => {
+      expect(res.productId).toBe(7);
+    });
+
+    const req = httpMock.expectOne('v1/special-selections/7');
+    expect(req.request.method).toBe('GET');
+    expect(req.request.body).toBeNull();
+    req.flush(mockSelection);
+  });
+
   it('list hits GET v1/special-selections', () => {
     service.list().subscribe();
 

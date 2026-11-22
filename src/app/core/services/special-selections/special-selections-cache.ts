@@ -55,8 +55,11 @@ export class SpecialSelectionsCache {
       case CHANGE_TYPE.CREATE: {
         const detail = this.detailCaches.get(productId);
         detail?.invalidate();
+        const publicDetail = this.publicDetailCaches.get(productId);
+        publicDetail?.invalidate();
         if (selection) {
           detail?.patchData(() => selection);
+          publicDetail?.patchData(() => selection);
         }
         this.invalidateHistory(productId);
         this.invalidateRealtimeSharedCaches(true);
@@ -67,8 +70,11 @@ export class SpecialSelectionsCache {
       case CHANGE_TYPE.PRICE_CHANGE: {
         const detail = this.detailCaches.get(productId);
         detail?.invalidate();
+        const publicDetail = this.publicDetailCaches.get(productId);
+        publicDetail?.invalidate();
         if (selection) {
           detail?.patchData(() => selection);
+          publicDetail?.patchData(() => selection);
         }
         this.invalidateHistory(productId);
         this.invalidateRealtimeSharedCaches(false);
@@ -93,8 +99,10 @@ export class SpecialSelectionsCache {
 
   private removeCachedSelection(id: number): void {
     this.detailCaches.get(id)?.reset();
+    this.publicDetailCaches.get(id)?.reset();
     this.historyCaches.get(id)?.reset();
     this.detailCaches.delete(id);
+    this.publicDetailCaches.delete(id);
     this.historyCaches.delete(id);
   }
 
@@ -109,6 +117,7 @@ export class SpecialSelectionsCache {
   );
 
   private readonly detailCaches = new Map<number, ResourceCache<SpecialSelectionResponse>>();
+  private readonly publicDetailCaches = new Map<number, ResourceCache<SpecialSelectionResponse>>();
   private readonly historyCaches = new Map<number, ResourceCache<SpecialSelectionHistoryPage>>();
 
   detail(id: number): ResourceCache<SpecialSelectionResponse> {
@@ -119,6 +128,22 @@ export class SpecialSelectionsCache {
         { ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true }
       );
       this.detailCaches.set(id, cache);
+    }
+    return cache;
+  }
+
+  /**
+   * Public detail for waiter screens. Kept separate from `detail()` so the
+   * admin editor keeps its admin endpoint and the worker never calls it.
+   */
+  publicDetail(id: number): ResourceCache<SpecialSelectionResponse> {
+    let cache = this.publicDetailCaches.get(id);
+    if (!cache) {
+      cache = new ResourceCache<SpecialSelectionResponse>(
+        () => this.api.getPublicById(id),
+        { ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true }
+      );
+      this.publicDetailCaches.set(id, cache);
     }
     return cache;
   }
@@ -139,11 +164,13 @@ export class SpecialSelectionsCache {
     this.list.invalidate();
     this.availableNow.invalidate();
     this.detailCaches.forEach((c) => { c.invalidate(); });
+    this.publicDetailCaches.forEach((c) => { c.invalidate(); });
     this.historyCaches.forEach((c) => { c.invalidate(); });
   }
 
   invalidateDetail(id: number): void {
     this.detailCaches.get(id)?.invalidate();
+    this.publicDetailCaches.get(id)?.invalidate();
   }
 
   invalidateHistory(id: number): void {

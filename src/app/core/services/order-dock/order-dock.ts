@@ -6,6 +6,14 @@ import { MasterData } from '@app/core/services/master-data/master-data';
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
 import { CreateOrderDetail } from '@app/shared/models/dto/orders/create-order-request';
 import { TableResponse } from '@app/shared/models/dto/tables/table-response';
+import { toAmount } from '@app/shared/models/dto/common/money';
+
+/** Option group chosen inside a combo, kept for the cart summary. */
+export interface DockOptionGroup {
+  groupName: string;
+  optionNames: string[];
+}
+
 export interface DockItem {
   product: ProductListResponse;
   instructions: string;
@@ -15,11 +23,28 @@ export interface DockItem {
   quantity: number;
   additionIds?: number[];
   clarifications?: { questionId: number; answer: string }[];
+  /**
+   * Surcharge per unit from product options or combo additions. The cart
+   * displays it; the API recomputes the authoritative price on submit.
+   */
+  extraCharge?: number;
+  /** Combo group selections, used by the cart to show real group names. */
+  optionGroups?: DockOptionGroup[];
 }
 
 export interface DinerState {
   id: number;
   items: DockItem[];
+}
+
+/** Human label for a table status. Shared by the picker and the cart. */
+export function tableStatusLabel(status: TableResponse['status']): string {
+  const labels: Record<TableResponse['status'], string> = {
+    AVAILABLE: 'Disponible',
+    OCCUPIED: 'Ocupada',
+    RESERVED: 'Reservada',
+  };
+  return labels[status];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -29,6 +54,8 @@ export class OrderDock {
   private masterData = inject(MasterData);
 
   readonly availableTables = signal<TableResponse[]>([]);
+  /** Every table, including occupied and reserved, so the picker can show status. */
+  readonly allTables = signal<TableResponse[]>([]);
   readonly tablesLoading = signal(false);
   readonly tablesError = signal<string | null>(null);
   readonly selectedTableId = signal<number | null>(null);
@@ -63,6 +90,39 @@ export class OrderDock {
   );
 
   readonly hasSelectedTable = computed(() => this.selectedTableId() !== null);
+
+  /** Selected table resolved against every loaded table, not only the free ones. */
+  readonly selectedTable = computed(() => {
+    const id = this.selectedTableId();
+    if (id === null) return null;
+    return (
+      this.allTables().find((table) => table.id === id) ??
+      this.availableTables().find((table) => table.id === id) ??
+      null
+    );
+  });
+
+  readonly selectedTableLabel = computed(() => {
+    const table = this.selectedTable();
+    return table ? `Mesa ${String(table.tableNumber)}` : 'Sin mesa';
+  });
+
+  /** Total number of units across every diner, used by the floating cart. */
+  readonly totalItems = computed(() =>
+    this._diners().reduce(
+      (sum, diner) => sum + diner.items.reduce((lineSum, item) => lineSum + item.quantity, 0),
+      0,
+    ),
+  );
+
+  /** Cart total in COP. Authoritative totals come from the order response. */
+  readonly totalAmount = computed(() =>
+    this._diners().reduce(
+      (sum, diner) => sum + diner.items.reduce((lineSum, item) => lineSum + itemTotal(item), 0),
+      0,
+    ),
+  );
+
 
   selectDiner(index: number): void {
     if (index >= 0 && index < this._diners().length) {
@@ -182,6 +242,7 @@ export class OrderDock {
     this.tablesError.set(null);
     this.masterData.reloadTables().subscribe({
       next: (tables) => {
+        this.allTables.set(tables);
         this.availableTables.set(tables.filter(t => t.status === 'AVAILABLE'));
         this.tablesLoading.set(false);
       },
@@ -190,6 +251,11 @@ export class OrderDock {
         this.tablesLoading.set(false);
       },
     });
+  }
+
+  /** A table can be chosen when it is free, or when it is the current one. */
+  canSelectTable(table: TableResponse): boolean {
+    return table.status === 'AVAILABLE' || table.id === this.selectedTableId();
   }
 
   selectTable(id: number | null): void {
@@ -240,4 +306,9 @@ function extractError(err: unknown): string {
   }
   if (err instanceof Error) return err.message;
   return 'Error desconocido';
+}
+
+/** One cart line: unit base price + option surcharge, times quantity. */
+export function itemTotal(item: DockItem): number {
+  return (toAmount(item.product.basePrice) + (item.extraCharge ?? 0)) * item.quantity;
 }

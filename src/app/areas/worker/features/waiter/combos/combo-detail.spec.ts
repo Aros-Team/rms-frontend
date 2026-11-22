@@ -56,7 +56,18 @@ function normalize(text: string): string {
 describe('ComboDetail', () => {
   let fixture: ComponentFixture<ComboDetail>;
   let combo: ReturnType<typeof signal<SpecialSelectionResponse | null>>;
-  let cacheStub: { detail: () => { data: typeof combo; load: ReturnType<typeof vi.fn> } };
+  let loading: ReturnType<typeof signal<boolean>>;
+  let cacheError: ReturnType<typeof signal<Error | undefined>>;
+  let categoryNames: Map<number, string>;
+  let productsById: Map<number, { name: string }>;
+  let cacheStub: {
+    publicDetail: () => {
+      data: typeof combo;
+      isLoading: typeof loading;
+      error: typeof cacheError;
+      load: ReturnType<typeof vi.fn>;
+    };
+  };
 
   beforeAll(async () => {
     await resolveComponentResources((url: string) => {
@@ -69,8 +80,20 @@ describe('ComboDetail', () => {
 
   beforeEach(() => {
     combo = signal<SpecialSelectionResponse | null>(null);
+    loading = signal(false);
+    cacheError = signal<Error | undefined>(undefined);
+    categoryNames = new Map([[1, 'Hamburguesas']]);
+    productsById = new Map([
+      [1, { name: 'Hamburguesa clásica' }],
+      [6, { name: 'Hamburguesa doble' }],
+    ]);
     cacheStub = {
-      detail: () => ({ data: combo, load: vi.fn() }),
+      publicDetail: () => ({
+        data: combo,
+        isLoading: loading,
+        error: cacheError,
+        load: vi.fn(),
+      }),
     };
 
     TestBed.resetTestingModule();
@@ -86,7 +109,15 @@ describe('ComboDetail', () => {
       providers: [
         { provide: SpecialSelectionsCache, useValue: cacheStub },
         { provide: OrderDock, useValue: { addItemToDiner: vi.fn() } },
-        { provide: MasterData, useValue: { load: () => of({ products: [], productOptions: [], tables: [] }) } },
+        {
+          provide: MasterData,
+          useValue: {
+            snapshot: null,
+            load: () => of({ products: [], productOptions: [], tables: [] }),
+            getCategoryNames: () => categoryNames,
+            getProductsById: () => productsById,
+          },
+        },
         { provide: MessageService, useValue: { add: vi.fn() } },
         { provide: Router, useValue: { navigate: vi.fn() } },
         {
@@ -135,10 +166,35 @@ describe('ComboDetail', () => {
     mount();
 
     const labels = Array.from(
-      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('p-chip'),
-    ).map((chip) => normalize(chip.textContent));
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('.option__name'),
+    ).map((node) => normalize(node.textContent));
 
     expect(labels).toEqual(['Queso extra (+$ 2.500)', 'Tocino (+$ 1.000)']);
     expect(labels.join(' ')).not.toMatch(/NaN/);
+  });
+
+  it('renders the real category and product names for a combo group', () => {
+    combo.set({
+      ...makeCombo({ amount: '34900.00', currency: 'COP' }, []),
+      groups: [
+        {
+          id: 4,
+          categoryId: 1,
+          displayOrder: 1,
+          required: true,
+          minSelections: 1,
+          maxSelections: 1,
+          productIds: [1, 6],
+        },
+      ],
+    });
+    mount();
+
+    const text = normalize((fixture.nativeElement as HTMLElement).textContent);
+    expect(text).toContain('Hamburguesas');
+    expect(text).toContain('Hamburguesa clásica');
+    expect(text).toContain('Hamburguesa doble');
+    expect(text).not.toContain('Grupo');
+    expect(text).not.toContain('Producto #');
   });
 });

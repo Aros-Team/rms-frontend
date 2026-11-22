@@ -1,3 +1,9 @@
 :host {
   display: block;
 }
+
+/* Waiter/cashier floor: the whole row is the target, not the 20px control. */
+.option-row {
+  min-height: var(--rms-touch-min);
+  cursor: pointer;
+}

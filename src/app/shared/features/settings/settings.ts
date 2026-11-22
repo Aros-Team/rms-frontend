@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { ChangePassword } from '@areas/auth/features/password-recovery/change-password';
 import { Schedules } from '@areas/admin/features/manage/features/schedules/schedules';
@@ -29,6 +29,7 @@ interface SettingsTab {
   imports: [
     ChangePassword,
     Schedules,
+    RouterLink,
     DialogModule,
     ButtonModule,
     TableModule,
