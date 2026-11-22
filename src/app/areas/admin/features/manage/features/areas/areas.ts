@@ -5,7 +5,6 @@ import { Area } from '@app/core/services/areas/area';
 import { AreaRequest, AreaTypeValue } from '@app/shared/models/dto/areas/area';
 import { AreaSimpleResponse } from '@app/shared/models/dto/areas/area-simple-response';
 import { Auth } from '@app/core/services/auth/auth';
-import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputTextModule } from 'primeng/inputtext';
@@ -17,13 +16,16 @@ import { FormValidation } from '@app/shared/components/form/form-validation';
 import { TablesCache } from '../tables/tables-cache';
 import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
+import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
+import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
 
 @Component({
   selector: 'app-areas',
   imports: [
     ReactiveFormsModule,
     TableModule,
-    ButtonModule,
     DialogModule,
     IftaLabelModule,
     InputTextModule,
@@ -33,6 +35,10 @@ import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
     FormValidation,
     LazyLoad,
     TableSkeleton,
+    RmsButton,
+    RmsIconButton,
+    RmsPageHeader,
+    RmsStatusPill,
   ],
   templateUrl: './areas.html'
 })

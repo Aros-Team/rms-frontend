@@ -5,9 +5,9 @@ import { AbstractControl, FormBuilder, FormControl, Validators } from '@angular/
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { DialogModule } from 'primeng/dialog';
-import { ButtonModule } from 'primeng/button';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { RmsButton } from '@app/shared/ui/button/button';
 
 export interface PrepTimeFormControls {
   calmMinutes: FormControl<number | null>;
@@ -40,9 +40,9 @@ export function estimatePrepMinutes(calmMinutes: number, peakMinutes: number, in
     ReactiveFormsModule,
     FormsModule,
     DialogModule,
-    ButtonModule,
     IftaLabelModule,
     InputNumberModule,
+    RmsButton,
   ],
   templateUrl: './prep-time-dialog.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

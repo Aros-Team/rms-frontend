@@ -12,7 +12,6 @@ import { RecipeItemRequest } from '@app/shared/models/dto/products/product-creat
 import { Money } from '@app/shared/pipes/money/money';
 import { toAmount } from '@app/shared/models/dto/common/money';
 
-import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -21,6 +20,8 @@ import { SelectModule } from 'primeng/select';
 import { DividerModule } from 'primeng/divider';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
 
 @Component({
   selector: 'app-new-option-dialog',
@@ -30,7 +31,6 @@ import { MessageService } from 'primeng/api';
     ReactiveFormsModule,
     FormsModule,
     DialogModule,
-    ButtonModule,
     IftaLabelModule,
     InputTextModule,
     InputNumberModule,
@@ -38,6 +38,8 @@ import { MessageService } from 'primeng/api';
     DividerModule,
     ToastModule,
     Money,
+    RmsButton,
+    RmsIconButton,
   ],
   providers: [MessageService],
   templateUrl: './new-option-dialog.html',

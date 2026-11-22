@@ -11,8 +11,7 @@
           @for (group of filteredGroups(); track group.id) {
             <button type="button"
               class="w-full px-3 py-2 text-left text-sm hover:bg-surface-100 dark:hover:bg-surface-700 flex items-center justify-between gap-2 cursor-pointer border-none bg-transparent"
-              [class.bg-primary-50]="selectedGroupId() === group.id"
-              [class.dark:bg-primary-900/20]="selectedGroupId() === group.id"
+              [class.bg-rms-brand-soft]="selectedGroupId() === group.id"
               (click)="selectGroup(group.id); $event.stopPropagation()"
               (keydown.enter)="selectGroup(group.id)">
               <div class="flex items-center gap-2 min-w-0">
@@ -31,7 +30,7 @@
                 [fields]="createGroupFields"
                 (submitted)="onInlineCreateSubmit($event)">
                 <button type="button"
-                  class="w-full px-3 py-2 text-left text-sm font-medium text-accent hover:bg-surface-50 dark:hover:bg-surface-800 flex items-center gap-2 cursor-pointer border-none bg-transparent">
+                  class="w-full px-3 py-2 text-left text-sm font-medium text-rms-brand-text hover:bg-rms-subtle flex items-center gap-2 cursor-pointer border-none bg-transparent">
                   <i class="pi pi-plus" aria-hidden="true"></i>
                   <span>+ Crear nuevo grupo "{{ groupSearchTerm() }}"</span>
                 </button>
@@ -49,7 +48,7 @@
       <span class="text-sm font-medium text-surface-800 dark:text-surface-200">
         Grupo seleccionado
       </span>
-      <p-tag [value]="config.label" [severity]="config.severity" />
+      <app-rms-badge [label]="config.label" [tone]="badgeTone(config.severity)" />
       <span class="text-xs text-muted ml-auto">{{ config.description }}</span>
     </div>
   }
@@ -66,10 +65,9 @@
         (selectionChange)="onSelectionChange($event)" />
 
       @if (tempSelectedOptionIds().length > 0) {
-        <p-button
-          [label]="'Agregar ' + tempSelectedOptionIds().length + ' opción(es) seleccionada(s)'"
-          icon="pi pi-plus"
-          (click)="addSelectedOptions()" />
+        <app-rms-button iconStart="pi pi-plus" (click)="addSelectedOptions()">
+          Agregar {{ tempSelectedOptionIds().length }} opción(es) seleccionada(s)
+        </app-rms-button>
       }
     </div>
 

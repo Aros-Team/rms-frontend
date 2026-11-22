@@ -32,10 +32,11 @@ import { RemovableChip, RemovableChipData } from '@app/shared/components/removab
 import { CostBreakdownPanelComponent } from '@app/shared/components/cost-breakdown-panel/cost-breakdown-panel';
 
 import { MessageService } from 'primeng/api';
-import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
 import { TooltipModule } from 'primeng/tooltip';
+import { RmsBadge, type RmsBadgeTone } from '@app/shared/ui/badge/badge';
+import { RmsButton } from '@app/shared/ui/button/button';
+import type { TagSeverity } from '@app/shared/lib/option-selection-type-helper/option-selection-type-helper';
 
 export interface ActiveOption {
   id: number;
@@ -59,10 +60,10 @@ export interface OptionsChangedPayload {
     InlineCreatePopover,
     RemovableChip,
     CostBreakdownPanelComponent,
-    ButtonModule,
-    TagModule,
     DividerModule,
     TooltipModule,
+    RmsBadge,
+    RmsButton,
   ],
   templateUrl: './step3-options.html',
   styleUrl: './step3-options.css',
@@ -143,6 +144,15 @@ export class Step3Options {
       severity: 'secondary' as const,
     }));
   });
+
+  badgeTone(severity: TagSeverity): RmsBadgeTone {
+    switch (severity) {
+      case 'warn': return 'warning';
+      case 'secondary': return 'neutral';
+      case 'contrast': return 'neutral';
+      default: return severity;
+    }
+  }
 
   /** Selection type config for the selected group */
   readonly selectedGroupTypeConfig = computed(() => {

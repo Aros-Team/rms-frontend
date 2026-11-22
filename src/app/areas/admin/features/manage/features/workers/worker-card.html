@@ -1,40 +1,68 @@
-<div class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4 flex flex-col gap-3">
-  <div class="flex items-center gap-3">
-    <div
-      class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
-      [style.background-color]="avatarColor()"
-    >
-      {{ initials() }}
+<app-rms-card padding="sm">
+  <div class="flex flex-col gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 bg-rms-brand-soft text-rms-brand-text">
+        {{ initials() }}
+      </div>
+      <div class="min-w-0 flex-1">
+        <h3 class="font-medium text-rms-ink truncate">{{ worker().name }}</h3>
+        <p class="text-sm text-rms-ink-muted truncate">{{ worker().email }}</p>
+      </div>
+      <app-rms-status-pill [label]="statusLabel()" [status]="statusTone()" />
     </div>
-    <div class="min-w-0 flex-1">
-      <h3 class="font-medium text-surface-900 dark:text-surface-0 truncate">{{ worker().name }}</h3>
-      <p class="text-sm text-muted truncate">{{ worker().email }}</p>
-    </div>
-    @if (worker().status === 'ACTIVE') {
-      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-primary-500 text-surface-900">{{ statusLabel() }}</span>
-    } @else {
-      <p-tag [value]="statusLabel()" [severity]="statusSeverity()" />
-    }
-  </div>
 
-  <div class="flex flex-col gap-2 text-sm">
-    <div class="flex justify-between items-center">
-      <span class="text-muted">Área</span>
-      <span class="text-surface-700 dark:text-surface-300 font-medium">{{ areaName() }}</span>
+    <div class="flex flex-col gap-2 text-sm">
+      <div class="flex justify-between items-center">
+        <span class="text-rms-ink-muted">Área</span>
+        <span class="text-rms-ink-secondary font-medium">{{ areaName() }}</span>
+      </div>
+      <div class="flex justify-between items-center">
+        <span class="text-rms-ink-muted">Horarios</span>
+        <app-rms-badge
+          [label]="assignedScheduleCount() + ' asignados'"
+          [tone]="assignedScheduleCount() > 0 ? 'info' : 'neutral'" />
+      </div>
     </div>
-    <div class="flex justify-between items-center">
-      <span class="text-muted">Horarios</span>
-      <p-tag [value]="assignedScheduleCount() + ' asignados'" [severity]="assignedScheduleCount() > 0 ? 'info' : 'secondary'" />
-    </div>
-  </div>
 
-  <div class="flex gap-2 pt-2 border-t border-surface-100 dark:border-surface-700 flex-wrap">
-    <p-button severity="secondary" [text]="true" icon="pi pi-calendar" pTooltip="Asignar horarios" tooltipPosition="top" size="small" styleClass="flex-1" [ariaLabel]="'Asignar horarios a ' + worker().name" (click)="onAssignSchedule()"></p-button>
-    <p-button severity="secondary" [text]="true" icon="pi pi-pencil" pTooltip="Editar trabajador" tooltipPosition="top" size="small" styleClass="flex-1" [ariaLabel]="'Editar trabajador ' + worker().name" (click)="onEdit()"></p-button>
-    @if (worker().status === 'PENDING') {
-      <p-button severity="secondary" [text]="true" icon="pi pi-envelope" pTooltip="Reenviar invitación" tooltipPosition="top" size="small" styleClass="flex-1" [ariaLabel]="'Reenviar invitación a ' + worker().name" (click)="onRetryEmail()"></p-button>
-    }
-    <p-button severity="secondary" [text]="true" icon="pi pi-history" pTooltip="Ver historial salarial" tooltipPosition="top" size="small" styleClass="flex-1" [ariaLabel]="'Ver historial salarial de ' + worker().name" [routerLink]="['/admin/manage/workers', worker().id, 'salary-history']"></p-button>
-    <p-button severity="danger" [text]="true" icon="pi pi-trash" pTooltip="Eliminar trabajador" tooltipPosition="top" size="small" styleClass="flex-1" [ariaLabel]="'Eliminar trabajador ' + worker().name" (click)="onDelete()"></p-button>
+    <div class="flex gap-2 pt-2 border-t border-rms-border flex-wrap">
+      <div class="flex-1 flex justify-center">
+        <app-rms-icon-button
+          icon="pi pi-calendar"
+          ariaLabel="Asignar horarios"
+          tooltip="Asignar horarios"
+          (click)="onAssignSchedule()" />
+      </div>
+      <div class="flex-1 flex justify-center">
+        <app-rms-icon-button
+          icon="pi pi-pencil"
+          ariaLabel="Editar trabajador"
+          tooltip="Editar trabajador"
+          (click)="onEdit()" />
+      </div>
+      @if (worker().status === 'PENDING') {
+        <div class="flex-1 flex justify-center">
+          <app-rms-icon-button
+            icon="pi pi-envelope"
+            ariaLabel="Reenviar invitación"
+            tooltip="Reenviar invitación"
+            (click)="onRetryEmail()" />
+        </div>
+      }
+      <div class="flex-1 flex justify-center">
+        <app-rms-icon-button
+          icon="pi pi-history"
+          ariaLabel="Ver historial salarial"
+          tooltip="Ver historial salarial"
+          [routerLink]="['/admin/manage/workers', worker().id, 'salary-history']" />
+      </div>
+      <div class="flex-1 flex justify-center">
+        <app-rms-icon-button
+          icon="pi pi-trash"
+          ariaLabel="Eliminar trabajador"
+          tooltip="Eliminar trabajador"
+          variant="danger"
+          (click)="onDelete()" />
+      </div>
+    </div>
   </div>
-</div>
+</app-rms-card>

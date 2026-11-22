@@ -2,12 +2,12 @@ import { Component, inject, computed, effect, signal, input } from '@angular/cor
 import { Router } from '@angular/router';
 import { DatePipe, JsonPipe } from '@angular/common';
 
-import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
+import { RmsBadge } from '@app/shared/ui/badge/badge';
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
+import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import {
   parseHistorySnapshot,
@@ -24,12 +24,12 @@ interface HistoryEntryView extends SpecialSelectionHistoryEntry {
 @Component({
   selector: 'app-combo-history',
   imports: [
-    ButtonModule,
-    TagModule,
-    ToastModule,
-    ConfirmDialogModule,
     DatePipe,
     JsonPipe,
+    RmsBadge,
+    RmsButton,
+    RmsEmptyState,
+    RmsPageHeader,
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './combo-history.html',
@@ -70,15 +70,15 @@ export class ComboHistory {
     return labels[type];
   }
 
-  changeTypeSeverity(type: ChangeType): 'info' | 'warn' | 'success' | 'danger' | 'contrast' | undefined {
-    const sevs: Record<ChangeType, 'info' | 'warn' | 'success' | 'danger' | 'contrast'> = {
+  changeTypeTone(type: ChangeType): 'info' | 'warning' | 'success' | 'danger' | 'neutral' {
+    const tones: Record<ChangeType, 'info' | 'warning' | 'success' | 'danger' | 'neutral'> = {
       CREATE: 'info',
-      UPDATE: 'warn',
+      UPDATE: 'warning',
       SCHEDULE_CHANGE: 'info',
       PRICE_CHANGE: 'info',
       DELETE: 'danger',
     };
-    return sevs[type];
+    return tones[type];
   }
 
   toggleSnapshot(version: number): void {

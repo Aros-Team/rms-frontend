@@ -25,7 +25,7 @@
       <span class="font-medium text-surface-800 dark:text-surface-200">Insumos de esta opción</span>
       <p class="text-xs text-muted mt-0.5">Ingredientes que consume esta variante del inventario</p>
     </div>
-    <p-button icon="pi pi-plus" label="Agregar insumo" [outlined]="true" size="small" (click)="addNewOptionRecipeItem()" />
+    <app-rms-button variant="secondary" size="sm" iconStart="pi pi-plus" (click)="addNewOptionRecipeItem()">Agregar insumo</app-rms-button>
   </div>
 
   @if (newOptionRecipe.length === 0) {
@@ -47,13 +47,17 @@
             <p-inputnumber formControlName="requiredQuantity" [min]="0.001"
               [minFractionDigits]="0" [maxFractionDigits]="3" class="w-full" />
           </div>
-          <p-button icon="pi pi-trash" severity="danger" [text]="true" (click)="removeNewOptionRecipeItem(i)" />
+          <app-rms-icon-button
+            icon="pi pi-trash"
+            ariaLabel="Eliminar insumo"
+            variant="danger"
+            (click)="removeNewOptionRecipeItem(i)" />
         </div>
         @if (findVariantById($any(item).get('supplyVariantId')?.value); as v) {
           <p class="text-xs text-muted mt-1 px-1">
             {{ v.quantity }} {{ v.unitAbbreviation }} = {{ v.unitCost | money }} por unidad
             @if (hasNoCost(v)) {
-              <span class="text-amber-600 dark:text-amber-400"> · sin costo definido</span>
+              <span class="text-rms-warning"> · sin costo definido</span>
             }
           </p>
         }
@@ -62,8 +66,8 @@
   </div>
 
   <ng-template #footer>
-    <p-button label="Cancelar" severity="secondary" icon="pi pi-times" (click)="close()" />
-    <p-button label="Crear opción" icon="pi pi-check" [loading]="newOptionSubmitting()" (click)="submitNewOption()" />
+    <app-rms-button variant="secondary" iconStart="pi pi-times" (click)="close()">Cancelar</app-rms-button>
+    <app-rms-button iconStart="pi pi-check" [loading]="newOptionSubmitting()" (click)="submitNewOption()">Crear opción</app-rms-button>
   </ng-template>
 </p-dialog>
 

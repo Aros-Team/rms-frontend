@@ -1,14 +1,15 @@
 import { Component, computed, input, output } from '@angular/core';
-import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
-import { TooltipModule } from 'primeng/tooltip';
 import { RouterModule } from '@angular/router';
 import { WorkerResponse } from '@app/shared/models/dto/workers/worker-response';
 import { AreaResponse } from '@app/shared/models/dto/areas/area';
+import { RmsBadge } from '@app/shared/ui/badge/badge';
+import { RmsCard } from '@app/shared/ui/card/card';
+import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
+import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
 
 @Component({
   selector: 'app-worker-card',
-  imports: [ButtonModule, TagModule, TooltipModule, RouterModule],
+  imports: [RouterModule, RmsBadge, RmsCard, RmsIconButton, RmsStatusPill],
   templateUrl: './worker-card.html',
 })
 export class WorkerCard {
@@ -20,21 +21,6 @@ export class WorkerCard {
   readonly edit = output();
   readonly retryEmail = output();
   readonly delete = output();
-
-  avatarColor = computed(() => {
-    const name = this.worker().name || '';
-    // 700-level shades: the avatar always renders white initials, and the
-    // 500-level versions of amber/lime/cyan fail 4.5:1 against white.
-    const colors = [
-      '#2563EB', '#047857', '#B45309', '#B91C1C',
-      '#6D28D9', '#BE185D', '#0E7490', '#4D7C0F',
-    ];
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-      hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return colors[Math.abs(hash) % colors.length];
-  });
 
   initials = computed(() => {
     const name = this.worker().name || '';
@@ -62,13 +48,13 @@ export class WorkerCard {
     }
   });
 
-  statusSeverity = computed<'warn' | 'danger' | 'success' | 'secondary'>(() => {
+  statusTone = computed<'success' | 'warning' | 'danger' | 'neutral'>(() => {
     switch (this.worker().status) {
-      case 'PENDING': return 'warn';
+      case 'PENDING': return 'warning';
       case 'ERROR': return 'danger';
       case 'ACTIVE': return 'success';
-      case 'INACTIVE': return 'secondary';
-      default: return 'secondary';
+      case 'INACTIVE': return 'neutral';
+      default: return 'neutral';
     }
   });
 
