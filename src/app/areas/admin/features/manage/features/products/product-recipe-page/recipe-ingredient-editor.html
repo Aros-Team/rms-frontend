@@ -1,0 +1,136 @@
+<div class="ingredient-editor">
+  <div class="ingredient-search">
+    <app-rms-input
+      label="Buscar insumo"
+      placeholder="Ej. carne, tomate, pan…"
+      [hint]="searchHint()"
+      [ngModel]="search()"
+      (ngModelChange)="onSearch($event)"
+      (keydown)="onSearchKeydown($event)"
+      [disabled]="disabled"
+      autocomplete="off" />
+
+    @if (showCategoryFilter) {
+      <app-rms-select
+        label="Categoría del insumo"
+        [options]="categoryOptions()"
+        [ngModel]="categoryId()"
+        (ngModelChange)="onCategoryChange($event)"
+        [showClear]="true"
+        placeholder="Todas las categorías"
+        size="sm"
+        [disabled]="disabled" />
+    }
+  </div>
+
+  @if (suggestions().length > 0) {
+    <ul class="ingredient-results" aria-label="Insumos encontrados">
+      @for (variant of suggestions(); track variant.id) {
+        <li>
+          <button
+            type="button"
+            class="ingredient-result"
+            data-recipe-result
+            [disabled]="disabled"
+            (click)="addVariant(variant)">
+            <span class="ingredient-result__main">
+              <span class="ingredient-result__name">{{ variant.supplyName }}</span>
+              <span class="ingredient-result__meta">
+                {{ variant.categoryName }} · {{ variant.quantity }} {{ variant.unitAbbreviation }} ·
+                costo unitario {{ variant.unitCost | money }}
+              </span>
+            </span>
+            <app-rms-badge label="Agregar" tone="neutral" variant="outline" />
+          </button>
+        </li>
+      }
+    </ul>
+  } @else if (hasQuery() && variants.length > 0) {
+    <p class="ingredient-message" role="status">
+      No hay insumos disponibles que coincidan con la búsqueda.
+    </p>
+  }
+
+  @if (rows.length === 0) {
+    <app-rms-empty-state
+      icon="pi pi-list"
+      [title]="emptyTitle"
+      [message]="emptyMessage"
+      actionLabel="Buscar insumo"
+      actionIcon="pi pi-search"
+      (action)="focusSearch()" />
+  } @else {
+    <div class="ingredient-table-wrap">
+      <table class="ingredient-table" aria-label="Insumos de la receta">
+        <thead>
+          <tr>
+            <th scope="col" class="ingredient-table__ingredient">Insumo</th>
+            <th scope="col" class="ingredient-table__quantity">Cantidad</th>
+            <th scope="col" class="ingredient-table__unit">Unidad</th>
+            <th scope="col" class="ingredient-table__numeric">Costo unitario</th>
+            <th scope="col" class="ingredient-table__numeric">Costo</th>
+            <th scope="col" class="ingredient-table__actions">
+              <span class="sr-only">Acciones</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows; track row.key) {
+            <tr>
+              <td class="ingredient-table__ingredient">
+                <app-rms-select
+                  [label]="'Insumo ' + ($index + 1) + ' de la receta: ' + variantName(row)"
+                  [hideLabel]="true"
+                  size="sm"
+                  [options]="variantOptions()"
+                  [ngModel]="row.supplyVariantId"
+                  (ngModelChange)="onVariantChange(row, $event)"
+                  [error]="issuesFor(row).variant"
+                  placeholder="Selecciona un insumo"
+                  [disabled]="disabled" />
+              </td>
+              <td class="ingredient-table__quantity">
+                <app-rms-input
+                  [label]="'Cantidad de ' + variantName(row)"
+                  [hideLabel]="true"
+                  size="sm"
+                  inputMode="decimal"
+                  [ngModel]="row.quantity"
+                  (ngModelChange)="onQuantityInput(row, $event)"
+                  [error]="issuesFor(row).quantity"
+                  [disabled]="disabled" />
+              </td>
+              <td class="ingredient-table__unit">{{ unitLabel(row) }}</td>
+              <td class="ingredient-table__numeric">
+                @if (hasMissingCost(row)) {
+                  <app-rms-badge label="Sin costo unitario" tone="warning" />
+                } @else {
+                  {{ unitCost(row) | money }}
+                }
+              </td>
+              <td class="ingredient-table__numeric">{{ partialCost(row) | money }}</td>
+              <td class="ingredient-table__actions">
+                <app-rms-icon-button
+                  icon="pi pi-trash"
+                  [ariaLabel]="'Quitar ' + variantName(row) + ' de la receta'"
+                  [tooltip]="'Quitar de la receta'"
+                  variant="danger"
+                  size="sm"
+                  [disabled]="disabled"
+                  (click)="removeRow(row)" />
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <div class="ingredient-footnote">
+    <span>{{ rows.length }} {{ rows.length === 1 ? 'insumo' : 'insumos' }}</span>
+    <span>
+      La unidad la define el insumo seleccionado. El API no convierte unidades ni aplica merma
+      (P3-BE-RL-12).
+    </span>
+  </div>
+</div>

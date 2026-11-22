@@ -1,246 +1,325 @@
 /**
- * Tests for the ProductRecipePage component.
+ * Tests for the product recipe and costing page.
  *
- * Feature: Product recipe editing page — loads a product by route param,
- *   displays/editable form, manages recipe items, saves updates, shows toast feedback.
+ * Feature: edit a product recipe, keep the product options intact on save,
+ * cost it live, replace option recipes with an explicit confirmation and guard
+ * unsaved changes.
  * Contract:
- *   - On init with valid route param: calls findProduct, getProductOptionGroups,
- *     getCost, getCostBreakdown, getImages (via forkJoin after product load).
- *   - On init without route param: navigates to /admin/manage/products.
- *   - save() calls updateProduct with the correct ProductUpdateRequest payload.
- *   - save() shows success toast on success, error toast on failure.
- *   - addRecipeItem / removeRecipeItem mutate the recipeItems signal correctly.
- *   - goBack() navigates to /admin/manage/products.
+ *  - loads product, cost, cost-breakdown, options, images and labor mode; the
+ *    draft starts clean
+ *  - material/labor/total/margin recompute from draft rows plus the server
+ *    labor cost; a dirty draft is marked stale
+ *  - save sends name, price, recipe, optionIds and optionExtras (the API wipes
+ *    associations when optionIds are omitted) and never sends `active`
+ *  - a ProblemDetail `detail` is shown for a failed save
+ *  - 403/404 render a no-permission/not-found state without a retry loop
+ *  - a failed cost request keeps the page usable and marks the total partial
+ *  - a failed options request blocks saving so associations cannot be wiped
+ *  - option recipes require an acknowledgement when the option already has a
+ *    cost; saving replaces the recipe and refetches costs
+ *  - leaving with unsaved changes opens a confirmation dialog; beforeunload is
+ *    cancelled
  *
- * Approach: TestBed with all injected services mocked via useValue stubs.
- *   Verify service calls with exact arguments, assert signal values directly.
+ * Approach: TestBed with mocked services, real primitives whose external
+ * templates are resolved through ?raw imports. Assertions target emitted
+ * payloads, signals and contextual DOM.
  */
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter, ActivatedRoute, Router } from '@angular/router';
-import { MessageService } from 'primeng/api';
+import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 
 import { ProductRecipePage } from './product-recipe-page';
 import { Product } from '@app/core/services/products/product';
-import { OptionGroup } from '@app/core/services/option-group/option-group';
+import { ProductOption as ProductOptionService } from '@app/core/services/product-option/product-option';
 import { ProductImage } from '@app/core/services/product-image/product-image';
 import { ProductCache } from '../product-cache';
-import { Logging } from '@app/core/services/logging/logging';
+import { RecipeLaborMode } from './recipe-labor-mode';
 import { WebSocket } from '@app/core/services/websocket/websocket';
-import { ProductResponse } from '@app/shared/models/dto/products/product-response';
-import { ProductCostResponse } from '@app/shared/models/dto/products/product-cost-response';
-import { ProductCostBreakdownResponse } from '@app/shared/models/dto/products/product-cost-breakdown-response';
-import { ProductImageResponse } from '@app/shared/models/dto/products/product-image-response';
-import { OptionGroupResponse } from '@app/shared/models/dto/option-groups/option-group';
+import { createRecipeRow } from './recipe-rows';
+
+import type { ProductResponse } from '@app/shared/models/dto/products/product-response';
+import type { ProductCostResponse } from '@app/shared/models/dto/products/product-cost-response';
+import type { ProductCostBreakdownResponse } from '@app/shared/models/dto/products/product-cost-breakdown-response';
+import type { ProductOption } from '@app/shared/models/dto/products/product-option';
 import type { SupplyVariantResponse } from '@app/shared/models/dto/supplies/supply-variant-response';
-import { toAmount } from '@app/shared/models/dto/common/money';
+import type { Money } from '@app/shared/models/dto/common/money';
 
-import productRecipeHtml from './product-recipe-page.html?raw';
+import pageHtml from './product-recipe-page.html?raw';
+import editorHtml from './recipe-ingredient-editor.html?raw';
+import buttonHtml from '@app/shared/ui/button/button.html?raw';
+import badgeHtml from '@app/shared/ui/badge/badge.html?raw';
+import cardHtml from '@app/shared/ui/card/card.html?raw';
+import checkboxHtml from '@app/shared/ui/checkbox/checkbox.html?raw';
+import dialogHtml from '@app/shared/ui/dialog/dialog.html?raw';
+import emptyStateHtml from '@app/shared/ui/empty-state/empty-state.html?raw';
+import fieldHtml from '@app/shared/ui/field/field.html?raw';
+import iconButtonHtml from '@app/shared/ui/icon-button/icon-button.html?raw';
+import inputHtml from '@app/shared/ui/input/input.html?raw';
+import pageHeaderHtml from '@app/shared/ui/page-header/page-header.html?raw';
+import selectHtml from '@app/shared/ui/select/select.html?raw';
+import skeletonHtml from '@app/shared/ui/skeleton/skeleton.html?raw';
+import statTileHtml from '@app/shared/ui/stat-tile/stat-tile.html?raw';
 
-/** Money DTO as the backend serializes it (`amount` is a decimal string). */
-function money(amount: string): { amount: string; currency: string } {
-  return { amount, currency: 'COP' };
+function money(amount: string, currency = 'COP'): Money {
+  return { amount, currency };
 }
 
-function buildSupplyVariant(id: number, unitCost: string): SupplyVariantResponse {
-  return {
-    id,
-    supplyId: id + 100,
-    supplyName: `Insumo ${String(id)}`,
+const VARIANTS: SupplyVariantResponse[] = [
+  {
+    id: 301,
+    supplyId: 401,
+    supplyName: 'Tomate',
     categoryId: 1,
     categoryName: 'Verduras',
     unitId: 1,
     unitAbbreviation: 'kg',
     quantity: 1,
     stockBodega: 10,
-    stockCocina: 10,
-    unitCost: money(unitCost),
-  };
-}
+    stockCocina: 4,
+    unitCost: money('2000.00'),
+  },
+  {
+    id: 302,
+    supplyId: 402,
+    supplyName: 'Cebolla',
+    categoryId: 1,
+    categoryName: 'Verduras',
+    unitId: 1,
+    unitAbbreviation: 'kg',
+    quantity: 1,
+    stockBodega: 8,
+    stockCocina: 2,
+    unitCost: money('4000.00'),
+  },
+  {
+    id: 303,
+    supplyId: 403,
+    supplyName: 'Queso',
+    categoryId: 2,
+    categoryName: 'Lácteos',
+    unitId: 1,
+    unitAbbreviation: 'kg',
+    quantity: 1,
+    stockBodega: 5,
+    stockCocina: 1,
+    unitCost: money('9000.00'),
+  },
+];
 
-function buildProductFixture(): ProductResponse {
+function buildProduct(overrides: Partial<ProductResponse> = {}): ProductResponse {
   return {
     id: 7,
     name: 'Lentejas',
     description: 'Lentejas con verduras',
-    basePrice: money('12.50'),
+    basePrice: money('28000.00'),
     active: true,
     categoryId: 2,
     categoryName: 'Comidas',
     areaId: 1,
     areaName: 'Cocina',
-    estimatedPrepMinutes: 15,
+    estimatedPrepMinutes: 10,
     recipe: [
-      { id: 101, supplyVariantId: 301, requiredQuantity: 0.5 },
-      { id: 102, supplyVariantId: 302, requiredQuantity: 0.25 },
+      { id: 1, supplyVariantId: 301, requiredQuantity: 0.5 },
+      { id: 2, supplyVariantId: 302, requiredQuantity: 0.25 },
     ],
+    optionGroupIds: [1],
+    ...overrides,
   };
 }
 
-function buildCostFixture(): ProductCostResponse {
+function buildCost(): ProductCostResponse {
   return {
     productId: 7,
-    totalCost: { amount: '25.75', currency: 'COP' },
-    materialCost: { amount: '15.50', currency: 'COP' },
-    laborCost: { amount: '10.25', currency: 'COP' },
-    breakdown: [
-      { description: 'Tomate 0.5 kg', amount: { amount: '7.50', currency: 'COP' }, type: 'MATERIAL' },
-      { description: 'Cebolla 0.25 kg', amount: { amount: '8.00', currency: 'COP' }, type: 'MATERIAL' },
-    ],
+    materialCost: money('2000.00'),
+    laborCost: money('800.00'),
+    totalCost: money('2800.00'),
+    breakdown: [],
   };
 }
 
-function buildCostBreakdownFixture(): ProductCostBreakdownResponse {
+function buildBreakdown(): ProductCostBreakdownResponse {
   return {
     productId: 7,
-    name: 'Hamburguesa',
-    baseCost: { amount: 15500, currency: 'COP' },
-    options: [],
+    name: 'Lentejas',
+    baseCost: money('2000.00'),
+    options: [
+      {
+        optionId: 1,
+        name: 'Carne',
+        cost: money('5250.00'),
+        extraPrice: money('2500.00'),
+        categoryId: 1,
+        categorySelectionType: 'SINGLE_CHOICE',
+      },
+      {
+        optionId: 2,
+        name: 'Pollo',
+        cost: money('0.00'),
+        extraPrice: money('0.00'),
+        categoryId: 1,
+        categorySelectionType: 'SINGLE_CHOICE',
+      },
+    ],
     categories: [],
-    projectedOptionCost: { amount: 0, currency: 'COP' },
-    projectedEffectiveCost: { amount: 15500, currency: 'COP' },
+    projectedOptionCost: money('2625.00'),
+    projectedEffectiveCost: money('4625.00'),
   };
 }
 
-function buildOptionGroupsFixture(): OptionGroupResponse[] {
+function buildOptions(): ProductOption[] {
   return [
-    { id: 1, name: 'Tamaño', selectionType: 'SINGLE_CHOICE', description: '', productIds: [7] },
+    {
+      id: 1,
+      name: 'Carne',
+      optionGroupId: 1,
+      optionGroupName: 'Proteína',
+      cost: money('5250.00'),
+      extraPrice: money('2500.00'),
+      categorySelectionType: 'SINGLE_CHOICE',
+    },
+    {
+      id: 2,
+      name: 'Pollo',
+      optionGroupId: 1,
+      optionGroupName: 'Proteína',
+      cost: money('0.00'),
+      extraPrice: money('0.00'),
+      categorySelectionType: 'SINGLE_CHOICE',
+    },
   ];
 }
 
-function buildImageFixture(): ProductImageResponse {
-  return {
-    id: 50,
-    entityType: 'PRODUCT',
-    entityId: 7,
-    contentType: 'image/webp',
-    mobileUrl: 'http://img/m.jpg',
-    tabletUrl: 'http://img/t.jpg',
-    desktopUrl: 'http://img/d.jpg',
-    originalFilename: 'photo.jpg',
-    originalSizeBytes: 1024,
-    createdAt: '2025-01-01T00:00:00Z',
-  };
+function flush(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-function buildCacheStub(variants: SupplyVariantResponse[] = []) {
-  return {
+function htmlError(status: number, detail: string): HttpErrorResponse {
+  return new HttpErrorResponse({ status, error: { detail }, statusText: 'error' });
+}
+
+interface Env {
+  productStub: {
+    findProduct: ReturnType<typeof vi.fn>;
+    updateProduct: ReturnType<typeof vi.fn>;
+    getCost: ReturnType<typeof vi.fn>;
+    getCostBreakdown: ReturnType<typeof vi.fn>;
+    getOptions: ReturnType<typeof vi.fn>;
+  };
+  optionStub: { updateOption: ReturnType<typeof vi.fn> };
+  imageStub: {
+    getImages: ReturnType<typeof vi.fn>;
+    uploadImage: ReturnType<typeof vi.fn>;
+    deleteImage: ReturnType<typeof vi.fn>;
+  };
+  cacheStub: {
+    referenceData: {
+      data: ReturnType<typeof vi.fn>;
+      isLoading: ReturnType<typeof vi.fn>;
+      error: ReturnType<typeof vi.fn>;
+      refresh: ReturnType<typeof vi.fn>;
+      loadIfStale: ReturnType<typeof vi.fn>;
+    };
+    invalidateProductList: ReturnType<typeof vi.fn>;
+  };
+  wsStub: { emitCacheInvalidation: ReturnType<typeof vi.fn> };
+  router: { navigate: ReturnType<typeof vi.fn> };
+}
+
+function configure(productId = '7'): Env {
+  const productStub = {
+    findProduct: vi.fn().mockReturnValue(of(buildProduct())),
+    updateProduct: vi.fn().mockReturnValue(of({})),
+    getCost: vi.fn().mockReturnValue(of(buildCost())),
+    getCostBreakdown: vi.fn().mockReturnValue(of(buildBreakdown())),
+    getOptions: vi.fn().mockReturnValue(of(buildOptions())),
+  };
+  const optionStub = { updateOption: vi.fn().mockReturnValue(of(buildOptions()[0])) };
+  const imageStub = {
+    getImages: vi.fn().mockReturnValue(of([])),
+    uploadImage: vi.fn(),
+    deleteImage: vi.fn().mockReturnValue(of({})),
+  };
+  const cacheStub = {
     referenceData: {
       data: vi.fn().mockReturnValue({
-        areas: [{ id: 1, name: 'Cocina' }],
-        categories: [{ id: 2, name: 'Comidas' }],
-        variants,
+        areas: [{ id: 1, name: 'Cocina', type: 'KITCHEN', enabled: true }],
+        categories: [{ id: 2, name: 'Comidas', enabled: true }],
+        variants: VARIANTS.map((variant) => ({
+          ...variant,
+          displayName: `${variant.supplyName} — ${String(variant.quantity)} ${variant.unitAbbreviation}`,
+        })),
         productOptions: [],
       }),
+      isLoading: vi.fn().mockReturnValue(false),
+      error: vi.fn().mockReturnValue(undefined),
       refresh: vi.fn(),
       loadIfStale: vi.fn(),
-      isLoading: vi.fn().mockReturnValue(false),
     },
-    products: {
-      data: vi.fn().mockReturnValue({ content: [], totalPages: 0, totalElements: 0, page: 0, size: 0 }),
-      refresh: vi.fn(),
-      loadIfStale: vi.fn(),
-      invalidate: vi.fn(),
-      isLoading: vi.fn().mockReturnValue(false),
-    },
-    setProductListParams: vi.fn(),
+    invalidateProductList: vi.fn(),
   };
-}
+  const wsStub = { emitCacheInvalidation: vi.fn() };
+  const router = { navigate: vi.fn() };
 
-function buildProductStub() {
-  return {
-    findProduct: vi.fn().mockReturnValue(of(buildProductFixture())),
-    updateProduct: vi.fn().mockReturnValue(of({})),
-    getCost: vi.fn().mockReturnValue(of(buildCostFixture())),
-    getCostBreakdown: vi.fn().mockReturnValue(of(buildCostBreakdownFixture())),
-  };
-}
-
-function configureTestBed(
-  routeParamId: string | null = '7',
-  extraProviders: unknown[] = [],
-  variants: SupplyVariantResponse[] = [],
-) {
-  const paramMap = new Map<string, string>();
-  if (routeParamId !== null) {
-    paramMap.set('id', routeParamId);
-  }
-  const snapshotParamMap = {
-    get: (key: string) => paramMap.get(key) ?? null,
-    has: (key: string) => paramMap.has(key),
-    getAll: () => [] as string[],
-    keys: [...paramMap.keys()],
-  };
-
-  const productStub = buildProductStub();
-  const optionGroupStub = {
-    getProductOptionGroups: vi.fn().mockReturnValue(of(buildOptionGroupsFixture())),
-    createOptionGroup: vi.fn().mockReturnValue(of({ id: 1, name: 'Nuevo', selectionType: 'SINGLE', description: '', productIds: [7] })),
-  };
-  const imageStub = {
-    getImages: vi.fn().mockReturnValue(of([buildImageFixture()])),
-    uploadImage: vi.fn(),
-    deleteImage: vi.fn(),
-  };
-  const cacheStub = buildCacheStub(variants);
-  const wsStub = {
-    emitCacheInvalidation: vi.fn(),
-    cacheInvalidation$: of(null),
-  };
-  const loggerStub = { error: vi.fn(), warn: vi.fn(), info: vi.fn() };
-
+  const paramMap = new Map<string, string>([['id', productId]]);
   TestBed.configureTestingModule({
+    imports: [ProductRecipePage],
     providers: [
       provideHttpClient(),
       provideHttpClientTesting(),
       provideRouter([]),
-      MessageService,
       { provide: Product, useValue: productStub },
-      { provide: OptionGroup, useValue: optionGroupStub },
+      { provide: ProductOptionService, useValue: optionStub },
       { provide: ProductImage, useValue: imageStub },
       { provide: ProductCache, useValue: cacheStub },
-      { provide: Logging, useValue: loggerStub },
+      { provide: RecipeLaborMode, useValue: { load: () => of('AUTO') } },
       { provide: WebSocket, useValue: wsStub },
+      { provide: Router, useValue: router },
       {
         provide: ActivatedRoute,
         useValue: {
           snapshot: {
-            paramMap: snapshotParamMap,
+            paramMap: {
+              get: (key: string) => paramMap.get(key) ?? null,
+              has: (key: string) => paramMap.has(key),
+              getAll: () => [] as string[],
+              keys: [...paramMap.keys()],
+            },
           },
         },
       },
-      ...extraProviders,
     ],
   });
 
-  return {
-    productStub,
-    optionGroupStub,
-    imageStub,
-    cacheStub,
-    wsStub,
-    loggerStub,
-  };
-}
-
-/** `Intl` separates the COP symbol from the amount with U+00A0. */
-function normalizeText(text: string): string {
-  return text.replace(/\u00a0|\u202f/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-function flushMicrotasks(): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, 0));
+  return { productStub, optionStub, imageStub, cacheStub, wsStub, router };
 }
 
 describe('ProductRecipePage', () => {
   beforeAll(async () => {
     await resolveComponentResources((url: string) => {
-      if (url.endsWith('product-recipe-page.html')) {
-        return Promise.resolve(productRecipeHtml as unknown as string);
+      const resources: Record<string, string> = {
+        'product-recipe-page.html': pageHtml as unknown as string,
+        'recipe-ingredient-editor.html': editorHtml as unknown as string,
+        'button.html': buttonHtml as unknown as string,
+        'badge.html': badgeHtml as unknown as string,
+        'card.html': cardHtml as unknown as string,
+        'checkbox.html': checkboxHtml as unknown as string,
+        'dialog.html': dialogHtml as unknown as string,
+        'empty-state.html': emptyStateHtml as unknown as string,
+        'field.html': fieldHtml as unknown as string,
+        'icon-button.html': iconButtonHtml as unknown as string,
+        'input.html': inputHtml as unknown as string,
+        'page-header.html': pageHeaderHtml as unknown as string,
+        'select.html': selectHtml as unknown as string,
+        'skeleton.html': skeletonHtml as unknown as string,
+        'stat-tile.html': statTileHtml as unknown as string,
+      };
+      for (const [name, content] of Object.entries(resources)) {
+        if (url.endsWith(name)) return Promise.resolve(content);
       }
       return Promise.resolve('');
     });
@@ -250,372 +329,356 @@ describe('ProductRecipePage', () => {
     TestBed.resetTestingModule();
   });
 
-  it('creates the component successfully', () => {
-    configureTestBed('7');
+  function mount(): ComponentFixture<ProductRecipePage> {
     const fixture = TestBed.createComponent(ProductRecipePage);
     fixture.detectChanges();
+    return fixture;
+  }
 
-    const root = fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('.recipe-page')).not.toBeNull();
-    expect(
-      Array.from(root.querySelectorAll('.recipe-header p-button button')).map((btn) =>
-        btn.textContent.trim(),
-      ),
-    ).toEqual(['Volver a productos', 'Guardar cambios']);
-  });
+  function root(fixture: ComponentFixture<ProductRecipePage>): HTMLElement {
+    return fixture.nativeElement as HTMLElement;
+  }
 
-  it('loads product on init via findProduct with the route param id', async () => {
-    const env = configureTestBed('7');
-    TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
+  it('loads product, costs, options, images and labor mode', () => {
+    const env = configure();
+    const fixture = mount();
+    const page = fixture.componentInstance;
 
     expect(env.productStub.findProduct).toHaveBeenCalledWith(7);
-  });
-
-  it('loads option groups on init after product loads', async () => {
-    const env = configureTestBed('7');
-    TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
-
-    expect(env.optionGroupStub.getProductOptionGroups).toHaveBeenCalledWith(7);
-  });
-
-  it('loads cost on init after product loads', async () => {
-    const env = configureTestBed('7');
-    TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
-
     expect(env.productStub.getCost).toHaveBeenCalledWith(7);
-  });
-
-  it('loads cost breakdown on init after product loads', async () => {
-    const env = configureTestBed('7');
-    TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
-
     expect(env.productStub.getCostBreakdown).toHaveBeenCalledWith(7);
-  });
-
-  it('loads images on init after product loads', async () => {
-    const env = configureTestBed('7');
-    TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
-
+    expect(env.productStub.getOptions).toHaveBeenCalledWith(7);
     expect(env.imageStub.getImages).toHaveBeenCalledWith(7);
+    expect(env.cacheStub.referenceData.loadIfStale).toHaveBeenCalled();
+
+    expect(page.state()).toBe('ready');
+    expect(page.draft().name).toBe('Lentejas');
+    expect(page.recipeRows()).toHaveLength(2);
+    expect(page.dirty()).toBe(false);
+    expect(page.laborMode()).toBe('AUTO');
+    expect(root(fixture).querySelector('h1')?.textContent.trim()).toBe('Receta y costeo');
   });
 
-  it('navigates to products list when no route param is provided', async () => {
-    const routerNavigate = vi.fn();
+  it('computes material, labor, total and margin from the server cost plus the draft', () => {
+    const fixture = mount(configure());
+    const page = fixture.componentInstance;
 
-    const snapshotParamMap = {
-      get: () => null,
-      has: () => false,
-      getAll: () => [] as string[],
-      keys: [] as string[],
-    };
-
-    TestBed.configureTestingModule({
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        MessageService,
-        { provide: Product, useValue: {} },
-        { provide: OptionGroup, useValue: {} },
-        { provide: ProductImage, useValue: {} },
-        { provide: ProductCache, useValue: buildCacheStub() },
-        { provide: Logging, useValue: { error: vi.fn(), warn: vi.fn(), info: vi.fn() } },
-        { provide: WebSocket, useValue: { emitCacheInvalidation: vi.fn(), cacheInvalidation$: of(null) } },
-        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: snapshotParamMap } } },
-        { provide: Router, useValue: { navigate: routerNavigate } },
-      ],
-    });
-
-    TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
-
-    expect(routerNavigate).toHaveBeenCalledWith(['/admin/manage/products']);
+    // 0.5 × 2000 + 0.25 × 4000 = 2000; labor 800; total 2800
+    expect(page.materialMicro()).toBe(2_000_000_000n);
+    expect(page.laborMicro()).toBe(800_000_000n);
+    expect(page.totalMicro()).toBe(2_800_000_000n);
+    expect(page.marginLabel()).toBe('90,0 %');
+    expect(page.marginPeriod()).toBe('Costo primo 10,0 %');
   });
 
-  it('normalizes a MoneyDto basePrice into the salePrice signal (regression)', async () => {
-    // The backend sends `basePrice` as `{ amount: "15000.00", currency: "COP" }`.
-    // A naive `salePrice.set(p.basePrice)` put an object into a number signal,
-    // which then rendered as NaN / "[object Object]".
-    const env = configureTestBed('7');
-    env.productStub.findProduct.mockReturnValue(
-      of({ ...buildProductFixture(), basePrice: { amount: '15000.00', currency: 'COP' } }),
+  it('recomputes the total after a quantity edit and marks the cost stale', () => {
+    const fixture = mount(configure());
+    const page = fixture.componentInstance;
+
+    page.updateRecipeRows([createRecipeRow(301, '1'), createRecipeRow(302, '0,25')]);
+    fixture.detectChanges();
+
+    // 1 × 2000 + 0.25 × 4000 = 3000; + 800 labor = 3800
+    expect(page.totalMicro()).toBe(3_800_000_000n);
+    expect(page.dirty()).toBe(true);
+    expect(page.canSave()).toBe(true);
+    expect(root(fixture).textContent).toContain('Costos sin guardar');
+    expect(root(fixture).textContent).toContain('Estimado con los cambios sin guardar');
+  });
+
+  it('disables the save action until the draft changes', () => {
+    const fixture = mount(configure());
+    const buttons = Array.from(
+      root(fixture).querySelectorAll<HTMLButtonElement>('.recipe-actions button'),
     );
-    const fixture = TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
 
-    expect(fixture.componentInstance.salePrice()).toBe(15000);
-    expect(Number.isNaN(fixture.componentInstance.salePrice())).toBe(false);
+    expect(buttons).toHaveLength(2);
+    expect(buttons[0]?.disabled).toBe(true);
+    expect(buttons[1]?.disabled).toBe(true);
+
+    fixture.componentInstance.updatePrice('29000');
+    fixture.detectChanges();
+
+    expect(
+      Array.from(root(fixture).querySelectorAll<HTMLButtonElement>('.recipe-actions button'))[1]
+        ?.disabled,
+    ).toBe(false);
   });
 
-  it('displays product data after load — formData populated with name', async () => {
-    configureTestBed('7');
-    const fixture = TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
+  it('saves the recipe and re-sends the option associations', async () => {
+    const env = configure();
+    const fixture = mount();
+    const page = fixture.componentInstance;
 
-    const comp = fixture.componentInstance;
-    expect(comp.formData().name).toBe('Lentejas');
-  });
-
-  it('displays product data after load — recipe items populated', async () => {
-    configureTestBed('7');
-    const fixture = TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
-
-    const comp = fixture.componentInstance;
-    expect(comp.recipeItems()).toHaveLength(2);
-    expect(comp.recipeItems()[0].supplyVariantId).toBe(301);
-    expect(comp.recipeItems()[0].requiredQuantity).toBe(0.5);
-  });
-
-  it('displays product data after load — product signal set', async () => {
-    configureTestBed('7');
-    const fixture = TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
-
-    const comp = fixture.componentInstance;
-    expect(comp.product()?.id).toBe(7);
-    expect(comp.product()?.name).toBe('Lentejas');
-  });
-
-  it('displays product data after load — cost signal set', async () => {
-    configureTestBed('7');
-    const fixture = TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
-
-    const comp = fixture.componentInstance;
-    expect(toAmount(comp.cost()?.totalCost)).toBe(25.75);
-  });
-
-  it('displays product data after load — images signal set', async () => {
-    configureTestBed('7');
-    const fixture = TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
-
-    const comp = fixture.componentInstance;
-    expect(comp.images()).toHaveLength(1);
-    expect(comp.images()[0].id).toBe(50);
-  });
-
-  it('displays product data after load — option groups signal set', async () => {
-    configureTestBed('7');
-    const fixture = TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
-
-    const comp = fixture.componentInstance;
-    expect(comp.optionGroups()).toHaveLength(1);
-    expect(comp.optionGroups()[0].name).toBe('Tamaño');
-  });
-
-  it('save() calls updateProduct with correct payload', async () => {
-    const env = configureTestBed('7');
-    const fixture = TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
-
-    fixture.componentInstance.save();
-    await flushMicrotasks();
+    page.updateName('Lentejas nuevas');
+    page.updatePrice('29000');
+    page.save();
+    await flush();
 
     expect(env.productStub.updateProduct).toHaveBeenCalledTimes(1);
-    const callArgs = env.productStub.updateProduct.mock.calls[0] as [number, Record<string, unknown>];
-    expect(callArgs[0]).toBe(7);
-    expect(callArgs[1].name).toBe('Lentejas');
-    expect(callArgs[1].basePrice).toBe(12.5);
-    expect(callArgs[1].recipe).toEqual([
+    const [id, request] = env.productStub.updateProduct.mock.calls[0] as [
+      number,
+      Record<string, unknown>,
+    ];
+    expect(id).toBe(7);
+    expect(request['name']).toBe('Lentejas nuevas');
+    expect(request['basePrice']).toBe(29000);
+    expect(request['recipe']).toEqual([
       { supplyVariantId: 301, requiredQuantity: 0.5 },
       { supplyVariantId: 302, requiredQuantity: 0.25 },
     ]);
+    expect(request['optionIds']).toEqual([1, 2]);
+    expect(request['optionExtras']).toEqual([{ optionId: 1, extraPrice: 2500 }]);
+    expect('active' in request).toBe(false);
+
+    expect(page.dirty()).toBe(false);
+    expect(page.saveSuccess()).toContain('Cambios guardados');
+    expect(env.wsStub.emitCacheInvalidation).toHaveBeenCalledWith('products', 'update', 7);
+    await flush();
+    expect(env.productStub.getCost).toHaveBeenCalledTimes(2);
   });
 
-  it('save() shows success toast on success', async () => {
-    configureTestBed('7');
-    const fixture = TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
-
-    // MessageService is provided at component level, so get it from the component's injector
-    const messageService = fixture.componentRef.injector.get(MessageService);
-    const addSpy = vi.spyOn(messageService, 'add');
-
-    fixture.componentInstance.save();
-    await flushMicrotasks();
-    await flushMicrotasks();
-
-    const successCalls = addSpy.mock.calls.filter(
-      ([msg]: [{ severity: string; summary: string }]) =>
-        msg.severity === 'success' && msg.summary === 'Guardado'
+  it('shows the server ProblemDetail detail when saving fails', async () => {
+    const env = configure();
+    env.productStub.updateProduct.mockReturnValue(
+      throwError(() => htmlError(400, 'La categoría no existe')),
     );
-    expect(successCalls.length).toBeGreaterThanOrEqual(1);
+    const fixture = mount();
+    const page = fixture.componentInstance;
+
+    page.updatePrice('29000');
+    page.save();
+    await flush();
+    fixture.detectChanges();
+
+    expect(page.saveError()).toBe('La categoría no existe');
+    expect(page.saving()).toBe(false);
+    expect(root(fixture).textContent).toContain('La categoría no existe');
+    expect(root(fixture).querySelector('[role="alert"]')).not.toBeNull();
   });
 
-  it('save() shows error toast on failure', async () => {
-    const env = configureTestBed('7');
-    env.productStub.updateProduct.mockReturnValue(throwError(() => ({ status: 500, error: { message: 'Server error' } })));
-    const fixture = TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
-
-    const messageService = fixture.componentRef.injector.get(MessageService);
-    const addSpy = vi.spyOn(messageService, 'add');
-
-    fixture.componentInstance.save();
-    await flushMicrotasks();
-    await flushMicrotasks();
-
-    const errorCalls = addSpy.mock.calls.filter(
-      ([msg]: [{ severity: string; summary: string }]) =>
-        msg.severity === 'error' && msg.summary === 'Error'
+  it('renders a no-permission state for a 403 without a retry action', () => {
+    const env = configure();
+    env.productStub.findProduct.mockReturnValue(
+      throwError(() => htmlError(403, 'No autorizado')),
     );
-    expect(errorCalls.length).toBeGreaterThanOrEqual(1);
+    const fixture = mount();
+
+    expect(fixture.componentInstance.failure()?.forbidden).toBe(true);
+    expect(root(fixture).textContent).toContain('Sin permiso para ver esta receta');
+    expect(root(fixture).textContent).toContain('No autorizado');
+    expect(root(fixture).textContent).not.toContain('Reintentar');
   });
 
-  it('addRecipeItem appends a new item to recipeItems', async () => {
-    configureTestBed('7');
-    const fixture = TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
+  it('renders a not-found state for a 404', () => {
+    const env = configure();
+    env.productStub.findProduct.mockReturnValue(
+      throwError(() => htmlError(404, 'Producto 7 no encontrado')),
+    );
+    const fixture = mount();
 
-    const comp = fixture.componentInstance;
-    const initialLength = comp.recipeItems().length;
-
-    comp.addRecipeItem({ supplyVariantId: 500, requiredQuantity: 1.5 });
-
-    expect(comp.recipeItems()).toHaveLength(initialLength + 1);
-    const last = comp.recipeItems()[comp.recipeItems().length - 1];
-    expect(last.supplyVariantId).toBe(500);
-    expect(last.requiredQuantity).toBe(1.5);
+    expect(fixture.componentInstance.failure()?.notFound).toBe(true);
+    expect(root(fixture).textContent).toContain('Producto no encontrado');
+    expect(root(fixture).textContent).toContain('Producto 7 no encontrado');
   });
 
-  it('removeRecipeItem removes the item at the given index', async () => {
-    configureTestBed('7');
-    const fixture = TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
+  it('keeps the page usable when only the cost request fails', () => {
+    const env = configure();
+    env.productStub.getCost.mockReturnValue(throwError(() => htmlError(500, 'boom')));
+    const fixture = mount();
+    const page = fixture.componentInstance;
 
-    const comp = fixture.componentInstance;
-    const initialLength = comp.recipeItems().length;
-
-    comp.removeRecipeItem(0);
-
-    expect(comp.recipeItems()).toHaveLength(initialLength - 1);
-    expect(comp.recipeItems()[0].supplyVariantId).toBe(302);
+    expect(page.state()).toBe('ready');
+    expect(page.costError()).toBe('boom');
+    expect(page.totalPartial()).toBe(true);
+    expect(page.totalMicro()).toBe(2_000_000_000n);
+    expect(root(fixture).textContent).toContain('Parcial');
   });
 
-  it('goBack navigates to /admin/manage/products', async () => {
-    const routerNavigate = vi.fn();
+  it('uses a readable fallback when the server sends no problem detail', () => {
+    const env = configure();
+    env.productStub.getCost.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 500 })),
+    );
+    const fixture = mount();
 
-    const paramMap = new Map<string, string>([['id', '7']]);
-    const snapshotParamMap = {
-      get: (key: string) => paramMap.get(key) ?? null,
-      has: (key: string) => paramMap.has(key),
-      getAll: () => [] as string[],
-      keys: [...paramMap.keys()],
-    };
+    expect(fixture.componentInstance.costError()).toBe(
+      'Error del servidor. Intenta de nuevo en unos minutos.',
+    );
+  });
 
-    TestBed.configureTestingModule({
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        MessageService,
-        { provide: Product, useValue: buildProductStub() },
-        { provide: OptionGroup, useValue: { getProductOptionGroups: vi.fn().mockReturnValue(of([])), createOptionGroup: vi.fn() } },
-        { provide: ProductImage, useValue: { getImages: vi.fn().mockReturnValue(of([])), uploadImage: vi.fn(), deleteImage: vi.fn() } },
-        { provide: ProductCache, useValue: buildCacheStub() },
-        { provide: Logging, useValue: { error: vi.fn(), warn: vi.fn(), info: vi.fn() } },
-        { provide: WebSocket, useValue: { emitCacheInvalidation: vi.fn(), cacheInvalidation$: of(null) } },
-        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: snapshotParamMap } } },
-        { provide: Router, useValue: { navigate: routerNavigate } },
-      ],
+  it('blocks saving when the options could not be loaded', () => {
+    const env = configure();
+    env.productStub.getOptions.mockReturnValue(throwError(() => htmlError(500, 'boom')));
+    const fixture = mount();
+    const page = fixture.componentInstance;
+
+    page.updatePrice('29000');
+
+    expect(page.optionsError()).not.toBeNull();
+    expect(page.canSave()).toBe(false);
+    expect(page.formErrors()).toContain(
+      'No se pudieron cargar las opciones del producto. Guardar ahora eliminaría sus asociaciones.',
+    );
+  });
+
+  it('requires an acknowledgement before replacing a costed option recipe', async () => {
+    const env = configure();
+    const fixture = mount();
+    const page = fixture.componentInstance;
+
+    expect(page.costedCount()).toBe(1);
+    expect(page.uncostedCount()).toBe(1);
+
+    page.openOptionEditor(page.optionGroups()[0], page.options()[0]);
+    page.updateOptionRows([createRecipeRow(301, '2')]);
+    fixture.detectChanges();
+
+    expect(page.optionNeedsAck()).toBe(true);
+    expect(page.canSaveOption()).toBe(false);
+
+    page.updateOptionAck(true);
+    expect(page.canSaveOption()).toBe(true);
+
+    page.saveOptionRecipe();
+    await flush();
+
+    expect(env.optionStub.updateOption).toHaveBeenCalledWith(1, {
+      name: 'Carne',
+      optionGroupId: 1,
+      recipe: [{ supplyVariantId: 301, requiredQuantity: 2 }],
     });
+    expect(page.optionEditorOpen()).toBe(false);
+    expect(page.saveSuccess()).toContain('Carne');
+    await flush();
+    expect(env.productStub.getCost).toHaveBeenCalledTimes(2);
+    expect(env.productStub.getOptions).toHaveBeenCalledTimes(2);
+  });
 
-    const fixture = TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
+  it('lets an uncosted option be costed without an acknowledgement', () => {
+    const fixture = mount(configure());
+    const page = fixture.componentInstance;
+
+    page.openOptionEditor(page.optionGroups()[0], page.options()[1]);
+    page.updateOptionRows([createRecipeRow(302, '1')]);
+
+    expect(page.optionNeedsAck()).toBe(false);
+    expect(page.canSaveOption()).toBe(true);
+  });
+
+  it('shows the replacement warning and current option cost in the dialog', () => {
+    const fixture = mount(configure());
+    const page = fixture.componentInstance;
+
+    page.openOptionEditor(page.optionGroups()[0], page.options()[0]);
+    fixture.detectChanges();
+
+    expect(document.body.textContent).toContain('Guardar reemplaza la receta completa de la opción');
+    expect(document.body.textContent).toContain('Costo actual');
+  });
+
+  it('confirms before leaving with unsaved changes', () => {
+    const env = configure();
+    const fixture = mount();
+    const page = fixture.componentInstance;
+
+    page.updatePrice('30000');
+    page.goBack();
+
+    expect(page.leaveDialogOpen()).toBe(true);
+    expect(env.router.navigate).not.toHaveBeenCalled();
+
+    page.leaveWithoutSaving();
+
+    expect(page.leaveDialogOpen()).toBe(false);
+    expect(env.router.navigate).toHaveBeenCalledWith(['/admin/manage/products']);
+  });
+
+  it('leaves immediately when the draft is clean', () => {
+    const env = configure();
+    const fixture = mount();
 
     fixture.componentInstance.goBack();
 
-    expect(routerNavigate).toHaveBeenCalledWith(['/admin/manage/products']);
+    expect(fixture.componentInstance.leaveDialogOpen()).toBe(false);
+    expect(env.router.navigate).toHaveBeenCalledWith(['/admin/manage/products']);
   });
 
-  it('loading signal starts true and becomes false after product load', async () => {
-    configureTestBed('7');
-    const fixture = TestBed.createComponent(ProductRecipePage);
+  it('cancels the native unload only while the draft is dirty', () => {
+    const fixture = mount(configure());
+    const page = fixture.componentInstance;
+    const cleanPreventDefault = vi.fn();
+    page.onBeforeUnload({ preventDefault: cleanPreventDefault } as unknown as BeforeUnloadEvent);
+    expect(cleanPreventDefault).not.toHaveBeenCalled();
 
-    expect(fixture.componentInstance.loading()).toBe(true);
+    page.updatePrice('30000');
+    const dirtyPreventDefault = vi.fn();
+    page.onBeforeUnload({ preventDefault: dirtyPreventDefault } as unknown as BeforeUnloadEvent);
 
-    await flushMicrotasks();
-
-    expect(fixture.componentInstance.loading()).toBe(false);
-  });
-  it('sums recipeTotal from Money-shaped unit costs of the selected variants', async () => {
-    configureTestBed('7', [], [
-      buildSupplyVariant(301, '2000.00'),
-      buildSupplyVariant(302, '4000.00'),
-    ]);
-    const fixture = TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
-
-    // 0.5 kg × 2000 + 0.25 kg × 4000 = 1000 + 1000
-    expect(fixture.componentInstance.recipeTotal()).toBe(2000);
+    expect(page.hasUnsavedChanges()).toBe(true);
+    expect(dirtyPreventDefault).toHaveBeenCalledTimes(1);
   });
 
-  it('computes recipeTotal with decimal Money amounts — not a string concat or NaN', async () => {
-    configureTestBed('7', [], [buildSupplyVariant(301, '1500.50')]);
-    const fixture = TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
+  it('applies the suggested price from the live total', () => {
+    const fixture = mount(configure());
+    const page = fixture.componentInstance;
 
-    fixture.componentInstance.updateRecipeQuantity(0, 2);
-    fixture.detectChanges();
+    // 2800 × 1.3 = 3640
+    page.useSuggestedPrice();
 
-    // 2 × 1500.50
-    expect(fixture.componentInstance.recipeTotal()).toBe(3001);
+    expect(page.priceValue()).toBe(3640);
+    expect(page.dirty()).toBe(true);
   });
 
-  it('computes the suggested sale price as production cost × 1.3, rounded', async () => {
-    configureTestBed('7');
-    const fixture = TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
-
-    // buildCostFixture().totalCost = 25.75 → 25.75 × 1.3 = 33.475 → 33
-    expect(fixture.componentInstance.suggestedSalePrice()).toBe(33);
-  });
-
-  it('renders the suggested sale price through the money pipe as COP', async () => {
-    configureTestBed('7');
-    const fixture = TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
-    fixture.detectChanges();
-
-    const suggestion = (fixture.nativeElement as HTMLElement).querySelector(
-      '.recipe-pricing-suggestion .recipe-pricing-value',
+  it('warns about ingredients without unit cost and marks the material partial', () => {
+    const env = configure();
+    env.cacheStub.referenceData.data.mockReturnValue({
+      areas: [{ id: 1, name: 'Cocina', type: 'KITCHEN', enabled: true }],
+      categories: [{ id: 2, name: 'Comidas', enabled: true }],
+      variants: [
+        {
+          ...VARIANTS[0],
+          unitCost: money(''),
+          displayName: 'Tomate — 1 kg',
+        },
+      ],
+      productOptions: [],
+    });
+    env.productStub.findProduct.mockReturnValue(
+      of(buildProduct({ recipe: [{ supplyVariantId: 301, requiredQuantity: 1 }] })),
     );
-    expect(normalizeText(suggestion?.textContent ?? '')).toBe('$ 33');
-  });
+    env.productStub.getCost.mockReturnValue(throwError(() => htmlError(500, 'boom')));
+    env.productStub.getCostBreakdown.mockReturnValue(throwError(() => htmlError(500, 'boom')));
+    const fixture = mount();
+    const page = fixture.componentInstance;
 
-  it('renders the official production cost through the money pipe as COP', async () => {
-    configureTestBed('7');
-    const fixture = TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
-    fixture.detectChanges();
-
-    const value = (fixture.nativeElement as HTMLElement).querySelector(
-      '.recipe-pricing-row .recipe-pricing-value',
+    expect(page.missingCostCount()).toBe(1);
+    expect(page.materialMicro()).toBe(0n);
+    expect(page.totalPartial()).toBe(true);
+    expect(page.warnings()).toContain(
+      'Hay insumos sin costo unitario configurado; el costo de material es parcial.',
     );
-    // 25.75 COP has no minor unit → rounds to 26
-    expect(normalizeText(value?.textContent ?? '')).toBe('$ 26');
   });
 
-  it('renders an em dash for the cost and the suggestion when the cost request fails', async () => {
-    const env = configureTestBed('7');
-    env.productStub.getCost.mockReturnValue(throwError(() => ({ status: 500 })));
-    const fixture = TestBed.createComponent(ProductRecipePage);
-    await flushMicrotasks();
-    fixture.detectChanges();
+  it('shows the empty state when the product has no options', () => {
+    const env = configure();
+    env.productStub.getOptions.mockReturnValue(of([]));
+    env.productStub.getCostBreakdown.mockReturnValue(
+      of({ ...buildBreakdown(), options: [], projectedOptionCost: money('0'), projectedEffectiveCost: money('2000') }),
+    );
+    const fixture = mount();
 
-    const root = fixture.nativeElement as HTMLElement;
-    const suggestion = root.querySelector('.recipe-pricing-suggestion .recipe-pricing-value');
-    const officialCost = root.querySelector('.recipe-pricing-row .recipe-pricing-value');
+    expect(fixture.componentInstance.optionGroups()).toEqual([]);
+    expect(root(fixture).textContent).toContain('Sin opciones asociadas');
+  });
 
-    expect(fixture.componentInstance.cost()).toBeNull();
-    expect(fixture.componentInstance.suggestedSalePrice()).toBe(0);
-    expect(normalizeText(suggestion?.textContent ?? '')).toBe('—');
-    expect(normalizeText(officialCost?.textContent ?? '')).toBe('—');
+  it('blocks saving duplicate ingredients with a clear message', () => {
+    const fixture = mount(configure());
+    const page = fixture.componentInstance;
+
+    page.updateRecipeRows([createRecipeRow(301, '1'), createRecipeRow(301, '2')]);
+
+    expect(page.canSave()).toBe(false);
+    expect(page.formErrors()).toContain('Hay insumos repetidos en la receta.');
   });
 });

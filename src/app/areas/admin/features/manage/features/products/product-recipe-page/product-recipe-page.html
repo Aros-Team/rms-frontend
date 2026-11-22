@@ -1,312 +1,554 @@
-<p-toast />
-
 <div class="recipe-page">
-  <!-- Header -->
-  <header class="recipe-header">
-    <div class="recipe-header-left">
-      <p-button
-        label="Volver a productos"
-        icon="pi pi-arrow-left"
-        [text]="true"
-        (onClick)="goBack()"
-      />
-      <div class="recipe-header-info">
-        <h1 class="recipe-title">{{ formData().name }}</h1>
-        @if (product()) {
-          <p-tag
-            [value]="product()!.active ? 'Activo' : 'Inactivo'"
-            [severity]="product()!.active ? 'success' : 'warn'"
-          />
+  <app-rms-page-header
+    title="Receta y costeo"
+    [subtitle]="product()?.name ?? 'Cargando producto…'"
+    backLabel="Volver a productos"
+    (back)="goBack()">
+    <span rmsPageHeaderMeta class="recipe-meta">
+      @if (product(); as p) {
+        <app-rms-badge
+          [label]="p.active ? 'Activo' : 'Inactivo'"
+          [tone]="p.active ? 'success' : 'neutral'" />
+        <span>{{ p.categoryName }} · {{ p.areaName }}</span>
+      }
+      @if (state() === 'ready') {
+        @if (dirty()) {
+          <app-rms-badge label="Cambios sin guardar" tone="warning" [dot]="true" />
+        } @else {
+          <app-rms-badge label="Receta guardada" tone="neutral" />
         }
-      </div>
+      }
+    </span>
+    <div rmsPageHeaderActions class="recipe-actions">
+      <app-rms-button
+        variant="secondary"
+        [disabled]="!dirty() || saving()"
+        (click)="discardChanges()">
+        Descartar
+      </app-rms-button>
+      <app-rms-button
+        iconStart="pi pi-check"
+        [disabled]="!canSave()"
+        [loading]="saving()"
+        (click)="save()">
+        Guardar cambios
+      </app-rms-button>
     </div>
-    <p-button
-      label="Guardar cambios"
-      icon="pi pi-check"
-      severity="primary"
-      (onClick)="save()"
-      [loading]="saving()"
-    />
-  </header>
+  </app-rms-page-header>
 
-  @if (loading()) {
-    <div class="recipe-loading">
-      <p-skeleton width="100%" height="200px" />
+  @if (state() === 'loading') {
+    <div class="recipe-skeleton">
+      <app-rms-skeleton variant="rect" height="1.5rem" width="40%" ariaLabel="Cargando receta" />
+      <app-rms-skeleton variant="rect" height="12rem" ariaLabel="Cargando datos del producto" />
+      <app-rms-skeleton variant="rect" height="16rem" ariaLabel="Cargando insumos y costos" />
     </div>
-  } @else {
-    <!-- Section 1: Datos básicos -->
-    <section class="recipe-section">
-      <p-card title="Datos Básicos">
-        <div class="recipe-form-grid">
-          <div class="recipe-form-field">
-            <label for="name" class="recipe-label">Nombre</label>
-            <input
-              pInputText
-              id="name"
-              [ngModel]="formData().name"
-              (ngModelChange)="formData.update(fd => ({ ...fd, name: $event }))"
-              class="w-full"
-            />
-          </div>
-
-          <div class="recipe-form-field">
-            <label for="description" class="recipe-label">Descripción</label>
-            <textarea
-              pTextarea
-              id="description"
-              [ngModel]="formData().description"
-              (ngModelChange)="formData.update(fd => ({ ...fd, description: $event }))"
-              rows="3"
-              class="w-full"
-            ></textarea>
-          </div>
-
-          <div class="recipe-form-field">
-            <label for="category" class="recipe-label">Categoría</label>
-            <p-select
-              id="category"
-              [options]="categoryOptions()"
-              [ngModel]="formData().categoryId"
-              (ngModelChange)="formData.update(fd => ({ ...fd, categoryId: $event }))"
-              placeholder="Seleccionar categoría"
-              optionLabel="label"
-              optionValue="value"
-              class="w-full"
-            />
-          </div>
-
-          <div class="recipe-form-field">
-            <label for="area" class="recipe-label">Área</label>
-            <p-select
-              id="area"
-              [options]="areaOptions()"
-              [ngModel]="formData().areaId"
-              (ngModelChange)="formData.update(fd => ({ ...fd, areaId: $event }))"
-              placeholder="Seleccionar área"
-              optionLabel="label"
-              optionValue="value"
-              class="w-full"
-            />
-          </div>
-
-          <div class="recipe-form-field">
-            <label for="prepTime" class="recipe-label">Tiempo de preparación</label>
-            <p-inputNumber
-              id="prepTime"
-              [ngModel]="formData().estimatedPrepMinutes"
-              (ngModelChange)="formData.update(fd => ({ ...fd, estimatedPrepMinutes: $event }))"
-              suffix=" min"
-              [min]="0"
-              class="w-full"
-            />
-          </div>
-
-          <div class="recipe-form-field">
-            <label for="active" class="recipe-label">Activo</label>
-            <p-toggleswitch
-              id="active"
-              [ngModel]="formData().active"
-              (ngModelChange)="formData.update(fd => ({ ...fd, active: $event }))"
-            />
-          </div>
+  } @else if (state() === 'error') {
+    <app-rms-card padding="lg">
+      <div class="recipe-failure" role="alert">
+        <i class="pi pi-exclamation-triangle recipe-failure__icon" aria-hidden="true"></i>
+        <div class="recipe-failure__body">
+          <h2 class="recipe-failure__title">{{ failure()?.title }}</h2>
+          <p class="recipe-failure__detail">{{ failure()?.detail }}</p>
         </div>
-      </p-card>
-    </section>
+        <div class="recipe-failure__actions">
+          @if (failure()?.forbidden !== true && failure()?.notFound !== true) {
+            <app-rms-button iconStart="pi pi-refresh" (click)="retry()">Reintentar</app-rms-button>
+          }
+          <app-rms-button variant="secondary" (click)="goBack()">Volver a productos</app-rms-button>
+        </div>
+      </div>
+    </app-rms-card>
+  } @else {
+    @if (saveSuccess(); as message) {
+      <div class="recipe-notice recipe-notice--success" role="status">
+        <i class="pi pi-check-circle" aria-hidden="true"></i>
+        <p>{{ message }}</p>
+      </div>
+    }
 
-    <!-- Section 2: Imagen -->
-    <section class="recipe-section">
-      <p-card title="Imagen del Producto">
-        <div class="recipe-image-area">
-          @if (images().length > 0) {
-            <div class="recipe-image-preview">
-              <img [src]="images()[0].desktopUrl" alt="Imagen del producto" loading="lazy" decoding="async" />
+    @if (saveError(); as message) {
+      <div class="recipe-notice recipe-notice--danger" role="alert">
+        <i class="pi pi-times-circle" aria-hidden="true"></i>
+        <div>
+          <p class="recipe-notice__title">No se guardaron los cambios</p>
+          <p>{{ message }}</p>
+        </div>
+      </div>
+    }
+
+    @if (dirty() && formErrors().length > 0) {
+      <div class="recipe-notice recipe-notice--danger" role="alert">
+        <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+        <div>
+          <p class="recipe-notice__title">Revisa el formulario antes de guardar</p>
+          <ul class="recipe-notice__list">
+            @for (error of formErrors(); track error) {
+              <li>{{ error }}</li>
+            }
+          </ul>
+        </div>
+      </div>
+    }
+
+    @if (warnings().length > 0) {
+      <div class="recipe-notice recipe-notice--warning" role="status">
+        <i class="pi pi-info-circle" aria-hidden="true"></i>
+        <ul class="recipe-notice__list">
+          @for (warning of warnings(); track warning) {
+            <li>{{ warning }}</li>
+          }
+        </ul>
+      </div>
+    }
+
+    <div class="recipe-layout">
+      <div class="recipe-main">
+        <app-rms-card title="Producto" subtitle="Estos campos se guardan junto con la receta.">
+          <div class="product-grid">
+            <div class="product-fields">
+              <app-rms-input
+                label="Nombre del producto"
+                [required]="true"
+                [ngModel]="draft().name"
+                (ngModelChange)="updateName($event)"
+                [error]="dirty() ? nameError() : ''" />
+
+              <div class="product-row">
+                <app-rms-select
+                  label="Categoría"
+                  [required]="true"
+                  [options]="categoryOptions()"
+                  [ngModel]="draft().categoryId"
+                  (ngModelChange)="updateCategory($event)"
+                  [error]="dirty() ? categoryError() : ''"
+                  placeholder="Selecciona una categoría" />
+                <app-rms-select
+                  label="Área de preparación"
+                  [required]="true"
+                  [options]="areaOptions()"
+                  [ngModel]="draft().areaId"
+                  (ngModelChange)="updateArea($event)"
+                  [error]="dirty() ? areaError() : ''"
+                  placeholder="Selecciona un área" />
+              </div>
+
+              <div class="product-readonly">
+                <p class="product-readonly__label">Descripción</p>
+                <p class="product-readonly__value">
+                  {{ product()?.description || 'Sin descripción' }}
+                </p>
+                <p class="product-readonly__hint">
+                  La descripción y el tiempo de preparación se definen al crear el producto: el
+                  endpoint de actualización no los persiste (P3-BE-RL-12).
+                </p>
+              </div>
             </div>
+
+            <div class="product-image">
+              @if (primaryImage; as image) {
+                <img
+                  class="product-image__thumb"
+                  [src]="image.desktopUrl"
+                  alt="Imagen actual del producto"
+                  width="96"
+                  height="96" />
+              } @else {
+                <div class="product-image__monogram" aria-hidden="true">{{ monogram }}</div>
+              }
+              <div class="product-image__meta">
+                <p class="product-image__title">Imagen del producto</p>
+                <p class="product-image__hint">
+                  {{ primaryImage ? 'Se muestra la primera imagen.' : 'Sin imagen: se muestra un monograma.' }}
+                </p>
+                <div class="product-image__actions">
+                  <input
+                    #imageInput
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    (change)="onImageSelect($event)" />
+                  <app-rms-button
+                    variant="secondary"
+                    size="sm"
+                    iconStart="pi pi-upload"
+                    [loading]="imageBusy()"
+                    (click)="imageInput.click()">
+                    Subir imagen
+                  </app-rms-button>
+                  @if (primaryImage; as image) {
+                    <app-rms-button
+                      variant="danger"
+                      size="sm"
+                      iconStart="pi pi-trash"
+                      [disabled]="imageBusy()"
+                      (click)="deleteImage(image.id)">
+                      Eliminar
+                    </app-rms-button>
+                  }
+                </div>
+                @if (imageError(); as message) {
+                  <p class="product-image__error" role="alert">{{ message }}</p>
+                }
+              </div>
+            </div>
+          </div>
+        </app-rms-card>
+
+        <app-rms-card
+          title="Receta base"
+          subtitle="Insumos por porción, en la unidad del insumo seleccionado.">
+          <span rmsCardActions class="recipe-card-meta">
+            <span>Material estimado</span>
+            <strong class="rms-tabular">{{ materialMoney() | money }}</strong>
+          </span>
+
+          @if (variantsError() !== undefined) {
+            <div class="recipe-notice recipe-notice--danger" role="alert">
+              <i class="pi pi-times-circle" aria-hidden="true"></i>
+              <div>
+                <p class="recipe-notice__title">No se pudo cargar el catálogo de insumos</p>
+                <p>Sin el catálogo no se puede editar la receta ni validar sus costos.</p>
+                <app-rms-button
+                  size="sm"
+                  variant="secondary"
+                  iconStart="pi pi-refresh"
+                  (click)="retryReferenceData()">
+                  Reintentar
+                </app-rms-button>
+              </div>
+            </div>
+          } @else if (variantsLoading() && variants().length === 0) {
+            <app-rms-skeleton variant="rect" height="10rem" ariaLabel="Cargando insumos" />
           } @else {
-            <div class="recipe-image-placeholder">
-              <i class="pi pi-image" aria-hidden="true"></i>
-              <span>Sin imagen</span>
+            <app-recipe-ingredient-editor
+              [rows]="recipeRows()"
+              [variants]="variants()"
+              [disabled]="saving()"
+              (rowsChange)="updateRecipeRows($event)" />
+          }
+        </app-rms-card>
+
+        <app-rms-card
+          title="Opciones del producto"
+          [subtitle]="options().length + ' opciones asociadas'">
+          <span rmsCardActions class="recipe-card-meta">
+            <app-rms-badge [label]="costedCount() + ' con costo'" tone="success" />
+            @if (uncostedCount() > 0) {
+              <app-rms-badge [label]="uncostedCount() + ' sin costo'" tone="warning" />
+            }
+          </span>
+
+          @if (optionsLoading()) {
+            <app-rms-skeleton variant="rect" height="8rem" ariaLabel="Cargando opciones" />
+          } @else if (optionsError(); as message) {
+            <div class="recipe-notice recipe-notice--danger" role="alert">
+              <i class="pi pi-times-circle" aria-hidden="true"></i>
+              <div>
+                <p class="recipe-notice__title">No se pudieron cargar las opciones</p>
+                <p>{{ message }}</p>
+                <p>
+                  Guardar ahora eliminaría las asociaciones de opciones del producto; por eso la
+                  acción de guardar está bloqueada hasta recuperarlas.
+                </p>
+                <app-rms-button
+                  size="sm"
+                  variant="secondary"
+                  iconStart="pi pi-refresh"
+                  (click)="retryOptions()">
+                  Reintentar
+                </app-rms-button>
+              </div>
+            </div>
+          } @else if (options().length === 0) {
+            <app-rms-empty-state
+              icon="pi pi-sliders-h"
+              title="Sin opciones asociadas"
+              message="Asigna grupos de opciones desde la carta de productos para poder costear sus recetas."
+              actionLabel="Volver a productos"
+              actionIcon="pi pi-arrow-left"
+              (action)="goBack()" />
+          } @else {
+            <p class="recipe-hint">
+              El costo de cada opción sale de su propia receta. El API no devuelve los ingredientes
+              actuales de una opción, así que editarlos es un reemplazo completo (P3-BE-RL-12).
+            </p>
+
+            @for (group of optionGroups(); track group.id) {
+              <section class="option-group" [attr.aria-label]="group.name">
+                <header class="option-group__header">
+                  <h4 class="option-group__title">{{ group.name }}</h4>
+                  <app-rms-badge
+                    [label]="selectionLabel(group.selectionType)"
+                    tone="neutral"
+                    variant="outline" />
+                </header>
+                <div class="option-table-wrap">
+                  <table class="option-table">
+                    <caption class="sr-only">Opciones del grupo {{ group.name }}</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">Opción</th>
+                        <th scope="col" class="option-table__numeric">Costo</th>
+                        <th scope="col" class="option-table__numeric">Precio extra</th>
+                        <th scope="col"><span class="sr-only">Acciones</span></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (option of group.options; track option.id) {
+                        <tr>
+                          <td>{{ option.name }}</td>
+                          <td class="option-table__numeric">
+                            <app-rms-badge
+                              [label]="optionCostLabel(option)"
+                              [tone]="optionCostTone(option)" />
+                            <span class="option-table__cost">
+                              {{ optionCost(option) | money }}
+                            </span>
+                          </td>
+                          <td class="option-table__numeric">{{ option.extraPrice | money }}</td>
+                          <td class="option-table__actions">
+                            <app-rms-button
+                              variant="secondary"
+                              size="sm"
+                              iconStart="pi pi-pencil"
+                              (click)="openOptionEditor(group, option)">
+                              Editar receta
+                            </app-rms-button>
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            }
+          }
+        </app-rms-card>
+      </div>
+
+      <aside class="recipe-aside" aria-label="Costeo del producto">
+        <app-rms-card
+          title="Costeo en vivo"
+          subtitle="El material y el margen siguen tu borrador; la mano de obra viene del API.">
+          <div class="cost-grid">
+            <app-rms-stat-tile
+              label="Material"
+              [value]="materialMoney() | money"
+              [period]="materialPeriod()"
+              [loading]="costLoading()"
+              icon="pi pi-box" />
+            <app-rms-stat-tile
+              label="Mano de obra"
+              [value]="laborMoney() | money"
+              [period]="laborPeriod()"
+              [loading]="costLoading()"
+              icon="pi pi-clock" />
+            <app-rms-stat-tile
+              label="Costo total"
+              [value]="totalMoney() | money"
+              [period]="totalPeriod()"
+              [loading]="costLoading()"
+              icon="pi pi-calculator"
+              [emphasis]="true" />
+            <app-rms-stat-tile
+              label="Margen bruto"
+              [value]="marginLabel()"
+              [period]="marginPeriod()"
+              [delta]="marginNegative() ? 'Precio bajo el costo' : ''"
+              deltaTone="negative"
+              icon="pi pi-percentage" />
+          </div>
+
+          <div class="cost-price">
+            <app-rms-input
+              label="Precio de venta"
+              inputMode="decimal"
+              [hint]="'En ' + currency() + ', sin separador de miles.'"
+              [ngModel]="draft().salePrice"
+              (ngModelChange)="updatePrice($event)"
+              [error]="dirty() ? priceError() : ''" />
+            <app-rms-button
+              variant="secondary"
+              size="sm"
+              iconStart="pi pi-arrow-up-right"
+              [disabled]="!canUseSuggested()"
+              (click)="useSuggestedPrice()">
+              Usar sugerido {{ suggestedMoney() | money }}
+            </app-rms-button>
+          </div>
+          <p class="cost-formula">
+            Precio sugerido = costo total × 1,3. Margen = (precio − costo) ÷ precio.
+          </p>
+
+          @if (dirty()) {
+            <div class="cost-stale" role="status">
+              <app-rms-badge label="Costos sin guardar" tone="warning" [dot]="true" />
+              <span>El servidor conserva la receta anterior. Guarda para fijar este costo.</span>
             </div>
           }
 
-          <div class="recipe-image-actions">
-            <label class="p-button p-button-outlined">
-              <i class="pi pi-upload" aria-hidden="true"></i>
-              <span>Subir imagen</span>
-              <input
-                type="file"
-                accept="image/*"
-                (change)="onImageSelect($event)"
-                class="recipe-file-input"
-              />
-            </label>
-
-            @if (images().length > 0) {
-              <p-button
-                label="Eliminar imagen"
-                icon="pi pi-trash"
-                severity="danger"
-                [outlined]="true"
-                (onClick)="deleteImage(images()[0].id)"
-              />
-            }
-          </div>
-        </div>
-      </p-card>
-    </section>
-
-    <!-- Section 3: Receta / Insumos -->
-    <section class="recipe-section recipe-section--prominent">
-      <p-card title="Receta e Insumos">
-        <p-table [value]="recipeItems()" styleClass="p-datatable-sm">
-          <ng-template #header>
-            <tr>
-              <th>Insumo</th>
-              <th>Cantidad</th>
-              <th>Unidad</th>
-              <th>Costo Parcial</th>
-              <th></th>
-            </tr>
-          </ng-template>
-          <ng-template #body let-item let-index="index">
-            <tr>
-              <td>
-                <p-select
-                  [options]="supplyVariants()"
-                  [ngModel]="item.supplyVariantId"
-                  (ngModelChange)="updateRecipeVariant(index, $event)"
-                  optionLabel="displayName"
-                  optionValue="id"
-                  placeholder="Buscar insumo"
-                  [filter]="true"
-                  filterBy="displayName"
-                  class="w-full"
-                />
-              </td>
-              <td>
-                <p-inputNumber
-                  [ngModel]="item.requiredQuantity"
-                  (ngModelChange)="updateRecipeQuantity(index, $event)"
-                  [min]="0"
-                  [minFractionDigits]="0"
-                  [maxFractionDigits]="3"
-                  mode="decimal"
-                />
-              </td>
-              <td>{{ getVariantUnit(item.supplyVariantId) }}</td>
-              <td>{{ getPartialCost(item.supplyVariantId, item.requiredQuantity) | money }}</td>
-              <td>
-                <p-button
-                  icon="pi pi-trash"
-                  [text]="true"
-                  severity="danger"
-                  (onClick)="removeRecipeItem(index)"
-                  pTooltip="Eliminar insumo"
-                />
-              </td>
-            </tr>
-          </ng-template>
-          <ng-template #emptymessage>
-            <tr>
-              <td colspan="5" class="recipe-empty">
-                <i class="pi pi-plus-circle" aria-hidden="true"></i>
-                <span>Agrega insumos a la receta usando el botón de abajo</span>
-              </td>
-            </tr>
-          </ng-template>
-          <ng-template #summary>
-            @if (recipeItems().length > 0) {
-              <div class="recipe-summary">
-                <span>Total de receta:</span>
-                <strong>{{ recipeTotal() | money }}</strong>
-              </div>
-            }
-          </ng-template>
-        </p-table>
-      </p-card>
-    </section>
-
-    <!-- Section 4: Precio de Venta -->
-    <section class="recipe-section">
-      <p-card title="Precio de Venta">
-        <div class="recipe-pricing">
-          <div class="recipe-pricing-row">
-            <span class="recipe-label">Costo de producción oficial</span>
-            <span class="recipe-pricing-value">
-              {{ (cost()?.totalCost ?? null) | money }}
-            </span>
-          </div>
-
-          <div class="recipe-pricing-row">
-            <label for="salePrice" class="recipe-label">Precio de venta actual</label>
-            <p-inputNumber
-              id="salePrice"
-              [ngModel]="salePrice()"
-              (ngModelChange)="salePrice.set($event)"
-              mode="currency"
-              currency="COP"
-              locale="es-CO"
-              [min]="0"
-            />
-          </div>
-
-          <div class="recipe-pricing-row">
-            <span class="recipe-label">Precio sugerido (costo × 1.3)</span>
-            <div class="recipe-pricing-suggestion">
-              <span class="recipe-pricing-value">
-                {{ (suggestedSalePrice() > 0 ? suggestedSalePrice() : null) | money }}
-              </span>
-              @if (suggestedSalePrice() > 0) {
-                <p-button
-                  label="Usar sugerido"
-                  [text]="true"
-                  size="small"
-                  (onClick)="salePrice.set(suggestedSalePrice())"
-                />
-              }
+          <dl class="cost-server">
+            <div>
+              <dt>Material guardado</dt>
+              <dd>{{ cost()?.materialCost | money }}</dd>
             </div>
-          </div>
-        </div>
-      </p-card>
-    </section>
-
-    <!-- Section 5: Grupos de Opciones -->
-    <section class="recipe-section">
-      <p-card title="Grupos de Opciones">
-        @if (optionGroups().length > 0) {
-          <div class="recipe-option-groups">
-            @for (group of optionGroups(); track group.id) {
-              <div class="recipe-option-group-row">
-                <div class="recipe-option-group-info">
-                  <span class="recipe-option-group-name">{{ group.name }}</span>
-                  <app-option-group-badge [selectionType]="fromApiMapper(group.selectionType)" size="sm" />
-                  @if (group.description) {
-                    <span class="recipe-option-group-desc">{{ group.description }}</span>
-                  }
-                </div>
+            <div>
+              <dt>Mano de obra guardada</dt>
+              <dd>{{ cost()?.laborCost | money }}</dd>
+            </div>
+            <div>
+              <dt>Total guardado</dt>
+              <dd>{{ serverTotalMoney() | money }}</dd>
+            </div>
+            @if (hourlyRateMoney(); as rate) {
+              <div>
+                <dt>Tarifa aplicada</dt>
+                <dd>{{ rate | money }} / h</dd>
               </div>
             }
-          </div>
-        } @else {
-          <p class="recipe-empty-text">No hay grupos de opciones asignados a este producto.</p>
-        }
+            <div>
+              <dt>Modo de mano de obra</dt>
+              <dd>{{ laborModeText() }}</dd>
+            </div>
+          </dl>
+          <p class="cost-note">
+            El modo configurado todavía no cambia el cálculo: el API usa la tarifa real del área
+            para el mes en curso (P4-REC-05 / P4-SET-04).
+          </p>
+          @if (updatedLabel(); as label) {
+            <p class="cost-note">Costos del servidor leídos a las {{ label }}.</p>
+          }
 
-        <div class="recipe-create-group">
-          <app-inline-create-popover
-            title="Crear grupo de opciones"
-            [fields]="createGroupFields"
-            submitLabel="Crear grupo"
-            [submitting]="inlineCreateSubmitting"
-            (submitted)="createOptionGroup($event)"
-          />
-        </div>
-      </p-card>
-    </section>
+          @if (costError(); as message) {
+            <div class="recipe-notice recipe-notice--danger" role="alert">
+              <i class="pi pi-times-circle" aria-hidden="true"></i>
+              <div>
+                <p class="recipe-notice__title">No se pudo leer el costo del servidor</p>
+                <p>{{ message }}</p>
+                <app-rms-button
+                  size="sm"
+                  variant="secondary"
+                  iconStart="pi pi-refresh"
+                  (click)="retryCosts()">
+                  Reintentar
+                </app-rms-button>
+              </div>
+            </div>
+          }
+        </app-rms-card>
 
-    <!-- Section 6: Costo de Producción -->
-    <section class="recipe-section">
-      <p-card title="Costo de Producción">
-        <app-cost-breakdown-panel [breakdown]="costBreakdown()" />
-      </p-card>
-    </section>
+        <app-rms-card
+          title="Desglose del servidor"
+          subtitle="Costos guardados, incluida la proyección de las opciones.">
+          @if (breakdown() !== null) {
+            <dl class="cost-server">
+              <div>
+                <dt>Costo base (material)</dt>
+                <dd>{{ baseCostMoney() | money }}</dd>
+              </div>
+              <div>
+                <dt>Opciones proyectadas</dt>
+                <dd>{{ projectedOptionMoney() | money }}</dd>
+              </div>
+              <div>
+                <dt>Costo efectivo proyectado</dt>
+                <dd class="cost-server__strong">{{ projectedEffectiveMoney() | money }}</dd>
+              </div>
+            </dl>
+            <p class="cost-note">
+              La proyección usa el costo promedio de las opciones de cada grupo de selección
+              única.
+            </p>
+          } @else {
+            <p class="cost-note">Sin desglose disponible para este producto.</p>
+          }
+        </app-rms-card>
+      </aside>
+    </div>
   }
 </div>
+
+<app-rms-dialog
+  [visible]="optionEditorOpen()"
+  (visibleChange)="onOptionDialogVisible($event)"
+  [header]="optionDialogHeader()"
+  width="860px">
+  @if (optionTarget(); as target) {
+    <div class="option-dialog">
+      <div class="option-dialog__meta">
+        <span>{{ target.groupName }}</span>
+        <app-rms-badge
+          [label]="target.costed ? 'Con costo' : 'Sin costo'"
+          [tone]="target.costed ? 'success' : 'warning'" />
+        <span>Costo actual: {{ target.cost | money }}</span>
+      </div>
+
+      <div class="recipe-notice recipe-notice--warning" role="note">
+        <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+        <div>
+          <p class="recipe-notice__title">Guardar reemplaza la receta completa de la opción</p>
+          <p>
+            El API no devuelve los ingredientes actuales de una opción. Define aquí la receta
+            completa que debe quedar; los insumos que no agregues se eliminan de la opción
+            (P3-BE-RL-12).
+          </p>
+        </div>
+      </div>
+
+      @if (target.costed) {
+        <app-rms-checkbox
+          label="Confirmo que quiero reemplazar la receta actual"
+          description="La opción ya tiene un costo registrado."
+          [ngModel]="optionReplacementAck()"
+          (ngModelChange)="updateOptionAck($event)" />
+      }
+
+      <app-recipe-ingredient-editor
+        [rows]="optionRows()"
+        [variants]="variants()"
+        [disabled]="optionSaving()"
+        emptyTitle="Sin insumos en la opción"
+        emptyMessage="Agrega los insumos que componen esta opción."
+        (rowsChange)="updateOptionRows($event)" />
+
+      @if (optionError(); as message) {
+        <div class="recipe-notice recipe-notice--danger" role="alert">
+          <i class="pi pi-times-circle" aria-hidden="true"></i>
+          <div>
+            <p class="recipe-notice__title">No se guardó la receta de la opción</p>
+            <p>{{ message }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <div rmsDialogFooter class="option-dialog__footer">
+    <app-rms-button variant="secondary" [disabled]="optionSaving()" (click)="closeOptionEditor()">
+      Cancelar
+    </app-rms-button>
+    <app-rms-button
+      iconStart="pi pi-check"
+      [disabled]="!canSaveOption()"
+      [loading]="optionSaving()"
+      (click)="saveOptionRecipe()">
+      Guardar receta de la opción
+    </app-rms-button>
+  </div>
+</app-rms-dialog>
+
+<app-rms-dialog
+  [visible]="leaveDialogOpen()"
+  (visibleChange)="onLeaveDialogVisible($event)"
+  header="Cambios sin guardar"
+  width="480px">
+  <p>
+    La receta tiene cambios que no se han guardado. Si sales ahora, el borrador se pierde.
+  </p>
+  <div rmsDialogFooter class="option-dialog__footer">
+    <app-rms-button variant="secondary" (click)="cancelLeave()">Seguir editando</app-rms-button>
+    <app-rms-button variant="danger" (click)="leaveWithoutSaving()">
+      Descartar y salir
+    </app-rms-button>
+  </div>
+</app-rms-dialog>
