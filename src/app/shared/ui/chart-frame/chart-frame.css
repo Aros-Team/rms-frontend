@@ -1,0 +1,136 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.rms-chart-frame {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rms-space-3);
+  min-width: 0;
+  margin: 0;
+}
+
+.rms-chart-frame__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--rms-space-3);
+  flex-wrap: wrap;
+}
+
+.rms-chart-frame__heading {
+  min-width: 0;
+}
+
+.rms-chart-frame__title {
+  margin: 0;
+  color: var(--rms-text);
+  font-family: var(--rms-font-sans);
+  font-size: var(--rms-type-h4-size);
+  line-height: var(--rms-type-h4-line);
+  font-weight: var(--rms-weight-semibold);
+}
+
+.rms-chart-frame__subtitle {
+  margin: var(--rms-space-1) 0 0;
+  color: var(--rms-text-muted);
+  font-size: var(--rms-type-caption-size);
+  line-height: var(--rms-type-caption-line);
+}
+
+.rms-chart-frame__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--rms-space-2);
+}
+
+.rms-chart-frame__plot-wrap {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rms-chart-frame__plot {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rms-chart-frame__plot--concealed {
+  visibility: hidden;
+}
+
+/* The canvas never dictates layout (F-002). */
+.rms-chart-frame__plot > :is(canvas, .p-chart, p-chart) {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.rms-chart-frame__state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--rms-space-2);
+  padding: var(--rms-space-4);
+  border: var(--rms-border-width) dashed var(--rms-border);
+  border-radius: var(--rms-radius-md);
+  background: var(--rms-bg-surface);
+  text-align: center;
+}
+
+.rms-chart-frame__state-title {
+  margin: 0;
+  color: var(--rms-text);
+  font-size: var(--rms-type-body-size);
+  font-weight: var(--rms-weight-semibold);
+}
+
+.rms-chart-frame__state-message {
+  margin: 0;
+  max-width: 46ch;
+  color: var(--rms-text-muted);
+  font-size: var(--rms-type-caption-size);
+  line-height: var(--rms-type-caption-line);
+}
+
+.rms-chart-frame__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rms-space-3);
+  font-size: var(--rms-type-caption-size);
+  color: var(--rms-text-secondary);
+}
+
+.rms-chart-frame__legend:empty {
+  display: none;
+}
+
+.rms-chart-frame__data {
+  font-size: var(--rms-type-caption-size);
+  color: var(--rms-text-secondary);
+}
+
+.rms-chart-frame__data-summary {
+  cursor: pointer;
+  color: var(--rms-link);
+  font-weight: var(--rms-weight-semibold);
+}
+
+.rms-chart-frame__data--visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

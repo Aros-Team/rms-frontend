@@ -1,1 +1,7 @@
-/* Convention compliance */
+/* Convention compliance. */
+
+.modal-error {
+  background: var(--rms-danger-bg);
+  border: var(--rms-border-width) solid var(--rms-danger-border);
+  color: var(--rms-danger-fg);
+}

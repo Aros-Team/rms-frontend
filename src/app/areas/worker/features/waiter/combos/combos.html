@@ -1,48 +1,74 @@
-<div class="flex flex-col items-center justify-center min-h-full p-6">
-  @if (loading()) {
-    <p>Loading... (skeleton later)</p>
+<div class="combos">
+  @if (loading() && combos().length === 0) {
+    <div class="combos__skeleton" role="status" aria-label="Cargando combos">
+      @for (_ of [1, 2]; track $index) {
+        <div class="combo-card">
+          <app-rms-skeleton variant="text" width="55%" height="1.5rem" />
+          <app-rms-skeleton variant="text" width="90%" height="1rem" />
+          <app-rms-skeleton variant="text" width="70%" height="1rem" />
+          <app-rms-skeleton variant="rect" width="100%" height="3rem" />
+        </div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="combos__error" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <p>No se pudieron cargar los combos. Revisa la conexión e intenta de nuevo.</p>
+      <app-rms-button variant="secondary" size="lg" (click)="refresh()">Reintentar</app-rms-button>
+    </div>
   } @else if (combos().length === 0) {
-    <div class="text-center py-16">
-      <i class="pi pi-box text-5xl text-muted mb-4" aria-hidden="true"></i>
-      <h2 class="text-xl font-semibold text-muted">No hay combos disponibles</h2>
-      <p class="text-muted">No hay combos activos para este horario.</p>
+    <div class="combos__empty">
+      <span class="combos__empty-icon" aria-hidden="true"><i class="pi pi-box"></i></span>
+      <h2 class="combos__empty-title">No hay combos disponibles</h2>
+      <p class="combos__empty-copy">
+        Los combos están disponibles todos los días de 11:00 a 23:00. Fuera de ese horario
+        puedes seguir tomando pedidos desde la carta.
+      </p>
+      <app-rms-button size="lg" iconStart="pi pi-book" (click)="goToCarta()">
+        Ver la carta
+      </app-rms-button>
     </div>
   } @else {
-    <div class="w-full max-w-xl flex flex-col gap-6">
-      <div class="text-center">
-        <p class="text-xs font-semibold text-primary-700 dark:text-primary-300 uppercase tracking-widest mb-1">Especiales</p>
-        <h2 class="text-3xl font-black text-surface-900 dark:text-surface-0">Combos Disponibles</h2>
-      </div>
-
+    <div class="combos__list">
       @for (combo of combos(); track combo.productId) {
-        <div class="bg-primary-contrast dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 overflow-hidden cursor-pointer"
-             tabindex="0"
-             (click)="selectCombo(combo.productId)"
-             (keydown.enter)="selectCombo(combo.productId)">
-          <div class="bg-primary-500 px-6 py-4 flex items-center gap-3">
-            <i class="pi pi-th-large text-surface-900 text-xl" aria-hidden="true"></i>
-            <h3 class="text-surface-900 text-xl font-bold">{{ combo.name }}</h3>
-          </div>
-          <div class="px-6 py-4">
-            @if (combo.description) {
-              <p class="text-muted text-sm mb-3">{{ combo.description }}</p>
-            }
-            <div class="flex flex-wrap gap-2 mb-3">
+        <article class="combo-card" [attr.aria-labelledby]="'combo-' + combo.productId">
+          <header class="combo-card__header">
+            <h2 class="combo-card__title" [id]="'combo-' + combo.productId">{{ combo.name }}</h2>
+            <app-rms-status-pill label="Disponible ahora" status="success" />
+          </header>
+
+          @if (combo.description) {
+            <p class="combo-card__description">{{ combo.description }}</p>
+          }
+
+          @if (combo.groups.length > 0) {
+            <div class="combo-card__groups" aria-label="Grupos del combo">
               @for (group of combo.groups; track group.id) {
-                <span class="px-3 py-1 rounded-full text-xs font-medium bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-700">
+                <span
+                  class="combo-group"
+                  [attr.title]="groupProducts(combo, group) || null"
+                >
+                  <span class="combo-group__name">{{ groupName(group) }}</span>
                   @if (group.required) {
-                    <i class="pi pi-asterisk mr-1 text-xs" aria-hidden="true"></i>
+                    <span class="combo-group__flag">Obligatorio</span>
                   }
-                  {{ group.categoryName ?? 'Grupo' }}
                 </span>
               }
             </div>
-          </div>
-          <div class="px-6 py-4 bg-surface-50 dark:bg-surface-900/50 border-t border-surface-200 dark:border-surface-700 flex items-center justify-between">
-            <span class="text-muted text-sm">Precio base:</span>
-            <span class="text-2xl font-black text-surface-900 dark:text-surface-0" data-testid="combo-price">{{ combo.basePrice | money }}</span>
-          </div>
-        </div>
+          }
+
+          <footer class="combo-card__footer">
+            <div class="combo-card__price-block">
+              <span class="combo-card__price-label">Precio base</span>
+              <span class="combo-card__price" data-testid="combo-price">
+                {{ combo.basePrice | money }}
+              </span>
+            </div>
+            <app-rms-button size="lg" iconStart="pi pi-sliders-h" (click)="selectCombo(combo.productId)">
+              Armar combo
+            </app-rms-button>
+          </footer>
+        </article>
       }
     </div>
   }

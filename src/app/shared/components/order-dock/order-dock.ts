@@ -1,138 +1,257 @@
-import { Component, inject, signal, computed, ElementRef, HostListener, ChangeDetectionStrategy } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { Router } from '@angular/router';
+import { MessageService } from 'primeng/api';
+
 import { mapHttpError } from '@app/shared/lib/http-error-mapper/http-error-mapper';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { DialogModule } from 'primeng/dialog';
-import { SelectModule } from 'primeng/select';
-import { InputTextModule } from 'primeng/inputtext';
-import { OrderDock as OrderDockSvc, DockItem } from '@app/core/services/order-dock/order-dock';
+import {
+  DockItem,
+  DockOptionGroup,
+  OrderDock as OrderDockSvc,
+  itemTotal,
+  tableStatusLabel,
+} from '@app/core/services/order-dock/order-dock';
 import { Order } from '@app/core/services/orders/order';
 import { MasterData } from '@app/core/services/master-data/master-data';
-import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
-import { ProductOption } from '@app/shared/models/dto/products/product-option';
-import { ProductOptionsModal, ProductOptionsConfirmEvent } from '@app/shared/components/product-options-modal/product-options-modal';
+import type { RmsStatus } from '@app/shared/ui/types/ui-types';
+import type { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
+import type { ProductOption } from '@app/shared/models/dto/products/product-option';
+import type { TableResponse } from '@app/shared/models/dto/tables/table-response';
+import type { CreateOrderDetail } from '@app/shared/models/dto/orders/create-order-request';
+import { Money } from '@app/shared/pipes/money/money';
 
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
+import { RmsSheet } from '@app/shared/ui/sheet/sheet';
+import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
+import {
+  ProductOptionsModal,
+  ProductOptionsConfirmEvent,
+} from '@app/shared/components/product-options-modal/product-options-modal';
+import { WaiterTablePicker } from '@app/areas/worker/features/waiter/table-picker/table-picker';
+
+interface SummaryLine {
+  dinerId: number;
+  text: string;
+}
+
+interface SubmitLine {
+  dinerId: number;
+  details: CreateOrderDetail[];
+}
+
+const TABLE_TONE: Record<TableResponse['status'], RmsStatus> = {
+  AVAILABLE: 'success',
+  OCCUPIED: 'info',
+  RESERVED: 'warning',
+};
+
+/**
+ * Waiter cart.
+ *
+ * Feature: compose and send an order from a phone, with a clear table context.
+ *
+ * Contract:
+ *  - the trigger is one floating action, not a second bottom bar, so the shell
+ *    navigation remains the only fixed bar;
+ *  - the cart shows quantities, notes, option/combo groups and the running
+ *    total (base + surcharges); the API remains authoritative on submit;
+ *  - the table picker is reused from `app-waiter-table-picker`, so the same
+ *    occupancy rules apply everywhere;
+ *  - confirmation is a separate step and double submit is blocked by
+ *    `submitting`, including a disabled confirm button;
+ *  - failures keep the cart intact and show the RFC 7807 `detail` in a
+ *    persistent banner, with the send action available to retry.
+ */
 @Component({
   selector: 'app-order-dock',
   templateUrl: './order-dock.html',
   styleUrl: './order-dock.css',
-  imports: [CommonModule, FormsModule, ConfirmDialogModule, DialogModule, SelectModule, InputTextModule, ProductOptionsModal],
+  imports: [
+    CommonModule,
+    Money,
+    RmsButton,
+    RmsIconButton,
+    RmsSheet,
+    RmsStatusPill,
+    ProductOptionsModal,
+    WaiterTablePicker,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrderDock {
-  protected dock = inject(OrderDockSvc);
-  private orderService = inject(Order);
-  private confirmationService = inject(ConfirmationService);
-  private messageService = inject(MessageService);
-  private masterData = inject(MasterData);
+  protected readonly dock = inject(OrderDockSvc);
+  private readonly orderService = inject(Order);
+  private readonly messageService = inject(MessageService);
+  private readonly masterData = inject(MasterData);
+  private readonly router = inject(Router);
+  private readonly moneyPipe = new Money();
 
-  /* ── Expand / collapse state ── */
-  private readonly _expanded = signal(false);
-  readonly isExpanded = this._expanded.asReadonly();
+  readonly sheetOpen = signal(false);
+  readonly tablePickerOpen = signal(false);
+  readonly confirmOpen = signal(false);
+  readonly submitting = signal(false);
+  readonly submitError = signal<string | null>(null);
 
-  /* ── Table popover state ── */
-  readonly showTablePopover = signal(false);
+  readonly removeDinerIndex = signal<number | null>(null);
 
-  expand(): void {
-    this._expanded.set(true);
-  }
+  /* ── Edit item ── */
+  readonly editItemIndex = signal<number | null>(null);
+  readonly editProduct = signal<ProductListResponse | null>(null);
+  readonly editOptions = signal<ProductOption[]>([]);
+  readonly editOptionsLoading = signal(false);
+  readonly editOptionsError = signal<string | null>(null);
+  readonly editVisible = signal(false);
+  readonly editInitialOptionIds = signal<number[]>([]);
+  readonly editInitialInstructions = signal('');
+  readonly editInitialQuantity = signal(1);
+  private optionsSeq = 0;
 
-  collapse(): void {
-    this._expanded.set(false);
-    this.showTablePopover.set(false);
-  }
-
-  /** Tab click: toggle expand/collapse */
-  onTabClick(): void {
-    this._expanded.update(v => !v);
-  }
-
-  /** Click on table icon/name: toggle popover only, no expand */
-  onTableInfoClick(): void {
-    this.showTablePopover.update(v => !v);
-  }
-
-  onTableSelect(tableId: number): void {
-    this.dock.selectTable(tableId);
-    this.showTablePopover.set(false);
-  }
-
-  /* ── Touch swipe handling ── */
-  private touchStartY = 0;
-
-  onTouchStart(event: TouchEvent): void {
-    this.touchStartY = event.touches[0].clientY;
-  }
-
-  onTouchEnd(event: TouchEvent): void {
-    const deltaY = this.touchStartY - event.changedTouches[0].clientY;
-    if (deltaY > 50) {
-      this.expand();
-    } else if (deltaY < -50) {
-      this.collapse();
-    }
-  }
-
-  /* ── Derived state ── */
-  readonly selectedTable = computed(() => {
-    const id = this.dock.selectedTableId();
-    if (id === null) return null;
-    return this.dock.availableTables().find(t => t.id === id) ?? null;
+  readonly selectedTable = computed(() => this.dock.selectedTable());
+  readonly tableStatus = computed<RmsStatus | null>(() => {
+    const table = this.dock.selectedTable();
+    return table ? TABLE_TONE[table.status] : null;
+  });
+  readonly tableStatusText = computed(() => {
+    const table = this.dock.selectedTable();
+    return table ? tableStatusLabel(table.status) : 'Sin mesa';
   });
 
-  readonly totalItems = computed(() =>
-    this.dock.diners().reduce((sum, d) => sum + d.items.length, 0)
+  readonly cartAriaLabel = computed(() => {
+    const table = this.dock.selectedTableLabel();
+    const count = this.dock.totalItems();
+    const total = this.moneyPipe.transform(this.dock.totalAmount());
+    const productWord = count === 1 ? 'producto' : 'productos';
+    return `Abrir pedido. ${table}. ${String(count)} ${productWord}. Total ${total}`;
+  });
+
+  readonly sheetTitle = computed(() => (this.confirmOpen() ? 'Confirmar envío' : 'Tu pedido'));
+
+  readonly removeDinerData = computed(() => {
+    const index = this.removeDinerIndex();
+    if (index === null) return null;
+    return this.dock.diners()[index] ?? null;
+  });
+
+  readonly summaryLines = computed<SummaryLine[]>(() => {
+    const lines: SummaryLine[] = [];
+    for (const diner of this.dock.diners()) {
+      for (const item of diner.items) {
+        let text = `${String(item.quantity)}× ${item.product.name}`;
+        const groups = item.optionGroups?.flatMap((group) => group.optionNames) ?? [];
+        const extras = [...item.optionNames, ...groups].filter((name) => name.length > 0);
+        if (extras.length > 0) text += ` (${extras.join(', ')})`;
+        if (item.instructions) text += ` — “${item.instructions}”`;
+        lines.push({ dinerId: diner.id, text });
+      }
+    }
+    return lines;
+  });
+
+  readonly sendDisabledReason = computed(() => {
+    if (this.submitting()) return 'Enviando el pedido…';
+    if (this.submitError()) return 'Revisa el error y reintenta.';
+    if (!this.dock.hasItems()) return 'Agrega al menos un producto.';
+    if (!this.dock.hasSelectedTable()) return 'Elige una mesa antes de enviar.';
+    return '';
+  });
+
+  readonly canSend = computed(
+    () => this.dock.canPlaceOrder() && !this.submitting() && this.submitError() === null,
   );
 
-  private elRef = inject(ElementRef);
-
-  /* ── Diners loading check ── */
   constructor() {
-    if (this.dock.availableTables().length === 0 && !this.dock.tablesLoading()) {
+    if (this.dock.allTables().length === 0 && !this.dock.tablesLoading()) {
       this.dock.loadAvailableTables();
     }
   }
 
-  /** Click outside dock → collapse */
-  @HostListener('document:click', ['$event'])
-  onDocClick(event: MouseEvent): void {
-    if (!this.isExpanded()) return;
-    const target = event.target as HTMLElement;
-    const el = this.elRef.nativeElement as HTMLElement;
-    if (!el.contains(target)) {
-      this._expanded.set(false);
+  /* ── Sheet ── */
+
+  openCart(): void {
+    this.sheetOpen.set(true);
+  }
+
+  closeCart(): void {
+    if (this.submitting()) return;
+    this.sheetOpen.set(false);
+    this.tablePickerOpen.set(false);
+    this.confirmOpen.set(false);
+    this.removeDinerIndex.set(null);
+  }
+
+  /** Keep the confirmation state in sync when the native sheet closes itself. */
+  onSheetOpenChange(open: boolean): void {
+    this.sheetOpen.set(open);
+    if (!open) {
+      this.confirmOpen.set(false);
+      this.removeDinerIndex.set(null);
     }
   }
 
-  submitting = signal(false);
+  openTablePicker(): void {
+    this.tablePickerOpen.set(true);
+  }
 
-  /** Diner removal confirmation */
-  dinerToRemove = signal<number | null>(null);
-  showRemoveConfirm = computed(() => this.dinerToRemove() !== null);
-  dinerRemoveData = computed(() => {
-    const idx = this.dinerToRemove();
-    if (idx === null) return null;
-    const diners = this.dock.diners();
-    return idx < diners.length ? diners[idx] : null;
-  });
+  /* ── Quantities ── */
 
-  /* ── Edit modal state ── */
-  editItemIndex = signal<number | null>(null);
-  editProduct = signal<ProductListResponse | null>(null);
-  editOptions = signal<ProductOption[]>([]);
-  editOptionsLoading = signal(false);
-  editOptionsError = signal<string | null>(null);
-  showEditModal = signal(false);
+  increment(itemIndex: number): void {
+    this.dock.incrementItemQuantity(itemIndex);
+  }
 
-  // Pre-fill for editing existing items
-  editInitialOptionIds = signal<number[]>([]);
-  editInitialInstructions = signal<string>('');
-  editInitialQuantity = signal<number>(1);
+  decrement(itemIndex: number): void {
+    this.dock.decrementItemQuantity(itemIndex);
+  }
 
-  private optionsSeq = 0;
+  removeItem(itemIndex: number): void {
+    this.dock.removeItemFromDiner(itemIndex);
+  }
+
+  lineTotal(item: DockItem): number {
+    return itemTotal(item);
+  }
+
+  /* ── Diners ── */
+
+  selectDiner(index: number): void {
+    this.dock.selectDiner(index);
+  }
+
+  addDiner(): void {
+    this.dock.addDiner();
+  }
+
+  requestRemoveDiner(): void {
+    const index = this.dock.selectedDinerIndex();
+    if (this.dock.diners().length <= 1) return;
+    const diner = this.dock.diners()[index];
+    if (diner.items.length > 0) {
+      this.removeDinerIndex.set(index);
+    } else {
+      this.dock.removeDiner(index);
+    }
+  }
+
+  confirmRemoveDiner(): void {
+    const index = this.removeDinerIndex();
+    if (index !== null) {
+      this.dock.removeDiner(index);
+      this.removeDinerIndex.set(null);
+    }
+  }
+
+  cancelRemoveDiner(): void {
+    this.removeDinerIndex.set(null);
+  }
+
+  /* ── Edit item ── */
 
   openEditModal(itemIndex: number): void {
     const diner = this.dock.selectedDiner();
@@ -143,7 +262,10 @@ export class OrderDock {
     this.editInitialOptionIds.set(item.selectedOptionIds);
     this.editInitialInstructions.set(item.instructions);
     this.editInitialQuantity.set(item.quantity);
-    this.showEditModal.set(true);
+    // The options modal is a PrimeNG dialog; a native sheet is in the top
+    // layer, so close it first or the dialog would render behind the scrim.
+    this.sheetOpen.set(false);
+    this.editVisible.set(true);
     this.loadEditOptions(item.product);
   }
 
@@ -152,172 +274,155 @@ export class OrderDock {
     this.editOptionsLoading.set(true);
     this.editOptionsError.set(null);
     this.masterData.getProductOptions(product.id).subscribe({
-      next: (opts) => {
+      next: (options) => {
         if (seq !== this.optionsSeq) return;
-        this.editOptions.set(opts);
+        this.editOptions.set(options);
         this.editOptionsLoading.set(false);
       },
       error: () => {
         if (seq !== this.optionsSeq) return;
-        this.editOptionsError.set('Error al cargar opciones');
+        this.editOptionsError.set('No se pudieron cargar las opciones. Intenta de nuevo.');
         this.editOptionsLoading.set(false);
-      }
+      },
     });
   }
 
   onEditConfirm(event: ProductOptionsConfirmEvent): void {
     const index = this.editItemIndex();
     if (index === null) return;
-    const updatedItem: DockItem = {
+
+    const groups = new Map<string, string[]>();
+    for (const selected of event.selectedOptions) {
+      const option = this.editOptions().find((candidate) => candidate.id === selected.optionId);
+      if (!option) continue;
+      const names = groups.get(option.optionGroupName) ?? [];
+      names.push(option.name);
+      groups.set(option.optionGroupName, names);
+    }
+
+    const updated: DockItem = {
       product: event.product,
       instructions: event.instructions,
-      selectedOptionIds: event.selectedOptions.map(o => o.optionId),
-      optionNames: event.selectedOptions.map(o => o.optionName),
+      selectedOptionIds: event.selectedOptions.map((option) => option.optionId),
+      optionNames: event.selectedOptions.map((option) => option.optionName),
+      optionGroups: [...groups.entries()].map(([groupName, optionNames]) => ({
+        groupName,
+        optionNames,
+      })),
+      extraCharge: event.extraCharge,
       quantity: event.quantity,
     };
-    this.dock.updateDinerItem(this.dock.selectedDinerIndex(), index, updatedItem);
+
+    this.dock.updateDinerItem(this.dock.selectedDinerIndex(), index, updated);
     this.closeEditModal();
   }
 
   closeEditModal(): void {
-    this.showEditModal.set(false);
+    this.editVisible.set(false);
     this.editItemIndex.set(null);
     this.editProduct.set(null);
     this.editOptions.set([]);
     this.editOptionsLoading.set(false);
     this.editOptionsError.set(null);
+    // Return to the cart once the PrimeNG dialog is dismissed.
+    this.sheetOpen.set(true);
   }
 
-  /* ── Narrative order summary ── */
-  showNarrativeSummary = signal(false);
-  narrativeSummary = signal('');
+  /* ── Send ── */
 
-  generateNarrative(): string {
-    const table = this.selectedTable();
-    const tableName = table ? `Mesa ${String(table.tableNumber)}` : 'Sin mesa asignada';
-    const diners = this.dock.diners();
-    let text = `<strong>${tableName}</strong>, para ${String(diners.length)} comensal(es):<br><br>`;
-
-    for (const diner of diners) {
-      if (diner.items.length === 0) continue;
-      const itemsSummary = diner.items.map(item => {
-        let desc = `${String(item.quantity)}x ${item.product.name}`;
-        if (item.optionNames.length > 0) {
-          desc += ` (${item.optionNames.join(', ')})`;
-        }
-        if (item.instructions) {
-          desc += ` — "${item.instructions}"`;
-        }
-        return desc;
-      }).join(', ');
-      text += `<strong>Comensal ${String(diner.id)}:</strong> ${itemsSummary}<br>`;
-    }
-
-    text += `<br>¿Está todo correcto?`;
-    return text;
-  }
-
-  placeOrderWithNarrative(): void {
-    if (!this.dock.canPlaceOrder()) return;
-    this.narrativeSummary.set(this.generateNarrative());
-    this.showNarrativeSummary.set(true);
-  }
-
-  confirmNarrativeOrder(): void {
-    this.showNarrativeSummary.set(false);
+  requestSend(): void {
+    if (this.submitting()) return;
     if (!this.dock.hasSelectedTable()) {
-      this.messageService.add({ severity: 'warn', summary: 'Seleccionar mesa', detail: 'Debe seleccionar una mesa antes de colocar el pedido.' });
+      this.openTablePicker();
       return;
     }
-    const previewOrders = this.dock.getOrderDetailsForAllDiners();
-    if (previewOrders.length === 0) return;
-    this.submitOrders(previewOrders);
+    if (!this.dock.hasItems()) return;
+    this.submitError.set(null);
+    this.confirmOpen.set(true);
   }
 
-  cancelNarrativeOrder(): void {
-    this.showNarrativeSummary.set(false);
+  cancelSend(): void {
+    if (this.submitting()) return;
+    this.confirmOpen.set(false);
   }
 
-  private submitOrders(allDinerOrders: { dinerId: number; details: import('@app/shared/models/dto/orders/create-order-request').CreateOrderDetail[] }[]): void {
-    this.submitting.set(true);
+  sendToKitchen(): void {
+    if (this.submitting() || !this.dock.canPlaceOrder()) return;
 
     const tableId = this.dock.selectedTableId();
     if (tableId === null) {
-      this.messageService.add({ severity: 'warn', summary: 'Seleccionar mesa', detail: 'Debe seleccionar una mesa antes de colocar el pedido.' });
-      this.submitting.set(false);
+      this.confirmOpen.set(false);
+      this.openTablePicker();
       return;
     }
 
-    this.orderService.createOrder({
-      tableId,
-      details: allDinerOrders.flatMap(d => d.details),
-    }).subscribe({
-      next: (order) => {
-        this.messageService.add({ severity: 'success', summary: 'Pedido creado', detail: `Orden #${String(order.id)} creada exitosamente` });
-        this.dock.clearAll();
-        this.dock.resetTableSelection();
-        this.dock.loadAvailableTables();
-        this.submitting.set(false);
-      },
-      error: (err: unknown) => {
-        const httpErr = err instanceof HttpErrorResponse ? err : null;
-        const status = httpErr?.status ?? 0;
-        const summary = status === 409 ? 'Conflicto'
-                      : status === 400 ? 'Datos inválidos'
-                      : 'Error al crear pedido';
-        this.messageService.add({
-          severity: status === 400 ? 'warn' : 'error',
-          summary,
-          detail: httpErr ? mapHttpError(httpErr, 'order') : 'Error al procesar la solicitud',
-          life: 6000,
-        });
-        this.dock.loadAvailableTables();
-        this.submitting.set(false);
-      }
-    });
-  }
-
-  onDinerSelect(index: number): void {
-    this.dock.selectDiner(index);
-  }
-
-  onAddDiner(): void {
-    this.dock.addDiner();
-  }
-
-  onRemoveDiner(): void {
-    const index = this.dock.selectedDinerIndex();
-    const diners = this.dock.diners();
-    if (diners.length <= 1) return;
-    const target = diners[index];
-    if (target.items.length > 0) {
-      // Show confirmation — diner has items
-      this.dinerToRemove.set(index);
-    } else {
-      // No items, remove immediately
-      this.dock.removeDiner(index);
+    const lines: SubmitLine[] = this.dock.getOrderDetailsForAllDiners();
+    if (lines.length === 0) {
+      this.confirmOpen.set(false);
+      return;
     }
+
+    this.submitting.set(true);
+    this.submitError.set(null);
+
+    this.orderService
+      .createOrder({ tableId, details: lines.flatMap((line) => line.details) })
+      .subscribe({
+        next: (order) => {
+          this.submitting.set(false);
+          this.confirmOpen.set(false);
+          this.sheetOpen.set(false);
+          this.dock.clearAll();
+          // Keep the table selected: the waiter may add another round to the
+          // same table, and the requirement is that the table survives the
+          // order. Refresh so its new occupancy is visible.
+          this.dock.loadAvailableTables();
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Pedido enviado a cocina',
+            detail: `Orden #${String(order.id)} · ${this.dock.selectedTableLabel()}`,
+          });
+          void this.router.navigate(['/worker/waiter'], { queryParams: { tab: 'pedidos' } });
+        },
+        error: (err: unknown) => {
+          const httpErr = err instanceof HttpErrorResponse ? err : null;
+          const detail = httpErr ? mapHttpError(httpErr, 'order') : 'No se pudo enviar el pedido.';
+          this.submitting.set(false);
+          this.confirmOpen.set(false);
+          this.submitError.set(detail);
+          this.dock.loadAvailableTables();
+          this.messageService.add({
+            severity: 'error',
+            summary: httpErr?.status === 409 ? 'Mesa no disponible' : 'Error al enviar',
+            detail,
+            life: 8000,
+          });
+        },
+      });
   }
 
-  confirmRemoveDiner(): void {
-    const index = this.dinerToRemove();
-    if (index !== null) {
-      this.dock.removeDiner(index);
-      this.dinerToRemove.set(null);
-    }
+  /** Retry after an RFC 7807 error without losing the composed cart. */
+  retrySend(): void {
+    if (this.submitting()) return;
+    this.submitError.set(null);
+    this.requestSend();
   }
 
-  cancelRemoveDiner(): void {
-    this.dinerToRemove.set(null);
+  /* ── Helpers for the template ── */
+
+  groupSummary(item: DockItem): string {
+    const groups: DockOptionGroup[] = item.optionGroups ?? [];
+    return groups
+      .filter((group) => group.optionNames.length > 0)
+      .map((group) => `${group.groupName}: ${group.optionNames.join(', ')}`)
+      .join(' · ');
   }
 
-  onRemoveItem(index: number): void {
-    this.dock.removeItemFromDiner(index);
+  optionSummary(item: DockItem): string {
+    return item.optionNames.join(', ');
   }
 
-  trackByDinerId(_index: number, diner: { id: number }): number {
+  trackDiner(_index: number, diner: { id: number }): number {
     return diner.id;
   }
 }
-
-

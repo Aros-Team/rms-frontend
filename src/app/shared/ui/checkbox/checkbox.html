@@ -1,0 +1,22 @@
+<label class="rms-checkbox" [class.rms-checkbox--disabled]="isDisabled">
+  <input
+    class="rms-checkbox__input"
+    type="checkbox"
+    [id]="inputId"
+    [checked]="checked()"
+    [disabled]="isDisabled"
+    [attr.aria-required]="required ? 'true' : null"
+    [attr.aria-describedby]="description ? descriptionId : null"
+    (change)="onToggle($event)"
+    (blur)="onBlur()"
+  />
+  <span class="rms-checkbox__box" aria-hidden="true">
+    <i class="pi pi-check"></i>
+  </span>
+  <span class="rms-checkbox__text">
+    <span class="rms-checkbox__label">{{ label }}</span>
+    @if (description) {
+      <span class="rms-checkbox__description" [id]="descriptionId">{{ description }}</span>
+    }
+  </span>
+</label>

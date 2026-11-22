@@ -40,6 +40,15 @@ export class SpecialSelections {
     return this.http.get<SpecialSelectionResponse>(this.base + '/' + String(id));
   }
 
+  /**
+   * Public detail used by the waiter. The admin path above is not available to
+   * SERVICE/BAR users: P3-WA-14 switched the waiter to `GET
+   * /v1/special-selections/{productId}`.
+   */
+  getPublicById(id: number): Observable<SpecialSelectionResponse> {
+    return this.http.get<SpecialSelectionResponse>('v1/special-selections/' + String(id));
+  }
+
   list(): Observable<SpecialSelectionResponse[]> {
     return this.http.get<SpecialSelectionResponse[]>(this.base);
   }

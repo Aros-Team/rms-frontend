@@ -14,25 +14,18 @@
 }
 
 .analytics-nav-item {
-  @apply flex items-center gap-2 px-4 py-3 min-h-[2.5rem] text-sm font-medium border-b-2 border-transparent transition-colors;
+  @apply flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 border-transparent transition-colors;
+  min-height: var(--rms-control-md);
   text-decoration: none;
-  color: var(--p-surface-600);
+  color: var(--rms-text-secondary);
 }
 
 .analytics-nav-item:hover {
-  color: var(--p-surface-900);
-}
-
-.analytics-nav-item:where(.dark, .dark *) {
-  color: var(--p-surface-300);
-}
-
-.analytics-nav-item:where(.dark, .dark *):hover {
-  color: var(--p-surface-0);
+  color: var(--rms-text);
+  background: var(--rms-bg-subtle);
 }
 
 .analytics-nav-item-active {
-  border-color: var(--accent-text);
-  /* gold as text is 1.7:1 on light surfaces */
-  color: var(--accent-text);
+  border-color: var(--rms-brand-text);
+  color: var(--rms-brand-text);
 }

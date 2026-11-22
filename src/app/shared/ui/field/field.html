@@ -1,0 +1,25 @@
+<div [class]="classes">
+  <label class="rms-field__label" [class.rms-field__label--hidden]="hideLabel" [id]="labelId" [for]="resolvedId">
+    {{ label }}
+    @if (required) {
+      <span class="rms-field__required" aria-hidden="true">*</span>
+    }
+    @if (optionalLabel) {
+      <span class="rms-field__optional">{{ optionalLabel }}</span>
+    }
+  </label>
+
+  <div class="rms-field__control">
+    <ng-content />
+  </div>
+
+  @if (hint) {
+    <p class="rms-field__hint" [id]="hintId">{{ hint }}</p>
+  }
+
+  @if (error) {
+    <p class="rms-field__error" [id]="errorId" role="alert" aria-atomic="true">
+      {{ error }}
+    </p>
+  }
+</div>

@@ -1,0 +1,127 @@
+<app-rms-section
+  title="Datos del negocio"
+  description="Identidad, contacto y configuración regional del restaurante."
+>
+  @if (loading()) {
+    <div class="flex flex-col gap-3">
+      <app-rms-skeleton height="2.5rem" ariaLabel="Cargando datos del negocio" />
+      <app-rms-skeleton height="2.5rem" />
+      <app-rms-skeleton height="2.5rem" />
+      <app-rms-skeleton height="2.5rem" />
+    </div>
+  } @else if (loadError()) {
+    <app-rms-empty-state
+      icon="pi pi-exclamation-triangle"
+      title="No se pudo cargar la información"
+      [message]="loadError()"
+      actionLabel="Reintentar"
+      actionIcon="pi pi-refresh"
+      (action)="load()"
+    />
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="save()" novalidate class="flex flex-col gap-5">
+      @if (saveError()) {
+        <p
+          role="alert"
+          class="rounded-lg border border-rms-danger bg-rms-surface px-4 py-3 text-rms-body text-rms-danger"
+        >
+          {{ saveError() }}
+        </p>
+      }
+
+      <div class="grid gap-4 md:grid-cols-2">
+        <app-rms-input
+          id="business-name"
+          formControlName="restaurantName"
+          label="Nombre del restaurante"
+          hint="Es el nombre visible en el sistema."
+          [required]="true"
+          [maxLength]="120"
+          [error]="controlError('restaurantName')"
+        />
+
+        <app-rms-input
+          id="business-legal-name"
+          formControlName="legalName"
+          label="Razón social"
+          optionalLabel="(opcional)"
+          [maxLength]="160"
+          [error]="controlError('legalName')"
+        />
+
+        <app-rms-input
+          id="business-tax-id"
+          formControlName="taxId"
+          label="Identificación tributaria"
+          optionalLabel="(opcional)"
+          [maxLength]="40"
+          [error]="controlError('taxId')"
+        />
+
+        <app-rms-input
+          id="business-phone"
+          formControlName="phone"
+          label="Teléfono"
+          type="tel"
+          optionalLabel="(opcional)"
+          [maxLength]="30"
+          [error]="controlError('phone')"
+        />
+
+        <app-rms-input
+          id="business-email"
+          formControlName="email"
+          label="Correo de contacto"
+          type="email"
+          optionalLabel="(opcional)"
+          [maxLength]="120"
+          autocomplete="email"
+          [error]="controlError('email')"
+        />
+
+        <app-rms-input
+          id="business-address"
+          formControlName="address"
+          label="Dirección"
+          optionalLabel="(opcional)"
+          [maxLength]="200"
+          [error]="controlError('address')"
+        />
+
+        <app-rms-input
+          id="business-timezone"
+          formControlName="timezone"
+          label="Zona horaria"
+          hint="Zona IANA. Se aplica a horarios y registros de ingreso al reiniciar el servidor."
+          [required]="true"
+          [maxLength]="60"
+          [error]="controlError('timezone')"
+        />
+
+        <app-rms-input
+          id="business-locale"
+          formControlName="locale"
+          label="Idioma y región"
+          hint="Etiqueta BCP 47, por ejemplo es-CO."
+          [required]="true"
+          [maxLength]="20"
+          [error]="controlError('locale')"
+        />
+      </div>
+
+      <div class="flex flex-wrap items-center justify-end gap-3 border-t border-rms-border pt-4">
+        <app-rms-button
+          variant="secondary"
+          type="button"
+          [disabled]="!dirty() || saving()"
+          (click)="reset()"
+        >
+          Descartar cambios
+        </app-rms-button>
+        <app-rms-button type="submit" [disabled]="!dirty() || saving()" [loading]="saving()">
+          Guardar cambios
+        </app-rms-button>
+      </div>
+    </form>
+  }
+</app-rms-section>

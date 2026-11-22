@@ -1,3 +1,121 @@
 :host {
   display: block;
 }
+
+.period-dock {
+  border-top: var(--rms-border-width) solid var(--rms-border);
+  background: var(--rms-bg-subtle);
+}
+
+.period-dock__form,
+.period-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--rms-space-3);
+  padding: var(--rms-space-3) var(--rms-space-4);
+}
+
+.period-dock__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--rms-space-2);
+  padding: var(--rms-space-2) var(--rms-space-3);
+}
+
+.period-dock__range {
+  display: flex;
+  align-items: center;
+  gap: var(--rms-space-2);
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--rms-control-md);
+  padding: var(--rms-space-2);
+  border: 0;
+  border-radius: var(--rms-radius-sm);
+  background: transparent;
+  color: var(--rms-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.period-dock__range:hover {
+  background: var(--rms-bg-surface);
+}
+
+.period-dock__range .pi {
+  color: var(--rms-brand-text);
+}
+
+.period-dock__caption {
+  color: var(--rms-text-muted);
+  font-size: var(--rms-type-caption-size);
+}
+
+.period-dock__value {
+  overflow: hidden;
+  font-size: var(--rms-type-body-size);
+  font-weight: var(--rms-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.period-dock__bucket {
+  flex: 0 0 auto;
+  padding: 0 var(--rms-space-2);
+  border: var(--rms-border-width) solid var(--rms-border-strong);
+  border-radius: var(--rms-radius-full);
+  color: var(--rms-text-secondary);
+  font-size: var(--rms-type-caption-size);
+}
+
+.period-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rms-space-1);
+  min-width: 8rem;
+}
+
+.period-field--select {
+  min-width: 10rem;
+}
+
+.period-label {
+  color: var(--rms-text-secondary);
+  font-size: var(--rms-type-caption-size);
+  font-weight: var(--rms-weight-semibold);
+}
+
+.period-input {
+  min-height: var(--rms-control-sm);
+  padding: 0 var(--rms-space-2);
+  border: var(--rms-border-width) solid var(--rms-border-strong);
+  border-radius: var(--rms-radius-sm);
+  background: var(--rms-control-bg);
+  color: var(--rms-text);
+  font-size: var(--rms-type-body-size);
+}
+
+.period-input[aria-invalid='true'] {
+  border-color: var(--rms-danger-solid);
+}
+
+.period-actions {
+  display: flex;
+  gap: var(--rms-space-2);
+}
+
+.period-close {
+  margin-inline-start: auto;
+}
+
+.period-error {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--rms-danger-fg);
+  font-size: var(--rms-type-caption-size);
+}
+
+.period-error--inline {
+  flex-basis: 100%;
+}

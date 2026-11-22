@@ -1,0 +1,43 @@
+:host {
+  display: block;
+}
+
+.void-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rms-space-3);
+}
+
+.void-dialog__lead,
+.void-dialog__warning {
+  margin: 0;
+}
+
+.void-dialog__lead {
+  font-size: var(--rms-type-body-size);
+  line-height: var(--rms-type-body-line);
+}
+
+.void-dialog__warning {
+  padding: var(--rms-space-3);
+  border: var(--rms-border-width) solid var(--rms-danger-border);
+  border-radius: var(--rms-radius-md);
+  background: var(--rms-danger-bg);
+  color: var(--rms-danger-fg);
+  font-size: var(--rms-type-caption-size);
+  line-height: var(--rms-type-caption-line);
+}
+
+.void-dialog__error {
+  margin: 0;
+  color: var(--rms-danger-fg);
+  font-size: var(--rms-type-caption-size);
+  line-height: var(--rms-type-caption-line);
+}
+
+.void-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--rms-space-2);
+}

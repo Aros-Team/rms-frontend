@@ -101,12 +101,55 @@ describe('OrdersTable (server-side paging)', () => {
     expect(fixture.componentInstance.loading).toBe(false);
   });
 
+  it('reflects the active sort on the header with aria-sort', () => {
+    const root = fixture.nativeElement as HTMLElement;
+    const headers = Array.from(root.querySelectorAll<HTMLElement>('th[aria-sort]'));
+    const dateHeader = headers.find((header) => header.textContent.includes('Fecha'));
+
+    expect(dateHeader?.getAttribute('aria-sort')).toBe('descending');
+  });
+
   it('requests page 2 when the lazy table moves to first=20 with 10 rows', () => {
     fixture.componentInstance.onLazyLoad({ first: 20, rows: 10 });
 
     expect(getPage).toHaveBeenCalledTimes(2);
     const query = getPage.mock.calls[1][2] as Record<string, unknown>;
     expect(query).toMatchObject({ page: 2, size: 10 });
+  });
+
+  it('sends the column sort chosen in the header and reflects it on the table', () => {
+    fixture.componentInstance.onLazyLoad({ first: 0, rows: 10, sortField: 'id', sortOrder: 1 });
+
+    const query = getPage.mock.calls[1][2] as Record<string, unknown>;
+    expect(query).toMatchObject({ page: 0, size: 10, sort: 'id,asc' });
+    expect(fixture.componentInstance.sortField).toBe('id');
+    expect(fixture.componentInstance.sortOrder).toBe(1);
+  });
+
+  it('sends a descending sort when the header toggles', () => {
+    fixture.componentInstance.onLazyLoad({ first: 0, rows: 10, sortField: 'tableId', sortOrder: -1 });
+
+    const query = getPage.mock.calls[1][2] as Record<string, unknown>;
+    expect(query).toMatchObject({ page: 0, sort: 'tableId,desc' });
+  });
+
+  it('resets to page 0 when the sort changes, even if the table reports a later first', () => {
+    fixture.componentInstance.onLazyLoad({ first: 20, rows: 10 });
+    fixture.componentInstance.onLazyLoad({ first: 20, rows: 10, sortField: 'date', sortOrder: 1 });
+
+    const query = getPage.mock.calls[2][2] as Record<string, unknown>;
+    expect(query).toMatchObject({ page: 0, sort: 'date,asc' });
+    expect(fixture.componentInstance.first).toBe(0);
+  });
+
+  it('falls back to the date-desc default when the header clears sorting', () => {
+    fixture.componentInstance.onLazyLoad({ first: 0, rows: 10, sortField: 'id', sortOrder: 1 });
+    fixture.componentInstance.onLazyLoad({ first: 0, rows: 10, sortField: 'id', sortOrder: 0 });
+
+    const query = getPage.mock.calls[2][2] as Record<string, unknown>;
+    expect(query).toMatchObject({ page: 0, sort: 'date,desc' });
+    expect(fixture.componentInstance.sortField).toBe('date');
+    expect(fixture.componentInstance.sortOrder).toBe(-1);
   });
 
   it('ignores the duplicate lazy-load emission for the page already loaded', () => {
@@ -166,6 +209,17 @@ describe('OrdersTable (server-side paging)', () => {
     fixture.componentInstance.onStatusChange('QUEUE');
 
     expect(fixture.componentInstance.error).toBe('No se pudieron cargar los pedidos.');
+    expect(fixture.componentInstance.loading).toBe(false);
+  });
+
+  it('shows the RFC 7807 detail from a failed request instead of a generic message', () => {
+    getPage.mockReturnValueOnce(
+      throwError(() => ({ status: 500, error: { detail: 'Servidor ocupado, inténtalo de nuevo.' } })),
+    );
+
+    fixture.componentInstance.retry();
+
+    expect(fixture.componentInstance.error).toBe('Servidor ocupado, inténtalo de nuevo.');
     expect(fixture.componentInstance.loading).toBe(false);
   });
 });

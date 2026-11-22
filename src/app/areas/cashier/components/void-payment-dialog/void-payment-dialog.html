@@ -1,0 +1,51 @@
+<app-rms-dialog
+  [visible]="visible"
+  (visibleChange)="visibleChange.emit($event)"
+  header="Anular cobro"
+  width="520px"
+>
+  @if (payment; as p) {
+    <div class="void-dialog">
+      <p class="void-dialog__lead">
+        Vas a anular por completo el cobro
+        <strong>{{ p.receiptNumber }}</strong>
+        del pedido #{{ p.orderId }} por
+        <strong>{{ p.total | money }}</strong>.
+      </p>
+
+      <p class="void-dialog__warning">
+        La anulación es total e irreversible. El cobro deja de contar en la caja del turno y el
+        pedido vuelve a la lista de pendientes. Solo se permite con el turno abierto.
+      </p>
+
+      <app-rms-input
+        [id]="'void-reason'"
+        label="Motivo de la anulación"
+        [required]="true"
+        [maxLength]="255"
+        hint="Queda registrado en la auditoría del cobro."
+        [ngModel]="reason()"
+        (ngModelChange)="onReasonChange($event)"
+      />
+
+      @if (error) {
+        <p class="void-dialog__error" role="alert">{{ error }}</p>
+      }
+    </div>
+  }
+
+  <div rmsDialogFooter class="void-dialog__actions">
+    <app-rms-button variant="secondary" [disabled]="busy" (click)="cancel()">
+      Cancelar
+    </app-rms-button>
+    <app-rms-button
+      variant="danger"
+      iconStart="pi pi-ban"
+      [loading]="busy"
+      [disabled]="!canConfirm()"
+      (click)="submit()"
+    >
+      Anular cobro
+    </app-rms-button>
+  </div>
+</app-rms-dialog>

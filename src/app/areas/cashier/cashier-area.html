@@ -1,0 +1,101 @@
+<div class="cashier">
+  <app-rms-page-header
+    title="Caja"
+    subtitle="Cobra las cuentas del día y concilia el turno de caja."
+  >
+    <div rmsPageHeaderMeta class="cashier__meta">
+      <app-rms-status-pill
+        [label]="shiftOpen() ? 'Caja abierta' : 'Caja cerrada'"
+        [status]="shiftOpen() ? 'success' : 'warning'"
+      />
+      @if (shiftOpen()) {
+        <span>Abierto {{ openedAt() }}</span>
+      }
+      @if (lastUpdated(); as updated) {
+        <span>Actualizado {{ updated | date: 'HH:mm:ss' }}</span>
+      }
+    </div>
+
+    <div rmsPageHeaderActions>
+      <app-rms-button
+        variant="secondary"
+        iconStart="pi pi-wallet"
+        (click)="openShiftDialog()"
+      >
+        {{ shiftOpen() ? 'Ver turno' : 'Abrir caja' }}
+      </app-rms-button>
+    </div>
+  </app-rms-page-header>
+
+  <div class="cashier__grid">
+    <app-cashier-pending-board
+      [orders]="pending()"
+      [loading]="pendingLoading()"
+      [refreshing]="pendingRefreshing()"
+      [error]="pendingError()"
+      [selectedOrderId]="selected()?.orderId ?? null"
+      [search]="search()"
+      [date]="date()"
+      [page]="pendingPage()"
+      [totalPages]="pendingTotalPages()"
+      [total]="pendingTotal()"
+      [lastUpdated]="lastUpdated()"
+      (selectOrder)="onSelectOrder($event)"
+      (searchChange)="onSearchChange($event)"
+      (dateChange)="onDateChange($event)"
+      (refresh)="loadPending()"
+      (pageChange)="onPageChange($event)"
+    />
+
+    <app-cashier-order-charge
+      [order]="order()"
+      [tableNumber]="tableNumber()"
+      [loading]="orderLoading()"
+      [error]="orderError()"
+      [shiftOpen]="shiftOpen()"
+      [submitting]="chargeBusy()"
+      [submitError]="chargeError()"
+      (charge)="onCharge($event)"
+      (retry)="retryOrder()"
+      (openShift)="openShiftDialog()"
+    />
+  </div>
+</div>
+
+<app-cashier-receipt
+  [visible]="receiptVisible()"
+  [payment]="receiptPayment()"
+  [order]="receiptOrder()"
+  [tableNumber]="receiptTable()"
+  [cashierName]="cashierName()"
+  [canVoid]="canVoidReceipt()"
+  (visibleChange)="onReceiptVisibleChange($event)"
+  (voidRequested)="onVoidRequested($event)"
+  (newCharge)="onNewCharge()"
+/>
+
+<app-cashier-void-dialog
+  [visible]="voidVisible()"
+  [payment]="voidTarget()"
+  [busy]="voidBusy()"
+  [error]="voidError()"
+  (visibleChange)="onVoidVisibleChange($event)"
+  (confirmVoid)="confirmVoid($event)"
+/>
+
+<app-cashier-shift-dialog
+  [visible]="shiftVisible()"
+  [shift]="shift()"
+  [summary]="shiftSummary()"
+  [closedSummary]="closedSummary()"
+  [payments]="journal()"
+  [loading]="shiftLoading()"
+  [busy]="shiftBusy()"
+  [error]="shiftError()"
+  (visibleChange)="onShiftVisibleChange($event)"
+  (openShift)="onOpenShift($event)"
+  (closeShift)="onCloseShift($event)"
+  (refresh)="refreshShift()"
+  (viewReceipt)="onViewReceipt($event)"
+  (voidRequested)="onVoidFromJournal($event)"
+/>

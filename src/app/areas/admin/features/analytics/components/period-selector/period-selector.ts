@@ -1,21 +1,31 @@
 import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { InputTextModule } from 'primeng/inputtext';
-import { ButtonModule } from 'primeng/button';
-import { MessageModule } from 'primeng/message';
 
 import { AnalyticsPeriodState } from '@app/core/services/analytics/analytics-period-state';
 import {
-  isValidPeriodKey,
+  bucketFormat,
+  bucketLabel,
+  isValidBucketKey,
   isValidRange,
-  titleForKey,
+  presetsFor,
 } from '@app/core/services/analytics/analytics-utils';
+import type { TimeBucket } from '@app/shared/models/dto/analytics/time-bucket';
+import { TIME_BUCKETS } from '@app/shared/models/dto/analytics/time-bucket';
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
+import { RmsSelect, type RmsSelectOption } from '@app/shared/ui/select/select';
 
 export type PeriodSelectorVariant = 'inline' | 'docked';
 
+/**
+ * The workspace's only period control: bucket, preset or manual range.
+ *
+ * Every value committed here goes through `AnalyticsPeriodState`, so the
+ * collapsed label and the request always describe the same keys (F-014).
+ */
 @Component({
   selector: 'app-period-selector',
-  imports: [FormsModule, InputTextModule, ButtonModule, MessageModule],
+  imports: [FormsModule, RmsButton, RmsIconButton, RmsSelect],
   templateUrl: './period-selector.html',
   styleUrl: './period-selector.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,41 +36,61 @@ export class PeriodSelector {
   readonly refresh = output();
 
   private readonly variantSignal = signal<PeriodSelectorVariant>('inline');
+  readonly variant = this.variantSignal.asReadonly();
+
+  readonly bucket = signal<TimeBucket>(this.state.bucket());
+  readonly from = signal<string>(this.state.from());
+  readonly to = signal<string>(this.state.to());
+  readonly preset = signal<string>(this.state.preset());
+  readonly expanded = signal(false);
+
+  readonly bucketOptions: RmsSelectOption[] = TIME_BUCKETS.map((bucket) => ({
+    label: bucketLabel(bucket),
+    value: bucket,
+  }));
+
+  readonly presetOptions = computed<RmsSelectOption[]>(() => {
+    const options: RmsSelectOption[] = presetsFor(this.bucket()).map((preset) => ({
+      label: preset.label,
+      value: preset.id,
+    }));
+    if (this.preset() === 'custom') {
+      options.unshift({ label: 'Personalizado', value: 'custom' });
+    }
+    return options;
+  });
+
+  readonly currentRangeLabel = this.state.label;
+  readonly bucketName = computed(() => bucketLabel(this.bucket()));
+
+  readonly formatHint = computed(() => `Formato ${bucketFormat(this.bucket())}`);
+  readonly fromValid = computed(() => isValidBucketKey(this.bucket(), this.from()));
+  readonly toValid = computed(() => isValidBucketKey(this.bucket(), this.to()));
+  readonly rangeValid = computed(() => isValidRange(this.bucket(), this.from(), this.to()));
+  readonly errorMessage = computed(() => {
+    if (!this.fromValid() || !this.toValid()) {
+      return `Formato de fecha inválido. Use ${bucketFormat(this.bucket())}`;
+    }
+    if (!this.rangeValid()) {
+      return 'La fecha final debe ser igual o posterior a la inicial';
+    }
+    return null;
+  });
 
   setVariant(value: PeriodSelectorVariant): void {
     this.variantSignal.set(value);
   }
-  readonly variant = this.variantSignal.asReadonly();
 
-  from = signal<string>(this.state.from());
-  to = signal<string>(this.state.to());
+  onBucketChange(value: string | number | null): void {
+    if (typeof value !== 'string') return;
+    this.state.setBucket(value as TimeBucket);
+    this.syncFromState();
+  }
 
-  readonly fromValid = computed(() => isValidPeriodKey(this.from()));
-  readonly toValid = computed(() => isValidPeriodKey(this.to()));
-  readonly rangeValid = computed(() => isValidRange(this.from(), this.to()));
-  readonly errorMessage = computed(() => {
-    if (!this.fromValid() || !this.toValid()) return 'Formato de fecha inválido. Use AAAA-MM';
-    if (!this.rangeValid()) return 'La fecha final debe ser igual o posterior a la inicial';
-    return null;
-  });
-
-  readonly placeholderExample = 'AAAA-MM';
-
-  fromTitle = computed(() => titleForKey(this.from()));
-  toTitle = computed(() => titleForKey(this.to()));
-
-  readonly expanded = signal(false);
-  readonly currentRangeLabel = computed(() => {
-    const fromLabel = this.fromTitle();
-    const toLabel = this.toTitle();
-    return `${fromLabel} – ${toLabel}`;
-  });
-
-  constructor() {
-    queueMicrotask(() => {
-      this.from.set(this.state.from());
-      this.to.set(this.state.to());
-    });
+  onPresetChange(value: string | number | null): void {
+    if (typeof value !== 'string' || value === 'custom') return;
+    this.state.applyPreset(value);
+    this.syncFromState();
   }
 
   onFromChange(value: string): void {
@@ -72,7 +102,7 @@ export class PeriodSelector {
   }
 
   toggle(): void {
-    this.expanded.update((v) => !v);
+    this.expanded.update((value) => !value);
   }
 
   collapse(): void {
@@ -80,15 +110,15 @@ export class PeriodSelector {
   }
 
   apply(): void {
-    if (!this.rangeValid() || !this.fromValid() || !this.toValid()) return;
-    this.commit();
+    if (!this.rangeValid()) return;
+    this.state.setRange(this.from(), this.to());
+    this.preset.set(this.state.preset());
     if (this.variant() === 'docked') this.collapse();
   }
 
   reset(): void {
     this.state.reset();
-    this.from.set(this.state.from());
-    this.to.set(this.state.to());
+    this.syncFromState();
     if (this.variant() === 'docked') this.collapse();
   }
 
@@ -96,7 +126,10 @@ export class PeriodSelector {
     this.refresh.emit();
   }
 
-  private commit(): void {
-    this.state.setRange(this.from(), this.to());
+  private syncFromState(): void {
+    this.bucket.set(this.state.bucket());
+    this.from.set(this.state.from());
+    this.to.set(this.state.to());
+    this.preset.set(this.state.preset());
   }
 }

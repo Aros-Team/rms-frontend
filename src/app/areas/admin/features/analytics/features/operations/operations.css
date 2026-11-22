@@ -1,20 +1,31 @@
 :host {
   display: block;
-  height: 100%;
-  overflow: auto;
 }
 
-/* Defensive fallback in case Tailwind v4 utilities fail to register sr-only
- * in a test environment. Hides content visually but keeps it in the DOM for
- * screen readers. */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border-width: 0;
+.metrics {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rms-space-2);
+  margin: var(--rms-space-4) 0 0;
+  padding: var(--rms-space-3) 0 0;
+  border-top: var(--rms-border-width) solid var(--rms-border);
+}
+
+.metrics__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--rms-space-3);
+}
+
+.metrics dt {
+  color: var(--rms-text-secondary);
+  font-size: var(--rms-type-caption-size);
+}
+
+.metrics dd {
+  margin: 0;
+  color: var(--rms-text);
+  font-weight: var(--rms-weight-semibold);
+  font-variant-numeric: tabular-nums;
 }

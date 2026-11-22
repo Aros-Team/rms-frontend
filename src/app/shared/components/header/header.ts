@@ -24,6 +24,8 @@ export class Header implements OnInit, OnDestroy {
   @Input() workerType?: string;
   /** When true, hides the tablet inline nav (used when a separate tab bar exists below header) */
   @Input() hideTabletNav = false;
+  /** State of the off-canvas menu, for `aria-expanded` on the trigger. */
+  @Input() menuOpen = false;
   customer = environment.customer;
 
   selectedMenuItem: MenuItem | null = null;
@@ -182,9 +184,5 @@ export class Header implements OnInit, OnDestroy {
 
   cancelLogout(): void {
     this.showLogoutDialog = false;
-  }
-
-  onKitchen(): void {
-    void this.router.navigate(['/worker/kitchen']);
   }
 }

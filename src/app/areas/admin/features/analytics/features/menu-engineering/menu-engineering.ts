@@ -1,31 +1,77 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
+import type { ChartData } from 'chart.js';
+import { finalize } from 'rxjs';
 import { ChartModule } from 'primeng/chart';
-import { SkeletonModule } from 'primeng/skeleton';
-import { MessageModule } from 'primeng/message';
-import { SelectModule } from 'primeng/select';
-import { TableModule } from 'primeng/table';
 
 import { AnalyticsCache } from '@app/core/services/analytics/analytics-cache';
+import { downloadCsv, menuEngineeringCsv } from '@app/core/services/analytics/analytics-csv';
+import { describeAnalyticsError } from '@app/core/services/analytics/analytics-error';
+import { divideMoney, pctOf, sumMoney } from '@app/core/services/analytics/analytics-money';
 import { AnalyticsPeriodState } from '@app/core/services/analytics/analytics-period-state';
-import { Money } from '@app/shared/pipes/money/money';
-import { DataCompleteness } from '@app/shared/models/dto/analytics/data-completeness';
-import { Money as MoneyModel } from '@app/shared/models/dto/analytics/money';
-import {
+import { bucketLabel } from '@app/core/services/analytics/analytics-utils';
+import type { Money } from '@app/shared/models/dto/analytics/money';
+import type {
   MenuEngineeringItem,
   MenuQuadrant,
 } from '@app/shared/models/dto/analytics/menu-engineering-report';
+import { Money as MoneyPipe } from '@app/shared/pipes/money/money';
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsChartFrame } from '@app/shared/ui/chart-frame/chart-frame';
+import { readRmsToken } from '@app/shared/ui/chart/chart-theme';
+import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
+import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
+import { RmsSelect, type RmsSelectOption } from '@app/shared/ui/select/select';
+import { RmsStatTile } from '@app/shared/ui/stat-tile/stat-tile';
+import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
+import type { RmsStatus } from '@app/shared/ui/types/ui-types';
+
+import { AnalyticsNotice } from '../../components/analytics-notice/analytics-notice';
+import { bubbleOptions, formatPct } from '../../analytics-chart-options';
 
 interface QuadrantMeta {
-  readonly label: string;
-  readonly icon: string;
-  readonly action: string;
-  readonly borderClass: string;
-  readonly bgClass: string;
-  readonly ringClass: string;
+  label: string;
+  icon: string;
+  action: string;
+  status: RmsStatus;
 }
+
+interface QuadrantSummary {
+  quadrant: MenuQuadrant;
+  meta: QuadrantMeta;
+  count: number;
+  contribution: Money | null;
+  topItems: string[];
+}
+
+const QUADRANTS: readonly MenuQuadrant[] = ['STAR', 'PLOWHORSE', 'PUZZLE', 'DOG'];
+
+const QUADRANT_META: Record<MenuQuadrant, QuadrantMeta> = {
+  STAR: {
+    label: 'Estrella',
+    icon: 'pi pi-star-fill',
+    action: 'Venden bien y dejan buena ganancia. Protégelos.',
+    status: 'success',
+  },
+  PLOWHORSE: {
+    label: 'Caballo de batalla',
+    icon: 'pi pi-thumbs-up',
+    action: 'Venden mucho pero dejan poca ganancia. Ajusta precio o costo.',
+    status: 'warning',
+  },
+  PUZZLE: {
+    label: 'Rompecabezas',
+    icon: 'pi pi-lightbulb',
+    action: 'Dejan ganancia pero no se venden. Promuévelos.',
+    status: 'info',
+  },
+  DOG: {
+    label: 'A revisar',
+    icon: 'pi pi-flag',
+    action: 'No venden ni dejan ganancia. Candidatos a salir.',
+    status: 'danger',
+  },
+};
 
 const QUADRANT_ORDER: Record<MenuQuadrant, number> = {
   STAR: 0,
@@ -34,156 +80,49 @@ const QUADRANT_ORDER: Record<MenuQuadrant, number> = {
   DOG: 3,
 };
 
-const QUADRANT_META: Record<MenuQuadrant, QuadrantMeta> = {
-  STAR: {
-    label: 'Excelente',
-    icon: 'pi pi-star-fill',
-    action: 'Venden bien y dejan buena ganancia. Protégelos: evita cambiarlos.',
-    borderClass: 'border-green-300 dark:border-green-700',
-    bgClass: 'bg-green-50 dark:bg-green-900/20',
-    ringClass: 'ring-2 ring-green-500',
-  },
-  PLOWHORSE: {
-    label: 'Populares',
-    icon: 'pi pi-thumbs-up',
-    action: 'Venden mucho pero dejan poca ganancia. Súbele el precio o reduce el costo.',
-    borderClass: 'border-amber-300 dark:border-amber-700',
-    bgClass: 'bg-amber-50 dark:bg-amber-900/20',
-    ringClass: 'ring-2 ring-amber-500',
-  },
-  PUZZLE: {
-    label: 'Oportunidad',
-    icon: 'pi pi-lightbulb',
-    action: 'Dejan ganancia pero no se venden. Púlsalos en el menú o promuévelos.',
-    borderClass: 'border-blue-300 dark:border-blue-700',
-    bgClass: 'bg-blue-50 dark:bg-blue-900/20',
-    ringClass: 'ring-2 ring-blue-500',
-  },
-  DOG: {
-    label: 'A revisar',
-    icon: 'pi pi-flag',
-    action: 'No venden ni dejan ganancia. Candidatos a salir de la carta.',
-    borderClass: 'border-red-300 dark:border-red-700',
-    bgClass: 'bg-red-50 dark:bg-red-900/20',
-    ringClass: 'ring-2 ring-red-500',
-  },
-};
-
-interface QuadrantSummary {
-  quadrant: MenuQuadrant;
-  meta: QuadrantMeta;
-  count: number;
-  totalContribution: number;
-  topItems: string[];
-}
-
-interface MenuEngineeringCategoryOption {
-  id: number;
-  name: string;
-}
-
-interface MenuEngineeringStats {
-  count: number;
-  totalContribution: number;
-  medianVolume: number | null;
-  medianMargin: number | null;
-}
-
 @Component({
   selector: 'app-analytics-menu-engineering',
   imports: [
-    CommonModule,
-    FormsModule,
-    ButtonModule,
     ChartModule,
-    SkeletonModule,
-    MessageModule,
-    SelectModule,
-    TableModule,
-    Money,
+    FormsModule,
+    MoneyPipe,
+    RmsButton,
+    RmsChartFrame,
+    RmsEmptyState,
+    RmsPageHeader,
+    RmsSelect,
+    RmsStatTile,
+    RmsStatusPill,
+    AnalyticsNotice,
   ],
   templateUrl: './menu-engineering.html',
-  styleUrl: './menu-engineering.css',
+  styleUrls: ['../../analytics-shared.css', './menu-engineering.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MenuEngineering {
   private readonly cache = inject(AnalyticsCache);
+  private readonly period = inject(AnalyticsPeriodState);
 
   readonly isLoading = computed(() => this.cache.menuEngineering.isLoading());
   readonly error = computed(() => this.cache.menuEngineering.error());
   readonly report = computed(() => this.cache.menuEngineering.data());
   readonly notes = computed(() => this.report()?.notes ?? []);
-  readonly completeness = computed<DataCompleteness>(
-    () => this.report()?.dataCompleteness ?? 'EMPTY',
+  readonly completeness = computed(() => this.report()?.dataCompleteness ?? 'EMPTY');
+  readonly errorInfo = computed(() => {
+    const error = this.error();
+    return error === undefined ? null : describeAnalyticsError(error);
+  });
+
+  readonly rangeLabel = this.period.label;
+  readonly subtitle = computed(
+    () => `Qué productos dejan plata y cuáles revisar · agrupado por ${bucketLabel(this.period.bucket()).toLowerCase()}`,
   );
-  readonly median = computed(() => this.report()?.median ?? null);
-  readonly cacheStatus = computed(() => this.report()?.cacheStatus ?? null);
+
   readonly categoryId = signal<number | undefined>(undefined);
   readonly selectedQuadrant = signal<MenuQuadrant | null>(null);
+  readonly refreshing = signal(false);
 
-  readonly items = computed<MenuEngineeringItem[]>(() => {
-    const all = this.report()?.items ?? [];
-    const cat = this.categoryId();
-    const q = this.selectedQuadrant();
-    return all.filter((i) => {
-      if (cat !== undefined && i.categoryId !== cat) return false;
-      if (q !== null && i.quadrant !== q) return false;
-      return true;
-    }).sort((a, b) => {
-      const qa = QUADRANT_ORDER[a.quadrant];
-      const qb = QUADRANT_ORDER[b.quadrant];
-      if (qa !== qb) return qa - qb;
-      return a.productName.localeCompare(b.productName);
-    });
-  });
-
-  readonly quadrantSummary = computed<readonly QuadrantSummary[]>(() => {
-    const items = this.report()?.items ?? [];
-    const counts: Record<MenuQuadrant, MenuEngineeringItem[]> = {
-      STAR: [], PLOWHORSE: [], PUZZLE: [], DOG: [],
-    };
-    for (const item of items) counts[item.quadrant].push(item);
-    const sortedByContribution = (a: MenuEngineeringItem, b: MenuEngineeringItem): number =>
-      Number.parseFloat(b.totalContribution.amount) - Number.parseFloat(a.totalContribution.amount);
-    return (['STAR', 'PLOWHORSE', 'PUZZLE', 'DOG'] as const).map((q) => {
-      const list = [...counts[q]].sort(sortedByContribution);
-      const totalContribution = list.reduce(
-        (acc, it) => acc + Number.parseFloat(it.totalContribution.amount),
-        0,
-      );
-      // Dedupe by name so two distinct products with the same name don't
-      // both surface in the top-items list of the same quadrant.
-      const seenNames = new Set<string>();
-      const topItems: string[] = [];
-      for (const item of list) {
-        if (topItems.length >= 3) break;
-        const key = item.productName.trim().toLocaleLowerCase('es-CO');
-        if (seenNames.has(key)) continue;
-        seenNames.add(key);
-        topItems.push(item.productName);
-      }
-      return {
-        quadrant: q,
-        meta: QUADRANT_META[q],
-        count: list.length,
-        totalContribution,
-        topItems,
-      };
-    });
-  });
-
-  readonly groupedItems = computed<{ quadrant: MenuQuadrant; meta: QuadrantMeta; items: MenuEngineeringItem[] }[]>(() => {
-    const items = this.items();
-    const groups: Record<MenuQuadrant, MenuEngineeringItem[]> = {
-      STAR: [], PLOWHORSE: [], PUZZLE: [], DOG: [],
-    };
-    for (const item of items) groups[item.quadrant].push(item);
-    return (['STAR', 'PLOWHORSE', 'PUZZLE', 'DOG'] as const)
-      .map((q) => ({ quadrant: q, meta: QUADRANT_META[q], items: groups[q] }))
-      .filter((g) => g.items.length > 0);
-  });
-
-  readonly categories = computed<MenuEngineeringCategoryOption[]>(() => {
+  readonly categoryOptions = computed<RmsSelectOption[]>(() => {
     const seen = new Map<number, string>();
     for (const item of this.report()?.items ?? []) {
       if (item.categoryId === null) continue;
@@ -191,225 +130,194 @@ export class MenuEngineering {
         seen.set(item.categoryId, item.categoryName ?? `Categoría ${String(item.categoryId)}`);
       }
     }
-    return Array.from(seen, ([id, name]) => ({ id, name })).sort((a, b) =>
-      a.name.localeCompare(b.name),
+    return Array.from(seen, ([id, name]) => ({ label: name, value: id })).sort((a, b) =>
+      a.label.localeCompare(b.label),
     );
   });
 
-  readonly stats = computed<MenuEngineeringStats>(() => {
-    const items = this.items();
-    const totalContribution = items.reduce(
-      (acc, it) => acc + Number.parseFloat(it.totalContribution.amount),
-      0,
-    );
-    const m = this.median();
+  readonly allItems = computed(() => this.report()?.items ?? []);
+
+  readonly filteredItems = computed(() => {
+    const category = this.categoryId();
+    const quadrant = this.selectedQuadrant();
+    return this.allItems()
+      .filter((item) => category === undefined || item.categoryId === category)
+      .filter((item) => quadrant === null || item.quadrant === quadrant)
+      .sort((a, b) => {
+        const order = QUADRANT_ORDER[a.quadrant] - QUADRANT_ORDER[b.quadrant];
+        if (order !== 0) return order;
+        return moneyNumber(b.totalContribution) - moneyNumber(a.totalContribution);
+      });
+  });
+
+  readonly isEmpty = computed(
+    () =>
+      !this.isLoading() &&
+      this.error() === undefined &&
+      (this.allItems().length === 0 || this.completeness() === 'EMPTY'),
+  );
+  readonly busy = computed(() => this.isLoading() && this.report() === null);
+
+  readonly stats = computed(() => {
+    const items = this.filteredItems();
+    const median = this.report()?.median;
     return {
       count: items.length,
-      totalContribution,
-      medianVolume: m ? m.volume : null,
-      medianMargin: m ? Number.parseFloat(m.margin.amount) : null,
+      contribution: sumMoney(items.map((item) => item.totalContribution)),
+      medianVolume: median?.volume ?? null,
+      medianMargin: median?.margin ?? null,
     };
   });
 
-  readonly quadrantChartData = computed(() => {
-    const items = this.items();
-    const maxUnits = Math.max(1, ...items.map((i) => i.unitsSold));
-    const groups: Record<MenuQuadrant, { x: number; y: number; r: number; name: string }[]> = {
-      STAR: [], PLOWHORSE: [], PUZZLE: [], DOG: [],
-    };
-    for (const it of items) {
-      groups[it.quadrant].push({
-        x: Number.parseFloat(it.grossProfitPerUnit.amount),
-        y: Math.max(0, it.unitsSold),
-        r: Math.max(4, Math.round((it.unitsSold / maxUnits) * 18)),
-        name: it.productName,
-      });
-    }
-    const palette: Record<MenuQuadrant, string> = {
-      STAR: '#22c55e', PLOWHORSE: '#f59e0b', PUZZLE: '#3b82f6', DOG: '#ef4444',
-    };
+  readonly summaries = computed<QuadrantSummary[]>(() => {
+    const items = this.allItems();
+    return QUADRANTS.map((quadrant) => {
+      const rows = items
+        .filter((item) => item.quadrant === quadrant)
+        .sort((a, b) => moneyNumber(b.totalContribution) - moneyNumber(a.totalContribution));
+      const names: string[] = [];
+      for (const row of rows) {
+        if (names.length >= 3) break;
+        if (!names.includes(row.productName)) names.push(row.productName);
+      }
+      return {
+        quadrant,
+        meta: QUADRANT_META[quadrant],
+        count: rows.length,
+        contribution: sumMoney(rows.map((row) => row.totalContribution)),
+        topItems: names,
+      };
+    });
+  });
+
+  readonly refreshedLabel = computed(() => {
+    const raw = this.report()?.cacheStatus.lastRefreshedAt;
+    if (raw === undefined || raw.length === 0) return null;
+    const date = new Date(raw);
+    if (Number.isNaN(date.getTime())) return null;
+    return new Intl.DateTimeFormat('es-CO', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(date);
+  });
+
+  readonly chartOptions = bubbleOptions();
+
+  readonly quadrantColors = computed<Record<MenuQuadrant, string>>(() => ({
+    STAR: readRmsToken('--rms-success-fg', '#065f46'),
+    PLOWHORSE: readRmsToken('--rms-warning-fg', '#92400e'),
+    PUZZLE: readRmsToken('--rms-info-fg', '#1d4ed8'),
+    DOG: readRmsToken('--rms-danger-fg', '#b91c1c'),
+  }));
+
+  readonly chartData = computed<ChartData<'bubble'>>(() => {
+    const items = this.filteredItems();
+    const colors = this.quadrantColors();
+    const maxUnits = Math.max(1, ...items.map((item) => item.unitsSold));
     return {
-      datasets: (['STAR', 'PLOWHORSE', 'PUZZLE', 'DOG'] as const).map((q) => ({
-        label: QUADRANT_META[q].label,
-        data: groups[q],
-        backgroundColor: palette[q] + 'cc',
-        borderColor: palette[q],
+      datasets: QUADRANTS.map((quadrant) => ({
+        label: QUADRANT_META[quadrant].label,
+        data: items
+          .filter((item) => item.quadrant === quadrant)
+          .map((item) => ({
+            x: moneyNumber(item.grossProfitPerUnit),
+            y: item.unitsSold,
+            r: Math.max(4, Math.round((item.unitsSold / maxUnits) * 18)),
+            name: item.productName,
+          })),
+        backgroundColor: `${colors[quadrant]}99`,
+        borderColor: colors[quadrant],
       })),
     };
   });
 
-  private readonly yTitle = 'Unidades vendidas';
-
-  readonly quadrantChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'bottom' as const },
-    },
-    scales: {
-      x: {
-        type: 'linear' as const,
-        title: { display: true, text: 'Margen por unidad (COP)' },
-      },
-      y: {
-        type: 'linear' as const,
-        beginAtZero: true,
-        title: { display: true, text: 'Unidades vendidas' },
-      },
-    },
-  };
-
-  readonly selectedQuadrantMeta = computed<QuadrantMeta | null>(() => {
-    const q = this.selectedQuadrant();
-    return q ? QUADRANT_META[q] : null;
+  readonly chartSummary = computed(() => {
+    const items = this.filteredItems();
+    const stars = items.filter((item) => item.quadrant === 'STAR').length;
+    const dogs = items.filter((item) => item.quadrant === 'DOG').length;
+    return `${String(items.length)} productos: ${String(stars)} estrella y ${String(dogs)} a revisar`;
   });
+
+  readonly tableRows = computed(() =>
+    this.filteredItems().map((item) => ({
+      item,
+      sellPrice: sellPricePerUnit(item),
+      marginPct: marginPercent(item),
+    })),
+  );
 
   constructor() {
     effect(() => {
       this.period.period();
+      this.period.revision();
       this.cache.menuEngineering.load();
     });
   }
 
-  private readonly period = inject(AnalyticsPeriodState);
-
-  quadrantMeta(q: MenuQuadrant): QuadrantMeta {
-    return QUADRANT_META[q];
+  reload(): void {
+    this.cache.menuEngineering.refresh();
   }
 
-  quadrantLabel(q: MenuQuadrant): string {
-    return QUADRANT_META[q].label;
+  refresh(): void {
+    if (this.refreshing()) return;
+    this.refreshing.set(true);
+    this.cache
+      .refreshAll()
+      .pipe(
+        finalize(() => {
+          this.refreshing.set(false);
+        }),
+      )
+      .subscribe({
+        error: () => {
+          // The shell-wide notice covers the failure; keep the current report.
+        },
+      });
   }
 
-  quadrantIcon(q: MenuQuadrant): string {
-    return QUADRANT_META[q].icon;
+  onCategoryChange(value: string | number | null): void {
+    this.categoryId.set(typeof value === 'number' ? value : undefined);
   }
 
-  quadrantBorderClass(q: MenuQuadrant): string {
-    return QUADRANT_META[q].borderClass;
+  toggleQuadrant(quadrant: MenuQuadrant): void {
+    this.selectedQuadrant.update((current) => (current === quadrant ? null : quadrant));
   }
 
-  quadrantBorderLeftClass(q: MenuQuadrant): string {
-    const map: Record<MenuQuadrant, string> = {
-      STAR: 'border-l-4 border-green-500',
-      PLOWHORSE: 'border-l-4 border-amber-500',
-      PUZZLE: 'border-l-4 border-blue-500',
-      DOG: 'border-l-4 border-red-500',
-    };
-    return map[q];
-  }
-
-  quadrantBgClass(q: MenuQuadrant): string {
-    return QUADRANT_META[q].bgClass;
-  }
-
-  quadrantAction(q: MenuQuadrant): string {
-    return QUADRANT_META[q].action;
-  }
-
-  quadrantSeverity(q: MenuQuadrant): 'success' | 'warn' | 'info' | 'danger' {
-    const map = { STAR: 'success', PLOWHORSE: 'warn', PUZZLE: 'info', DOG: 'danger' } as const;
-    return map[q];
-  }
-
-  /**
-   * Numeric accessor for Money.amount, used by the custom sort comparator below.
-   * PrimeNG's default sort uses localeCompare on string paths which sorts
-   * "1000.00" before "999.00"; this helper makes the sort numeric.
-   */
-  moneyAmount(item: MenuEngineeringItem, key: 'revenue' | 'grossProfitPerUnit' | 'totalContribution'): number {
-    return Number.parseFloat(item[key].amount);
-  }
-
-  /** Selling price per unit = total revenue / units sold. Returns null if no units sold. */
-  sellPricePerUnit(item: MenuEngineeringItem): MoneyModel | null {
-    if (item.unitsSold <= 0) return null;
-    const price = Number.parseFloat(item.revenue.amount) / item.unitsSold;
-    return { amount: price.toFixed(2), currency: item.revenue.currency };
-  }
-
-  /** Margin % = (gross profit per unit / sell price per unit) * 100. Returns null if no units sold. */
-  marginPercent(item: MenuEngineeringItem): number | null {
-    if (item.unitsSold <= 0) return null;
-    const price = Number.parseFloat(item.revenue.amount) / item.unitsSold;
-    if (price <= 0) return null;
-    const gpPerUnit = Number.parseFloat(item.grossProfitPerUnit.amount);
-    return (gpPerUnit / price) * 100;
-  }
-
-  fmtPercent(value: number | null | undefined): string {
-    if (value === null || value === undefined || Number.isNaN(value)) return '—';
-    return `${value.toFixed(1)}%`;
-  }
-
-  /** Money wrapper for the total contribution stat card (Money pipe input). */
-  totalContributionMoney(): MoneyModel {
-    const items = this.items();
-    const currency = items[0]?.totalContribution.currency ?? 'COP';
-    return { amount: this.stats().totalContribution.toFixed(2), currency };
-  }
-
-  /** Money wrapper for the median margin stat card (Money pipe input). */
-  medianMarginMoney(): MoneyModel | null {
-    const m = this.median();
-    return m ? m.margin : null;
-  }
-
-  onCategoryChange(value: number | null | undefined): void {
-    this.categoryId.set(value ?? undefined);
-  }
-
-  clearCategory(): void {
-    this.categoryId.set(undefined);
-  }
-
-  onQuadrantClick(q: MenuQuadrant): void {
-    this.selectedQuadrant.update((current) => (current === q ? null : q));
-  }
-
-  clearQuadrantFilter(): void {
+  clearQuadrant(): void {
     this.selectedQuadrant.set(null);
   }
 
-  isQuadrantSelected(q: MenuQuadrant): boolean {
-    return this.selectedQuadrant() === q;
+  isSelected(quadrant: MenuQuadrant): boolean {
+    return this.selectedQuadrant() === quadrant;
   }
 
-  onSort(event: { data?: MenuEngineeringItem[]; field?: string; order?: number }): void {
-    const data = event.data;
-    if (!data || !event.field) return;
-    const order = event.order ?? 1;
-    const field = event.field;
-    const compare = (a: MenuEngineeringItem, b: MenuEngineeringItem): number => {
-      switch (field) {
-        case 'productName':
-          return a.productName.localeCompare(b.productName);
-        case 'unitsSold':
-          return a.unitsSold - b.unitsSold;
-        case 'recipeCost':
-          return Number.parseFloat(a.recipeCost.amount) - Number.parseFloat(b.recipeCost.amount);
-        case 'sellPricePerUnit': {
-          const pa = this.sellPricePerUnit(a)?.amount ?? '0';
-          const pb = this.sellPricePerUnit(b)?.amount ?? '0';
-          return Number.parseFloat(pa) - Number.parseFloat(pb);
-        }
-        case 'marginPercent': {
-          const ma = this.marginPercent(a) ?? 0;
-          const mb = this.marginPercent(b) ?? 0;
-          return ma - mb;
-        }
-        case 'revenue':
-          return this.moneyAmount(a, 'revenue') - this.moneyAmount(b, 'revenue');
-        case 'grossProfitPerUnit':
-          return this.moneyAmount(a, 'grossProfitPerUnit') - this.moneyAmount(b, 'grossProfitPerUnit');
-        case 'totalContribution':
-          return this.moneyAmount(a, 'totalContribution') - this.moneyAmount(b, 'totalContribution');
-        default:
-          return 0;
-      }
-    };
-    data.sort((x, y) => order * compare(x, y));
+  quadrantMeta(quadrant: MenuQuadrant): QuadrantMeta {
+    return QUADRANT_META[quadrant];
   }
 
-  reload(): void { this.cache.menuEngineering.refresh(); }
+  exportCsv(): void {
+    const report = this.report();
+    if (report === null) return;
+    downloadCsv(`menu-${report.period.from}-${report.period.to}.csv`, menuEngineeringCsv(report));
+  }
+
+  buildCsv(): string {
+    const report = this.report();
+    return report === null ? '' : menuEngineeringCsv(report);
+  }
+
+  readonly formatPct = formatPct;
+}
+
+function moneyNumber(value: Money | null | undefined): number {
+  if (value === null || value === undefined) return 0;
+  return Number.parseFloat(value.amount);
+}
+
+function sellPricePerUnit(item: MenuEngineeringItem): Money | null {
+  return divideMoney(item.revenue, item.unitsSold);
+}
+
+function marginPercent(item: MenuEngineeringItem): number | null {
+  return pctOf(item.grossProfitPerUnit, sellPricePerUnit(item));
 }

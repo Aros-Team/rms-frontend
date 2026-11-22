@@ -1,0 +1,42 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+:host ::ng-deep .p-select {
+  width: 100%;
+  min-height: var(--rms-control-md);
+  border: var(--rms-border-width) solid var(--rms-control-border);
+  border-radius: var(--rms-control-radius);
+  background: var(--rms-control-bg);
+  color: var(--rms-text);
+  font-family: var(--rms-font-sans);
+  font-size: var(--rms-type-body-size);
+}
+
+:host ::ng-deep .p-select:not(.p-disabled):hover {
+  border-color: var(--rms-neutral-400);
+}
+
+:host ::ng-deep .p-select:not(.p-disabled).p-focus {
+  border-color: var(--rms-focus);
+  box-shadow: none;
+}
+
+:host ::ng-deep .p-select .p-select-label {
+  padding: 0 var(--rms-space-3);
+  line-height: var(--rms-control-md);
+}
+
+:host ::ng-deep .p-select .p-select-label.p-placeholder {
+  color: var(--rms-text-muted);
+}
+
+:host ::ng-deep .p-select .p-select-dropdown {
+  color: var(--rms-text-muted);
+}
+
+/* Error state: the field wrapper flags the group, the control follows. */
+:host-context(.rms-field--invalid) ::ng-deep .p-select {
+  border-color: var(--rms-danger-fg);
+}

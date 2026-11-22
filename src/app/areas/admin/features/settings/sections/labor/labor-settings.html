@@ -1,0 +1,115 @@
+<app-rms-section
+  title="Costo de nómina"
+  description="Elige cómo el motor de costos calcula la mano de obra de cada producto."
+>
+  @if (loading()) {
+    <div class="flex flex-col gap-3">
+      <app-rms-skeleton height="2.5rem" ariaLabel="Cargando la configuración de nómina" />
+      <app-rms-skeleton height="2.5rem" />
+      <app-rms-skeleton height="2rem" />
+    </div>
+  } @else if (loadError()) {
+    <app-rms-empty-state
+      icon="pi pi-exclamation-triangle"
+      title="No se pudo cargar la nómina"
+      [message]="loadError()"
+      actionLabel="Reintentar"
+      actionIcon="pi pi-refresh"
+      (action)="load()"
+    />
+  } @else {
+    <div class="flex flex-col gap-5">
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate class="flex flex-col gap-5">
+        @if (saveError()) {
+          <p
+            role="alert"
+            class="rounded-lg border border-rms-danger bg-rms-surface px-4 py-3 text-rms-body text-rms-danger"
+          >
+            {{ saveError() }}
+          </p>
+        }
+
+        <div class="grid gap-4 lg:grid-cols-3">
+          <div class="lg:col-span-3">
+            <app-rms-select
+              id="labor-mode"
+              formControlName="mode"
+              label="Modo de costo de mano de obra"
+              hint="Se aplica al costo primo y al margen de todos los productos."
+              [required]="true"
+              [options]="modeOptions"
+            />
+          </div>
+
+          <app-rms-input
+            id="labor-rate"
+            formControlName="standardHourlyRate"
+            label="Tarifa estándar por hora"
+            type="number"
+            inputMode="decimal"
+            [hint]="'Importe por hora en ' + currency() + ' (moneda activa).'"
+            [required]="true"
+            [error]="controlError('standardHourlyRate')"
+          />
+
+          <app-rms-input
+            id="labor-hours"
+            formControlName="defaultExpectedHoursPerMonth"
+            label="Horas esperadas por mes"
+            type="number"
+            inputMode="numeric"
+            hint="Se usa cuando un trabajador no tiene horas propias registradas (0 a 744)."
+            [required]="true"
+            [error]="controlError('defaultExpectedHoursPerMonth')"
+          />
+
+          <div class="rounded-lg border border-rms-border bg-rms-subtle px-4 py-3">
+            <p class="text-rms-label uppercase tracking-wide text-rms-ink-muted">
+              Base de cálculo
+            </p>
+            <p class="mt-1 text-rms-body text-rms-ink">
+              La tarifa estándar es el último respaldo de todos los modos. Si queda en cero y no
+              hay nómina, el costo de mano de obra será cero.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-3 border-t border-rms-border pt-4">
+          <h3 class="text-rms-h4 text-rms-ink">Cómo afecta cada modo</h3>
+          <ul class="grid gap-3 md:grid-cols-3">
+            @for (mode of modes; track mode.id) {
+              <li
+                class="rounded-lg border px-4 py-3"
+                [class.border-rms-brand-text]="modeValue() === mode.id"
+                [class.bg-rms-brand-soft]="modeValue() === mode.id"
+                [class.border-rms-border]="modeValue() !== mode.id"
+              >
+                <p class="flex items-center gap-2 text-rms-h4 text-rms-ink">
+                  {{ mode.label }}
+                  @if (modeValue() === mode.id) {
+                    <span class="text-rms-caption font-semibold text-rms-brand-text">Activo</span>
+                  }
+                </p>
+                <p class="mt-1 text-rms-caption text-rms-ink-secondary">{{ mode.description }}</p>
+              </li>
+            }
+          </ul>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-end gap-3 border-t border-rms-border pt-4">
+          <app-rms-button
+            variant="secondary"
+            type="button"
+            [disabled]="!dirty() || saving()"
+            (click)="reset()"
+          >
+            Descartar cambios
+          </app-rms-button>
+          <app-rms-button type="submit" [disabled]="!dirty() || saving()" [loading]="saving()">
+            Guardar cambios
+          </app-rms-button>
+        </div>
+      </form>
+    </div>
+  }
+</app-rms-section>

@@ -1,48 +1,125 @@
 /**
- * Tests for the Operations analytics page.
+ * Tests for the Operations section.
  *
- * Feature: Deprecated analytics page that displays a "no longer available" warning.
- * Contract: Renders a p-message warning with text "ya no está disponible".
- * Approach: Mount component via TestBed, locate the p-message element,
- * assert its rendered text attribute matches the expected warning.
+ * Feature: RevPASH, covers, turns, labor share and previous-period comparison.
+ * Contract: KPIs come from the report and the deltas compare against a second
+ * request for the previous equivalent range.
+ * Approach: mount with current + previous cache stubs.
  */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
-import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
-import { beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
+
+import { AnalyticsCache } from '@app/core/services/analytics/analytics-cache';
+import { AnalyticsPeriodState } from '@app/core/services/analytics/analytics-period-state';
 
 import { Operations } from './operations';
-import operationsHtml from './operations.html?raw';
+import operationsHtmlRaw from './operations.html?raw';
+import {
+  installCanvasContextStub,
+  makeCacheStub,
+  makeOperationsReport,
+  resolveTemplates,
+} from '../../testing/analytics-testing';
+
+const operationsHtml = operationsHtmlRaw as string;
+
+function previousReport() {
+  return makeOperationsReport({
+    revPash: {
+      value: { amount: '7000.00', currency: 'COP' },
+      totalNetSales: { amount: '1000000.00', currency: 'COP' },
+      totalAvailableSeatHours: 1000,
+    },
+    tableTurnover: {
+      overall: 2000,
+      byDayPart: [{ dayPart: 'LUNCH', turns: 800, covers: 15000, tables: 20 }],
+    },
+    labor: { totalCost: { amount: '150000.00', currency: 'COP' }, sharePct: 15 },
+    covers: 40000,
+    avgOccupancyMinutes: 50,
+  });
+}
 
 describe('Operations', () => {
   beforeAll(async () => {
-    await resolveComponentResources((url: string) => {
-      if (url.endsWith('operations.html')) {
-        return Promise.resolve(operationsHtml as unknown as string);
-      }
-      return Promise.resolve('');
-    });
+    installCanvasContextStub();
+    await resolveTemplates({ 'operations.html': operationsHtml });
   });
 
-  async function setup(): Promise<ComponentFixture<Operations>> {
+  async function setup(
+    cache: ReturnType<typeof makeCacheStub>,
+  ): Promise<ComponentFixture<Operations>> {
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [Operations],
+      providers: [
+        { provide: AnalyticsCache, useValue: cache },
+        AnalyticsPeriodState,
+      ],
     }).compileComponents();
     const fixture = TestBed.createComponent(Operations);
     fixture.detectChanges();
     return fixture;
   }
 
-  function getRoot(fixture: ComponentFixture<Operations>): HTMLElement {
-    return fixture.nativeElement as HTMLElement;
-  }
+  it('loads current and previous reports', async () => {
+    const cache = makeCacheStub({
+      operations: { data: makeOperationsReport() },
+      operationsPrevious: { data: previousReport() },
+    });
+    const currentLoad = vi.fn();
+    const previousLoad = vi.fn();
+    cache.operations.load = currentLoad;
+    cache.operationsPrevious.load = previousLoad;
+    await setup(cache);
+    expect(currentLoad).toHaveBeenCalledTimes(1);
+    expect(previousLoad).toHaveBeenCalledTimes(1);
+  });
 
-  it('renders the unavailable message in a p-message element', async () => {
-    const fixture = await setup();
-    const messageEl = getRoot(fixture).querySelector('p-message');
-    expect(messageEl?.getAttribute('severity')).toBe('warn');
-    expect(messageEl?.getAttribute('text')).toBe(
-      'Esta funcionalidad ya no está disponible. Los datos de operaciones han sido removidos del backend.',
+  it('computes the comparison deltas against the previous range', async () => {
+    const fixture = await setup(
+      makeCacheStub({
+        operations: { data: makeOperationsReport() },
+        operationsPrevious: { data: previousReport() },
+      }),
     );
+    const component = fixture.componentInstance;
+    expect(component.revPashDelta().text).toBe('+22,1% vs anterior');
+    expect(component.revPashDelta().tone).toBe('positive');
+    expect(component.coversDelta().text).toBe('+11,9% vs anterior');
+    expect(component.turnsDelta().text).toBe('+11,9% vs anterior');
+    expect(component.laborDelta().text).toBe('-1,6 pp vs anterior');
+    expect(component.laborDelta().tone).toBe('positive');
+    expect(component.occupancyDelta().text).toBe('+21,0% vs anterior');
+  });
+
+  it('charts the day-part turns', async () => {
+    const fixture = await setup(
+      makeCacheStub({ operations: { data: makeOperationsReport() } }),
+    );
+    const chart = fixture.componentInstance.chartData();
+    expect(chart.labels).toEqual(['Almuerzo', 'Cena', 'Otros']);
+    expect(chart.datasets[0]?.data).toEqual([846, 1234.85, 157.05]);
+  });
+
+  it('labels the comparison period', async () => {
+    const fixture = await setup(
+      makeCacheStub({ operations: { data: makeOperationsReport() } }),
+    );
+    expect(fixture.componentInstance.previousLabel()).toContain('–');
+  });
+
+  it('exports the operations metrics', async () => {
+    const fixture = await setup(
+      makeCacheStub({ operations: { data: makeOperationsReport() } }),
+    );
+    const csv = fixture.componentInstance.buildCsv();
+    expect(csv).toContain('RevPASH');
+    expect(csv).toContain('Rotacion LUNCH');
+  });
+
+  it('is empty without a report', async () => {
+    const fixture = await setup(makeCacheStub());
+    expect(fixture.componentInstance.isEmpty()).toBe(true);
   });
 });

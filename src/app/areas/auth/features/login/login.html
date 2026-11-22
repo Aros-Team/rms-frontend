@@ -1,5 +1,7 @@
 
 <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5 w-full">
+  <h1 class="text-xl font-bold text-surface-900 dark:text-surface-100">Iniciar sesión</h1>
+
   <!-- Email -->
   <div class="flex flex-col gap-1.5">
     <label for="username" class="text-sm font-medium text-surface-700 dark:text-surface-300">Correo electrónico</label>
@@ -11,6 +13,7 @@
         formControlName="username"
         [invalid]="isInvalid('username')"
         placeholder="usuario@dominio.com"
+        autocomplete="username"
         class="w-full pl-10"
       />
 
@@ -31,6 +34,7 @@
       [toggleMask]="true"
       placeholder="••••••••"
       fluid
+      autocomplete="current-password"
       ariaLabel="Contraseña"
     />
     @if (isInvalid('password')) {

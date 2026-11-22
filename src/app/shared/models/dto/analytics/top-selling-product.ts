@@ -1,8 +1,16 @@
-import type { ProductResponse } from '@app/shared/models/dto/products/product-response';
+import { Money } from './money';
 
 /**
- * `GET /v1/products/top-selling` answers with the regular `ProductResponse`
- * shape (see `ProductController#getTopSelling`); it is not a bespoke
- * "sold quantity" payload. Kept as an alias so existing imports stay valid.
+ * Wire shape of `GET /api/v1/products/top-selling`.
+ *
+ * The endpoint ranks products by units sold inside a concrete date range and
+ * returns the revenue per product as a `MoneyDto`. It is not the product list:
+ * it carries `rank`, `unitsSold` and `revenue`, no catalogue fields.
  */
-export type TopSellingProduct = ProductResponse;
+export interface TopSellingProduct {
+  rank: number;
+  productId: number;
+  productName: string;
+  unitsSold: number;
+  revenue: Money;
+}

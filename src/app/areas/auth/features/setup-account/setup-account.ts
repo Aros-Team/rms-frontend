@@ -66,7 +66,7 @@ export class SetupAccount implements OnInit {
   ngOnInit(): void {
     this.token = this.route.snapshot.queryParamMap.get('token') ?? '';
     if (!this.token) {
-      this.error.set('Token no proporcionado');
+      this.error.set('missing_token');
       this.loading.set(false);
       return;
     }

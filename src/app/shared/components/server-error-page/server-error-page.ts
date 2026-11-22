@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { Auth } from '@services/auth/auth';
 import { ServerStatus } from '@core/services/server-status/server-status';
+import { homeRouteFor } from '@app/core/config/navigation/role-navigation';
 
 @Component({
   selector: 'app-server-error-page',
@@ -18,12 +19,11 @@ export class ServerErrorPage {
   retry(): void {
     this.authService.loadUserInfo().subscribe({
       next: (userInfo) => {
-        const url = userInfo.role === 'ADMIN' ? '/admin' : '/worker';
-        void this.router.navigate([url]);
+        void this.router.navigate([homeRouteFor(userInfo)]);
       },
       error: () => {
         this.serverStatus.check();
-      }
+      },
     });
   }
 

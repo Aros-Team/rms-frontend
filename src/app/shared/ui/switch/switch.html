@@ -1,0 +1,17 @@
+<button
+  class="rms-switch"
+  type="button"
+  role="switch"
+  [id]="switchId"
+  [attr.aria-checked]="checked()"
+  [disabled]="isDisabled"
+  (click)="toggle()"
+>
+  <span class="rms-switch__track" aria-hidden="true">
+    <span class="rms-switch__thumb"></span>
+  </span>
+  <span class="rms-switch__label">{{ label }}</span>
+  @if (showState) {
+    <span class="rms-switch__state" aria-hidden="true">{{ stateLabel }}</span>
+  }
+</button>

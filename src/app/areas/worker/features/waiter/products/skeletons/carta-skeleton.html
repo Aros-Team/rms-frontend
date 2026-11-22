@@ -1,29 +1,22 @@
-<div class="px-4 py-4">
-  <!-- Search bar skeleton -->
-  <p-skeleton width="100%" height="42px" styleClass="mb-4" borderRadius="12px" />
+<div class="px-1 py-1" role="status" aria-label="Cargando la carta">
+  <p-skeleton width="100%" height="48px" styleClass="mb-3" borderRadius="8px" />
 
-  <!-- Category tabs skeleton -->
-  <div class="flex gap-2 mb-4 overflow-x-auto">
-    <p-skeleton width="60px" height="32px" borderRadius="8px" />
-    <p-skeleton width="80px" height="32px" borderRadius="8px" />
-    <p-skeleton width="70px" height="32px" borderRadius="8px" />
-    <p-skeleton width="90px" height="32px" borderRadius="8px" />
-    <p-skeleton width="65px" height="32px" borderRadius="8px" />
+  <div class="flex gap-2 mb-3 overflow-x-auto">
+    <p-skeleton width="70px" height="44px" borderRadius="999px" />
+    <p-skeleton width="88px" height="44px" borderRadius="999px" />
+    <p-skeleton width="72px" height="44px" borderRadius="999px" />
+    <p-skeleton width="96px" height="44px" borderRadius="999px" />
   </div>
 
-  <!-- Product cards grid skeleton -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-    @for (_ of [1,2,3,4,5,6,7,8]; track $index) {
-      <div class="bg-primary-contrast dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 overflow-hidden">
-        <p-skeleton width="100%" height="128px" borderRadius="0" />
-        <div class="p-3 flex flex-col gap-2">
-          <p-skeleton width="80%" height="0.875rem" />
-          <p-skeleton width="60%" height="0.75rem" />
-          <div class="flex items-center justify-between mt-1">
-            <p-skeleton width="50px" height="0.875rem" />
-            <p-skeleton width="60px" height="0.75rem" />
-          </div>
+  <div class="flex flex-col gap-2">
+    @for (_ of [1,2,3,4,5,6]; track $index) {
+      <div class="flex items-center gap-3 rounded-xl border border-rms-border bg-rms-surface p-2">
+        <p-skeleton width="60px" height="60px" borderRadius="8px" />
+        <div class="flex flex-1 flex-col gap-2">
+          <p-skeleton width="70%" height="0.95rem" />
+          <p-skeleton width="45%" height="0.75rem" />
         </div>
+        <p-skeleton width="44px" height="44px" borderRadius="999px" />
       </div>
     }
   </div>

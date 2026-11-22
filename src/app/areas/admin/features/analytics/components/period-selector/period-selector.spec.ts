@@ -1,78 +1,26 @@
 /**
- * Tests for the PeriodSelector component.
+ * Tests for the shared period selector.
  *
- * Feature: Date range selector for analytics periods with predefined and custom ranges.
- * Contract: Emits selected period, handles quick ranges and custom dates, shows correct labels.
- * Approach: Mount component via TestBed, simulate period selections, assert emitted values.
+ * Feature: bucket, preset and manual range over one period state.
+ * Contract: the collapsed label is derived from the applied keys (F-014), the
+ * docked toggle exposes aria-expanded, and apply/reset update the shared state.
+ * Approach: mount the component with the real state under a frozen clock.
  */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
-import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AnalyticsPeriodState } from '@app/core/services/analytics/analytics-period-state';
 
-import { PeriodSelector, type PeriodSelectorVariant } from './period-selector';
-import periodSelectorHtml from './period-selector.html?raw';
+import { PeriodSelector } from './period-selector';
+import selectorHtmlRaw from './period-selector.html?raw';
+import { resolveTemplates } from '../../testing/analytics-testing';
 
-function setInputValue(input: HTMLInputElement, value: string): void {
-  input.value = value;
-  input.dispatchEvent(new Event('input', { bubbles: true }));
-}
-
-function getInputById(root: HTMLElement, id: string): HTMLInputElement {
-  const el = root.querySelector(`#${id}`);
-  if (!(el instanceof HTMLInputElement)) {
-    throw new Error(`Input #${id} not found or not an HTMLInputElement`);
-  }
-  return el;
-}
-
-function getButtonByLabel(root: HTMLElement, label: string): HTMLButtonElement {
-  const buttons = Array.from(root.querySelectorAll('p-button button'));
-  const match = buttons.find((btn) => btn.textContent.trim() === label);
-  if (match === undefined) {
-    throw new Error(`Button with label "${label}" not found`);
-  }
-  return match;
-}
-
-function clickButton(button: HTMLButtonElement): void {
-  button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-}
-
-async function configure(variant: PeriodSelectorVariant): Promise<{
-  fixture: ComponentFixture<PeriodSelector>;
-  component: PeriodSelector;
-  state: AnalyticsPeriodState;
-}> {
-  TestBed.resetTestingModule();
-  await TestBed.configureTestingModule({
-    imports: [PeriodSelector],
-    providers: [provideRouter([]), AnalyticsPeriodState],
-  }).compileComponents();
-
-  const fixture = TestBed.createComponent(PeriodSelector);
-  fixture.componentInstance.setVariant(variant);
-  fixture.detectChanges();
-  await Promise.resolve();
-  fixture.detectChanges();
-
-  return {
-    fixture,
-    component: fixture.componentInstance,
-    state: TestBed.inject(AnalyticsPeriodState),
-  };
-}
+const selectorHtml = selectorHtmlRaw as string;
 
 describe('PeriodSelector', () => {
   beforeAll(async () => {
-    await resolveComponentResources((url: string) => {
-      if (url.endsWith('period-selector.html')) {
-        return Promise.resolve(periodSelectorHtml as unknown as string);
-      }
-      return Promise.resolve('');
-    });
+    await resolveTemplates({ 'period-selector.html': selectorHtml });
   });
 
   beforeEach(() => {
@@ -84,295 +32,88 @@ describe('PeriodSelector', () => {
     vi.useRealTimers();
   });
 
-  function getRoot(fixture: ComponentFixture<PeriodSelector>): HTMLElement {
-    return fixture.nativeElement as HTMLElement;
+  async function setup(): Promise<{
+    fixture: ComponentFixture<PeriodSelector>;
+    state: AnalyticsPeriodState;
+  }> {
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [PeriodSelector],
+      providers: [provideRouter([]), AnalyticsPeriodState],
+    }).compileComponents();
+    const state = TestBed.inject(AnalyticsPeriodState);
+    const fixture = TestBed.createComponent(PeriodSelector);
+    fixture.componentInstance.setVariant('docked');
+    fixture.detectChanges();
+    return { fixture, state };
   }
 
-  describe('inline variant', () => {
-    it('exposes the last-6-month range ending at the current month', async () => {
-      const { component } = await configure('inline');
-      expect(component.from()).toBe('2026-02');
-      expect(component.to()).toBe('2026-07');
-    });
-
-    it('renders the resolved from/to values in the native inputs', async () => {
-      const { fixture } = await configure('inline');
-      const root = getRoot(fixture);
-      const fromInput = getInputById(root, 'period-from');
-      const toInput = getInputById(root, 'period-to');
-      expect(fromInput.value).toBe('2026-02');
-      expect(toInput.value).toBe('2026-07');
-    });
-
-    it('exposes no errorMessage on a fresh mount', async () => {
-      const { component } = await configure('inline');
-      expect(component.errorMessage()).toBeNull();
-    });
-
-    it('renders the monthly placeholder example "AAAA-MM" on the from/to inputs', async () => {
-      const { fixture } = await configure('inline');
-      const root = getRoot(fixture);
-      const fromInput = getInputById(root, 'period-from');
-      const toInput = getInputById(root, 'period-to');
-      expect(fromInput.getAttribute('placeholder')).toBe('AAAA-MM');
-      expect(toInput.getAttribute('placeholder')).toBe('AAAA-MM');
-    });
-
-    it('does not render any p-message warning on a valid initial range', async () => {
-      const { fixture } = await configure('inline');
-      expect(getRoot(fixture).querySelector('p-message')).toBeNull();
-    });
-
-    it('updates the from signal when the input emits a change', async () => {
-      const { fixture, component } = await configure('inline');
-      const fromInput = getInputById(getRoot(fixture), 'period-from');
-      setInputValue(fromInput, '2026-05');
-      fixture.detectChanges();
-
-      expect(component.from()).toBe('2026-05');
-    });
-
-    it('shows a format-error message when from is not a valid monthly key', async () => {
-      const { fixture, component } = await configure('inline');
-      const fromInput = getInputById(getRoot(fixture), 'period-from');
-      setInputValue(fromInput, '2026-1');
-      fixture.detectChanges();
-
-      expect(component.fromValid()).toBe(false);
-      expect(component.errorMessage()).toBe('Formato de fecha inválido. Use AAAA-MM');
-      const message = getRoot(fixture).querySelector('p-message');
-      expect(message?.textContent.trim()).toBe('Formato de fecha inválido. Use AAAA-MM');
-    });
-
-    it('shows a range error message when to < from', async () => {
-      const { fixture, component } = await configure('inline');
-      const toInput = getInputById(getRoot(fixture), 'period-to');
-      setInputValue(toInput, '2026-01');
-      fixture.detectChanges();
-
-      expect(component.toValid()).toBe(true);
-      expect(component.rangeValid()).toBe(false);
-      expect(component.errorMessage()).toBe(
-        'La fecha final debe ser igual o posterior a la inicial',
-      );
-    });
-
-    it('clears the errorMessage when both endpoints are valid and ordered', async () => {
-      const { fixture, component } = await configure('inline');
-      const fromInput = getInputById(getRoot(fixture), 'period-from');
-      const toInput = getInputById(getRoot(fixture), 'period-to');
-      setInputValue(fromInput, '2026-03');
-      setInputValue(toInput, '2026-06');
-      fixture.detectChanges();
-
-      expect(component.fromValid()).toBe(true);
-      expect(component.toValid()).toBe(true);
-      expect(component.rangeValid()).toBe(true);
-      expect(component.errorMessage()).toBeNull();
-    });
-
-    it('apply button is enabled when the range is valid and ordered', async () => {
-      const { fixture } = await configure('inline');
-      const applyBtn = getButtonByLabel(getRoot(fixture), 'Aplicar');
-      expect(applyBtn.disabled).toBe(false);
-    });
-
-    it('apply button is disabled while the format is invalid (from="2026-1")', async () => {
-      const { fixture } = await configure('inline');
-      const fromInput = getInputById(getRoot(fixture), 'period-from');
-      setInputValue(fromInput, '2026-1');
-      fixture.detectChanges();
-
-      const applyBtn = getButtonByLabel(getRoot(fixture), 'Aplicar');
-      expect(applyBtn.disabled).toBe(true);
-    });
-
-    it('apply button is disabled when to < from', async () => {
-      const { fixture } = await configure('inline');
-      const toInput = getInputById(getRoot(fixture), 'period-to');
-      setInputValue(toInput, '2026-01');
-      fixture.detectChanges();
-
-      const applyBtn = getButtonByLabel(getRoot(fixture), 'Aplicar');
-      expect(applyBtn.disabled).toBe(true);
-    });
-
-    it('commits the range to the shared state when apply is clicked', async () => {
-      const { fixture, state } = await configure('inline');
-      const setRangeSpy = vi.spyOn(state, 'setRange');
-      const fromInput = getInputById(getRoot(fixture), 'period-from');
-      const toInput = getInputById(getRoot(fixture), 'period-to');
-      setInputValue(fromInput, '2026-03');
-      setInputValue(toInput, '2026-06');
-      fixture.detectChanges();
-
-      const applyBtn = getButtonByLabel(getRoot(fixture), 'Aplicar');
-      clickButton(applyBtn);
-      fixture.detectChanges();
-
-      expect(setRangeSpy).toHaveBeenCalledWith('2026-03', '2026-06');
-      expect(state.period()).toEqual({ from: '2026-03', to: '2026-06' });
-    });
-
-    it('does not commit when apply is clicked while errorMessage is set', async () => {
-      const { fixture, state } = await configure('inline');
-      const setRangeSpy = vi.spyOn(state, 'setRange');
-      const fromInput = getInputById(getRoot(fixture), 'period-from');
-      setInputValue(fromInput, '2026-1');
-      fixture.detectChanges();
-
-      const applyBtn = getButtonByLabel(getRoot(fixture), 'Aplicar');
-      expect(applyBtn.disabled).toBe(true);
-      clickButton(applyBtn);
-      fixture.detectChanges();
-
-      expect(setRangeSpy).not.toHaveBeenCalled();
-    });
-
-    it('reset returns from and to to the defaults', async () => {
-      const { fixture, state, component } = await configure('inline');
-      const fromInput = getInputById(getRoot(fixture), 'period-from');
-      const toInput = getInputById(getRoot(fixture), 'period-to');
-      setInputValue(fromInput, '2025-01');
-      setInputValue(toInput, '2025-05');
-      fixture.detectChanges();
-
-      const resetBtn = getButtonByLabel(getRoot(fixture), 'Restablecer');
-      clickButton(resetBtn);
-      fixture.detectChanges();
-
-      expect(state.from()).toBe('2026-02');
-      expect(state.to()).toBe('2026-07');
-      expect(component.from()).toBe('2026-02');
-      expect(component.to()).toBe('2026-07');
-    });
-
-    it('reset clears any displayed warning', async () => {
-      const { fixture, component } = await configure('inline');
-      const fromInput = getInputById(getRoot(fixture), 'period-from');
-      setInputValue(fromInput, '2026-1');
-      fixture.detectChanges();
-      expect(component.errorMessage()).toBe('Formato de fecha inválido. Use AAAA-MM');
-      expect(getRoot(fixture).querySelector('p-message')).not.toBeNull();
-
-      const resetBtn = getButtonByLabel(getRoot(fixture), 'Restablecer');
-      clickButton(resetBtn);
-      fixture.detectChanges();
-
-      expect(component.errorMessage()).toBeNull();
-      expect(getRoot(fixture).querySelector('p-message')).toBeNull();
-    });
+  it('shows the same range it sends to the API', async () => {
+    const { fixture, state } = await setup();
+    const label = fixture.componentInstance.currentRangeLabel();
+    expect(label).toBe(state.label());
+    expect(label).toContain('febrero');
+    expect(label).toContain('julio');
   });
 
-  describe('docked variant', () => {
-    it('shows the collapsed pill with the current range on mount', async () => {
-      const { fixture, component } = await configure('docked');
-      const root = getRoot(fixture);
-      expect(component.expanded()).toBe(false);
+  it('exposes the expanded state on the dock toggle', async () => {
+    const { fixture } = await setup();
+    const root = fixture.nativeElement as HTMLElement;
+    const toggle = root.querySelector<HTMLButtonElement>('.period-dock__range');
+    expect(toggle?.getAttribute('aria-expanded')).toBe('false');
+    expect(toggle?.getAttribute('aria-controls')).toBe('period-dock-form');
 
-      const dock = root.querySelector('.period-dock');
-      expect(dock).not.toBeNull();
-      const pill = dock?.querySelector('button[aria-label="Cambiar periodo de análisis"]');
-      expect(pill?.querySelector('.text-xs')?.textContent.trim()).toBe('Periodo');
-      expect(pill?.querySelector('.text-sm')?.textContent.trim()).toBe(
-        component.currentRangeLabel(),
-      );
-      expect(pill?.getAttribute('aria-controls')).toBe('period-dock-form');
-    });
+    toggle?.click();
+    fixture.detectChanges();
+    expect(root.querySelector('#period-dock-form')).not.toBeNull();
+  });
 
-    it('does not render the from/to inputs while collapsed', async () => {
-      const { fixture } = await configure('docked');
-      expect(getRoot(fixture).querySelector('#period-from')).toBeNull();
-      expect(getRoot(fixture).querySelector('#period-to')).toBeNull();
-    });
+  it('applies a manual range to the shared state', async () => {
+    const { fixture, state } = await setup();
+    fixture.componentInstance.toggle();
+    fixture.detectChanges();
 
-    it('toggle() expands the dock to show the form', async () => {
-      const { fixture, component } = await configure('docked');
-      component.toggle();
-      fixture.detectChanges();
+    fixture.componentInstance.onFromChange('2026-01');
+    fixture.componentInstance.onToChange('2026-03');
+    fixture.componentInstance.apply();
 
-      expect(component.expanded()).toBe(true);
-      await Promise.resolve();
-      fixture.detectChanges();
-      const root = getRoot(fixture);
-      expect(getInputById(root, 'period-from').value).toBe('2026-02');
-      expect(getInputById(root, 'period-to').value).toBe('2026-07');
-    });
+    expect(state.period()).toEqual({ bucket: 'monthly', from: '2026-01', to: '2026-03' });
+    expect(state.preset()).toBe('custom');
+  });
 
-    it('toggle() collapses the dock when it is already expanded', async () => {
-      const { fixture, component } = await configure('docked');
-      component.toggle();
-      fixture.detectChanges();
-      component.toggle();
-      fixture.detectChanges();
+  it('rejects an inverted range without committing it', async () => {
+    const { fixture, state } = await setup();
+    fixture.componentInstance.onFromChange('2026-07');
+    fixture.componentInstance.onToChange('2026-01');
+    fixture.componentInstance.apply();
+    expect(state.from()).toBe('2026-02');
+    expect(fixture.componentInstance.errorMessage()).toContain('posterior');
+  });
 
-      expect(component.expanded()).toBe(false);
-    });
+  it('changes bucket and preset through the shared state', async () => {
+    const { fixture, state } = await setup();
+    fixture.componentInstance.onBucketChange('daily');
+    expect(state.bucket()).toBe('daily');
+    expect(state.preset()).toBe('last-30');
 
-    it('apply commits the range and auto-collapses the dock', async () => {
-      const { fixture, component, state } = await configure('docked');
-      component.toggle();
-      fixture.detectChanges();
+    fixture.componentInstance.onPresetChange('last-7');
+    expect(state.preset()).toBe('last-7');
+    expect(fixture.componentInstance.from()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
 
-      const fromInput = getInputById(getRoot(fixture), 'period-from');
-      const toInput = getInputById(getRoot(fixture), 'period-to');
-      setInputValue(fromInput, '2026-03');
-      setInputValue(toInput, '2026-06');
-      fixture.detectChanges();
+  it('emits refresh for the shell to run the rebuild', async () => {
+    const { fixture } = await setup();
+    const emitted = vi.fn();
+    fixture.componentInstance.refresh.subscribe(emitted);
+    fixture.componentInstance.refreshActive();
+    expect(emitted).toHaveBeenCalledTimes(1);
+  });
 
-      const applyBtn = getButtonByLabel(getRoot(fixture), 'Aplicar');
-      clickButton(applyBtn);
-      fixture.detectChanges();
-
-      expect(state.period()).toEqual({ from: '2026-03', to: '2026-06' });
-      expect(component.expanded()).toBe(false);
-    });
-
-    it('reset restores defaults and auto-collapses the dock', async () => {
-      const { fixture, component, state } = await configure('docked');
-      component.toggle();
-      fixture.detectChanges();
-
-      const fromInput = getInputById(getRoot(fixture), 'period-from');
-      const toInput = getInputById(getRoot(fixture), 'period-to');
-      setInputValue(fromInput, '2025-01');
-      setInputValue(toInput, '2025-05');
-      fixture.detectChanges();
-
-      const resetBtn = getButtonByLabel(getRoot(fixture), 'Restablecer');
-      clickButton(resetBtn);
-      fixture.detectChanges();
-
-      expect(state.period()).toEqual({ from: '2026-02', to: '2026-07' });
-      expect(component.expanded()).toBe(false);
-    });
-
-    it('collapse() hides the form and returns to the pill', async () => {
-      const { fixture, component } = await configure('docked');
-      component.toggle();
-      fixture.detectChanges();
-      expect(component.expanded()).toBe(true);
-
-      component.collapse();
-      fixture.detectChanges();
-
-      expect(component.expanded()).toBe(false);
-      expect(getRoot(fixture).querySelector('#period-from')).toBeNull();
-    });
-
-    it('refresh button emits the refresh event when clicked', async () => {
-      const { fixture, component } = await configure('docked');
-      const refreshSpy = vi.fn();
-      component.refresh.subscribe(refreshSpy);
-
-      const refreshBtn = getRoot(fixture).querySelector<HTMLButtonElement>(
-        'button[aria-label="Actualizar datos"]',
-      );
-      if (!refreshBtn) throw new Error('Refresh button not found');
-      clickButton(refreshBtn);
-      fixture.detectChanges();
-
-      expect(refreshSpy).toHaveBeenCalledTimes(1);
-    });
+  it('reset restores monthly last six months and collapses the dock', async () => {
+    const { fixture, state } = await setup();
+    fixture.componentInstance.onBucketChange('yearly');
+    fixture.componentInstance.reset();
+    expect(state.period()).toEqual({ bucket: 'monthly', from: '2026-02', to: '2026-07' });
+    expect(fixture.componentInstance.expanded()).toBe(false);
   });
 });

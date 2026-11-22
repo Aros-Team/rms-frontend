@@ -4,10 +4,12 @@
     'z-50': isMobile
   }">
   <section class="flex items-center gap-4 min-w-0 flex-1">
-    <h1 class="flex items-center text-accent font-black text-[1.5rem] min-w-0 shrink-0">
+    <div class="flex items-center text-accent font-black text-[1.5rem] min-w-0 shrink-0">
       <app-logo [size]="24"></app-logo><span class="max-md:hidden">RMS</span>
-    </h1>
-    <span class="font-regular bg-primary-500 py-1 px-2.5 rounded-md text-surface-900 break-words shrink-0">{{customer}}</span>
+    </div>
+    @if (workerType !== 'kitchen') {
+      <span class="font-regular bg-primary-500 py-1 px-2.5 rounded-md text-surface-900 break-words shrink-0">{{customer}}</span>
+    }
 
     @if (selectedMenuItem) {
     <div class="hidden lg:flex items-center gap-2 ml-4 pl-4 border-l border-surface-200 dark:border-surface-700 shrink-0">
@@ -21,11 +23,13 @@
     }
 
     @if (!hideTabletNav) {
-    <nav #navContainer class="hidden md:flex lg:hidden items-center gap-1 ml-4 flex-1">
+    <nav #navContainer aria-label="Navegación principal" class="hidden md:flex lg:hidden items-center gap-1 ml-4 flex-1">
       @for (item of visibleMenuItems(); track item.id) {
         <a [routerLink]="item.routerLink"
+           #rla="routerLinkActive"
            routerLinkActive="!text-accent font-semibold"
            [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+           [attr.aria-current]="rla.isActive ? 'page' : null"
            class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer text-sm whitespace-nowrap">
           @if (item.icon) {
             <i [class]="item.icon" aria-hidden="true"></i>
@@ -48,8 +52,10 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
             <div class="absolute top-full left-0 mt-1 bg-primary-contrast dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg py-2 min-w-48 z-50">
               @for (item of overflowMenuItems(); track item.id) {
                 <a [routerLink]="item.routerLink"
+                   #rla="routerLinkActive"
                    routerLinkActive="!text-accent font-semibold"
                    [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+                   [attr.aria-current]="rla.isActive ? 'page' : null"
                    class="flex items-center gap-3 px-4 py-2 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 hover:pl-5 transition-all duration-200 cursor-pointer text-sm"
                    (click)="onOverflowItemClick(item)">
                   @if (item.icon) {
@@ -69,7 +75,11 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
   <section class="flex items-center gap-4 shrink-0">
     @if (!hideTabletNav) {
     <button class="md:hidden p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
-      (click)="toggleMenu.emit()" aria-label="Abrir menú" title="Abrir menú">
+      (click)="toggleMenu.emit()"
+      [attr.aria-expanded]="menuOpen"
+      aria-controls="app-sidebar"
+      [attr.aria-label]="menuOpen ? 'Cerrar menú' : 'Abrir menú'"
+      [title]="menuOpen ? 'Cerrar menú' : 'Abrir menú'">
       <i class="pi pi-bars text-muted" aria-hidden="true"></i>
     </button>
     }
@@ -91,16 +101,6 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
      <span class="absolute top-1 right-1 w-2 h-2 bg-primary-500 rounded-full animate-ping"></span>
      <span class="absolute top-1 right-1 w-2 h-2 bg-primary-500 rounded-full"></span>
    }
-    </button>
-    }
-
-    @if (workerType === 'kitchen') {
-    <button
-      class="p-2 rounded-xl hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer w-10 h-10 flex items-center justify-center shrink-0"
-      (click)="onKitchen()"
-      aria-label="Ir a cocina"
-      title="Ir a cocina">
-      <i class="pi pi-box text-muted" aria-hidden="true"></i>
     </button>
     }
 

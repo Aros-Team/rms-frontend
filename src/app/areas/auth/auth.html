@@ -1,30 +1,35 @@
-<main class="flex h-dvh w-full items-center justify-center bg-surface-50 dark:bg-surface-900 pt-12 gap-8">
-  <div class="max-w-[400px] px-4 sm:px-0">
-    <!-- Logo + Title -->
-    <header class="mb-[4rem] flex items-center gap-4">
-      <img src="/logo.svg" alt="RMS Logo" width="56" height="56" decoding="async"
-        class="h-14 w-14 flex-shrink-0" />
-      <div>
-        <h1 class="text-2xl font-black text-surface-900 dark:text-surface-100">RMS</h1>
-        <p class="text-sm text-muted">Sistema de Gestión para restaurantes.</p>
+<a
+  href="#main"
+  class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-lg focus:border focus:border-surface-300 focus:bg-primary-contrast focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-surface-900"
+>
+  Saltar al contenido
+</a>
+
+<main
+  id="main"
+  tabindex="-1"
+  class="flex min-h-dvh w-full flex-col items-center justify-center bg-surface-50 px-4 py-10 dark:bg-surface-900"
+>
+  <div class="flex w-full max-w-[400px] flex-col gap-8">
+    <header class="flex items-center gap-3">
+      <img
+        src="/logo.svg"
+        alt=""
+        width="48"
+        height="48"
+        decoding="async"
+        class="h-12 w-12 flex-shrink-0"
+      />
+      <div class="min-w-0">
+        <span class="block text-2xl font-black text-surface-900 dark:text-surface-100">RMS</span>
+        <span class="block text-sm text-muted">Sistema de Gestión para restaurantes.</span>
       </div>
     </header>
 
-    <!-- Form -->
-    <div class="w-full">
-      <app-login-form />
-    </div>
+    <router-outlet />
 
-    <!-- Footer -->
-    <footer class="flex flex-col items-center gap-2">
-      <div class="flex items-center gap-1">
-        <span class="text-xs text-muted">Desarrollado por el equipo</span>
-        <svg viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg" class="inline-block w-4 h-4 text-muted">
-          <path d="M314.575 172.224L149.7 243.077L99.8002 193.177L158.185 20.56L125.453 0L0 342.877L50.5946 325.061L50.5946 246L158.186 276.202L335.823 201.328L314.575 172.224Z" fill="currentColor" fill-rule="evenodd" stroke-width="80" stroke="currentColor" transform="matrix(1 0 0 1 446 278)" />
-          <path d="M0 1.14893L536.875 0" fill="none" stroke-width="160" stroke="currentColor" stroke-linecap="square" transform="translate(260 745)" />
-        </svg>
-        <span class="font-black text-sm text-muted relative left-[-4px]">AROS</span>
-      </div>
+    <footer class="flex flex-col items-center gap-2 border-t border-surface-200 pt-4 dark:border-surface-700">
+      <span class="text-xs text-muted">Desarrollado por el equipo AROS</span>
     </footer>
   </div>
 </main>

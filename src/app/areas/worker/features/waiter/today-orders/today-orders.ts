@@ -1,57 +1,174 @@
-import { Component, OnInit, inject, signal, DestroyRef } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { Subscription } from 'rxjs';
-
-import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-
-import { DatePickerModule } from 'primeng/datepicker';
-import { SelectModule } from 'primeng/select';
-import { ButtonModule } from 'primeng/button';
 
 import { Order } from '@app/core/services/orders/order';
 import { OrderDock as OrderDockSvc } from '@app/core/services/order-dock/order-dock';
 import { Logging } from '@app/core/services/logging/logging';
-import { OrderResponse } from '@app/shared/models/dto/orders/order-response';
-import { OptionNames } from '@app/shared/pipes/option-names/option-names.pipe';
+import {
+  OrderDetailItem,
+  OrderResponse,
+  calculateTotalPrice,
+  calculateLineTotal,
+} from '@app/shared/models/dto/orders/order-response';
+import type { RmsStatus } from '@app/shared/ui/types/ui-types';
+import { Money } from '@app/shared/pipes/money/money';
 
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsDialog } from '@app/shared/ui/dialog/dialog';
+import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
+import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
 import { TodayOrdersSkeleton } from './skeletons/today-orders-skeleton';
 
+const STATUS_LABEL: Record<string, string> = {
+  QUEUE: 'En cola',
+  PREPARING: 'Preparando',
+  READY: 'Lista',
+  DELIVERED: 'Entregada',
+  CANCELLED: 'Cancelada',
+};
+
+const STATUS_TONE: Record<string, RmsStatus> = {
+  QUEUE: 'warning',
+  PREPARING: 'info',
+  READY: 'success',
+  DELIVERED: 'neutral',
+  CANCELLED: 'danger',
+};
+
+interface OrderLineView {
+  key: string;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+  options: string;
+  instructions: string;
+}
+
+function lineKey(detail: OrderDetailItem): string {
+  const options = (detail.selectedOptions ?? []).map((option) => option.name).join(',');
+  return `${String(detail.productId)}|${detail.instructions}|${options}`;
+}
+
+function groupLines(details: readonly OrderDetailItem[]): OrderLineView[] {
+  const lines = new Map<string, OrderLineView>();
+  for (const detail of details) {
+    const key = lineKey(detail);
+    const current = lines.get(key);
+    if (current) {
+      current.quantity += 1;
+      current.total = current.unitPrice * current.quantity;
+      continue;
+    }
+    lines.set(key, {
+      key,
+      name: detail.productName,
+      quantity: 1,
+      unitPrice: calculateLineTotal(detail),
+      total: calculateLineTotal(detail),
+      options: (detail.selectedOptions ?? []).map((option) => option.name).join(', '),
+      instructions: detail.instructions,
+    });
+  }
+  return [...lines.values()];
+}
+
+/**
+ * Waiter "Pedidos" — today's live order board.
+ *
+ * Feature: follow what was sent to the kitchen and hand the bill to the cashier.
+ *
+ * Contract:
+ *  - polls the day every 30 seconds and states when it last updated;
+ *  - status is text plus semantic colour, never a bare dot;
+ *  - the empty state offers the next action instead of a dead end;
+ *  - the bill preview is a read-only total: payments are registered by the
+ *    cashier, so this screen never invents payment UI.
+ */
 @Component({
   selector: 'app-today-orders',
   templateUrl: './today-orders.html',
   styleUrl: './today-orders.css',
-  imports: [RouterModule, FormsModule, OptionNames, TodayOrdersSkeleton, DatePickerModule, SelectModule, ButtonModule],
+  imports: [FormsModule, Money, RmsButton, RmsDialog, RmsIconButton, RmsStatusPill, TodayOrdersSkeleton],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TodayOrders implements OnInit {
-  private orderService = inject(Order);
-  private dock = inject(OrderDockSvc);
-  private log = inject(Logging);
-  private messageService = inject(MessageService);
-  private destroyRef = inject(DestroyRef);
+  private readonly orderService = inject(Order);
+  private readonly dock = inject(OrderDockSvc);
+  private readonly log = inject(Logging);
+  private readonly messageService = inject(MessageService);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
-  loading = signal(false);
-  refreshing = signal(false);
-  error = signal<string | null>(null);
-  orders = signal<OrderResponse[]>([]);
-  /** Server-reported total for the current filter (may exceed `orders().length`). */
-  totalCount = signal(0);
-  /** `true` when the day was too large to walk completely — surfaced in the UI. */
-  truncated = signal(false);
-  private processingIds = signal(new Set<number>());
+  readonly loading = signal(false);
+  readonly refreshing = signal(false);
+  readonly error = signal<string | null>(null);
+  readonly orders = signal<OrderResponse[]>([]);
+  readonly totalCount = signal(0);
+  readonly truncated = signal(false);
+  readonly lastUpdated = signal<Date | null>(null);
+  private readonly processingIds = signal(new Set<number>());
 
-  selectedStatus = '';
+  readonly selectedStatus = signal('');
   selectedDate: Date;
+  dateValue: string;
 
-  statusOptions = [
+  readonly statusOptions = [
     { label: 'Todos', value: '' },
-    { label: 'En Cola', value: 'QUEUE' },
+    { label: 'En cola', value: 'QUEUE' },
     { label: 'Preparando', value: 'PREPARING' },
     { label: 'Lista', value: 'READY' },
     { label: 'Entregada', value: 'DELIVERED' },
-    { label: 'Cancelada', value: 'CANCELLED' }
-  ];
+    { label: 'Cancelada', value: 'CANCELLED' },
+  ] as const;
+
+  readonly billOrder = signal<OrderResponse | null>(null);
+  readonly billLines = computed(() => {
+    const order = this.billOrder();
+    return order ? groupLines(order.details) : [];
+  });
+
+  readonly billTitle = computed(() => {
+    const order = this.billOrder();
+    return order ? `Cuenta · Pedido #${String(order.id)}` : 'Cuenta';
+  });
+
+  readonly billTable = computed(() => {
+    const order = this.billOrder();
+    return order ? this.tableLabel(order) : '';
+  });
+
+  readonly billTotal = computed(() => {
+    const order = this.billOrder();
+    return order ? calculateTotalPrice(order) : 0;
+  });
+
+  readonly activeCount = computed(
+    () => this.orders().filter((order) => !['DELIVERED', 'CANCELLED'].includes(order.status)).length,
+  );
+  readonly deliveredCount = computed(
+    () => this.orders().filter((order) => order.status === 'DELIVERED').length,
+  );
+  readonly updatedLabel = computed(() => {
+    const date = this.lastUpdated();
+    if (!date) return '';
+    return new Intl.DateTimeFormat('es-CO', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  });
 
   private subscription?: Subscription;
   private loadSeq = 0;
@@ -59,18 +176,12 @@ export class TodayOrders implements OnInit {
 
   constructor() {
     this.selectedDate = new Date();
-    this.startPolling();
-  }
-
-  private startPolling(): void {
+    this.dateValue = this.toDateInputValue(this.selectedDate);
     this.pollingInterval = setInterval(() => {
-      this.log.debug('TodayOrders: polling for updates');
       this.fetchOrders(true);
-    }, 30000);
+    }, 30_000);
     this.destroyRef.onDestroy(() => {
-      if (this.pollingInterval) {
-        clearInterval(this.pollingInterval);
-      }
+      if (this.pollingInterval) clearInterval(this.pollingInterval);
     });
   }
 
@@ -80,70 +191,63 @@ export class TodayOrders implements OnInit {
 
   fetchOrders(silent = false): void {
     const seq = ++this.loadSeq;
-    if (silent) {
-      this.refreshing.set(true);
-    } else {
-      this.loading.set(true);
-    }
+    if (silent) this.refreshing.set(true);
+    else this.loading.set(true);
     this.error.set(null);
 
     const startDate = new Date(this.selectedDate);
     startDate.setHours(0, 0, 0, 0);
     const endDate = new Date(this.selectedDate);
     endDate.setHours(23, 59, 59, 999);
-    const status = this.selectedStatus || undefined;
+    const status = this.selectedStatus() || undefined;
 
     this.subscription?.unsubscribe();
     this.subscription = this.orderService
       .getAllOrdersByDateRange(startDate, endDate, { status })
       .subscribe({
-      next: (result) => {
-        if (seq !== this.loadSeq) return;
-        this.log.debug('TodayOrders: loaded', result.items.length, 'of', result.total);
-        this.orders.set(result.items);
-        this.totalCount.set(result.total);
-        this.truncated.set(result.truncated);
-        this.loading.set(false);
-        this.refreshing.set(false);
-      },
-      error: (err) => {
-        if (seq !== this.loadSeq) return;
-        this.log.error('TodayOrders: error', err);
-        this.error.set('No se pudieron cargar las órdenes.');
-        this.loading.set(false);
-        this.refreshing.set(false);
-      }
-    });
+        next: (result) => {
+          if (seq !== this.loadSeq) return;
+          this.orders.set(result.items);
+          this.totalCount.set(result.total);
+          this.truncated.set(result.truncated);
+          this.loading.set(false);
+          this.refreshing.set(false);
+          this.lastUpdated.set(new Date());
+        },
+        error: (err: unknown) => {
+          if (seq !== this.loadSeq) return;
+          this.log.error('TodayOrders: error', err);
+          this.error.set('No se pudieron cargar los pedidos. Revisa la conexión.');
+          this.loading.set(false);
+          this.refreshing.set(false);
+        },
+      });
   }
 
   onFilterChange(): void {
     this.fetchOrders();
   }
 
-  cancelOrder(order: OrderResponse): void {
-    if (this.isProcessing(order.id)) return;
-    this.toggleProcessing(order.id);
+  onDateChange(value: string): void {
+    if (!value) return;
+    const [year, month, day] = value.split('-').map(Number);
+    if (!year || !month || !day) return;
+    this.selectedDate = new Date(year, month - 1, day);
+    this.dateValue = value;
+    this.fetchOrders();
+  }
 
-    this.orderService.cancelOrder(order.id).subscribe({
-      next: (updated) => {
-        this.orders.update(list => list.map(o => o.id === updated.id ? updated : o));
-        this.dock.loadAvailableTables();
-        this.clearProcessing(order.id);
-      },
-      error: (err: unknown) => {
-        const status = err instanceof HttpErrorResponse ? err.status : 0;
-        const summary = status === 409 ? 'Conflicto'
-                      : status === 400 ? 'Datos inválidos'
-                      : 'Error al cancelar pedido';
-        this.messageService.add({
-          severity: status === 400 ? 'warn' : 'error',
-          summary,
-          detail: extractError(err),
-          life: 6000,
-        });
-        this.clearProcessing(order.id);
-      }
-    });
+  private toDateInputValue(date: Date): string {
+    const year = String(date.getFullYear());
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  selectStatus(status: string): void {
+    if (this.selectedStatus() === status) return;
+    this.selectedStatus.set(status);
+    this.fetchOrders();
   }
 
   deliverOrder(order: OrderResponse): void {
@@ -152,22 +256,19 @@ export class TodayOrders implements OnInit {
 
     this.orderService.deliverOrder(order.id).subscribe({
       next: (updated) => {
-        this.orders.update(list => list.map(o => o.id === updated.id ? updated : o));
+        this.orders.update((list) => list.map((item) => (item.id === updated.id ? updated : item)));
         this.clearProcessing(order.id);
       },
       error: (err: unknown) => {
         const status = err instanceof HttpErrorResponse ? err.status : 0;
-        const summary = status === 409 ? 'Conflicto'
-                      : status === 400 ? 'Datos inválidos'
-                      : 'Error al entregar pedido';
         this.messageService.add({
           severity: status === 400 ? 'warn' : 'error',
-          summary,
+          summary: status === 409 ? 'Conflicto' : 'Error al entregar',
           detail: extractError(err),
           life: 6000,
         });
         this.clearProcessing(order.id);
-      }
+      },
     });
   }
 
@@ -176,7 +277,7 @@ export class TodayOrders implements OnInit {
   }
 
   private toggleProcessing(id: number): void {
-    this.processingIds.update(set => {
+    this.processingIds.update((set) => {
       const next = new Set(set);
       next.add(id);
       return next;
@@ -184,7 +285,7 @@ export class TodayOrders implements OnInit {
   }
 
   private clearProcessing(id: number): void {
-    this.processingIds.update(set => {
+    this.processingIds.update((set) => {
       const next = new Set(set);
       next.delete(id);
       return next;
@@ -192,37 +293,52 @@ export class TodayOrders implements OnInit {
   }
 
   statusLabel(status: string): string {
-    const map: Record<string, string> = {
-      QUEUE: 'En Cola',
-      PREPARING: 'Preparando',
-      READY: 'Lista',
-      DELIVERED: 'Entregada',
-      CANCELLED: 'Cancelada',
-    };
-    return map[status] ?? status;
+    return STATUS_LABEL[status] ?? status;
   }
 
-  statusClass(status: string): string {
-    const map: Record<string, string> = {
-      QUEUE:     'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
-      PREPARING: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
-      READY:     'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300',
-      DELIVERED: 'bg-surface-100 text-surface-600 dark:bg-surface-700 dark:text-surface-400',
-      CANCELLED: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
-    };
-    return map[status] ?? 'bg-surface-100 text-surface-600';
+  statusTone(status: string): RmsStatus {
+    return STATUS_TONE[status] ?? 'neutral';
   }
 
   orderTime(date: string): string {
     return new Date(date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
   }
 
-  get activeCount(): number {
-    return this.orders().filter(o => !['DELIVERED','CANCELLED'].includes(o.status)).length;
+  tableLabel(order: OrderResponse): string {
+    return order.table ?? `Mesa ${String(order.tableId)}`;
   }
 
-  get deliveredCount(): number {
-    return this.orders().filter(o => o.status === 'DELIVERED').length;
+  orderLines(order: OrderResponse): OrderLineView[] {
+    return groupLines(order.details);
+  }
+
+  orderTotal(order: OrderResponse): number {
+    return calculateTotalPrice(order);
+  }
+
+  showBill(order: OrderResponse): void {
+    this.billOrder.set(order);
+  }
+
+  closeBill(): void {
+    this.billOrder.set(null);
+  }
+
+  onBillVisible(visible: boolean): void {
+    if (!visible) this.closeBill();
+  }
+
+  goToCarta(): void {
+    void this.router.navigate(['/worker/waiter'], { queryParams: { tab: 'carta' } });
+  }
+
+  refresh(): void {
+    this.fetchOrders();
+    this.dock.loadAvailableTables();
+  }
+
+  lineOptions(line: OrderLineView): string {
+    return line.options.length > 0 ? line.options : '';
   }
 }
 

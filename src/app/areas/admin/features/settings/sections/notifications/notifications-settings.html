@@ -1,0 +1,118 @@
+<app-rms-section
+  title="Notificaciones"
+  description="Preferencias globales de avisos para cocina, inventario y pedidos."
+>
+  @if (loading()) {
+    <div class="flex flex-col gap-3">
+      <app-rms-skeleton height="2rem" ariaLabel="Cargando preferencias de notificaciones" />
+      <app-rms-skeleton height="2rem" />
+      <app-rms-skeleton height="2rem" />
+    </div>
+  } @else if (loadError()) {
+    <app-rms-empty-state
+      icon="pi pi-exclamation-triangle"
+      title="No se pudieron cargar las notificaciones"
+      [message]="loadError()"
+      actionLabel="Reintentar"
+      actionIcon="pi pi-refresh"
+      (action)="load()"
+    />
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="save()" novalidate class="flex flex-col gap-5">
+      @if (saveError()) {
+        <p
+          role="alert"
+          class="rounded-lg border border-rms-danger bg-rms-surface px-4 py-3 text-rms-body text-rms-danger"
+        >
+          {{ saveError() }}
+        </p>
+      }
+
+      <p class="rounded-lg border border-rms-border bg-rms-subtle px-4 py-3 text-rms-body text-rms-ink-secondary">
+        Estos avisos son globales para todo el restaurante. Un cambio aquí afecta a todas las
+        estaciones y dispositivos conectados.
+      </p>
+
+      <div class="grid gap-4 lg:grid-cols-2">
+        <div class="rounded-lg border border-rms-border px-4 py-3">
+          <app-rms-switch
+            id="notify-kitchen-sound"
+            formControlName="kitchenSoundEnabled"
+            label="Sonido de cocina"
+            onLabel="Activado"
+            offLabel="Desactivado"
+          />
+          <p class="mt-1 text-rms-caption text-rms-ink-muted">
+            Reproduce un aviso sonoro cuando entra un pedido nuevo a cocina.
+          </p>
+        </div>
+
+        <div class="rounded-lg border border-rms-border px-4 py-3">
+          <app-rms-switch
+            id="notify-kitchen-haptics"
+            formControlName="kitchenHapticsEnabled"
+            label="Vibración de cocina"
+            onLabel="Activada"
+            offLabel="Desactivada"
+          />
+          <p class="mt-1 text-rms-caption text-rms-ink-muted">
+            Vibra el dispositivo de la estación cuando llega un ticket nuevo.
+          </p>
+        </div>
+
+        <div class="rounded-lg border border-rms-border px-4 py-3">
+          <app-rms-switch
+            id="notify-low-stock"
+            formControlName="lowStockAlertsEnabled"
+            label="Alertas de inventario bajo"
+            onLabel="Activadas"
+            offLabel="Desactivadas"
+          />
+          <p class="mt-1 text-rms-caption text-rms-ink-muted">
+            Avisa cuando un insumo cae por debajo de su mínimo.
+          </p>
+        </div>
+
+        <div class="rounded-lg border border-rms-border px-4 py-3">
+          <app-rms-switch
+            id="notify-orders"
+            formControlName="orderAlertsEnabled"
+            label="Alertas de pedidos"
+            onLabel="Activadas"
+            offLabel="Desactivadas"
+          />
+          <p class="mt-1 text-rms-caption text-rms-ink-muted">
+            Avisa de cambios de estado relevantes en los pedidos del servicio.
+          </p>
+        </div>
+
+        <div class="rounded-lg border border-rms-border px-4 py-3">
+          <app-rms-switch
+            id="notify-daily-summary"
+            formControlName="dailySummaryEnabled"
+            label="Resumen diario"
+            onLabel="Activado"
+            offLabel="Desactivado"
+          />
+          <p class="mt-1 text-rms-caption text-rms-ink-muted">
+            Envía un resumen de cierre con ventas, costo primo y alertas del día.
+          </p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-end gap-3 border-t border-rms-border pt-4">
+        <app-rms-button
+          variant="secondary"
+          type="button"
+          [disabled]="!dirty() || saving()"
+          (click)="reset()"
+        >
+          Descartar cambios
+        </app-rms-button>
+        <app-rms-button type="submit" [disabled]="!dirty() || saving()" [loading]="saving()">
+          Guardar preferencias
+        </app-rms-button>
+      </div>
+    </form>
+  }
+</app-rms-section>

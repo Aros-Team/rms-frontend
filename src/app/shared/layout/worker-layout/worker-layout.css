@@ -1,0 +1,12 @@
+:host {
+  display: block;
+}
+
+/*
+ * Kitchen station canvas: it is a TV (1920x1080 primary, 1024x768 fallback),
+ * not a phone. Full width, generous gutter that scales with the viewport, and
+ * no bottom navigation or phone-width column.
+ */
+.kitchen-main {
+  padding-inline: clamp(0.75rem, 1.5vw, 2.5rem);
+}

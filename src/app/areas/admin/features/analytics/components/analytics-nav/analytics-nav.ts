@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 interface Tab {
@@ -6,7 +6,6 @@ interface Tab {
   readonly label: string;
   readonly icon: string;
   readonly link: string;
-  readonly exact: boolean;
 }
 
 @Component({
@@ -18,7 +17,35 @@ interface Tab {
 })
 export class AnalyticsNav {
   readonly tabs: readonly Tab[] = [
-    { id: 'prime-cost', label: 'Rentabilidad', icon: 'pi pi-chart-line', link: '/admin/analytics/prime-cost', exact: false },
-    { id: 'menu-engineering', label: 'Tu carta', icon: 'pi pi-th-large', link: '/admin/analytics/menu-engineering', exact: false },
+    {
+      id: 'prime-cost',
+      label: 'Rentabilidad',
+      icon: 'pi pi-chart-line',
+      link: '/admin/analytics/prime-cost',
+    },
+    {
+      id: 'menu-engineering',
+      label: 'Tu carta',
+      icon: 'pi pi-th-large',
+      link: '/admin/analytics/menu-engineering',
+    },
+    {
+      id: 'operations',
+      label: 'Operación',
+      icon: 'pi pi-clock',
+      link: '/admin/analytics/operations',
+    },
+    {
+      id: 'cohort',
+      label: 'Cohortes',
+      icon: 'pi pi-users',
+      link: '/admin/analytics/cohort',
+    },
+    {
+      id: 'alerts',
+      label: 'Alertas',
+      icon: 'pi pi-bell',
+      link: '/admin/analytics/alerts',
+    },
   ];
 }

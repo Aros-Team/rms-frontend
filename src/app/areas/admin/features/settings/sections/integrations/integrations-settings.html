@@ -1,0 +1,50 @@
+<app-rms-section
+  title="Integraciones"
+  description="Conexiones del despliegue actual. Esta pantalla es informativa y no permite editar valores."
+>
+  <div class="flex flex-col gap-4">
+    <p class="rounded-lg border border-rms-border bg-rms-subtle px-4 py-3 text-rms-body text-rms-ink-secondary">
+      Los orígenes se definen en la configuración de despliegue del frontend. No se muestran
+      credenciales ni secretos en esta pantalla.
+    </p>
+
+    <div class="overflow-x-auto rounded-lg border border-rms-border">
+      <table class="w-full text-rms-body" aria-label="Integraciones configuradas">
+        <thead class="bg-rms-subtle">
+          <tr>
+            <th scope="col" class="px-3 py-2 text-left text-rms-label text-rms-ink-secondary">
+              Integración
+            </th>
+            <th scope="col" class="px-3 py-2 text-left text-rms-label text-rms-ink-secondary">
+              Origen
+            </th>
+            <th scope="col" class="px-3 py-2 text-left text-rms-label text-rms-ink-secondary">
+              Uso
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows; track row.label) {
+            <tr class="border-t border-rms-border align-top">
+              <td class="px-3 py-3 font-semibold text-rms-ink">{{ row.label }}</td>
+              <td class="px-3 py-3 font-mono text-rms-caption text-rms-ink">
+                {{ row.value }}
+              </td>
+              <td class="px-3 py-3 text-rms-ink-secondary">{{ row.description }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid gap-3 md:grid-cols-2">
+      @for (row of readonlyRows; track row.label) {
+        <div class="rounded-lg border border-rms-border px-4 py-3">
+          <p class="text-rms-h4 text-rms-ink">{{ row.label }}</p>
+          <p class="mt-1 font-mono text-rms-caption text-rms-ink-secondary">{{ row.value }}</p>
+          <p class="mt-1 text-rms-caption text-rms-ink-muted">{{ row.description }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</app-rms-section>

@@ -1,5 +1,16 @@
 :host {
   display: block;
-  /* Clear fixed dock at bottom so content not hidden behind collapsed dock */
-  padding-bottom: max(env(safe-area-inset-bottom, 0px), 100px);
+}
+
+/*
+ * The order dock is a fixed bottom bar. It sits above the shell's bottom
+ * navigation so the waiter never gets two stacked bars on top of each other,
+ * and the content reserves room for both.
+ */
+:host(.has-order-dock) {
+  padding-bottom: calc(100px + 4rem);
+}
+
+:host(.has-order-dock) app-order-dock {
+  bottom: 4rem;
 }
