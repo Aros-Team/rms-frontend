@@ -96,10 +96,17 @@ export const ADMIN_NAV: readonly NavItem[] = [
     routerLink: '/admin/analytics',
   },
   {
-    id: 'profile',
+    id: 'settings',
     label: 'Configuración',
-    description: 'Ajustes de cuenta',
+    description: 'Negocio, dinero, personas y sistema',
     icon: 'pi pi-cog',
+    routerLink: '/admin/settings',
+  },
+  {
+    id: 'account',
+    label: 'Mi cuenta',
+    description: 'Perfil, contraseña y privacidad',
+    icon: 'pi pi-user',
     routerLink: '/admin/profile',
   },
 ];

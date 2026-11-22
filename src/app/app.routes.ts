@@ -4,6 +4,7 @@ import { AreaGuard } from '@core/guards/area/area';
 import { AuthGuard } from '@core/guards/auth/auth';
 import { RoleGuard } from '@core/guards/role/role';
 import { RedirectGuard } from '@app/core/guards/redirect-guard/redirect-guard';
+import { settingsUnsavedChangesGuard } from '@areas/admin/features/settings/settings-unsaved-changes.guard';
 import type { WorkerRouteData } from '@app/core/config/navigation/role-navigation';
 
 /**
@@ -265,6 +266,13 @@ export const routes: Routes = [
               ),
           },
         ],
+      },
+      {
+        path: 'settings',
+        title: 'Configuración',
+        loadComponent: () =>
+          import('@areas/admin/features/settings/settings-page').then((m) => m.SettingsPage),
+        canDeactivate: [settingsUnsavedChangesGuard],
       },
       {
         path: 'create-product',

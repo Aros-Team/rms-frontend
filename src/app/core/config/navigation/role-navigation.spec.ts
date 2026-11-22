@@ -149,9 +149,12 @@ describe('role navigation config', () => {
         'orders',
         'manage',
         'analytics',
-        'profile',
+        'settings',
+        'account',
       ]);
       expect(ADMIN_NAV.find((item) => item.id === 'analytics')?.label).toBe('Estadísticas');
+      expect(ADMIN_NAV.find((item) => item.id === 'settings')?.routerLink).toBe('/admin/settings');
+      expect(ADMIN_NAV.find((item) => item.id === 'account')?.routerLink).toBe('/admin/profile');
     });
 
     it('does not repeat an id inside a role menu', () => {
