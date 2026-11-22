@@ -8,7 +8,7 @@
   </app-rms-page-header>
 
   <!-- Table -->
-  <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 overflow-hidden">
+  <div class="flex-1 min-h-0 border border-rms-border rounded-xl bg-rms-surface overflow-hidden">
     <p-table
       #dt1
       [value]="products() ?? []"
@@ -67,7 +67,7 @@
                   decoding="async"
                 />
               } @else {
-                <div class="w-12 h-12 bg-surface-200 dark:bg-surface-700 rounded flex items-center justify-center shrink-0">
+                <div class="w-12 h-12 bg-rms-subtle rounded flex items-center justify-center shrink-0">
                   <i class="pi pi-image text-muted text-sm" aria-hidden="true"></i>
                 </div>
               }
@@ -163,11 +163,11 @@
 
       <!-- LEFT: Image upload area (35%) -->
       <div class="flex flex-col">
-        <span class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Imagen del producto</span>
-        <div class="border-2 border-dashed border-surface-300 dark:border-surface-600 rounded-xl p-4 flex flex-col items-center justify-center text-center min-h-[260px] relative"
+        <span class="text-sm font-medium text-rms-ink-secondary mb-2">Imagen del producto</span>
+        <div class="border-2 border-dashed border-rms-border-strong rounded-xl p-4 flex flex-col items-center justify-center text-center min-h-[260px] relative"
           [class.cursor-pointer]="canUploadImage() && !isProcessingImage()"
           [class.opacity-60]="!canUploadImage() || isProcessingImage()"
-          [class.border-surface-200]="!canUploadImage()"
+          [class.border-rms-border]="!canUploadImage()"
           [attr.aria-disabled]="!canUploadImage()"
           tabindex="0" role="button"
           [attr.aria-label]="'Subir imagen del producto'"
@@ -201,12 +201,12 @@
                 (onClick)="removeImage(previewImage()[0]); $event.stopPropagation()" />
             </div>
           } @else if (!canUploadImage()) {
-            <i class="pi pi-image text-4xl text-surface-300 mb-3" aria-hidden="true"></i>
+            <i class="pi pi-image text-4xl text-rms-ink-muted mb-3" aria-hidden="true"></i>
             <span class="text-sm font-medium text-muted">Imagen del producto</span>
             <span class="text-xs text-muted mt-2 text-center max-w-[200px]">Completa nombre, categoría y área para habilitar la carga de imagen</span>
           } @else {
             <i class="pi pi-cloud-upload text-4xl text-muted mb-3" aria-hidden="true"></i>
-            <span class="text-sm font-medium text-surface-700 dark:text-surface-300">Sube una imagen</span>
+            <span class="text-sm font-medium text-rms-ink-secondary">Sube una imagen</span>
             <span class="text-xs text-muted mt-1">JPG, PNG, WebP · max 5MB</span>
             <span class="text-xs text-muted mt-3">Click para seleccionar</span>
           }
@@ -268,11 +268,12 @@
     </div>
 
     <div class="flex justify-end gap-2 mt-6">
-      <p-button label="Cancelar" severity="secondary" icon="pi pi-times" (click)="confirmCancel()" />
-      <p-button label="Siguiente"
-        icon="pi pi-arrow-right"
-        iconPos="right"
-        [loading]="isSubmitting()" (click)="submitStep1()" />
+      <app-rms-button variant="secondary" iconStart="pi pi-times" (click)="confirmCancel()">
+        Cancelar
+      </app-rms-button>
+      <app-rms-button iconEnd="pi pi-arrow-right" [loading]="isSubmitting()" (click)="submitStep1()">
+        Siguiente
+      </app-rms-button>
     </div>
   }
 
@@ -285,7 +286,7 @@
           @if (previewImage().length > 0) {
             <img [src]="previewImage()[0].desktopUrl" alt="" class="w-10 h-10 object-cover rounded-lg shrink-0" />
           }
-          <span class="text-sm font-semibold text-surface-800 dark:text-surface-200 truncate">
+          <span class="text-sm font-semibold text-rms-ink truncate">
             {{ baseForm.get('name')?.value || 'Producto sin nombre' }}
           </span>
           <span class="text-xs text-muted shrink-0 hidden sm:inline">(Insumos)</span>
@@ -296,12 +297,12 @@
             (searchChange)="onSupplySearch($event)"
           />
           @if (filteredSuggestions().length > 0) {
-            <div class="absolute z-50 left-0 right-0 mt-1 bg-primary-contrast dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg max-h-60 overflow-y-auto">
+            <div class="absolute z-50 left-0 right-0 mt-1 bg-rms-surface border border-rms-border rounded-lg max-h-60 overflow-y-auto">
               @for (s of filteredSuggestions(); track s.id) {
                 <button type="button"
-                  class="w-full px-3 py-2 text-left text-sm hover:bg-surface-100 dark:hover:bg-surface-700 flex items-center justify-between gap-2 cursor-pointer border-none bg-transparent"
+                  class="w-full px-3 py-2 text-left text-sm hover:bg-rms-subtle flex items-center justify-between gap-2 cursor-pointer border-none bg-transparent"
                   (click)="addSupplyVariant(s)" (keydown.enter)="addSupplyVariant(s)">
-                  <span class="font-medium text-surface-800 dark:text-surface-200">{{ s.supplyName }}</span>
+                  <span class="font-medium text-rms-ink">{{ s.supplyName }}</span>
                   <span class="text-xs text-muted shrink-0">{{ s.quantity }} {{ s.unitAbbreviation }} · {{ s.unitCost | money }}/u</span>
                 </button>
               }
@@ -316,7 +317,7 @@
       } @else {
         <div class="flex flex-col">
           <!-- Header -->
-          <div class="grid grid-cols-[1fr_120px_90px_36px] gap-2 px-3 py-1.5 text-xs font-semibold text-muted uppercase tracking-wide border-b border-surface-200 dark:border-surface-700">
+          <div class="grid grid-cols-[1fr_120px_90px_36px] gap-2 px-3 py-1.5 text-xs font-semibold text-muted uppercase tracking-wide border-b border-rms-border">
             <span>Insumo</span>
             <span class="text-center">Cantidad</span>
             <span class="text-right">Costo</span>
@@ -326,9 +327,9 @@
           <!-- Existing recipe rows (edit mode) -->
           @for (item of existingRecipe.controls; track $index; let i = $index) {
             <div [formGroup]="$any(item)"
-              class="grid grid-cols-[1fr_120px_90px_36px] gap-2 items-center px-3 py-2 border-b border-surface-100 dark:border-surface-800 hover:bg-surface-50 dark:hover:bg-surface-800/50">
+              class="grid grid-cols-[1fr_120px_90px_36px] gap-2 items-center px-3 py-2 border-b border-rms-border hover:bg-rms-subtle">
               <div class="min-w-0">
-                <span class="text-sm font-medium text-surface-800 dark:text-surface-200 truncate block">
+                <span class="text-sm font-medium text-rms-ink truncate block">
                   {{ findVariantById($any(item).get('supplyVariantId')?.value)?.supplyName ?? 'Insumo' }}
                 </span>
                 <span class="text-xs text-muted">
@@ -357,9 +358,9 @@
           <!-- Base recipe rows (new) -->
           @for (item of baseRecipe.controls; track $index; let i = $index) {
             <div [formGroup]="$any(item)"
-              class="grid grid-cols-[1fr_120px_90px_36px] gap-2 items-center px-3 py-2 border-b border-surface-100 dark:border-surface-800 hover:bg-surface-50 dark:hover:bg-surface-800/50">
+              class="grid grid-cols-[1fr_120px_90px_36px] gap-2 items-center px-3 py-2 border-b border-rms-border hover:bg-rms-subtle">
               <div class="min-w-0">
-                <span class="text-sm font-medium text-surface-800 dark:text-surface-200 truncate block">
+                <span class="text-sm font-medium text-rms-ink truncate block">
                   {{ findVariantById($any(item).get('supplyVariantId')?.value)?.supplyName ?? 'Insumo' }}
                 </span>
                 <span class="text-xs text-muted">
@@ -388,7 +389,7 @@
       }
 
       <!-- Cost summary footer -->
-      <div class="border border-surface-200 dark:border-surface-700 rounded-lg p-4 text-sm">
+      <div class="border border-rms-border rounded-lg p-4 text-sm">
         <div class="flex items-center gap-2 mb-3" pTooltip="Costo calculado en vivo según los insumos de la receta" tooltipPosition="top">
           <i class="pi pi-calculator text-accent" aria-hidden="true"></i>
           <span class="font-medium">Costo de materiales</span>
@@ -406,11 +407,10 @@
     </div>
 
     <div class="flex justify-between mt-6">
-      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="goToStep1()" />
-      <p-button label="Siguiente"
-        icon="pi pi-arrow-right"
-        iconPos="right"
-        (click)="submitStep2()" />
+      <app-rms-button variant="secondary" iconStart="pi pi-arrow-left" (click)="goToStep1()">
+        Atrás
+      </app-rms-button>
+      <app-rms-button iconEnd="pi pi-arrow-right" (click)="submitStep2()">Siguiente</app-rms-button>
     </div>
   }
 
@@ -424,13 +424,17 @@
       (optionsChanged)="onOptionsChanged($event)" />
 
     <div class="flex justify-between mt-6">
-      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="goToStep2()" />
+      <app-rms-button variant="secondary" iconStart="pi pi-arrow-left" (click)="goToStep2()">
+        Atrás
+      </app-rms-button>
       <div class="flex gap-2">
-        <p-button label="Cancelar" severity="secondary" (click)="confirmCancel()" />
-        <p-button [label]="modalMode() === 'create' ? 'Crear producto' : 'Guardar cambios'"
-          icon="pi pi-check"
+        <app-rms-button variant="secondary" (click)="confirmCancel()">Cancelar</app-rms-button>
+        <app-rms-button
+          iconStart="pi pi-check"
           [loading]="isSubmitting()"
-          (click)="submitStep3()" />
+          (click)="submitStep3()">
+          {{ modalMode() === 'create' ? 'Crear producto' : 'Guardar cambios' }}
+        </app-rms-button>
       </div>
     </div>
   }
@@ -444,7 +448,7 @@
       </div>
 
       @if (cost(); as c) {
-        <div class="border border-surface-200 dark:border-surface-700 rounded-lg p-4 flex flex-col gap-2 text-sm">
+        <div class="border border-rms-border rounded-lg p-4 flex flex-col gap-2 text-sm">
           <h4 class="text-sm font-medium flex items-center gap-2 mb-1">
             <i class="pi pi-receipt text-accent" aria-hidden="true"></i>
             Costo de producción oficial
@@ -469,7 +473,7 @@
       }
 
       @if (recipeCost() > 0) {
-        <div class="border border-dashed border-surface-300 dark:border-surface-600 rounded-lg p-3 flex items-center justify-between text-sm bg-surface-50 dark:bg-surface-800">
+        <div class="border border-dashed border-rms-border-strong rounded-lg p-3 flex items-center justify-between text-sm bg-rms-subtle">
           <span class="flex items-center gap-2 text-muted">
             <i class="pi pi-bolt text-xs" aria-hidden="true"></i>
             Materiales estimado (receta actual)
@@ -478,7 +482,7 @@
         </div>
       }
 
-      <div class="border border-surface-200 dark:border-surface-700 rounded-lg p-4 flex flex-col gap-3">
+      <div class="border border-rms-border rounded-lg p-4 flex flex-col gap-3">
         <h4 class="text-sm font-medium flex items-center gap-2">
           <i class="pi pi-tag text-rms-success" aria-hidden="true"></i>
           Precio de venta
@@ -507,10 +511,17 @@
     </div>
 
     <div class="flex justify-between mt-6">
-      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="goToStep3()" />
+      <app-rms-button variant="secondary" iconStart="pi pi-arrow-left" (click)="goToStep3()">
+        Atrás
+      </app-rms-button>
       <div class="flex gap-2">
-        <p-button label="Cancelar" severity="secondary" (click)="confirmCancel()" />
-        <p-button label="Confirmar precio" icon="pi pi-check" [loading]="isSubmitting()" (click)="confirmPrice()" />
+        <app-rms-button variant="secondary" (click)="confirmCancel()">Cancelar</app-rms-button>
+        <app-rms-button
+          iconStart="pi pi-check"
+          [loading]="isSubmitting()"
+          (click)="confirmPrice()">
+          Confirmar precio
+        </app-rms-button>
       </div>
     </div>
   }
@@ -521,13 +532,13 @@
       <div class="flex items-center gap-3 p-4 bg-rms-subtle rounded-lg border border-rms-border">
         <i class="pi pi-check-circle text-rms-success text-2xl" aria-hidden="true"></i>
         <div>
-          <p class="font-semibold text-surface-900 dark:text-surface-0">Producto guardado correctamente</p>
+          <p class="font-semibold text-rms-ink">Producto guardado correctamente</p>
           <p class="text-sm text-muted">Todos los datos han sido registrados.</p>
         </div>
       </div>
 
       @if (createdProduct()) {
-        <div class="border border-surface-200 dark:border-surface-700 rounded-lg p-4 flex flex-col gap-2 text-sm">
+        <div class="border border-rms-border rounded-lg p-4 flex flex-col gap-2 text-sm">
           <div class="flex justify-between">
             <span class="text-muted">Nombre</span>
             <span class="font-medium">{{ createdProduct()!.name }}</span>
@@ -560,7 +571,7 @@
                   <span class="font-semibold text-base">{{ c.totalCost | money }}</span>
                 </div>
                 @if (c.breakdown.length > 0) {
-                  <div class="flex flex-col gap-2 mt-3 pt-3 border-t border-surface-200 dark:border-surface-700">
+                  <div class="flex flex-col gap-2 mt-3 pt-3 border-t border-rms-border">
                     <span class="text-xs font-semibold text-muted uppercase tracking-wide">Desglose</span>
                     @for (item of c.breakdown; track $index) {
                       <div class="flex items-center justify-between">
@@ -606,9 +617,9 @@
           <div class="flex flex-col gap-2">
             <span class="text-xs font-semibold text-muted uppercase tracking-wide">Opciones registradas</span>
             @for (opt of existingOptions(); track opt.id) {
-              <div class="flex items-center justify-between px-3 py-2 bg-surface-50 dark:bg-surface-800 rounded-lg text-sm border border-surface-200 dark:border-surface-700">
+              <div class="flex items-center justify-between px-3 py-2 bg-rms-subtle rounded-lg text-sm border border-rms-border">
                 <span class="font-medium">{{ opt.name }}</span>
-                <span class="text-muted text-xs px-2 py-0.5 bg-surface-200 dark:bg-surface-700 rounded">{{ opt.optionGroupName }}</span>
+                <span class="text-muted text-xs px-2 py-0.5 bg-rms-subtle rounded">{{ opt.optionGroupName }}</span>
               </div>
             }
           </div>
@@ -617,8 +628,10 @@
     </div>
 
     <div class="flex justify-between mt-6">
-      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="goToStep4()" />
-      <p-button label="Finalizar" icon="pi pi-check" (click)="finish()" />
+      <app-rms-button variant="secondary" iconStart="pi pi-arrow-left" (click)="goToStep4()">
+        Atrás
+      </app-rms-button>
+      <app-rms-button iconStart="pi pi-check" (click)="finish()">Finalizar</app-rms-button>
     </div>
   }
 

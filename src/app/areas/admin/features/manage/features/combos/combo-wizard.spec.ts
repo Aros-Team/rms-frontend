@@ -25,6 +25,7 @@ import { SpecialSelectionsCache } from '@app/core/services/special-selections/sp
 import type { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';
 
 import comboWizardHtml from './combo-wizard.html?raw';
+import buttonHtml from '@app/shared/ui/button/button.html?raw';
 import { ComboWizard } from './combo-wizard';
 
 interface CategoryStub {
@@ -191,7 +192,7 @@ class HostWithMixedSlots {
 }
 
 function getFooterButtons(root: HTMLElement): { back: HTMLButtonElement; next: HTMLButtonElement } {
-  const buttons = root.querySelectorAll('p-button button');
+  const buttons = root.querySelectorAll('app-rms-button button');
   const back = buttons.item(0) as HTMLButtonElement | null;
   const next = buttons.item(buttons.length - 1) as HTMLButtonElement | null;
   if (!back || !next) {
@@ -209,6 +210,9 @@ describe('ComboWizard shell', () => {
     await resolveComponentResources((url: string) => {
       if (url.endsWith('combo-wizard.html')) {
         return Promise.resolve(comboWizardHtml as unknown as string);
+      }
+      if (url.endsWith('button.html')) {
+        return Promise.resolve(buttonHtml as unknown as string);
       }
       return Promise.resolve('');
     });
@@ -635,7 +639,7 @@ describe('ComboWizard shell', () => {
 
       expect(root.querySelector('h1')?.textContent.trim()).toBe('Asistente de combo');
 
-      const labels = Array.from(root.querySelectorAll('p-button button')).map((btn) =>
+      const labels = Array.from(root.querySelectorAll('app-rms-button button')).map((btn) =>
         btn.textContent.trim(),
       );
       expect(labels).toEqual(['Atrás', 'Siguiente']);

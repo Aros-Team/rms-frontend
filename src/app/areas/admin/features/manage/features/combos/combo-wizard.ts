@@ -8,8 +8,9 @@ import {
   untracked,
 } from '@angular/core';
 
-import { ButtonModule } from 'primeng/button';
 import { SkeletonModule } from 'primeng/skeleton';
+
+import { RmsButton } from '@app/shared/ui/button/button';
 
 import { ComboReferenceCache } from '@app/core/services/combos/combo-reference-cache';
 import {
@@ -48,7 +49,7 @@ const STEP_PRICING_LABEL = 'Precio final';
 
 @Component({
   selector: 'app-combo-wizard',
-  imports: [ButtonModule, SkeletonModule],
+  imports: [RmsButton, SkeletonModule],
   templateUrl: './combo-wizard.html',
   styleUrl: './combo-wizard.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -153,18 +154,18 @@ export class ComboWizard {
 
   markerClass(state: StepMarkerState): string {
     if (state === 'completed') {
-      return 'bg-primary text-primary-contrast border border-primary';
+      return 'bg-rms-brand text-rms-on-brand border border-rms-brand';
     }
     if (state === 'active') {
-      return 'bg-primary-contrast text-primary border-2 border-primary';
+      return 'bg-rms-surface text-rms-brand-text border-2 border-rms-brand';
     }
-    return 'bg-surface-100 text-surface-500 border border-surface-300 dark:bg-surface-800 dark:text-surface-400 dark:border-surface-600';
+    return 'bg-rms-subtle text-rms-ink-muted border border-rms-border';
   }
 
   markerConnectorClass(state: StepMarkerState): string {
     return state === 'completed'
-      ? 'bg-primary'
-      : 'bg-surface-200 dark:bg-surface-700';
+      ? 'bg-rms-brand'
+      : 'bg-rms-border';
   }
 
   statusLabel(state: StepMarkerState): string {
@@ -179,12 +180,12 @@ export class ComboWizard {
 
   statusClass(state: StepMarkerState): string {
     if (state === 'active') {
-      return 'text-primary';
+      return 'text-rms-brand-text';
     }
     if (state === 'completed') {
-      return 'text-primary';
+      return 'text-rms-brand-text';
     }
-    return 'text-surface-500 dark:text-surface-400';
+    return 'text-rms-ink-muted';
   }
 
   private slotKeyFor(id: WizardStepId): WizardStepView['slotKey'] {

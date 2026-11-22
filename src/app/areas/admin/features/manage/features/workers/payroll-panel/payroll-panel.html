@@ -1,7 +1,7 @@
 <div class="flex flex-col gap-4 min-w-0">
   <!-- Filters -->
   <div
-    class="flex flex-col gap-3 p-4 border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-100 dark:bg-surface-800 min-w-0"
+    class="flex flex-col gap-3 p-4 border border-rms-border rounded-xl bg-rms-subtle min-w-0"
   >
     <div class="flex flex-wrap items-end gap-3">
       <div class="flex flex-col gap-1 min-w-0 w-full sm:w-64">
@@ -84,9 +84,9 @@
   @if (loadErrorMessage(); as loadError) {
     <div
       role="alert"
-      class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border border-surface-300 dark:border-surface-600 rounded-xl bg-surface-100 dark:bg-surface-800"
+      class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border border-rms-border-strong rounded-xl bg-rms-subtle"
     >
-      <p class="text-sm text-surface-900 dark:text-surface-0" data-testid="payroll-load-error">
+      <p class="text-sm text-rms-ink" data-testid="payroll-load-error">
         {{ loadError }}
       </p>
       <p-button
@@ -103,7 +103,7 @@
   <section aria-labelledby="payroll-summary-title" class="flex flex-col gap-3 min-w-0">
     <h2
       id="payroll-summary-title"
-      class="text-base md:text-lg font-semibold text-surface-900 dark:text-surface-0"
+      class="text-base md:text-lg font-semibold text-rms-ink"
     >
       Resumen del periodo
     </h2>
@@ -112,7 +112,7 @@
       <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
         @for (card of [1, 2, 3, 4, 5, 6]; track card) {
           <div
-            class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 p-3"
+            class="border border-rms-border rounded-xl bg-rms-surface p-3"
           >
             <p-skeleton width="60%" height="0.75rem" />
             <div class="mt-2"><p-skeleton width="80%" height="1.25rem" /></div>
@@ -122,66 +122,66 @@
     } @else if (summary(); as payroll) {
       <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
         <div
-          class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 p-3 min-w-0"
+          class="border border-rms-border rounded-xl bg-rms-surface p-3 min-w-0"
         >
           <p class="text-xs text-muted">Salario base</p>
           <p
-            class="text-base md:text-lg font-semibold text-surface-900 dark:text-surface-0 break-words"
+            class="text-base md:text-lg font-semibold text-rms-ink break-words"
             data-testid="payroll-base"
           >
             {{ payroll.baseSalary | money }}
           </p>
         </div>
         <div
-          class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 p-3 min-w-0"
+          class="border border-rms-border rounded-xl bg-rms-surface p-3 min-w-0"
         >
           <p class="text-xs text-muted">Bonificaciones</p>
           <p
-            class="text-base md:text-lg font-semibold text-surface-900 dark:text-surface-0 break-words"
+            class="text-base md:text-lg font-semibold text-rms-ink break-words"
             data-testid="payroll-bonuses"
           >
             {{ payroll.bonuses | money }}
           </p>
         </div>
         <div
-          class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 p-3 min-w-0"
+          class="border border-rms-border rounded-xl bg-rms-surface p-3 min-w-0"
         >
           <p class="text-xs text-muted">Deducciones</p>
           <p
-            class="text-base md:text-lg font-semibold text-surface-900 dark:text-surface-0 break-words"
+            class="text-base md:text-lg font-semibold text-rms-ink break-words"
             data-testid="payroll-deductions"
           >
             {{ payroll.deductions | money }}
           </p>
         </div>
         <div
-          class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 p-3 min-w-0"
+          class="border border-rms-border rounded-xl bg-rms-surface p-3 min-w-0"
         >
           <p class="text-xs text-muted">Neto</p>
           <p
-            class="text-base md:text-lg font-semibold text-surface-900 dark:text-surface-0 break-words"
+            class="text-base md:text-lg font-semibold text-rms-ink break-words"
             data-testid="payroll-net"
           >
             {{ payroll.netAmount | money }}
           </p>
         </div>
         <div
-          class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 p-3 min-w-0"
+          class="border border-rms-border rounded-xl bg-rms-surface p-3 min-w-0"
         >
           <p class="text-xs text-muted">Pagado</p>
           <p
-            class="text-base md:text-lg font-semibold text-surface-900 dark:text-surface-0 break-words"
+            class="text-base md:text-lg font-semibold text-rms-ink break-words"
             data-testid="payroll-paid"
           >
             {{ payroll.paidAmount | money }}
           </p>
         </div>
         <div
-          class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 p-3 min-w-0"
+          class="border border-rms-border rounded-xl bg-rms-surface p-3 min-w-0"
         >
           <p class="text-xs text-muted">Pendiente</p>
           <p
-            class="text-base md:text-lg font-semibold text-surface-900 dark:text-surface-0 break-words"
+            class="text-base md:text-lg font-semibold text-rms-ink break-words"
             data-testid="payroll-pending"
           >
             {{ payroll.pendingAmount | money }}
@@ -193,10 +193,10 @@
         <div
           role="status"
           data-testid="payroll-pending-warning"
-          class="flex items-start gap-2 p-3 border border-surface-300 dark:border-surface-600 rounded-xl bg-surface-100 dark:bg-surface-800"
+          class="flex items-start gap-2 p-3 border border-rms-border-strong rounded-xl bg-rms-subtle"
         >
           <i class="pi pi-exclamation-triangle text-muted mt-1" aria-hidden="true"></i>
-          <p class="text-sm text-surface-900 dark:text-surface-0">
+          <p class="text-sm text-rms-ink">
             Pendiente por pagar: <strong>{{ payroll.pendingAmount | money }}</strong>. Registra una
             liquidación para cerrar el periodo.
           </p>
@@ -204,10 +204,10 @@
       }
     } @else {
       <div
-        class="flex flex-col items-center justify-center gap-2 p-8 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 text-center"
+        class="flex flex-col items-center justify-center gap-2 p-8 border border-rms-border rounded-xl bg-rms-surface text-center"
         data-testid="payroll-empty"
       >
-        <i class="pi pi-inbox text-4xl text-surface-300" aria-hidden="true"></i>
+        <i class="pi pi-inbox text-4xl text-rms-ink-muted" aria-hidden="true"></i>
         <p class="text-muted">
           El trabajador no tiene nómina registrada para este periodo.
         </p>
@@ -223,7 +223,7 @@
     <div class="flex flex-wrap items-center justify-between gap-2">
       <h2
         id="payroll-events-title"
-        class="text-base md:text-lg font-semibold text-surface-900 dark:text-surface-0"
+        class="text-base md:text-lg font-semibold text-rms-ink"
       >
         Eventos del periodo
       </h2>
@@ -233,7 +233,7 @@
     </div>
 
     <div
-      class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 overflow-hidden"
+      class="border border-rms-border rounded-xl bg-rms-surface overflow-hidden"
       [attr.aria-busy]="isLoading()"
     >
       @if (isLoading() && events().length === 0) {
@@ -243,7 +243,7 @@
           class="flex flex-col items-center justify-center gap-3 p-8 text-center"
           data-testid="events-empty"
         >
-          <i class="pi pi-calendar text-4xl text-surface-300" aria-hidden="true"></i>
+          <i class="pi pi-calendar text-4xl text-rms-ink-muted" aria-hidden="true"></i>
           <p class="text-muted" data-testid="events-empty-title">
             No hay eventos registrados en este periodo.
           </p>
@@ -281,9 +281,9 @@
                 {{ formatDate(event.eventDate) }}
               </td>
               <td class="text-sm" data-testid="event-type">
-                <p-tag
-                  [value]="eventLabel(event.eventType)"
-                  [severity]="eventSeverity(event.eventType)"
+                <app-rms-status-pill
+                  [label]="eventLabel(event.eventType)"
+                  [status]="eventStatus(event.eventType)"
                 />
               </td>
               <td class="text-sm">{{ event.quantity }}</td>
@@ -318,7 +318,7 @@
     <div class="flex flex-wrap items-center justify-between gap-2">
       <h2
         id="payroll-settlements-title"
-        class="text-base md:text-lg font-semibold text-surface-900 dark:text-surface-0"
+        class="text-base md:text-lg font-semibold text-rms-ink"
       >
         Liquidaciones
       </h2>
@@ -328,7 +328,7 @@
     </div>
 
     <div
-      class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 overflow-hidden"
+      class="border border-rms-border rounded-xl bg-rms-surface overflow-hidden"
       [attr.aria-busy]="isLoading()"
     >
       @if (isLoading() && settlements().length === 0) {
@@ -338,7 +338,7 @@
           class="flex flex-col items-center justify-center gap-3 p-8 text-center"
           data-testid="settlements-empty"
         >
-          <i class="pi pi-wallet text-4xl text-surface-300" aria-hidden="true"></i>
+          <i class="pi pi-wallet text-4xl text-rms-ink-muted" aria-hidden="true"></i>
           <p class="text-muted">
             Todavía no hay liquidaciones registradas en este periodo.
           </p>
@@ -373,7 +373,7 @@
                 {{ formatDateTime(settlement.settledAt) }}
               </td>
               <td class="text-sm" data-testid="settlement-type">
-                <p-tag [value]="settlementLabel(settlement.settlementType)" severity="info" />
+                <app-rms-status-pill [label]="settlementLabel(settlement.settlementType)" status="info" />
               </td>
               <td class="text-sm whitespace-nowrap" data-testid="settlement-period">
                 {{ formatDate(settlement.periodStart) }} – {{ formatDate(settlement.periodEnd) }}
@@ -394,7 +394,7 @@
 
 <!-- Create event modal -->
 @if (eventModalVisible()) {
-  <div class="fixed inset-0 z-[400000] flex items-center justify-center p-4 bg-surface-900/60">
+  <div class="fixed inset-0 z-[400000] flex items-center justify-center p-4 bg-[var(--rms-bg-overlay)]">
     <div
       #eventDialog
       role="dialog"
@@ -402,11 +402,11 @@
       aria-labelledby="payroll-event-dialog-title"
       data-testid="event-dialog"
       tabindex="-1"
-      class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-surface-200 dark:border-surface-700 bg-primary-contrast dark:bg-surface-800 p-4 focus:outline-none"
+      class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-rms-border bg-rms-surface p-4 focus:outline-none"
     >
       <h2
         id="payroll-event-dialog-title"
-        class="text-lg font-semibold text-surface-900 dark:text-surface-0 mb-4"
+        class="text-lg font-semibold text-rms-ink mb-4"
       >
         Registrar evento de nómina
       </h2>
@@ -508,7 +508,7 @@
         </div>
 
         @if (eventError(); as error) {
-          <p role="alert" class="text-sm text-surface-900 dark:text-surface-0" data-testid="event-error">
+          <p role="alert" class="text-sm text-rms-ink" data-testid="event-error">
             {{ error }}
           </p>
         }
@@ -536,7 +536,7 @@
 
 <!-- Settlement modal -->
 @if (settleModalVisible()) {
-  <div class="fixed inset-0 z-[400000] flex items-center justify-center p-4 bg-surface-900/60">
+  <div class="fixed inset-0 z-[400000] flex items-center justify-center p-4 bg-[var(--rms-bg-overlay)]">
     <div
       #settleDialog
       role="dialog"
@@ -544,11 +544,11 @@
       aria-labelledby="payroll-settle-dialog-title"
       data-testid="settle-dialog"
       tabindex="-1"
-      class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-surface-200 dark:border-surface-700 bg-primary-contrast dark:bg-surface-800 p-4 focus:outline-none"
+      class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-rms-border bg-rms-surface p-4 focus:outline-none"
     >
       <h2
         id="payroll-settle-dialog-title"
-        class="text-lg font-semibold text-surface-900 dark:text-surface-0 mb-4"
+        class="text-lg font-semibold text-rms-ink mb-4"
       >
         Registrar liquidación
       </h2>
@@ -626,7 +626,7 @@
         @switch (settleDivergence()) {
           @case ('invalid') {
             <p
-              class="text-sm text-surface-700 dark:text-surface-300"
+              class="text-sm text-rms-ink-secondary"
               data-testid="settle-divergence"
             >
               Indica un monto mayor a cero.
@@ -634,7 +634,7 @@
           }
           @case ('unknown') {
             <p
-              class="text-sm text-surface-700 dark:text-surface-300"
+              class="text-sm text-rms-ink-secondary"
               data-testid="settle-divergence"
             >
               El periodo cargado no tiene un pendiente de referencia.
@@ -650,7 +650,7 @@
           }
           @case ('under') {
             <p
-              class="text-sm text-surface-700 dark:text-surface-300"
+              class="text-sm text-rms-ink-secondary"
               data-testid="settle-divergence"
             >
               El monto es menor que el pendiente por {{ settleDifference() | money }}.
@@ -670,7 +670,7 @@
                 />
                 <label
                   for="settle-overpayment-ack"
-                  class="text-sm text-surface-700 dark:text-surface-300"
+                  class="text-sm text-rms-ink-secondary"
                 >
                   Confirmo que deseo liquidar un monto mayor al pendiente.
                 </label>
@@ -694,7 +694,7 @@
         </div>
 
         @if (settleError(); as error) {
-          <p role="alert" class="text-sm text-surface-900 dark:text-surface-0" data-testid="settle-error">
+          <p role="alert" class="text-sm text-rms-ink" data-testid="settle-error">
             {{ error }}
           </p>
         }
