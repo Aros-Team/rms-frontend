@@ -47,13 +47,13 @@ const TIME_FORMATTER = new Intl.DateTimeFormat('es-CO', {
  * Contract:
  *  - the endpoint takes ISO-8601 **instants**, not `LocalDate`; the panel
  *    converts the local date inputs to local-day boundaries;
- *  - the running API build only decodes `IN`; seeded `OUT` rows make a range
- *    that contains them fail with 500. That is surfaced as an explicit error,
- *    never as "0 h";
+ *  - `withinShift=true` is forwarded when the toggle is on; leaving it off
+ *    keeps the full range (`withinShift=false` means "outside a shift", not
+ *    "all", so it is not sent by this panel);
  *  - hours come only from a closed IN/OUT pair. An open session is an
  *    exception, not an assumed 8 h day;
- *  - this is the admin clock *read*. Clock-in/out writes do not exist in the
- *    API; the panel says so instead of rendering a fake button.
+ *  - this is the admin clock *read*; workers write their own marks from
+ *    "Mi horario".
  */
 @Component({
   selector: 'app-time-logs-panel',
@@ -286,7 +286,7 @@ export class TimeLogsPanel implements OnInit {
       return 'No se pudo contactar al servidor. Revisa la conexión e inténtalo de nuevo.';
     }
     if (err.status >= 500) {
-      return 'La API no pudo leer los registros del rango. El build en ejecución no decodifica los eventos OUT (requiere P3-BE-RL-11); prueba un rango sin salidas o revisa el reporte.';
+      return 'La API no pudo leer los registros del rango. Revisa la conexión e inténtalo de nuevo; si persiste, consulta el registro del servidor.';
     }
     return 'No se pudieron cargar los registros de asistencia.';
   }

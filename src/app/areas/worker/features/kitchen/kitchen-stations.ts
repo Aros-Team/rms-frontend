@@ -4,16 +4,15 @@ import type { ProductListResponse } from '@app/shared/models/dto/products/produc
 /**
  * Kitchen station model.
  *
- * The order API does not carry a station/area on each line
- * (`OrderDetailResponse` has no `areaId`/`areaName`), but the product catalogue
- * does: every product has `areaId` + `areaName`, and a category fallback when
- * the area is missing. This module resolves `productId -> station` once and
- * every board surface groups by it.
+ * Since the station API lane, `OrderDetailResponse` carries `areaId`/`areaName`
+ * resolved by the backend from the product. That field is the primary source.
+ * The product catalogue remains a fallback for older payloads or a product
+ * without an area: it has `areaId` + `areaName`, and a category fallback when
+ * the area is missing.
  *
- * If the catalogue fails to load, or a product is unknown, the line is grouped
- * under "Sin estación" instead of being dropped. When the API eventually adds
- * `categoryId`/`categoryName` to the order line, `stationForDetail` already
- * uses the category instead of "Sin estación".
+ * If the API line and the catalogue both lack an area, the line is grouped
+ * under "Sin estación" instead of being dropped. A category is used before
+ * that last resort.
  */
 export interface KitchenStation {
   /** Stable key: `area:<id>`, `category:<id>` or `unknown`. */
@@ -32,14 +31,19 @@ export const UNKNOWN_STATION: KitchenStation = {
 /** `productId -> station` for the whole catalogue. */
 export type KitchenStationMap = ReadonlyMap<number, KitchenStation>;
 
+/** Station built from a preparation area id/name pair. */
+export function stationFromArea(areaId: number, areaName?: string | null): KitchenStation {
+  const name = typeof areaName === 'string' ? areaName.trim() : '';
+  return {
+    key: `area:${String(areaId)}`,
+    name: name.length > 0 ? name : `Área ${String(areaId)}`,
+    rank: areaId,
+  };
+}
+
 export function stationFromProduct(product: ProductListResponse): KitchenStation {
   if (typeof product.areaId === 'number' && product.areaId > 0) {
-    const name = product.areaName?.trim();
-    return {
-      key: `area:${String(product.areaId)}`,
-      name: name && name.length > 0 ? name : `Área ${String(product.areaId)}`,
-      rank: product.areaId,
-    };
+    return stationFromArea(product.areaId, product.areaName);
   }
 
   if (typeof product.categoryId === 'number' && product.categoryId > 0) {
@@ -66,14 +70,23 @@ export function buildStationMap(products: readonly ProductListResponse[]): Kitch
 /**
  * Station of an order line.
  *
- * Prefers the catalogue (product -> preparation area). Falls back to the
- * category fields if the API starts sending them on the order line, and
- * finally to "Sin estación".
+ * Order of preference:
+ *  1. `areaId`/`areaName` sent on the order line (authoritative);
+ *  2. the product catalogue (`productId -> area`), which also covers combos;
+ *  3. the line's category fields;
+ *  4. "Sin estación".
  */
 export function stationForDetail(
-  detail: Pick<OrderDetailItem, 'productId' | 'categoryId' | 'categoryName'>,
+  detail: Pick<
+    OrderDetailItem,
+    'productId' | 'areaId' | 'areaName' | 'categoryId' | 'categoryName'
+  >,
   stations: KitchenStationMap,
 ): KitchenStation {
+  if (typeof detail.areaId === 'number' && detail.areaId > 0) {
+    return stationFromArea(detail.areaId, detail.areaName);
+  }
+
   const productStation = stations.get(detail.productId);
   if (productStation) return productStation;
 
@@ -207,4 +220,17 @@ export function orderHasStation(
   stations: KitchenStationMap,
 ): boolean {
   return orderStations(order, stations).some((station) => station.key === stationKey);
+}
+
+/**
+ * Numeric preparation area of an `area:<id>` station key.
+ *
+ * Returns `null` for the "all" selection and for category/unknown stations,
+ * which the order API cannot filter server-side.
+ */
+export function stationAreaId(stationKey: string): number | null {
+  const match = /^area:(\d+)$/.exec(stationKey);
+  if (match === null) return null;
+  const id = Number(match[1]);
+  return Number.isFinite(id) && id > 0 ? id : null;
 }

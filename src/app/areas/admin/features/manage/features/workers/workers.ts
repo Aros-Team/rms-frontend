@@ -697,7 +697,7 @@ export class Workers implements OnInit {
     this.assigningScheduleIds.update(s => new Set(s).add(scheduleId));
 
     this.scheduleAssignmentService.assign(workerId, scheduleId).subscribe({
-      next: () => {
+      next: (result) => {
         this.workerAssignedScheduleIds.update(ids => [...ids, scheduleId]);
         this.userAssignedSchedules.update(map => {
           const newMap = new Map(map);
@@ -705,7 +705,13 @@ export class Workers implements OnInit {
           newMap.set(workerId, [...current, scheduleId]);
           return newMap;
         });
-        this.messageService.add({ severity: 'success', summary: 'Asignado', detail: 'Horario asignado correctamente' });
+        const detail =
+          result.warning ?? 'Horario asignado correctamente';
+        this.messageService.add({
+          severity: result.warning === null ? 'success' : 'warn',
+          summary: result.warning === null ? 'Asignado' : 'Asignado con aviso',
+          detail,
+        });
         this.assigningScheduleIds.update(s => { const n = new Set(s); n.delete(scheduleId); return n; });
       },
       error: (err: HttpErrorResponse) => {

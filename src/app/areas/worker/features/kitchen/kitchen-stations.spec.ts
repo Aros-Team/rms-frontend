@@ -1,12 +1,13 @@
 /**
  * Tests for the kitchen station model.
  *
- * Feature: the board groups every order line by the preparation station, even
- * though the order API has no station field.
+ * Feature: the board groups every order line by the preparation station, using
+ * the `areaId`/`areaName` the API sends on the line.
  * Contract:
- *  - `productId -> preparation area` comes from the product catalogue;
- *  - a product without an area falls back to its category, then "Sin estación";
- *  - a line already carrying `categoryName` uses it instead of "Sin estación";
+ *  - the API area wins; `productId -> preparation area` from the catalogue is
+ *    the fallback when the API field is null;
+ *  - a line without an area falls back to its category, then "Sin estación";
+ *  - `area:<id>` keys expose their numeric area for the server-side filter;
  *  - station counts include an order once per station and keep empty stations;
  *  - station order is stable (prep areas first, unknown last).
  */
@@ -19,6 +20,7 @@ import {
   groupLinesByStation,
   orderHasStation,
   orderStations,
+  stationAreaId,
   stationCounts,
   stationForDetail,
   stationFromProduct,
@@ -80,6 +82,33 @@ describe('kitchen stations', () => {
         categoryName: null as unknown as string,
       }),
     ).toEqual({ key: 'category:9', name: 'Categoría 9', rank: 1009 });
+  });
+
+  it('prefers the area sent on the order line over the catalogue', () => {
+    const fromApi = { ...detail(1), areaId: 3, areaName: 'Bar' };
+
+    expect(stationForDetail(fromApi, map)).toEqual({ key: 'area:3', name: 'Bar', rank: 3 });
+    // A known catalogue product is overridden by the authoritative API field.
+    expect(stationForDetail({ ...fromApi, areaId: 1, areaName: null }, map)).toEqual({
+      key: 'area:1',
+      name: 'Área 1',
+      rank: 1,
+    });
+  });
+
+  it('falls back to the catalogue when the API area is null', () => {
+    expect(stationForDetail({ ...detail(1), areaId: null, areaName: null }, map)).toEqual({
+      key: 'area:1',
+      name: 'Cocina',
+      rank: 1,
+    });
+  });
+
+  it('extracts the numeric area of an area station key', () => {
+    expect(stationAreaId('area:3')).toBe(3);
+    expect(stationAreaId('all')).toBeNull();
+    expect(stationAreaId('category:2')).toBeNull();
+    expect(stationAreaId('unknown')).toBeNull();
   });
 
   it('uses the category fields on an order line when the catalogue lacks the product', () => {

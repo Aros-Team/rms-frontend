@@ -3,7 +3,8 @@
  *
  * Feature: assign / list / unassign schedules for a worker.
  * Contract:
- *  - `POST v1/workers/{workerId}/schedule-assignments` sends `{ scheduleId }`;
+ *  - `POST v1/workers/{workerId}/schedule-assignments` sends `{ scheduleId }`
+ *    and returns the weekly-hours result, including the non-blocking warning;
  *  - `GET` returns schedule IDs (the API never exposes assignment IDs);
  *  - `DELETE v1/workers/{workerId}/schedule-assignments/{scheduleId}` removes
  *    the assignment by worker + schedule, matching the ID the list returns.
@@ -41,14 +42,25 @@ describe('ScheduleAssignment service', () => {
     httpMock.verify();
   });
 
-  it('assign POSTs { scheduleId } to the worker assignments endpoint', () => {
-    service.assign(1001, 2).subscribe();
+  it('assign POSTs { scheduleId } and returns the weekly-hours warning', () => {
+    let received: unknown;
+    service.assign(1001, 2).subscribe((value) => (received = value));
 
     const req = httpMock.expectOne('v1/workers/1001/schedule-assignments');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({ scheduleId: 2 });
 
-    req.flush(null, { status: 201, statusText: 'Created' });
+    const response = {
+      workerId: 1001,
+      scheduleId: 2,
+      weeklyHours: 63,
+      legalWeeklyHours: 48,
+      hardWeeklyCapHours: 66,
+      warning: 'Weekly hours 63.00 exceed the 48 h legal reference',
+    };
+    req.flush(response, { status: 201, statusText: 'Created' });
+
+    expect(received).toEqual(response);
   });
 
   it('getAssignments returns the schedule IDs of the worker', () => {

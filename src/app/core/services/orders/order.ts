@@ -43,6 +43,11 @@ export interface OrderQuery {
   sort?: string;
   status?: string;
   search?: string;
+  /**
+   * Preparation area (station) filter. The server returns every order with at
+   * least one line prepared in that area; the ticket keeps all its lines.
+   */
+  areaId?: number;
   /** `YYYY-MM-DDTHH:mm:ss` */
   startDate?: string;
   /** `YYYY-MM-DDTHH:mm:ss` */
@@ -278,8 +283,32 @@ export class Order {
     return this.http.put<OrderResponse>('v1/orders/prepare', {});
   }
 
+  /**
+   * Starts one specific QUEUE order (`PUT /v1/orders/{id}/prepare`).
+   *
+   * Unlike {@link prepareNext}, this does not claim the global oldest ticket,
+   * so a station can start the order it is actually working on.
+   */
+  prepareOrder(id: number): Observable<OrderResponse> {
+    return this.http.put<OrderResponse>(`v1/orders/${String(id)}/prepare`, {});
+  }
+
   markAsReady(id: number): Observable<OrderResponse> {
     return this.http.put<OrderResponse>(`v1/orders/${String(id)}/ready`, {});
+  }
+
+  /**
+   * Marks one order line ready at its station
+   * (`PUT /v1/orders/{id}/details/{detailId}/ready`).
+   *
+   * The response is the whole order; when the last pending line becomes ready
+   * the backend moves it to READY.
+   */
+  markDetailReady(orderId: number, detailId: number): Observable<OrderResponse> {
+    return this.http.put<OrderResponse>(
+      `v1/orders/${String(orderId)}/details/${String(detailId)}/ready`,
+      {},
+    );
   }
 
   deliverOrder(id: number): Observable<OrderResponse> {

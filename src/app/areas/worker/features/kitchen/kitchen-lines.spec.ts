@@ -6,13 +6,20 @@
  * Contract:
  *  - repeated identical rows collapse into one line with a quantity;
  *  - a different note or option keeps a separate line;
- *  - station comes from the catalogue;
- *  - empty labels never render "null".
+ *  - station comes from the API line, with the catalogue as fallback;
+ *  - readiness is tracked per physical row;
+ *  - empty/null labels never render "null".
  */
 import type { OrderDetailItem } from '@app/shared/models/dto/orders/order-response';
 import type { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
 
-import { groupKitchenLines, totalKitchenItems } from './kitchen-lines';
+import {
+  groupKitchenLines,
+  isLineReady,
+  lineReadyAt,
+  pendingDetailIds,
+  totalKitchenItems,
+} from './kitchen-lines';
 import { buildStationMap } from './kitchen-stations';
 
 const PRICE = { amount: '10000.00', currency: 'COP' };
@@ -156,5 +163,37 @@ describe('kitchen lines', () => {
     );
 
     expect(plain.note).toBe('');
+  });
+
+  it('tolerates a null product name and keeps a readable fallback', () => {
+    const [lineWithoutName] = groupKitchenLines(
+      [line({ productId: 77, productName: null })],
+      stations,
+    );
+
+    expect(lineWithoutName.name).toBe('Producto #77');
+  });
+
+  it('keeps every physical row readiness on a grouped line', () => {
+    const [grouped] = groupKitchenLines(
+      [
+        line({ id: 1, ready: true, readyAt: '2026-11-22T12:00:00' }),
+        line({ id: 2, ready: false }),
+      ],
+      stations,
+    );
+
+    expect(grouped.quantity).toBe(2);
+    expect(grouped.details).toEqual([
+      { id: 1, ready: true, readyAt: '2026-11-22T12:00:00' },
+      { id: 2, ready: false, readyAt: null },
+    ]);
+    expect(isLineReady(grouped)).toBe(false);
+    expect(pendingDetailIds(grouped)).toEqual([2]);
+    expect(lineReadyAt(grouped)).toBeNull();
+
+    const bothReady = { ...grouped, details: grouped.details.map((detail) => ({ ...detail, ready: true })) };
+    expect(isLineReady(bothReady)).toBe(true);
+    expect(lineReadyAt(bothReady)).toBe('2026-11-22T12:00:00');
   });
 });
