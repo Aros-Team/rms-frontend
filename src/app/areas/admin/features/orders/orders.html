@@ -1,14 +1,10 @@
 <div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0">
-  <!-- Header -->
-  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 min-w-0 flex-shrink-0">
-    <div class="min-w-0">
-      <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0 break-words">Gestión de Pedidos</h1>
-      <p class="text-muted mt-1 text-sm">Administra y gestiona todos los pedidos del restaurante con información detallada</p>
-    </div>
-  </div>
+  <app-rms-page-header
+    [title]="title"
+    subtitle="Administra y gestiona todos los pedidos del restaurante con información detallada" />
 
   <!-- Orders Table Component -->
-  <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast overflow-hidden">
+  <div class="flex-1 min-h-0 border border-rms-border rounded-xl bg-rms-surface overflow-hidden">
     <app-orders-table></app-orders-table>
   </div>
 </div>
