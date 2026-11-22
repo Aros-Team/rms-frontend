@@ -475,7 +475,7 @@
                 Ventas del Día
               </div>
               <p class="text-sm text-muted">
-                {{ completedOrdersCount() }} pedidos
+                {{ completedOrdersCount() }} {{ completedOrdersCount() === 1 ? 'pedido' : 'pedidos' }}
               </p>
             </div>
 
