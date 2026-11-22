@@ -410,10 +410,10 @@
     <div class="col-span-3 flex flex-col gap-4 min-h-0 overflow-y-auto">
       <header class="flex-shrink-0 border border-rms-border rounded-2xl bg-rms-subtle overflow-hidden relative">
 
-        <div class="relative z-10 flex flex-row justify-between items-center px-4 py-2 border-b border-rms-border">
+        <div class="relative z-10 flex flex-row justify-between items-center px-4 py-1.5 border-b border-rms-border">
           <div class="flex flex-col">
-            <h2 class="text-xl font-bold text-rms-ink">{{ currentDate() }}</h2>
-            <p class="text-base text-muted">{{ currentTime() }}</p>
+            <h2 class="text-lg font-bold text-rms-ink">{{ currentDate() }}</h2>
+            <p class="text-sm text-muted">{{ currentTime() }}</p>
           </div>
           <button
                   type="button"
@@ -424,7 +424,7 @@
                 </button>
         </div>
 
-        <section class="relative z-10 flex-1 flex flex-row px-4 py-2 gap-2 min-h-[6.5rem]">
+        <section class="relative z-10 flex-1 flex flex-row px-4 py-1 gap-2 min-h-[5rem]">
           @if (!isStatsLoaded()) {
             <div class="flex-1 text-center border-r border-rms-border flex flex-col justify-center">
               <p-skeleton width="100px" height="28px" styleClass="mx-auto" />
@@ -438,7 +438,7 @@
           } @else {
             <div class="flex-1 text-center border-r border-rms-border flex flex-col justify-center">
               <div class="flex justify-center items-center gap-2">
-                <div class="text-2xl font-bold tabular-nums whitespace-nowrap text-rms-ink">
+                <div class="text-xl font-bold tabular-nums whitespace-nowrap text-rms-ink">
                   @if (showSales()) {
                   {{ totalSales() | money }}
                   } @else {
@@ -447,34 +447,34 @@
                 </div>
                 <app-rms-icon-button [icon]="showSales() ? 'pi pi-eye' : 'pi pi-eye-slash'" [ariaLabel]="showSales() ? 'Ocultar ventas' : 'Mostrar ventas'" [tooltip]="showSales() ? 'Ocultar ventas' : 'Mostrar ventas'" (click)="toggleSalesVisibility()" />
               </div>
-              <div class="text-base text-muted mt-1">
+              <div class="text-sm text-muted mt-1">
                 Ventas del Día
               </div>
-              <p class="text-sm text-muted">
+              <p class="text-xs text-muted">
                 {{ completedOrdersCount() }} {{ completedOrdersCount() === 1 ? 'pedido' : 'pedidos' }}
               </p>
             </div>
 
             <div class="flex-1 text-center border-r border-rms-border flex flex-col justify-center">
-              <div class="text-3xl font-bold text-rms-ink">
+              <div class="text-2xl font-bold text-rms-ink">
                 {{ occupiedTablesCount() }}
               </div>
-              <div class="text-base text-muted mt-1">
+              <div class="text-sm text-muted mt-1">
                 Mesas Ocupadas
               </div>
-              <p class="text-sm text-muted">
+              <p class="text-xs text-muted">
                 De {{totalTables()}} totales
               </p>
             </div>
 
             <div class="flex-1 text-center flex flex-col justify-center">
-              <div class="text-3xl font-bold text-rms-ink">
+              <div class="text-2xl font-bold text-rms-ink">
                 {{ preparingOrdersCount() }}
               </div>
-              <div class="text-base text-muted mt-1">
+              <div class="text-sm text-muted mt-1">
                 En Preparación
               </div>
-              <p class="text-sm text-muted">
+              <p class="text-xs text-muted">
                 Pedidos activos
               </p>
             </div>
@@ -491,9 +491,9 @@
       </section>
 
       <section class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-rms-border bg-rms-surface">
-        <header class="flex flex-wrap justify-between items-center gap-2 p-4 border-b border-rms-border flex-shrink-0">
+        <header class="flex flex-wrap justify-between items-center gap-2 px-4 py-2.5 border-b border-rms-border flex-shrink-0">
           <div class="flex flex-col">
-            <h2 class="text-lg font-bold text-rms-ink">Composición de ventas</h2>
+            <h2 class="text-base font-bold text-rms-ink">Composición de ventas</h2>
             <p class="text-xs text-muted">Top productos y distribución por categoría</p>
           </div>
           <span class="whitespace-nowrap text-sm text-muted">{{ topProductsTotal() | money }}</span>
@@ -576,8 +576,7 @@
 
       <div class="p-4 pt-0 flex-1 min-h-0 overflow-hidden">
         <p-table [value]="orders()" size="small" selectionMode="single" [scrollable]="true" scrollHeight="flex"
-          scrollWidth="flex" responsiveLayout="scroll" styleClass="h-full"
-          [tableStyle]="{'min-width': '20rem'}"
+          styleClass="h-full"
           [pt]="{ table: { 'aria-label': 'Pedidos del día' } }"
           [stripedRows]="true" [loading]="isOrdersLoading()" [showLoader]="false">
           <ng-template pTemplate="header">
@@ -595,7 +594,7 @@
             <tr>
               <td class="font-mono text-sm">{{ order.id }}</td>
               <td class="font-medium">{{ order.table }}</td>
-              <td class="text-sm text-muted">
+              <td class="text-sm text-muted whitespace-nowrap">
                 {{ formatDate(order.date) }}
               </td>
               <td>

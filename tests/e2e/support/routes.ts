@@ -42,11 +42,11 @@ export const ROLE_ROUTES: Record<RoleKey, RouteCase[]> = {
       expectPath: '/admin/schedules',
     },
     {
-      path: '/admin/schedules?tab=plantillas',
-      slug: 'schedules-templates',
-      label: 'Schedules / Templates',
+      path: '/admin/schedules?tab=turnos',
+      slug: 'schedules-shifts',
+      label: 'Schedules / Individual shifts',
       shell: 'admin',
-      expectPath: '/admin/schedules?tab=plantillas',
+      expectPath: '/admin/schedules?tab=turnos',
     },
     {
       path: '/admin/schedules?tab=registros',

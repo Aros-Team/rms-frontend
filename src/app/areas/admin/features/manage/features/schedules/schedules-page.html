@@ -33,21 +33,21 @@
         class="schedules-page__panel"
       >
         <app-week-grid
-          [refreshToken]="templatesVersion()"
-          (createSchedule)="selectTab('plantillas')"
+          [refreshToken]="shiftsVersion()"
+          (createSchedule)="selectTab('turnos')"
           (openTimeLogs)="selectTab('registros')"
         />
       </section>
     }
-    @case ('plantillas') {
+    @case ('turnos') {
       <section
-        id="panel-plantillas"
+        id="panel-turnos"
         role="tabpanel"
-        aria-labelledby="tab-plantillas"
+        aria-labelledby="tab-turnos"
         tabindex="0"
         class="schedules-page__panel"
       >
-        <app-schedules (changed)="onTemplateChanged()" />
+        <app-shift-planner (changed)="onShiftChanged()" />
       </section>
     }
     @case ('registros') {

@@ -3,11 +3,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 
-import { Schedules } from './schedules';
+import { ShiftPlanner } from './shift-planner/shift-planner';
 import { TimeLogsPanel } from './time-logs-panel/time-logs-panel';
 import { WeekGrid } from './week-grid/week-grid';
 
-type SchedulesTab = 'semana' | 'plantillas' | 'registros';
+type SchedulesTab = 'semana' | 'turnos' | 'registros';
 
 interface TabDefinition {
   readonly id: SchedulesTab;
@@ -17,7 +17,7 @@ interface TabDefinition {
 
 const TABS: readonly TabDefinition[] = [
   { id: 'semana', label: 'Semana', icon: 'pi pi-calendar' },
-  { id: 'plantillas', label: 'Plantillas', icon: 'pi pi-clone' },
+  { id: 'turnos', label: 'Turnos', icon: 'pi pi-calendar-plus' },
   { id: 'registros', label: 'Asistencia', icon: 'pi pi-clock' },
 ];
 
@@ -38,7 +38,7 @@ const TABS: readonly TabDefinition[] = [
  */
 @Component({
   selector: 'app-schedules-page',
-  imports: [RmsPageHeader, Schedules, TimeLogsPanel, WeekGrid],
+  imports: [RmsPageHeader, ShiftPlanner, TimeLogsPanel, WeekGrid],
   templateUrl: './schedules-page.html',
   styleUrl: './schedules-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -49,8 +49,8 @@ export class SchedulesPage {
 
   readonly tabs = TABS;
   readonly activeTab = signal<SchedulesTab>(this.initialTab());
-  /** Bumped when a template changes so the grid refetches on its next visit. */
-  readonly templatesVersion = signal(0);
+  /** Bumped when a shift changes so the grid refetches on its next visit. */
+  readonly shiftsVersion = signal(0);
 
   selectTab(id: SchedulesTab): void {
     this.activeTab.set(id);
@@ -81,12 +81,14 @@ export class SchedulesPage {
     this.selectTab(this.tabs[next].id);
   }
 
-  onTemplateChanged(): void {
-    this.templatesVersion.update((version) => version + 1);
+  onShiftChanged(): void {
+    this.shiftsVersion.update((version) => version + 1);
   }
 
   private initialTab(): SchedulesTab {
     const requested = this.route.snapshot.queryParamMap.get('tab');
+    // The old "plantillas" deep link now opens the individual shift planner.
+    if (requested === 'plantillas') return 'turnos';
     return TABS.some((tab) => tab.id === requested)
       ? (requested as SchedulesTab)
       : 'semana';

@@ -1,0 +1,215 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.shift-planner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rms-space-4);
+  min-width: 0;
+}
+
+.shift-planner__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--rms-space-3);
+}
+
+.shift-planner__feedback {
+  display: flex;
+  align-items: center;
+  gap: var(--rms-space-2);
+  border: 1px solid var(--rms-success);
+  border-radius: var(--rms-radius-md);
+  background: var(--rms-bg-subtle);
+  padding: var(--rms-space-2) var(--rms-space-3);
+  color: var(--rms-text);
+  font-size: var(--rms-type-body-size);
+}
+
+.shift-planner__feedback--error {
+  border-color: var(--rms-danger);
+}
+
+.shift-planner__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--rms-space-3);
+}
+
+.shift-planner__total {
+  margin: 0 0 var(--rms-space-1);
+}
+
+.shift-planner__loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rms-space-2);
+}
+
+.shift-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rms-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.shift-row {
+  display: grid;
+  grid-template-columns: minmax(10rem, 1.4fr) auto minmax(8rem, 0.8fr) auto;
+  align-items: center;
+  gap: var(--rms-space-3);
+  border: 1px solid var(--rms-border);
+  border-radius: var(--rms-radius-md);
+  background: var(--rms-surface);
+  padding: var(--rms-space-3);
+}
+
+.shift-row__who {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.shift-row__name {
+  overflow: hidden;
+  color: var(--rms-text);
+  font-weight: var(--rms-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shift-row__days {
+  display: flex;
+  gap: 4px;
+}
+
+.shift-day {
+  display: inline-flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--rms-radius-sm);
+  background: var(--rms-bg-subtle);
+  color: var(--rms-text-muted);
+  font-size: var(--rms-type-caption-size);
+  font-weight: var(--rms-weight-semibold);
+}
+
+.shift-day--on {
+  background: var(--rms-brand-soft);
+  color: var(--rms-brand-text);
+}
+
+.shift-row__hours {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.shift-row__range {
+  color: var(--rms-text);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--rms-weight-semibold);
+}
+
+.shift-row__actions {
+  display: flex;
+  gap: var(--rms-space-1);
+}
+
+.shift-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rms-space-4);
+}
+
+.shift-form__days {
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.shift-form__daygrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--rms-space-2);
+  margin-top: var(--rms-space-2);
+}
+
+.shift-day-toggle {
+  min-height: var(--rms-touch-min);
+  border: 1px solid var(--rms-border);
+  border-radius: var(--rms-radius-md);
+  background: var(--rms-surface);
+  color: var(--rms-text-secondary);
+  font: inherit;
+  font-size: var(--rms-type-caption-size);
+  font-weight: var(--rms-weight-semibold);
+  cursor: pointer;
+}
+
+.shift-day-toggle--on {
+  border-color: var(--rms-brand-text);
+  background: var(--rms-brand-soft);
+  color: var(--rms-brand-text);
+}
+
+.shift-form__times {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--rms-space-3);
+}
+
+.shift-form__time {
+  width: 100%;
+  min-height: var(--rms-touch-min);
+  border: 1px solid var(--rms-border);
+  border-radius: var(--rms-radius-md);
+  background: var(--rms-surface);
+  color: var(--rms-text);
+  font: inherit;
+  padding: 0 var(--rms-space-3);
+}
+
+.shift-form__error {
+  margin: 0;
+  color: var(--rms-danger);
+  font-size: var(--rms-type-body-size);
+}
+
+.shift-form__footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--rms-space-2);
+}
+
+@media (max-width: 720px) {
+  .shift-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .shift-row__days {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+
+  .shift-row__hours {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .shift-form__daygrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

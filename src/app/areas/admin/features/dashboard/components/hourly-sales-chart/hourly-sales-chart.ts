@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 import type { ChartData, ChartOptions, TooltipItem } from 'chart.js';
 import { ChartModule } from 'primeng/chart';
 
-import { Money } from '@shared/pipes/money/money';
 import { RmsChartFrame } from '@shared/ui/chart-frame/chart-frame';
 import { readRmsToken } from '@shared/ui/chart/chart-theme';
 
@@ -14,20 +13,20 @@ export interface HourlySalesBar {
   isCurrent: boolean;
 }
 
-const moneyPipe = new Money();
-
 /**
  * Sales by hour for the current day.
  *
  * The dashboard used to paint an unlabelled, partially clipped bar strip
  * behind the KPI numbers; it read as a rendering bug. This chart makes the
- * same data legible: hour ticks, a revenue axis, a tooltip with orders and a
- * table fallback. Delivered orders are the only ones counted as sales.
+ * same data legible: hour ticks, an integer order axis, a tooltip with the
+ * count and a table fallback. This chart answers "how many orders per hour",
+ * not "how much money": revenue already lives in the KPI header.
  */
 @Component({
   selector: 'app-dashboard-hourly-chart',
   templateUrl: './hourly-sales-chart.html',
-  imports: [ChartModule, Money, RmsChartFrame],
+  styleUrl: './hourly-sales-chart.css',
+  imports: [ChartModule, RmsChartFrame],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HourlySalesChart {
@@ -47,12 +46,12 @@ export class HourlySalesChart {
   summary = '';
   readonly options: ChartOptions<'bar'> = this.buildOptions();
 
-  get totalRevenue(): number {
-    return this.rows.reduce((sum, row) => sum + row.revenue, 0);
+  get totalOrders(): number {
+    return this.rows.reduce((sum, row) => sum + row.delivered, 0);
   }
 
   get isEmpty(): boolean {
-    return !this.loading && this.rows.every((row) => row.revenue === 0 && row.delivered === 0);
+    return !this.loading && this.rows.every((row) => row.delivered === 0);
   }
 
   private buildOptions(): ChartOptions<'bar'> {
@@ -67,12 +66,8 @@ export class HourlySalesChart {
           callbacks: {
             title: (items: TooltipItem<'bar'>[]) => `Hora ${items[0]?.label ?? ''}`,
             label: (ctx: TooltipItem<'bar'>) => {
-              const row = this.rows[ctx.dataIndex];
-              const orders = row.delivered;
-              return [
-                ` ${moneyPipe.transform(ctx.parsed.y ?? 0)}`,
-                ` ${String(orders)} ${orders === 1 ? 'pedido entregado' : 'pedidos entregados'}`,
-              ];
+              const orders = this.rows[ctx.dataIndex].delivered;
+              return ` ${String(orders)} ${orders === 1 ? 'pedido entregado' : 'pedidos entregados'}`;
             },
           },
         },
@@ -95,8 +90,8 @@ export class HourlySalesChart {
           grid: { color: grid },
           ticks: {
             maxTicksLimit: 4,
+            precision: 0,
             color: axis,
-            callback: (value) => this.compact(value as number),
           },
         },
       },
@@ -110,7 +105,7 @@ export class HourlySalesChart {
       labels: rows.map((row) => row.label),
       datasets: [
         {
-          data: rows.map((row) => row.revenue),
+          data: rows.map((row) => row.delivered),
           backgroundColor: rows.map((row) => (row.isCurrent ? current : normal)),
           borderRadius: 4,
           maxBarThickness: 28,
@@ -122,13 +117,8 @@ export class HourlySalesChart {
   private buildSummary(rows: readonly HourlySalesBar[]): string {
     const parts = rows
       .filter((row) => row.revenue > 0 || row.delivered > 0)
-      .map((row) => `${row.label}: ${moneyPipe.transform(row.revenue)} en ${String(row.delivered)} pedidos`);
+      .map((row) => `${row.label}: ${String(row.delivered)} ${row.delivered === 1 ? 'pedido' : 'pedidos'}`);
     return parts.length > 0 ? `Ventas por hora de hoy. ${parts.join('; ')}.` : '';
   }
 
-  private compact(value: number): string {
-    if (value >= 1_000_000) return `${String(Math.round(value / 100_000) / 10)}M`;
-    if (value >= 1_000) return `${String(Math.round(value / 100) / 10)}k`;
-    return String(value);
-  }
 }

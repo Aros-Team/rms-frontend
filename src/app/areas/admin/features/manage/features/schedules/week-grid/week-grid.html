@@ -27,8 +27,8 @@
     </div>
 
     <p class="week-grid__weekhint rms-caption">
-      Horario semanal recurrente. La API no guarda fechas por asignación, así que las semanas
-      comparten turnos.
+      Distribución semanal de los turnos individuales. Las semanas comparten el horario
+      recurrente del equipo.
     </p>
 
     <div class="week-grid__filters">
@@ -57,6 +57,51 @@
       }
     </div>
   </header>
+
+  @if (filteredRows().length > 0 && coverage().max > 0) {
+    <section class="week-grid__coverage" aria-labelledby="coverage-heading">
+      <div class="week-grid__coverage-head">
+        <h3 id="coverage-heading" class="rms-h4">Cobertura por hora</h3>
+        <p class="rms-caption">
+          Trabajadores programados en cada día y hora. El máximo de la semana es
+          {{ coverage().max }} {{ coverage().max === 1 ? 'persona' : 'personas' }}.
+        </p>
+      </div>
+      <div class="week-grid__coverage-scroll" tabindex="0" role="group" aria-label="Tabla de cobertura por hora">
+        <table class="coverage-table">
+          <caption class="sr-only">
+            Cantidad de trabajadores programados por día y hora
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Día</th>
+              @for (hour of coverage().hours; track hour) {
+                <th scope="col">{{ hour }}:00</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of coverage().rows; track row.dayOfWeek) {
+              <tr>
+                <th scope="row">{{ row.label }}</th>
+                @for (count of row.counts; track $index) {
+                  <td
+                    class="coverage-cell"
+                    [class.week-grid__cov--low]="count === 1"
+                    [class.week-grid__cov--mid]="count === 2"
+                    [class.week-grid__cov--high]="count >= 3"
+                    [attr.aria-label]="count + (count === 1 ? ' trabajador' : ' trabajadores')"
+                  >
+                    {{ count > 0 ? count : '·' }}
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
 
   @if (notice(); as message) {
     <div class="week-grid__feedback" role="status">
@@ -90,42 +135,11 @@
         }
       </ul>
       <p class="rms-caption">
-        Quita una plantilla del trabajador para resolver el cruce. El límite duro es
+        Quita o ajusta un turno del trabajador para resolver el cruce. El límite duro es
         {{ maxWeeklyHours }} h semanales; la referencia legal es {{ legalWeeklyHours }} h.
       </p>
     </div>
   }
-
-  <div class="week-grid__palette" aria-label="Plantillas de horario disponibles">
-    <span class="rms-label">Plantillas</span>
-    @for (schedule of schedules(); track schedule.id) {
-      <button
-        type="button"
-        class="palette-chip"
-        draggable="true"
-        (dragstart)="onDragStart($event, schedule)"
-        (dragend)="onDragEnd()"
-        (click)="openPaletteDialog(schedule)"
-      >
-        <span class="sr-only">Plantilla </span>
-        <i class="pi pi-calendar" aria-hidden="true"></i>
-        <span class="palette-chip__name">{{ schedule.name }}</span>
-        <span class="palette-chip__meta rms-caption">
-          {{ schedule.shifts.length }} turnos · {{ scheduleHours(schedule) }}
-        </span>
-        <span class="sr-only">
-          Arrástrala a un trabajador o pulsa para elegir el trabajador.
-        </span>
-      </button>
-    } @empty {
-      <span class="rms-caption">No hay plantillas todavía.</span>
-    }
-    <p class="week-grid__hint rms-caption">
-      Arrastra una plantilla sobre un trabajador para asignarla, o usa el botón «Asignar» de cada
-      fila. La plantilla aplica todos sus días. Para quitar un turno, arrástralo a la zona de
-      descarte o pulsa el bloque.
-    </p>
-  </div>
 
   @if (draggedRemoval(); as removal) {
     <div
@@ -160,9 +174,9 @@
   } @else if (schedules().length === 0) {
     <app-rms-empty-state
       icon="pi pi-calendar-plus"
-      title="No hay plantillas de horario"
-      message="Crea una plantilla con sus turnos para poder asignarla a los trabajadores."
-      actionLabel="Crear plantilla"
+      title="No hay turnos configurados"
+      message="Crea turnos individuales para ver la distribución semanal del equipo."
+      actionLabel="Crear turno"
       actionIcon="pi pi-plus"
       (action)="createSchedule.emit()"
     />
@@ -237,15 +251,6 @@
                   />
                 }
               </div>
-              <app-rms-button
-                size="sm"
-                variant="secondary"
-                iconStart="pi pi-plus"
-                [ariaLabel]="'Asignar horario a ' + row.worker.name"
-                (click)="openWorkerDialog(row.worker)"
-              >
-                Asignar
-              </app-rms-button>
             </div>
 
             @for (day of row.week.days; track day.dayOfWeek) {
@@ -304,126 +309,11 @@
   }
 </section>
 
-<!-- Assign dialog: one worker, every template -->
-<app-rms-dialog
-  [visible]="assignmentDialogWorker() !== null"
-  (visibleChange)="closeWorkerDialog()"
-  [header]="'Horarios de ' + (assignmentDialogWorker()?.name ?? '')"
-  width="620px"
->
-  @if (assignmentDialogWorker(); as worker) {
-    <p class="week-grid__dialog-copy">
-      La plantilla asigna todos sus días al trabajador. Quitar una plantilla elimina todos sus turnos
-      de la semana.
-    </p>
-    <ul class="assign-list" aria-label="Plantillas disponibles para el trabajador">
-      @for (schedule of schedules(); track schedule.id) {
-        <li class="assign-list__item">
-          <div class="assign-list__info">
-            <span class="assign-list__name">{{ schedule.name }}</span>
-            <span class="rms-caption">
-              {{ schedule.shifts.length }} turnos · {{ scheduleHours(schedule) }} semanales
-            </span>
-            @if (!isAssigned(worker, schedule)) {
-              @if (blockingReason(worker, schedule); as reason) {
-                <p class="assign-list__reason">{{ reason }}</p>
-              }
-            }
-          </div>
-          <div class="assign-list__action">
-            @if (isAssigned(worker, schedule)) {
-              <app-rms-badge label="Asignada" tone="success" />
-              <app-rms-button
-                size="sm"
-                variant="danger"
-                [loading]="
-                  savingWorkerId() === worker.id && savingScheduleId() === schedule.id
-                "
-                (click)="requestRemoval(worker, schedule)"
-              >
-                Quitar
-              </app-rms-button>
-            } @else if (blockingReason(worker, schedule).length > 0) {
-              <app-rms-badge label="Bloqueado" tone="warning" />
-            } @else {
-              <app-rms-button
-                size="sm"
-                [loading]="savingWorkerId() === worker.id && savingScheduleId() === schedule.id"
-                (click)="assignFromWorkerDialog(worker, schedule)"
-              >
-                Asignar
-              </app-rms-button>
-            }
-          </div>
-        </li>
-      }
-    </ul>
-  }
-  <div rmsDialogFooter class="week-grid__dialog-footer">
-    <app-rms-button variant="secondary" (click)="closeWorkerDialog()">Cerrar</app-rms-button>
-  </div>
-</app-rms-dialog>
-
-<!-- Assign dialog: one template, every worker -->
-<app-rms-dialog
-  [visible]="paletteSchedule() !== null"
-  (visibleChange)="closePaletteDialog()"
-  [header]="'Asignar «' + (paletteSchedule()?.name ?? '') + '»'"
-  width="620px"
->
-  @if (paletteSchedule(); as schedule) {
-    <p class="week-grid__dialog-copy">
-      Elige un trabajador. La plantilla aplica todos sus días y respeta los filtros de la vista.
-    </p>
-    @if (filteredRows().length === 0) {
-      <p class="rms-caption">No hay trabajadores en la vista actual.</p>
-    } @else {
-      <ul class="assign-list" aria-label="Trabajadores para la plantilla">
-        @for (row of filteredRows(); track row.workerId) {
-          <li class="assign-list__item">
-            <div class="assign-list__info">
-              <span class="assign-list__name">{{ row.worker.name }}</span>
-              <span class="rms-caption">
-                {{ formatMinutes(row.week.weeklyMinutes) }} semanales
-              </span>
-              @if (!isAssigned(row.worker, schedule)) {
-                @if (blockingReason(row.worker, schedule); as reason) {
-                  <p class="assign-list__reason">{{ reason }}</p>
-                }
-              }
-            </div>
-            <div class="assign-list__action">
-              @if (isAssigned(row.worker, schedule)) {
-                <app-rms-badge label="Ya asignada" tone="neutral" />
-              } @else if (blockingReason(row.worker, schedule).length > 0) {
-                <app-rms-badge label="Bloqueado" tone="warning" />
-              } @else {
-                <app-rms-button
-                  size="sm"
-                  [loading]="
-                    savingWorkerId() === row.workerId && savingScheduleId() === schedule.id
-                  "
-                  (click)="assignFromPaletteDialog(row.worker, schedule)"
-                >
-                  Asignar
-                </app-rms-button>
-              }
-            </div>
-          </li>
-        }
-      </ul>
-    }
-  }
-  <div rmsDialogFooter class="week-grid__dialog-footer">
-    <app-rms-button variant="secondary" (click)="closePaletteDialog()">Cerrar</app-rms-button>
-  </div>
-</app-rms-dialog>
-
 <!-- Removal confirmation -->
 <app-rms-dialog
   [visible]="pendingRemoval() !== null"
   (visibleChange)="cancelRemoval()"
-  header="Quitar plantilla del trabajador"
+  header="Quitar turno del trabajador"
   width="480px"
 >
   @if (pendingRemoval(); as pending) {
@@ -439,7 +329,7 @@
       Cancelar
     </app-rms-button>
     <app-rms-button variant="danger" [loading]="savingWorkerId() !== null" (click)="confirmRemoval()">
-      Quitar plantilla
+      Quitar turno
     </app-rms-button>
   </div>
 </app-rms-dialog>

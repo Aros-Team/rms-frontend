@@ -1409,5 +1409,53 @@
       }
     ],
     "status": "done"
+  },
+  {
+    "id": 47,
+    "type": "fix",
+    "name": "dashboard-schedules-ux",
+    "title": "Compact the dashboard, count orders per hour and rebuild schedules as individual shifts",
+    "description": "Dashboard must fit without scrolling and show orders (not money) per hour plus a visible treemap; Restaurante adopts the app tab language; Horarios replaces templates with per-worker shifts and adds day/hour coverage.",
+    "acceptance": [
+      "Dashboard fits 1440x900/1920x950 with the treemap and hourly count chart visible",
+      "Pedidos por hora counts delivered orders with a labelled integer axis",
+      "Restaurante uses the same underline section tabs as Analítica and Horarios",
+      "Turnos creates/edits/deletes individual worker shifts (days + hours) without exposing templates",
+      "Semana shows workers per day and hour in a coverage matrix",
+      "Gates green: tsc, lint, build, unit, Playwright"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Compact dashboard and switch hourly chart to order counts",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Unify Restaurante section tabs with the app underline pattern",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Replace templates tab with an individual shift planner",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Add day/hour coverage matrix to the weekly grid",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Update tests and visual baselines; run the harness",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
   }
 ]

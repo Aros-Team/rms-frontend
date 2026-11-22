@@ -488,3 +488,83 @@
     flex-direction: column;
   }
 }
+
+/* Coverage matrix: workers per day and hour. */
+.week-grid__coverage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rms-space-2);
+  border: var(--rms-border-width) solid var(--rms-border);
+  border-radius: var(--rms-radius-md);
+  background: var(--rms-surface);
+  padding: var(--rms-space-3);
+}
+
+.week-grid__coverage-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.week-grid__coverage-head .rms-caption {
+  margin: 0;
+}
+
+.week-grid__coverage-scroll {
+  overflow-x: auto;
+}
+
+.week-grid__coverage-scroll:focus-visible {
+  outline: 2px solid var(--rms-focus);
+  outline-offset: 2px;
+}
+
+.coverage-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--rms-type-caption-size);
+  font-variant-numeric: tabular-nums;
+}
+
+.coverage-table th,
+.coverage-table td {
+  border: 1px solid var(--rms-border);
+  padding: 2px 4px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.coverage-table thead th {
+  color: var(--rms-text-muted);
+  font-weight: var(--rms-weight-semibold);
+}
+
+.coverage-table tbody th {
+  color: var(--rms-text-secondary);
+  font-weight: var(--rms-weight-semibold);
+  text-align: left;
+  padding-inline: var(--rms-space-2);
+}
+
+.coverage-cell {
+  min-width: 1.6rem;
+  color: var(--rms-text-muted);
+}
+
+.week-grid__cov--low {
+  background: var(--rms-brand-soft);
+  color: var(--rms-brand-text);
+  font-weight: var(--rms-weight-semibold);
+}
+
+.week-grid__cov--mid {
+  background: var(--rms-brand-500);
+  color: var(--rms-on-brand);
+  font-weight: var(--rms-weight-semibold);
+}
+
+.week-grid__cov--high {
+  background: var(--rms-brand-600);
+  color: var(--rms-on-brand);
+  font-weight: var(--rms-weight-bold);
+}
