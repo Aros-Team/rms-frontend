@@ -7,7 +7,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { TableModule } from 'primeng/table';
 import { IftaLabelModule } from 'primeng/iftalabel';
-import { DialogModule } from 'primeng/dialog';
 import { SkeletonModule } from 'primeng/skeleton';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -20,6 +19,7 @@ import { WebSocket } from '@app/core/services/websocket/websocket';
 import { Auth } from '@app/core/services/auth/auth';
 import { environment } from '@environments/environment';
 import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsDialog } from '@app/shared/ui/dialog/dialog';
 import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
@@ -38,12 +38,12 @@ const WS_TOPICS = {
     InputNumberModule,
     TableModule,
     IftaLabelModule,
-    DialogModule,
     SkeletonModule,
     IconFieldModule,
     InputIconModule,
     LazyLoad,
     RmsButton,
+    RmsDialog,
     RmsEmptyState,
     RmsPageHeader,
     RmsStatusPill,
@@ -120,6 +120,15 @@ export class Tables implements OnInit {
   closeModal(): void {
     this.selectedTableId = null;
     this.modalIsOpen.set(false);
+  }
+
+  /** Keeps the dialog primitive's `visibleChange` mirrored into the page state. */
+  onEditDialogVisible(visible: boolean): void {
+    if (visible) {
+      this.modalIsOpen.set(true);
+      return;
+    }
+    this.closeModal();
   }
 
   saveTable(): void {

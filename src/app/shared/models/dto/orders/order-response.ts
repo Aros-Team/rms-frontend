@@ -47,9 +47,17 @@ export interface OrderGroupSelectionResolved {
 export interface OrderDetailItem {
   id: number;
   productId: number;
-  productName: string;
+  /** The wire sends `null` when the product was deleted after the sale. */
+  productName: string | null;
   categoryId?: number | null;
   categoryName?: string | null;
+  /**
+   * Preparation area (station) resolved by the backend from the product.
+   * Omitted when the product has no area; callers may fall back to the product
+   * catalogue. `areaName` is independent and may be missing.
+   */
+  areaId?: number | null;
+  areaName?: string | null;
   /**
    * `MoneyDto { amount: "15000.00", currency: "COP" }` on the wire (was a bare
    * number before the backend money migration). Never add/subtract it
@@ -62,7 +70,8 @@ export interface OrderDetailItem {
    * `unitPrice`, so never add it again (use `calculateLineTotal`).
    */
   extraCharge?: Money | number;
-  instructions: string;
+  /** The wire sends `null` for a line without a cook note. */
+  instructions: string | null;
   selectedOptions?: OrderSelectedOption[];
   selectedProductIds?: number[];
   /** Combo products resolved by the backend (`selectedProducts`). */
@@ -73,6 +82,14 @@ export interface OrderDetailItem {
   selectedAdditions?: OrderSelectedAddition[];
   /** Clarification answers with the question text resolved by the backend. */
   clarifications?: OrderClarificationResolved[];
+  /**
+   * Item-level readiness persisted by the backend (`order_details.ready`).
+   * Optional so older payloads and fixtures stay valid; treat a missing value
+   * as `false`.
+   */
+  ready?: boolean;
+  /** When the line was marked ready; absent while it is not ready. */
+  readyAt?: string | null;
   selectionType?: SelectionType;
   groupSelections?: OrderGroupSelectionResolved[];
   additionsResolved?: OrderAdditionResolved[];

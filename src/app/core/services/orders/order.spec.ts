@@ -307,5 +307,34 @@ describe('Order', () => {
 
       expect(next).toHaveBeenCalledWith(137);
     });
+
+    it('forwards the station areaId with the status filter', () => {
+      service.getAllOrdersByStatus('QUEUE', { areaId: 3, sort: 'date,asc' }).subscribe();
+
+      const req = httpMock.expectOne((r) => r.url === 'v1/orders');
+      expect(req.request.params.get('status')).toBe('QUEUE');
+      expect(req.request.params.get('areaId')).toBe('3');
+      expect(req.request.params.get('sort')).toBe('date,asc');
+
+      req.flush({ items: [], total: 0, page: 0, size: 50, total_pages: 0 });
+    });
+  });
+
+  describe('transitions', () => {
+    it('prepares one specific order', () => {
+      service.prepareOrder(42).subscribe();
+
+      const req = httpMock.expectOne('v1/orders/42/prepare');
+      expect(req.request.method).toBe('PUT');
+      req.flush({ id: 42 });
+    });
+
+    it('marks one order line ready', () => {
+      service.markDetailReady(42, 900).subscribe();
+
+      const req = httpMock.expectOne('v1/orders/42/details/900/ready');
+      expect(req.request.method).toBe('PUT');
+      req.flush({ id: 42 });
+    });
   });
 });

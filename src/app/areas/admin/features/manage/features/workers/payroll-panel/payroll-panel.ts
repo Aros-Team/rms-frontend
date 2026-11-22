@@ -20,7 +20,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
-import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 
 import { ResourceCache } from '@app/core/cache/resource-cache/resource-cache';
@@ -36,6 +35,8 @@ import {
 } from '@shared/lib/date-format/date-format';
 import { mapHttpError } from '@shared/lib/http-error-mapper/http-error-mapper';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
+import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
+import type { RmsStatus } from '@app/shared/ui/types/ui-types';
 import { toAmount, type Money as MoneyValue } from '@models/dto/common/money';
 import {
   PAYROLL_EVENT_TYPES,
@@ -142,11 +143,11 @@ const HALF_CENT = 0.005;
     InputTextModule,
     InputNumberModule,
     DatePickerModule,
-    TagModule,
     SkeletonModule,
     TooltipModule,
     TableSkeleton,
     MoneyPipe,
+    RmsStatusPill,
   ],
   templateUrl: './payroll-panel.html',
   styleUrl: './payroll-panel.css',
@@ -359,6 +360,12 @@ export class PayrollPanel {
 
   eventSeverity(type: PayrollEventType): 'success' | 'info' | 'warn' | 'danger' {
     return EVENT_SEVERITIES[type];
+  }
+
+  /** Domain status for the design-system pill (same source as the legacy tag). */
+  eventStatus(type: PayrollEventType): RmsStatus {
+    const severity = this.eventSeverity(type);
+    return severity === 'warn' ? 'warning' : severity;
   }
 
   settlementLabel(type: SettlementType): string {

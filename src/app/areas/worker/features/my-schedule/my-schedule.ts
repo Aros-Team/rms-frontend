@@ -10,11 +10,14 @@ import {
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { Logging } from '@app/core/services/logging/logging';
+import { WorkerClock } from '@app/core/services/schedules/worker-clock';
 import { WorkerSchedule } from '@app/core/services/schedules/worker-schedule';
+import type { TimeLogEntry } from '@app/shared/models/dto/schedules/time-log-entry';
 import type {
   WorkerScheduleResponse,
   WorkerScheduleShift,
 } from '@app/shared/models/dto/schedules/worker-schedule-response';
+import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
 import {
   DAY_LABELS,
   DAY_SHORT_LABELS,
@@ -56,6 +59,13 @@ const RANGE_FORMATTER = new Intl.DateTimeFormat('es-CO', {
   month: 'short',
   year: 'numeric',
 });
+const CLOCK_FORMATTER = new Intl.DateTimeFormat('es-CO', {
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+});
+
+type ClockAction = 'in' | 'out';
 
 /**
  * Worker "Mi horario".
@@ -68,9 +78,9 @@ const RANGE_FORMATTER = new Intl.DateTimeFormat('es-CO', {
  *    the dates of the selected week for orientation only;
  *  - "Próximo turno" is computed from the real clock and searches a full week
  *    ahead, so a Sunday-night shift is not lost on a Monday;
- *  - clock-in/out is **not** rendered: the API only writes `IN` at login and
- *    exposes no clock endpoints. The card states the limitation instead of
- *    faking a clock-out (P3-BE-RL-11);
+ *  - clock-in/out calls `POST v1/workers/me/clock-in|clock-out`. There is no
+ *    current-session read endpoint, so the card never claims to know whether a
+ *    session is open: it reports the last action result and explains a `409`;
  *  - loading, empty, error and no-permission states are explicit.
  */
 @Component({
@@ -91,6 +101,7 @@ const RANGE_FORMATTER = new Intl.DateTimeFormat('es-CO', {
 })
 export class MySchedule implements OnInit {
   private workerScheduleService = inject(WorkerSchedule);
+  private workerClockService = inject(WorkerClock);
   private logger = inject(Logging);
   private destroyRef = inject(DestroyRef);
 
@@ -98,6 +109,12 @@ export class MySchedule implements OnInit {
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly forbidden = signal(false);
+
+  /** Clock action in flight, or `null`. Never assumed from a stale read. */
+  readonly clockBusy = signal<ClockAction | null>(null);
+  readonly clockError = signal<string | null>(null);
+  readonly clockFeedback = signal<string | null>(null);
+  readonly lastClock = signal<TimeLogEntry | null>(null);
 
   readonly weekAnchor = signal(new Date());
   readonly now = signal(new Date());
@@ -186,6 +203,75 @@ export class MySchedule implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  // ── Attendance clock ──────────────────────────────────────────────────────
+
+  clockIn(): void {
+    this.clock('in');
+  }
+
+  clockOut(): void {
+    this.clock('out');
+  }
+
+  private clock(action: ClockAction): void {
+    if (this.clockBusy() !== null) return;
+
+    this.clockBusy.set(action);
+    this.clockError.set(null);
+    this.clockFeedback.set(null);
+
+    const request = action === 'in' ? this.workerClockService.clockIn() : this.workerClockService.clockOut();
+    request.subscribe({
+      next: (entry) => {
+        this.clockBusy.set(null);
+        this.lastClock.set(entry);
+        this.clockFeedback.set(
+          action === 'in' ? 'Entrada registrada.' : 'Salida registrada.',
+        );
+      },
+      error: (err: HttpErrorResponse) => {
+        this.clockBusy.set(null);
+        this.clockError.set(this.clockErrorText(action, err));
+      },
+    });
+  }
+
+  /**
+   * Translates the API result without inventing session state.
+   *
+   * A 409 means the server refused the transition (already clocked in, or no
+   * open session); it is not an error we can resolve client-side.
+   */
+  private clockErrorText(action: ClockAction, err: HttpErrorResponse): string {
+    if (err.status === 409) {
+      return action === 'in'
+        ? 'Ya tienes una sesión abierta: la API rechazó un segundo ingreso y no registró nada. Marca salida cuando termines.'
+        : 'No hay una sesión abierta que cerrar. Si ya marcaste salida, no hay nada pendiente.';
+    }
+    if (err.status === 403) {
+      return 'Tu cuenta no tiene permiso para registrar asistencia.';
+    }
+    if (err.status === 0) {
+      return 'No se pudo contactar al servidor. Revisa la conexión e inténtalo de nuevo.';
+    }
+    return (
+      extractProblemDetail(err) ??
+      (action === 'in'
+        ? 'No se pudo registrar la entrada.'
+        : 'No se pudo registrar la salida.')
+    );
+  }
+
+  /** `HH:mm` of the last action recorded in this session. */
+  clockTime(entry: TimeLogEntry): string {
+    const date = new Date(entry.timestamp);
+    return Number.isNaN(date.getTime()) ? '—' : CLOCK_FORMATTER.format(date);
+  }
+
+  clockTypeLabel(entry: TimeLogEntry): string {
+    return entry.type === 'IN' ? 'Entrada' : 'Salida';
   }
 
   previousWeek(): void {

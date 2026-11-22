@@ -187,7 +187,7 @@
                       </h3>
                       <ul class="station__lines">
                         @for (line of group.items; track line.key) {
-                          <li class="line">
+                          <li class="line" [class.line--ready]="lineReady(line)">
                             <span class="line__qty">{{ line.quantity }}×</span>
                             <div class="line__body">
                               <span class="line__name">{{ line.name }}</span>
@@ -215,6 +215,31 @@
                                 <span class="line__note">“{{ line.note }}”</span>
                               }
                             </div>
+                            <div class="line__ready">
+                              @if (lineReady(line)) {
+                                <app-rms-badge label="Listo" tone="success" [dot]="true" />
+                                @if (lineReadyLabel(line); as readyAt) {
+                                  <span class="line__ready-at rms-tabular">{{ readyAt }}</span>
+                                }
+                              } @else {
+                                @if (lineProgress(line); as progress) {
+                                  <span class="line__ready-at rms-tabular">{{ progress }}</span>
+                                }
+                                @if (order.status === 'PREPARING') {
+                                  <app-rms-button
+                                    variant="secondary"
+                                    size="lg"
+                                    iconStart="pi pi-check"
+                                    [loading]="isLineProcessing(order.id, line.key)"
+                                    [disabled]="isLineProcessing(order.id, line.key)"
+                                    [attr.data-testid]="'line-ready-' + firstDetailId(line)"
+                                    (click)="markLineReady(order, line)"
+                                  >
+                                    Listo
+                                  </app-rms-button>
+                                }
+                              }
+                            </div>
                           </li>
                         }
                       </ul>
@@ -240,6 +265,18 @@
                     >
                       Detalle
                     </app-rms-button>
+                    @if (column.key === 'queue') {
+                      <app-rms-button
+                        size="xl"
+                        iconStart="pi pi-play"
+                        [loading]="isProcessing(order.id)"
+                        [disabled]="isProcessing(order.id)"
+                        [attr.data-testid]="'prepare-order-' + order.id"
+                        (click)="prepareOrder(order)"
+                      >
+                        Tomar este
+                      </app-rms-button>
+                    }
                     @if (column.key === 'preparing') {
                       <app-rms-button
                         size="xl"
@@ -302,7 +339,7 @@
           <h3 class="detail__station-title">{{ group.station.name }}</h3>
           <ul class="detail__lines">
             @for (line of group.items; track line.key) {
-              <li class="detail-line">
+              <li class="detail-line" [class.detail-line--ready]="lineReady(line)">
                 <span class="detail-line__qty">{{ line.quantity }}×</span>
                 <div class="detail-line__body">
                   <span class="detail-line__name">{{ line.name }}</span>
@@ -327,6 +364,30 @@
                   }
                   @if (line.note.length > 0) {
                     <span class="detail-line__note">“{{ line.note }}”</span>
+                  }
+                </div>
+                <div class="detail-line__ready">
+                  @if (lineReady(line)) {
+                    <app-rms-badge label="Listo" tone="success" [dot]="true" />
+                    @if (lineReadyLabel(line); as readyAt) {
+                      <span class="rms-caption rms-tabular">{{ readyAt }}</span>
+                    }
+                  } @else {
+                    @if (lineProgress(line); as progress) {
+                      <span class="rms-caption">{{ progress }}</span>
+                    }
+                    @if (order.status === 'PREPARING') {
+                      <app-rms-button
+                        variant="secondary"
+                        size="lg"
+                        iconStart="pi pi-check"
+                        [loading]="isLineProcessing(order.id, line.key)"
+                        [disabled]="isLineProcessing(order.id, line.key)"
+                        (click)="markLineReady(order, line)"
+                      >
+                        Listo
+                      </app-rms-button>
+                    }
                   }
                 </div>
               </li>

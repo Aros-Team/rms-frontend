@@ -458,12 +458,18 @@ export class WeekGrid implements OnInit, OnChanges {
     this.actionError.set(null);
 
     this.assignmentService.assign(workerId, schedule.id).subscribe({
-      next: () => {
+      next: (result) => {
         this.savingWorkerId.set(null);
         this.savingScheduleId.set(null);
-        const warning =
-          report.warnings.length > 0 ? ` ${report.warnings.join(' ')}` : '';
-        this.notice.set(`«${schedule.name}» asignado a ${worker.name}.${warning}`);
+        const serverWarning = result.warning?.trim() ?? '';
+        // The server is authoritative for the 48 h rule; only append local
+        // warnings that it does not cover (for example a >12 h day).
+        const localWarnings = report.warnings.filter(
+          (warning) => serverWarning.length === 0 || !warning.includes('semanales'),
+        );
+        const warning = [serverWarning, ...localWarnings].filter(Boolean).join(' ');
+        const suffix = warning.length > 0 ? ` ${warning}` : '';
+        this.notice.set(`«${schedule.name}» asignado a ${worker.name}.${suffix}`);
       },
       error: (err: HttpErrorResponse) => {
         this.savingWorkerId.set(null);
