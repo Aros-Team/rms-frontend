@@ -1,3 +1,4 @@
+import { isDevMode } from '@angular/core';
 import { Routes } from '@angular/router';
 import { AreaGuard } from '@core/guards/area/area';
 import { AuthGuard } from '@core/guards/auth/auth';
@@ -341,6 +342,12 @@ export const routes: Routes = [
     path: 'cashier',
     pathMatch: 'full',
     redirectTo: '/worker/cashier',
+  },
+  {
+    path: 'dev/ui',
+    title: 'Design system',
+    loadComponent: () => import('@shared/ui/gallery/gallery').then((m) => m.UiGallery),
+    canMatch: [() => isDevMode()],
   },
   {
     path: '**',
