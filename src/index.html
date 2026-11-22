@@ -46,9 +46,11 @@
   <!-- Preload the font used for above-the-fold text -->
   <link rel="preload" href="/fonts/Archivo-Variable-latin.woff2" as="font" type="font/woff2" crossorigin>
 
-  <!-- Preconnect for external APIs -->
-  <link rel="preconnect" href="https://api.rms.aros.services">
-  <link rel="preconnect" href="https://abi.aros.services">
+  <!-- Preconnect for external APIs. `crossorigin` matches the CORS fetch the
+       app performs, so the socket is reused instead of opened twice. The agent
+       host is only used by the chat screen, so DNS is enough. -->
+  <link rel="preconnect" href="https://api.rms.aros.services" crossorigin>
+  <link rel="dns-prefetch" href="https://abi.aros.services">
 </head>
 
 <body class="lg:overflow-hidden">
