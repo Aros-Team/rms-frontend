@@ -26,6 +26,7 @@ import type { WorkerScheduleResponse } from '@app/shared/models/dto/schedules/wo
 import {
   DAY_ORDER,
   MAX_WEEKLY_HOURS,
+  buildCoverage,
   buildWorkerWeek,
   describeUpcomingShift,
   detectAssignmentConflicts,
@@ -348,5 +349,56 @@ describe('time-log summary', () => {
 
     expect(summaries).toHaveLength(2);
     expect(summaries.map((summary) => summary.workerId).sort()).toEqual([1001, 1002]);
+  });
+
+  describe('buildCoverage', () => {
+    function schedule(id: number, shifts: Shift[]): Schedule {
+      return { id, name: `S${String(id)}`, shifts };
+    }
+
+    it('counts every worker scheduled in each hour bucket', () => {
+      const ana = buildWorkerWeek([
+        schedule(1, [
+          { dayOfWeek: 'MONDAY', startTime: '10:00', endTime: '14:00' },
+        ]),
+      ]);
+      const luis = buildWorkerWeek([
+        schedule(2, [
+          { dayOfWeek: 'MONDAY', startTime: '12:00', endTime: '16:00' },
+        ]),
+      ]);
+
+      const coverage = buildCoverage([ana, luis], 8, 18);
+      const monday = coverage.rows.find((row) => row.dayOfWeek === 'MONDAY');
+
+      expect(coverage.hours).toEqual([8, 9, 10, 11, 12, 13, 14, 15, 16, 17]);
+      expect(monday?.counts[coverage.hours.indexOf(10)]).toBe(1);
+      expect(monday?.counts[coverage.hours.indexOf(12)]).toBe(2);
+      expect(monday?.counts[coverage.hours.indexOf(15)]).toBe(1);
+      expect(monday?.counts[coverage.hours.indexOf(16)]).toBe(0);
+      expect(coverage.max).toBe(2);
+    });
+
+    it('expands the window when a shift starts earlier than the default', () => {
+      const early = buildWorkerWeek([
+        schedule(3, [
+          { dayOfWeek: 'TUESDAY', startTime: '04:30', endTime: '09:00' },
+        ]),
+      ]);
+
+      const coverage = buildCoverage([early], 8, 18);
+
+      expect(coverage.startHour).toBe(4);
+      const tuesday = coverage.rows.find((row) => row.dayOfWeek === 'TUESDAY');
+      expect(tuesday?.counts[coverage.hours.indexOf(4)]).toBe(1);
+      expect(tuesday?.counts[coverage.hours.indexOf(8)]).toBe(1);
+    });
+
+    it('returns an empty matrix when nobody is scheduled', () => {
+      const coverage = buildCoverage([], 8, 18);
+
+      expect(coverage.max).toBe(0);
+      expect(coverage.rows.every((row) => row.counts.every((count) => count === 0))).toBe(true);
+    });
   });
 });

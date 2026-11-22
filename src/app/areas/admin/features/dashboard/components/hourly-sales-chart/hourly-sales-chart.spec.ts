@@ -3,7 +3,7 @@
  *
  * Feature: the KPI header's decorative strip became a labelled chart.
  * Contract:
- *  - delivered orders and their revenue are counted per hour
+ *  - delivered orders are counted per hour (this is a count chart, not money)
  *  - the chart data keeps the hour labels and highlights the current hour
  *  - the summary and empty state are honest when nothing was delivered
  *
@@ -28,11 +28,12 @@ describe('HourlySalesChart', () => {
     return TestBed.runInInjectionContext(() => new HourlySalesChart());
   }
 
-  it('counts revenue and reports the day total', () => {
+  it('counts orders and reports the day total', () => {
     const chart = create();
     chart.bars = bars();
 
-    expect(chart.totalRevenue).toBe(135000);
+    expect(chart.totalOrders).toBe(3);
+    expect(chart.data.datasets[0].data).toEqual([0, 2, 1]);
     expect(chart.isEmpty).toBe(false);
   });
 

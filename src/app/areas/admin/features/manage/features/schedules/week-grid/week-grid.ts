@@ -27,6 +27,7 @@ import {
   DAY_LABELS,
   LEGAL_WEEKLY_HOURS,
   MAX_WEEKLY_HOURS,
+  buildCoverage,
   buildWorkerWeek,
   detectAssignmentConflicts,
   findWeekOverlaps,
@@ -227,6 +228,20 @@ export class WeekGrid implements OnInit, OnChanges {
       );
     });
   });
+
+  /** Workers per day/hour for the filtered rows. */
+  readonly coverage = computed(() =>
+    buildCoverage(
+      this.filteredRows().map((row) => row.week),
+    ),
+  );
+
+  coverageTone(count: number): string {
+    if (count <= 0) return '';
+    if (count >= 3) return 'week-grid__cov--high';
+    if (count === 2) return 'week-grid__cov--mid';
+    return 'week-grid__cov--low';
+  }
 
   readonly conflictMessages = computed<readonly string[]>(() => {
     const messages: string[] = [];

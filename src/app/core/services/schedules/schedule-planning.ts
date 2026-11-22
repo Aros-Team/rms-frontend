@@ -644,3 +644,94 @@ export function summarizeTimeLogs(logs: readonly TimeLogEntry[]): TimeLogDaySumm
     return left.workerId - right.workerId;
   });
 }
+
+export interface CoverageRow {
+  readonly dayOfWeek: DayOfWeek;
+  readonly label: string;
+  /** Workers scheduled in each hour bucket, aligned with `hours`. */
+  readonly counts: readonly number[];
+}
+
+export interface CoverageMatrix {
+  /** First hour in the matrix (24 h clock). */
+  readonly startHour: number;
+  /** Exclusive end hour; `24` covers the whole day. */
+  readonly endHour: number;
+  readonly hours: readonly number[];
+  readonly rows: readonly CoverageRow[];
+  /** Highest single-cell count, used to scale the visual emphasis. */
+  readonly max: number;
+}
+
+/**
+ * How many workers are scheduled for every day/hour pair.
+ *
+ * Used by the weekly grid to answer "how many people do I have on Tuesday at
+ * 18:00" without reading each worker row. A shift covering [start, end) adds
+ * one worker to every hour bucket it overlaps; shifts crossing midnight are
+ * clipped at `endHour`.
+ */
+export function buildCoverage(
+  weeks: readonly WorkerWeek[],
+  defaultStartHour = 6,
+  defaultEndHour = 24,
+): CoverageMatrix {
+  let startHour = defaultStartHour;
+  let endHour = defaultEndHour;
+
+  for (const week of weeks) {
+    for (const day of week.days) {
+      for (const shift of day.shifts) {
+        const start = timeToMinutes(shift.startTime);
+        const end = timeToMinutes(shift.endTime);
+        if (start === null || end === null || end <= start) continue;
+        startHour = Math.min(startHour, Math.floor(start / 60));
+        endHour = Math.max(endHour, Math.ceil(end / 60));
+      }
+    }
+  }
+
+  const hours: number[] = [];
+  for (let hour = startHour; hour < endHour; hour++) hours.push(hour);
+
+  const counts = new Map<DayOfWeek, number[]>(
+    DAY_ORDER.map((day) => [day, hours.map(() => 0)]),
+  );
+
+  for (const week of weeks) {
+    for (const day of week.days) {
+      const row = counts.get(day.dayOfWeek);
+      if (row === undefined) continue;
+      for (const shift of day.shifts) {
+        const start = timeToMinutes(shift.startTime);
+        const end = timeToMinutes(shift.endTime);
+        if (start === null || end === null || end <= start) continue;
+        const from = Math.max(start, startHour * 60);
+        const to = Math.min(end, endHour * 60);
+        const firstHour = Math.floor(from / 60);
+        const lastHour = Math.ceil(to / 60) - 1;
+        for (let hour = firstHour; hour <= lastHour; hour++) {
+          const index = hour - startHour;
+          if (index >= 0 && index < row.length) row[index] += 1;
+        }
+      }
+    }
+  }
+
+  let max = 0;
+  for (const row of counts.values()) {
+    for (const value of row) max = Math.max(max, value);
+  }
+
+  return {
+    startHour,
+    endHour,
+    hours,
+    max,
+    rows: DAY_ORDER.map((dayOfWeek) => ({
+      dayOfWeek,
+      label: DAY_SHORT_LABELS[dayOfWeek],
+      counts: counts.get(dayOfWeek) ?? [],
+    })),
+  };
+}

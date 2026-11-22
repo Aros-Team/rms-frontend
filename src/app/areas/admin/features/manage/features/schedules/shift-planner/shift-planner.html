@@ -1,0 +1,221 @@
+<section class="shift-planner" aria-labelledby="shift-planner-heading">
+  <header class="shift-planner__header">
+    <div>
+      <h2 id="shift-planner-heading" class="rms-h3">Turnos individuales</h2>
+      <p class="rms-caption">
+        Elige un trabajador, los días y las horas. Cada fila es un turno real del equipo.
+      </p>
+    </div>
+    <app-rms-button iconStart="pi pi-plus" (click)="openCreate()">Nuevo turno</app-rms-button>
+  </header>
+
+  @if (notice(); as message) {
+    <div class="shift-planner__feedback" role="status">
+      <i class="pi pi-check-circle" aria-hidden="true"></i>
+      <span>{{ message }}</span>
+      <app-rms-icon-button icon="pi pi-times" ariaLabel="Cerrar confirmación" (click)="dismissNotice()" />
+    </div>
+  }
+
+  @if (actionError(); as message) {
+    <div class="shift-planner__feedback shift-planner__feedback--error" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span>{{ message }}</span>
+      <app-rms-icon-button icon="pi pi-times" ariaLabel="Cerrar error" (click)="dismissError()" />
+    </div>
+  }
+
+  <div class="shift-planner__filters">
+    <app-rms-input
+      id="shift-search"
+      label="Buscar trabajador"
+      placeholder="Nombre"
+      [ngModel]="search()"
+      (ngModelChange)="search.set($event)"
+      name="shift-search"
+      size="sm"
+    />
+    <p class="rms-caption shift-planner__total">
+      {{ filteredRows().length }} {{ filteredRows().length === 1 ? 'turno' : 'turnos' }} ·
+      {{ formatMinutes(totalWeeklyMinutes()) }} semanales
+    </p>
+  </div>
+
+  @if (loading()) {
+    <div class="shift-planner__loading" role="status" aria-label="Cargando turnos">
+      @for (row of [1, 2, 3, 4]; track row) {
+        <app-rms-skeleton height="4.5rem" ariaLabel="Cargando turno" />
+      }
+    </div>
+  } @else if (loadError(); as message) {
+    <app-rms-empty-state
+      icon="pi pi-exclamation-triangle"
+      [title]="forbidden() ? 'Sin permiso para ver turnos' : 'No se pudieron cargar los turnos'"
+      [message]="message"
+      [actionLabel]="forbidden() ? '' : 'Reintentar'"
+      actionIcon="pi pi-refresh"
+      (action)="load()"
+    />
+  } @else if (rows().length === 0) {
+    <app-rms-empty-state
+      icon="pi pi-calendar-plus"
+      title="Todavía no hay turnos"
+      message="Crea el primer turno eligiendo un trabajador, los días y las horas."
+      actionLabel="Crear turno"
+      actionIcon="pi pi-plus"
+      (action)="openCreate()"
+    />
+  } @else if (filteredRows().length === 0) {
+    <app-rms-empty-state
+      icon="pi pi-filter-slash"
+      title="Sin turnos que coincidan"
+      message="Ajusta la búsqueda para ver el resto del equipo."
+      actionLabel="Limpiar búsqueda"
+      actionIcon="pi pi-filter-slash"
+      (action)="search.set('')"
+    />
+  } @else {
+    <ul class="shift-list" aria-label="Turnos individuales del equipo">
+      @for (row of filteredRows(); track row.scheduleId) {
+        <li class="shift-row">
+          <div class="shift-row__who">
+            <span class="shift-row__name">{{ row.workerName }}</span>
+            <span class="rms-caption">{{ row.areaNames.join(', ') || 'Sin área' }}</span>
+          </div>
+
+          <div class="shift-row__days" role="img" [attr.aria-label]="'Días: ' + row.days.join(', ')">
+            @for (day of dayOrder; track day) {
+              <span
+                class="shift-day"
+                [class.shift-day--on]="row.days.includes(day)"
+                [attr.aria-hidden]="true"
+              >{{ dayShortLabels[day] }}</span>
+            }
+          </div>
+
+          <div class="shift-row__hours">
+            <span class="shift-row__range">{{ row.ranges.join(" · ") }}</span>
+            <span class="rms-caption">{{ formatMinutes(row.minutes) }}</span>
+          </div>
+
+          <div class="shift-row__actions">
+            <app-rms-icon-button
+              icon="pi pi-pencil"
+              [ariaLabel]="'Editar turno de ' + row.workerName"
+              tooltip="Editar turno"
+              (click)="openEdit(row)"
+            />
+            <app-rms-icon-button
+              icon="pi pi-trash"
+              [ariaLabel]="'Eliminar turno de ' + row.workerName"
+              tooltip="Eliminar turno"
+              (click)="requestDelete(row)"
+            />
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  <app-rms-dialog
+    [header]="editing() === null ? 'Nuevo turno' : 'Editar turno'"
+    width="560px"
+    [visible]="dialogVisible()"
+    (visibleChange)="dialogVisible.set($event)"
+  >
+    <div class="shift-form">
+      <app-rms-select
+        id="shift-worker"
+        label="Trabajador"
+        placeholder="Elige un trabajador"
+        [options]="workerOptions()"
+        [ngModel]="workerId()"
+        (ngModelChange)="workerId.set($event)"
+        name="shift-worker"
+      />
+
+      <fieldset class="shift-form__days">
+        <legend class="rms-label">Días de la semana</legend>
+        <div class="shift-form__daygrid">
+          @for (day of dayOrder; track day) {
+            <button
+              type="button"
+              class="shift-day-toggle"
+              [class.shift-day-toggle--on]="isDaySelected(day)"
+              [attr.aria-pressed]="isDaySelected(day)"
+              (click)="toggleDay(day)"
+            >
+              {{ dayLabels[day] }}
+            </button>
+          }
+        </div>
+      </fieldset>
+
+      <div class="shift-form__times">
+        <app-rms-field label="Hora de inicio" controlId="shift-start" [required]="true">
+          <input
+            id="shift-start"
+            class="shift-form__time"
+            type="time"
+            [ngModel]="startTime()"
+            (ngModelChange)="startTime.set($event)"
+            name="shift-start"
+          />
+        </app-rms-field>
+        <app-rms-field label="Hora de fin" controlId="shift-end" [required]="true">
+          <input
+            id="shift-end"
+            class="shift-form__time"
+            type="time"
+            [ngModel]="endTime()"
+            (ngModelChange)="endTime.set($event)"
+            name="shift-end"
+          />
+        </app-rms-field>
+      </div>
+
+      @if (editingMultiRange()) {
+        <p class="rms-caption">
+          Este turno agrupa varios rangos horarios. Al guardar se reemplaza el turno completo
+          por el rango indicado.
+        </p>
+      }
+
+      @if (formError(); as message) {
+        <p class="shift-form__error" role="alert">{{ message }}</p>
+      }
+    </div>
+
+    <div rmsDialogFooter class="shift-form__footer">
+      <app-rms-button variant="secondary" [disabled]="saving()" (click)="dialogVisible.set(false)">
+        Cancelar
+      </app-rms-button>
+      <app-rms-button [disabled]="saving()" (click)="save()">
+        {{ saving() ? 'Guardando…' : editing() === null ? 'Crear turno' : 'Guardar cambios' }}
+      </app-rms-button>
+    </div>
+  </app-rms-dialog>
+
+  <app-rms-dialog
+    header="Eliminar turno"
+    width="460px"
+    [visible]="pendingDelete() !== null"
+    (visibleChange)="pendingDelete.set(null)"
+  >
+    @if (pendingDelete(); as row) {
+      <p class="rms-body">
+        ¿Quitar el turno de <strong>{{ row.workerName }}</strong>
+        ({{ row.ranges.join(" · ") }})? Esta acción no se puede deshacer.
+      </p>
+    }
+
+    <div rmsDialogFooter class="shift-form__footer">
+      <app-rms-button variant="secondary" [disabled]="deleting()" (click)="pendingDelete.set(null)">
+        Cancelar
+      </app-rms-button>
+      <app-rms-button variant="danger" [disabled]="deleting()" (click)="confirmDelete()">
+        {{ deleting() ? 'Eliminando…' : 'Eliminar turno' }}
+      </app-rms-button>
+    </div>
+  </app-rms-dialog>
+</section>
