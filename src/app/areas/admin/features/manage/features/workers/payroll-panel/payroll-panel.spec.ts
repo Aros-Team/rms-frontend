@@ -54,6 +54,7 @@ import type { WorkerResponse } from '@models/dto/workers/worker-response';
 
 import { PayrollPanel } from './payroll-panel';
 import payrollPanelHtml from './payroll-panel.html?raw';
+import statusPillHtml from '@app/shared/ui/status-pill/status-pill.html?raw';
 
 const WORKER: WorkerResponse = {
   id: 7,
@@ -184,6 +185,9 @@ describe('PayrollPanel', () => {
     await resolveComponentResources((url: string) => {
       if (url.endsWith('payroll-panel.html')) {
         return Promise.resolve(payrollPanelHtml as unknown as string);
+      }
+      if (url.endsWith('status-pill.html')) {
+        return Promise.resolve(statusPillHtml as unknown as string);
       }
       return Promise.resolve('');
     });
