@@ -34,6 +34,15 @@ export function defineVisualSuite(
         // Charts animate on canvas; let them reach their final frame.
         await settle(page, 1_200);
         await page.evaluate(() => window.scrollTo(0, 0));
+        if (role === 'kitchen') {
+          // The header flips between "En vivo" and "Reconectando" and may add
+          // the polling hint, which reflows the action buttons at 1024px.
+          // Connection state is masked from the board baseline.
+          await page.addStyleTag({
+            content: `.kitchen__connection, .kitchen__polling { display: none !important; }`,
+          });
+          await settle(page, 300);
+        }
         const masks = await visualMasks(page);
         await expect(page).toHaveScreenshot(`${route.slug}.png`, {
           // The kitchen is a station board sized to the screen; fullPage would
@@ -42,7 +51,9 @@ export function defineVisualSuite(
           fullPage: role !== 'kitchen',
           mask: masks,
           maskColor: '#e2e8f0',
-          timeout: 20_000,
+          // The harness and other lanes may run concurrently; 20 s was too
+          // tight for font + screenshot capture under that load.
+          timeout: 30_000,
         });
       });
     }
