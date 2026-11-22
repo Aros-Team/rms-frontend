@@ -6,6 +6,7 @@ import { filter } from 'rxjs/operators';
 
 import { Header } from '../../components/header/header';
 import { Sidebar } from '../../components/sidebar/sidebar';
+import { Breadcrumbs } from '../../components/breadcrumbs/breadcrumbs';
 import { RestrictedBanner } from '../../components/restricted-banner/restricted-banner';
 import { ServerDownBanner } from '../../components/server-down-banner/server-down-banner';
 import { Subscription } from 'rxjs';
@@ -13,7 +14,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-layout',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Header, Sidebar, RestrictedBanner, ServerDownBanner, CommonModule],
+  imports: [Header, Sidebar, Breadcrumbs, RestrictedBanner, ServerDownBanner, CommonModule],
   templateUrl: './layout.html',
 })
 export class Layout implements OnInit, OnDestroy {

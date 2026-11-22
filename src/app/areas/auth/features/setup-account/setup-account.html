@@ -1,5 +1,4 @@
-<div class="setup-container">
-  <div class="setup-card">
+<div class="setup-card">
     <div class="setup-header">
       <div class="setup-icon">
         <i class="pi pi-user-edit text-white text-2xl" aria-hidden="true"></i>
@@ -9,29 +8,42 @@
     </div>
 
     @if (loading()) {
-      <div class="loading-state">
+      <div class="loading-state" role="status">
         <i class="pi pi-spin pi-spinner text-[2rem]" aria-hidden="true"></i>
         <p>Validando enlace...</p>
       </div>
     }
 
-    @if (error()) {
-      <div class="setup-error">
-        @if (error() === 'invalid') {
-          <i class="pi pi-exclamation-triangle setup-error-icon" aria-hidden="true"></i>
-          <h2>Enlace inválido o expirado</h2>
-          <p>Este enlace no es válido o ya expiró. Contacta al administrador para recibir uno nuevo.</p>
-          <button pButton type="button" icon="pi pi-arrow-left" (click)="goToLogin()">Volver al login</button>
+    @if (error(); as currentError) {
+      <div class="setup-error" role="alert">
+        @switch (currentError) {
+          @case ('missing_token') {
+            <i class="pi pi-link setup-error-icon" aria-hidden="true"></i>
+            <h2>Enlace incompleto</h2>
+            <p>Abre el enlace de invitación completo que recibiste por correo. Este enlace no incluye el token de activación.</p>
+          }
+          @case ('invalid') {
+            <i class="pi pi-exclamation-triangle setup-error-icon" aria-hidden="true"></i>
+            <h2>Enlace inválido o expirado</h2>
+            <p>Este enlace no es válido o ya expiró. Contacta al administrador para recibir uno nuevo.</p>
+          }
+          @case ('already_used') {
+            <i class="pi pi-check-circle setup-error-icon" aria-hidden="true"></i>
+            <h2>Cuenta ya activada</h2>
+            <p>Esta cuenta ya fue activada anteriormente.</p>
+          }
+          @default {
+            <i class="pi pi-exclamation-circle setup-error-icon" aria-hidden="true"></i>
+            <h2>No se pudo activar la cuenta</h2>
+            <p>Ocurrió un error al procesar el enlace. Intenta de nuevo o contacta al administrador.</p>
+          }
         }
-        @if (error() === 'already_used') {
-          <i class="pi pi-check-circle setup-error-icon" aria-hidden="true"></i>
-          <h2>Cuenta ya activada</h2>
-          <p>Esta cuenta ya fue activada anteriormente.</p>
-          <button pButton type="button" icon="pi pi-sign-in" (click)="goToLogin()">Ir al login</button>
+
+        @if (serverDetail(); as detail) {
+          <p data-testid="setup-server-detail">{{ detail }}</p>
         }
-        @if (serverDetail()) {
-          <p data-testid="setup-server-detail">{{ serverDetail() }}</p>
-        }
+
+        <button pButton type="button" icon="pi pi-sign-in" (click)="goToLogin()">Ir al login</button>
       </div>
     }
 
@@ -180,5 +192,4 @@
         </form>
       }
     }
-  </div>
 </div>

@@ -5,7 +5,9 @@
  * loops back to it when the stored session turns out to be invalid.
  * Contract:
  *  - not authenticated → the login screen is allowed (`true`)
- *  - authenticated ADMIN → `/admin`, WORKER → `/worker`
+ *  - authenticated ADMIN → `/admin`; WORKER → their own workspace home
+ *    (`/worker/cashier` for CASH, `/worker/kitchen` for KITCHEN,
+ *    `/worker/waiter` for SERVICE); no area → `/worker`
  *  - `loadUserInfo()` 401 → allow the login screen (`true`, no redirect loop)
  *  - `loadUserInfo()` 403 → `/forbidden`
  *  - `loadUserInfo()` 5xx → `/server-error`
@@ -22,6 +24,7 @@ import { RedirectGuard } from './redirect-guard';
 import { Auth } from '@services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
 import { UserInfo } from '@models/domain/user/user-info';
+import type { AreaTypeValue } from '@models/dto/areas/area';
 
 const ADMIN: UserInfo = {
   id: 1,
@@ -33,6 +36,13 @@ const ADMIN: UserInfo = {
 };
 
 const WORKER: UserInfo = { ...ADMIN, id: 2, name: 'Beto', role: 'WORKER' };
+
+function worker(...types: AreaTypeValue[]): UserInfo {
+  return {
+    ...WORKER,
+    areas: types.map((type, index) => ({ id: index + 1, name: type, type })),
+  };
+}
 
 interface AuthStub {
   isAuthenticated: ReturnType<typeof vi.fn>;
@@ -100,6 +110,27 @@ describe('RedirectGuard', () => {
     auth.getData.mockReturnValue(WORKER);
 
     expect(redirectUrl(guard.canActivate() as GuardResult)).toBe('/worker');
+  });
+
+  it('sends a CASH worker to the cashier area', () => {
+    auth.isAuthenticated.mockReturnValue(true);
+    auth.getData.mockReturnValue(worker('CASH'));
+
+    expect(redirectUrl(guard.canActivate() as GuardResult)).toBe('/worker/cashier');
+  });
+
+  it('sends a KITCHEN worker to the kitchen', () => {
+    auth.isAuthenticated.mockReturnValue(true);
+    auth.getData.mockReturnValue(worker('KITCHEN'));
+
+    expect(redirectUrl(guard.canActivate() as GuardResult)).toBe('/worker/kitchen');
+  });
+
+  it('sends a SERVICE worker to the waiter home', () => {
+    auth.isAuthenticated.mockReturnValue(true);
+    auth.getData.mockReturnValue(worker('SERVICE'));
+
+    expect(redirectUrl(guard.canActivate() as GuardResult)).toBe('/worker/waiter');
   });
 
   it('allows the login screen when loadUserInfo returns 401 (no redirect loop)', async () => {

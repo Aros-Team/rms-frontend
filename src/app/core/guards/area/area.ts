@@ -1,10 +1,34 @@
-// Activity: fix/waiter-enterprise-theme-and-landing (t4)
-// Routes `/worker` default to WaiterHome for SERVICE users; KITCHEN-only users are sent to `/worker/kitchen`.
+/**
+ * AreaGuard — workspace permission for `/worker` children.
+ *
+ * Feature: A worker may only enter the routes their assigned area allows, and
+ * `/worker` dispatches them to the workspace they work in.
+ *
+ * Contract (deny by default):
+ *  - `data.workerLanding` → redirect to the user's landing (`workerHome`),
+ *    `/forbidden` when the user has no recognized area
+ *  - `data.anyWorker` → allowed (profile, schedule)
+ *  - `data.workerWorkspaces` → allowed only when one of the workspaces matches
+ *    the user's areas; CASH only grants the cashier workspace, GRILL only
+ *    grants kitchen
+ *  - no recognized `data` → `/forbidden` (an unhandled route is never allowed)
+ *
+ * Approach: the route table declares the workspace; this guard only evaluates
+ * the pure matrix in `role-navigation.ts`.
+ */
 import { Injectable, inject } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, GuardResult, MaybeAsync, RedirectCommand, Router } from '@angular/router';
+import {
+  ActivatedRouteSnapshot,
+  CanActivate,
+  GuardResult,
+  MaybeAsync,
+  RedirectCommand,
+  Router,
+} from '@angular/router';
 import { Auth } from '@services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
-import { UserInfo } from '@models/domain/user/user-info';
+import type { WorkerRouteData } from '@app/core/config/navigation/role-navigation';
+import { canAccessWorkspace, workerHome } from '@app/core/config/navigation/role-navigation';
 
 @Injectable({
   providedIn: 'root',
@@ -15,66 +39,40 @@ export class AreaGuard implements CanActivate {
   private logger = inject(Logging);
 
   canActivate(route: ActivatedRouteSnapshot): MaybeAsync<GuardResult> {
-    const userData: UserInfo | undefined = this.authService.getData();
-    const targetRoute = route.routeConfig?.path ?? '';
-
-    // Default '/' inside /worker — dispatch by assigned area
-    if (targetRoute === '') {
-      const hasService = userData?.areas.some(a => a.type === 'SERVICE') ?? false;
-      const hasKitchen = userData?.areas.some(a => a.type === 'KITCHEN') ?? false;
-
-      if (hasService) {
-        // Waiter lands on the 3-tile home
-        return true;
-      }
-      if (hasKitchen) {
-        // No SERVICE area → send to kitchen queue
-        this.logger.warn(`AreaGuard: User lacks SERVICE area at /worker, redirecting to /worker/kitchen`);
-        return new RedirectCommand(this.router.parseUrl('/worker/kitchen'));
-      }
-      // No recognized worker area → safe default
-      this.logger.warn(`AreaGuard: User has no SERVICE or KITCHEN area at /worker, redirecting to profile`);
-      return new RedirectCommand(this.router.parseUrl('/worker/profile'));
+    const userData = this.authService.getData();
+    if (!userData) {
+      this.logger.warn('AreaGuard: no user data, redirecting to login');
+      return new RedirectCommand(this.router.parseUrl('/login'));
     }
 
-    // profile is available to all workers
-    if (targetRoute === 'profile') {
+    const data = route.data as WorkerRouteData;
+
+    if (data.workerLanding === true) {
+      const home = workerHome(userData);
+      if (home) {
+        return new RedirectCommand(this.router.parseUrl(home));
+      }
+      this.logger.warn('AreaGuard: worker has no recognized area, redirecting to /forbidden');
+      return new RedirectCommand(this.router.parseUrl('/forbidden'));
+    }
+
+    if (data.anyWorker === true) {
       return true;
     }
 
-    // kitchen route requires KITCHEN area
-    if (targetRoute === 'kitchen') {
-      const hasKitchen = userData?.areas.some(a => a.type === 'KITCHEN') ?? false;
-      const hasService = userData?.areas.some(a => a.type === 'SERVICE') ?? false;
-      if (!hasKitchen) {
-        if (!hasService) {
-          // No kitchen AND no service → redirect to profile (safe default)
-          this.logger.warn(`AreaGuard: User lacks both KITCHEN and SERVICE areas, redirecting to profile`);
-          return new RedirectCommand(this.router.parseUrl('/worker/profile'));
-        }
-        this.logger.warn(`AreaGuard: User lacks KITCHEN area, redirecting from /worker/kitchen`);
-        return new RedirectCommand(this.router.parseUrl('/worker/waiter'));
-      }
+    const required = data.workerWorkspaces ?? [];
+    if (required.length === 0) {
+      this.logger.warn('AreaGuard: route declares no workspace, denying by default');
+      return new RedirectCommand(this.router.parseUrl('/forbidden'));
+    }
+
+    if (required.some((workspace) => canAccessWorkspace(userData, workspace))) {
       return true;
     }
 
-    // take-order, orders require SERVICE area
-    const serviceRoutes = ['take-order', 'orders'];
-    if (serviceRoutes.includes(targetRoute)) {
-      const hasService = userData?.areas.some(a => a.type === 'SERVICE') ?? false;
-      const hasKitchen = userData?.areas.some(a => a.type === 'KITCHEN') ?? false;
-      if (!hasService) {
-        if (!hasKitchen) {
-          // No service AND no kitchen → redirect to profile (safe default)
-          this.logger.warn(`AreaGuard: User lacks both SERVICE and KITCHEN areas, redirecting to profile`);
-          return new RedirectCommand(this.router.parseUrl('/worker/profile'));
-        }
-        this.logger.warn(`AreaGuard: User lacks SERVICE area, redirecting from /worker/${targetRoute}`);
-        return new RedirectCommand(this.router.parseUrl('/worker/kitchen'));
-      }
-      return true;
-    }
-
-    return true;
+    this.logger.warn(
+      `AreaGuard: user lacks ${required.join(', ')} area(s), redirecting to /forbidden`,
+    );
+    return new RedirectCommand(this.router.parseUrl('/forbidden'));
   }
 }

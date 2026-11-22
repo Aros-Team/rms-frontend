@@ -1,0 +1,42 @@
+<div class="flex flex-col gap-4 p-4 md:p-6 min-w-0">
+  <header class="flex flex-col gap-1">
+    <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-0">Caja</h1>
+    <p class="text-sm text-muted">
+      Espacio de trabajo del cajero. Cobros y turno de caja llegan con el módulo de pagos.
+    </p>
+  </header>
+
+  <p-message
+    severity="info"
+    text="El módulo de pagos todavía no está disponible en esta versión. Tu acceso ya está habilitado y no necesitas usar la pantalla de meseros."
+  />
+
+  <section aria-labelledby="cashier-pending-title" class="flex flex-col gap-3">
+    <h2 id="cashier-pending-title" class="text-base font-semibold text-surface-800 dark:text-surface-100">
+      En preparación
+    </h2>
+
+    <ul class="grid grid-cols-1 gap-3 md:grid-cols-3">
+      @for (module of pendingModules; track module.id) {
+        <li class="flex flex-col gap-2 rounded-xl border border-surface-200 dark:border-surface-700 bg-primary-contrast p-4">
+          <i [class]="module.icon + ' text-xl text-muted'" aria-hidden="true"></i>
+          <h3 class="font-semibold text-surface-800 dark:text-surface-100">{{ module.title }}</h3>
+          <p class="text-sm text-muted">{{ module.description }}</p>
+          <span class="mt-auto inline-flex w-fit items-center gap-1 rounded-full border border-surface-200 dark:border-surface-700 px-2 py-0.5 text-xs text-muted">
+            Pendiente
+          </span>
+        </li>
+      }
+    </ul>
+  </section>
+
+  <div class="flex flex-wrap gap-2">
+    <a
+      routerLink="/worker/profile"
+      class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-surface-200 dark:border-surface-700 px-4 text-sm font-medium text-surface-800 dark:text-surface-100 hover:bg-surface-100 dark:hover:bg-surface-800"
+    >
+      <i class="pi pi-user" aria-hidden="true"></i>
+      Mi cuenta
+    </a>
+  </div>
+</div>

@@ -5,6 +5,7 @@ import { Auth } from '@services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
 import { UserInfo } from '@models/domain/user/user-info';
 import { redirectForFailure } from '@shared/lib/auth-navigation/auth-navigation';
+import { homeRouteFor } from '@app/core/config/navigation/role-navigation';
 
 /**
  * Guards the `/login` screen: an already-authenticated user is sent to their area.
@@ -52,10 +53,6 @@ export class RedirectGuard implements CanActivate {
   }
 
   private redirectFor(userData: UserInfo): RedirectCommand {
-    const isAdmin = userData.role === 'ADMIN';
-    if (isAdmin) {
-      return new RedirectCommand(this.router.parseUrl('/admin'));
-    }
-    return new RedirectCommand(this.router.parseUrl('/worker'));
+    return new RedirectCommand(this.router.parseUrl(homeRouteFor(userData)));
   }
 }

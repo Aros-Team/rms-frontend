@@ -4,8 +4,10 @@
       <li>
         <a
           [routerLink]="tab.link"
+          #rla="routerLinkActive"
           routerLinkActive="analytics-nav-item-active"
           [routerLinkActiveOptions]="{ exact: tab.exact }"
+          [attr.aria-current]="rla.isActive ? 'page' : null"
           [attr.aria-label]="tab.label"
           class="analytics-nav-item">
           <i [class]="tab.icon" aria-hidden="true"></i>

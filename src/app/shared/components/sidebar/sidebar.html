@@ -1,4 +1,7 @@
 <aside
+    id="app-sidebar"
+    [attr.inert]="visible ? null : ''"
+    [attr.aria-hidden]="visible ? null : 'true'"
     class="lg:mt-[3.5rem] bg-surface-50 dark:bg-surface-900 flex flex-col
     fixed inset-0 w-full h-full z-[100] transition-transform duration-300 ease-in-out
     translate-x-full lg:translate-x-0
@@ -13,13 +16,15 @@
         </button>
     </div>
 
-    <nav class="flex-1 overflow-y-auto min-w-0">
+    <nav aria-label="Navegación principal" class="flex-1 overflow-y-auto min-w-0">
         <ul class="p-2">
             @for (item of menuItems; track item.id) {
                 <li class="block">
                     <a [routerLink]="item.routerLink"
+                        #rla="routerLinkActive"
                         routerLinkActive="!text-accent font-semibold"
                         [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+                        [attr.aria-current]="rla.isActive ? 'page' : null"
                         class="flex items-center gap-3 p-3 rounded-lg text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 hover:pl-4 transition-all duration-200 cursor-pointer"
                         (click)="onMenuItemClick(item)">
                         @if (item.icon) {
