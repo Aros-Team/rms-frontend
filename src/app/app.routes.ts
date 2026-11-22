@@ -292,8 +292,9 @@ export const routes: Routes = [
       },
       {
         path: 'profile',
-        title: 'Mi perfil',
-        loadComponent: () => import('@shared/features/settings/settings').then((m) => m.Settings),
+        pathMatch: 'full',
+        redirectTo: 'settings',
+        title: 'Configuración',
       },
     ],
   },

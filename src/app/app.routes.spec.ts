@@ -180,6 +180,13 @@ describe('app routes', () => {
     expect(legacy).toEqual([]);
   });
 
+  it('should redirect the retired admin profile screen to Configuración', () => {
+    const profile = childrenOf('admin').find((route) => route.path === 'profile');
+
+    expect(profile?.redirectTo).toBe('settings');
+    expect(profile?.loadComponent).toBeUndefined();
+  });
+
   it('should redirect the top-level /cashier shortcut to the guarded worker area', () => {
     const shortcut = routes.find((route) => route.path === 'cashier');
 

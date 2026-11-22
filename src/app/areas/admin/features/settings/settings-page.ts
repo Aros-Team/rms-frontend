@@ -14,6 +14,7 @@ import { RmsButton } from '@shared/ui/button/button';
 import { RmsDialog } from '@shared/ui/dialog/dialog';
 import { RmsPageHeader } from '@shared/ui/page-header/page-header';
 
+import { AccountSettingsSection } from './sections/account/account-settings';
 import { AdvancedSettingsSection } from './sections/advanced/advanced-settings';
 import { AppearanceSettingsSection } from './sections/appearance/appearance-settings';
 import { BusinessSettings } from './sections/business/business-settings';
@@ -31,6 +32,7 @@ export type SettingsSectionId =
   | 'notifications'
   | 'users'
   | 'appearance'
+  | 'account'
   | 'advanced'
   | 'integrations'
   | 'demo';
@@ -82,6 +84,12 @@ const SECTIONS: readonly SettingsSection[] = [
     icon: 'pi pi-palette',
   },
   {
+    id: 'account',
+    label: 'Cuenta',
+    description: 'Perfil, contraseña, privacidad y sesión',
+    icon: 'pi pi-user',
+  },
+  {
     id: 'advanced',
     label: 'Configuración avanzada',
     description: 'Grupos y entradas del sistema',
@@ -124,6 +132,7 @@ const SECTIONS: readonly SettingsSection[] = [
     NotificationsSettingsSection,
     UsersSettingsSection,
     AppearanceSettingsSection,
+    AccountSettingsSection,
     AdvancedSettingsSection,
     IntegrationsSettingsSection,
     DemoDataSettingsSection,

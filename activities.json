@@ -1362,5 +1362,52 @@
       }
     ],
     "status": "done"
+  },
+  {
+    "id": 46,
+    "type": "fix",
+    "name": "dashboard-shell-ux",
+    "title": "Fix sidebar interactions and rebuild dashboard analytics charts",
+    "description": "Desktop sidebar became inert after navigating; remove Mi cuenta in favour of the Configuración workspace; replace the decorative hour strip with a labelled sales-by-hour chart and the category doughnut with a treemap.",
+    "acceptance": [
+      "Desktop sidebar links keep working after navigation without a reload",
+      "ADMIN_NAV has no Mi cuenta; /admin/profile redirects to /admin/settings#account",
+      "Configuración account section covers profile, password, privacy and logout",
+      "Dashboard shows an hour-labelled sales chart and a category treemap",
+      "Unit tests, harness and Playwright specs green"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Stop the desktop sidebar from going inert on menu click",
+        "status": "in_progress",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Move Mi cuenta into the Configuración account section and drop the route/nav entry",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Replace the decorative hour strip with a labelled sales-by-hour chart",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Replace the category doughnut with a treemap primitive",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Update tests, baselines and run the harness",
+        "status": "pending",
+        "agent": "implementer"
+      }
+    ],
+    "status": "in_progress"
   }
 ]

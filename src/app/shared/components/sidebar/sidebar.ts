@@ -15,7 +15,7 @@ export class Sidebar implements OnInit, OnDestroy {
   @Output() visibleChange = new EventEmitter<boolean>();
 
   menuItems: MenuItem[] = [];
-  private menuSubscription!: Subscription;
+  private menuSubscription?: Subscription;
 
   private menuService = inject(Menu);
 
@@ -26,11 +26,16 @@ export class Sidebar implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.menuSubscription.unsubscribe();
+    this.menuSubscription?.unsubscribe();
   }
 
   onMenuItemClick(item: MenuItem): void {
-    this.closeSidebar();
+    // On desktop the sidebar is permanent: closing it would leave the visible
+    // element marked `inert`/`aria-hidden` until a reload, so every link died
+    // after the first navigation. Only the mobile drawer closes on selection.
+    if (this.isMobile) {
+      this.closeSidebar();
+    }
     this.menuService.selectMenuItem(item);
 
     if (item.command) {

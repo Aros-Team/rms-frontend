@@ -109,13 +109,6 @@ export const ADMIN_NAV: readonly NavItem[] = [
     icon: 'pi pi-cog',
     routerLink: '/admin/settings',
   },
-  {
-    id: 'account',
-    label: 'Mi cuenta',
-    description: 'Perfil, contraseña y privacidad',
-    icon: 'pi pi-user',
-    routerLink: '/admin/profile',
-  },
 ];
 
 export const WORKER_NAV: Readonly<Record<WorkerWorkspace, readonly NavItem[]>> = {

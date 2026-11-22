@@ -151,11 +151,12 @@ describe('role navigation config', () => {
         'manage',
         'analytics',
         'settings',
-        'account',
       ]);
       expect(ADMIN_NAV.find((item) => item.id === 'analytics')?.label).toBe('Estadísticas');
       expect(ADMIN_NAV.find((item) => item.id === 'settings')?.routerLink).toBe('/admin/settings');
-      expect(ADMIN_NAV.find((item) => item.id === 'account')?.routerLink).toBe('/admin/profile');
+      // Settings absorbed the old "Mi cuenta" screen: profile, password and
+      // privacy live in the account section, so the nav item is gone.
+      expect(ADMIN_NAV.find((item) => item.id === 'account')).toBeUndefined();
     });
 
     it('does not repeat an id inside a role menu', () => {
