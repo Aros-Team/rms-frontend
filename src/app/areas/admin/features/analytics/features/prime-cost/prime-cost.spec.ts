@@ -1,163 +1,44 @@
 /**
- * Tests for the PrimeCost analytics page.
+ * Tests for the Prime Cost section.
  *
- * Feature: Displays prime cost analysis with cost breakdown by category.
- * Contract: Loads prime cost data, renders KPI cards and breakdown chart.
- * Approach: Mount component via TestBed, mock HTTP responses, assert rendered KPI values.
+ * Feature: period totals, category breakdown, tables and CSV.
+ * Contract: KPIs aggregate the whole range (not the latest bucket), money is
+ * summed exactly and the chart datasets mirror the series.
+ * Approach: mount with a cache stub over the shared fixture.
  */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
-import {
-  ɵresolveComponentResources as resolveComponentResources,
-} from '@angular/core';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { AnalyticsCache } from '@app/core/services/analytics/analytics-cache';
-import { PrimeCostReport } from '@app/shared/models/dto/analytics/prime-cost-report';
+import { AnalyticsPeriodState } from '@app/core/services/analytics/analytics-period-state';
+import { AnalyticsRequestError } from '@app/core/services/analytics/analytics-request-error';
 
 import { PrimeCost } from './prime-cost';
-import primeCostHtml from './prime-cost.html?raw';
+import primeCostHtmlRaw from './prime-cost.html?raw';
+import {
+  installCanvasContextStub,
+  makeCacheStub,
+  makePrimeCostReport,
+  resolveTemplates,
+} from '../../testing/analytics-testing';
 
-function makePrimeCostStub(
-  overrides: {
-    data?: () => PrimeCostReport | null;
-    isLoading?: () => boolean;
-    error?: () => Error | null;
-  } = {},
-): Pick<AnalyticsCache, 'primeCost'> & Record<string, unknown> {
-  return {
-    primeCost: {
-      data: overrides.data ?? ((): PrimeCostReport | null => null),
-      isLoading: overrides.isLoading ?? ((): boolean => false),
-      error: overrides.error ?? ((): Error | null => null),
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      refresh: (): void => {},
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      invalidate: (): void => {},
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      loadIfStale: (): void => {},
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      load: (): void => {},
-    },
-    menuEngineering: { data: (): null => null, isLoading: (): boolean => false, error: (): null => null },
-    operations: { data: (): null => null, isLoading: (): boolean => false, error: (): null => null },
-    cohort: { data: (): null => null, isLoading: (): boolean => false, error: (): null => null },
-    alerts: { data: (): null => null, isLoading: (): boolean => false, error: (): null => null },
-  };
-}
-
-function makeReport(opts: {
-  dataCompleteness?: 'FULL' | 'PARTIAL' | 'EMPTY';
-  notes?: string[];
-  primeCostPct?: number;
-  netSales?: string;
-  primeCost?: string;
-} = {}): PrimeCostReport {
-  const primeCostPct = opts.primeCostPct ?? 62.5;
-  const netSales = opts.netSales ?? '125000000.00';
-  const primeCost = opts.primeCost ?? '78125000.00';
-  const latest = {
-    key: '2026-07',
-    netSales: { amount: netSales, currency: 'COP' },
-    grossSales: { amount: netSales, currency: 'COP' },
-    cogs: {
-      total: { amount: '50000000.00', currency: 'COP' },
-      byCategory: [
-        { category: 'FOOD' as const, amount: { amount: '40000000.00', currency: 'COP' }, pct: 80 },
-        { category: 'BEVERAGE' as const, amount: { amount: '10000000.00', currency: 'COP' }, pct: 20 },
-      ],
-    },
-    labor: {
-      total: { amount: '28125000.00', currency: 'COP' },
-      byArea: [
-        { area: 'BOH' as const, amount: { amount: '18000000.00', currency: 'COP' }, pct: 64 },
-        { area: 'FOH' as const, amount: { amount: '10125000.00', currency: 'COP' }, pct: 36 },
-      ],
-    },
-    primeCost: { amount: primeCost, currency: 'COP' },
-    primeCostPct,
-    margins: { grossProfitPct: 37.5 },
-    dataCompleteness: opts.dataCompleteness ?? 'FULL',
-  };
-  return {
-    period: { bucket: 'monthly', from: '2026-02', to: '2026-07', keys: ['2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07'] },
-    series: [latest],
-    dataCompleteness: opts.dataCompleteness ?? 'FULL',
-    notes: opts.notes,
-  };
-}
-
-/**
- * Exact expected output of the `money` pipe for a COP amount: currency symbol,
- * a non-breaking space, and thousands separators (no decimals for COP).
- * Kept explicit so a wrong amount or a bare unformatted number fails the test.
- */
-function cop(amount: number): string {
-  return `$\u00A0${amount.toLocaleString('es-CO', { maximumFractionDigits: 0 })}`;
-}
-
-// jsdom does not implement canvas — chart.js calls getContext on the canvas// element which would otherwise throw. Stub it with a no-op 2d context. The
-// methods are no-ops because chart.js never actually renders to a real screen
-// during unit tests, but it must successfully acquire *some* context.
-function installCanvasContextStub(): void {
-  if (typeof HTMLCanvasElement === 'undefined') return;
-  const proto = HTMLCanvasElement.prototype as unknown as Record<string, unknown>;
-  if (proto.__pcStubbed) return;
-
-  type StubCtx = Record<string, (...args: never[]) => unknown>;
-  const stubContext: StubCtx = {
-    canvas: { width: 0, height: 0 },
-    fillRect: () => undefined,
-    clearRect: () => undefined,
-    getImageData: () => ({ data: new Uint8ClampedArray(4), width: 1, height: 1, colorSpace: 'srgb' }),
-    putImageData: () => undefined,
-    createImageData: () => ({ data: new Uint8ClampedArray(4), width: 1, height: 1, colorSpace: 'srgb' }),
-    setTransform: () => undefined,
-    drawImage: () => undefined,
-    save: () => undefined,
-    fillText: () => undefined,
-    restore: () => undefined,
-    beginPath: () => undefined,
-    moveTo: () => undefined,
-    lineTo: () => undefined,
-    closePath: () => undefined,
-    stroke: () => undefined,
-    translate: () => undefined,
-    scale: () => undefined,
-    rotate: () => undefined,
-    arc: () => undefined,
-    fill: () => undefined,
-    measureText: () => ({ width: 0 }),
-    transform: () => undefined,
-    rect: () => undefined,
-    clip: () => undefined,
-  };
-
-  HTMLCanvasElement.prototype.getContext = function (): unknown {
-    return stubContext;
-  } as typeof HTMLCanvasElement.prototype.getContext;
-  proto.__pcStubbed = true;
-}
+const primeCostHtml = primeCostHtmlRaw as string;
 
 describe('PrimeCost', () => {
   beforeAll(async () => {
     installCanvasContextStub();
-
-    await resolveComponentResources((url: string) => {
-      if (url.endsWith('prime-cost.html')) {
-        return Promise.resolve(primeCostHtml as unknown as string);
-      }
-      return Promise.resolve('');
-    });
+    await resolveTemplates({ 'prime-cost.html': primeCostHtml });
   });
 
   async function setup(
-    stub: Pick<AnalyticsCache, 'primeCost'> & Record<string, unknown>,
+    cache: ReturnType<typeof makeCacheStub>,
   ): Promise<ComponentFixture<PrimeCost>> {
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [PrimeCost],
       providers: [
-        { provide: AnalyticsCache, useValue: stub },
+        { provide: AnalyticsCache, useValue: cache },
+        AnalyticsPeriodState,
       ],
     }).compileComponents();
     const fixture = TestBed.createComponent(PrimeCost);
@@ -165,185 +46,100 @@ describe('PrimeCost', () => {
     return fixture;
   }
 
-  function getRoot(fixture: ComponentFixture<PrimeCost>): HTMLElement {
-    return fixture.nativeElement as HTMLElement;
-  }
-
-   it('invokes cache.primeCost.load via the period effect on construction', async () => {
+  it('loads through the cache effect', async () => {
+    const cache = makeCacheStub({ primeCost: { data: makePrimeCostReport() } });
     const load = vi.fn();
-    const stub = makePrimeCostStub();
-    (stub.primeCost as { load: () => void }).load = load;
-    await setup(stub);
+    cache.primeCost.load = load;
+    await setup(cache);
     expect(load).toHaveBeenCalledTimes(1);
   });
 
-  it('renders the page skeleton when isLoading() is true and report() is null', async () => {
-    const stub = makePrimeCostStub({
-      isLoading: () => true,
-      data: () => null,
-      error: () => null,
-    });
-    const fixture = await setup(stub);
-    const root = getRoot(fixture);
-
-    const skeletons = root.querySelectorAll('p-skeleton');
-    // 4 stat-card skeletons + 2 chart skeletons = 6
-    expect(skeletons.length).toBe(6);
-    expect(root.querySelector('p-chart')).toBeNull();
-    expect(root.textContent).not.toContain('No hay datos en el periodo seleccionado');
-  });
-
-  it('renders four stat cards filled with formatted Money when latest() is non-null', async () => {
-    const stub = makePrimeCostStub({
-      isLoading: () => false,
-      error: () => null,
-      data: () => makeReport({ netSales: '125000000.00', primeCost: '78125000.00' }),
-    });
-    const fixture = await setup(stub);
-    const root = getRoot(fixture);
-
-    const statCards = Array.from(
-      root.querySelectorAll('section[aria-label="Indicadores clave"] article'),
+  it('aggregates the whole range into the KPI totals', async () => {
+    const fixture = await setup(
+      makeCacheStub({ primeCost: { data: makePrimeCostReport() } }),
     );
-    expect(statCards.length).toBe(4);
+    const component = fixture.componentInstance;
 
-    const label = (index: number): string =>
-      statCards[index].querySelector('p.text-xs')?.textContent.trim() ?? '';
-    const value = (index: number): string =>
-      statCards[index].querySelector('p.text-2xl')?.textContent.trim() ?? '';
+    expect(component.totals().netSales).toEqual({ amount: '462811600.00', currency: 'COP' });
+    expect(component.totals().cogs).toEqual({ amount: '142630794.78', currency: 'COP' });
+    expect(component.totals().labor).toEqual({ amount: '67000000.00', currency: 'COP' });
+    expect(component.totals().primeCost).toEqual({ amount: '209630794.78', currency: 'COP' });
+    expect(component.totals().primeCostPct).toBeCloseTo(45.2951, 3);
+    expect(component.totals().grossProfitPct).toBeCloseTo(69.1817, 3);
+    expect(component.totals().netProfitPct).toBeCloseTo(54.7049, 3);
 
-    expect(label(0)).toBe('Ventas netas');
-    expect(value(0)).toBe(cop(125_000_000));
-    expect(label(1)).toBe('Costo operativo');
-    expect(value(1)).toBe(cop(78_125_000));
-    expect(label(2)).toBe('Ganancia bruta');
-    expect(value(2)).toBe('37.50%');
-    expect(label(3)).toBe('Ganancia neta');
-    expect(value(3)).toBe('—');
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelectorAll('app-rms-stat-tile')).toHaveLength(4);
   });
 
-  it('renders primeCostPct formatted as XX.XX%', async () => {
-    const stub = makePrimeCostStub({
-      isLoading: () => false,
-      error: () => null,
-      data: () => makeReport({ primeCostPct: 62.5 }),
-    });
-    const fixture = await setup(stub);
-    const root = getRoot(fixture);
-
-    // fmtPercent(62.5) -> "62.50% de las ventas" under the prime-cost card
-    const primeCostCard = root.querySelectorAll(
-      'section[aria-label="Indicadores clave"] article',
-    )[1];
-    const primeCostSubtitle = [...primeCostCard.querySelectorAll('p')]
-      .map((p) => p.textContent.trim())
-      .find((text) => text.includes('de las ventas'));
-    expect(primeCostSubtitle).toBe('62.50% de las ventas');
-    // GrossProfit% 37.5 -> "37.50%" card value
-    const grossProfitCard = root.querySelectorAll(
-      'section[aria-label="Indicadores clave"] article',
-    )[2];
-    expect(grossProfitCard.querySelector('p.text-2xl')?.textContent.trim()).toBe('37.50%');
+  it('aggregates COGS by category for the period', async () => {
+    const fixture = await setup(
+      makeCacheStub({ primeCost: { data: makePrimeCostReport() } }),
+    );
+    const rows = fixture.componentInstance.cogsRows();
+    expect(rows).toHaveLength(4);
+    const food = rows.find((row) => row.key === 'FOOD');
+    expect(food?.amount).toEqual({ amount: '130789860.50', currency: 'COP' });
+    expect(food?.pct).toBeCloseTo(91.7, 1);
   });
 
-  it('renders the trend chart when series.length > 1', async () => {
-    const report = makeReport();
-    report.series = [
-      { ...report.series[0], key: '2026-02', primeCostPct: 60 },
-      { ...report.series[0], key: '2026-03', primeCostPct: 61.5 },
-      { ...report.series[0], key: '2026-07', primeCostPct: 62.5 },
-    ];
-    const stub = makePrimeCostStub({
-      isLoading: () => false,
-      error: () => null,
-      data: () => report,
-    });
-    const fixture = await setup(stub);
-    const root = getRoot(fixture);
+  it('builds the sales and margin datasets from the series', async () => {
+    const fixture = await setup(
+      makeCacheStub({ primeCost: { data: makePrimeCostReport() } }),
+    );
+    const component = fixture.componentInstance;
+    const sales = component.salesData();
+    expect(sales.datasets[0]?.label).toBe('Ventas netas');
+    expect(sales.datasets[0]?.data).toEqual([240869900, 221941700]);
+    expect(sales.datasets[1]?.data).toEqual([240869900, 221941700]);
 
-    const charts = root.querySelectorAll('p-chart');
-    // 2 lines (sales, margins) + 1 stacked bar (cogs) + 2 doughnut (cogs, labor) = 5
-    expect(charts.length).toBe(5);
-  });
-
-  it('renders the notes banner when dataCompleteness === "PARTIAL" and notes is non-empty', async () => {
-    const stub = makePrimeCostStub({
-      isLoading: () => false,
-      error: () => null,
-      data: () =>
-        makeReport({
-          dataCompleteness: 'PARTIAL',
-          notes: ['Faltaban 3 recibos de la semana 28'],
-        }),
-    });
-    const fixture = await setup(stub);
-    const root = getRoot(fixture);
-
-    const banner = root.querySelector('[role="status"]');
-    expect(banner).not.toBeNull();
-    expect(banner?.querySelector('p.font-semibold')?.textContent.trim()).toBe('Datos parciales');
-    expect(Array.from(banner?.querySelectorAll('li') ?? []).map((li) => li.textContent.trim())).toEqual([
-      'Faltaban 3 recibos de la semana 28',
+    const margins = component.marginData();
+    expect(margins.datasets.map((dataset) => dataset.label)).toEqual([
+      'Costo primo',
+      'Margen bruto',
+      'Margen neto',
     ]);
+    expect(margins.datasets[0]?.data).toEqual([44.84, 45.79]);
   });
 
-  it('does NOT render the notes banner when dataCompleteness === "FULL" and notes is empty', async () => {
-    const stub = makePrimeCostStub({
-      isLoading: () => false,
-      error: () => null,
-      data: () => makeReport({ dataCompleteness: 'FULL', notes: [] }),
-    });
-    const fixture = await setup(stub);
-    const root = getRoot(fixture);
-    const text = root.textContent;
-
-    expect(text).not.toContain('Datos parciales');
-    // No banner list rendered
-    expect(root.querySelector('ul')).toBeNull();
-  });
-
-  it('renders an error message when error() is truthy', async () => {
-    const err = new Error('No se pudo cargar el reporte');
-    const stub = makePrimeCostStub({
-      isLoading: () => false,
-      data: () => null,
-      error: () => err,
-    });
-    const fixture = await setup(stub);
-    const root = getRoot(fixture);
-
-    expect(root.querySelector('p-message')?.textContent.trim()).toBe(
-      'No se pudieron cargar los datos: No se pudo cargar el reporte',
+  it('renders a data-table fallback in every chart frame', async () => {
+    const fixture = await setup(
+      makeCacheStub({ primeCost: { data: makePrimeCostReport() } }),
     );
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelectorAll('app-rms-chart-frame')).toHaveLength(3);
+    expect(root.querySelectorAll('table caption').length).toBeGreaterThanOrEqual(3);
   });
 
-  it('renders empty state text when loading is done, no error, and latest() is null', async () => {
-    const stub = makePrimeCostStub({
-      isLoading: () => false,
-      error: () => null,
-      data: () => ({
-        period: { bucket: 'monthly', from: '2026-02', to: '2026-07', keys: [] },
-        series: [],
-        dataCompleteness: 'EMPTY',
+  it('builds the CSV for the loaded report', async () => {
+    const fixture = await setup(
+      makeCacheStub({ primeCost: { data: makePrimeCostReport() } }),
+    );
+    const csv = fixture.componentInstance.buildCsv();
+    expect(csv.split('\r\n')[0]).toContain('Ventas netas');
+    expect(csv).toContain('2026-06');
+  });
+
+  it('shows the ProblemDetail detail on failure', async () => {
+    const fixture = await setup(
+      makeCacheStub({
+        primeCost: {
+          data: null,
+          error: new AnalyticsRequestError(422, { detail: 'to < from' }),
+        },
       }),
-    });
-    const fixture = await setup(stub);
-    const root = getRoot(fixture);
-
-    const emptyMessage = root.firstElementChild?.lastElementChild;
-    expect(emptyMessage?.tagName).toBe('P');
-    expect(emptyMessage?.textContent.trim()).toBe('No hay datos en el periodo seleccionado.');
-    expect(root.querySelector('p-chart')).toBeNull();
-    expect(root.querySelector('p-skeleton')).toBeNull();
-    // No error message
-    expect(root.querySelector('p-message')).toBeNull();
+    );
+    const root = fixture.nativeElement as HTMLElement;
+    const notice = root.querySelector('app-analytics-notice');
+    expect(notice).not.toBeNull();
+    expect(fixture.componentInstance.errorInfo()?.detail).toBe('to < from');
   });
 
-  it('does not render the per-feature Actualizar button (lives in the shared dock now)', async () => {
-    const fixture = await setup(makePrimeCostStub({ data: () => makeReport() }));
-    const btn = Array.from(getRoot(fixture).querySelectorAll('button')).find(
-      (b) => b.textContent.trim() === 'Actualizar',
-    );
-    expect(btn).toBeUndefined();
+  it('is empty when the report has no series', async () => {
+    const empty = makePrimeCostReport({ series: [], dataCompleteness: 'EMPTY' });
+    const fixture = await setup(makeCacheStub({ primeCost: { data: empty } }));
+    expect(fixture.componentInstance.isEmpty()).toBe(true);
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('app-rms-empty-state')).not.toBeNull();
   });
 });

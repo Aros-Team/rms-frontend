@@ -1,242 +1,318 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import type { ChartData } from 'chart.js';
 import { ChartModule } from 'primeng/chart';
-import { SkeletonModule } from 'primeng/skeleton';
-import { MessageModule } from 'primeng/message';
 
 import { AnalyticsCache } from '@app/core/services/analytics/analytics-cache';
+import { downloadCsv, primeCostCsv } from '@app/core/services/analytics/analytics-csv';
+import { describeAnalyticsError } from '@app/core/services/analytics/analytics-error';
+import { pctOf, subtractMoney, sumMoney } from '@app/core/services/analytics/analytics-money';
 import { AnalyticsPeriodState } from '@app/core/services/analytics/analytics-period-state';
-import { Money } from '@app/shared/pipes/money/money';
-import { DataCompleteness } from '@app/shared/models/dto/analytics/data-completeness';
+import { bucketLabel, titleForKey } from '@app/core/services/analytics/analytics-utils';
+import type { Money } from '@app/shared/models/dto/analytics/money';
+import {
+  COGS_CATEGORIES,
+  LABOR_AREAS,
+  type CogsCategory,
+  type LaborArea,
+  type PrimeCostPeriod,
+} from '@app/shared/models/dto/analytics/prime-cost-report';
+import { Money as MoneyPipe } from '@app/shared/pipes/money/money';
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsChartFrame } from '@app/shared/ui/chart-frame/chart-frame';
+import { rmsChartPalette } from '@app/shared/ui/chart/chart-theme';
+import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
+import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
+import { RmsStatTile } from '@app/shared/ui/stat-tile/stat-tile';
 
-const COGS_LABEL: Record<string, string> = {
+import { AnalyticsNotice } from '../../components/analytics-notice/analytics-notice';
+import {
+  formatPct,
+  moneyBarOptions,
+  moneyLineOptions,
+  percentLineOptions,
+} from '../../analytics-chart-options';
+
+const COGS_LABEL: Record<CogsCategory, string> = {
   FOOD: 'Comidas',
   BEVERAGE: 'Bebidas',
   ALCOHOL: 'Licores',
   OTHER: 'Otros',
 };
 
-const LABOR_LABEL: Record<string, string> = {
+const LABOR_LABEL: Record<LaborArea, string> = {
   FOH: 'Salón',
   BOH: 'Cocina',
+  OTHER: 'Otros',
 };
 
-const COGS_COLOR: Record<string, string> = {
-  FOOD: '#F9BB0B',
-  BEVERAGE: '#42A5F5',
-  ALCOHOL: '#AB47BC',
-  OTHER: '#78909C',
-};
-
-const LABOR_COLOR: Record<string, string> = {
-  FOH: '#26A69A',
-  BOH: '#FFA726',
-};
+interface BreakdownRow {
+  key: string;
+  label: string;
+  amount: Money | null;
+  pct: number | null;
+}
 
 @Component({
   selector: 'app-analytics-prime-cost',
-  imports: [CommonModule, ChartModule, SkeletonModule, MessageModule, Money],
+  imports: [
+    ChartModule,
+    MoneyPipe,
+    RmsButton,
+    RmsChartFrame,
+    RmsEmptyState,
+    RmsPageHeader,
+    RmsStatTile,
+    AnalyticsNotice,
+  ],
   templateUrl: './prime-cost.html',
-  styleUrl: './prime-cost.css',
+  styleUrls: ['../../analytics-shared.css', './prime-cost.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PrimeCost {
   private readonly cache = inject(AnalyticsCache);
   private readonly period = inject(AnalyticsPeriodState);
 
-  constructor() {
-    effect(() => {
-      this.period.period();
-      this.cache.primeCost.load();
-    });
-  }
-
   readonly isLoading = computed(() => this.cache.primeCost.isLoading());
   readonly error = computed(() => this.cache.primeCost.error());
   readonly report = computed(() => this.cache.primeCost.data());
   readonly notes = computed(() => this.report()?.notes ?? []);
-  readonly completeness = computed<DataCompleteness>(
-    () => this.report()?.dataCompleteness ?? 'EMPTY',
-  );
-  readonly hasAnyData = computed(() => this.completeness() !== 'EMPTY');
-
-  readonly latest = computed(() => {
-    const series = this.report()?.series ?? [];
-    return series.length > 0 ? series[series.length - 1] : null;
+  readonly completeness = computed(() => this.report()?.dataCompleteness ?? 'EMPTY');
+  readonly errorInfo = computed(() => {
+    const error = this.error();
+    return error === undefined ? null : describeAnalyticsError(error);
   });
 
-  readonly cogsLabel = (key: string): string => COGS_LABEL[key] ?? key;
-  readonly laborLabel = (key: string): string => LABOR_LABEL[key] ?? key;
+  readonly rangeLabel = this.period.label;
+  readonly subtitle = computed(
+    () => `Ventas, costos y márgenes · agrupado por ${bucketLabel(this.period.bucket()).toLowerCase()}`,
+  );
 
-  readonly salesTrendData = computed(() => {
-    const series = this.report()?.series ?? [];
+  readonly series = computed(() => this.report()?.series ?? []);
+  readonly isEmpty = computed(
+    () =>
+      !this.isLoading() &&
+      this.error() === undefined &&
+      (this.series().length === 0 || this.completeness() === 'EMPTY'),
+  );
+  readonly busy = computed(() => this.isLoading() && this.report() === null);
+
+  readonly totals = computed(() => {
+    const series = this.series();
+    const netSales = sumMoney(series.map((point) => point.netSales));
+    const grossSales = sumMoney(series.map((point) => point.grossSales));
+    const cogs = sumMoney(series.map((point) => point.cogs.total));
+    const labor = sumMoney(series.map((point) => point.labor.total));
+    const primeCost = sumMoney([cogs, labor]);
+    const grossProfit = subtractMoney(netSales, cogs);
+    const netProfit = subtractMoney(netSales, primeCost);
     return {
-      labels: series.map((p) => p.key),
+      netSales,
+      grossSales,
+      cogs,
+      labor,
+      primeCost,
+      primeCostPct: pctOf(primeCost, netSales),
+      grossProfitPct: pctOf(grossProfit, netSales),
+      netProfitPct: pctOf(netProfit, netSales),
+    };
+  });
+
+  readonly cogsRows = computed<BreakdownRow[]>(() => {
+    const series = this.series();
+    const values = COGS_CATEGORIES.map((category) => ({
+      category,
+      amount: sumMoney(
+        series.map(
+          (point) => point.cogs.byCategory.find((line) => line.category === category)?.amount ?? null,
+        ),
+      ),
+    }));
+    const total = sumMoney(values.map((row) => row.amount));
+    return values
+      .filter((row) => row.amount !== null)
+      .map((row) => ({
+        key: row.category,
+        label: COGS_LABEL[row.category],
+        amount: row.amount,
+        pct: pctOf(row.amount, total),
+      }));
+  });
+
+  readonly laborRows = computed<BreakdownRow[]>(() => {
+    const series = this.series();
+    const values = LABOR_AREAS.map((area) => ({
+      area,
+      amount: sumMoney(
+        series.map(
+          (point) => point.labor.byArea.find((line) => line.area === area)?.amount ?? null,
+        ),
+      ),
+    }));
+    const total = sumMoney(values.map((row) => row.amount));
+    return values
+      .filter((row) => row.amount !== null)
+      .map((row) => ({
+        key: row.area,
+        label: LABOR_LABEL[row.area],
+        amount: row.amount,
+        pct: pctOf(row.amount, total),
+      }));
+  });
+
+  readonly tableRows = computed(() =>
+    this.series().map((point) => ({
+      ...point,
+      label: titleForKey(this.period.bucket(), point.key),
+    })),
+  );
+
+  readonly salesOptions = moneyLineOptions('Ventas');
+  readonly marginOptions = percentLineOptions('% de ventas');
+  readonly cogsOptions = moneyBarOptions('Costo', true);
+
+  readonly salesData = computed<ChartData<'line'>>(() => {
+    const palette = rmsChartPalette();
+    const rows = this.tableRows();
+    return {
+      labels: rows.map((row) => row.label),
       datasets: [
         {
           label: 'Ventas netas',
-          data: series.map((p) => Number.parseFloat(p.netSales.amount)),
-          borderColor: '#F9BB0B',
-          backgroundColor: 'rgba(249, 187, 11, 0.15)',
+          data: rows.map((row) => moneyValue(row.netSales)),
+          borderColor: palette[0],
+          backgroundColor: `${palette[0]}22`,
           fill: true,
           tension: 0.3,
+          pointRadius: 2,
         },
         {
           label: 'Ventas brutas',
-          data: series.map((p) => Number.parseFloat(p.grossSales.amount)),
-          borderColor: '#78909C',
+          data: rows.map((row) => moneyValue(row.grossSales)),
+          borderColor: palette[6],
           borderDash: [4, 4],
           backgroundColor: 'transparent',
           fill: false,
           tension: 0.3,
+          pointRadius: 2,
         },
       ],
     };
   });
 
-  readonly marginTrendData = computed(() => {
-    const series = this.report()?.series ?? [];
+  readonly marginData = computed<ChartData<'line'>>(() => {
+    const palette = rmsChartPalette();
+    const rows = this.tableRows();
     return {
-      labels: series.map((p) => p.key),
+      labels: rows.map((row) => row.label),
       datasets: [
         {
-          label: 'Costo operativo %',
-          data: series.map((p) => p.primeCostPct),
-          borderColor: '#EF5350',
-          backgroundColor: 'rgba(239, 83, 80, 0.15)',
-          fill: true,
+          label: 'Costo primo',
+          data: rows.map((row) => row.primeCostPct),
+          borderColor: palette[3],
+          backgroundColor: `${palette[3]}22`,
+          fill: false,
           tension: 0.3,
+          pointRadius: 2,
         },
         {
-          label: 'Margen bruto %',
-          data: series.map((p) => p.margins?.grossProfitPct ?? 0),
-          borderColor: '#26A69A',
-          backgroundColor: 'rgba(38, 166, 154, 0.15)',
-          fill: true,
+          label: 'Margen bruto',
+          data: rows.map((row) => row.margins?.grossProfitPct ?? null),
+          borderColor: palette[1],
+          backgroundColor: `${palette[1]}22`,
+          fill: false,
           tension: 0.3,
+          pointRadius: 2,
+        },
+        {
+          label: 'Margen neto',
+          data: rows.map((row) => row.margins?.netProfitPct ?? null),
+          borderColor: palette[4],
+          borderDash: [4, 4],
+          backgroundColor: 'transparent',
+          fill: false,
+          tension: 0.3,
+          pointRadius: 2,
         },
       ],
     };
   });
 
-  readonly cogsStackData = computed(() => {
-    const series = this.report()?.series ?? [];
-    const categories = ['FOOD', 'BEVERAGE', 'ALCOHOL', 'OTHER'] as const;
+  readonly salesColors = computed(() => {
+    const palette = rmsChartPalette();
+    return { net: palette[0], gross: palette[6] };
+  });
+
+  readonly marginColors = computed(() => {
+    const palette = rmsChartPalette();
+    return { prime: palette[3], gross: palette[1], net: palette[4] };
+  });
+
+  readonly cogsColors = computed(() => {
+    const palette = rmsChartPalette();
     return {
-      labels: series.map((p) => p.key),
-      datasets: categories.map((cat) => ({
-        label: this.cogsLabel(cat),
-        data: series.map((p) => {
-          const row = p.cogs.byCategory.find((c) => c.category === cat);
-          return row ? Number.parseFloat(row.amount.amount) : 0;
+      FOOD: palette[4],
+      BEVERAGE: palette[0],
+      ALCOHOL: palette[3],
+      OTHER: palette[6],
+    };
+  });
+
+  readonly cogsData = computed<ChartData<'bar'>>(() => {
+    const rows = this.tableRows();
+    const colors = this.cogsColors();
+    return {
+      labels: rows.map((row) => row.label),
+      datasets: COGS_CATEGORIES.map((category) => ({
+        label: COGS_LABEL[category],
+        data: rows.map((row) => {
+          const line = row.cogs.byCategory.find((candidate) => candidate.category === category);
+          return line === undefined ? 0 : moneyValue(line.amount);
         }),
-        backgroundColor: COGS_COLOR[cat],
+        backgroundColor: colors[category],
         borderWidth: 0,
         stack: 'cogs',
       })),
     };
   });
 
-  readonly discountTrendData = computed(() => {
-    const series = this.report()?.series ?? [];
-    return {
-      labels: series.map((p) => p.key),
-      datasets: [
-        {
-          label: 'Descuentos',
-          data: series.map((p) => Number.parseFloat(p.discounts?.amount ?? '0')),
-          backgroundColor: '#FFA726',
-        },
-        {
-          label: 'Consumo del personal',
-          data: series.map((p) => Number.parseFloat(p.comped?.amount ?? '0')),
-          backgroundColor: '#AB47BC',
-        },
-      ],
-    };
-  });
-
-  readonly cogsChartData = computed(() => {
-    const c = this.latest()?.cogs.byCategory ?? [];
-    return {
-      labels: c.map((r) => this.cogsLabel(r.category)),
-      datasets: [
-        {
-          data: c.map((r) => Number.parseFloat(r.amount.amount)),
-          backgroundColor: c.map((r) => COGS_COLOR[r.category] ?? '#78909C'),
-          borderWidth: 0,
-        },
-      ],
-    };
-  });
-
-  readonly laborChartData = computed(() => {
-    const l = this.latest()?.labor.byArea ?? [];
-    return {
-      labels: l.map((r) => this.laborLabel(r.area)),
-      datasets: [
-        {
-          data: l.map((r) => Number.parseFloat(r.amount.amount)),
-          backgroundColor: l.map((r) => LABOR_COLOR[r.area] ?? '#78909C'),
-          borderWidth: 0,
-        },
-      ],
-    };
-  });
-
-  readonly lineOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { position: 'bottom' as const } },
-    scales: {
-      y: { beginAtZero: true, ticks: { callback: (v: number | string): string => this.shortMoney(v) } },
-    },
-  };
-
-  readonly percentStackOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { position: 'bottom' as const } },
-    scales: {
-      x: { stacked: true },
-      y: { stacked: true, beginAtZero: true, ticks: { callback: (v: number | string): string => this.shortMoney(v) } },
-    },
-  };
-
-  readonly percentLineOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { position: 'bottom' as const } },
-    scales: {
-      y: { beginAtZero: true, ticks: { callback: (v: number | string): string => `${String(v)}%` } },
-    },
-  };
-
-  readonly doughnutOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { position: 'bottom' as const } },
-  };
-
-  cogsRows = computed(() => this.latest()?.cogs.byCategory ?? []);
-  laborRows = computed(() => this.latest()?.labor.byArea ?? []);
-
-  fmtPercent(value: number | null | undefined): string {
-    if (value === null || value === undefined) return '—';
-    return `${value.toFixed(2)}%`;
-  }
-
-  shortMoney(v: number | string): string {
-    const n = typeof v === 'string' ? Number.parseFloat(v) : v;
-    if (Number.isNaN(n)) return String(v);
-    const abs = Math.abs(n);
-    if (abs >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`;
-    if (abs >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-    if (abs >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
-    return String(n);
+  constructor() {
+    effect(() => {
+      this.period.period();
+      this.period.revision();
+      this.cache.primeCost.load();
+    });
   }
 
   reload(): void {
     this.cache.primeCost.refresh();
   }
+
+  buildCsv(): string {
+    const report = this.report();
+    return report === null ? '' : primeCostCsv(report);
+  }
+
+  exportCsv(): void {
+    const report = this.report();
+    if (report === null) return;
+    downloadCsv(`costo-primo-${report.period.from}-${report.period.to}.csv`, primeCostCsv(report));
+  }
+
+  readonly formatPct = formatPct;
+  readonly categories = COGS_CATEGORIES;
+
+  categoryAmount(row: PrimeCostPeriod, category: CogsCategory): Money | null {
+    return row.cogs.byCategory.find((line) => line.category === category)?.amount ?? null;
+  }
+
+  cogsColor(key: string): string {
+    const colors = this.cogsColors();
+    return key in colors ? colors[key as CogsCategory] : colors.OTHER;
+  }
+}
+
+function moneyValue(value: Money | null | undefined): number {
+  if (value === null || value === undefined) return 0;
+  const amount = Number.parseFloat(value.amount);
+  return Number.isFinite(amount) ? amount : 0;
 }

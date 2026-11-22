@@ -240,21 +240,29 @@ export const routes: Routes = [
                 '@areas/admin/features/analytics/features/menu-engineering/menu-engineering'
               ).then((m) => m.MenuEngineering),
           },
-          // PENDING Phase 2 — routes kept on purpose; the components are rebuilt there.
           {
             path: 'operations',
             title: 'Operación',
-            redirectTo: 'prime-cost',
+            loadComponent: () =>
+              import('@areas/admin/features/analytics/features/operations/operations').then(
+                (m) => m.Operations,
+              ),
           },
           {
             path: 'cohort',
             title: 'Cohortes',
-            redirectTo: 'menu-engineering',
+            loadComponent: () =>
+              import('@areas/admin/features/analytics/features/cohort/cohort').then(
+                (m) => m.Cohort,
+              ),
           },
           {
             path: 'alerts',
             title: 'Alertas',
-            redirectTo: 'prime-cost',
+            loadComponent: () =>
+              import('@areas/admin/features/analytics/features/alerts/alerts').then(
+                (m) => m.Alerts,
+              ),
           },
         ],
       },

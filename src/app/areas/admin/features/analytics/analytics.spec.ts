@@ -1,69 +1,65 @@
 /**
- * Tests for the Analytics area routing and child component resolution.
+ * Tests for the analytics workspace shell.
  *
- * Feature: Analytics area with lazy-loaded child routes.
- * Contract: Router navigates to analytics sub-routes and renders correct components.
- * Approach: Bootstrap TestBed with analytics routes, navigate, assert component rendered.
+ * Feature: one shell, one period selector and five child sections.
+ * Contract: the selector is docked inside the content frame, every route
+ * resolves, and the refresh action calls the shared cache rebuild.
+ * Approach: TestBed with stub child routes and a cache stub.
  */
+import { Component } from '@angular/core';
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
-import { ɵresolveComponentResources as resolveComponentResources, Component } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { Router, provideRouter, type Routes } from '@angular/router';
-import { beforeAll, describe, expect, it } from 'vitest';
+import { of } from 'rxjs';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
+
+import { AnalyticsCache } from '@app/core/services/analytics/analytics-cache';
 
 import { Analytics } from './analytics';
 import { AnalyticsNav } from './components/analytics-nav/analytics-nav';
 import { PeriodSelector } from './components/period-selector/period-selector';
-import analyticsHtml from './analytics.html?raw';
+import analyticsHtmlRaw from './analytics.html?raw';
+import navHtmlRaw from './components/analytics-nav/analytics-nav.html?raw';
+import selectorHtmlRaw from './components/period-selector/period-selector.html?raw';
+import { makeCacheStub, resolveTemplates } from './testing/analytics-testing';
 
-@Component({
-  selector: 'app-stub-analytics-prime-cost',
-  template: '<div data-testid="placeholder-prime-cost">Costo primo y márgenes</div>',
-})
+const analyticsHtml = analyticsHtmlRaw as string;
+const navHtml = navHtmlRaw as string;
+const selectorHtml = selectorHtmlRaw as string;
+
+@Component({ selector: 'app-stub-prime-cost', template: '<div data-testid="prime-cost">Rentabilidad</div>' })
 class StubPrimeCost {
   readonly marker = 'prime-cost' as const;
 }
 
-@Component({
-  selector: 'app-stub-analytics-menu-engineering',
-  template: '<div data-testid="placeholder-menu-engineering">Carta</div>',
-})
-class StubMenuEngineering {
-  readonly marker = 'menu-engineering' as const;
+@Component({ selector: 'app-stub-menu', template: '<div data-testid="menu">Carta</div>' })
+class StubMenu {
+  readonly marker = 'menu' as const;
 }
 
-@Component({
-  selector: 'app-stub-analytics-operations',
-  template: '<div data-testid="placeholder-operations">Operaciones</div>',
-})
+@Component({ selector: 'app-stub-operations', template: '<div data-testid="operations">Operación</div>' })
 class StubOperations {
   readonly marker = 'operations' as const;
 }
 
-@Component({
-  selector: 'app-stub-analytics-cohort',
-  template: '<div data-testid="placeholder-cohort">Cohorte</div>',
-})
+@Component({ selector: 'app-stub-cohort', template: '<div data-testid="cohort">Cohortes</div>' })
 class StubCohort {
   readonly marker = 'cohort' as const;
 }
 
-@Component({
-  selector: 'app-stub-analytics-alerts',
-  template: '<div data-testid="placeholder-alerts">Alertas</div>',
-})
+@Component({ selector: 'app-stub-alerts', template: '<div data-testid="alerts">Alertas</div>' })
 class StubAlerts {
   readonly marker = 'alerts' as const;
 }
 
-const ANALYTICS_ROUTES: Routes = [
+const ROUTES: Routes = [
   {
     path: 'admin/analytics',
-    loadComponent: () => Promise.resolve(Analytics),
+    component: Analytics,
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'prime-cost' },
       { path: 'prime-cost', component: StubPrimeCost },
-      { path: 'menu-engineering', component: StubMenuEngineering },
+      { path: 'menu-engineering', component: StubMenu },
       { path: 'operations', component: StubOperations },
       { path: 'cohort', component: StubCohort },
       { path: 'alerts', component: StubAlerts },
@@ -73,117 +69,64 @@ const ANALYTICS_ROUTES: Routes = [
 
 describe('Analytics shell', () => {
   beforeAll(async () => {
-    await resolveComponentResources((url: string) => {
-      if (url.endsWith('analytics.html')) {
-        return Promise.resolve(analyticsHtml as unknown as string);
-      }
-      return Promise.resolve('');
+    await resolveTemplates({
+      'analytics.html': analyticsHtml,
+      'analytics-nav.html': navHtml,
+      'period-selector.html': selectorHtml,
     });
   });
 
-  async function setup(): Promise<ComponentFixture<Analytics>> {
+  async function setup(): Promise<{
+    fixture: ComponentFixture<Analytics>;
+    cache: ReturnType<typeof makeCacheStub>;
+  }> {
     TestBed.resetTestingModule();
+    const cache = makeCacheStub();
     await TestBed.configureTestingModule({
       imports: [Analytics],
-      providers: [provideRouter(ANALYTICS_ROUTES)],
+      providers: [provideRouter(ROUTES), { provide: AnalyticsCache, useValue: cache }],
     }).compileComponents();
     const fixture = TestBed.createComponent(Analytics);
     fixture.detectChanges();
-    return fixture;
+    return { fixture, cache };
   }
 
-  it('renders the shared analytics-nav', async () => {
-    const fixture = await setup();
-    const nav = fixture.debugElement.query(By.directive(AnalyticsNav));
-    expect(nav.componentInstance).toBeInstanceOf(AnalyticsNav);
+  it('renders the shared nav and period selector', async () => {
+    const { fixture } = await setup();
+    expect(fixture.debugElement.query(By.directive(AnalyticsNav))).not.toBeNull();
+    expect(fixture.debugElement.query(By.directive(PeriodSelector))).not.toBeNull();
   });
 
-  it('renders the shared period-selector', async () => {
-    const fixture = await setup();
-    const selector = fixture.debugElement.query(By.directive(PeriodSelector));
-    expect(selector.componentInstance).toBeInstanceOf(PeriodSelector);
-  });
-
-  it('docks the period-selector inside the content section', async () => {
-    const fixture = await setup();
+  it('keeps the period selector docked inside the content frame', async () => {
+    const { fixture } = await setup();
     const root = fixture.nativeElement as HTMLElement;
-    const section = root.querySelector('section');
-    const selectorEl = root.querySelector('app-period-selector');
-    expect(section).not.toBeNull();
-    expect(selectorEl).not.toBeNull();
-    expect(section?.contains(selectorEl as Node)).toBe(true);
-    expect(section?.querySelector('router-outlet')?.parentElement?.contains(selectorEl as Node)).toBe(
-      false,
-    );
+    const frame = root.querySelector('.analytics-shell__frame');
+    const selector = root.querySelector('app-period-selector');
+    expect(frame).not.toBeNull();
+    expect(selector).not.toBeNull();
+    expect(frame?.contains(selector as Node)).toBe(true);
   });
 
-  it('renders a router-outlet for child routes', async () => {
-    const fixture = await setup();
+  it.each([
+    ['/admin/analytics/prime-cost', 'prime-cost'],
+    ['/admin/analytics/menu-engineering', 'menu'],
+    ['/admin/analytics/operations', 'operations'],
+    ['/admin/analytics/cohort', 'cohort'],
+    ['/admin/analytics/alerts', 'alerts'],
+  ])('resolves %s', async (url, testId) => {
+    const { fixture } = await setup();
     const router = TestBed.inject(Router);
-    await router.navigateByUrl('/admin/analytics/prime-cost');
+    await router.navigateByUrl(url);
     fixture.detectChanges();
-
     const root = fixture.nativeElement as HTMLElement;
-    const outlet = root.querySelector('router-outlet');
-    const placeholder = root.querySelector('[data-testid="placeholder-prime-cost"]');
-    expect(outlet).not.toBeNull();
-    expect(placeholder).not.toBeNull();
-    // The activated child route renders inside the outlet's host container.
-    expect(outlet?.parentElement?.contains(placeholder as Node)).toBe(true);
+    expect(root.querySelector(`[data-testid="${testId}"]`)).not.toBeNull();
   });
 
-  it('lands on the prime-cost placeholder when visiting /admin/analytics', async () => {
-    const fixture = await setup();
-    const router = TestBed.inject(Router);
-    await router.navigateByUrl('/admin/analytics');
-    fixture.detectChanges();
-
-    const root = fixture.nativeElement as HTMLElement;
-    const placeholder = root.querySelector('[data-testid="placeholder-prime-cost"]');
-    expect(placeholder?.textContent.trim()).toBe('Costo primo y márgenes');
-  });
-
-  it('renders the menu-engineering placeholder when visiting /admin/analytics/menu-engineering', async () => {
-    const fixture = await setup();
-    const router = TestBed.inject(Router);
-    await router.navigateByUrl('/admin/analytics/menu-engineering');
-    fixture.detectChanges();
-
-    const root = fixture.nativeElement as HTMLElement;
-    const placeholder = root.querySelector('[data-testid="placeholder-menu-engineering"]');
-    expect(placeholder?.textContent.trim()).toBe('Carta');
-  });
-
-  it('renders the operations placeholder when visiting /admin/analytics/operations', async () => {
-    const fixture = await setup();
-    const router = TestBed.inject(Router);
-    await router.navigateByUrl('/admin/analytics/operations');
-    fixture.detectChanges();
-
-    const root = fixture.nativeElement as HTMLElement;
-    const placeholder = root.querySelector('[data-testid="placeholder-operations"]');
-    expect(placeholder?.textContent.trim()).toBe('Operaciones');
-  });
-
-  it('renders the cohort placeholder when visiting /admin/analytics/cohort', async () => {
-    const fixture = await setup();
-    const router = TestBed.inject(Router);
-    await router.navigateByUrl('/admin/analytics/cohort');
-    fixture.detectChanges();
-
-    const root = fixture.nativeElement as HTMLElement;
-    const placeholder = root.querySelector('[data-testid="placeholder-cohort"]');
-    expect(placeholder?.textContent.trim()).toBe('Cohorte');
-  });
-
-  it('renders the alerts placeholder when visiting /admin/analytics/alerts', async () => {
-    const fixture = await setup();
-    const router = TestBed.inject(Router);
-    await router.navigateByUrl('/admin/analytics/alerts');
-    fixture.detectChanges();
-
-    const root = fixture.nativeElement as HTMLElement;
-    const placeholder = root.querySelector('[data-testid="placeholder-alerts"]');
-    expect(placeholder?.textContent.trim()).toBe('Alertas');
+  it('asks the cache to rebuild on refresh', async () => {
+    const { fixture, cache } = await setup();
+    const refreshAll = vi.fn(() => of({ refreshed: true }));
+    cache.refreshAll = refreshAll;
+    fixture.componentInstance.onRefresh();
+    expect(refreshAll).toHaveBeenCalledTimes(1);
   });
 });

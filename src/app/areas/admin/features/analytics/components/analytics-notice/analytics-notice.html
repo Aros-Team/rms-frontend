@@ -1,0 +1,27 @@
+@if (forbidden) {
+  <div class="notice notice--warning" role="alert">
+    <p class="notice__title">Sin permiso</p>
+    <p class="notice__text">Tu rol no tiene acceso a la analítica del restaurante.</p>
+  </div>
+} @else if (error) {
+  <div class="notice notice--danger" role="alert">
+    <div class="notice__body">
+      <p class="notice__title">{{ errorTitle }}</p>
+      <p class="notice__text">{{ error }}</p>
+    </div>
+    <app-rms-button variant="secondary" size="sm" iconStart="pi pi-refresh" (click)="retry.emit()">
+      Reintentar
+    </app-rms-button>
+  </div>
+}
+
+@if (showNotes) {
+  <div class="notice notice--warning" role="status">
+    <p class="notice__title">Datos parciales</p>
+    <ul class="notice__list">
+      @for (note of notes; track note) {
+        <li>{{ note }}</li>
+      }
+    </ul>
+  </div>
+}

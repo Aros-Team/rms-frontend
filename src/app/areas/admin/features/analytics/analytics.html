@@ -1,7 +1,7 @@
-<div class="flex flex-col p-4 md:p-2 min-w-0 min-h-0 h-full">
-  <app-analytics-nav class="mb-4" />
-  <section class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast overflow-hidden flex flex-col">
-    <div class="flex-1 min-h-0 overflow-auto">
+<div class="analytics-shell">
+  <app-analytics-nav class="analytics-shell__nav" />
+  <section class="analytics-shell__frame" [attr.aria-busy]="refreshing() ? 'true' : null">
+    <div class="analytics-shell__content">
       <router-outlet />
     </div>
     <app-period-selector #periodSelector (refresh)="onRefresh()" />
