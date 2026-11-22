@@ -14,7 +14,7 @@ The dev servers must already be running (the config never starts one):
 npx playwright test                 # full baseline (~3.5 min, 4 workers)
 npx playwright test --project=admin-desktop
 npx playwright test --grep "smoke /"     # crawl only
-npx playwright test --grep "a11y /"      # axe only (expected red, see KNOWN_A11Y.md)
+npx playwright test --grep "a11y /"      # axe only (gate: zero violations)
 npx playwright test --grep "visual /"    # snapshots only
 npx playwright test --grep-invert "a11y /"  # green mode for local work (not CI)
 npx playwright test --list               # route inventory, no browser
@@ -37,10 +37,10 @@ Static labels, cards and table structure stay visible. The client-side token-exp
 extended beyond the frozen instant in `global-setup.ts`; the API still validates
 the real JWT expiry.
 
-Accessibility failures are tracked in `KNOWN_A11Y.md` and mapped to P1-QA-07.
-They must keep failing until that task closes; the suite is not allowed to
-silence or allowlist them. The `/dev/ui` gallery is visually baselined but
-excluded from the axe gate (`a11yExempt`).
+The accessibility gate is met: `KNOWN_A11Y.md` records zero serious/critical
+violations across 63 role-route executions (P1-QA-07 closed). A regression must
+be reported by rule and route, never silenced or allowlisted. The `/dev/ui`
+gallery is visually baselined but excluded from the axe gate (`a11yExempt`).
 
 ## Auth shortcut
 
