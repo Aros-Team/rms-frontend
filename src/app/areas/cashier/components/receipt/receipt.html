@@ -1,0 +1,155 @@
+<app-rms-dialog
+  [visible]="visible"
+  (visibleChange)="visibleChange.emit($event)"
+  header="Recibo de pago"
+  width="560px"
+>
+  @if (payment; as p) {
+    <article class="receipt-ticket">
+      <header class="receipt-ticket__header">
+        <p class="receipt-ticket__brand">RMS</p>
+        <p class="receipt-ticket__title">Recibo de pago</p>
+        @if (isVoided) {
+          <p class="receipt-ticket__void">ANULADO</p>
+        }
+        <p class="receipt-ticket__number">{{ p.receiptNumber }}</p>
+      </header>
+
+      <dl class="receipt-ticket__meta">
+        <div>
+          <dt>Pedido</dt>
+          <dd>#{{ p.orderId }}</dd>
+        </div>
+        @if (tableNumber !== null) {
+          <div>
+            <dt>Mesa</dt>
+            <dd>{{ tableNumber }}</dd>
+          </div>
+        }
+        <div>
+          <dt>Fecha</dt>
+          <dd>{{ completedAt() }}</dd>
+        </div>
+        <div>
+          <dt>Cajero</dt>
+          <dd>{{ cashierLabel() }}</dd>
+        </div>
+      </dl>
+
+      @if (lines.length > 0) {
+        <table class="receipt-ticket__items">
+          <caption class="sr-only">Productos cobrados</caption>
+          <thead>
+            <tr>
+              <th scope="col">Producto</th>
+              <th scope="col" class="receipt-ticket__qty">Cant.</th>
+              <th scope="col" class="receipt-ticket__line-total">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (line of lines; track line.key) {
+              <tr>
+                <td>
+                  <span>{{ line.name }}</span>
+                  @if (line.options.length > 0) {
+                    <span class="receipt-ticket__item-extra">
+                      {{ line.options.join(', ') }}
+                    </span>
+                  }
+                  @if (line.combos.length > 0) {
+                    <span class="receipt-ticket__item-extra">
+                      Combo: {{ line.combos.join(', ') }}
+                    </span>
+                  }
+                  @if (line.additions.length > 0) {
+                    <span class="receipt-ticket__item-extra">
+                      Adiciones: {{ line.additions.join(', ') }}
+                    </span>
+                  }
+                  @if (line.instructions.length > 0) {
+                    <span class="receipt-ticket__item-extra">Nota: {{ line.instructions }}</span>
+                  }
+                </td>
+                <td class="receipt-ticket__qty">{{ line.quantity }}</td>
+                <td class="receipt-ticket__line-total">{{ line.total | money }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <p class="receipt-ticket__note">Detalle de productos no disponible.</p>
+      }
+
+      <dl class="receipt-ticket__totals">
+        <div>
+          <dt>Subtotal</dt>
+          <dd>{{ p.subtotal | money }}</dd>
+        </div>
+        @if (hasDiscount) {
+          <div>
+            <dt>Descuento</dt>
+            <dd>-{{ p.discount | money }}</dd>
+          </div>
+        }
+        @if (hasTip) {
+          <div>
+            <dt>Propina</dt>
+            <dd>{{ p.tip | money }}</dd>
+          </div>
+        }
+        <div class="receipt-ticket__grand-total">
+          <dt>Total</dt>
+          <dd>{{ p.total | money }}</dd>
+        </div>
+      </dl>
+
+      <div class="receipt-ticket__tenders">
+        @for (tender of p.tenders; track $index) {
+          <div class="receipt-ticket__tender">
+            <span>
+              {{ methodLabel(tender.method) }}
+              @if (tender.reference) {
+                <span class="receipt-ticket__tender-ref">Ref. {{ tender.reference }}</span>
+              }
+            </span>
+            <span>{{ tender.amount | money }}</span>
+          </div>
+        }
+        <div class="receipt-ticket__tender">
+          <span>Recibido</span>
+          <span>{{ p.tendered | money }}</span>
+        </div>
+        @if (hasChange) {
+          <div class="receipt-ticket__tender">
+            <span>Cambio</span>
+            <span>{{ p.change | money }}</span>
+          </div>
+        }
+      </div>
+
+      @if (p.status === 'VOIDED') {
+        <div class="receipt-ticket__void-info">
+          <p>Anulado: {{ voidedAt() }}</p>
+          @if (p.voidReason) {
+            <p>Motivo: {{ p.voidReason }}</p>
+          }
+        </div>
+      }
+
+      <p class="receipt-ticket__thanks">Gracias por su visita.</p>
+    </article>
+  }
+
+  <div rmsDialogFooter class="receipt__actions">
+    <app-rms-button variant="secondary" iconStart="pi pi-print" (click)="printReceipt()">
+      Imprimir
+    </app-rms-button>
+    @if (canVoidNow) {
+      <app-rms-button variant="danger" iconStart="pi pi-ban" (click)="requestVoid()">
+        Anular cobro
+      </app-rms-button>
+    }
+    <app-rms-button variant="secondary" (click)="close()">Cerrar</app-rms-button>
+    <app-rms-button iconStart="pi pi-plus" (click)="requestNewCharge()">Nuevo cobro</app-rms-button>
+  </div>
+</app-rms-dialog>

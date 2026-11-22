@@ -1,0 +1,287 @@
+<app-rms-dialog
+  [visible]="visible"
+  (visibleChange)="visibleChange.emit($event)"
+  header="Turno de caja"
+  width="760px"
+>
+  <div class="shift-dialog">
+    @if (loading) {
+      <div class="shift-dialog__loading" role="status" aria-label="Cargando el turno de caja">
+        <app-rms-skeleton height="2rem" width="40%" ariaLabel="Cargando el turno" />
+        <app-rms-skeleton height="7rem" ariaLabel="Cargando los totales del turno" />
+        <app-rms-skeleton height="5rem" ariaLabel="Cargando los cobros del turno" />
+      </div>
+    } @else {
+      <header class="shift-dialog__header">
+        <div>
+          <p class="shift-dialog__title">{{ shiftTitle() }}</p>
+          @if (shift) {
+            <p class="shift-dialog__meta">Abierto {{ openedAt() }}</p>
+          } @else if (isClosed) {
+            <p class="shift-dialog__meta">Cerrado {{ closedAt() }}</p>
+          } @else {
+            <p class="shift-dialog__meta">No hay un turno abierto.</p>
+          }
+        </div>
+
+        <div class="shift-dialog__header-actions">
+          <app-rms-badge
+            [label]="isClosed ? 'Cerrado' : shift ? 'Abierto' : 'Sin turno'"
+            [tone]="isClosed ? 'neutral' : shift ? 'success' : 'warning'"
+          />
+          <app-rms-button
+            size="sm"
+            variant="ghost"
+            iconStart="pi pi-refresh"
+            [loading]="busy"
+            (click)="refresh.emit()"
+          >
+            Actualizar
+          </app-rms-button>
+        </div>
+      </header>
+
+      @if (activeSummary; as s) {
+        <dl class="shift-dialog__totals">
+          <div>
+            <dt>Fondo inicial</dt>
+            <dd>{{ s.openingFloat | money }}</dd>
+          </div>
+          <div>
+            <dt>Cobros</dt>
+            <dd>{{ countLabel(s.paymentsCount) }}</dd>
+          </div>
+          <div>
+            <dt>Anulados</dt>
+            <dd>{{ countLabel(s.voidedCount) }}</dd>
+          </div>
+          <div>
+            <dt>Subtotal vendido</dt>
+            <dd>{{ s.subtotal | money }}</dd>
+          </div>
+          <div>
+            <dt>Descuentos</dt>
+            <dd>{{ s.discounts | money }}</dd>
+          </div>
+          <div>
+            <dt>Propinas</dt>
+            <dd>{{ s.tips | money }}</dd>
+          </div>
+          <div>
+            <dt>Total cobrado</dt>
+            <dd class="shift-dialog__strong">{{ s.totalCharged | money }}</dd>
+          </div>
+          <div>
+            <dt>Efectivo</dt>
+            <dd>{{ s.cash | money }}</dd>
+          </div>
+          <div>
+            <dt>Tarjeta</dt>
+            <dd>{{ s.card | money }}</dd>
+          </div>
+          <div>
+            <dt>Transferencia</dt>
+            <dd>{{ s.transfer | money }}</dd>
+          </div>
+          <div>
+            <dt>Cambio devuelto</dt>
+            <dd>{{ s.changeGiven | money }}</dd>
+          </div>
+          <div>
+            <dt>Esperado en caja</dt>
+            <dd class="shift-dialog__strong">{{ s.expectedCash | money }}</dd>
+          </div>
+          @if (s.paidIn) {
+            <div>
+              <dt>Entradas de efectivo</dt>
+              <dd>{{ s.paidIn | money }}</dd>
+            </div>
+          }
+          @if (s.paidOut) {
+            <div>
+              <dt>Salidas de efectivo</dt>
+              <dd>{{ s.paidOut | money }}</dd>
+            </div>
+          }
+          @if (s.countedCash) {
+            <div>
+              <dt>Contado</dt>
+              <dd>{{ s.countedCash | money }}</dd>
+            </div>
+          }
+          @if (s.difference) {
+            <div>
+              <dt>Diferencia</dt>
+              <dd>{{ s.difference | money }}</dd>
+            </div>
+          }
+        </dl>
+      }
+
+      @if (shift === null) {
+        <section class="shift-dialog__section" aria-labelledby="shift-open-title">
+          <h3 id="shift-open-title" class="shift-dialog__section-title">
+            {{ isClosed ? 'Abrir el siguiente turno' : 'Abrir caja' }}
+          </h3>
+          <p class="shift-dialog__hint">
+            Cuenta el efectivo inicial de la caja. Todos los cobros quedarán asociados a este turno.
+          </p>
+          <div class="shift-dialog__form">
+            <app-rms-input
+              [id]="'shift-float'"
+              label="Fondo inicial"
+              inputMode="decimal"
+              [required]="true"
+              [error]="floatError()"
+              [ngModel]="floatInput()"
+              (ngModelChange)="onFloatChange($event)"
+            />
+            <app-rms-button
+              iconStart="pi pi-wallet"
+              [loading]="busy"
+              [disabled]="!canOpen()"
+              (click)="open()"
+            >
+              Abrir caja
+            </app-rms-button>
+          </div>
+        </section>
+      }
+
+      @if (shift || isClosed) {
+        <section class="shift-dialog__section" aria-labelledby="shift-journal-title">
+          <div class="shift-dialog__section-header">
+            <h3 id="shift-journal-title" class="shift-dialog__section-title">
+              {{ journalTitle }}
+            </h3>
+            <span class="shift-dialog__hint">{{ countLabel(payments.length) }}</span>
+          </div>
+
+          @if (payments.length === 0) {
+            <p class="shift-dialog__empty">Todavía no hay cobros en este turno.</p>
+          } @else {
+            <ul class="shift-dialog__journal">
+              @for (payment of payments; track payment.id) {
+                <li class="journal-row">
+                  <div class="journal-row__main">
+                    <span class="journal-row__receipt">{{ payment.receiptNumber }}</span>
+                    <span class="journal-row__meta">
+                      Pedido #{{ payment.orderId }} · {{ paymentTime(payment) }}
+                    </span>
+                  </div>
+
+                  <app-rms-badge
+                    [label]="payment.status === 'VOIDED' ? 'Anulado' : 'Completado'"
+                    [tone]="payment.status === 'VOIDED' ? 'danger' : 'success'"
+                  />
+
+                  <span class="journal-row__total">{{ payment.total | money }}</span>
+
+                  <div class="journal-row__actions">
+                    <app-rms-button
+                      size="sm"
+                      variant="ghost"
+                      [ariaLabel]="'Ver recibo ' + payment.receiptNumber"
+                      (click)="viewReceipt.emit(payment)"
+                    >
+                      Ver
+                    </app-rms-button>
+                    @if (canVoidPayment(payment)) {
+                      <app-rms-button
+                        size="sm"
+                        variant="danger"
+                        [ariaLabel]="'Anular cobro ' + payment.receiptNumber"
+                        (click)="voidRequested.emit(payment)"
+                      >
+                        Anular
+                      </app-rms-button>
+                    }
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      }
+
+      @if (shift) {
+        <section class="shift-dialog__section" aria-labelledby="shift-close-title">
+          <h3 id="shift-close-title" class="shift-dialog__section-title">Cierre de caja</h3>
+          <p class="shift-dialog__hint">
+            Esperado en caja: <strong>{{ activeSummary?.expectedCash | money }}</strong>. Cuenta el
+            efectivo físico antes de cerrar.
+          </p>
+
+          <div class="shift-dialog__form">
+            <app-rms-input
+              [id]="'shift-counted'"
+              label="Efectivo contado"
+              inputMode="decimal"
+              [required]="true"
+              [error]="countedError()"
+              [ngModel]="countedInput()"
+              (ngModelChange)="onCountedChange($event)"
+            />
+            <app-rms-input
+              [id]="'shift-notes'"
+              label="Notas del cierre"
+              [optionalLabel]="'Opcional'"
+              [maxLength]="500"
+              [ngModel]="notes()"
+              (ngModelChange)="onNotesChange($event)"
+            />
+          </div>
+
+          @if (difference() !== null) {
+            <p class="shift-dialog__difference" [class]="differenceClass()">
+              {{ differenceLabel() }}:
+              {{ differencePrefix() }}{{ differenceAmount() | money }}
+            </p>
+          }
+
+          @if (!closing()) {
+            <app-rms-button
+              variant="secondary"
+              iconStart="pi pi-lock"
+              [disabled]="!canClose()"
+              (click)="reviewClose()"
+            >
+              Cerrar caja
+            </app-rms-button>
+          } @else {
+            <div class="shift-dialog__confirm" role="group" aria-labelledby="shift-confirm-title">
+              <p id="shift-confirm-title" class="shift-dialog__confirm-title">
+                ¿Cerrar el turno con {{ countedValue() | money }} contados?
+              </p>
+              <p class="shift-dialog__hint">
+                El cierre no se puede deshacer. Después del cierre no se permiten más cobros,
+                anulaciones ni movimientos en este turno.
+              </p>
+              <div class="shift-dialog__confirm-actions">
+                <app-rms-button variant="secondary" [disabled]="busy" (click)="cancelClose()">
+                  Cancelar
+                </app-rms-button>
+                <app-rms-button
+                  variant="danger"
+                  iconStart="pi pi-lock"
+                  [loading]="busy"
+                  (click)="confirmClose()"
+                >
+                  Confirmar cierre
+                </app-rms-button>
+              </div>
+            </div>
+          }
+        </section>
+      }
+
+      @if (error) {
+        <p class="shift-dialog__error" role="alert">{{ error }}</p>
+      }
+    }
+  </div>
+
+  <div rmsDialogFooter class="shift-dialog__footer">
+    <app-rms-button variant="secondary" (click)="visibleChange.emit(false)">Cerrar</app-rms-button>
+  </div>
+</app-rms-dialog>
