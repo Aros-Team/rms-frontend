@@ -16,9 +16,12 @@
  */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { of } from 'rxjs';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
+import { MasterData } from '@app/core/services/master-data/master-data';
 import type { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';
 import { Combos } from './combos';
 import combosHtml from './combos.html?raw';
@@ -27,6 +30,7 @@ function makeCombo(
   id: number,
   name: string,
   basePrice: SpecialSelectionResponse['basePrice'],
+  groups: SpecialSelectionResponse['groups'] = [],
 ): SpecialSelectionResponse {
   return {
     productId: id,
@@ -35,7 +39,7 @@ function makeCombo(
     basePrice,
     active: true,
     preparationAreaId: 1,
-    groups: [],
+    groups,
     additions: [],
     questions: [],
     schedule: [],
@@ -51,10 +55,13 @@ describe('Combos', () => {
   let fixture: ComponentFixture<Combos>;
   let combos: ReturnType<typeof signal<SpecialSelectionResponse[]>>;
   let loading: ReturnType<typeof signal<boolean>>;
+  let error: ReturnType<typeof signal<Error | undefined>>;
+  let categoryNames: Map<number, string>;
   let cacheStub: {
     availableNow: {
       data: typeof combos;
       isLoading: typeof loading;
+      error: typeof error;
       load: ReturnType<typeof vi.fn>;
       refresh: ReturnType<typeof vi.fn>;
     };
@@ -72,10 +79,13 @@ describe('Combos', () => {
   beforeEach(() => {
     combos = signal<SpecialSelectionResponse[]>([]);
     loading = signal(false);
+    error = signal<Error | undefined>(undefined);
+    categoryNames = new Map([[1, 'Hamburguesas']]);
     cacheStub = {
       availableNow: {
         data: combos,
         isLoading: loading,
+        error,
         load: vi.fn(),
         refresh: vi.fn(),
       },
@@ -91,7 +101,19 @@ describe('Combos', () => {
   function mount(): void {
     TestBed.configureTestingModule({
       imports: [Combos],
-      providers: [{ provide: SpecialSelectionsCache, useValue: cacheStub }],
+      providers: [
+        { provide: SpecialSelectionsCache, useValue: cacheStub },
+        {
+          provide: MasterData,
+          useValue: {
+            snapshot: null,
+            load: () => of({ products: [], productOptions: [], tables: [] }),
+            getCategoryNames: () => categoryNames,
+            getProductsById: () => new Map(),
+          },
+        },
+        { provide: Router, useValue: { navigate: vi.fn() } },
+      ],
     });
     fixture = TestBed.createComponent(Combos);
     fixture.detectChanges();
@@ -138,5 +160,26 @@ describe('Combos', () => {
     const empty = (fixture.nativeElement as HTMLElement).querySelector('h2');
     expect(normalize(empty?.textContent ?? '')).toBe('No hay combos disponibles');
     expect(cacheStub.availableNow.load).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the category name for a group that arrives without categoryName', () => {
+    combos.set([
+      makeCombo(1, 'Combo Hamburguesa', { amount: '34900.00', currency: 'COP' }, [
+        {
+          id: 4,
+          categoryId: 1,
+          displayOrder: 1,
+          required: true,
+          minSelections: 1,
+          maxSelections: 1,
+          productIds: [1, 6, 7],
+        },
+      ]),
+    ]);
+    mount();
+
+    const text = normalize((fixture.nativeElement as HTMLElement).textContent);
+    expect(text).toContain('Hamburguesas');
+    expect(text).not.toContain('Grupo');
   });
 });

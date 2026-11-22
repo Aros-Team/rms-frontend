@@ -109,4 +109,27 @@ export class MasterData {
       return acc;
     }, {});
   }
+
+  /**
+   * `categoryId → name` from the products already loaded.
+   *
+   * The special-selection API omits `categoryName`, so the waiter maps combo
+   * group category ids against this dictionary instead of rendering "Grupo".
+   */
+  getCategoryNames(): Map<number, string> {
+    const products = this._data$.value?.products ?? [];
+    const names = new Map<number, string>();
+    for (const product of products) {
+      if (product.categoryName && !names.has(product.categoryId)) {
+        names.set(product.categoryId, product.categoryName);
+      }
+    }
+    return names;
+  }
+
+  /** `productId → product` from the loaded snapshot (combo composition). */
+  getProductsById(): Map<number, ProductListResponse> {
+    const products = this._data$.value?.products ?? [];
+    return new Map(products.map((product) => [product.id, product]));
+  }
 }

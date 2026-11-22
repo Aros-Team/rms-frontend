@@ -1,10 +1,43 @@
-<!-- Content area — switches inline based on activeTab -->
-<div class="flex-1 min-h-0 overflow-hidden pb-24">
-  @if (activeTab() === 'menu') {
-    <app-combos-waiter />
-  } @else if (activeTab() === 'carta') {
-    <app-products />
-  } @else if (activeTab() === 'pedidos') {
-    <app-today-orders />
-  }
+<div class="waiter">
+  <app-rms-page-header [title]="pageTitle()" [subtitle]="pageSubtitle()">
+    <div rmsPageHeaderMeta class="table-bar">
+      <div class="table-bar__main">
+        <span class="table-bar__icon" aria-hidden="true">
+          <i class="pi pi-table"></i>
+        </span>
+        <div class="table-bar__copy">
+          <p class="table-bar__label">Mesa del pedido</p>
+          <p class="table-bar__value">{{ tableLabel() }}</p>
+        </div>
+        <app-rms-status-pill [label]="tableStatusText()" [status]="tableTone()" />
+      </div>
+      <app-rms-button
+        variant="secondary"
+        size="lg"
+        [iconStart]="selectedTable() ? 'pi pi-refresh' : 'pi pi-search'"
+        (click)="openTablePicker()"
+      >
+        {{ selectedTable() ? 'Cambiar' : 'Elegir mesa' }}
+      </app-rms-button>
+    </div>
+  </app-rms-page-header>
+
+  <div class="waiter__content">
+    @switch (activeTab()) {
+      @case ('menu') {
+        <app-combos-waiter />
+      }
+      @case ('carta') {
+        <app-products />
+      }
+      @case ('pedidos') {
+        <app-today-orders />
+      }
+    }
+  </div>
 </div>
+
+<app-waiter-table-picker
+  [open]="tablePickerOpen()"
+  (openChange)="tablePickerOpen.set($event)"
+/>

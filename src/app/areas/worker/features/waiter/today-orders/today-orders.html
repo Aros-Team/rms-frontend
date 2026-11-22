@@ -1,120 +1,182 @@
-<div class="flex flex-col items-center justify-between gap-4 w-full mb-6">
-    <header class="flex justify-between">
-      <p class="text-sm text-muted">
-        {{ activeCount }} activas · {{ deliveredCount }} entregadas
-        @if (truncated()) {
-          <span class="text-amber-600 dark:text-amber-400 font-medium">
-            · vista limitada: mostrando {{ orders().length }} de {{ totalCount() }} pedidos
-          </span>
-        }
+<div class="orders">
+  <header class="orders__header">
+    <p class="orders__counts">
+      {{ activeCount() }} activas · {{ deliveredCount() }} entregadas
+      @if (truncated()) {
+        <span class="orders__truncated">
+          · vista limitada: mostrando {{ orders().length }} de {{ totalCount() }} pedidos
+        </span>
+      }
+    </p>
+    @if (updatedLabel()) {
+      <p class="orders__updated" role="status">
+        <i class="pi pi-refresh" aria-hidden="true"></i>
+        Actualizado a las {{ updatedLabel() }} · se actualiza cada 30 s
       </p>
-    </header>
-<section class="flex items-center justify-between">
-    <!-- Filters on header right -->
-    <div class="flex items-center gap-2">
-      <!-- Date Picker -->
-      <p-datepicker
-        [(ngModel)]="selectedDate"
-        (ngModelChange)="onFilterChange()"
-        showIcon
-        iconDisplay="input"
-        dateFormat="dd/mm/yy"
-      />
+    }
+  </header>
 
-      <!-- Status Filter -->
-      <p-select
-        [options]="statusOptions"
-        [(ngModel)]="selectedStatus"
-        placeholder="Filtrar por estado"
-        (onChange)="onFilterChange()"
-        appendTo="body"
-      />
-
-      <!-- Refresh Button -->
-      <p-button
-        icon="pi pi-refresh"
-        [outlined]="true"
-        (onClick)="fetchOrders()"
-        [loading]="loading() || refreshing()"
+  <section class="orders__filters" aria-label="Filtros de pedidos">
+    <div class="orders__date">
+      <label class="orders__date-label" for="orders-date">Fecha</label>
+      <input
+        id="orders-date"
+        type="date"
+        class="orders__date-input"
+        [ngModel]="dateValue"
+        (ngModelChange)="onDateChange($event)"
       />
     </div>
-    </section>
+    <app-rms-icon-button
+      icon="pi pi-refresh"
+      ariaLabel="Actualizar pedidos"
+      size="lg"
+      [disabled]="loading() || refreshing()"
+      (click)="refresh()"
+    />
+  </section>
+
+  <div class="orders__status" role="group" aria-label="Filtrar por estado">
+    @for (option of statusOptions; track option.value) {
+      <button
+        type="button"
+        class="status-chip"
+        [class.status-chip--active]="selectedStatus() === option.value"
+        [attr.aria-pressed]="selectedStatus() === option.value"
+        (click)="selectStatus(option.value)"
+      >
+        {{ option.label }}
+      </button>
+    }
   </div>
 
-  <!-- Error -->
-  @if (error()) {
-    <div class="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg flex items-center gap-2">
-      <i class="pi pi-exclamation-circle text-red-700 dark:text-red-300" aria-hidden="true"></i>
-      <span class="text-red-700 dark:text-red-300 text-sm">{{ error() }}</span>
-      <button class="ml-auto text-red-700 dark:text-red-300 hover:text-red-900 dark:hover:text-red-100" (click)="error.set(null)" aria-label="Cerrar error"><i class="pi pi-times text-xs" aria-hidden="true"></i></button>
+  @if (error(); as message) {
+    <div class="orders__error" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <p>{{ message }}</p>
+      <app-rms-button variant="secondary" size="lg" (click)="refresh()">Reintentar</app-rms-button>
     </div>
   }
 
-  <!-- Loading -->
   @if (loading()) {
     <app-today-orders-skeleton />
-  }
-
-  @if (!loading()) {
-
-    <!-- Empty -->
-    @if (orders().length === 0) {
-      <div class="text-center py-20 text-muted">
-        <i class="pi pi-inbox text-4xl mb-3 block" aria-hidden="true"></i>
-        <p>No hay órdenes registradas.</p>
-      </div>
-    }
-
-    <!-- Lista -->
-    <div class="space-y-3 max-w-3xl mx-auto">
+  } @else if (orders().length === 0) {
+    <div class="orders__empty">
+      <span class="orders__empty-icon" aria-hidden="true"><i class="pi pi-inbox"></i></span>
+      <h2 class="orders__empty-title">No hay pedidos para esta fecha</h2>
+      <p class="orders__empty-copy">
+        Cuando envíes un pedido desde la carta aparecerá aquí con su estado en tiempo real.
+      </p>
+      <app-rms-button size="lg" iconStart="pi pi-book" (click)="goToCarta()">Ver la carta</app-rms-button>
+    </div>
+  } @else {
+    <ul class="order-list">
       @for (order of orders(); track order.id) {
-        <div class="bg-primary-contrast dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 overflow-hidden">
-
-          <!-- Cabecera -->
-          <div class="flex items-center justify-between px-4 py-3 border-b border-surface-100 dark:border-surface-700">
-            <div class="flex items-center gap-3">
-              <span class="font-semibold text-surface-900 dark:text-surface-100">#{{ order.id }}</span>
-              <span class="text-sm text-muted">Mesa {{ order.tableId }}</span>
-              <span class="text-xs text-muted">{{ orderTime(order.date) }}</span>
-            </div>
-            <span class="px-2.5 py-1 rounded-full text-xs font-medium {{ statusClass(order.status) }}">
-              {{ statusLabel(order.status) }}
-            </span>
-          </div>
-
-          <!-- Productos -->
-          <div class="px-4 py-3">
-            @if (!order.details || order.details.length === 0) {
-              <p class="text-sm text-muted italic">Sin detalle disponible</p>
-            }
-            @for (detail of order.details; track detail.id) {
-              <div class="text-sm mb-1.5">
-                <span class="font-medium text-surface-700 dark:text-surface-200">{{ detail.productName }}</span>
-                @if (detail.selectedOptions?.length) {
-                  <span class="text-xs text-muted ml-1">({{ detail.selectedOptions | optionNames }})</span>
-                }
-                @if (detail.instructions) {
-                  <p class="text-xs text-muted italic mt-0.5">"{{ detail.instructions }}"</p>
-                }
+        <li>
+          <article class="order-card">
+            <header class="order-card__header">
+              <div class="order-card__identity">
+                <p class="order-card__id">#{{ order.id }}</p>
+                <p class="order-card__meta">
+                  {{ tableLabel(order) }} · {{ orderTime(order.date) }} ·
+                  <span class="order-card__total">{{ orderTotal(order) | money }}</span>
+                </p>
               </div>
+              <app-rms-status-pill
+                [label]="statusLabel(order.status)"
+                [status]="statusTone(order.status)"
+              />
+            </header>
+
+            @if (order.details.length === 0) {
+              <p class="order-card__empty">Sin detalle disponible.</p>
+            } @else {
+              <ul class="order-lines">
+                @for (line of orderLines(order); track line.key) {
+                  <li class="order-line">
+                    <span class="order-line__qty">{{ line.quantity }}×</span>
+                    <span class="order-line__body">
+                      <span class="order-line__name">{{ line.name }}</span>
+                      @if (line.options) {
+                        <span class="order-line__options">{{ line.options }}</span>
+                      }
+                      @if (line.instructions) {
+                        <span class="order-line__note">“{{ line.instructions }}”</span>
+                      }
+                    </span>
+                    <span class="order-line__total">{{ line.total | money }}</span>
+                  </li>
+                }
+              </ul>
             }
-          </div>
 
-          <!-- Acciones -->
-          @if (order.status === 'READY') {
-            <div class="px-4 pb-3 flex gap-2">
-              <button
-                class="px-3 py-1.5 rounded-lg text-xs bg-primary-500 hover:bg-primary-600 text-surface-900 transition-colors disabled:opacity-50"
-                [disabled]="isProcessing(order.id)"
-                (click)="deliverOrder(order)">
-                @if (isProcessing(order.id)) { <i class="pi pi-spin pi-spinner mr-1" aria-hidden="true"></i> }
-                Entregar
-              </button>
-            </div>
-          }
-
-        </div>
+            <footer class="order-card__actions">
+              <app-rms-button variant="secondary" size="lg" (click)="showBill(order)">
+                Ver cuenta
+              </app-rms-button>
+              @if (order.status === 'READY') {
+                <app-rms-button
+                  size="lg"
+                  iconStart="pi pi-check"
+                  [loading]="isProcessing(order.id)"
+                  [disabled]="isProcessing(order.id)"
+                  (click)="deliverOrder(order)"
+                >
+                  Entregar
+                </app-rms-button>
+              }
+            </footer>
+          </article>
+        </li>
       }
+    </ul>
+  }
+</div>
+
+<app-rms-dialog
+  [visible]="billOrder() !== null"
+  (visibleChange)="onBillVisible($event)"
+  [header]="billTitle()"
+  width="420px"
+>
+  @if (billOrder(); as order) {
+    <div class="bill">
+      <p class="bill__meta">
+        {{ billTable() }} · {{ orderTime(order.date) }} ·
+        <app-rms-status-pill [label]="statusLabel(order.status)" [status]="statusTone(order.status)" />
+      </p>
+
+      <ul class="bill__lines">
+        @for (line of billLines(); track line.key) {
+          <li class="bill__line">
+            <span class="bill__qty">{{ line.quantity }}×</span>
+            <span class="bill__body">
+              <span class="bill__name">{{ line.name }}</span>
+              @if (line.options) {
+                <span class="bill__options">{{ line.options }}</span>
+              }
+              @if (line.instructions) {
+                <span class="bill__note">“{{ line.instructions }}”</span>
+              }
+            </span>
+            <span class="bill__total">{{ line.total | money }}</span>
+          </li>
+        }
+      </ul>
+
+      <div class="bill__grand-total">
+        <span>Total a cobrar</span>
+        <span class="bill__amount">{{ billTotal() | money }}</span>
+      </div>
+
+      <p class="bill__handoff" role="note">
+        <i class="pi pi-info-circle" aria-hidden="true"></i>
+        El cajero cobrará este total en caja. Aquí no se registran pagos ni propinas.
+      </p>
     </div>
   }
 
+  <div rmsDialogFooter>
+    <app-rms-button variant="secondary" size="lg" (click)="closeBill()">Cerrar</app-rms-button>
+  </div>
+</app-rms-dialog>

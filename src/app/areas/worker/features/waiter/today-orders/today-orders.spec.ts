@@ -18,6 +18,7 @@
  */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
+import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -73,6 +74,7 @@ describe('TodayOrders', () => {
         { provide: OrderDock, useValue: { loadAvailableTables: vi.fn() } },
         { provide: Logging, useValue: { debug: vi.fn(), error: vi.fn() } },
         { provide: MessageService, useValue: { add: vi.fn() } },
+        { provide: Router, useValue: { navigate: vi.fn() } },
       ],
     }).compileComponents();
 
@@ -120,7 +122,7 @@ describe('TodayOrders', () => {
   });
 
   it('forwards the selected status filter to the service', () => {
-    fixture.componentInstance.selectedStatus = 'READY';
+    fixture.componentInstance.selectedStatus.set('READY');
     fixture.componentInstance.fetchOrders();
 
     const query = getAll.mock.calls[1][2] as { status?: string };
@@ -133,7 +135,33 @@ describe('TodayOrders', () => {
     fixture.componentInstance.fetchOrders();
     fixture.detectChanges();
 
-    expect(fixture.componentInstance.error()).toBe('No se pudieron cargar las órdenes.');
+    expect(fixture.componentInstance.error()).toBe(
+      'No se pudieron cargar los pedidos. Revisa la conexión.',
+    );
     expect(fixture.componentInstance.loading()).toBe(false);
+  });
+
+  it('groups identical lines and totals the bill without inventing payments', () => {
+    const order: OrderResponse = {
+      id: 9,
+      date: '2026-07-15T12:00:00',
+      status: 'READY',
+      tableId: 3,
+      table: 'Mesa 3',
+      total: { amount: '30000.00', currency: 'COP' },
+      details: [
+        { id: 1, productId: 1, productName: 'Café', unitPrice: 5000, instructions: '' },
+        { id: 2, productId: 1, productName: 'Café', unitPrice: 5000, instructions: '' },
+        { id: 3, productId: 2, productName: 'Jugo', unitPrice: 8000, instructions: 'sin azúcar' },
+      ],
+    };
+
+    fixture.componentInstance.showBill(order);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.billLines().length).toBe(2);
+    expect(fixture.componentInstance.billLines()[0].quantity).toBe(2);
+    expect(fixture.componentInstance.billLines()[0].total).toBe(10000);
+    expect(fixture.componentInstance.billTotal()).toBe(30000);
   });
 });

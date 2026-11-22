@@ -1,100 +1,105 @@
-<div class="px-4 py-4">
-
-  <!-- Loading -->
+<div class="catalog">
   @if (loading()) {
     <app-carta-skeleton />
-  }
-
-  @if (!loading()) {
-    <!-- Error -->
-    @if (error()) {
-      <div class="mb-4 p-4 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-xl flex items-center gap-3">
-        <i class="pi pi-exclamation-circle text-red-700 dark:text-red-300" aria-hidden="true"></i>
-        <span class="text-red-700 dark:text-red-300 text-sm">{{ error() }}</span>
-        <button class="ml-auto text-red-700 dark:text-red-300 hover:text-red-900" (click)="error.set(null)">
-          <i class="pi pi-times" aria-hidden="true"></i>
-        </button>
+  } @else {
+    @if (error(); as message) {
+      <div class="catalog__error" role="alert">
+        <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+        <p>{{ message }}</p>
+        <app-rms-button variant="secondary" size="lg" (click)="retry()">Reintentar</app-rms-button>
       </div>
     }
 
-    <!-- Search bar -->
-    <p-iconfield iconPosition="left" class="mb-4">
-      <p-inputicon><i class="pi pi-search" aria-hidden="true"></i></p-inputicon>
-      <input pInputText type="text" [(ngModel)]="searchQuery" placeholder="Buscar producto..." class="w-full" />
-    </p-iconfield>
+    <app-rms-input
+      label="Buscar producto"
+      type="search"
+      size="lg"
+      placeholder="Buscar por nombre o descripción"
+      [hideLabel]="true"
+      [ngModel]="searchQuery()"
+      (ngModelChange)="searchQuery.set($event)"
+    />
 
-    <!-- Category tabs — wrap in rows, no scroll -->
-    <div class="flex flex-wrap gap-2 mb-4">
-      @for (cat of categories(); track cat) {
+    <div class="chips" role="group" aria-label="Categorías de la carta">
+      <button
+        type="button"
+        class="chip"
+        [class.chip--active]="activeCategory() === 'all'"
+        [attr.aria-pressed]="activeCategory() === 'all'"
+        (click)="selectCategory('all')"
+      >
+        Todos
+      </button>
+      @for (category of categories(); track category) {
         <button
-          class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
-          [class]="activeCategory() === cat
-            ? 'bg-primary-500 text-surface-900'
-            : 'bg-surface-100 dark:bg-surface-800 text-muted hover:bg-surface-200 dark:hover:bg-surface-700'"
-          (click)="selectCategory(cat)">
-          {{ cat }}
+          type="button"
+          class="chip"
+          [class.chip--active]="activeCategory() === category"
+          [attr.aria-pressed]="activeCategory() === category"
+          (click)="selectCategory(category)"
+        >
+          {{ category }}
         </button>
       }
     </div>
 
-    <!-- Product cards grid -->
+    <p class="catalog__count" role="status">
+      {{ resultCount() }} {{ resultCount() === 1 ? 'producto' : 'productos' }}
+    </p>
+
     @if (filteredProducts().length === 0) {
-      <div class="text-center py-16 text-muted">
-        <i class="pi pi-search text-4xl mb-3 block" aria-hidden="true"></i>
-        <p class="text-sm">No se encontraron productos</p>
-      </div>
+      <app-rms-empty-state
+        icon="pi pi-search"
+        title="Sin resultados"
+        message="No encontramos productos con ese nombre en la carta."
+        actionLabel="Limpiar búsqueda"
+        (action)="clearSearch()"
+      />
+    } @else {
+      <ul class="product-list">
+        @for (product of filteredProducts(); track product.id) {
+          <li>
+            <button
+              type="button"
+              class="product-row"
+              [attr.aria-label]="'Agregar ' + product.name + ', ' + (product.basePrice | money)"
+              (click)="addProduct(product)"
+            >
+              <span class="product-row__media" aria-hidden="true">
+                <span class="product-row__monogram">{{ monogram(product.name) }}</span>
+                @if (product.imageUrl) {
+                  <img
+                    class="product-row__image"
+                    [src]="product.imageUrl"
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    (error)="$any($event.target).hidden = true"
+                  />
+                }
+              </span>
+
+              <span class="product-row__body">
+                <span class="product-row__name">{{ product.name }}</span>
+                @if (product.description) {
+                  <span class="product-row__description">{{ product.description }}</span>
+                }
+                <span class="product-row__price" data-testid="product-price">
+                  {{ product.basePrice | money }}
+                </span>
+              </span>
+
+              <span class="product-row__add" aria-hidden="true">
+                <i class="pi pi-plus"></i>
+              </span>
+            </button>
+          </li>
+        }
+      </ul>
     }
-
-    <div class="product-grid">
-      @for (product of filteredProducts(); track product.id) {
-        <button
-          class="text-left bg-primary-contrast dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 overflow-hidden hover:border-primary-400 transition-all group cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500"
-          (click)="addProduct(product)">
-
-          <!-- Product image -->
-          <div class="product-card-image bg-surface-100 dark:bg-surface-700 flex items-center justify-center">
-            @if (getThumbnailUrl(product.id); as thumbnailUrl) {
-              <img
-                [src]="thumbnailUrl"
-                [alt]="product.name"
-                class="group-hover:scale-105 transition-transform duration-300"
-                loading="lazy"
-                decoding="async"
-                (error)="$any($event.target).src = defaultImage"
-              />
-            } @else {
-              <div class="flex flex-col items-center gap-1 text-muted">
-                <i class="pi pi-image text-2xl" aria-hidden="true"></i>
-                <span class="text-[10px]">Sin imagen</span>
-              </div>
-            }
-          </div>
-
-          <!-- Product info -->
-          <div class="p-3 flex flex-col gap-1">
-            <span class="font-semibold text-surface-700 dark:text-surface-100 text-sm group-hover:text-primary-700 dark:group-hover:text-primary-300 line-clamp-2">
-              {{ product.name }}
-            </span>
-            @if (product.description) {
-              <p class="text-xs text-muted line-clamp-2">{{ product.description }}</p>
-            }
-            <div class="flex items-center justify-between mt-1">
-              <span class="text-primary-700 dark:text-primary-300 font-semibold text-sm" data-testid="product-price">
-                {{ product.basePrice | money }}
-              </span>
-              <span class="text-[10px] text-muted flex items-center gap-0.5">
-                <i class="pi pi-plus-circle text-xs" aria-hidden="true"></i>
-                Agregar
-              </span>
-            </div>
-          </div>
-        </button>
-      }
-    </div>
   }
 </div>
 
-<!-- ══ SHARED OPTIONS MODAL ══ -->
 @if (showOptionsModal() && pendingProduct()) {
   <app-product-options-modal
     [visible]="showOptionsModal()"

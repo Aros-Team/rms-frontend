@@ -197,6 +197,4 @@ export class ProductOptionsModal {
   onErrorClear(): void {
     this.errorClear.emit();
   }
-
-  defaultImage = 'assets/placeholder-product.svg';
 }

@@ -1,96 +1,147 @@
-import { Component, OnInit, inject, signal, computed, effect, DestroyRef } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { of, from, map, catchError, mergeMap } from 'rxjs';
-
-import { InputTextModule } from 'primeng/inputtext';
-import { IconFieldModule } from 'primeng/iconfield';
-import { InputIconModule } from 'primeng/inputicon';
 
 import { MasterData } from '@app/core/services/master-data/master-data';
-import { OrderDock, DockItem } from '@app/core/services/order-dock/order-dock';
+import { OrderDock, DockItem, DockOptionGroup } from '@app/core/services/order-dock/order-dock';
 import { Logging } from '@app/core/services/logging/logging';
-import { ProductImage } from '@app/core/services/product-image/product-image';
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
 import { ProductOption } from '@app/shared/models/dto/products/product-option';
 import { Money } from '@app/shared/pipes/money/money';
 
 import { CartaSkeleton } from './skeletons/carta-skeleton';
-import { ProductOptionsModal, ProductOptionsConfirmEvent } from '@app/shared/components/product-options-modal/product-options-modal';
+import {
+  ProductOptionsModal,
+  ProductOptionsConfirmEvent,
+} from '@app/shared/components/product-options-modal/product-options-modal';
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
+import { RmsInput } from '@app/shared/ui/input/input';
 
+const ALL_CATEGORIES = 'all';
+
+/**
+ * Waiter "Carta".
+ *
+ * Feature: fast product browsing for one-handed service.
+ *
+ * Contract:
+ *  - search and category chips are always visible and are at least 44px;
+ *  - each product is one row with a real thumbnail or a typographic monogram,
+ *    never a large "Sin imagen" box (F-027);
+ *  - the whole row is the add action, and it opens the options dialog, clamped
+ *    to the viewport at 320px (R-01);
+ *  - a product with no image still reads as a product, not as a broken card.
+ */
 @Component({
   selector: 'app-products',
   templateUrl: './products.html',
   styleUrl: './products.css',
-  imports: [CommonModule, FormsModule, CartaSkeleton, InputTextModule, IconFieldModule, InputIconModule, ProductOptionsModal, Money],
+  imports: [
+    CommonModule,
+    FormsModule,
+    CartaSkeleton,
+    Money,
+    ProductOptionsModal,
+    RmsButton,
+    RmsEmptyState,
+    RmsInput,
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Products implements OnInit {
-  private masterData = inject(MasterData);
-  private dock = inject(OrderDock);
-  private logger = inject(Logging);
-  private imageService = inject(ProductImage);
-  private destroyRef = inject(DestroyRef);
+  private readonly masterData = inject(MasterData);
+  private readonly dock = inject(OrderDock);
+  private readonly logger = inject(Logging);
+  private readonly destroyRef = inject(DestroyRef);
 
-  loading = signal(true);
-  error = signal<string | null>(null);
+  readonly loading = signal(true);
+  readonly error = signal<string | null>(null);
+  readonly productsByCategory = signal<Record<string, ProductListResponse[]>>({});
+  readonly searchQuery = signal('');
+  readonly activeCategory = signal<string>(ALL_CATEGORIES);
 
-  productsByCategory = signal<Record<string, ProductListResponse[]>>({});
-  productThumbnails = signal<Map<number, string>>(new Map());
-  searchQuery = signal<string>('');
-  activeCategory = signal<string>('');
-
-  // Options modal state
-  showOptionsModal = signal(false);
-  pendingProduct = signal<ProductListResponse | null>(null);
-  modalOptions = signal<ProductOption[]>([]);
-  modalOptionsLoading = signal(false);
-  optionsError = signal<string | null>(null);
+  readonly showOptionsModal = signal(false);
+  readonly pendingProduct = signal<ProductListResponse | null>(null);
+  readonly modalOptions = signal<ProductOption[]>([]);
+  readonly modalOptionsLoading = signal(false);
+  readonly optionsError = signal<string | null>(null);
   private optionsSeq = 0;
 
-  categories = computed(() => Object.keys(this.productsByCategory()));
+  readonly categories = computed(() => Object.keys(this.productsByCategory()));
+  readonly allProducts = computed(() => Object.values(this.productsByCategory()).flat());
 
-  /** When user types in search, clear active category filter */
-  private readonly _searchEffect = effect(() => {
-    const q = this.searchQuery();
-    if (q.trim().length > 0 && this.activeCategory()) {
-      this.activeCategory.set('');
-    }
-  });
-
-  filteredProducts = computed(() => {
+  readonly filteredProducts = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
-    const category = this.activeCategory();
-
-    // If searching, search ALL products across categories
-    if (query) {
-      const allProducts = Object.values(this.productsByCategory()).flat();
-      return allProducts.filter(p => p.name.toLowerCase().includes(query));
+    if (query.length > 0) {
+      return this.allProducts().filter((product) => {
+        const name = product.name.toLowerCase();
+        const description = (product.description ?? '').toLowerCase();
+        return name.includes(query) || description.includes(query);
+      });
     }
 
-    // No search — filter by active category
+    const category = this.activeCategory();
+    if (category === ALL_CATEGORIES) return this.allProducts();
     return this.productsByCategory()[category] ?? [];
   });
 
+  readonly resultCount = computed(() => this.filteredProducts().length);
+
   ngOnInit(): void {
-    this.masterData.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.productsByCategory.set(this.masterData.getProductsByCategory());
-        const cats = Object.keys(this.masterData.getProductsByCategory());
-        if (cats.length) this.activeCategory.set(cats[0]);
-        this.loading.set(false);
-        this.loadProductThumbnails();
-      },
-      error: (err) => {
-        this.logger.error('Products: failed to load master data', err);
-        this.error.set('No se pudieron cargar los datos. Intenta de nuevo.');
-        this.loading.set(false);
-      }
-    });
+    this.masterData
+      .load()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.productsByCategory.set(this.masterData.getProductsByCategory());
+          this.loading.set(false);
+        },
+        error: (err: unknown) => {
+          this.logger.error('Products: failed to load master data', err);
+          this.error.set('No se pudieron cargar los productos. Intenta de nuevo.');
+          this.loading.set(false);
+        },
+      });
   }
 
-  selectCategory(cat: string): void {
-    this.activeCategory.set(cat);
+  retry(): void {
+    this.loading.set(true);
+    this.error.set(null);
+    this.masterData
+      .load()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.productsByCategory.set(this.masterData.getProductsByCategory());
+          this.loading.set(false);
+        },
+        error: (err: unknown) => {
+          this.logger.error('Products: failed to load master data', err);
+          this.error.set('No se pudieron cargar los productos. Intenta de nuevo.');
+          this.loading.set(false);
+        },
+      });
+  }
+
+  selectCategory(category: string): void {
+    this.activeCategory.set(category);
+    this.searchQuery.set('');
+  }
+
+  clearSearch(): void {
+    this.searchQuery.set('');
+  }
+
+  /** Two-letter monogram used when a product has no photo. */
+  monogram(name: string): string {
+    return name
+      .split(/\s+/)
+      .filter((word) => word.length > 0)
+      .slice(0, 2)
+      .map((word) => word.charAt(0).toUpperCase())
+      .join('');
   }
 
   addProduct(product: ProductListResponse): void {
@@ -99,7 +150,6 @@ export class Products implements OnInit {
     this.showOptionsModal.set(true);
     this.error.set(null);
     this.optionsError.set(null);
-
     this.loadProductOptions(product);
   }
 
@@ -107,32 +157,49 @@ export class Products implements OnInit {
     const seq = ++this.optionsSeq;
     this.modalOptionsLoading.set(true);
 
-    this.masterData.getProductOptions(product.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (options) => {
-        if (seq !== this.optionsSeq) return; // stale
-        this.modalOptions.set(options);
-        this.modalOptionsLoading.set(false);
-      },
-      error: (err) => {
-        if (seq !== this.optionsSeq) return; // stale
-        this.logger.error('Products: failed to load product options', err);
-        this.optionsError.set('No se pudieron cargar las opciones. Intenta de nuevo.');
-        this.modalOptionsLoading.set(false);
-      }
-    });
+    this.masterData
+      .getProductOptions(product.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (options) => {
+          if (seq !== this.optionsSeq) return;
+          this.modalOptions.set(options);
+          this.modalOptionsLoading.set(false);
+        },
+        error: (err: unknown) => {
+          if (seq !== this.optionsSeq) return;
+          this.logger.error('Products: failed to load product options', err);
+          this.optionsError.set('No se pudieron cargar las opciones. Intenta de nuevo.');
+          this.modalOptionsLoading.set(false);
+        },
+      });
   }
 
   onConfirmOptions(event: ProductOptionsConfirmEvent): void {
+    const groups = new Map<string, string[]>();
+    for (const selected of event.selectedOptions) {
+      const option = this.modalOptions().find((candidate) => candidate.id === selected.optionId);
+      if (!option) continue;
+      const names = groups.get(option.optionGroupName) ?? [];
+      names.push(option.name);
+      groups.set(option.optionGroupName, names);
+    }
+
+    const optionGroups: DockOptionGroup[] = [...groups.entries()].map(
+      ([groupName, optionNames]) => ({ groupName, optionNames }),
+    );
+
     const item: DockItem = {
       product: event.product,
       instructions: event.instructions,
-      selectedOptionIds: event.selectedOptions.map(o => o.optionId),
-      optionNames: event.selectedOptions.map(o => o.optionName),
+      selectedOptionIds: event.selectedOptions.map((option) => option.optionId),
+      optionNames: event.selectedOptions.map((option) => option.optionName),
+      optionGroups,
+      extraCharge: event.extraCharge,
       quantity: event.quantity,
     };
 
     this.dock.addItemToDiner(item);
-
     this.closeModal();
   }
 
@@ -140,36 +207,6 @@ export class Products implements OnInit {
     this.showOptionsModal.set(false);
     this.pendingProduct.set(null);
     this.modalOptions.set([]);
-    this.error.set(null);
     this.optionsError.set(null);
   }
-
-  private loadProductThumbnails(): void {
-    const allProducts = Object.values(this.productsByCategory()).flat();
-    if (allProducts.length === 0) return;
-
-    const batchSize = 6;
-    const ids = allProducts.map(p => p.id);
-    const results = new Map<number, string>();
-    let completed = 0;
-
-    from(ids).pipe(
-      mergeMap(id =>
-        this.imageService.getImages(id).pipe(
-          map(images => ({ productId: id, thumbnail: images[0]?.desktopUrl ?? null })),
-          catchError(() => of({ productId: id, thumbnail: null }))
-        )
-      , batchSize),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe(r => {
-      if (r.thumbnail) results.set(r.productId, r.thumbnail);
-      if (++completed === ids.length) this.productThumbnails.set(results);
-    });
-  }
-
-  getThumbnailUrl(productId: number): string | null {
-    return this.productThumbnails().get(productId) ?? null;
-  }
-
-  defaultImage = 'assets/placeholder-product.svg';
 }
