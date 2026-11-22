@@ -1380,34 +1380,34 @@
       {
         "id": "a",
         "description": "Stop the desktop sidebar from going inert on menu click",
-        "status": "in_progress",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
         "description": "Move Mi cuenta into the Configuración account section and drop the route/nav entry",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
         "description": "Replace the decorative hour strip with a labelled sales-by-hour chart",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "d",
         "description": "Replace the category doughnut with a treemap primitive",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "e",
         "description": "Update tests, baselines and run the harness",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "in_progress"
+    "status": "done"
   }
 ]
