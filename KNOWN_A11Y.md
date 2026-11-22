@@ -3,6 +3,13 @@
 Owner task: **P1-QA-07** — close the Sprint 0 axe failures on existing routes.
 Gate: zero `serious` or `critical` violations in the baseline suite.
 
+## Final status: gate met (2026-11-22)
+
+The role-integration regression (dashboard doughnut without an accessible name)
+was fixed in `0efa4e3`. The full axe suite now passes **63/63 with zero
+serious or critical violations**; the visual baseline was regenerated for the
+kitchen and schedule screens.
+
 ## Status: gate met (2026-11-22, `feat/a11y-fixes`)
 
 The last full run reports **63 passed, 0 failed** and **zero violations of any
