@@ -1,10 +1,8 @@
 import { Component, inject, OnInit, signal, HostListener, computed, DestroyRef, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import type { ChartOptions, TooltipItem } from 'chart.js';
 import { TableModule } from 'primeng/table';
 import { SkeletonModule } from 'primeng/skeleton';
-import { ChartModule } from 'primeng/chart';
 import { CommonModule } from '@angular/common';
 import { Order } from '@app/core/services/orders/order';
 import { Table } from '@app/core/services/tables/table';
@@ -29,17 +27,16 @@ import { ListSkeleton } from '@shared/skeletons/list-skeleton/list-skeleton';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 import { ServerDownPage } from '@shared/components/server-down-page/server-down-page';
 import { Money } from '@shared/pipes/money/money';
-import { rmsChartPalette, rmsDoughnutOptions } from '@app/shared/ui/chart/chart-theme';
+import { rmsChartPalette } from '@app/shared/ui/chart/chart-theme';
 import { RmsBadge } from '@shared/ui/badge/badge';
 import { RmsButton } from '@shared/ui/button/button';
 import { RmsChartFrame } from '@shared/ui/chart-frame/chart-frame';
 import { RmsEmptyState } from '@shared/ui/empty-state/empty-state';
 import { RmsIconButton } from '@shared/ui/icon-button/icon-button';
 import { RmsStatusPill } from '@shared/ui/status-pill/status-pill';
+import { RmsTreemap } from '@shared/ui/treemap/treemap';
+import { HourlySalesChart } from './components/hourly-sales-chart/hourly-sales-chart';
 import type { RmsStatus } from '@shared/ui/types/ui-types';
-
-/** Chart tooltips format money through the same pipe the templates use. */
-const moneyPipe = new Money();
 
 /** Row rendered by the "Top 8 productos" panel (server ranking or local fallback). */
 interface TopProductRow {
@@ -48,35 +45,6 @@ interface TopProductRow {
   category: string;
   total: MoneyLike;
   units: number;
-}
-
-/**
- * Category doughnut options from the DS chart theme.
- *
- * The canvas legend is off: the dashboard renders an HTML legend below the plot
- * so it can never overprint the data (F-002). Tooltips keep the percentage.
- */
-function categoryDoughnutOptions(total: () => number): ChartOptions<'doughnut'> {
-  const base = rmsDoughnutOptions();
-  return {
-    ...base,
-    cutout: '60%',
-    plugins: {
-      ...base.plugins,
-      legend: { display: false },
-      tooltip: {
-        ...base.plugins?.tooltip,
-        callbacks: {
-          label: (ctx: TooltipItem<'doughnut'>) => {
-            const value = typeof ctx.parsed === 'number' ? ctx.parsed : 0;
-            const sum = total();
-            const pct = sum > 0 ? (value / sum) * 100 : 0;
-            return ` ${ctx.label}: ${moneyPipe.transform(value)} (${pct.toFixed(1)}%)`;
-          },
-        },
-      },
-    },
-  };
 }
 
 const RHYTHM_START_HOUR = 8;
@@ -99,7 +67,6 @@ const WS_TOPICS = {
     CommonModule,
     TableModule,
     SkeletonModule,
-    ChartModule,
     OrderDetailDialog,
     ListSkeleton,
     TableSkeleton,
@@ -111,6 +78,8 @@ const WS_TOPICS = {
     RmsEmptyState,
     RmsIconButton,
     RmsStatusPill,
+    RmsTreemap,
+    HourlySalesChart,
   ],
 })
 export class Dashboard implements OnInit {
@@ -175,13 +144,7 @@ export class Dashboard implements OnInit {
   selectedProduct = signal<ProductData | null>(null);
   private isMobile = signal(false);
 
-  readonly rhythmRange = computed(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return today.getTime();
-  });
-
-  readonly hourlyRhythm = computed<{ hour: number; label: string; delivered: number; isCurrent: boolean }[]>(() => {
+  readonly hourlyRhythm = computed<{ hour: number; label: string; delivered: number; revenue: number; isCurrent: boolean }[]>(() => {
     const now = new Date();
     const todayStart = new Date(now);
     todayStart.setHours(0, 0, 0, 0);
@@ -191,9 +154,9 @@ export class Dashboard implements OnInit {
     const todayEndMs = todayEnd.getTime();
     const currentHour = now.getHours();
 
-    const buckets: { delivered: number }[] = [];
+    const buckets: { delivered: number; revenue: number }[] = [];
     for (let h = RHYTHM_START_HOUR; h <= RHYTHM_END_HOUR; h++) {
-      buckets.push({ delivered: 0 });
+      buckets.push({ delivered: 0, revenue: 0 });
     }
 
     for (const order of this.orders()) {
@@ -203,7 +166,9 @@ export class Dashboard implements OnInit {
       const hour = orderDate.getHours();
       if (hour < RHYTHM_START_HOUR || hour > RHYTHM_END_HOUR) continue;
       if (order.status === 'DELIVERED') {
-        buckets[hour - RHYTHM_START_HOUR].delivered++;
+        const bucket = buckets[hour - RHYTHM_START_HOUR];
+        bucket.delivered++;
+        bucket.revenue += calculateTotalPrice(order);
       }
     }
 
@@ -213,25 +178,11 @@ export class Dashboard implements OnInit {
         hour,
         label: `${String(hour).padStart(2, '0')}:00`,
         delivered: b.delivered,
+        revenue: b.revenue,
         isCurrent: hour === currentHour,
       };
     });
   });
-
-  readonly rhythmPeak = computed(() => {
-    const rhythm = this.hourlyRhythm();
-    return rhythm.reduce((max, b) => (b.delivered > max.delivered ? b : max), rhythm[0] ?? { hour: 0, label: '—', delivered: 0, isCurrent: false });
-  });
-
-  readonly rhythmTotalToday = computed(() =>
-    this.hourlyRhythm().reduce((sum, b) => sum + b.delivered, 0),
-  );
-
-  barHeightPercent(delivered: number): number {
-    const peak = this.rhythmPeak().delivered;
-    if (peak <= 0) return 5;
-    return 5 + (delivered / peak) * 85;
-  }
 
   /**
    * Local aggregation fallback for the Top 8 panel.
@@ -329,25 +280,17 @@ export class Dashboard implements OnInit {
     return colors.length > 0 ? colors[index % colors.length] : 'currentColor';
   }
 
-  readonly salesByCategoryChartData = computed(() => {
-    const rows = this.salesByCategory();
+  /** Tiles for the category treemap, in revenue order. */
+  readonly categoryTreemapItems = computed(() => {
     const colors = this.categoryColors();
-    return {
-      labels: rows.map(r => r.category),
-      datasets: [
-        {
-          data: rows.map(r => r.total),
-          backgroundColor: colors,
-          hoverOffset: 6,
-          borderWidth: 0,
-        },
-      ],
-    };
+    return this.salesByCategory().map((row, index) => ({
+      label: row.category,
+      total: row.total,
+      color: colors.length > 0 ? colors[index % colors.length] : 'currentColor',
+    }));
   });
 
-  readonly salesByCategoryChartOptions = categoryDoughnutOptions(() => this.salesByCategoryTotal());
-
-  /** Text alternative summarising the doughnut for screen readers. */
+  /** Text alternative summarising the treemap for screen readers. */
   readonly categoryChartSummary = computed(() => {
     const rows = this.salesByCategory();
     if (rows.length === 0) return '';

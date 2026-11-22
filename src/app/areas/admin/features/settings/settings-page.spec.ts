@@ -3,7 +3,7 @@
  *
  * Feature: `/admin/settings` with one tab per section.
  * Contract:
- *  - nine sections exist in development, including the dev-only demo card;
+ *  - ten sections exist in development, including Cuenta and the dev-only demo card;
  *  - only the active section is mounted, so switching issues that section's
  *    request and nothing else;
  *  - the tablist supports arrow/Home/End navigation and exposes ARIA state;
@@ -106,11 +106,12 @@ describe('SettingsPage', () => {
       'notifications',
       'users',
       'appearance',
+      'account',
       'advanced',
       'integrations',
       'demo',
     ]);
-    expect(tabs().length).toBe(9);
+    expect(tabs().length).toBe(10);
     expect(tab('business').getAttribute('aria-selected')).toBe('true');
     expect(tab('currency').getAttribute('aria-selected')).toBe('false');
   });

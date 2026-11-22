@@ -1,0 +1,20 @@
+<div class="rms-treemap" role="presentation">
+  @for (row of rows; track trackRow($index)) {
+    <div class="rms-treemap__row" [style.flex-grow]="row.weight">
+      @for (tile of row.tiles; track trackTile($index, tile)) {
+        <div
+          class="rms-treemap__tile"
+          [style.flex-grow]="tile.amount"
+          [style.--tile-color]="tile.color"
+          [style.border-left-color]="tile.color"
+        >
+          <span class="rms-treemap__label">{{ tile.label }}</span>
+          <span class="rms-treemap__meta">
+            <span class="rms-treemap__value">{{ tile.total | money }}</span>
+            <span class="rms-treemap__percent">{{ tile.percent }}%</span>
+          </span>
+        </div>
+      }
+    </div>
+  }
+</div>

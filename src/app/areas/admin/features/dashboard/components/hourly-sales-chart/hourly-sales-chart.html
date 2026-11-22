@@ -1,0 +1,30 @@
+<app-rms-chart-frame
+  title="Ventas por hora"
+  subtitle="Pedidos entregados y dinero cobrado en cada hora del día"
+  [height]="150"
+  [loading]="loading"
+  [empty]="isEmpty"
+  [error]="error"
+  emptyMessage="Aún no hay ventas entregadas hoy"
+  [summary]="summary"
+  dataMode="disclosure"
+  dataLabel="Ver datos por hora"
+  (retry)="retry.emit()"
+>
+  <p-chart type="bar" [data]="data" [options]="options" ariaLabel="Ventas por hora del día" />
+  <table rmsChartData>
+    <caption class="sr-only">Ventas por hora del día</caption>
+    <thead>
+      <tr><th>Hora</th><th>Pedidos</th><th>Ventas</th></tr>
+    </thead>
+    <tbody>
+      @for (row of rows; track row.hour) {
+        <tr>
+          <td>{{ row.label }}</td>
+          <td>{{ row.delivered }}</td>
+          <td>{{ row.revenue | money }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</app-rms-chart-frame>

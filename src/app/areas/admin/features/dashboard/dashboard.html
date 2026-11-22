@@ -28,19 +28,11 @@
     <div class="flex h-full">
 
       <div class="w-full h-full flex-shrink-0">
-        <div class="flex flex-col gap-4 h-full p-4">
+        <div class="flex flex-col gap-4 h-full overflow-y-auto p-4">
           <header class="border border-rms-border rounded-xl bg-rms-subtle overflow-hidden flex-shrink-0 relative">
-            <div class="absolute inset-x-0 bottom-0 h-20 pointer-events-none flex items-end px-2 gap-[2px]" aria-hidden="true">
-              @for (b of hourlyRhythm(); track b.hour) {
-                <div class="flex-1 min-w-0 rounded-t-sm transition-all duration-300"
-                     [style.height.%]="barHeightPercent(b.delivered)"
-                     [style.background]="b.isCurrent ? 'var(--rms-info-solid)' : 'var(--rms-border)'">
-                </div>
-              }
-            </div>
 
             <div class="relative z-10 flex flex-col p-4 gap-2">
-              <div class="flex justify-between items-center">
+              <div class="flex flex-wrap justify-between items-center gap-2">
                 <div>
                   <h2 class="text-base font-bold text-rms-ink">{{ currentDate() }}</h2>
                   <p class="text-muted text-sm">{{ currentTime() }}</p>
@@ -90,13 +82,21 @@
             </div>
           </header>
 
+          <section class="flex-shrink-0 rounded-xl border border-rms-border bg-rms-surface p-3">
+            <app-dashboard-hourly-chart
+              [bars]="hourlyRhythm()"
+              [loading]="isOrdersLoading() && orders().length === 0"
+              [error]="ordersError() ?? ''"
+              (retry)="retryDashboard()" />
+          </section>
+
           <section class="border border-rms-border rounded-xl bg-rms-surface flex flex-col overflow-hidden flex-shrink-0">
             <header class="flex justify-between items-center p-3 border-b border-rms-border flex-shrink-0">
               <div class="flex flex-col">
                 <h2 class="text-base font-bold text-rms-ink">Composición de ventas</h2>
                 <p class="text-xs text-muted">Top productos y distribución por categoría</p>
               </div>
-              <span class="text-xs text-muted">{{ topProductsTotal() | money }}</span>
+              <span class="whitespace-nowrap text-xs text-muted">{{ topProductsTotal() | money }}</span>
             </header>
 
             <div class="flex-1 grid grid-cols-1 lg:grid-cols-5 gap-3 p-3 min-h-0">
@@ -141,7 +141,7 @@
 
               <div class="lg:col-span-2 flex flex-col min-h-0 lg:border-l lg:border-rms-border lg:pl-3">
                 <app-rms-chart-frame
-                  title="Por categoría"
+                  title="Ventas por categoría"
                   [height]="150"
                   [loading]="isOrdersLoading() && orders().length === 0"
                   [empty]="!isOrdersLoading() && salesByCategory().length === 0"
@@ -150,15 +150,7 @@
                   dataMode="hidden"
                   dataLabel="Ver datos por categoría"
                   (retry)="retryDashboard()">
-                  <p-chart type="doughnut" [data]="salesByCategoryChartData()" [options]="salesByCategoryChartOptions" ariaLabel="Distribución de ventas por categoría" />
-                  <ul rmsChartLegend class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted">
-                    @for (row of salesByCategory(); track row.category; let i = $index) {
-                      <li class="flex items-center gap-1.5">
-                        <span class="inline-block h-2.5 w-2.5 rounded-sm" [style.background]="categoryColor(i)" aria-hidden="true"></span>
-                        <span class="truncate">{{ row.category }}</span>
-                      </li>
-                    }
-                  </ul>
+                  <app-rms-treemap [items]="categoryTreemapItems()" />
                   <table rmsChartData>
                     <caption class="sr-only">Ventas por categoría</caption>
                     <thead><tr><th>Categoría</th><th>Ventas</th></tr></thead>
@@ -220,16 +212,8 @@
     </div>
   </div>
 
-  <div class="hidden md:flex lg:hidden flex-col gap-4 h-full">
+  <div class="hidden md:flex lg:hidden flex-col gap-4 h-full overflow-y-auto">
     <header class="border border-rms-border rounded-xl bg-rms-subtle overflow-hidden flex-shrink-0 relative">
-      <div class="absolute inset-x-0 bottom-0 h-24 pointer-events-none flex items-end px-4 gap-[3px]" aria-hidden="true">
-          @for (b of hourlyRhythm(); track b.hour) {
-            <div class="flex-1 min-w-0 rounded-t-sm transition-all duration-300"
-                 [style.height.%]="barHeightPercent(b.delivered)"
-                 [style.background]="b.isCurrent ? 'var(--rms-info-solid)' : 'var(--rms-border)'">
-            </div>
-          }
-        </div>
 
       <div class="relative z-10 flex flex-col p-10 gap-6">
         <div class="flex justify-between items-start">
@@ -287,13 +271,21 @@
       </div>
     </header>
 
+    <section class="flex-shrink-0 rounded-xl border border-rms-border bg-rms-surface p-4">
+      <app-dashboard-hourly-chart
+        [bars]="hourlyRhythm()"
+        [loading]="isOrdersLoading() && orders().length === 0"
+        [error]="ordersError() ?? ''"
+        (retry)="retryDashboard()" />
+    </section>
+
     <section class="flex-shrink-0 border border-rms-border rounded-xl bg-rms-surface flex flex-col overflow-hidden">
       <header class="flex justify-between items-center p-3 border-b border-rms-border flex-shrink-0">
         <div class="flex flex-col">
           <h2 class="text-base font-bold text-rms-ink">Composición de ventas</h2>
           <p class="text-xs text-muted">Top productos y distribución por categoría</p>
         </div>
-        <span class="text-xs text-muted">{{ topProductsTotal() | money }}</span>
+        <span class="whitespace-nowrap text-xs text-muted">{{ topProductsTotal() | money }}</span>
       </header>
 
       <div class="grid grid-cols-1 lg:grid-cols-5 gap-3 p-3 min-h-0">
@@ -338,7 +330,7 @@
 
         <div class="lg:col-span-2 flex flex-col min-h-0 lg:border-l lg:border-rms-border lg:pl-3">
           <app-rms-chart-frame
-            title="Por categoría"
+            title="Ventas por categoría"
             [height]="150"
             [loading]="isOrdersLoading() && orders().length === 0"
             [empty]="!isOrdersLoading() && salesByCategory().length === 0"
@@ -347,15 +339,7 @@
             dataMode="hidden"
             dataLabel="Ver datos por categoría"
             (retry)="retryDashboard()">
-            <p-chart type="doughnut" [data]="salesByCategoryChartData()" [options]="salesByCategoryChartOptions" ariaLabel="Distribución de ventas por categoría" />
-            <ul rmsChartLegend class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted">
-              @for (row of salesByCategory(); track row.category; let i = $index) {
-                <li class="flex items-center gap-1.5">
-                  <span class="inline-block h-2.5 w-2.5 rounded-sm" [style.background]="categoryColor(i)" aria-hidden="true"></span>
-                  <span class="truncate">{{ row.category }}</span>
-                </li>
-              }
-            </ul>
+            <app-rms-treemap [items]="categoryTreemapItems()" />
             <table rmsChartData>
               <caption class="sr-only">Ventas por categoría</caption>
               <thead><tr><th>Categoría</th><th>Ventas</th></tr></thead>
@@ -423,16 +407,8 @@
   </div>
 
   <div class="hidden lg:grid lg:grid-cols-5 gap-6 min-w-0 h-full">
-    <div class="col-span-3 flex flex-col gap-4 min-h-0">
-      <header class="border border-rms-border rounded-2xl bg-rms-subtle overflow-hidden relative">
-        <div class="absolute inset-x-0 bottom-0 h-28 pointer-events-none flex items-end px-4 gap-[3px]" aria-hidden="true">
-          @for (b of hourlyRhythm(); track b.hour) {
-            <div class="flex-1 min-w-0 rounded-t-sm transition-all duration-300"
-                 [style.height.%]="barHeightPercent(b.delivered)"
-                 [style.background]="b.isCurrent ? 'var(--rms-info-solid)' : 'var(--rms-border)'">
-            </div>
-          }
-        </div>
+    <div class="col-span-3 flex flex-col gap-4 min-h-0 overflow-y-auto">
+      <header class="flex-shrink-0 border border-rms-border rounded-2xl bg-rms-subtle overflow-hidden relative">
 
         <div class="relative z-10 flex flex-row justify-between items-center px-4 py-2 border-b border-rms-border">
           <div class="flex flex-col">
@@ -506,16 +482,24 @@
         </section>
       </header>
 
-      <section class="flex-shrink-0 border border-rms-border rounded-2xl bg-rms-surface flex flex-col overflow-hidden">
+      <section class="flex-shrink-0 rounded-2xl border border-rms-border bg-rms-surface p-3">
+        <app-dashboard-hourly-chart
+          [bars]="hourlyRhythm()"
+          [loading]="isOrdersLoading() && orders().length === 0"
+          [error]="ordersError() ?? ''"
+          (retry)="retryDashboard()" />
+      </section>
+
+      <section class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-rms-border bg-rms-surface">
         <header class="flex flex-wrap justify-between items-center gap-2 p-4 border-b border-rms-border flex-shrink-0">
           <div class="flex flex-col">
             <h2 class="text-lg font-bold text-rms-ink">Composición de ventas</h2>
             <p class="text-xs text-muted">Top productos y distribución por categoría</p>
           </div>
-          <span class="text-sm text-muted">{{ topProductsTotal() | money }}</span>
+          <span class="whitespace-nowrap text-sm text-muted">{{ topProductsTotal() | money }}</span>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 p-4 min-h-0">
+        <div class="grid min-h-0 flex-1 grid-cols-1 gap-4 p-4 lg:grid-cols-5">
           <div class="lg:col-span-3 flex flex-col min-h-0">
             <h3 class="text-xs font-semibold text-muted uppercase tracking-wide mb-3">Top 8 productos</h3>
             @if (topProductsLoading()) {
@@ -536,7 +520,7 @@
                   <app-rms-button size="sm" variant="link" (click)="retryTopSelling()">Reintentar</app-rms-button>
                 </div>
               }
-              <ol class="flex-1 space-y-2 overflow-auto pr-1">
+              <ol class="flex-1 space-y-2 overflow-auto pr-1" tabindex="0" aria-label="Productos más vendidos">
                 @for (item of topProducts(); track item.productId; let i = $index) {
                   <li class="flex items-center gap-3 text-sm">
                     <span class="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-full bg-rms-subtle text-xs font-semibold text-rms-ink">
@@ -557,8 +541,8 @@
 
           <div class="lg:col-span-2 flex flex-col min-h-0 lg:border-l lg:border-rms-border lg:pl-4">
             <app-rms-chart-frame
-              title="Por categoría"
-              [height]="170"
+              title="Ventas por categoría"
+              [height]="130"
               [loading]="isOrdersLoading() && orders().length === 0"
               [empty]="!isOrdersLoading() && salesByCategory().length === 0"
               [error]="ordersError() ?? ''"
@@ -566,15 +550,7 @@
               dataMode="hidden"
               dataLabel="Ver datos por categoría"
               (retry)="retryDashboard()">
-              <p-chart type="doughnut" [data]="salesByCategoryChartData()" [options]="salesByCategoryChartOptions" ariaLabel="Distribución de ventas por categoría" />
-              <ul rmsChartLegend class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted">
-                @for (row of salesByCategory(); track row.category; let i = $index) {
-                  <li class="flex items-center gap-1.5">
-                    <span class="inline-block h-2.5 w-2.5 rounded-sm" [style.background]="categoryColor(i)" aria-hidden="true"></span>
-                    <span class="truncate">{{ row.category }}</span>
-                  </li>
-                }
-              </ul>
+              <app-rms-treemap [items]="categoryTreemapItems()" />
               <table rmsChartData>
                 <caption class="sr-only">Ventas por categoría</caption>
                 <thead><tr><th>Categoría</th><th>Ventas</th></tr></thead>
