@@ -6,11 +6,17 @@ import { TimeLogEntry } from '@app/shared/models/dto/schedules/time-log-entry';
 
 export interface TimeLogFilterParams {
   workerId?: number;
+  /** ISO-8601 instant; the API declares `Instant`, not a `LocalDate`. */
   from?: string;
+  /** ISO-8601 instant. */
   to?: string;
+  /** `true` = only entries that fall inside an assigned shift. */
+  withinShift?: boolean;
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class TimeLog {
   private http = inject(HttpClient);
   private logger = inject(Logging);
@@ -27,6 +33,9 @@ export class TimeLog {
     }
     if (params?.to) {
       httpParams = httpParams.set('to', params.to);
+    }
+    if (params?.withinShift === true) {
+      httpParams = httpParams.set('withinShift', 'true');
     }
 
     return this.http.get<TimeLogEntry[]>('v1/admin/time-logs', { params: httpParams });

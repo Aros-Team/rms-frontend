@@ -158,6 +158,13 @@ describe('app routes', () => {
     expect(anyWorkerRoutes).toEqual(['profile', 'my-schedule']);
   });
 
+  it('should expose schedules as a first-class admin route', () => {
+    const schedules = childrenOf('admin').find((route) => route.path === 'schedules');
+
+    expect(schedules?.title).toBe('Horarios');
+    expect(schedules?.loadComponent).toBeDefined();
+  });
+
   it('should keep the three pending analytics routes for Phase 2', () => {
     const analyticsRoute = all.find(({ path }) => path === 'admin/analytics')?.route;
     const analytics = (analyticsRoute?.children ?? []).map((child) => child.path);

@@ -1,0 +1,64 @@
+:host {
+  display: block;
+  min-width: 0;
+  padding: var(--rms-space-3);
+  /* This module is used with mouse and touch; keep every compact action at
+     the 44px product floor. */
+  --rms-control-sm: var(--rms-touch-min);
+}
+
+.schedules-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rms-space-4);
+  min-width: 0;
+}
+
+.schedules-tabs {
+  display: flex;
+  gap: var(--rms-space-1);
+  border-bottom: var(--rms-border-width) solid var(--rms-border);
+  overflow-x: auto;
+}
+
+.schedules-tabs__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rms-space-2);
+  min-height: var(--rms-touch-min);
+  padding: 0 var(--rms-space-4);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--rms-text-secondary);
+  font: inherit;
+  font-size: var(--rms-type-body-size);
+  font-weight: var(--rms-weight-semibold);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.schedules-tabs__tab:hover {
+  color: var(--rms-text);
+  background: var(--rms-bg-subtle);
+}
+
+.schedules-tabs__tab[aria-selected='true'] {
+  border-bottom-color: var(--rms-brand-500);
+  color: var(--rms-brand-text);
+}
+
+.schedules-page__panel {
+  min-width: 0;
+}
+
+.schedules-page__panel:focus-visible {
+  outline: 2px solid var(--rms-focus);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  :host {
+    padding: var(--rms-space-2);
+  }
+}

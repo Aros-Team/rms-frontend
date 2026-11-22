@@ -1,0 +1,65 @@
+<div class="schedules-page">
+  <app-rms-page-header
+    title="Horarios"
+    subtitle="Planifica la semana, resuelve cruces y revisa la asistencia del equipo."
+  />
+
+  <nav class="schedules-tabs" role="tablist" aria-label="Secciones de horarios">
+    @for (tab of tabs; track tab.id; let index = $index) {
+      <button
+        type="button"
+        class="schedules-tabs__tab"
+        role="tab"
+        [id]="'tab-' + tab.id"
+        [attr.aria-selected]="activeTab() === tab.id"
+        [attr.aria-controls]="'panel-' + tab.id"
+        [attr.tabindex]="activeTab() === tab.id ? 0 : -1"
+        (click)="selectTab(tab.id)"
+        (keydown)="onTabKeydown($event, index)"
+      >
+        <i [class]="tab.icon" aria-hidden="true"></i>
+        <span>{{ tab.label }}</span>
+      </button>
+    }
+  </nav>
+
+  @switch (activeTab()) {
+    @case ('semana') {
+      <section
+        id="panel-semana"
+        role="tabpanel"
+        aria-labelledby="tab-semana"
+        tabindex="0"
+        class="schedules-page__panel"
+      >
+        <app-week-grid
+          [refreshToken]="templatesVersion()"
+          (createSchedule)="selectTab('plantillas')"
+          (openTimeLogs)="selectTab('registros')"
+        />
+      </section>
+    }
+    @case ('plantillas') {
+      <section
+        id="panel-plantillas"
+        role="tabpanel"
+        aria-labelledby="tab-plantillas"
+        tabindex="0"
+        class="schedules-page__panel"
+      >
+        <app-schedules (changed)="onTemplateChanged()" />
+      </section>
+    }
+    @case ('registros') {
+      <section
+        id="panel-registros"
+        role="tabpanel"
+        aria-labelledby="tab-registros"
+        tabindex="0"
+        class="schedules-page__panel"
+      >
+        <app-time-logs-panel />
+      </section>
+    }
+  }
+</div>
