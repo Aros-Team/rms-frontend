@@ -1,11 +1,12 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { TableModule } from 'primeng/table';
-import { ButtonModule } from 'primeng/button';
 import { SkeletonModule } from 'primeng/skeleton';
 
+import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
+import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 import { Worker } from '@app/core/services/workers/worker';
 import { SalaryHistoryEntry } from '@app/shared/models/dto/workers/salary-history-entry';
 import { Logging } from '@app/core/services/logging/logging';
@@ -15,16 +16,17 @@ import { Money } from '@app/shared/pipes/money/money';
 @Component({
   selector: 'app-salary-history',
   imports: [
-    RouterModule,
     TableModule,
-    ButtonModule,
     SkeletonModule,
     Money,
+    RmsEmptyState,
+    RmsPageHeader,
   ],
   templateUrl: './salary-history.html',
 })
 export class SalaryHistory implements OnInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private workerService = inject(Worker);
   private logger = inject(Logging);
 
@@ -52,6 +54,10 @@ export class SalaryHistory implements OnInit {
    */
   formatDateTime(iso: string): string {
     return formatInstant(iso);
+  }
+
+  goBack(): void {
+    void this.router.navigate(['/admin/manage/workers']);
   }
 
   private loadHistory(): void {

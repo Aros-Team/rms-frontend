@@ -220,7 +220,7 @@ describe('Inventory — unit cost rendering', () => {
     ]);
 
     const rows = Array.from(host().querySelectorAll('tbody tr'));
-    const tagsPerRow = rows.map(row => row.querySelector('p-tag') !== null);
+    const tagsPerRow = rows.map(row => row.querySelector('app-rms-badge') !== null);
 
     expect(tagsPerRow).toEqual([false, true]);
   });

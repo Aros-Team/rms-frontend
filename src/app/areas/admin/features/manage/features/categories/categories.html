@@ -1,7 +1,5 @@
 <main class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.productCategories" (appLazyLoadVisible)="onVisible()">
-  <div class="flex items-center gap-4 mb-2 md:mb-4 min-w-0 flex-shrink-0">
-    <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0 break-words min-w-0">{{ title }}</h1>
-  </div>
+  <app-rms-page-header [title]="title" />
 
   <div class="flex-1 min-h-0 overflow-hidden pb-4">
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 p-4 md:p-6">
@@ -13,7 +11,7 @@
         <p class="font-semibold text-surface-800 dark:text-surface-200">Categorías de producto</p>
         <p class="text-xs text-muted mt-0.5">Agrupan los productos de la carta</p>
       </div>
-      <p-button icon="pi pi-plus" size="small" class="btn-icon-only-sm" pTooltip="Nueva categoría" tooltipPosition="bottom" (click)="openProductCategoryDialog()" />
+      <app-rms-icon-button icon="pi pi-plus" ariaLabel="Nueva categoría de producto" tooltip="Nueva categoría" (click)="openProductCategoryDialog()" />
     </div>
 
     <div class="flex flex-col gap-4">
@@ -28,9 +26,13 @@
                 <div class="flex items-center gap-2">
                   <i class="pi pi-tag" aria-hidden="true"></i>
                   <span class="mx-1">{{ c.name }}</span>
-                  <i class="pi pi-times-circle cursor-pointer text-red-500"
-                    (click)="confirmCategoryToggle(c.id)" (keydown.enter)="confirmCategoryToggle(c.id)"
-                    role="button" tabindex="0" title="Desactivar" aria-label="Desactivar categoría" aria-hidden="true"></i>
+                  <app-rms-icon-button
+                    icon="pi pi-times-circle"
+                    [ariaLabel]="'Desactivar categoría ' + c.name"
+                    tooltip="Desactivar"
+                    variant="danger"
+                    size="sm"
+                    (click)="confirmCategoryToggle(c.id)" />
                 </div>
               </p-chip>
             }
@@ -49,9 +51,12 @@
                 <div class="flex items-center gap-2">
                   <i class="pi pi-tag" aria-hidden="true"></i>
                   <span class="mx-1 line-through">{{ c.name }}</span>
-                  <i class="pi pi-check-circle cursor-pointer text-green-500"
-                    (click)="confirmCategoryToggle(c.id)" (keydown.enter)="confirmCategoryToggle(c.id)"
-                    role="button" tabindex="0" title="Activar" aria-label="Activar categoría" aria-hidden="true"></i>
+                  <app-rms-icon-button
+                    icon="pi pi-check-circle"
+                    [ariaLabel]="'Activar categoría ' + c.name"
+                    tooltip="Activar"
+                    size="sm"
+                    (click)="confirmCategoryToggle(c.id)" />
                 </div>
               </p-chip>
             }
@@ -68,7 +73,7 @@
         <p class="font-semibold text-surface-800 dark:text-surface-200">Categorías de insumo</p>
         <p class="text-xs text-muted mt-0.5">Agrupan los insumos de la cocina</p>
       </div>
-      <p-button icon="pi pi-plus" size="small" class="btn-icon-only-sm" pTooltip="Nueva categoría de insumo" tooltipPosition="bottom" (click)="openSupplyCategoryDialog()" />
+      <app-rms-icon-button icon="pi pi-plus" ariaLabel="Nueva categoría de insumo" tooltip="Nueva categoría de insumo" (click)="openSupplyCategoryDialog()" />
     </div>
 
     @if (supplyCategories().length === 0) {
@@ -106,14 +111,14 @@
     </p-iftalabel>
 
     @if (productCategoryError()) {
-      <small class="text-red-500">{{ productCategoryError() }}</small>
+      <small class="text-rms-danger">{{ productCategoryError() }}</small>
     }
   </form>
 
   <ng-template #footer>
-    <p-button label="Cancelar" severity="secondary" icon="pi pi-times"
-      (click)="productCategoryDialogOpen.set(false)" />
-    <p-button label="Guardar" icon="pi pi-save" (click)="saveProductCategory()" />
+    <app-rms-button variant="secondary" iconStart="pi pi-times"
+      (click)="productCategoryDialogOpen.set(false)">Cancelar</app-rms-button>
+    <app-rms-button iconStart="pi pi-save" (click)="saveProductCategory()">Guardar</app-rms-button>
   </ng-template>
 </p-dialog>
 
@@ -132,14 +137,14 @@
     </p-iftalabel>
 
     @if (supplyCategoryError()) {
-      <small class="text-red-500">{{ supplyCategoryError() }}</small>
+      <small class="text-rms-danger">{{ supplyCategoryError() }}</small>
     }
   </form>
 
   <ng-template #footer>
-    <p-button label="Cancelar" severity="secondary" icon="pi pi-times"
-      (click)="supplyCategoryDialogOpen.set(false)" />
-    <p-button label="Guardar" icon="pi pi-save" (click)="saveSupplyCategory()" />
+    <app-rms-button variant="secondary" iconStart="pi pi-times"
+      (click)="supplyCategoryDialogOpen.set(false)">Cancelar</app-rms-button>
+    <app-rms-button iconStart="pi pi-save" (click)="saveSupplyCategory()">Guardar</app-rms-button>
   </ng-template>
 </p-dialog>
 

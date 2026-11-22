@@ -23,7 +23,6 @@ import { TransferItem } from '@models/dto/inventory/transfer-request';
 import { InventoryStockUpdatedEvent } from '@models/dto/inventory/inventory-stock-update';
 import { toAmount } from '@models/dto/common/money';
 
-import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -40,11 +39,15 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TooltipModule } from 'primeng/tooltip';
 import { CheckboxModule } from 'primeng/checkbox';
-import { TagModule } from 'primeng/tag';
 import { MessageModule } from 'primeng/message';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 import { SearchInput } from '@shared/components/search-input/search-input';
 import { Money as MoneyPipe } from '@shared/pipes/money/money';
+import { RmsBadge } from '@app/shared/ui/badge/badge';
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
+import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
+import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 
 // Wizard step type
 type VariantStep = 'category' | 'supply' | 'variant';
@@ -55,7 +58,6 @@ type VariantStep = 'category' | 'supply' | 'variant';
   imports: [
     TableModule,
     SkeletonModule,
-    ButtonModule,
     IconFieldModule,
     InputTextModule,
     InputIconModule,
@@ -71,12 +73,16 @@ type VariantStep = 'category' | 'supply' | 'variant';
     MultiSelectModule,
     TooltipModule,
     CheckboxModule,
-    TagModule,
     MessageModule,
     LazyLoad,
     TableSkeleton,
     SearchInput,
     MoneyPipe,
+    RmsBadge,
+    RmsButton,
+    RmsEmptyState,
+    RmsIconButton,
+    RmsPageHeader,
   ],
   providers: [MessageService],
   templateUrl: './inventory.html',

@@ -1,13 +1,11 @@
 <div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.workers" (appLazyLoadVisible)="onVisible()">
-  <!-- Header -->
-  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 min-w-0 flex-shrink-0">
-    <div class="min-w-0">
-      <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0 break-words">Administración de trabajadores</h1>
+  <app-rms-page-header title="Administración de trabajadores">
+    <div rmsPageHeaderActions>
+      <app-rms-button iconStart="pi pi-user-plus" (click)="showCreationModal()">
+        Nuevo empleado
+      </app-rms-button>
     </div>
-    <div class="flex items-center gap-2">
-      <p-button icon="pi pi-user-plus" label="Nuevo empleado" pTooltip="Registrar nuevo empleado" tooltipPosition="bottom" aria-label="Registrar nuevo empleado" (click)="showCreationModal()" />
-    </div>
-  </div>
+  </app-rms-page-header>
 
   <!-- Tab navigation -->
   <nav aria-label="Navegación de empleados">
@@ -89,10 +87,13 @@
         }
       </div>
     } @else if (workers().length === 0) {
-      <div class="flex flex-col items-center justify-center h-full p-8">
-        <i class="pi pi-users text-4xl text-surface-300 mb-4" aria-hidden="true"></i>
-        <p class="text-muted text-lg">No hay trabajadores registrados</p>
-      </div>
+      <app-rms-empty-state
+        icon="pi pi-users"
+        title="No hay trabajadores registrados"
+        message="Crea el primer empleado para asignarle un área y horarios."
+        actionLabel="Nuevo empleado"
+        actionIcon="pi pi-user-plus"
+        (action)="showCreationModal()" />
     } @else {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         @for (worker of workers(); track worker.id) {
@@ -133,8 +134,8 @@
         <p-datepicker id="filter-to" [(ngModel)]="filterTo" [showTime]="true" dateFormat="dd/mm/yy" placeholder="Fecha fin"></p-datepicker>
       </div>
       <div class="flex items-end gap-2">
-        <p-button label="Filtrar" icon="pi pi-search" aria-label="Filtrar registros de ingreso" (onClick)="loadTimeLogs()"></p-button>
-        <p-button label="Limpiar" severity="secondary" icon="pi pi-times" aria-label="Limpiar filtros de registros de ingreso" (onClick)="clearFilters()"></p-button>
+        <app-rms-button iconStart="pi pi-search" (click)="loadTimeLogs()">Filtrar</app-rms-button>
+        <app-rms-button variant="secondary" iconStart="pi pi-times" (click)="clearFilters()">Limpiar</app-rms-button>
       </div>
     </div>
 
@@ -147,15 +148,18 @@
       @if (timeLogLoading()) {
         <app-table-skeleton [rowCount]="5" [colCount]="6" />
       } @else if (timeLogError()) {
-        <div class="flex flex-col items-center justify-center h-full p-8">
-          <p class="text-muted">{{ timeLogError() }}</p>
-          <p-button label="Reintentar" icon="pi pi-refresh" aria-label="Reintentar cargar registros de ingreso" (onClick)="loadTimeLogs()" class="mt-4"></p-button>
-        </div>
+        <app-rms-empty-state
+          icon="pi pi-exclamation-triangle"
+          title="No se pudieron cargar los registros"
+          [message]="timeLogError()!"
+          actionLabel="Reintentar"
+          actionIcon="pi pi-refresh"
+          (action)="loadTimeLogs()" />
       } @else if (timeLogs().length === 0) {
-        <div class="flex flex-col items-center justify-center h-full p-8">
-          <i class="pi pi-history text-4xl text-surface-300 mb-4" aria-hidden="true"></i>
-          <p class="text-muted text-lg">Sin registros de ingreso</p>
-        </div>
+        <app-rms-empty-state
+          icon="pi pi-history"
+          title="Sin registros de ingreso"
+          message="No hay marcajes para los filtros seleccionados." />
       } @else {
         <p-table [value]="timeLogs()" dataKey="id" [paginator]="true" [rows]="15"
           [rowsPerPageOptions]="[10, 15, 25, 50]" [loading]="timeLogLoading()" [attr.aria-busy]="timeLogLoading()">
@@ -174,13 +178,11 @@
               <td>{{ log.id }}</td>
               <td>{{ log.workerId }}</td>
               <td>{{ formatTimestamp(log.timestamp) }}</td>
-              <td><p-tag [value]="log.type" severity="info"></p-tag></td>
+              <td><app-rms-badge [label]="log.type" tone="info" /></td>
               <td>
-                @if (log.withinShift) {
-                  <p-tag value="En turno" severity="success"></p-tag>
-                } @else {
-                  <p-tag value="Fuera de turno" severity="danger"></p-tag>
-                }
+                <app-rms-status-pill
+                  [label]="log.withinShift ? 'En turno' : 'Fuera de turno'"
+                  [status]="log.withinShift ? 'success' : 'danger'" />
               </td>
               <td>{{ log.relatedShiftId ?? '-' }}</td>
             </tr>
@@ -357,11 +359,11 @@
 
     <div class="flex justify-start gap-2 mt-8">
       @if (editing) {
-      <p-button icon="pi pi-save" label="Actualizar" aria-label="Actualizar trabajador" (click)="updateWorker()" />
+      <app-rms-button iconStart="pi pi-save" (click)="updateWorker()">Actualizar</app-rms-button>
       } @else {
-      <p-button icon="pi pi-save" label="Crear" aria-label="Crear nuevo trabajador" (click)="createWorker()" />
+      <app-rms-button iconStart="pi pi-save" (click)="createWorker()">Crear</app-rms-button>
       }
-      <p-button icon="pi pi-ban" label="Cancelar" aria-label="Cancelar y cerrar formulario" severity="secondary" (click)="closeModals()" />
+      <app-rms-button variant="secondary" iconStart="pi pi-ban" (click)="closeModals()">Cancelar</app-rms-button>
     </div>
   </div>
 </p-dialog>
@@ -391,31 +393,28 @@
               }
             </div>
             @if (isScheduleAssigned(schedule.id)) {
-              <p-button
-                label="Desasignar"
-                severity="danger"
+              <app-rms-button
+                variant="danger"
+                size="sm"
                 [loading]="isScheduleAssigning(schedule.id)"
-                size="small"
-                aria-label="Desasignar horario {{ schedule.name }}"
-                (click)="unassignSchedule(schedule.id)"
-              />
+                (click)="unassignSchedule(schedule.id)">
+                Desasignar
+              </app-rms-button>
             } @else {
-              <p-button
-                label="Asignar"
-                severity="success"
+              <app-rms-button
+                size="sm"
                 [loading]="isScheduleAssigning(schedule.id)"
-                size="small"
-                aria-label="Asignar horario {{ schedule.name }}"
-                (click)="assignSchedule(schedule.id)"
-              />
+                (click)="assignSchedule(schedule.id)">
+                Asignar
+              </app-rms-button>
             }
           </div>
         }
         @empty {
-          <div class="text-center text-muted py-8">
-            <i class="pi pi-calendar text-3xl mb-3 block" aria-hidden="true"></i>
-            <p>No hay horarios disponibles</p>
-          </div>
+          <app-rms-empty-state
+            icon="pi pi-calendar"
+            title="No hay horarios disponibles"
+            message="Crea una plantilla de horario para poder asignarla." />
         }
       </div>
     }

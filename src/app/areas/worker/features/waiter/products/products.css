@@ -135,6 +135,12 @@
   letter-spacing: 0.02em;
 }
 
+/* The monogram is decorative: rendered as generated content so the button's
+   accessible name stays "Agregar <producto> …" instead of reading the initials. */
+.product-row__monogram::before {
+  content: attr(data-monogram);
+}
+
 .product-row__image {
   position: absolute;
   inset: 0;

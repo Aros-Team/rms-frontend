@@ -92,8 +92,8 @@
             [attr.data-status]="summary.meta.status"
             [class.quadrant--selected]="isSelected(summary.quadrant)"
             [attr.aria-pressed]="isSelected(summary.quadrant)"
-            [attr.aria-label]="'Filtrar por ' + summary.meta.label + ': ' + summary.count + ' productos'"
             (click)="toggleQuadrant(summary.quadrant)">
+            <span class="sr-only">Filtrar por </span>
             <span class="quadrant__head">
               <span class="quadrant__name">
                 <i class="pi" [class]="summary.meta.icon" aria-hidden="true"></i>
@@ -125,7 +125,7 @@
         dataMode="disclosure"
         dataLabel="Ver datos del mapa"
         (retry)="reload()">
-        <p-chart type="bubble" [data]="chartData()" [options]="chartOptions" />
+        <p-chart type="bubble" [data]="chartData()" [options]="chartOptions" [ariaLabel]="chartSummary()" />
         <ul rmsChartLegend class="chart-legend">
           @for (summary of summaries(); track summary.quadrant) {
             <li>
@@ -154,7 +154,7 @@
 
     <section class="panel" aria-labelledby="menu-table-title">
       <h2 id="menu-table-title" class="panel__title">Productos clasificados</h2>
-      <div class="panel__scroll">
+      <div class="panel__scroll" role="region" tabindex="0" aria-label="Productos clasificados, desplazable">
         <table class="data-table">
           <caption class="sr-only">Productos con su cuadrante, ventas y margen</caption>
           <thead>

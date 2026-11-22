@@ -1,10 +1,9 @@
 <div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.areas" (appLazyLoadVisible)="onVisible()">
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
-    <div>
-      <h2 class="text-xl md:text-2xl font-bold">Áreas de Trabajo</h2>
+  <app-rms-page-header title="Áreas de Trabajo">
+    <div rmsPageHeaderActions>
+      <app-rms-button iconStart="pi pi-plus" (click)="showCreateModal()">Nueva área</app-rms-button>
     </div>
-    <p-button label="Nueva área" icon="pi pi-plus" class="btn-icon-text-sm" pTooltip="Crear nueva área" tooltipPosition="bottom" (onClick)="showCreateModal()"></p-button>
-  </div>
+  </app-rms-page-header>
 
   <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 overflow-hidden">
     <p-table #dt [value]="areas()" [loading]="cache.areas.isLoading()" [showLoader]="false" [paginator]="true" [rows]="10" [scrollable]="true" scrollHeight="flex" responsiveLayout="scroll" styleClass="h-full" sortMode="multiple">
@@ -21,14 +20,21 @@
           <td class="font-medium">{{ area.name }}</td>
           <td class="text-sm">{{ areaTypeLabel(area.type) }}</td>
           <td>
-            <span [class]="area.enabled ? 'text-green-600' : 'text-red-600'" class="text-sm">
-              {{ area.enabled ? 'Activo' : 'Inactivo' }}
-            </span>
+            <app-rms-status-pill
+              [label]="area.enabled ? 'Activo' : 'Inactivo'"
+              [status]="area.enabled ? 'success' : 'danger'" />
           </td>
           <td>
             <div class="flex gap-1 items-center justify-center">
-              <p-button icon="pi pi-pencil" [text]="true" severity="warn" size="small" class="btn-icon-only-sm" (onClick)="showEditModal(area)"></p-button>
-              <p-button icon="pi pi-power-off" [text]="true" [severity]="area.enabled ? 'danger' : 'success'" size="small" class="btn-icon-only-sm" (onClick)="toggleArea(area)"></p-button>
+              <app-rms-icon-button
+                icon="pi pi-pencil"
+                [ariaLabel]="'Editar área ' + area.name"
+                (click)="showEditModal(area)" />
+              <app-rms-icon-button
+                icon="pi pi-power-off"
+                [ariaLabel]="(area.enabled ? 'Desactivar área ' : 'Activar área ') + area.name"
+                [variant]="area.enabled ? 'danger' : 'secondary'"
+                (click)="toggleArea(area)" />
             </div>
           </td>
         </tr>
@@ -66,6 +72,7 @@
 
     <p-iftalabel>
       <p-select
+        inputId="type"
         [options]="areaTypes"
         formControlName="type"
         placeholder="Seleccionar tipo"
@@ -79,7 +86,7 @@
   </form>
 
   <ng-template pTemplate="footer">
-    <p-button label="Cancelar" severity="secondary" (onClick)="modalVisible = false"></p-button>
-    <p-button [label]="editMode ? 'Actualizar' : 'Crear'" (onClick)="saveArea()"></p-button>
+    <app-rms-button variant="secondary" (click)="modalVisible = false">Cancelar</app-rms-button>
+    <app-rms-button (click)="saveArea()">{{ editMode ? 'Actualizar' : 'Crear' }}</app-rms-button>
   </ng-template>
 </p-dialog>

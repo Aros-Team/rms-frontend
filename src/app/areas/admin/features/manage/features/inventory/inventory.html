@@ -1,19 +1,17 @@
 <p-toast />
 
 <div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.suppliesPage" (appLazyLoadVisible)="onVisible()">
-  <!-- Header -->
-  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 min-w-0 flex-shrink-0">
-    <div class="min-w-0">
-      <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-0 break-words">Inventario e Insumos</h1>
-    </div>
-    <div class="flex items-center gap-2 flex-shrink-0">
+  <app-rms-page-header title="Inventario e Insumos">
+    <div rmsPageHeaderActions>
       <app-search-input
         placeholder="Buscar compra..."
         (searchChange)="onSearchPurchases($event)"
       />
-      <p-button icon="pi pi-shopping-cart" label="Registrar compra" pTooltip="Registrar nueva compra de insumos" tooltipPosition="bottom" (click)="openPurchaseModal()" />
+      <app-rms-button iconStart="pi pi-shopping-cart" (click)="openPurchaseModal()">
+        Registrar compra
+      </app-rms-button>
     </div>
-  </div>
+  </app-rms-page-header>
 
   <!-- Zero-cost warning -->
   @if (hasZeroUnitCost()) {
@@ -37,6 +35,13 @@
       responsiveLayout="scroll"
       styleClass="h-full"
       [tableStyle]="{'min-width': '700px'}"
+      [pt]="{
+        tableContainer: {
+          tabindex: '0',
+          role: 'region',
+          'aria-label': 'Insumos de bodega y cocina, desplazable'
+        }
+      }"
       [loading]="loading()"
       [showLoader]="false"
     >
@@ -46,10 +51,16 @@
             placeholder="Buscar insumo..."
             (searchChange)="onSearchSupply($event)"
           />
-          <p-button label="Limpiar" [outlined]="true" icon="pi pi-filter-slash" (click)="clearFilters()" />
+          <app-rms-button variant="secondary" size="sm" iconStart="pi pi-filter-slash" (click)="clearFilters()">
+            Limpiar
+          </app-rms-button>
           <div class="flex gap-2 sm:ml-auto flex-wrap">
-            <p-button icon="pi pi-plus" label="Nuevo insumo" severity="secondary" size="small" pTooltip="Registrar nuevo insumo" tooltipPosition="bottom" (click)="openVariantModal()" />
-            <p-button icon="pi pi-arrow-right-arrow-left" label="Transferir a cocina" severity="secondary" size="small" pTooltip="Mover insumos de bodega a cocina" tooltipPosition="bottom" (click)="openTransferDialog()" />
+            <app-rms-button variant="secondary" size="sm" iconStart="pi pi-plus" (click)="openVariantModal()">
+              Nuevo insumo
+            </app-rms-button>
+            <app-rms-button variant="secondary" size="sm" iconStart="pi pi-arrow-right-arrow-left" (click)="openTransferDialog()">
+              Transferir a cocina
+            </app-rms-button>
           </div>
         </div>
       </ng-template>
@@ -74,17 +85,17 @@
             <span class="flex items-center gap-1">
               <span class="text-sm" data-testid="supply-unit-cost">{{ supply.unitCost | money }}</span>
               @if (hasNoCost(supply)) {
-                <p-tag severity="warn" value="Sin costo" />
+                <app-rms-badge label="Sin costo" tone="warning" />
               }
             </span>
           </td>
           <td>
-            <span [class]="supply.stockBodega <= 0 ? 'text-red-500 font-semibold' : 'text-green-600'" class="text-sm">
+            <span [class]="supply.stockBodega <= 0 ? 'text-rms-danger font-semibold' : 'text-rms-success'" class="text-sm">
               {{ supply.stockBodega }}
             </span>
           </td>
           <td>
-            <span [class]="supply.stockCocina <= 0 ? 'text-red-500 font-semibold' : 'text-green-600'" class="text-sm">
+            <span [class]="supply.stockCocina <= 0 ? 'text-rms-danger font-semibold' : 'text-rms-success'" class="text-sm">
               {{ supply.stockCocina }}
             </span>
           </td>
@@ -125,8 +136,8 @@
         <div
           class="flex items-center justify-center w-7 h-7 rounded-full text-sm font-semibold"
           [class]="variantStep() === step.key
-            ? 'bg-primary-500 text-primary-contrast'
-            : 'bg-surface-200 dark:bg-surface-700 text-muted'"
+            ? 'bg-rms-brand text-rms-on-brand'
+            : 'bg-rms-subtle text-rms-ink-muted'"
         >{{ i + 1 }}</div>
         <span class="text-sm" [class.font-semibold]="variantStep() === step.key">{{ step.label }}</span>
         @if (i < 2) {
@@ -177,8 +188,8 @@
       }
     </form>
     <div class="flex justify-between mt-6">
-      <p-button label="Cancelar" severity="secondary" icon="pi pi-ban" (click)="closeVariantModal()" />
-      <p-button label="Siguiente" icon="pi pi-arrow-right" iconPos="right" [loading]="variantSubmitting" (click)="confirmCategory()" />
+      <app-rms-button variant="secondary" iconStart="pi pi-ban" (click)="closeVariantModal()">Cancelar</app-rms-button>
+      <app-rms-button iconEnd="pi pi-arrow-right" [loading]="variantSubmitting" (click)="confirmCategory()">Siguiente</app-rms-button>
     </div>
   }
 
@@ -197,8 +208,8 @@
       </p-iftalabel>
     </form>
     <div class="flex justify-between mt-6">
-      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="variantStep.set('category')" />
-      <p-button label="Siguiente" icon="pi pi-arrow-right" iconPos="right" [loading]="variantSubmitting" (click)="confirmSupply()" />
+      <app-rms-button variant="secondary" iconStart="pi pi-arrow-left" (click)="variantStep.set('category')">Atrás</app-rms-button>
+      <app-rms-button iconEnd="pi pi-arrow-right" [loading]="variantSubmitting" (click)="confirmSupply()">Siguiente</app-rms-button>
     </div>
   }
 
@@ -247,8 +258,8 @@
       <small class="text-muted -mt-3">Necesario para la herramienta de precio sugerido de combinaciones</small>
     </form>
     <div class="flex justify-between mt-6">
-      <p-button label="Atrás" severity="secondary" icon="pi pi-arrow-left" (click)="variantStep.set('supply')" />
-      <p-button label="Registrar" icon="pi pi-save" [loading]="variantSubmitting" (click)="submitVariant()" />
+      <app-rms-button variant="secondary" iconStart="pi pi-arrow-left" (click)="variantStep.set('supply')">Atrás</app-rms-button>
+      <app-rms-button iconStart="pi pi-save" [loading]="variantSubmitting" (click)="submitVariant()">Registrar</app-rms-button>
     </div>
   }
 </p-dialog>
@@ -283,14 +294,12 @@
           />
           <label for="supplierId">Distribuidor</label>
         </p-iftalabel>
-        <p-button
+        <app-rms-icon-button
           icon="pi pi-plus"
-          [outlined]="true"
-          size="small"
-          pTooltip="Crear nuevo distribuidor"
-          tooltipPosition="top"
+          ariaLabel="Crear nuevo distribuidor"
+          tooltip="Crear nuevo distribuidor"
+          variant="secondary"
           (click)="openNewSupplierDialog()"
-          aria-label="Crear nuevo distribuidor"
         />
       </div>
 
@@ -337,8 +346,10 @@
 
     <div>
       <div class="flex items-center justify-between mb-2">
-        <span class="font-semibold text-surface-700 dark:text-surface-300">Ítems de la compra</span>
-        <p-button icon="pi pi-plus" label="Agregar ítem" size="small" [outlined]="true" (click)="addItem()" />
+        <span class="font-semibold text-rms-ink-secondary">Ítems de la compra</span>
+        <app-rms-button variant="secondary" size="sm" iconStart="pi pi-plus" (click)="addItem()">
+          Agregar ítem
+        </app-rms-button>
       </div>
 
       <div formArrayName="items" class="flex flex-col gap-3">
@@ -383,14 +394,12 @@
                 <label [for]="'supply-' + $index">Insumo</label>
               </p-iftalabel>
 
-              <p-button
+              <app-rms-icon-button
                 icon="pi pi-trash"
-                severity="danger"
-                [outlined]="true"
-                size="small"
+                ariaLabel="Eliminar ítem"
+                variant="danger"
                 [disabled]="items.length === 1"
                 (click)="removeItem($index)"
-                aria-label="Eliminar ítem"
               />
             </div>
 
@@ -440,8 +449,8 @@
   </form>
 
   <div class="flex justify-start gap-2 mt-6">
-    <p-button icon="pi pi-save" label="Registrar compra" [loading]="submitting" (click)="submitPurchase()" />
-    <p-button icon="pi pi-ban" label="Cancelar" severity="secondary" (click)="closeModal()" />
+    <app-rms-button iconStart="pi pi-save" [loading]="submitting" (click)="submitPurchase()">Registrar compra</app-rms-button>
+    <app-rms-button variant="secondary" iconStart="pi pi-ban" (click)="closeModal()">Cancelar</app-rms-button>
   </div>
 </p-dialog>
 
@@ -467,7 +476,7 @@
       <label for="supplierName">Nombre *</label>
     </p-iftalabel>
     @if (isInvalid(newSupplierForm, 'name')) {
-      <small class="text-red-500 -mt-3">El nombre es requerido</small>
+      <small class="text-rms-danger -mt-3">El nombre es requerido</small>
     }
 
     <p-iftalabel>
@@ -482,8 +491,8 @@
   </form>
 
   <div class="flex justify-end gap-2 mt-6">
-    <p-button label="Cancelar" severity="secondary" icon="pi pi-times" (click)="closeNewSupplierDialog()" />
-    <p-button label="Crear" icon="pi pi-check" [loading]="newSupplierSubmitting()" (click)="submitNewSupplier()" />
+    <app-rms-button variant="secondary" iconStart="pi pi-times" (click)="closeNewSupplierDialog()">Cancelar</app-rms-button>
+    <app-rms-button iconStart="pi pi-check" [loading]="newSupplierSubmitting()" (click)="submitNewSupplier()">Crear</app-rms-button>
   </div>
 </p-dialog>
 
@@ -530,17 +539,25 @@
   </div>
 
   @if (transferableSupplies().length === 0) {
-    <p class="text-center text-muted py-6">No hay insumos con stock en bodega disponibles para transferir.</p>
+    <app-rms-empty-state
+      icon="pi pi-box"
+      title="Sin insumos en bodega"
+      message="No hay insumos con stock disponibles para transferir a cocina."
+    />
   } @else if (filteredTransferSupplies().length === 0) {
-    <p class="text-center text-muted py-6">No hay resultados para la búsqueda.</p>
+    <app-rms-empty-state
+      icon="pi pi-search"
+      title="Sin resultados"
+      message="No hay insumos que coincidan con la búsqueda."
+    />
   } @else {
     <div class="flex flex-col gap-2 max-h-80 overflow-y-auto pr-1" role="list" aria-label="Insumos disponibles para transferir">
       @for (supply of filteredTransferSupplies(); track supply.id) {
         <div
           class="flex items-center gap-3 p-3 rounded-lg border transition-colors"
           [class]="isTransferSelected(supply.id)
-            ? 'border-primary-400 bg-primary-50 dark:bg-primary-950'
-            : 'border-surface-200 dark:border-surface-700'"
+            ? 'border-rms-brand bg-rms-brand-soft'
+            : 'border-rms-border'"
           role="listitem"
         >
           <p-checkbox
@@ -558,15 +575,13 @@
           </label>
           @if (isTransferSelected(supply.id)) {
             <div class="flex items-center gap-1 shrink-0">
-              <p-button
+              <app-rms-icon-button
                 icon="pi pi-minus"
-                [rounded]="true"
-                [text]="true"
-                size="small"
-                severity="secondary"
+                size="sm"
+                variant="secondary"
+                [ariaLabel]="'Reducir cantidad de ' + supply.supplyName"
                 (click)="setTransferQty(supply.id, +(getTransferQty(supply.id) - 1).toFixed(3))"
                 [disabled]="getTransferQty(supply.id) <= 1"
-                [attr.aria-label]="'Reducir cantidad de ' + supply.supplyName"
               />
               <input
                 type="number"
@@ -578,15 +593,13 @@
                 step="1"
                 [attr.aria-label]="'Cantidad a transferir de ' + supply.supplyName"
               />
-              <p-button
+              <app-rms-icon-button
                 icon="pi pi-plus"
-                [rounded]="true"
-                [text]="true"
-                size="small"
-                severity="secondary"
+                size="sm"
+                variant="secondary"
+                [ariaLabel]="'Aumentar cantidad de ' + supply.supplyName"
                 (click)="setTransferQty(supply.id, +(getTransferQty(supply.id) + 1).toFixed(3))"
                 [disabled]="getTransferQty(supply.id) >= supply.stockBodega"
-                [attr.aria-label]="'Aumentar cantidad de ' + supply.supplyName"
               />
             </div>
           }
@@ -600,15 +613,14 @@
       {{ transferSelected().size }} insumo(s) seleccionado(s)
     </span>
     <div class="flex gap-2">
-      <p-button label="Cancelar" severity="secondary" icon="pi pi-times" (click)="closeTransferDialog()" />
-      <p-button
-        label="Transferir a cocina"
-        icon="pi pi-arrow-right"
-        iconPos="right"
+      <app-rms-button variant="secondary" iconStart="pi pi-times" (click)="closeTransferDialog()">Cancelar</app-rms-button>
+      <app-rms-button
+        iconEnd="pi pi-arrow-right"
         [loading]="transferSubmitting()"
         [disabled]="transferSelected().size === 0"
-        (click)="submitTransfer()"
-      />
+        (click)="submitTransfer()">
+        Transferir a cocina
+      </app-rms-button>
     </div>
   </div>
 </p-dialog>
