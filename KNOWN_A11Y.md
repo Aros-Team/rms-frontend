@@ -7,69 +7,77 @@ This file is the explicit allowlist-free inventory of what is still red. The a11
 specs keep failing on these; nothing is silenced in the test code. `/dev/ui` is
 exempt from the axe gate by request and is not counted here.
 
-Last verified: 2026-11-21 (full run after the Shell and Design System lanes merged).
-Result: **32 failing routes, 68 rule-route pairs, 10 rule types**.
-Axe artifacts: `docs/sprint-0/artifacts/playwright/a11y/<role>/<route>.json`.
+Last verified: 2026-11-22 (refactor wave merged: settings, schedules, live
+analytics, recipe editor, kitchen TV, cashier board).
+Result: **40 unique failing role-routes, 81 rule-route pairs, 9 rule types**. The
+suite reports **43 failing tests** because the three kitchen routes run in both
+`kitchen-tv` (1920x1080) and `kitchen-tablet` (1024x768).
+Axe artifacts: `docs/sprint-0/artifacts/playwright/a11y/<role>/<route>--<project>.json`.
 
 ## Violation id → routes
 
-### `button-name` (critical, 26 routes)
+### `button-name` (critical, 29 role-routes)
 
-`/admin`, `/admin/orders`, `/admin/manage`, `/admin/manage/products`,
-`/admin/manage/products/1/recipe`, `/admin/manage/categories`,
-`/admin/manage/tables`, `/admin/manage/areas`, `/admin/manage/combos`,
-`/admin/manage/combos/new`, `/admin/manage/combos/1/edit`,
-`/admin/manage/combos/1/history`, `/admin/manage/orders-create`,
-`/admin/manage/workers`, `/admin/manage/workers/1001/salary-history`,
-`/admin/manage/inventory`, `/admin/analytics`, `/admin/analytics/prime-cost`,
-`/admin/analytics/menu-engineering`, `/admin/analytics/operations`,
-`/admin/analytics/cohort`, `/admin/analytics/alerts`, `/admin/create-product`,
-`/admin/profile`, `/worker/profile`, `/worker/waiter?tab=pedidos`.
-
-### `label-content-name-mismatch` (serious, 13 routes)
-
+Admin: `/admin`, `/admin/orders`, `/admin/schedules`,
+`/admin/schedules?tab=plantillas`, `/admin/schedules?tab=registros`,
+`/admin/manage`, `/admin/manage/products`, `/admin/manage/products/1/recipe`,
+`/admin/manage/categories`, `/admin/manage/tables`, `/admin/manage/areas`,
+`/admin/manage/combos`, `/admin/manage/combos/new`,
+`/admin/manage/combos/1/edit`, `/admin/manage/combos/1/history`,
+`/admin/manage/orders-create`, `/admin/manage/workers`,
+`/admin/manage/workers/1001/salary-history`, `/admin/manage/inventory`,
 `/admin/analytics`, `/admin/analytics/prime-cost`,
 `/admin/analytics/menu-engineering`, `/admin/analytics/operations`,
-`/admin/analytics/cohort`, `/admin/analytics/alerts`, `/worker`,
-`/worker/waiter`, `/worker/waiter?tab=carta`, `/worker/waiter?tab=pedidos`,
-`/worker/combos/1`, `/worker/my-schedule`, `/worker/profile`.
+`/admin/analytics/cohort`, `/admin/analytics/alerts`, `/admin/settings`,
+`/admin/create-product`, `/admin/profile`.
+Waiter: `/worker/profile`.
 
-### `nested-interactive` (serious, 7 routes)
+### `color-contrast` (serious, 24 role-routes)
 
-`/worker`, `/worker/waiter`, `/worker/waiter?tab=carta`,
+Admin: `/admin/analytics`, `/admin/analytics/prime-cost`,
+`/admin/analytics/menu-engineering`, `/admin/analytics/operations`,
+`/admin/analytics/cohort`, `/admin/analytics/alerts`, `/admin/manage/areas`,
+`/admin/manage/inventory`, `/admin/schedules`, `/admin/settings`.
+Waiter: `/worker`, `/worker/waiter`, `/worker/waiter?tab=carta`,
+`/worker/waiter?tab=pedidos`, `/worker/combos/1`, `/worker/my-schedule`.
+Kitchen: `/worker`, `/worker/kitchen`, `/worker/my-schedule` (both kitchen
+projects).
+Cashier: `/worker/my-schedule`.
+Public: `/setup-account`.
+
+### `label-content-name-mismatch` (serious, 14 role-routes)
+
+Admin: `/admin/analytics`, `/admin/analytics/prime-cost`,
+`/admin/analytics/menu-engineering`, `/admin/analytics/operations`,
+`/admin/analytics/cohort`, `/admin/analytics/alerts`, `/admin/schedules`.
+Waiter: `/worker`, `/worker/waiter`, `/worker/waiter?tab=carta`,
 `/worker/waiter?tab=pedidos`, `/worker/combos/1`, `/worker/my-schedule`,
 `/worker/profile`.
 
-### `role-img-alt` (serious, 6 routes)
+### `role-img-alt` (serious, 5 role-routes)
 
 `/admin/analytics`, `/admin/analytics/prime-cost`,
 `/admin/analytics/menu-engineering`, `/admin/analytics/operations`,
-`/admin/analytics/cohort`, `/admin/analytics/alerts`.
+`/admin/analytics/cohort`.
 
-### `color-contrast` (serious, 5 routes)
-
-`/admin/manage/areas`, `/admin/manage/inventory`, `/setup-account`,
-`/worker/combos/1`, `/worker/waiter?tab=carta`.
-
-### `scrollable-region-focusable` (serious, 5 routes)
+### `scrollable-region-focusable` (serious, 4 role-routes)
 
 `/admin/analytics`, `/admin/analytics/prime-cost`,
-`/admin/analytics/operations`, `/admin/analytics/alerts`,
-`/admin/manage/inventory`.
+`/admin/analytics/menu-engineering`, `/admin/manage/inventory`.
 
-### `aria-prohibited-attr` (serious, 2 routes)
+### `aria-prohibited-attr` (serious, 2 role-routes)
 
 `/admin/manage/combos/new`, `/admin/manage/combos/1/edit`.
 
-### `label` (critical, 2 routes)
-
-`/admin/manage/products/1/recipe`, `/worker/waiter?tab=pedidos`.
-
-### `aria-hidden-focus` (serious, 1 route)
+### `aria-hidden-focus` (serious, 1 role-route)
 
 `/admin/manage/categories`.
 
-### `select-name` (critical, 1 route)
+### `label` (critical, 1 role-route)
+
+`/admin/manage/combos`.
+
+### `select-name` (critical, 1 role-route)
 
 `/admin/create-product`.
 

@@ -3,6 +3,7 @@ import { expectShell, type RouteCase } from './routes';
 import { settle } from './collect';
 import { openRoute, type SuiteRole } from './smoke-suite';
 import { publicStorageState } from './paths';
+import { freezeClock, visualMasks } from './visual-determinism';
 
 /**
  * Baseline visual snapshots (light theme only in Sprint 0).
@@ -26,16 +27,21 @@ export function defineVisualSuite(
 
     for (const route of routes) {
       test(`${route.label} — ${route.path}`, async ({ page }) => {
+        await freezeClock(page);
         await openRoute(page, route.path);
         await expectShell(page, route);
 
         // Charts animate on canvas; let them reach their final frame.
         await settle(page, 1_200);
         await page.evaluate(() => window.scrollTo(0, 0));
-
+        const masks = await visualMasks(page);
         await expect(page).toHaveScreenshot(`${route.slug}.png`, {
-          fullPage: true,
-          mask: [page.locator('.p-toast'), page.locator('.p-toast-message')],
+          // The kitchen is a station board sized to the screen; fullPage would
+          // change height with the number of queued cards. Other workspaces
+          // keep the whole scrollable page in the baseline.
+          fullPage: role !== 'kitchen',
+          mask: masks,
+          maskColor: '#e2e8f0',
           timeout: 20_000,
         });
       });

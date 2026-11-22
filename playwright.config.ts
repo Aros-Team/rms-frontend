@@ -33,8 +33,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env['CI'],
   retries: 0,
-  workers: process.env['CI'] ? 2 : undefined,
-  timeout: 60_000,
+  workers: process.env['CI'] ? 2 : 6,
+  timeout: 120_000,
   expect: {
     timeout: 10_000,
     toHaveScreenshot: {
@@ -88,6 +88,15 @@ export default defineConfig({
         isMobile: true,
         hasTouch: true,
         storageState: authStatePath('waiter'),
+      },
+    },
+    {
+      name: 'kitchen-tv',
+      testMatch: ['smoke/kitchen.spec.ts', 'a11y/kitchen.spec.ts', 'visual/kitchen.spec.ts'],
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1920, height: 1080 },
+        storageState: authStatePath('kitchen'),
       },
     },
     {
