@@ -3,6 +3,12 @@
 @import "primeicons/primeicons.css";
 @import "tailwindcss-primeui";
 
+/* Design-system tokens and global primitives. Both are plain CSS custom
+   properties/classes, loaded before the legacy rules below so the existing
+   screens keep their current appearance while new code reads the tokens. */
+@import "./styles/tokens.css";
+@import "./styles/global.css";
+
 /* Archivo — variable font (weights 400-900).
    Self-hosted subsets so `font-medium` (500), `font-semibold` (600) and
    `font-black` (900) render as designed instead of snapping to 400/700.
@@ -61,6 +67,52 @@
   --radius-card: 1rem;         /* 16 px */
   --radius-container: 1.5rem;  /* 24 px */
   --radius-sheet-top: 1.75rem; /* 28 px */
+
+  /* ========================================
+     Semantic token utilities (see docs/DESIGN.md)
+     `bg-rms-surface`, `text-rms-ink`, `border-rms-border`, `text-rms-h1` …
+     resolve to the runtime tokens in `src/styles/tokens.css`, so they follow
+     light, dark and high contrast without a `dark:` variant.
+     ======================================== */
+  --color-rms-page: var(--rms-bg-page);
+  --color-rms-surface: var(--rms-bg-surface);
+  --color-rms-subtle: var(--rms-bg-subtle);
+  --color-rms-sunken: var(--rms-bg-sunken);
+
+  --color-rms-border: var(--rms-border);
+  --color-rms-border-strong: var(--rms-border-strong);
+
+  --color-rms-ink: var(--rms-text);
+  --color-rms-ink-secondary: var(--rms-text-secondary);
+  --color-rms-ink-muted: var(--rms-text-muted);
+  --color-rms-ink-inverse: var(--rms-text-inverse);
+
+  --color-rms-brand: var(--rms-brand-500);
+  --color-rms-brand-text: var(--rms-brand-text);
+  --color-rms-brand-soft: var(--rms-brand-soft);
+  --color-rms-on-brand: var(--rms-on-brand);
+
+  --color-rms-success: var(--rms-success-fg);
+  --color-rms-warning: var(--rms-warning-fg);
+  --color-rms-danger: var(--rms-danger-fg);
+  --color-rms-info: var(--rms-info-fg);
+
+  --text-rms-display: var(--rms-type-display-size);
+  --text-rms-display--line-height: var(--rms-type-display-line);
+  --text-rms-h1: var(--rms-type-h1-size);
+  --text-rms-h1--line-height: var(--rms-type-h1-line);
+  --text-rms-h2: var(--rms-type-h2-size);
+  --text-rms-h2--line-height: var(--rms-type-h2-line);
+  --text-rms-h3: var(--rms-type-h3-size);
+  --text-rms-h3--line-height: var(--rms-type-h3-line);
+  --text-rms-h4: var(--rms-type-h4-size);
+  --text-rms-h4--line-height: var(--rms-type-h4-line);
+  --text-rms-body: var(--rms-type-body-size);
+  --text-rms-body--line-height: var(--rms-type-body-line);
+  --text-rms-caption: var(--rms-type-caption-size);
+  --text-rms-caption--line-height: var(--rms-type-caption-line);
+  --text-rms-label: var(--rms-type-label-size);
+  --text-rms-label--line-height: var(--rms-type-label-line);
 }
 
 /* Waiter Service spacing scale (8 px base).
@@ -114,11 +166,11 @@
    flips with the theme — dark bronze on light, pale gold on dark.
    ======================================== */
 :root {
-  --accent-text: #8a6508; /* 5.3:1 on #ffffff, 5.1:1 on the slate-50 page */
+  --accent-text: var(--rms-brand-text); /* 5.3:1 on #ffffff, 5.1:1 on the slate-50 page */
 }
 
 html.dark {
-  --accent-text: #f2daa2; /* 12.9:1 on the dark page */
+  --accent-text: var(--rms-brand-text); /* 12.9:1 on the dark page */
 }
 
 /* Secondary / muted copy. The numeric surface scale cannot serve both themes
@@ -126,11 +178,11 @@ html.dark {
    one, and `text-surface-400` is the other way round. One semantic token keeps
    the intent and stays readable in both. */
 :root {
-  --muted-text: #475569; /* 7.2:1 on the slate-50 page */
+  --muted-text: var(--rms-text-secondary); /* 7.2:1 on the slate-50 page */
 }
 
 html.dark {
-  --muted-text: #a1a1aa; /* 6.6:1 on the dark page */
+  --muted-text: var(--rms-text-secondary); /* 9.85:1 on the dark surface */
 }
 
 /* Usable as `text-accent` / `!text-accent`, like any Tailwind colour. */
@@ -140,6 +192,14 @@ html.dark {
 
 @utility text-muted {
   color: var(--muted-text);
+}
+
+/* Legacy bridge: `text-primary` renders the brand gold as text (1.73:1 on
+   white). Products must stop doing that, but until feature templates migrate
+   (P1-DS-11) the safe token wins. Unlayered, so it beats the Tailwind utility.
+   Do not add new `text-primary` usages; use `text-rms-brand-text`. */
+.text-primary {
+  color: var(--rms-brand-text);
 }
 
 .logo {
@@ -365,7 +425,10 @@ body {
 body {
   overflow-x: clip;
   overflow-wrap: break-word;
-  hyphens: auto;
+  /* UI copy never hyphenates. Product names and button labels broke mid-word
+     ("Dou-ble", "Actuali-zar") with `auto`. Long words wrap, they never split
+     with an inserted hyphen. */
+  hyphens: manual;
 }
 
 .flex > * {
@@ -599,18 +662,12 @@ canvas {
 }
 
 /* Table header contrast.
-   NOTE: PrimeNG v18+ exposes its palette as `--p-surface-*`. The bare
-   `--surface-*` names used here previously were undefined, so these
-   declarations were silently dropped. The scale is NOT inverted in dark
-   mode: light uses the low numbers, dark uses the high ones. */
+   One source of truth: the semantic table tokens, not a second palette.
+   The PrimeNG surface scale is mapped to the same slate ramp in both themes
+   (see `app.config.ts`), so no local `!important` override is needed. */
 .p-datatable .p-datatable-thead > tr > th {
-  background: var(--p-surface-100);
-  color: var(--p-surface-700);
-}
-
-:root.dark .p-datatable .p-datatable-thead > tr > th {
-  background: var(--p-surface-700);
-  color: var(--p-surface-200);
+  background: var(--rms-table-header-bg);
+  color: var(--rms-text-secondary);
 }
 
 /* ========================================
@@ -667,18 +724,20 @@ html {
   }
 }
 
-/* PrimeNG inputs - lighter background in dark mode */
-:root.dark .p-inputtext,
-:root.dark .p-select,
-:root.dark .p-multiselect,
-:root.dark .p-iconfield .p-inputtext {
-  background-color: var(--p-surface-800) !important;
+/* PrimeNG inputs — semantic control surface, identical in both themes
+   (inputs sit on the card surface with a strong border; they never sink). */
+.p-inputtext,
+.p-select,
+.p-multiselect,
+.p-iconfield .p-inputtext {
+  background-color: var(--rms-control-bg);
 }
 
 .p-datatable .p-datatable-tbody > tr:hover {
-  background: var(--p-surface-50);
+  background: var(--rms-table-row-hover);
 }
 
-:root.dark .p-datatable .p-datatable-tbody > tr:hover {
-  background: var(--p-surface-800);
+.p-datatable .p-datatable-tbody > tr.p-highlight {
+  background: var(--rms-table-row-selected);
+  color: var(--rms-text);
 }

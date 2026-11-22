@@ -1,0 +1,28 @@
+<header class="rms-page-header">
+  @if (backLabel) {
+    <app-rms-button
+      class="rms-page-header__back"
+      variant="link"
+      iconStart="pi pi-arrow-left"
+      (click)="back.emit()"
+    >
+      {{ backLabel }}
+    </app-rms-button>
+  }
+
+  <div class="rms-page-header__row">
+    <div class="rms-page-header__heading">
+      <h1 class="rms-page-header__title">{{ title }}</h1>
+      @if (subtitle) {
+        <p class="rms-page-header__subtitle">{{ subtitle }}</p>
+      }
+      <div class="rms-page-header__meta">
+        <ng-content select="[rmsPageHeaderMeta]" />
+      </div>
+    </div>
+
+    <div class="rms-page-header__actions">
+      <ng-content select="[rmsPageHeaderActions]" />
+    </div>
+  </div>
+</header>

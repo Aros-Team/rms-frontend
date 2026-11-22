@@ -1,0 +1,25 @@
+<div class="rms-stat" [class.rms-stat--emphasis]="emphasis">
+  <div class="rms-stat__head">
+    <span class="rms-stat__label">{{ label }}</span>
+    @if (icon) {
+      <i class="pi rms-stat__icon" [class]="icon" aria-hidden="true"></i>
+    }
+  </div>
+
+  @if (loading) {
+    <app-rms-skeleton width="55%" height="2rem" ariaLabel="Cargando indicador" />
+  } @else {
+    <p class="rms-stat__value">{{ displayValue }}</p>
+
+    @if (delta) {
+      <span [class]="'rms-stat__delta rms-stat__delta--' + deltaTone">
+        <i class="pi" [class]="deltaIcon" aria-hidden="true"></i>
+        {{ delta }}
+      </span>
+    }
+
+    @if (period) {
+      <p class="rms-stat__period">{{ period }}</p>
+    }
+  }
+</div>

@@ -45,73 +45,211 @@ import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
 import { theme } from '../environments/theme';
 
-const Primary = theme.primary;
 const Semantic = theme.semantic;
-const Surface = theme.surface;
 
 const arosPreset = definePreset(Aura, {
   semantic: {
+    /**
+     * Brand ramp. Gold is a fill: `primary.color` is the CTA background and
+     * `primary.contrastColor` is the ink on it. The numbered scale only feeds
+     * tints (hover backgrounds, highlighted rows, tags).
+     */
     primary: {
-      50: '{Primary.50}',
-      100: '{Primary.100}',
-      200: '{Primary.200}',
-      300: '{Primary.300}',
-      400: '{Primary.400}',
-      500: '{Primary.500}',
-      600: '{Primary.600}',
-      700: '{Primary.700}',
-      800: '{Primary.800}',
-      900: '{Primary.900}',
-      950: '{Primary.950}'
+      50: '#fef7e0',
+      100: '#fdf0c8',
+      200: '#fbe08f',
+      300: '#f9cf52',
+      400: '#f9bb0b',
+      500: '#f9bb0b',
+      600: '#d9a209',
+      700: '#b07e06',
+      800: '#8a6508',
+      900: '#6b4e06',
+      950: '#2e2202'
     },
+
+    /** One focus ring for every component; same value as `--rms-focus`. */
+    focusRing: {
+      width: '2px',
+      style: 'solid',
+      color: 'var(--rms-focus)',
+      offset: '2px',
+      shadow: 'none'
+    },
+
     colorScheme: {
       light: {
-        // PrimeNG's muted text (select labels, table empties, paginator) was
-        // surface-500, which lands at 3.9:1 on the light surfaces.
-        text: {
-          mutedColor: '{surface.600}',
+        /* Same slate ramp as `--rms-neutral-*`, both themes. Never zinc. */
+        surface: {
+          0: '#ffffff',
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          200: '#e2e8f0',
+          300: '#cbd5e1',
+          400: '#94a3b8',
+          500: '#64748b',
+          600: '#475569',
+          700: '#334155',
+          800: '#1e293b',
+          900: '#0f172a',
+          950: '#020617'
         },
         primary: {
-          color: '{primary.500}',
-          // NOTE: keep this white. `bg-primary-contrast` resolves to this token
-          // and the app uses it as its card surface, so a dark value here would
-          // paint every card near-black. Button label contrast is handled by
-          // the button component tokens below.
+          color: 'var(--rms-brand-500)',
+          // Legacy templates use `bg-primary-contrast` as the card surface.
+          // Keep it white; button labels get their own ink token below.
           contrastColor: '#ffffff',
-          hoverColor: '{primary.600}',
-          activeColor: '{primary.700}'
+          hoverColor: 'var(--rms-brand-600)',
+          activeColor: 'var(--rms-brand-700)'
         },
-        info: { color: '{Semantic.info.500}', contrastColor: '#ffffff' },
-        success: { color: '{Semantic.success.500}', contrastColor: '#ffffff' },
-        warn: { color: '{Semantic.warn.500}', contrastColor: '#1e1b19' },
-        surface: {
-          0: '{Surface.0}',
-          50: '{Surface.50}',
-          100: '{Surface.100}',
-          200: '{Surface.200}',
-          300: '{Surface.300}',
-          400: '{Surface.400}',
-          500: '{Surface.500}'
-        }
+        text: {
+          color: '#0f172a',
+          hoverColor: '#020617',
+          mutedColor: '#64748b',
+          hoverMutedColor: '#475569'
+        },
+        content: {
+          background: '#ffffff',
+          hoverBackground: '#f1f5f9',
+          borderColor: '#e2e8f0',
+          color: '#0f172a',
+          hoverColor: '#020617'
+        },
+        highlight: {
+          background: 'var(--rms-bg-selected)',
+          focusBackground: 'var(--rms-bg-selected)',
+          color: 'var(--rms-brand-text)',
+          focusColor: 'var(--rms-brand-text)'
+        },
+        formField: {
+          background: '#ffffff',
+          disabledBackground: '#f1f5f9',
+          filledBackground: '#f8fafc',
+          filledHoverBackground: '#f8fafc',
+          filledFocusBackground: '#ffffff',
+          borderColor: '#cbd5e1',
+          hoverBorderColor: '#94a3b8',
+          focusBorderColor: 'var(--rms-focus)',
+          invalidBorderColor: '#b91c1c',
+          color: '#0f172a',
+          disabledColor: '#94a3b8',
+          placeholderColor: '#64748b',
+          invalidPlaceholderColor: '#b91c1c',
+          floatLabelColor: '#64748b',
+          floatLabelFocusColor: 'var(--rms-brand-text)',
+          floatLabelActiveColor: '#475569',
+          iconColor: '#64748b',
+          shadow: 'none'
+        },
+        overlay: {
+          select: { background: '#ffffff', borderColor: '#e2e8f0', color: '#0f172a' },
+          popover: { background: '#ffffff', borderColor: '#e2e8f0', color: '#0f172a' },
+          modal: { background: '#ffffff', borderColor: '#e2e8f0', color: '#0f172a' }
+        },
+        list: {
+          option: {
+            focusBackground: '#f1f5f9',
+            selectedBackground: 'var(--rms-bg-selected)',
+            selectedFocusBackground: 'var(--rms-bg-selected)',
+            color: '#0f172a',
+            focusColor: '#020617',
+            selectedColor: 'var(--rms-brand-text)',
+            selectedFocusColor: 'var(--rms-brand-text)'
+          }
+        },
+        mask: { background: 'var(--rms-bg-overlay)', color: '#e2e8f0' },
+        info: { color: '#1d4ed8', contrastColor: '#ffffff' },
+        success: { color: '#047857', contrastColor: '#ffffff' },
+        warn: { color: '#b45309', contrastColor: '#ffffff' },
+        danger: { color: '#b91c1c', contrastColor: '#ffffff' }
       },
       dark: {
-        primary: {
-          color: '{Primary.400}',
-          contrastColor: '#1e1b19',
-          hoverColor: '{Primary.300}',
-          activeColor: '{Primary.200}'
+        surface: {
+          0: '#ffffff',
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          200: '#e2e8f0',
+          300: '#cbd5e1',
+          400: '#94a3b8',
+          500: '#64748b',
+          600: '#475569',
+          700: '#334155',
+          800: '#1e293b',
+          900: '#0f172a',
+          950: '#020617'
         },
-        info: { color: '{Semantic.info.400}', contrastColor: '#0a0a0a' },
-        success: { color: '{Semantic.success.400}', contrastColor: '#0a0a0a' },
-        warn: { color: '{Semantic.warn.400}', contrastColor: '#0a0a0a' }
+        primary: {
+          color: 'var(--rms-brand-500)',
+          contrastColor: '#ffffff',
+          hoverColor: 'var(--rms-brand-600)',
+          activeColor: 'var(--rms-brand-700)'
+        },
+        text: {
+          color: '#e2e8f0',
+          hoverColor: '#f8fafc',
+          mutedColor: '#94a3b8',
+          hoverMutedColor: '#cbd5e1'
+        },
+        content: {
+          background: '#1e293b',
+          hoverBackground: '#172033',
+          borderColor: '#334155',
+          color: '#e2e8f0',
+          hoverColor: '#f8fafc'
+        },
+        highlight: {
+          background: 'var(--rms-bg-selected)',
+          focusBackground: 'var(--rms-bg-selected)',
+          color: 'var(--rms-brand-text)',
+          focusColor: 'var(--rms-brand-text)'
+        },
+        formField: {
+          background: '#1e293b',
+          disabledBackground: '#172033',
+          filledBackground: '#172033',
+          filledHoverBackground: '#172033',
+          filledFocusBackground: '#1e293b',
+          borderColor: '#475569',
+          hoverBorderColor: '#64748b',
+          focusBorderColor: 'var(--rms-focus)',
+          invalidBorderColor: '#ef4444',
+          color: '#e2e8f0',
+          disabledColor: '#64748b',
+          placeholderColor: '#94a3b8',
+          invalidPlaceholderColor: '#fca5a5',
+          floatLabelColor: '#94a3b8',
+          floatLabelFocusColor: 'var(--rms-brand-text)',
+          floatLabelActiveColor: '#cbd5e1',
+          iconColor: '#94a3b8',
+          shadow: 'none'
+        },
+        overlay: {
+          select: { background: '#1e293b', borderColor: '#334155', color: '#e2e8f0' },
+          popover: { background: '#1e293b', borderColor: '#334155', color: '#e2e8f0' },
+          modal: { background: '#1e293b', borderColor: '#334155', color: '#e2e8f0' }
+        },
+        list: {
+          option: {
+            focusBackground: '#172033',
+            selectedBackground: 'var(--rms-bg-selected)',
+            selectedFocusBackground: 'var(--rms-bg-selected)',
+            color: '#e2e8f0',
+            focusColor: '#f8fafc',
+            selectedColor: 'var(--rms-brand-text)',
+            selectedFocusColor: 'var(--rms-brand-text)'
+          }
+        },
+        mask: { background: 'var(--rms-bg-overlay)', color: '#e2e8f0' },
+        info: { color: '#60a5fa', contrastColor: '#1e1b19' },
+        success: { color: '#34d399', contrastColor: '#1e1b19' },
+        warn: { color: '#fbbf24', contrastColor: '#1e1b19' },
+        danger: { color: '#f87171', contrastColor: '#1e1b19' }
       }
     }
   },
 
   extend: {
-    Primary: Primary,
-    Semantic: Semantic,
-    Surface: Surface
+    Semantic: Semantic
   },
 
   components: {
@@ -161,27 +299,55 @@ const arosPreset = definePreset(Aura, {
           },
           // Where primary is used as *foreground* (text / outlined / link
           // buttons) the brand gold is only 1.7:1 on light surfaces. These
-          // point at the theme-aware accent token instead, which resolves to
-          // dark bronze in light mode and pale gold in dark mode.
+          // point at the theme-aware brand-text token instead.
           text: {
             primary: {
-              color: 'var(--accent-text)',
-              hoverBackground: '{primary.100}',
-              activeBackground: '{primary.200}',
+              color: 'var(--rms-brand-text)',
+              hoverBackground: 'var(--rms-brand-soft)',
+              activeBackground: 'var(--rms-brand-soft)',
             },
           },
           outlined: {
             primary: {
-              color: 'var(--accent-text)',
-              borderColor: 'var(--accent-text)',
-              hoverBackground: '{primary.100}',
-              activeBackground: '{primary.200}',
+              color: 'var(--rms-brand-text)',
+              borderColor: 'var(--rms-brand-text)',
+              hoverBackground: 'var(--rms-brand-soft)',
+              activeBackground: 'var(--rms-brand-soft)',
             },
           },
           link: {
-            color: 'var(--accent-text)',
-            hoverColor: 'var(--accent-text)',
-            activeColor: 'var(--accent-text)',
+            color: 'var(--rms-brand-text)',
+            hoverColor: 'var(--rms-brand-text)',
+            activeColor: 'var(--rms-brand-text)',
+          },
+        },
+        dark: {
+          root: {
+            primary: {
+              color: '#1e1b19',
+              hoverColor: '#1e1b19',
+              activeColor: '#1e1b19',
+            },
+          },
+          text: {
+            primary: {
+              color: 'var(--rms-brand-text)',
+              hoverBackground: 'var(--rms-brand-soft)',
+              activeBackground: 'var(--rms-brand-soft)',
+            },
+          },
+          outlined: {
+            primary: {
+              color: 'var(--rms-brand-text)',
+              borderColor: 'var(--rms-brand-text)',
+              hoverBackground: 'var(--rms-brand-soft)',
+              activeBackground: 'var(--rms-brand-soft)',
+            },
+          },
+          link: {
+            color: 'var(--rms-brand-text)',
+            hoverColor: 'var(--rms-brand-text)',
+            activeColor: 'var(--rms-brand-text)',
           },
         },
       },

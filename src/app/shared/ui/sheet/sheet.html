@@ -1,0 +1,30 @@
+<dialog
+  #dlg
+  class="rms-sheet"
+  [class.rms-sheet--end]="side === 'end'"
+  [attr.aria-labelledby]="titleId"
+  (cancel)="onCancel($event)"
+  (close)="onNativeClose()"
+>
+  <div class="rms-sheet__panel">
+    <header class="rms-sheet__header">
+      <h2 class="rms-sheet__title" [id]="titleId">{{ title }}</h2>
+      @if (dismissible) {
+        <app-rms-icon-button
+          icon="pi pi-times"
+          ariaLabel="Cerrar"
+          size="lg"
+          (click)="close()"
+        />
+      }
+    </header>
+
+    <div class="rms-sheet__body">
+      <ng-content />
+    </div>
+
+    <footer class="rms-sheet__footer">
+      <ng-content select="[rmsSheetFooter]" />
+    </footer>
+  </div>
+</dialog>
