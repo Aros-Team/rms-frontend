@@ -1452,10 +1452,10 @@
       {
         "id": "e",
         "description": "Update tests and visual baselines; run the harness",
-        "status": "in_progress",
+        "status": "done",
         "agent": "implementer"
       }
     ],
-    "status": "in_progress"
+    "status": "done"
   }
 ]
