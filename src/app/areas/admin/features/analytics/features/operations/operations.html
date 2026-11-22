@@ -1,66 +1,150 @@
-<div class="p-4 md:p-6 flex flex-col gap-4 h-full overflow-auto">
-  <header>
-    <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-0">Eficiencia operativa</h2>
-    <p class="text-sm text-muted">RevPASH y rotación de mesas por franja horaria.</p>
-  </header>
-
-  @if (error(); as err) {
-    <p-message severity="error" [text]="'No se pudieron cargar los datos: ' + err.message" />
-  }
-
-  @if (completeness() === 'PARTIAL' && notes().length > 0) {
-    <div class="rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 p-3 text-sm" role="status" aria-live="polite">
-      <p class="font-semibold text-amber-900 dark:text-amber-200">Datos parciales</p>
-      <ul class="mt-1 list-disc list-inside text-amber-800 dark:text-amber-300">
-        @for (note of notes(); track note) { <li>{{ note }}</li> }
-      </ul>
-      <button type="button" class="mt-2 text-xs underline" (click)="reload()">Reintentar</button>
+<div class="analytics-page">
+  <app-rms-page-header title="Eficiencia operativa" [subtitle]="subtitle()">
+    <span rmsPageHeaderMeta>Comparado con {{ previousLabel() }}</span>
+    <div rmsPageHeaderActions>
+      <app-rms-button
+        variant="secondary"
+        iconStart="pi pi-download"
+        [disabled]="report() === null"
+        (click)="exportCsv()">
+        Exportar CSV
+      </app-rms-button>
     </div>
-  } @else if (completeness() === 'EMPTY') {
-    <div class="rounded-lg border border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 p-3 text-sm">
-      <p class="font-semibold text-blue-900 dark:text-blue-200">Sin datos en el periodo</p>
-      <button type="button" class="mt-2 text-xs underline" (click)="reload()">Reintentar</button>
-    </div>
-  }
+  </app-rms-page-header>
 
-  @if (isLoading() && !report()) {
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3" role="status" aria-live="polite">
-      <p-skeleton height="5rem" borderRadius="0.75rem" />
-      <p-skeleton height="5rem" borderRadius="0.75rem" />
-      <p-skeleton height="5rem" borderRadius="0.75rem" />
-      <p-skeleton height="5rem" borderRadius="0.75rem" />
-    </div>
-    <p-skeleton height="18rem" borderRadius="0.75rem" />
-  } @else if (stats(); as s) {
-    <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3" aria-label="Indicadores clave de operaciones">
-      <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-        <p class="text-xs text-muted">RevPASH</p>
-        <p class="text-2xl font-bold mt-1">{{ s.revPashValue | money }}</p>
-        <p class="text-xs text-muted mt-1">Ingresos / hora-asiento</p>
-      </article>
-      <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-        <p class="text-xs text-muted">Ventas netas</p>
-        <p class="text-2xl font-bold mt-1">{{ s.revPashTotalNetSales | money }}</p>
-      </article>
-      <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-        <p class="text-xs text-muted">Rotación global</p>
-        <p class="text-2xl font-bold mt-1">{{ s.overallTurnover.toFixed(2) }}</p>
-        <p class="text-xs text-muted mt-1">turnos por mesa</p>
-      </article>
-      <article class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-        <p class="text-xs text-muted">Ocupación media</p>
-        <p class="text-2xl font-bold mt-1">{{ s.avgOccupancyMinutes.toFixed(1) }} min</p>
-      </article>
+  <app-analytics-notice
+    [error]="errorInfo()?.detail ?? ''"
+    [errorTitle]="errorInfo()?.title ?? ''"
+    [forbidden]="errorInfo()?.forbidden ?? false"
+    [notes]="notes()"
+    (retry)="reload()" />
+
+  @if (isEmpty()) {
+    <app-rms-empty-state
+      icon="pi pi-clock"
+      title="Sin operación en este periodo"
+      message="No hay pedidos entregados para calcular RevPASH, cubiertos ni rotación. Prueba otro periodo."
+      actionLabel="Reintentar"
+      actionIcon="pi pi-refresh"
+      (action)="reload()" />
+  } @else {
+    <section class="kpi-grid" aria-label="Indicadores de operación">
+      <app-rms-stat-tile
+        label="RevPASH"
+        [value]="revPash() | money"
+        [period]="rangeLabel()"
+        [delta]="revPashDelta().text"
+        [deltaTone]="revPashDelta().tone"
+        [loading]="busy()"
+        icon="pi pi-dollar"
+        [emphasis]="true" />
+      <app-rms-stat-tile
+        label="Ventas netas"
+        [value]="report()?.revPash?.totalNetSales | money"
+        [period]="rangeLabel()"
+        [delta]="netSalesDelta().text"
+        [deltaTone]="netSalesDelta().tone"
+        [loading]="busy()"
+        icon="pi pi-wallet" />
+      <app-rms-stat-tile
+        label="Cubiertos"
+        [value]="report()?.covers ?? null"
+        [period]="rangeLabel()"
+        [delta]="coversDelta().text"
+        [deltaTone]="coversDelta().tone"
+        [loading]="busy()"
+        icon="pi pi-users" />
+      <app-rms-stat-tile
+        label="Rotación acumulada"
+        [value]="decimal(report()?.tableTurnover?.overall)"
+        period="turnos en el periodo"
+        [delta]="turnsDelta().text"
+        [deltaTone]="turnsDelta().tone"
+        [loading]="busy()"
+        icon="pi pi-replay" />
+      <app-rms-stat-tile
+        label="Participación de nómina"
+        [value]="formatPct(report()?.labor?.sharePct, 1)"
+        [period]="rangeLabel()"
+        [delta]="laborDelta().text"
+        [deltaTone]="laborDelta().tone"
+        [loading]="busy()"
+        icon="pi pi-percentage" />
+      <app-rms-stat-tile
+        label="Ocupación media"
+        [value]="minutes(report()?.avgOccupancyMinutes)"
+        period="por pedido entregado"
+        [delta]="occupancyDelta().text"
+        [deltaTone]="occupancyDelta().tone"
+        [loading]="busy()"
+        icon="pi pi-stopwatch" />
     </section>
 
-    <figure class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-      <figcaption class="sr-only">Rotación de mesas y cubiertos por franja horaria del periodo seleccionado.</figcaption>
-      <h3 class="text-sm font-semibold mb-2">Rotación por franja horaria</h3>
-      <div class="h-80">
-        <p-chart type="bar" [data]="dayPartChartData()" [options]="dayPartChartOptions" />
+    <section class="chart-grid" aria-label="Rotación por franja">
+      <app-rms-chart-frame
+        title="Rotación por franja horaria"
+        subtitle="Turnos acumulados en el periodo según la franja configurada."
+        [height]="280"
+        [loading]="busy()"
+        [empty]="isEmpty()"
+        [error]="errorInfo()?.detail ?? ''"
+        summary="Turnos por franja horaria"
+        dataMode="disclosure"
+        dataLabel="Ver datos de rotación"
+        (retry)="reload()">
+        <p-chart type="bar" [data]="chartData()" [options]="chartOptions" />
+        <ul rmsChartLegend class="chart-legend">
+          <li><span class="chart-legend__swatch" style="background: var(--rms-chart-1)"></span>Turnos</li>
+        </ul>
+        <div rmsChartData>
+          <table class="data-table">
+            <caption class="sr-only">Turnos, cubiertos y mesas por franja horaria</caption>
+            <thead><tr><th>Franja</th><th>Turnos</th><th>Cubiertos</th><th>Mesas</th></tr></thead>
+            <tbody>
+              @for (row of dayPartRows(); track row.dayPart) {
+                <tr>
+                  <td>{{ row.label }}</td>
+                  <td>{{ decimal(row.turns) }}</td>
+                  <td>{{ row.covers }}</td>
+                  <td>{{ row.tables }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </app-rms-chart-frame>
+
+      <div class="panel">
+        <h2 class="panel__title">Detalle por franja</h2>
+        <table class="data-table">
+          <caption class="sr-only">Rotación, cubiertos y mesas por franja horaria</caption>
+          <thead><tr><th>Franja</th><th>Turnos</th><th>Cubiertos</th><th>Mesas</th></tr></thead>
+          <tbody>
+            @for (row of dayPartRows(); track row.dayPart) {
+              <tr>
+                <td>{{ row.label }}</td>
+                <td>{{ decimal(row.turns) }}</td>
+                <td>{{ row.covers }}</td>
+                <td>{{ row.tables }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <dl class="metrics">
+          <div class="metrics__row">
+            <dt>Pedidos entregados</dt>
+            <dd>{{ report()?.orders ?? null }}</dd>
+          </div>
+          <div class="metrics__row">
+            <dt>Horas-asiento disponibles</dt>
+            <dd>{{ decimal(report()?.revPash?.totalAvailableSeatHours) }}</dd>
+          </div>
+          <div class="metrics__row">
+            <dt>Costo de nómina</dt>
+            <dd>{{ report()?.labor?.totalCost | money }}</dd>
+          </div>
+        </dl>
       </div>
-    </figure>
-  } @else {
-    <p class="text-muted">No hay datos en el periodo seleccionado.</p>
+    </section>
   }
 </div>

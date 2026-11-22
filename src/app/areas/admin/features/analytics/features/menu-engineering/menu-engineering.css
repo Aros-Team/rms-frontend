@@ -1,20 +1,150 @@
 :host {
   display: block;
-  height: 100%;
-  overflow: auto;
 }
 
-/* Defensive fallback in case Tailwind v4 utilities fail to register sr-only
- * in a test environment. Hides content visually but keeps it in the DOM for
- * screen readers. */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--rms-space-3);
+}
+
+.filters app-rms-select {
+  min-width: 14rem;
+}
+
+.matrix-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--rms-space-3);
+}
+
+@media (min-width: 1100px) {
+  .matrix-grid {
+    grid-template-columns: minmax(20rem, 1fr) minmax(0, 1.4fr);
+    align-items: start;
+  }
+}
+
+.matrix {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--rms-space-2);
+}
+
+.quadrant {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rms-space-2);
+  padding: var(--rms-space-3);
+  border: var(--rms-border-width) solid var(--rms-border);
+  border-radius: var(--rms-radius-md);
+  background: var(--rms-bg-surface);
+  color: var(--rms-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.quadrant[data-status='success'] {
+  border-color: var(--rms-success-border);
+  background: var(--rms-success-bg);
+}
+
+.quadrant[data-status='warning'] {
+  border-color: var(--rms-warning-border);
+  background: var(--rms-warning-bg);
+}
+
+.quadrant[data-status='info'] {
+  border-color: var(--rms-info-border);
+  background: var(--rms-info-bg);
+}
+
+.quadrant[data-status='danger'] {
+  border-color: var(--rms-danger-border);
+  background: var(--rms-danger-bg);
+}
+
+.quadrant--selected {
+  outline: var(--rms-focus-ring);
+  outline-offset: var(--rms-focus-ring-offset);
+}
+
+.quadrant__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rms-space-2);
+}
+
+.quadrant__name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rms-space-2);
+  font-size: var(--rms-type-body-size);
+  font-weight: var(--rms-weight-semibold);
+}
+
+.quadrant[data-status='success'] .quadrant__name {
+  color: var(--rms-success-fg);
+}
+
+.quadrant[data-status='warning'] .quadrant__name {
+  color: var(--rms-warning-fg);
+}
+
+.quadrant[data-status='info'] .quadrant__name {
+  color: var(--rms-info-fg);
+}
+
+.quadrant[data-status='danger'] .quadrant__name {
+  color: var(--rms-danger-fg);
+}
+
+.quadrant__count {
+  font-size: var(--rms-type-h3-size);
+  font-weight: var(--rms-weight-bold);
+}
+
+.quadrant__action,
+.quadrant__contribution {
+  color: var(--rms-text-secondary);
+  font-size: var(--rms-type-caption-size);
+  line-height: var(--rms-type-caption-line);
+}
+
+.quadrant__contribution {
+  color: var(--rms-text);
+  font-weight: var(--rms-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.quadrant__items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--rms-text-secondary);
+  font-size: var(--rms-type-caption-size);
+}
+
+.quadrant__item {
   overflow: hidden;
-  clip-path: inset(50%);
+  text-overflow: ellipsis;
   white-space: nowrap;
-  border-width: 0;
+}
+
+.panel__scroll {
+  max-height: 38rem;
+}
+
+.empty-cell {
+  padding: var(--rms-space-4);
+  color: var(--rms-text-muted);
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .data-table {
+    min-width: 54rem;
+  }
 }

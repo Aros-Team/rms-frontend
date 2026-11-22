@@ -1,5 +1,13 @@
 :host {
   display: block;
-  height: 100%;
-  overflow: auto;
+}
+
+.panel__scroll {
+  max-height: 34rem;
+}
+
+@media (max-width: 640px) {
+  .data-table {
+    min-width: 48rem;
+  }
 }
