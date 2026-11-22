@@ -134,3 +134,23 @@
   white-space: nowrap;
   border: 0;
 }
+
+/* Fill mode: the frame takes the parent height and the plot absorbs the rest. */
+:host(.rms-chart-frame-host--fill) {
+  height: 100%;
+}
+
+.rms-chart-frame--fill {
+  height: 100%;
+}
+
+.rms-chart-frame--fill .rms-chart-frame__header,
+.rms-chart-frame--fill .rms-chart-frame__legend,
+.rms-chart-frame--fill .rms-chart-frame__data {
+  flex: 0 0 auto;
+}
+
+.rms-chart-frame--fill .rms-chart-frame__plot-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+}

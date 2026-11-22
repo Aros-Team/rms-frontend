@@ -17,7 +17,7 @@
 .rms-treemap__row {
   display: flex;
   flex-basis: 0;
-  min-height: 0;
+  min-height: 64px;
   gap: 2px;
 }
 
@@ -36,14 +36,17 @@
 }
 
 .rms-treemap__label {
+  display: -webkit-box;
   overflow: hidden;
   color: var(--rms-text);
   font-family: var(--rms-font-sans);
   font-size: var(--rms-type-caption-size);
   font-weight: var(--rms-weight-semibold);
   line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .rms-treemap__meta {
@@ -68,4 +71,11 @@
   font-weight: var(--rms-weight-semibold);
   line-height: 1.2;
   white-space: nowrap;
+}
+
+/* Narrow tiles keep the label and share; the exact amount stays in the table. */
+@container (max-width: 100px) {
+  .rms-treemap__value {
+    display: none;
+  }
 }

@@ -35,6 +35,7 @@ describe('RmsTreemap', () => {
       { label: 'Platos', total: 300, color: '#222' },
       { label: 'Postres', total: 50, color: '#333' },
       { label: 'Entradas', total: 150, color: '#444' },
+      { label: 'Sopas', total: 200, color: '#555' },
     ];
     fixture.detectChanges();
 
@@ -42,11 +43,12 @@ describe('RmsTreemap', () => {
     expect(rows).toHaveLength(2);
     expect(rows.flatMap((row) => row.tiles.map((tile) => tile.label))).toEqual([
       'Platos',
+      'Sopas',
       'Entradas',
       'Bebidas',
       'Postres',
     ]);
-    expect(rows[0].weight).toBe(450);
+    expect(rows[0].weight).toBe(650);
   });
 
   it('renders every label, percentage and money value', () => {

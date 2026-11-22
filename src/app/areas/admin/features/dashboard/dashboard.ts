@@ -541,6 +541,16 @@ export class Dashboard implements OnInit {
   }
 
   /**
+   * Table label for an order. The API sends `tableId` (and no table name), so
+   * resolve it against the loaded tables and fall back to the id.
+   */
+  tableLabel(order: OrderResponse): string {
+    const table = this.allTables().find((candidate) => candidate.id === order.tableId);
+    if (table !== undefined) return `Mesa ${String(table.tableNumber)}`;
+    return order.table ?? (order.tableId ? `Mesa ${String(order.tableId)}` : 'Sin mesa');
+  }
+
+  /**
    * Domain status mapped to the DS status roles (docs/DESIGN.md §2.3).
    * QUEUE is a pending warning, PREPARING is in-progress info.
    */

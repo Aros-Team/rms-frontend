@@ -35,6 +35,7 @@ import { applyRmsChartDefaults } from '../chart/chart-theme';
 @Component({
   selector: 'app-rms-chart-frame',
   templateUrl: './chart-frame.html',
+  host: { '[class.rms-chart-frame-host--fill]': 'fill' },
   styleUrl: './chart-frame.css',
   imports: [RmsButton, RmsSkeleton],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,6 +47,8 @@ export class RmsChartFrame implements OnDestroy {
   @Input() subtitle = '';
   /** Plot height in px: 240 line/bar, 200 doughnut, 320 scatter. */
   @Input() height = 240;
+  /** Stretch to the parent's height instead of using `height` px. */
+  @Input() fill = false;
   @Input() loading = false;
   @Input() empty = false;
   @Input() error = '';
@@ -66,7 +69,7 @@ export class RmsChartFrame implements OnDestroy {
   private renderRef?: AfterRenderRef;
 
   get heightPx(): string {
-    return `${String(this.height)}px`;
+    return this.fill ? '100%' : `${String(this.height)}px`;
   }
 
   get hasState(): boolean {
