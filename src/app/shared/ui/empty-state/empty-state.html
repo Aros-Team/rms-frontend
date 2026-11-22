@@ -1,0 +1,23 @@
+<div class="rms-empty">
+  <span class="rms-empty__icon" aria-hidden="true">
+    <i class="pi" [class]="icon"></i>
+  </span>
+  <h3 class="rms-empty__title">{{ title }}</h3>
+  @if (message) {
+    <p class="rms-empty__message">{{ message }}</p>
+  }
+  @if (actionLabel || secondaryLabel) {
+    <div class="rms-empty__actions">
+      @if (actionLabel) {
+        <app-rms-button [iconStart]="actionIcon" (click)="action.emit()">
+          {{ actionLabel }}
+        </app-rms-button>
+      }
+      @if (secondaryLabel) {
+        <app-rms-button variant="link" (click)="secondaryAction.emit()">
+          {{ secondaryLabel }}
+        </app-rms-button>
+      }
+    </div>
+  }
+</div>

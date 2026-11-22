@@ -1,0 +1,22 @@
+<p-dialog
+  styleClass="rms-dialog"
+  [header]="header"
+  [visible]="visible"
+  (visibleChange)="visibleChange.emit($event)"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [blockScroll]="true"
+  [closeOnEscape]="closeOnEscape"
+  [dismissableMask]="dismissableMask"
+  [focusOnShow]="true"
+  [style]="dialogStyle"
+>
+  <div class="rms-dialog__body">
+    <ng-content />
+  </div>
+
+  <div class="rms-dialog__footer">
+    <ng-content select="[rmsDialogFooter]" />
+  </div>
+</p-dialog>

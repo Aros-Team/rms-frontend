@@ -1,0 +1,75 @@
+:host {
+  display: inline-flex;
+}
+
+.rms-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--rms-touch-min);
+  height: var(--rms-touch-min);
+  padding: 0;
+  border: var(--rms-border-width) solid transparent;
+  border-radius: var(--rms-radius-sm);
+  background: transparent;
+  color: var(--rms-text-secondary);
+  cursor: pointer;
+  transition:
+    background-color var(--rms-transition-fast),
+    border-color var(--rms-transition-fast),
+    color var(--rms-transition-fast);
+}
+
+.rms-icon-btn__glyph {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.rms-icon-btn--sm {
+  width: var(--rms-control-sm);
+  height: var(--rms-control-sm);
+}
+
+.rms-icon-btn--lg {
+  width: var(--rms-control-lg);
+  height: var(--rms-control-lg);
+}
+
+.rms-icon-btn--xl {
+  width: var(--rms-control-xl);
+  height: var(--rms-control-xl);
+}
+
+.rms-icon-btn--xl .rms-icon-btn__glyph,
+.rms-icon-btn--lg .rms-icon-btn__glyph {
+  font-size: 1.25rem;
+}
+
+.rms-icon-btn--ghost:hover:not(:disabled) {
+  background: var(--rms-bg-subtle);
+  color: var(--rms-text);
+}
+
+.rms-icon-btn--secondary {
+  border-color: var(--rms-border-strong);
+  background: var(--rms-bg-surface);
+  color: var(--rms-text);
+}
+
+.rms-icon-btn--secondary:hover:not(:disabled) {
+  background: var(--rms-bg-subtle);
+}
+
+.rms-icon-btn--danger {
+  color: var(--rms-danger-fg);
+}
+
+.rms-icon-btn--danger:hover:not(:disabled) {
+  background: var(--rms-danger-bg);
+  color: var(--rms-danger-fg);
+}
+
+.rms-icon-btn:disabled {
+  color: var(--rms-text-disabled);
+  cursor: not-allowed;
+}

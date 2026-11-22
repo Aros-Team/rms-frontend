@@ -1,0 +1,26 @@
+<div class="rms-skeleton" role="status" [attr.aria-label]="ariaLabel">
+  @if (variant === 'text') {
+    @for (line of lineArray; track $index) {
+      <span
+        class="rms-skeleton__bar rms-skeleton__bar--text"
+        [style.width]="$last && lineCount > 1 ? '62%' : width"
+        [style.height]="height"
+        aria-hidden="true"
+      ></span>
+    }
+  } @else if (variant === 'circle') {
+    <span
+      class="rms-skeleton__bar rms-skeleton__bar--circle"
+      [style.width]="circleSize"
+      [style.height]="circleSize"
+      aria-hidden="true"
+    ></span>
+  } @else {
+    <span
+      class="rms-skeleton__bar"
+      [style.width]="width"
+      [style.height]="height"
+      aria-hidden="true"
+    ></span>
+  }
+</div>

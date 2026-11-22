@@ -1,0 +1,23 @@
+<div [class]="classes">
+  @if (hasHeader) {
+    <header class="rms-card__header">
+      <div class="rms-card__heading">
+        @if (title) {
+          <h3 class="rms-card__title">{{ title }}</h3>
+        }
+        @if (subtitle) {
+          <p class="rms-card__subtitle">{{ subtitle }}</p>
+        }
+      </div>
+      <div class="rms-card__actions">
+        <ng-content select="[rmsCardActions]" />
+      </div>
+    </header>
+  }
+
+  <div class="rms-card__body">
+    <ng-content />
+  </div>
+
+  <ng-content select="[rmsCardFooter]" />
+</div>

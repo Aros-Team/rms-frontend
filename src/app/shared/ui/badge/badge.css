@@ -1,0 +1,95 @@
+:host {
+  display: inline-flex;
+  max-width: 100%;
+}
+
+.rms-badge {
+  --rms-badge-fg: var(--rms-neutral-fg);
+  --rms-badge-bg: var(--rms-neutral-bg);
+  --rms-badge-border: var(--rms-neutral-border);
+  --rms-badge-solid: var(--rms-neutral-solid);
+  --rms-badge-on-solid: var(--rms-neutral-on-solid);
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rms-space-1);
+  padding: 0.125rem var(--rms-space-2);
+  border: var(--rms-border-width) solid transparent;
+  border-radius: var(--rms-radius-full);
+  font-family: var(--rms-font-sans);
+  font-size: var(--rms-type-caption-size);
+  line-height: var(--rms-type-caption-line);
+  font-weight: var(--rms-weight-semibold);
+  white-space: nowrap;
+}
+
+.rms-badge--md {
+  padding: var(--rms-space-1) var(--rms-space-3);
+  font-size: var(--rms-type-body-size);
+}
+
+.rms-badge--success {
+  --rms-badge-fg: var(--rms-success-fg);
+  --rms-badge-bg: var(--rms-success-bg);
+  --rms-badge-border: var(--rms-success-border);
+  --rms-badge-solid: var(--rms-success-solid);
+  --rms-badge-on-solid: var(--rms-success-on-solid);
+}
+
+.rms-badge--warning {
+  --rms-badge-fg: var(--rms-warning-fg);
+  --rms-badge-bg: var(--rms-warning-bg);
+  --rms-badge-border: var(--rms-warning-border);
+  --rms-badge-solid: var(--rms-warning-solid);
+  --rms-badge-on-solid: var(--rms-warning-on-solid);
+}
+
+.rms-badge--danger {
+  --rms-badge-fg: var(--rms-danger-fg);
+  --rms-badge-bg: var(--rms-danger-bg);
+  --rms-badge-border: var(--rms-danger-border);
+  --rms-badge-solid: var(--rms-danger-solid);
+  --rms-badge-on-solid: var(--rms-danger-on-solid);
+}
+
+.rms-badge--info {
+  --rms-badge-fg: var(--rms-info-fg);
+  --rms-badge-bg: var(--rms-info-bg);
+  --rms-badge-border: var(--rms-info-border);
+  --rms-badge-solid: var(--rms-info-solid);
+  --rms-badge-on-solid: var(--rms-info-on-solid);
+}
+
+.rms-badge--brand {
+  --rms-badge-fg: var(--rms-brand-text);
+  --rms-badge-bg: var(--rms-brand-soft);
+  --rms-badge-border: color-mix(in srgb, var(--rms-brand-text) 30%, transparent);
+  --rms-badge-solid: var(--rms-brand-500);
+  --rms-badge-on-solid: var(--rms-text-on-brand);
+}
+
+.rms-badge--soft {
+  background: var(--rms-badge-bg);
+  border-color: var(--rms-badge-border);
+  color: var(--rms-badge-fg);
+}
+
+.rms-badge--outline {
+  background: transparent;
+  border-color: var(--rms-badge-border);
+  color: var(--rms-badge-fg);
+}
+
+.rms-badge--solid {
+  background: var(--rms-badge-solid);
+  border-color: var(--rms-badge-solid);
+  color: var(--rms-badge-on-solid);
+}
+
+.rms-badge__dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  flex-shrink: 0;
+  border-radius: var(--rms-radius-full);
+  background: currentColor;
+}

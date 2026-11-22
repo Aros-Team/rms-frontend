@@ -1,0 +1,235 @@
+/**
+ * RMS global primitives: focus system, type roles, small helpers.
+ *
+ * Loaded after `tokens.css` and after the Tailwind/PrimeNG imports. These
+ * rules are intentionally unlayered: they are the floor every screen inherits,
+ * and they must beat utility classes that remove an outline.
+ */
+
+/* ==========================================================================
+   Focus system — one ring, everywhere, never removed
+   ========================================================================== */
+
+:where(
+    a[href],
+    area,
+    button,
+    input:not([type='hidden']),
+    select,
+    textarea,
+    summary,
+    details,
+    [role='button'],
+    [role='tab'],
+    [role='switch'],
+    [role='checkbox'],
+    [role='radio'],
+    [role='option'],
+    [tabindex]:not([tabindex='-1'])
+  ):focus-visible {
+  outline: var(--rms-focus-ring);
+  outline-offset: var(--rms-focus-ring-offset);
+  /* A ring is an outline; never duplicate it with a shadow. */
+  box-shadow: none;
+}
+
+/* The skip link must show on :focus as well: browsers differ on whether a
+   programmatic focus after Tab is `:focus-visible`. */
+.rms-skip-link {
+  position: fixed;
+  inset-block-start: var(--rms-space-2);
+  inset-inline-start: var(--rms-space-2);
+  z-index: calc(var(--rms-z-overlay) + 1);
+  padding: var(--rms-space-2) var(--rms-space-4);
+  border: var(--rms-border-width-strong) solid var(--rms-focus);
+  border-radius: var(--rms-radius-sm);
+  background: var(--rms-bg-surface);
+  color: var(--rms-text);
+  font-family: var(--rms-font-sans);
+  font-size: var(--rms-type-body-size);
+  font-weight: var(--rms-weight-semibold);
+  text-decoration: none;
+  transform: translateY(calc(-100% - var(--rms-space-4)));
+  transition: transform var(--rms-transition-fast);
+}
+
+.rms-skip-link:focus,
+.rms-skip-link:focus-visible {
+  transform: translateY(0);
+  outline: var(--rms-focus-ring);
+  outline-offset: var(--rms-focus-ring-offset);
+}
+
+/* `#main` is a focus target after navigation; it must not paint a ring itself. */
+main[tabindex='-1']:focus,
+main[tabindex='-1']:focus-visible {
+  outline: none;
+}
+
+/* ==========================================================================
+   Type roles
+   ========================================================================== */
+
+.rms-display,
+.rms-h1,
+.rms-h2,
+.rms-h3,
+.rms-h4,
+.rms-body-lg,
+.rms-body,
+.rms-caption,
+.rms-label,
+.rms-numeric,
+.rms-numeric-lg {
+  font-family: var(--rms-font-sans);
+  margin: 0;
+}
+
+.rms-display {
+  font-size: var(--rms-type-display-size);
+  line-height: var(--rms-type-display-line);
+  font-weight: var(--rms-weight-bold);
+  letter-spacing: -0.01em;
+}
+
+.rms-h1 {
+  font-size: var(--rms-type-h1-size);
+  line-height: var(--rms-type-h1-line);
+  font-weight: var(--rms-weight-bold);
+  letter-spacing: -0.01em;
+}
+
+.rms-h2 {
+  font-size: var(--rms-type-h2-size);
+  line-height: var(--rms-type-h2-line);
+  font-weight: var(--rms-weight-bold);
+}
+
+.rms-h3 {
+  font-size: var(--rms-type-h3-size);
+  line-height: var(--rms-type-h3-line);
+  font-weight: var(--rms-weight-semibold);
+}
+
+.rms-h4 {
+  font-size: var(--rms-type-h4-size);
+  line-height: var(--rms-type-h4-line);
+  font-weight: var(--rms-weight-semibold);
+}
+
+.rms-body-lg {
+  font-size: var(--rms-type-body-lg-size);
+  line-height: var(--rms-type-body-lg-line);
+  font-weight: var(--rms-weight-regular);
+}
+
+.rms-body {
+  font-size: var(--rms-type-body-size);
+  line-height: var(--rms-type-body-line);
+  font-weight: var(--rms-weight-regular);
+}
+
+.rms-caption {
+  font-size: var(--rms-type-caption-size);
+  line-height: var(--rms-type-caption-line);
+  font-weight: var(--rms-weight-regular);
+  color: var(--rms-text-muted);
+}
+
+.rms-label {
+  font-size: var(--rms-type-label-size);
+  line-height: var(--rms-type-label-line);
+  font-weight: var(--rms-weight-semibold);
+  color: var(--rms-text-secondary);
+}
+
+.rms-numeric {
+  font-size: var(--rms-type-numeric-size);
+  line-height: var(--rms-type-numeric-line);
+  font-weight: var(--rms-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.rms-numeric-lg {
+  font-size: var(--rms-type-numeric-lg-size);
+  line-height: var(--rms-type-numeric-lg-line);
+  font-weight: var(--rms-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Small helpers
+   ========================================================================== */
+
+.rms-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.rms-text-muted {
+  color: var(--rms-text-muted);
+}
+
+.rms-text-secondary {
+  color: var(--rms-text-secondary);
+}
+
+.rms-text-success {
+  color: var(--rms-success-fg);
+}
+
+.rms-text-warning {
+  color: var(--rms-warning-fg);
+}
+
+.rms-text-danger {
+  color: var(--rms-danger-fg);
+}
+
+.rms-text-info {
+  color: var(--rms-info-fg);
+}
+
+.rms-surface {
+  background: var(--rms-bg-surface);
+  color: var(--rms-text);
+  border: var(--rms-border-width) solid var(--rms-border);
+  border-radius: var(--rms-radius-md);
+}
+
+/* ==========================================================================
+   Reduced motion — one gate for every current and future animation
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   Forced colors (Windows High Contrast)
+   The OS remaps author colors. Keep structure with system colors and stop
+   fighting it: backgrounds are dropped by the OS, borders are what remains.
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  :where(.rms-card, .rms-btn, .rms-input, .rms-textarea, .rms-select, .rms-badge) {
+    border: 1px solid ButtonBorder;
+  }
+
+  :where(a, button, input, select, textarea, summary):focus-visible {
+    outline: 3px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  /* Status must not depend on a background fill in forced colors. */
+  :where(.rms-badge__dot, .rms-status-pill__dot) {
+    forced-color-adjust: none;
+    background: ButtonText !important;
+  }
+}

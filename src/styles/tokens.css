@@ -1,0 +1,424 @@
+/**
+ * RMS semantic design tokens.
+ *
+ * Three layers, one direction of dependency:
+ *
+ *   primitive  ->  semantic  ->  component
+ *   (raw values)  (roles)       (rms-* primitives)
+ *
+ * Feature code and primitives may only read semantic or component tokens.
+ * Raw values are allowed in this file, in the chart palette module and nowhere
+ * else. See `docs/DESIGN.md` for the usage rules and the migration checklist.
+ *
+ * Theme activation: `.dark` on <html> (Theme service / index.html bootstrap)
+ * and `[data-contrast="high"]` (Accessibility service) or the OS-level
+ * `prefers-contrast: more` media query.
+ */
+
+/* ==========================================================================
+   1. Primitives
+   ========================================================================== */
+
+:root {
+  /* Neutral ramp — one slate family for light, dark and high contrast. */
+  --rms-neutral-0: #ffffff;
+  --rms-neutral-50: #f8fafc;
+  --rms-neutral-100: #f1f5f9;
+  --rms-neutral-200: #e2e8f0;
+  --rms-neutral-300: #cbd5e1;
+  --rms-neutral-400: #94a3b8;
+  --rms-neutral-500: #64748b;
+  --rms-neutral-600: #475569;
+  --rms-neutral-700: #334155;
+  --rms-neutral-800: #1e293b;
+  --rms-neutral-900: #0f172a;
+  --rms-neutral-950: #020617;
+
+  /* Brand ramp. Gold is a FILL. It is never text and never a small icon. */
+  --rms-brand-500: #f9bb0b;
+  --rms-brand-600: #d9a209;
+  --rms-brand-700: #b07e06;
+  --rms-brand-text: #8a6508; /* 5.32:1 on white */
+  --rms-brand-soft: #fef7e0; /* selected row / badge background */
+  --rms-on-brand: #1e1b19; /* 9.49:1 on gold */
+
+  /* Type families */
+  --rms-font-sans: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* ==========================================================================
+   2. Semantic roles — light theme (default)
+   ========================================================================== */
+
+:root {
+  /* Surfaces. Elevation is a surface step plus a border, never a shadow. */
+  --rms-bg-page: var(--rms-neutral-50);
+  --rms-bg-surface: var(--rms-neutral-0);
+  --rms-bg-subtle: var(--rms-neutral-100);
+  --rms-bg-sunken: #eef2f7;
+  --rms-bg-inverse: var(--rms-neutral-900);
+  --rms-bg-disabled: var(--rms-neutral-100);
+  --rms-bg-selected: var(--rms-brand-soft);
+  --rms-bg-overlay: rgb(15 23 42 / 0.55); /* modal scrim */
+
+  /* Borders */
+  --rms-border: var(--rms-neutral-200);
+  --rms-border-strong: var(--rms-neutral-300);
+  --rms-border-inverse: var(--rms-neutral-700);
+
+  /* Text */
+  --rms-text: var(--rms-neutral-900); /* 17.6:1 on page */
+  --rms-text-secondary: var(--rms-neutral-600); /* 7.24:1 on page */
+  --rms-text-muted: var(--rms-neutral-500); /* 4.76:1 on surface */
+  --rms-text-inverse: #ffffff;
+  --rms-text-on-brand: var(--rms-on-brand);
+  --rms-text-disabled: var(--rms-neutral-400);
+  --rms-link: #1d4ed8; /* 6.70:1 on white */
+  --rms-link-hover: #1e40af;
+
+  /* Focus. One ring for the whole product, distinct from brand gold. */
+  --rms-focus: #1d4ed8;
+  --rms-focus-ring-width: 2px;
+  --rms-focus-ring-offset: 2px;
+  --rms-focus-ring: var(--rms-focus-ring-width) solid var(--rms-focus);
+
+  /* Status: fg is the only role allowed on text. */
+  --rms-success-fg: #065f46;
+  --rms-success-bg: #ecfdf5;
+  --rms-success-border: #a7f3d0;
+  --rms-success-solid: #047857;
+  --rms-success-on-solid: #ffffff;
+
+  --rms-warning-fg: #92400e;
+  --rms-warning-bg: #fffbeb;
+  --rms-warning-border: #fde68a;
+  --rms-warning-solid: #b45309;
+  --rms-warning-on-solid: #ffffff;
+
+  --rms-danger-fg: #b91c1c;
+  --rms-danger-bg: #fef2f2;
+  --rms-danger-border: #fecaca;
+  --rms-danger-solid: #b91c1c;
+  --rms-danger-on-solid: #ffffff;
+
+  --rms-info-fg: #1d4ed8;
+  --rms-info-bg: #eff6ff;
+  --rms-info-border: #bfdbfe;
+  --rms-info-solid: #1d4ed8;
+  --rms-info-on-solid: #ffffff;
+
+  --rms-neutral-fg: var(--rms-neutral-700);
+  --rms-neutral-bg: var(--rms-neutral-100);
+  --rms-neutral-border: var(--rms-neutral-200);
+  --rms-neutral-solid: var(--rms-neutral-600);
+  --rms-neutral-on-solid: #ffffff;
+
+  /* Chart system. Series colors pass 3:1 as graphics in both themes. */
+  --rms-chart-1: #1d4ed8;
+  --rms-chart-2: #0f766e;
+  --rms-chart-3: #6d28d9;
+  --rms-chart-4: #be185d;
+  --rms-chart-5: #b45309;
+  --rms-chart-6: #4d7c0f;
+  --rms-chart-7: #475569;
+  --rms-chart-8: #9f1239;
+  --rms-chart-comparison: var(--rms-chart-7);
+  --rms-chart-grid: var(--rms-border);
+  --rms-chart-axis: var(--rms-text-muted);
+  --rms-chart-legend-text: var(--rms-text-secondary);
+  --rms-chart-tooltip-bg: var(--rms-bg-surface);
+  --rms-chart-tooltip-text: var(--rms-text);
+  --rms-chart-tooltip-border: var(--rms-border-strong);
+
+  /* Component-level aliases (documented for feature lanes) */
+  --rms-control-bg: var(--rms-bg-surface);
+  --rms-control-border: var(--rms-border-strong);
+  --rms-control-radius: var(--rms-radius-sm);
+  --rms-table-header-bg: var(--rms-bg-subtle);
+  --rms-table-row-hover: var(--rms-neutral-50);
+  --rms-table-row-selected: var(--rms-brand-soft);
+}
+
+/* ==========================================================================
+   3. Typography, spacing, radii, borders, elevation, density, motion
+   ========================================================================== */
+
+:root {
+  /* Type scale (rem, so the Accessibility font-size preference scales it) */
+  --rms-type-display-size: 2.25rem;
+  --rms-type-display-line: 2.75rem;
+  --rms-type-h1-size: 1.875rem;
+  --rms-type-h1-line: 2.375rem;
+  --rms-type-h2-size: 1.5rem;
+  --rms-type-h2-line: 2rem;
+  --rms-type-h3-size: 1.25rem;
+  --rms-type-h3-line: 1.75rem;
+  --rms-type-h4-size: 1rem;
+  --rms-type-h4-line: 1.5rem;
+  --rms-type-body-lg-size: 1rem;
+  --rms-type-body-lg-line: 1.625rem;
+  --rms-type-body-size: 0.875rem;
+  --rms-type-body-line: 1.375rem;
+  --rms-type-caption-size: 0.75rem;
+  --rms-type-caption-line: 1.125rem;
+  --rms-type-label-size: 0.75rem;
+  --rms-type-label-line: 1rem;
+  --rms-type-numeric-size: 1rem;
+  --rms-type-numeric-line: 1.5rem;
+  --rms-type-numeric-lg-size: 1.875rem;
+  --rms-type-numeric-lg-line: 2.25rem;
+
+  --rms-weight-regular: 400;
+  --rms-weight-medium: 500;
+  --rms-weight-semibold: 600;
+  --rms-weight-bold: 700;
+  --rms-weight-black: 900; /* wordmark only */
+
+  /* Spacing — 4px base. No arbitrary values in feature code. */
+  --rms-space-0: 0;
+  --rms-space-1: 0.25rem;
+  --rms-space-2: 0.5rem;
+  --rms-space-3: 0.75rem;
+  --rms-space-4: 1rem;
+  --rms-space-5: 1.25rem;
+  --rms-space-6: 1.5rem;
+  --rms-space-8: 2rem;
+  --rms-space-10: 2.5rem;
+  --rms-space-12: 3rem;
+  --rms-space-16: 4rem;
+
+  /* Radii */
+  --rms-radius-sm: 0.5rem; /* 8 — controls */
+  --rms-radius-md: 0.75rem; /* 12 — cards, grouped inputs */
+  --rms-radius-lg: 1rem; /* 16 — page panels */
+  --rms-radius-full: 999px;
+
+  /* Borders */
+  --rms-border-width: 1px;
+  --rms-border-width-strong: 2px;
+
+  /* Elevation: no blur shadows. Depth is a ring + surface step. */
+  --rms-elevation-0: none;
+  --rms-elevation-1: 0 0 0 1px var(--rms-border);
+  --rms-elevation-2: 0 0 0 1px var(--rms-border-strong);
+
+  /* Density: a surface decision, not a per-page one. */
+  --rms-control-sm: 2rem; /* 32 */
+  --rms-control-md: 2.5rem; /* 40 */
+  --rms-control-lg: 3rem; /* 48 */
+  --rms-control-xl: 3.5rem; /* 56 — kitchen */
+  --rms-touch-min: 2.75rem; /* 44 — WCAG 2.5.8 floor is 24, this is the product floor */
+  --rms-row-compact: 2.5rem; /* 40 */
+  --rms-row-comfortable: 3rem; /* 48 */
+  --rms-density-control: var(--rms-control-md);
+  --rms-density-row: var(--rms-row-comfortable);
+  --rms-density-card-padding: var(--rms-space-5);
+  --rms-density-gap: var(--rms-space-4);
+
+  /* Motion */
+  --rms-motion-fast: 120ms;
+  --rms-motion-base: 180ms;
+  --rms-motion-slow: 280ms;
+  --rms-motion-chart: 240ms;
+  --rms-ease: cubic-bezier(0.2, 0, 0, 1);
+  --rms-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --rms-transition-fast: var(--rms-motion-fast) var(--rms-ease);
+  --rms-transition-base: var(--rms-motion-base) var(--rms-ease);
+
+  /* Layers */
+  --rms-z-raised: 10;
+  --rms-z-overlay: 1000;
+}
+
+/* ==========================================================================
+   4. Dark theme — derived from the same ramp, never a second palette
+   ========================================================================== */
+
+.dark {
+  --rms-bg-page: var(--rms-neutral-900);
+  --rms-bg-surface: var(--rms-neutral-800);
+  --rms-bg-subtle: #172033;
+  --rms-bg-sunken: #0b1220;
+  --rms-bg-inverse: var(--rms-neutral-100);
+  --rms-bg-disabled: var(--rms-neutral-800);
+  --rms-bg-selected: var(--rms-brand-soft);
+  --rms-bg-overlay: rgb(2 6 23 / 0.72);
+
+  --rms-border: var(--rms-neutral-700);
+  --rms-border-strong: var(--rms-neutral-600);
+  --rms-border-inverse: var(--rms-neutral-300);
+
+  --rms-text: var(--rms-neutral-200);
+  --rms-text-secondary: var(--rms-neutral-300);
+  --rms-text-muted: var(--rms-neutral-400);
+  --rms-text-inverse: var(--rms-neutral-900);
+  --rms-text-disabled: var(--rms-neutral-500);
+  --rms-link: #93c5fd;
+  --rms-link-hover: #bfdbfe;
+
+  --rms-brand-text: #f2daa2;
+  --rms-brand-soft: #2a230f;
+
+  --rms-focus: #93c5fd;
+
+  --rms-success-fg: #6ee7b7;
+  --rms-success-bg: #052e22;
+  --rms-success-border: #065f46;
+  --rms-success-solid: #10b981;
+  --rms-success-on-solid: var(--rms-on-brand);
+
+  --rms-warning-fg: #fcd34d;
+  --rms-warning-bg: #2a1e05;
+  --rms-warning-border: #92400e;
+  --rms-warning-solid: #f59e0b;
+  --rms-warning-on-solid: var(--rms-on-brand);
+
+  --rms-danger-fg: #fca5a5;
+  --rms-danger-bg: #2a1215;
+  --rms-danger-border: #991b1b;
+  --rms-danger-solid: #ef4444;
+  --rms-danger-on-solid: var(--rms-on-brand);
+
+  --rms-info-fg: #93c5fd;
+  --rms-info-bg: #0c1a2e;
+  --rms-info-border: #1e40af;
+  --rms-info-solid: #3b82f6;
+  --rms-info-on-solid: var(--rms-on-brand);
+
+  --rms-neutral-fg: var(--rms-neutral-300);
+  --rms-neutral-bg: #172033;
+  --rms-neutral-border: var(--rms-neutral-700);
+  --rms-neutral-solid: var(--rms-neutral-600);
+  --rms-neutral-on-solid: #ffffff;
+
+  --rms-chart-1: #60a5fa;
+  --rms-chart-2: #2dd4bf;
+  --rms-chart-3: #a78bfa;
+  --rms-chart-4: #f472b6;
+  --rms-chart-5: #fbbf24;
+  --rms-chart-6: #a3e635;
+  --rms-chart-7: #94a3b8;
+  --rms-chart-8: #fb7185;
+
+  --rms-table-row-hover: var(--rms-bg-subtle);
+  --rms-table-row-selected: var(--rms-brand-soft);
+}
+
+/* ==========================================================================
+   5. High contrast
+   --------------------------------------------------------------------------
+   Two entry points, one value set:
+   - OS preference: @media (prefers-contrast: more)
+   - In-app toggle: html[data-contrast="high"] (Accessibility service)
+   Text targets WCAG AAA (7:1); controls and borders clear 3:1.
+   ========================================================================== */
+
+@media (prefers-contrast: more) {
+  :root {
+    --rms-bg-page: #ffffff;
+    --rms-bg-surface: #ffffff;
+    --rms-bg-subtle: var(--rms-neutral-100);
+    --rms-bg-sunken: var(--rms-neutral-200);
+    --rms-border: var(--rms-neutral-500);
+    --rms-border-strong: var(--rms-neutral-700);
+    --rms-text: var(--rms-neutral-950);
+    --rms-text-secondary: var(--rms-neutral-800);
+    --rms-text-muted: var(--rms-neutral-700);
+    --rms-text-disabled: var(--rms-neutral-600);
+    --rms-focus: #1d4ed8;
+    --rms-focus-ring-width: 3px;
+    --rms-brand-text: #6f5306;
+    --rms-success-fg: #064e3b;
+    --rms-success-border: #047857;
+    --rms-warning-fg: #78350f;
+    --rms-warning-border: #b45309;
+    --rms-danger-fg: #991b1b;
+    --rms-danger-border: #b91c1c;
+    --rms-info-fg: #1e3a8a;
+    --rms-info-border: #1d4ed8;
+    --rms-neutral-fg: var(--rms-neutral-950);
+    --rms-neutral-border: var(--rms-neutral-500);
+    --rms-table-row-hover: var(--rms-neutral-100);
+  }
+
+  .dark {
+    --rms-bg-page: var(--rms-neutral-950);
+    --rms-bg-surface: var(--rms-neutral-900);
+    --rms-bg-subtle: #172033;
+    --rms-bg-sunken: #020617;
+    --rms-border: var(--rms-neutral-500);
+    --rms-border-strong: var(--rms-neutral-400);
+    --rms-text: var(--rms-neutral-50);
+    --rms-text-secondary: var(--rms-neutral-200);
+    --rms-text-muted: var(--rms-neutral-300);
+    --rms-text-disabled: var(--rms-neutral-400);
+    --rms-focus: #bfdbfe;
+    --rms-focus-ring-width: 3px;
+    --rms-brand-text: #f2daa2;
+    --rms-success-fg: #6ee7b7;
+    --rms-success-border: #10b981;
+    --rms-warning-fg: #fde68a;
+    --rms-warning-border: #f59e0b;
+    --rms-danger-fg: #fecaca;
+    --rms-danger-border: #ef4444;
+    --rms-info-fg: #bfdbfe;
+    --rms-info-border: #60a5fa;
+    --rms-neutral-fg: var(--rms-neutral-50);
+    --rms-neutral-border: var(--rms-neutral-400);
+    --rms-table-row-hover: #172033;
+  }
+}
+
+html[data-contrast='high'] {
+  --rms-bg-page: #ffffff;
+  --rms-bg-surface: #ffffff;
+  --rms-bg-subtle: var(--rms-neutral-100);
+  --rms-bg-sunken: var(--rms-neutral-200);
+  --rms-border: var(--rms-neutral-500);
+  --rms-border-strong: var(--rms-neutral-700);
+  --rms-text: var(--rms-neutral-950);
+  --rms-text-secondary: var(--rms-neutral-800);
+  --rms-text-muted: var(--rms-neutral-700);
+  --rms-text-disabled: var(--rms-neutral-600);
+  --rms-focus: #1d4ed8;
+  --rms-focus-ring-width: 3px;
+  --rms-brand-text: #6f5306;
+  --rms-success-fg: #064e3b;
+  --rms-success-border: #047857;
+  --rms-warning-fg: #78350f;
+  --rms-warning-border: #b45309;
+  --rms-danger-fg: #991b1b;
+  --rms-danger-border: #b91c1c;
+  --rms-info-fg: #1e3a8a;
+  --rms-info-border: #1d4ed8;
+  --rms-neutral-fg: var(--rms-neutral-950);
+  --rms-neutral-border: var(--rms-neutral-500);
+  --rms-table-row-hover: var(--rms-neutral-100);
+}
+
+html.dark[data-contrast='high'] {
+  --rms-bg-page: var(--rms-neutral-950);
+  --rms-bg-surface: var(--rms-neutral-900);
+  --rms-bg-subtle: #172033;
+  --rms-bg-sunken: #020617;
+  --rms-border: var(--rms-neutral-500);
+  --rms-border-strong: var(--rms-neutral-400);
+  --rms-text: var(--rms-neutral-50);
+  --rms-text-secondary: var(--rms-neutral-200);
+  --rms-text-muted: var(--rms-neutral-300);
+  --rms-text-disabled: var(--rms-neutral-400);
+  --rms-focus: #bfdbfe;
+  --rms-focus-ring-width: 3px;
+  --rms-brand-text: #f2daa2;
+  --rms-success-fg: #6ee7b7;
+  --rms-success-border: #10b981;
+  --rms-warning-fg: #fde68a;
+  --rms-warning-border: #f59e0b;
+  --rms-danger-fg: #fecaca;
+  --rms-danger-border: #ef4444;
+  --rms-info-fg: #bfdbfe;
+  --rms-info-border: #60a5fa;
+  --rms-neutral-fg: var(--rms-neutral-50);
+  --rms-neutral-border: var(--rms-neutral-400);
+  --rms-table-row-hover: #172033;
+}

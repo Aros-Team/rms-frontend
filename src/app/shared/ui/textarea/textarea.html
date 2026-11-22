@@ -1,0 +1,31 @@
+<app-rms-field
+  [label]="label"
+  [controlId]="inputId"
+  [hint]="hint"
+  [error]="error"
+  [required]="required"
+  [optionalLabel]="optionalLabel"
+  [hideLabel]="hideLabel"
+  size="lg"
+>
+  <textarea
+    class="rms-textarea"
+    [id]="inputId"
+    [rows]="rows"
+    [value]="value()"
+    [attr.name]="name || null"
+    [attr.placeholder]="placeholder || null"
+    [attr.maxlength]="maxLength"
+    [attr.aria-invalid]="error ? 'true' : null"
+    [attr.aria-describedby]="describedBy"
+    [attr.aria-required]="required ? 'true' : null"
+    [disabled]="isDisabled"
+    [readOnly]="readonly"
+    (input)="onInput($event)"
+    (blur)="onBlur()"
+  ></textarea>
+
+  @if (showCount && maxLength) {
+    <span class="rms-textarea__count" aria-hidden="true">{{ countLabel }}</span>
+  }
+</app-rms-field>

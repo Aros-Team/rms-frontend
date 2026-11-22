@@ -1,0 +1,92 @@
+:host {
+  display: contents;
+}
+
+.rms-sheet {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--rms-text);
+}
+
+.rms-sheet::backdrop {
+  background: var(--rms-bg-overlay);
+}
+
+.rms-sheet__panel {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 90dvh;
+  border: var(--rms-border-width) solid var(--rms-border);
+  border-start-start-radius: var(--rms-radius-lg);
+  border-start-end-radius: var(--rms-radius-lg);
+  background: var(--rms-bg-surface);
+}
+
+.rms-sheet--end .rms-sheet__panel {
+  inset-block: 0;
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+  width: min(420px, 92vw);
+  max-height: none;
+  border-start-start-radius: var(--rms-radius-lg);
+  border-end-start-radius: var(--rms-radius-lg);
+  border-start-end-radius: 0;
+}
+
+.rms-sheet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rms-space-3);
+  padding: var(--rms-space-3) var(--rms-space-4);
+  border-bottom: var(--rms-border-width) solid var(--rms-border);
+}
+
+.rms-sheet__title {
+  margin: 0;
+  font-family: var(--rms-font-sans);
+  font-size: var(--rms-type-h3-size);
+  line-height: var(--rms-type-h3-line);
+  font-weight: var(--rms-weight-semibold);
+}
+
+.rms-sheet__body {
+  min-height: 0;
+  padding: var(--rms-space-4);
+  overflow-y: auto;
+  font-size: var(--rms-type-body-size);
+  line-height: var(--rms-type-body-line);
+}
+
+.rms-sheet__footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--rms-space-2);
+  padding: var(--rms-space-3) var(--rms-space-4);
+  border-top: var(--rms-border-width) solid var(--rms-border);
+}
+
+.rms-sheet__footer:empty {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .rms-sheet__panel {
+    inset-inline: 50%;
+    inset-block-end: 0;
+    width: min(560px, 92vw);
+    transform: translateX(-50%);
+  }
+}

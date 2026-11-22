@@ -1,0 +1,57 @@
+.rms-dialog__body {
+  color: var(--rms-text);
+  font-family: var(--rms-font-sans);
+  font-size: var(--rms-type-body-size);
+  line-height: var(--rms-type-body-line);
+}
+
+.rms-dialog__footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--rms-space-2);
+  margin-top: var(--rms-space-5);
+}
+
+.rms-dialog__footer:empty {
+  display: none;
+}
+
+:host ::ng-deep .rms-dialog {
+  display: flex;
+  flex-direction: column;
+  border: var(--rms-border-width) solid var(--rms-border);
+  border-radius: var(--rms-radius-md);
+  background: var(--rms-bg-surface);
+}
+
+:host ::ng-deep .rms-dialog .p-dialog-header {
+  padding: var(--rms-space-4) var(--rms-space-5);
+  border-bottom: var(--rms-border-width) solid var(--rms-border);
+  background: var(--rms-bg-surface);
+  color: var(--rms-text);
+}
+
+:host ::ng-deep .rms-dialog .p-dialog-title {
+  font-size: var(--rms-type-h3-size);
+  line-height: var(--rms-type-h3-line);
+  font-weight: var(--rms-weight-semibold);
+}
+
+:host ::ng-deep .rms-dialog .p-dialog-content {
+  padding: var(--rms-space-5);
+  background: var(--rms-bg-surface);
+  color: var(--rms-text);
+}
+
+:host ::ng-deep .rms-dialog .p-dialog-header-close {
+  width: var(--rms-touch-min);
+  height: var(--rms-touch-min);
+  border-radius: var(--rms-radius-sm);
+  color: var(--rms-text-secondary);
+}
+
+:host ::ng-deep .rms-dialog .p-dialog-header-close:hover {
+  background: var(--rms-bg-subtle);
+  color: var(--rms-text);
+}

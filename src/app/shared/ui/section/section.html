@@ -1,0 +1,21 @@
+<section class="rms-section" [attr.aria-labelledby]="headingId">
+  <header class="rms-section__header">
+    <div class="rms-section__heading">
+      @if (level === 2) {
+        <h2 class="rms-section__title rms-h2" [id]="headingId">{{ title }}</h2>
+      } @else {
+        <h3 class="rms-section__title rms-h3" [id]="headingId">{{ title }}</h3>
+      }
+      @if (description) {
+        <p class="rms-section__description">{{ description }}</p>
+      }
+    </div>
+    <div class="rms-section__actions">
+      <ng-content select="[rmsSectionActions]" />
+    </div>
+  </header>
+
+  <div class="rms-section__body">
+    <ng-content />
+  </div>
+</section>

@@ -1,0 +1,19 @@
+<button
+  [class]="classes"
+  [type]="type"
+  [disabled]="isDisabled"
+  [attr.aria-busy]="loading ? 'true' : null"
+  [attr.aria-label]="ariaLabel || null"
+>
+  @if (loading) {
+    <i class="pi pi-spin pi-spinner rms-btn__icon" aria-hidden="true"></i>
+  } @else if (iconStart) {
+    <i class="pi rms-btn__icon" [class]="iconStart" aria-hidden="true"></i>
+  }
+
+  <span class="rms-btn__label"><ng-content /></span>
+
+  @if (iconEnd && !loading) {
+    <i class="pi rms-btn__icon" [class]="iconEnd" aria-hidden="true"></i>
+  }
+</button>

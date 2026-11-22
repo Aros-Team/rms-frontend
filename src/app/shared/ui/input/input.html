@@ -1,0 +1,29 @@
+<app-rms-field
+  [label]="label"
+  [controlId]="inputId"
+  [hint]="hint"
+  [error]="error"
+  [required]="required"
+  [optionalLabel]="optionalLabel"
+  [hideLabel]="hideLabel"
+  [size]="size"
+>
+  <input
+    [class]="'rms-input rms-input--' + size"
+    [id]="inputId"
+    [type]="type"
+    [value]="value()"
+    [attr.name]="name || null"
+    [attr.placeholder]="placeholder || null"
+    [attr.autocomplete]="autocomplete || null"
+    [attr.inputmode]="inputMode || null"
+    [attr.maxlength]="maxLength"
+    [attr.aria-invalid]="error ? 'true' : null"
+    [attr.aria-describedby]="describedBy"
+    [attr.aria-required]="required ? 'true' : null"
+    [disabled]="isDisabled"
+    [readOnly]="readonly"
+    (input)="onInput($event)"
+    (blur)="onBlur()"
+  />
+</app-rms-field>

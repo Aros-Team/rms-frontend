@@ -1,0 +1,67 @@
+<figure class="rms-chart-frame" [attr.aria-labelledby]="titleId">
+  <figcaption class="rms-chart-frame__header">
+    <div class="rms-chart-frame__heading">
+      <h3 class="rms-chart-frame__title" [id]="titleId">{{ title }}</h3>
+      @if (subtitle) {
+        <p class="rms-chart-frame__subtitle">{{ subtitle }}</p>
+      }
+    </div>
+    <div class="rms-chart-frame__actions">
+      <ng-content select="[rmsChartActions]" />
+    </div>
+  </figcaption>
+
+  <div class="rms-chart-frame__plot-wrap" [style.height]="heightPx">
+    <div
+      class="rms-chart-frame__plot"
+      [class.rms-chart-frame__plot--concealed]="hasState"
+      [attr.role]="summary && !hasState ? 'img' : null"
+      [attr.aria-label]="summary && !hasState ? summary : null"
+    >
+      <ng-content />
+    </div>
+
+    @if (hasState) {
+      <div class="rms-chart-frame__state" [attr.role]="stateRole">
+        @if (loading) {
+          <app-rms-skeleton width="100%" height="100%" ariaLabel="Cargando gráfico" />
+        } @else if (error) {
+          <p class="rms-chart-frame__state-title">{{ errorTitle }}</p>
+          <p class="rms-chart-frame__state-message">{{ error }}</p>
+          <app-rms-button
+            variant="secondary"
+            size="sm"
+            iconStart="pi pi-refresh"
+            (click)="retry.emit()"
+          >
+            Reintentar
+          </app-rms-button>
+        } @else {
+          <p class="rms-chart-frame__state-title">{{ emptyMessage }}</p>
+          @if (emptyActionLabel) {
+            <app-rms-button variant="secondary" size="sm" (click)="emptyAction.emit()">
+              {{ emptyActionLabel }}
+            </app-rms-button>
+          }
+        }
+      </div>
+    }
+  </div>
+
+  <div class="rms-chart-frame__legend" [hidden]="hasState">
+    <ng-content select="[rmsChartLegend]" />
+  </div>
+
+  @if (summary) {
+    <p class="sr-only">{{ summary }}</p>
+  }
+
+  <details
+    class="rms-chart-frame__data"
+    [class.rms-chart-frame__data--visually-hidden]="dataMode === 'hidden'"
+    [hidden]="dataMode === 'none'"
+  >
+    <summary class="rms-chart-frame__data-summary">{{ dataLabel }}</summary>
+    <ng-content select="[rmsChartData]" />
+  </details>
+</figure>

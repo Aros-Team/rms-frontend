@@ -1,0 +1,413 @@
+@if (!isDev) {
+  <p class="gallery-blocked">
+    La galería del sistema de diseño solo está disponible en modo desarrollo.
+  </p>
+} @else {
+  <div class="gallery">
+    <app-rms-page-header
+      title="Sistema de diseño RMS"
+      subtitle="Tokens y primitivas en un solo lugar. Cambia de tema para comparar."
+    >
+      <div rmsPageHeaderMeta class="gallery-theme-switch" role="group" aria-label="Tema">
+        <app-rms-button
+          size="sm"
+          [variant]="dark() ? 'secondary' : 'primary'"
+          (click)="toggleTheme(false)"
+        >
+          Claro
+        </app-rms-button>
+        <app-rms-button
+          size="sm"
+          [variant]="dark() ? 'primary' : 'secondary'"
+          (click)="toggleTheme(true)"
+        >
+          Oscuro
+        </app-rms-button>
+        <app-rms-button
+          size="sm"
+          [variant]="highContrast() ? 'primary' : 'secondary'"
+          (click)="toggleContrast(!highContrast())"
+        >
+          Alto contraste
+        </app-rms-button>
+      </div>
+    </app-rms-page-header>
+
+    <a class="rms-skip-link" href="#gallery-content">Saltar al contenido</a>
+
+    <main id="gallery-content" tabindex="-1">
+      <app-rms-section
+        title="Tokens"
+        description="Valores semánticos. Las plantillas de features nunca leen un hex."
+      >
+        <div class="token-groups">
+          @for (group of tokenGroups; track group.title) {
+            <app-rms-card [title]="group.title" [subtitle]="group.description" padding="sm">
+              <ul class="swatches">
+                @for (swatch of group.swatches; track swatch.token) {
+                  <li class="swatch">
+                    <span
+                      class="swatch__sample"
+                      [style.background]="'var(' + swatch.token + ')'"
+                      aria-hidden="true"
+                    ></span>
+                    <code class="swatch__token">{{ swatch.token }}</code>
+                    @if (swatch.note) {
+                      <span class="swatch__note">{{ swatch.note }}</span>
+                    }
+                  </li>
+                }
+              </ul>
+            </app-rms-card>
+          }
+        </div>
+      </app-rms-section>
+
+      <app-rms-section title="Tipografía" description="Una familia, cuatro pesos, roles fijos.">
+        <app-rms-card>
+          <ul class="type-scale">
+            @for (row of typeScale; track row.className) {
+              <li class="type-row">
+                <span [class]="row.className">{{ row.label }}</span>
+                <span class="type-row__meta">{{ row.meta }}</span>
+              </li>
+            }
+          </ul>
+        </app-rms-card>
+      </app-rms-section>
+
+      <app-rms-section
+        title="Espaciado, radios y movimiento"
+        description="Escala de 4px, radios por rol y duraciones con easing."
+      >
+        <div class="scale-grid">
+          <app-rms-card title="Espaciado" subtitle="Base 4px">
+            <ul class="spacing-scale">
+              @for (step of spacing; track step.token) {
+                <li class="spacing-row">
+                  <code>{{ step.label }}</code>
+                  <span
+                    class="spacing-row__bar"
+                    [style.width]="'var(' + step.token + ')'"
+                    aria-hidden="true"
+                  ></span>
+                </li>
+              }
+            </ul>
+          </app-rms-card>
+
+          <app-rms-card title="Radios" subtitle="8 · 12 · 16 · full">
+            <ul class="radius-scale">
+              @for (radius of radii; track radius.token) {
+                <li class="radius-item">
+                  <span
+                    class="radius-item__box"
+                    [style.border-radius]="'var(' + radius.token + ')'"
+                    aria-hidden="true"
+                  ></span>
+                  <span class="radius-item__label">{{ radius.label }}</span>
+                </li>
+              }
+            </ul>
+          </app-rms-card>
+
+          <app-rms-card title="Movimiento" subtitle="Solo cambio de estado">
+            <ul class="motion-scale">
+              @for (token of motion; track token.token) {
+                <li>
+                  <code>{{ token.token }}</code>
+                  <span>{{ token.label }}</span>
+                </li>
+              }
+            </ul>
+          </app-rms-card>
+        </div>
+      </app-rms-section>
+
+      <app-rms-section
+        title="Botones"
+        description="Una acción primaria por vista. El dorado es relleno; el texto usa la tinta de marca."
+      >
+        <app-rms-card>
+          <h3 class="demo-title">Variantes</h3>
+          <div class="demo-row">
+            <app-rms-button>Guardar</app-rms-button>
+            <app-rms-button variant="secondary">Cancelar</app-rms-button>
+            <app-rms-button variant="ghost">Ver detalle</app-rms-button>
+            <app-rms-button variant="danger" iconStart="pi pi-trash">Eliminar</app-rms-button>
+            <app-rms-button variant="link">Más información</app-rms-button>
+          </div>
+
+          <h3 class="demo-title">Tamaños y estados</h3>
+          <div class="demo-row demo-row--end">
+            <app-rms-button size="sm">sm · 32</app-rms-button>
+            <app-rms-button size="md">md · 40</app-rms-button>
+            <app-rms-button size="lg">lg · 48</app-rms-button>
+            <app-rms-button size="xl">xl · 56</app-rms-button>
+            <app-rms-button [loading]="true">Guardando</app-rms-button>
+            <app-rms-button [disabled]="true">Deshabilitado</app-rms-button>
+            <app-rms-button iconStart="pi pi-plus" iconEnd="pi pi-arrow-right">
+              Con iconos
+            </app-rms-button>
+          </div>
+
+          <h3 class="demo-title">Icon buttons</h3>
+          <div class="demo-row">
+            <app-rms-icon-button icon="pi pi-pencil" ariaLabel="Editar" />
+            <app-rms-icon-button icon="pi pi-copy" ariaLabel="Duplicar" variant="secondary" />
+            <app-rms-icon-button icon="pi pi-trash" ariaLabel="Eliminar" variant="danger" />
+            <app-rms-icon-button icon="pi pi-search" ariaLabel="Buscar" size="lg" />
+            <app-rms-icon-button icon="pi pi-times" ariaLabel="Cerrar" [disabled]="true" />
+          </div>
+        </app-rms-card>
+      </app-rms-section>
+
+      <app-rms-section
+        title="Formularios"
+        description="Etiqueta visible, ayuda y error conectados por id. Nunca solo placeholder."
+      >
+        <app-rms-card>
+          <div class="form-grid">
+            <app-rms-input
+              label="Nombre del producto"
+              placeholder="Ej. Hamburguesa doble"
+              hint="Como aparece en la carta"
+            />
+
+            <app-rms-input
+              label="Correo"
+              type="email"
+              [required]="true"
+              error="El correo no es válido"
+              autocomplete="email"
+            />
+
+            <app-rms-textarea
+              label="Notas de cocina"
+              placeholder="Sin cebolla, término medio…"
+              [maxLength]="120"
+              [showCount]="true"
+            />
+
+            <app-rms-select
+              label="Área"
+              [options]="selectOptions"
+              hint="Se filtra automáticamente con más de 8 opciones"
+            />
+
+            <app-rms-field
+              label="Control personalizado"
+              controlId="custom-control"
+              hint="Field envuelve cualquier control y expone describedBy"
+            >
+              <input id="custom-control" class="demo-native-input" placeholder="Control propio" />
+            </app-rms-field>
+
+            <div class="form-checks">
+              <app-rms-checkbox
+                label="Mostrar productos inactivos"
+                description="Incluye productos deshabilitados en la tabla"
+              />
+              <app-rms-switch label="Mostrar inactivos" />
+            </div>
+          </div>
+        </app-rms-card>
+      </app-rms-section>
+
+      <app-rms-section
+        title="Feedback y datos"
+        description="Estados con texto; el color nunca es la única señal."
+      >
+        <div class="demo-grid">
+          <app-rms-card title="Badges y status pills">
+            <div class="demo-row">
+              <app-rms-badge label="Activo" tone="success" />
+              <app-rms-badge label="Pendiente" tone="warning" />
+              <app-rms-badge label="Anulado" tone="danger" variant="outline" />
+              <app-rms-badge label="Nuevo" tone="info" variant="solid" />
+              <app-rms-badge label="Marca" tone="brand" />
+            </div>
+            <div class="demo-row">
+              <app-rms-status-pill label="Disponible" status="success" />
+              <app-rms-status-pill label="Ocupada" status="info" />
+              <app-rms-status-pill label="Reservada" status="warning" />
+              <app-rms-status-pill label="Sucia" status="neutral" />
+              <app-rms-status-pill label="Anulada" status="danger" />
+            </div>
+          </app-rms-card>
+
+          <app-rms-card title="Stat tiles" subtitle="El periodo siempre se declara">
+            <div class="stat-grid">
+              <app-rms-stat-tile
+                label="Ventas netas"
+                value="$ 1.284.000"
+                period="Último mes"
+                delta="↑ 12,4 %"
+                deltaTone="positive"
+                [emphasis]="true"
+              />
+              <app-rms-stat-tile label="Costo primo" value="31,8 %" period="Último mes" delta="↓ 2,1 %" deltaTone="positive" />
+              <app-rms-stat-tile label="Margen bruto" [value]="null" period="Periodo seleccionado" />
+              <app-rms-stat-tile label="Ticket promedio" value="$ 28.000" period="Hoy" [loading]="true" />
+            </div>
+          </app-rms-card>
+
+          <app-rms-card title="Empty state" subtitle="Título, razón y una acción">
+            <app-rms-empty-state
+              title="No hay pedidos hoy"
+              message="Aún no se registran pedidos para este día."
+              actionLabel="Crear pedido"
+              actionIcon="pi pi-plus"
+              secondaryLabel="Ver pedidos de ayer"
+            />
+          </app-rms-card>
+
+          <app-rms-card title="Skeleton" subtitle="Forma del contenido final">
+            <div class="skeleton-demo">
+              <app-rms-skeleton variant="text" [lines]="3" ariaLabel="Cargando descripción" />
+              <app-rms-skeleton variant="circle" width="3rem" height="3rem" ariaLabel="Cargando avatar" />
+              <app-rms-skeleton width="80%" height="2.5rem" ariaLabel="Cargando indicador" />
+            </div>
+          </app-rms-card>
+        </div>
+      </app-rms-section>
+
+      <app-rms-section
+        title="Overlays"
+        description="D-012: PrimeNG para flujos complejos, dialog nativo para hojas simples."
+      >
+        <app-rms-card>
+          <div class="demo-row">
+            <app-rms-button (click)="dialogVisible.set(true)">Abrir diálogo</app-rms-button>
+            <app-rms-button variant="secondary" (click)="openSheet('bottom')">
+              Abrir hoja inferior
+            </app-rms-button>
+            <app-rms-button variant="secondary" (click)="openSheet('end')">
+              Abrir panel lateral
+            </app-rms-button>
+          </div>
+        </app-rms-card>
+      </app-rms-section>
+
+      <app-rms-section
+        title="Chart frame"
+        description="Altura fija, leyenda HTML, tabla de respaldo y estados sin colapsar."
+      >
+        <div class="chart-grid">
+          <app-rms-card title="Con datos">
+            <app-rms-chart-frame
+              title="Ventas netas"
+              subtitle="Últimos 6 meses · COP"
+              summary="Ventas netas por mes de mayo a octubre"
+              dataMode="disclosure"
+            >
+              <div class="chart-placeholder" aria-hidden="true">plot</div>
+              <ul rmsChartLegend class="chart-legend">
+                <li><span class="chart-legend__swatch chart-legend__swatch--1"></span>Ventas netas</li>
+                <li><span class="chart-legend__swatch chart-legend__swatch--7"></span>Comparación</li>
+              </ul>
+              <table rmsChartData class="chart-table">
+                <thead>
+                  <tr><th>Mes</th><th>Ventas</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Mayo</td><td>$ 127.000.000</td></tr>
+                  <tr><td>Junio</td><td>$ 98.400.000</td></tr>
+                </tbody>
+              </table>
+            </app-rms-chart-frame>
+          </app-rms-card>
+
+          <app-rms-card title="Estados">
+            <app-rms-chart-frame
+              title="Costo de lo vendido"
+              subtitle="Sin datos"
+              [empty]="true"
+              emptyActionLabel="Cambiar periodo"
+            >
+              <div class="chart-placeholder" aria-hidden="true">plot</div>
+            </app-rms-chart-frame>
+            <app-rms-chart-frame title="Cargando" [loading]="true">
+              <div class="chart-placeholder" aria-hidden="true">plot</div>
+            </app-rms-chart-frame>
+            <app-rms-chart-frame
+              title="Error"
+              error="No se pudo cargar la información."
+            >
+              <div class="chart-placeholder" aria-hidden="true">plot</div>
+            </app-rms-chart-frame>
+          </app-rms-card>
+        </div>
+      </app-rms-section>
+
+      <app-rms-section
+        title="Foco y PrimeNG"
+        description="Anillo visible en todos los controles; el preset hereda los tokens."
+      >
+        <div class="demo-grid">
+          <app-rms-card title="Foco">
+            <p class="gallery-note">
+              Tabulá por esta tarjeta: el anillo azul de 2px con offset de 2px aparece en
+              cada control. No se elimina ningún outline.
+            </p>
+            <div class="demo-row">
+              <app-rms-button>Primero</app-rms-button>
+              <app-rms-button variant="secondary">Segundo</app-rms-button>
+              <app-rms-icon-button icon="pi pi-star" ariaLabel="Tercero" />
+              <a class="demo-link" href="#gallery-content">Enlace</a>
+            </div>
+          </app-rms-card>
+
+          <app-rms-card title="PrimeNG mapeado" subtitle="Mismos tokens, mismos colores">
+            <div class="demo-row">
+              <p-button label="PrimeNG primary" />
+              <p-button label="Secondary" [outlined]="true" />
+              <p-tag value="Activo" severity="success" />
+              <p-tag value="Pendiente" severity="warn" />
+              <p-tag value="Anulado" severity="danger" />
+            </div>
+            <div class="demo-row">
+              <input pInputText placeholder="pInputText" />
+              <p-button label="Icono" icon="pi pi-search" />
+            </div>
+          </app-rms-card>
+        </div>
+      </app-rms-section>
+    </main>
+
+    <app-rms-dialog
+      header="Nuevo producto"
+      [visible]="dialogVisible()"
+      (visibleChange)="dialogVisible.set($event)"
+    >
+      <div class="dialog-demo">
+        <app-rms-input label="Nombre" placeholder="Ej. Hamburguesa doble" [required]="true" />
+        <app-rms-textarea label="Descripción" [rows]="3" />
+      </div>
+      <div rmsDialogFooter class="demo-row">
+        <app-rms-button variant="secondary" (click)="dialogVisible.set(false)">
+          Cancelar
+        </app-rms-button>
+        <app-rms-button (click)="dialogVisible.set(false)">Guardar</app-rms-button>
+      </div>
+    </app-rms-dialog>
+
+    <app-rms-sheet
+      title="Filtros"
+      [open]="sheetOpen()"
+      [side]="sheetEnd() ? 'end' : 'bottom'"
+      (openChange)="sheetOpen.set($event)"
+    >
+      <div class="sheet-demo">
+        <app-rms-select label="Área" [options]="selectOptions" />
+        <app-rms-checkbox label="Solo activos" />
+      </div>
+      <div rmsSheetFooter class="demo-row">
+        <app-rms-button variant="secondary" (click)="sheetOpen.set(false)">
+          Limpiar
+        </app-rms-button>
+        <app-rms-button (click)="sheetOpen.set(false)">Aplicar</app-rms-button>
+      </div>
+    </app-rms-sheet>
+  </div>
+}
