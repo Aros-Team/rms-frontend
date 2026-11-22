@@ -1,42 +1,101 @@
-<div class="flex flex-col gap-4 p-4 md:p-6 min-w-0">
-  <header class="flex flex-col gap-1">
-    <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-0">Caja</h1>
-    <p class="text-sm text-muted">
-      Espacio de trabajo del cajero. Cobros y turno de caja llegan con el módulo de pagos.
-    </p>
-  </header>
-
-  <p-message
-    severity="info"
-    text="El módulo de pagos todavía no está disponible en esta versión. Tu acceso ya está habilitado y no necesitas usar la pantalla de meseros."
-  />
-
-  <section aria-labelledby="cashier-pending-title" class="flex flex-col gap-3">
-    <h2 id="cashier-pending-title" class="text-base font-semibold text-surface-800 dark:text-surface-100">
-      En preparación
-    </h2>
-
-    <ul class="grid grid-cols-1 gap-3 md:grid-cols-3">
-      @for (module of pendingModules; track module.id) {
-        <li class="flex flex-col gap-2 rounded-xl border border-surface-200 dark:border-surface-700 bg-primary-contrast p-4">
-          <i [class]="module.icon + ' text-xl text-muted'" aria-hidden="true"></i>
-          <h3 class="font-semibold text-surface-800 dark:text-surface-100">{{ module.title }}</h3>
-          <p class="text-sm text-muted">{{ module.description }}</p>
-          <span class="mt-auto inline-flex w-fit items-center gap-1 rounded-full border border-surface-200 dark:border-surface-700 px-2 py-0.5 text-xs text-muted">
-            Pendiente
-          </span>
-        </li>
+<div class="cashier">
+  <app-rms-page-header
+    title="Caja"
+    subtitle="Cobra las cuentas del día y concilia el turno de caja."
+  >
+    <div rmsPageHeaderMeta class="cashier__meta">
+      <app-rms-status-pill
+        [label]="shiftOpen() ? 'Caja abierta' : 'Caja cerrada'"
+        [status]="shiftOpen() ? 'success' : 'warning'"
+      />
+      @if (shiftOpen()) {
+        <span>Abierto {{ openedAt() }}</span>
       }
-    </ul>
-  </section>
+      @if (lastUpdated(); as updated) {
+        <span>Actualizado {{ updated | date: 'HH:mm:ss' }}</span>
+      }
+    </div>
 
-  <div class="flex flex-wrap gap-2">
-    <a
-      routerLink="/worker/profile"
-      class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-surface-200 dark:border-surface-700 px-4 text-sm font-medium text-surface-800 dark:text-surface-100 hover:bg-surface-100 dark:hover:bg-surface-800"
-    >
-      <i class="pi pi-user" aria-hidden="true"></i>
-      Mi cuenta
-    </a>
+    <div rmsPageHeaderActions>
+      <app-rms-button
+        variant="secondary"
+        iconStart="pi pi-wallet"
+        (click)="openShiftDialog()"
+      >
+        {{ shiftOpen() ? 'Ver turno' : 'Abrir caja' }}
+      </app-rms-button>
+    </div>
+  </app-rms-page-header>
+
+  <div class="cashier__grid">
+    <app-cashier-pending-board
+      [orders]="pending()"
+      [loading]="pendingLoading()"
+      [refreshing]="pendingRefreshing()"
+      [error]="pendingError()"
+      [selectedOrderId]="selected()?.orderId ?? null"
+      [search]="search()"
+      [date]="date()"
+      [page]="pendingPage()"
+      [totalPages]="pendingTotalPages()"
+      [total]="pendingTotal()"
+      [lastUpdated]="lastUpdated()"
+      (selectOrder)="onSelectOrder($event)"
+      (searchChange)="onSearchChange($event)"
+      (dateChange)="onDateChange($event)"
+      (refresh)="loadPending()"
+      (pageChange)="onPageChange($event)"
+    />
+
+    <app-cashier-order-charge
+      [order]="order()"
+      [tableNumber]="tableNumber()"
+      [loading]="orderLoading()"
+      [error]="orderError()"
+      [shiftOpen]="shiftOpen()"
+      [submitting]="chargeBusy()"
+      [submitError]="chargeError()"
+      (charge)="onCharge($event)"
+      (retry)="retryOrder()"
+      (openShift)="openShiftDialog()"
+    />
   </div>
 </div>
+
+<app-cashier-receipt
+  [visible]="receiptVisible()"
+  [payment]="receiptPayment()"
+  [order]="receiptOrder()"
+  [tableNumber]="receiptTable()"
+  [cashierName]="cashierName()"
+  [canVoid]="canVoidReceipt()"
+  (visibleChange)="onReceiptVisibleChange($event)"
+  (voidRequested)="onVoidRequested($event)"
+  (newCharge)="onNewCharge()"
+/>
+
+<app-cashier-void-dialog
+  [visible]="voidVisible()"
+  [payment]="voidTarget()"
+  [busy]="voidBusy()"
+  [error]="voidError()"
+  (visibleChange)="onVoidVisibleChange($event)"
+  (confirmVoid)="confirmVoid($event)"
+/>
+
+<app-cashier-shift-dialog
+  [visible]="shiftVisible()"
+  [shift]="shift()"
+  [summary]="shiftSummary()"
+  [closedSummary]="closedSummary()"
+  [payments]="journal()"
+  [loading]="shiftLoading()"
+  [busy]="shiftBusy()"
+  [error]="shiftError()"
+  (visibleChange)="onShiftVisibleChange($event)"
+  (openShift)="onOpenShift($event)"
+  (closeShift)="onCloseShift($event)"
+  (refresh)="refreshShift()"
+  (viewReceipt)="onViewReceipt($event)"
+  (voidRequested)="onVoidFromJournal($event)"
+/>

@@ -1,0 +1,36 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.cashier {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rms-space-4);
+  min-width: 0;
+  padding-block-end: var(--rms-space-4);
+}
+
+.cashier__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rms-space-2) var(--rms-space-3);
+  color: var(--rms-text-muted);
+  font-size: var(--rms-type-caption-size);
+  line-height: var(--rms-type-caption-line);
+}
+
+.cashier__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  align-items: start;
+  gap: var(--rms-space-4);
+  min-width: 0;
+}
+
+@media (max-width: 78rem) {
+  .cashier__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

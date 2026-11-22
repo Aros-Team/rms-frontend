@@ -1,0 +1,275 @@
+<app-rms-section title="Cuenta" description="Revisa el pedido, aplica descuento y propina, y registra el cobro.">
+  @if (loading) {
+    <div class="charge__loading" role="status" aria-label="Cargando el detalle de la cuenta">
+      <app-rms-skeleton height="1.5rem" width="45%" ariaLabel="Cargando la cuenta" />
+      <app-rms-skeleton height="8rem" ariaLabel="Cargando el detalle de la cuenta" />
+      <app-rms-skeleton height="6rem" ariaLabel="Cargando el detalle de la cuenta" />
+    </div>
+  } @else if (error) {
+    <app-rms-empty-state
+      icon="pi pi-exclamation-triangle"
+      title="No se pudo cargar la cuenta"
+      [message]="error"
+      actionLabel="Reintentar"
+      actionIcon="pi pi-refresh"
+      (action)="retry.emit()"
+    />
+  } @else if (order === null) {
+    <app-rms-empty-state
+      icon="pi pi-receipt"
+      title="Selecciona una cuenta"
+      message="Elige un pedido de la lista de pendientes para revisar sus productos y cobrar."
+    />
+  } @else {
+    <header class="charge__order">
+      <div class="charge__order-heading">
+        <p class="charge__table">{{ tableLabel() }}</p>
+        <p class="charge__meta">
+          Pedido #{{ order.id }} · {{ orderTime() }} · {{ itemCount() }}
+          {{ itemCount() === 1 ? 'ítem' : 'ítems' }}
+        </p>
+      </div>
+      <app-rms-badge label="Por cobrar" tone="warning" />
+    </header>
+
+    <div class="charge__lines-wrap">
+      <table class="charge__lines">
+        <caption class="sr-only">Detalle de productos del pedido</caption>
+        <thead>
+          <tr>
+            <th scope="col">Producto</th>
+            <th scope="col" class="charge__col-qty">Cant.</th>
+            <th scope="col" class="charge__col-total">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (line of lines(); track line.key) {
+            <tr>
+              <td>
+                <span class="charge__line-name">{{ line.name }}</span>
+                @if (line.options.length > 0) {
+                  <span class="charge__line-extra">Opciones: {{ line.options.join(', ') }}</span>
+                }
+                @if (line.combos.length > 0) {
+                  <span class="charge__line-extra">Combo: {{ line.combos.join(', ') }}</span>
+                }
+                @if (line.additions.length > 0) {
+                  <span class="charge__line-extra">Adiciones: {{ line.additions.join(', ') }}</span>
+                }
+                @if (line.clarifications.length > 0) {
+                  <span class="charge__line-extra">
+                    {{ line.clarifications.join(' · ') }}
+                  </span>
+                }
+                @if (line.instructions.length > 0) {
+                  <span class="charge__line-instructions">Nota: {{ line.instructions }}</span>
+                }
+              </td>
+              <td class="charge__col-qty">{{ line.quantity }}</td>
+              <td class="charge__col-total rms-tabular">{{ line.total | money }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="charge__blocks">
+      <div class="charge__block">
+        <h3 class="charge__block-title">Propina</h3>
+        <div class="charge__presets" role="group" aria-label="Propina sugerida">
+          @for (preset of tipPresets; track preset) {
+            <app-rms-button
+              size="sm"
+              variant="secondary"
+              [ariaLabel]="'Aplicar propina del ' + preset + ' por ciento'"
+              (click)="setTipPreset(preset)"
+            >
+              {{ preset }}%
+            </app-rms-button>
+          }
+        </div>
+        <app-rms-input
+          [id]="'charge-tip'"
+          label="Propina"
+          inputMode="decimal"
+          hint="Se calcula sobre el subtotal menos el descuento."
+          [ngModel]="tipInput()"
+          (ngModelChange)="onTipChange($event)"
+        />
+      </div>
+
+      <div class="charge__block">
+        <h3 class="charge__block-title">Descuento</h3>
+        <app-rms-select
+          label="Descuento"
+          [options]="discountOptions"
+          [ngModel]="discountType()"
+          (ngModelChange)="onDiscountTypeChange($event)"
+        />
+        @if (hasDiscount()) {
+          <app-rms-input
+            [id]="'charge-discount-value'"
+            label="Valor del descuento"
+            inputMode="decimal"
+            [required]="true"
+            [error]="discountValueError()"
+            [ngModel]="discountValueInput()"
+            (ngModelChange)="onDiscountValueChange($event)"
+          />
+          <app-rms-input
+            [id]="'charge-discount-reason'"
+            label="Motivo del descuento"
+            [required]="true"
+            [maxLength]="255"
+            [error]="discountReasonError()"
+            [ngModel]="discountReason()"
+            (ngModelChange)="onDiscountReasonChange($event)"
+          />
+        }
+      </div>
+    </div>
+
+    <div class="charge__block charge__block--wide">
+      <div class="charge__block-header">
+        <h3 class="charge__block-title">Medios de pago</h3>
+        <app-rms-button
+          size="sm"
+          variant="secondary"
+          iconStart="pi pi-plus"
+          (click)="addTender()"
+        >
+          Agregar medio
+        </app-rms-button>
+      </div>
+
+      <div class="charge__tenders">
+        @for (tender of tenders(); track tender.id; let i = $index) {
+          <div class="charge__tender">
+            <app-rms-select
+              [id]="'charge-tender-method-' + i"
+              [label]="'Medio de pago ' + (i + 1)"
+              [options]="methodOptions"
+              [ngModel]="tender.method"
+              (ngModelChange)="onTenderMethodChange(i, $event)"
+            />
+            <app-rms-input
+              [id]="'charge-tender-amount-' + i"
+              [label]="'Monto ' + (i + 1)"
+              inputMode="decimal"
+              [error]="tenderAmountError(i) || tenderOverError(i)"
+              [ngModel]="tender.amountInput"
+              (ngModelChange)="onTenderAmountChange(i, $event)"
+            />
+            @if (tender.method !== 'CASH') {
+              <app-rms-input
+                [id]="'charge-tender-ref-' + i"
+                [label]="'Referencia ' + (i + 1)"
+                [maxLength]="100"
+                hint="Código de autorización o número de transferencia."
+                [ngModel]="tender.reference"
+                (ngModelChange)="onTenderReferenceChange(i, $event)"
+              />
+            }
+            <div class="charge__tender-actions">
+              <app-rms-button
+                size="sm"
+                variant="ghost"
+                [ariaLabel]="'Completar el saldo del medio de pago ' + (i + 1)"
+                (click)="fillRemaining(i)"
+              >
+                Resto
+              </app-rms-button>
+              <app-rms-icon-button
+                icon="pi pi-trash"
+                [ariaLabel]="'Quitar medio de pago ' + (i + 1)"
+                size="sm"
+                variant="danger"
+                [disabled]="tenders().length === 1"
+                (click)="removeTender(i)"
+              />
+            </div>
+            @if (tender.method === 'CASH' && tenderChange(i) > 0) {
+              <p class="charge__tender-change">
+                Cambio de este medio: {{ tenderChange(i) | money }}
+              </p>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <dl class="charge__summary">
+      <div class="charge__summary-row">
+        <dt>Subtotal</dt>
+        <dd>{{ computation().subtotal | money }}</dd>
+      </div>
+      @if (computation().discountAmount > 0) {
+        <div class="charge__summary-row">
+          <dt>Descuento</dt>
+          <dd class="rms-tabular">-{{ computation().discountAmount | money }}</dd>
+        </div>
+      }
+      <div class="charge__summary-row">
+        <dt>Propina</dt>
+        <dd>{{ computation().tip | money }}</dd>
+      </div>
+      <div class="charge__summary-row charge__summary-row--total">
+        <dt>Total</dt>
+        <dd class="rms-numeric-lg">{{ computation().total | money }}</dd>
+      </div>
+      <div class="charge__summary-row">
+        <dt>Recibido</dt>
+        <dd>{{ computation().tendered | money }}</dd>
+      </div>
+      @if (computation().change > 0) {
+        <div class="charge__summary-row charge__summary-row--success">
+          <dt>Cambio</dt>
+          <dd>{{ computation().change | money }}</dd>
+        </div>
+      }
+      @if (computation().remaining > 0) {
+        <div class="charge__summary-row charge__summary-row--danger">
+          <dt>Falta</dt>
+          <dd>{{ computation().remaining | money }}</dd>
+        </div>
+      }
+    </dl>
+
+    @if (summaryIssues().length > 0) {
+      <div class="charge__issues" role="status">
+        <p class="charge__issues-title">Para poder cobrar:</p>
+        <ul>
+          @for (issue of summaryIssues(); track $index) {
+            <li>{{ issueText(issue) }}</li>
+          }
+        </ul>
+      </div>
+    }
+
+    @if (!shiftOpen) {
+      <div class="charge__shift-warning" role="status">
+        <p>La caja está cerrada. Abre un turno para registrar cobros.</p>
+        <app-rms-button size="sm" variant="secondary" (click)="openShift.emit()">
+          Abrir caja
+        </app-rms-button>
+      </div>
+    }
+
+    @if (submitError) {
+      <p class="charge__error" role="alert">{{ submitError }}</p>
+    }
+
+    <div class="charge__submit">
+      <app-rms-button
+        size="lg"
+        [block]="true"
+        iconStart="pi pi-check"
+        [loading]="submitting"
+        [disabled]="!canSubmit()"
+        (click)="submit()"
+      >
+        Confirmar cobro
+      </app-rms-button>
+    </div>
+  }
+</app-rms-section>

@@ -1,0 +1,137 @@
+<app-rms-section
+  title="Pendientes de cobro"
+  description="Pedidos entregados que todavía no tienen un cobro activo."
+>
+  <div rmsSectionActions class="pending-board__toolbar">
+    <app-rms-button
+      variant="secondary"
+      iconStart="pi pi-refresh"
+      [loading]="refreshing"
+      (click)="refresh.emit()"
+    >
+      Actualizar
+    </app-rms-button>
+  </div>
+
+  <div class="pending-board__filters">
+    <app-rms-input
+      [id]="'cashier-search'"
+      class="pending-board__search"
+      label="Buscar cuenta"
+      hint="Número exacto de mesa o de pedido."
+      placeholder="Mesa o pedido"
+      inputMode="numeric"
+      name="cashier-search"
+      [(ngModel)]="searchValue"
+      (keydown.enter)="submitSearch()"
+    />
+
+    <app-rms-field label="Fecha" controlId="cashier-date">
+      <input
+        id="cashier-date"
+        class="pending-board__date"
+        type="date"
+        [value]="date"
+        (change)="onDateInput($event)"
+      />
+    </app-rms-field>
+
+    <div class="pending-board__filter-actions">
+      <app-rms-button size="sm" iconStart="pi pi-search" (click)="submitSearch()">
+        Buscar
+      </app-rms-button>
+      @if (searchValue.length > 0) {
+        <app-rms-button size="sm" variant="ghost" (click)="clearSearch()">Limpiar</app-rms-button>
+      }
+    </div>
+  </div>
+
+  <div class="pending-board__meta">
+    <span>{{ totalLabel() }}</span>
+    @if (lastUpdated) {
+      <span>Actualizado {{ lastUpdated | date: 'HH:mm:ss' }}</span>
+    }
+  </div>
+
+  @if (loading) {
+    <div class="pending-board__loading" role="status" aria-label="Cargando cuentas por cobrar">
+      <app-rms-skeleton height="4.75rem" ariaLabel="Cargando cuentas por cobrar" />
+      <app-rms-skeleton height="4.75rem" ariaLabel="Cargando cuentas por cobrar" />
+      <app-rms-skeleton height="4.75rem" ariaLabel="Cargando cuentas por cobrar" />
+    </div>
+  } @else if (error) {
+    <app-rms-empty-state
+      icon="pi pi-exclamation-triangle"
+      title="No se pudieron cargar las cuentas"
+      [message]="error"
+      actionLabel="Reintentar"
+      actionIcon="pi pi-refresh"
+      (action)="refresh.emit()"
+    />
+  } @else if (orders.length === 0) {
+    <app-rms-empty-state
+      icon="pi pi-check-circle"
+      title="No hay cuentas por cobrar"
+      [message]="
+        search.length > 0
+          ? 'Ninguna mesa o pedido coincide con la búsqueda.'
+          : 'Los pedidos entregados del día aparecerán aquí.'
+      "
+      actionLabel="Actualizar"
+      actionIcon="pi pi-refresh"
+      (action)="refresh.emit()"
+    />
+  } @else {
+    <ul class="pending-board__list" aria-label="Cuentas pendientes de cobro">
+      @for (order of orders; track order.orderId) {
+        <li>
+          <button
+            type="button"
+            class="pending-row"
+            [class.pending-row--selected]="isSelected(order)"
+            [attr.aria-pressed]="isSelected(order)"
+            (click)="selectOrder.emit(order)"
+          >
+            <span class="pending-row__table">{{ tableLabel(order) }}</span>
+
+            <span class="pending-row__details">
+              <span class="pending-row__order">Pedido #{{ order.orderId }}</span>
+              <span class="pending-row__time">{{ timeLabel(order) }}</span>
+              @if (partyLabel(order); as party) {
+                <span class="pending-row__party">{{ party }}</span>
+              }
+            </span>
+
+            <span class="pending-row__amount rms-numeric">{{ order.total | money }}</span>
+
+            @if (order.paymentStatus === 'VOIDED') {
+              <app-rms-badge label="Anulada · re-cobrar" tone="warning" />
+            }
+
+            <i class="pi pi-chevron-right pending-row__chevron" aria-hidden="true"></i>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (totalPages > 1) {
+    <nav class="pending-board__pager" aria-label="Paginación de cuentas pendientes">
+      <app-rms-icon-button
+        icon="pi pi-chevron-left"
+        ariaLabel="Página anterior"
+        size="sm"
+        [disabled]="page === 0"
+        (click)="previousPage()"
+      />
+      <span class="pending-board__page">Página {{ page + 1 }} de {{ totalPages }}</span>
+      <app-rms-icon-button
+        icon="pi pi-chevron-right"
+        ariaLabel="Página siguiente"
+        size="sm"
+        [disabled]="page + 1 >= totalPages"
+        (click)="nextPage()"
+      />
+    </nav>
+  }
+</app-rms-section>
