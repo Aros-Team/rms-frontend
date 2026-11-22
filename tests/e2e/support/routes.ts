@@ -210,13 +210,6 @@ export const ROLE_ROUTES: Record<RoleKey, RouteCase[]> = {
       expectPath: '/admin/create-product',
     },
     {
-      path: '/admin/profile',
-      slug: 'profile',
-      label: 'Admin profile / settings',
-      shell: 'admin',
-      expectPath: '/admin/profile',
-    },
-    {
       path: '/dev/ui',
       slug: 'dev-ui',
       label: 'Design-system gallery (dev only)',
