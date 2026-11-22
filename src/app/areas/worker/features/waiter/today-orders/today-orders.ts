@@ -59,7 +59,7 @@ interface OrderLineView {
 
 function lineKey(detail: OrderDetailItem): string {
   const options = (detail.selectedOptions ?? []).map((option) => option.name).join(',');
-  return `${String(detail.productId)}|${detail.instructions}|${options}`;
+  return `${String(detail.productId)}|${detail.instructions ?? ''}|${options}`;
 }
 
 function groupLines(details: readonly OrderDetailItem[]): OrderLineView[] {
@@ -74,12 +74,12 @@ function groupLines(details: readonly OrderDetailItem[]): OrderLineView[] {
     }
     lines.set(key, {
       key,
-      name: detail.productName,
+      name: detail.productName ?? '',
       quantity: 1,
       unitPrice: calculateLineTotal(detail),
       total: calculateLineTotal(detail),
       options: (detail.selectedOptions ?? []).map((option) => option.name).join(', '),
-      instructions: detail.instructions,
+      instructions: detail.instructions ?? '',
     });
   }
   return [...lines.values()];

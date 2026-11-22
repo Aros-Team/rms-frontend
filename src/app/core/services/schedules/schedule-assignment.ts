@@ -2,17 +2,28 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Logging } from '@app/core/services/logging/logging';
+import type { ScheduleAssignmentResponse } from '@app/shared/models/dto/schedules/schedule-assignment-response';
 
 @Injectable({ providedIn: 'root' })
 export class ScheduleAssignment {
   private http = inject(HttpClient);
   private logger = inject(Logging);
 
-  assign(workerId: number, scheduleId: number): Observable<unknown> {
+  /**
+   * Assigns a whole schedule and returns the server-computed weekly hours.
+   *
+   * `warning` carries the non-blocking 48 h notice; the client shows it instead
+   * of re-implementing the hour rule. Overlaps, duplicates and the 66 h cap are
+   * rejected server-side with 409.
+   */
+  assign(workerId: number, scheduleId: number): Observable<ScheduleAssignmentResponse> {
     const wid = String(workerId);
     const sid = String(scheduleId);
     this.logger.debug('ScheduleAssignment: Calling POST assign worker:', wid, 'schedule:', sid);
-    return this.http.post<unknown>(`v1/workers/${wid}/schedule-assignments`, { scheduleId });
+    return this.http.post<ScheduleAssignmentResponse>(
+      `v1/workers/${wid}/schedule-assignments`,
+      { scheduleId },
+    );
   }
 
   getAssignments(workerId: number): Observable<number[]> {

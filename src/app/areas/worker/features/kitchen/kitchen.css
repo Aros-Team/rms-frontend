@@ -462,6 +462,24 @@
   font-weight: var(--rms-weight-semibold);
 }
 
+.line__ready {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  margin-left: auto;
+}
+
+.line__ready-at {
+  color: var(--rms-text-muted);
+  font-size: clamp(0.8rem, 0.28vw + 0.68rem, 1rem);
+}
+
+.line--ready .line__name {
+  color: var(--rms-success-fg);
+}
+
 .line__note {
   align-self: flex-start;
   margin-top: 0.1rem;
@@ -604,6 +622,19 @@ kbd {
   font-weight: var(--rms-weight-semibold);
   line-height: 1.3;
   overflow-wrap: break-word;
+}
+
+.detail-line__ready {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--rms-space-1);
+  margin-left: auto;
+}
+
+.detail-line--ready .detail-line__name {
+  color: var(--rms-success-fg);
 }
 
 .detail-line__meta {

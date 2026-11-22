@@ -244,7 +244,7 @@ export class Dashboard implements OnInit {
     for (const order of this.orders()) {
       if (order.status !== 'DELIVERED') continue;
       for (const detail of order.details) {
-        const productName = detail.productName.trim() || 'Sin nombre';
+        const productName = (detail.productName ?? '').trim() || 'Sin nombre';
         const categoryName = this.categoryFor(detail);
         const current = map.get(productName) ?? { category: categoryName, total: 0, units: 0 };
         current.total += calculateLineTotal(detail);

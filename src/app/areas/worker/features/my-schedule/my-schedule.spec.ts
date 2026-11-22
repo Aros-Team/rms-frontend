@@ -7,12 +7,12 @@
  *  - the next shift is resolved from the real clock and the recurring week;
  *  - an empty week shows one actionable empty state, not seven dead cards;
  *  - a 403 renders the no-permission state and no retry loop;
- *  - the attendance card states that clock-out does not exist: it never
- *    renders a fake clock button;
+ *  - clock-in/out call the API and report the created entry;
+ *  - a 409 is explained honestly instead of faking session state;
  *  - week navigation moves the dated labels.
  *
- * Approach: mount with a stubbed `WorkerSchedule`, fix `now`, and assert the
- * rendered text plus component state.
+ * Approach: mount with stubbed `WorkerSchedule` and `WorkerClock`, fix `now`,
+ * and assert the rendered text plus component state.
  */
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
@@ -21,7 +21,9 @@ import { of, throwError } from 'rxjs';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Logging } from '@app/core/services/logging/logging';
+import { WorkerClock } from '@app/core/services/schedules/worker-clock';
 import { WorkerSchedule } from '@app/core/services/schedules/worker-schedule';
+import type { TimeLogEntry } from '@app/shared/models/dto/schedules/time-log-entry';
 import type { WorkerScheduleResponse } from '@app/shared/models/dto/schedules/worker-schedule-response';
 
 import { MySchedule } from './my-schedule';
@@ -52,6 +54,19 @@ describe('MySchedule', () => {
   let fixture: ComponentFixture<MySchedule>;
   let component: MySchedule;
   let scheduleApi: { getMySchedule: ReturnType<typeof vi.fn> };
+  let clockApi: {
+    clockIn: ReturnType<typeof vi.fn>;
+    clockOut: ReturnType<typeof vi.fn>;
+  };
+
+  const entry = (type: 'IN' | 'OUT', withinShift = true): TimeLogEntry => ({
+    id: type === 'IN' ? 501 : 502,
+    workerId: 1001,
+    timestamp: '2026-11-22T15:00:00Z',
+    type,
+    withinShift,
+    relatedShiftId: null,
+  });
 
   beforeAll(async () => {
     const templates: readonly (readonly [string, string])[] = [
@@ -74,10 +89,15 @@ describe('MySchedule', () => {
   beforeEach(() => {
     TestBed.resetTestingModule();
     scheduleApi = { getMySchedule: vi.fn(() => of(SCHEDULE)) };
+    clockApi = {
+      clockIn: vi.fn(() => of(entry('IN'))),
+      clockOut: vi.fn(() => of(entry('OUT'))),
+    };
     TestBed.configureTestingModule({
       imports: [MySchedule],
       providers: [
         { provide: WorkerSchedule, useValue: scheduleApi },
+        { provide: WorkerClock, useValue: clockApi },
         { provide: Logging, useValue: { debug: vi.fn(), error: vi.fn() } },
       ],
     });
@@ -107,20 +127,65 @@ describe('MySchedule', () => {
     expect(text).toContain('8 h en la semana');
   });
 
-  it('never renders a clock-out button and explains the API limitation', async () => {
+  it('clocks in and reports the created entry', async () => {
     await mount();
 
-    const text = (fixture.nativeElement as HTMLElement).textContent;
-    expect(text).toContain('La salida y el marcaje manual todavía no están disponibles');
-    expect(text).not.toContain('Marcar salida');
-    expect(text).not.toContain('Registrar salida');
-
-    const labels = Array.from(
-      (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
-    ).map(
-      (button) => `${button.textContent} ${button.getAttribute('aria-label') ?? ''}`,
+    const button = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>(
+      '[data-testid="clock-in"] button',
     );
-    expect(labels.some((label) => label.toLowerCase().includes('salida'))).toBe(false);
+    button?.click();
+    fixture.detectChanges();
+
+    expect(clockApi.clockIn).toHaveBeenCalledTimes(1);
+    expect(component.clockFeedback()).toBe('Entrada registrada.');
+    expect(component.lastClock()).toMatchObject({ type: 'IN', withinShift: true });
+
+    const text = (fixture.nativeElement as HTMLElement).textContent;
+    expect(text).toContain('Entrada');
+    expect(text).toContain('Dentro de turno');
+  });
+
+  it('clocks out and shows the exit result', async () => {
+    await mount();
+
+    const button = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>(
+      '[data-testid="clock-out"] button',
+    );
+    button?.click();
+    fixture.detectChanges();
+
+    expect(clockApi.clockOut).toHaveBeenCalledTimes(1);
+    expect(component.clockFeedback()).toBe('Salida registrada.');
+    expect(component.lastClock()).toMatchObject({ type: 'OUT' });
+  });
+
+  it('explains a 409 as an already-open or missing session, without inventing state', async () => {
+    clockApi.clockIn.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 409, error: { detail: 'open session' } })),
+    );
+    await mount();
+
+    component.clockIn();
+    fixture.detectChanges();
+
+    const message = component.clockError() ?? '';
+    expect(message).toContain('Ya tienes una sesión abierta');
+    expect(component.lastClock()).toBeNull();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
+      'Ya tienes una sesión abierta',
+    );
+  });
+
+  it('leaves clock-out 409 clearly explained as no open session', async () => {
+    clockApi.clockOut.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 409, error: { detail: 'none' } })),
+    );
+    await mount();
+
+    component.clockOut();
+    fixture.detectChanges();
+
+    expect(component.clockError()).toContain('No hay una sesión abierta que cerrar');
   });
 
   it('renders one empty state when the week has no shifts', async () => {

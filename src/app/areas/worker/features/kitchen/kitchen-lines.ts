@@ -13,13 +13,21 @@ import {
  * their options, combo contents, additions, clarifications or note differ —
  * otherwise "sin cebolla" would be averaged into a plain burger.
  *
- * Nothing here is persisted: it is a view model built on every render from the
- * order payload. Item-level readiness needs a backend field and is deliberately
- * not invented on the client.
+ * The line carries the persisted readiness of every underlying detail row
+ * (`order_details.ready`/`ready_at`), so the board can tick items one by one
+ * without inventing client-only state. A grouped line with quantity > 1 keeps
+ * one entry per physical row and is fully ready only when all of them are.
  */
 export interface KitchenClarification {
   question: string;
   answer: string;
+}
+
+/** Persisted readiness of one physical detail row. */
+export interface KitchenLineDetail {
+  id: number;
+  ready: boolean;
+  readyAt: string | null;
 }
 
 export interface KitchenLine {
@@ -36,6 +44,8 @@ export interface KitchenLine {
   additions: string[];
   clarifications: KitchenClarification[];
   note: string;
+  /** Every detail row collapsed into this line, with its readiness. */
+  details: KitchenLineDetail[];
 }
 
 function optionLabel(option: { name: string; categoryName: string }): string {
@@ -53,13 +63,26 @@ function uniqueSorted(values: readonly string[]): string[] {
 }
 
 /**
- * The wire sends `instructions: null` for a plain line even though the DTO
- * declares `string` (live check, 2026-11-21). Read through `unknown` so a null
- * note can never crash the board.
+ * The wire sends `instructions: null` for a plain line (live check,
+ * 2026-11-22). Read through `unknown` so a null note can never crash the board.
  */
 function instructionsOf(detail: OrderDetailItem): string {
   const value: unknown = detail.instructions;
   return typeof value === 'string' ? value.trim() : '';
+}
+
+/** `productName` is nullable on the wire; never render "null". */
+function productNameOf(detail: OrderDetailItem): string {
+  const value: unknown = detail.productName;
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function readinessOf(detail: OrderDetailItem): KitchenLineDetail {
+  return {
+    id: detail.id,
+    ready: detail.ready === true,
+    readyAt: typeof detail.readyAt === 'string' ? detail.readyAt : null,
+  };
 }
 
 /**
@@ -100,9 +123,10 @@ function toLine(detail: OrderDetailItem, station: KitchenStation): KitchenLine {
   return {
     key: lineKey(detail),
     productId: detail.productId,
-    name: detail.productName.trim() || `Producto #${String(detail.productId)}`,
+    name: productNameOf(detail) || `Producto #${String(detail.productId)}`,
     quantity: 1,
     station,
+    details: [readinessOf(detail)],
     options: uniqueSorted((detail.selectedOptions ?? []).map(optionLabel)),
     combos: uniqueSorted((detail.selectedProducts ?? []).map((product) => product.name ?? '')),
     additions: uniqueSorted((detail.selectedAdditions ?? []).map((addition) => addition.name ?? '')),
@@ -131,6 +155,7 @@ export function groupKitchenLines(
     const current = lines.get(key);
     if (current) {
       current.quantity += 1;
+      current.details.push(readinessOf(detail));
       continue;
     }
     lines.set(key, toLine(detail, station));
@@ -141,4 +166,24 @@ export function groupKitchenLines(
 /** Total physical items, counting repeated rows. */
 export function totalKitchenItems(lines: readonly KitchenLine[]): number {
   return lines.reduce((sum, line) => sum + line.quantity, 0);
+}
+
+/** Detail row ids still pending on a grouped line. */
+export function pendingDetailIds(line: KitchenLine): number[] {
+  return line.details.filter((detail) => !detail.ready).map((detail) => detail.id);
+}
+
+/** `true` when every physical row of the line is ready. */
+export function isLineReady(line: KitchenLine): boolean {
+  return line.details.length > 0 && line.details.every((detail) => detail.ready);
+}
+
+/** Latest `readyAt` of a fully ready line, or `null` while it is pending. */
+export function lineReadyAt(line: KitchenLine): string | null {
+  if (!isLineReady(line)) return null;
+  const timestamps = line.details
+    .map((detail) => detail.readyAt)
+    .filter((value): value is string => value !== null)
+    .sort();
+  return timestamps.at(-1) ?? null;
 }

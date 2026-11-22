@@ -93,7 +93,16 @@ describe('WeekGrid', () => {
     scheduleApi = { getAll: vi.fn(() => of([fullWeek(1, 'Mañana', '11:00', '15:00')])) };
     assignmentApi = {
       getAssignments: vi.fn(() => of([1])),
-      assign: vi.fn(() => of(undefined)),
+      assign: vi.fn(() =>
+        of({
+          workerId: 7,
+          scheduleId: 2,
+          weeklyHours: 10,
+          legalWeeklyHours: 48,
+          hardWeeklyCapHours: 66,
+          warning: null,
+        }),
+      ),
       removeAssignment: vi.fn(() => of(undefined)),
     };
     workerApi = { getWorkers: vi.fn(() => of([WORKER])) };
@@ -180,6 +189,28 @@ describe('WeekGrid', () => {
     expect(assignmentApi.assign).toHaveBeenCalledWith(7, 2);
     expect(component.assignments().get(7)).toEqual([1, 2]);
     expect(component.notice()).toContain('asignado a Ana Pérez');
+  });
+
+  it('surfaces the server weekly-hours warning without re-deriving the rule', async () => {
+    assignmentApi.assign.mockReturnValue(
+      of({
+        workerId: 7,
+        scheduleId: 2,
+        weeklyHours: 63,
+        legalWeeklyHours: 48,
+        hardWeeklyCapHours: 66,
+        warning: 'Weekly hours 63.00 exceed the 48 h legal reference',
+      }),
+    );
+    await mount();
+
+    const worker = component.rows()[0].worker;
+    const candidate = fullWeek(2, 'Apoyo', '16:00', '17:00');
+    component.attemptAssign(worker, candidate);
+    fixture.detectChanges();
+
+    expect(component.notice()).toContain('Weekly hours 63.00 exceed the 48 h legal reference');
+    expect(component.actionError()).toBeNull();
   });
 
   it('rolls back the exact assignment when the POST fails', async () => {

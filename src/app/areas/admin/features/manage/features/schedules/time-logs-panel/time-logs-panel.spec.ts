@@ -140,15 +140,27 @@ describe('TimeLogsPanel', () => {
     expect(call.workerId).toBe(1001);
   });
 
-  it('explains a 5xx as a build limitation, not as zero hours', async () => {
+  it('forwards the within-shift toggle to the API only when checked', async () => {
+    await mount();
+
+    let call = timeLogApi.getTimeLogs.mock.calls.at(-1)?.[0] as { withinShift?: boolean };
+    expect(call.withinShift).toBeUndefined();
+
+    component.withinShift.set(true);
+    component.applyFilters();
+
+    call = timeLogApi.getTimeLogs.mock.calls.at(-1)?.[0] as { withinShift?: boolean };
+    expect(call.withinShift).toBe(true);
+  });
+
+  it('explains a 5xx as a read failure, not as zero hours', async () => {
     timeLogApi.getTimeLogs.mockReturnValue(
       throwError(() => new HttpErrorResponse({ status: 500 })),
     );
     await mount();
 
     const message = component.error() ?? '';
-    expect(message).toContain('OUT');
-    expect(message).toContain('P3-BE-RL-11');
+    expect(message).toContain('La API no pudo leer los registros del rango');
     const text = (fixture.nativeElement as HTMLElement).textContent;
     expect(text).not.toContain('0 h');
   });

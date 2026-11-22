@@ -33,7 +33,9 @@ import { resolveUiResources } from '@app/shared/ui/testing/ui-test-resources';
 
 import { Kitchen } from './kitchen';
 import { KitchenAlerts } from './kitchen-alerts';
+import type { KitchenLine } from './kitchen-lines';
 import kitchenHtml from './kitchen.html?raw';
+import badgeHtml from '@app/shared/ui/badge/badge.html?raw';
 import buttonHtml from '@app/shared/ui/button/button.html?raw';
 import dialogHtml from '@app/shared/ui/dialog/dialog.html?raw';
 import emptyStateHtml from '@app/shared/ui/empty-state/empty-state.html?raw';
@@ -64,18 +66,26 @@ const PRODUCTS: ProductListResponse[] = [
   },
 ];
 
+const AREA_BY_PRODUCT: Partial<Record<number, { id: number; name: string }>> = {
+  1: { id: 1, name: 'Cocina' },
+  2: { id: 3, name: 'Bar' },
+};
+
 function detail(
   id: number,
   productId: number,
   productName: string,
   overrides: Partial<OrderDetailItem> = {},
 ): OrderDetailItem {
+  const area = AREA_BY_PRODUCT[productId];
   return {
     id,
     productId,
     productName,
     unitPrice: PRICE,
     instructions: '',
+    areaId: area?.id ?? null,
+    areaName: area?.name ?? null,
     ...overrides,
   };
 }
@@ -107,7 +117,9 @@ describe('Kitchen', () => {
   let orderStub: {
     getAllOrdersByStatus: ReturnType<typeof vi.fn>;
     prepareNext: ReturnType<typeof vi.fn>;
+    prepareOrder: ReturnType<typeof vi.fn>;
     markAsReady: ReturnType<typeof vi.fn>;
+    markDetailReady: ReturnType<typeof vi.fn>;
     deliverOrder: ReturnType<typeof vi.fn>;
   };
   let productStub: { getAllProducts: ReturnType<typeof vi.fn> };
@@ -131,6 +143,7 @@ describe('Kitchen', () => {
   beforeAll(async () => {
     await resolveUiResources({
       'kitchen.html': kitchenHtml as unknown as string,
+      'badge.html': badgeHtml as unknown as string,
       'button.html': buttonHtml as unknown as string,
       'dialog.html': dialogHtml as unknown as string,
       'empty-state.html': emptyStateHtml as unknown as string,
@@ -158,11 +171,22 @@ describe('Kitchen', () => {
       ],
     };
 
-    getAllByStatus = vi.fn((status: string) => of(collection(board[status] ?? [])));
+    // Emulates the API: an `areaId` query returns tickets with at least one
+    // line in that area, keeping the rest of the ticket's lines.
+    getAllByStatus = vi.fn((status: string, query: { areaId?: number } = {}) => {
+      const orders = (board[status] ?? []).filter(
+        (order) =>
+          query.areaId === undefined ||
+          order.details.some((line) => line.areaId === query.areaId),
+      );
+      return of(collection(orders));
+    });
     orderStub = {
       getAllOrdersByStatus: getAllByStatus,
       prepareNext: vi.fn(),
+      prepareOrder: vi.fn(),
       markAsReady: vi.fn(),
+      markDetailReady: vi.fn(),
       deliverOrder: vi.fn(),
     };
     productStub = { getAllProducts: vi.fn(() => of(PRODUCTS)) };
@@ -295,17 +319,25 @@ describe('Kitchen', () => {
 
       expect(component.selectedStation()).toBe('area:3');
       expect(stationButton('Bar').getAttribute('aria-pressed')).toBe('true');
+      // The station is a server-side filter, not a second client-side pass.
+      expect(getAllByStatus).toHaveBeenCalledWith('QUEUE', { sort: 'date,asc', areaId: 3 });
       expect(columnIds('queue')).toEqual(['#102']);
       expect(text(host().querySelector('[data-testid="queue-count"]'))).toBe('1');
-      expect(text(host().querySelector('[data-column="queue"] .kitchen-column__of'))).toBe('de 2');
+      expect(host().querySelector('[data-column="queue"] .kitchen-column__of')).toBeNull();
       expect(columnIds('preparing')).toEqual([]);
       expect(columnIds('ready')).toEqual(['#104']);
+
+      // The filtered ticket keeps only the lines of the selected station.
+      expect(component.groupsFor(component.queueOrders()[0]).map((group) => group.station.name)).toEqual([
+        'Bar',
+      ]);
 
       stationButton('Todas').click();
       fixture.detectChanges();
 
       expect(component.selectedStation()).toBe('all');
       expect(columnIds('queue')).toEqual(['#101', '#102']);
+      expect(getAllByStatus).toHaveBeenCalledWith('QUEUE', { sort: 'date,asc' });
     });
 
     it('derives the timer from the order date and marks the overdue ticket', () => {
@@ -379,6 +411,74 @@ describe('Kitchen', () => {
       expect(component.preparingNext()).toBe(false);
       expect(columnIds('queue')).toEqual(['#102']);
       expect(component.preparingOrders().map((order) => order.id)).toContain(101);
+    });
+
+    it('starts one specific queue ticket with the per-order endpoint', () => {
+      const pending = new Subject<OrderResponse>();
+      orderStub.prepareOrder.mockReturnValue(pending.asObservable());
+
+      const wrapper = host().querySelector<HTMLElement>('[data-testid="prepare-order-101"]');
+      wrapper?.querySelector('button')?.click();
+      wrapper?.querySelector('button')?.click();
+
+      expect(orderStub.prepareOrder).toHaveBeenCalledTimes(1);
+      expect(orderStub.prepareOrder).toHaveBeenCalledWith(101);
+
+      pending.next(
+        makeOrder(101, 'PREPARING', '2026-01-01T12:00:00', [
+          detail(1011, 1, 'Hamburguesa', { instructions: 'Sin cebolla' }),
+        ]),
+      );
+      pending.complete();
+      fixture.detectChanges();
+
+      expect(columnIds('queue')).toEqual(['#102']);
+      expect(columnIds('preparing')).toEqual(['#103', '#101']);
+    });
+
+    it('marks one line ready, shows the timestamp and completes the ticket', () => {
+      const updated = makeOrder(103, 'PREPARING', '2026-01-01T11:50:00', [
+        detail(1031, 1, 'Hamburguesa', { ready: true, readyAt: '2026-01-01T12:00:30' }),
+      ]);
+      orderStub.markDetailReady.mockReturnValue(of(updated));
+
+      const wrapper = host().querySelector<HTMLElement>('[data-testid="line-ready-1031"]');
+      wrapper?.querySelector('button')?.click();
+      fixture.detectChanges();
+
+      expect(orderStub.markDetailReady).toHaveBeenCalledWith(103, 1031);
+      expect(component.preparingOrders()[0].details[0]).toMatchObject({ ready: true });
+      expect(text(host().querySelector('[data-order-id="103"]'))).toContain('Listo');
+      expect(text(host().querySelector('[data-order-id="103"]'))).toContain('12:00');
+    });
+
+    it('moves the ticket to READY when the last line becomes ready', () => {
+      const order = component.preparingOrders()[0];
+      const line: KitchenLine = {
+        key: 'last-line',
+        productId: 1,
+        name: 'Hamburguesa',
+        quantity: 1,
+        station: { key: 'area:1', name: 'Cocina', rank: 1 },
+        options: [],
+        combos: [],
+        additions: [],
+        clarifications: [],
+        note: '',
+        details: [{ id: 1031, ready: false, readyAt: null }],
+      };
+      orderStub.markDetailReady.mockReturnValue(
+        of(makeOrder(103, 'READY', '2026-01-01T11:50:00', [
+          detail(1031, 1, 'Hamburguesa', { ready: true, readyAt: '2026-01-01T12:00:30' }),
+        ])),
+      );
+
+      component.markLineReady(order, line);
+      fixture.detectChanges();
+
+      expect(columnIds('preparing')).toEqual([]);
+      expect(columnIds('ready')).toEqual(['#104', '#103']);
+      expect(component.announcement()).toContain('Pedido #103 listo para entregar');
     });
 
     it('marks an order ready once and moves it to the READY column', () => {
@@ -547,6 +647,12 @@ describe('Kitchen', () => {
 
     it('surfaces a station-catalogue failure without dropping the order', async () => {
       productStub.getAllProducts.mockReturnValue(throwError(() => new Error('no catalogue')));
+      // Simulates a legacy payload without the API area: only then does the
+      // board need the catalogue fallback.
+      board.QUEUE = board.QUEUE.map((order) => ({
+        ...order,
+        details: order.details.map((line) => ({ ...line, areaId: null, areaName: null })),
+      }));
       fixture.destroy();
       await configure();
 

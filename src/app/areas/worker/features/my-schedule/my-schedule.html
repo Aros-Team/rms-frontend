@@ -4,6 +4,60 @@
     subtitle="Tus turnos de la semana y cuándo empieza el próximo."
   />
 
+  <app-rms-card title="Registro de asistencia" padding="lg">
+    <p class="clock__intro">
+      Marca tu entrada al empezar y tu salida al terminar. La API registra la hora y si el marcaje
+      cae dentro de un turno asignado.
+    </p>
+    <div class="clock__actions">
+      <app-rms-button
+        size="lg"
+        iconStart="pi pi-sign-in"
+        [loading]="clockBusy() === 'in'"
+        [disabled]="clockBusy() !== null"
+        data-testid="clock-in"
+        (click)="clockIn()"
+      >
+        Registrar entrada
+      </app-rms-button>
+      <app-rms-button
+        variant="secondary"
+        size="lg"
+        iconStart="pi pi-sign-out"
+        [loading]="clockBusy() === 'out'"
+        [disabled]="clockBusy() !== null"
+        data-testid="clock-out"
+        (click)="clockOut()"
+      >
+        Registrar salida
+      </app-rms-button>
+    </div>
+
+    @if (clockFeedback(); as message) {
+      <p class="clock__feedback" role="status">{{ message }}</p>
+    }
+    @if (clockError(); as message) {
+      <p class="clock__error" role="alert">{{ message }}</p>
+    }
+
+    @if (lastClock(); as entry) {
+      <div class="clock__last" data-testid="clock-last">
+        <span class="clock__last-type">{{ clockTypeLabel(entry) }}</span>
+        <span class="clock__last-time rms-tabular">{{ clockTime(entry) }}</span>
+        <app-rms-badge
+          [label]="entry.withinShift ? 'Dentro de turno' : 'Fuera de turno'"
+          [tone]="entry.withinShift ? 'success' : 'neutral'"
+        />
+      </div>
+    }
+
+    <p class="rms-caption clock__hint">
+      No podemos consultar si tu sesión sigue abierta: la API no expone un estado de reloj. Si ya
+      marcaste entrada, un segundo intento se rechaza con un aviso. Administración consulta las
+      horas del equipo desde Horarios → Asistencia.
+    </p>
+  </app-rms-card>
+
   @if (loading()) {
     <div class="my-schedule-page__loading" role="status" aria-label="Cargando tu horario">
       <app-rms-skeleton height="8rem" ariaLabel="Cargando tu horario" />
@@ -45,22 +99,6 @@
           consulta con administración.
         </p>
       }
-    </app-rms-card>
-
-    <app-rms-card title="Registro de asistencia" padding="lg">
-      <div class="attendance-note">
-        <i class="pi pi-info-circle" aria-hidden="true"></i>
-        <div>
-          <p>
-            Tu ingreso se registra automáticamente al iniciar sesión. La salida y el marcaje manual
-            todavía no están disponibles en la API (P3-BE-RL-11), así que no mostramos un botón que
-            no puede funcionar.
-          </p>
-          <p class="rms-caption">
-            Administración puede consultar las horas del equipo desde Horarios → Asistencia.
-          </p>
-        </div>
-      </div>
     </app-rms-card>
 
     <app-rms-section
