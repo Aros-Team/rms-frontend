@@ -55,6 +55,8 @@ export class RmsSelect implements ControlValueAccessor {
   @Input() placeholder = 'Selecciona una opción';
   @Input() hint = '';
   @Input() error = '';
+  /** Invalid state without a rendered message (touched but not submitted). */
+  @Input() invalid = false;
   /**
    * Space-separated ids of messages rendered outside the primitive (for
    * example a shared `app-form-validation` block). They are merged into
@@ -112,7 +114,7 @@ export class RmsSelect implements ControlValueAccessor {
     const attrs: Record<string, string> = {};
     const describedBy = this.describedBy;
     if (describedBy) attrs['aria-describedby'] = describedBy;
-    if (this.error) attrs['aria-invalid'] = 'true';
+    if (this.error || this.invalid) attrs['aria-invalid'] = 'true';
     return { label: attrs } as SelectPassThrough;
   }
 

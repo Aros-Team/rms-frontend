@@ -225,7 +225,8 @@
             class="md:col-span-2"
             label="Nombre del producto"
             formControlName="name"
-            [required]="true" />
+            [required]="true"
+            [invalid]="isInvalid(baseForm, 'name')" />
 
           <!-- Categoría + Área (same row) -->
           <p-iftalabel>

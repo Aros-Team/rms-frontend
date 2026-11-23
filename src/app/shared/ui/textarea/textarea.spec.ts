@@ -30,6 +30,7 @@ import fieldHtml from '../field/field.html?raw';
         [maxLength]="30"
         [showCount]="true"
         [error]="error"
+        [invalid]="invalid"
         [describedByIds]="describedByIds"
       />
     </form>
@@ -38,6 +39,7 @@ import fieldHtml from '../field/field.html?raw';
 class TextareaHost {
   readonly form = new FormGroup({ notes: new FormControl('Sin cebolla') });
   error = '';
+  invalid = false;
   describedByIds = '';
 }
 
@@ -90,6 +92,19 @@ describe('RmsTextarea', () => {
 
     expect(textarea.getAttribute('aria-invalid')).toBe('true');
     expect(textarea.getAttribute('aria-describedby')).toBe(`${textarea.id}-error`);
+  });
+
+  it('paints the invalid state before a message exists', () => {
+    fixture.destroy();
+    fixture = TestBed.createComponent(TextareaHost);
+    host = fixture.componentInstance;
+    host.invalid = true;
+    fixture.detectChanges();
+    textarea = (fixture.nativeElement as HTMLElement).querySelector('textarea.rms-textarea');
+
+    expect(textarea.getAttribute('aria-invalid')).toBe('true');
+    const field = (fixture.nativeElement as HTMLElement).querySelector('.rms-field');
+    expect(field?.classList.contains('rms-field--invalid')).toBe(true);
   });
 
   it('merges externally rendered message ids into describedby', () => {

@@ -24,6 +24,8 @@ export class RmsField {
   @Input() controlId = '';
   @Input() hint = '';
   @Input() error = '';
+  /** Paint the invalid state before a message exists (e.g. touched + invalid). */
+  @Input() invalid = false;
   @Input() required = false;
   /** Rendered as "Opcional"; do not combine with `required`. */
   @Input() optionalLabel = '';
@@ -35,8 +37,8 @@ export class RmsField {
     return this.controlId || `rms-field-${String(this.instanceId)}`;
   }
 
-  get invalid(): boolean {
-    return this.error.length > 0;
+  get hasError(): boolean {
+    return this.invalid || this.error.length > 0;
   }
 
   get labelId(): string {
@@ -59,6 +61,6 @@ export class RmsField {
   }
 
   get classes(): string {
-    return `rms-field rms-field--${this.size}` + (this.invalid ? ' rms-field--invalid' : '');
+    return `rms-field rms-field--${this.size}` + (this.hasError ? ' rms-field--invalid' : '');
   }
 }

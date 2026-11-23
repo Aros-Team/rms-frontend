@@ -55,6 +55,8 @@ export class RmsInput implements ControlValueAccessor {
   @Input() placeholder = '';
   @Input() hint = '';
   @Input() error = '';
+  /** Invalid state without a rendered message (touched but not submitted). */
+  @Input() invalid = false;
   /**
    * Space-separated ids of messages rendered outside the primitive (for
    * example a shared `app-form-validation` block). They are merged into

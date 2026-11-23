@@ -103,6 +103,21 @@ describe('RmsSelect', () => {
     expect(combobox?.getAttribute('aria-describedby')).toBe(`${select.selectId}-error`);
   });
 
+  it('paints the invalid state before a message exists', () => {
+    fixture.destroy();
+    fixture = TestBed.createComponent(RmsSelect);
+    select = fixture.componentInstance;
+    select.label = 'Área';
+    select.options = THREE_OPTIONS;
+    select.invalid = true;
+    fixture.detectChanges();
+    const combobox = (fixture.nativeElement as HTMLElement).querySelector('[role="combobox"]');
+
+    expect(combobox?.getAttribute('aria-invalid')).toBe('true');
+    const field = (fixture.nativeElement as HTMLElement).querySelector('.rms-field');
+    expect(field?.classList.contains('rms-field--invalid')).toBe(true);
+  });
+
   it('merges externally rendered message ids into describedby', () => {
     fixture.destroy();
     fixture = TestBed.createComponent(RmsSelect);

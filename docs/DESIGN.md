@@ -365,9 +365,9 @@ uses signals. Keep it that way for every new primitive.
 | Component | API |
 |---|---|
 | `app-rms-field` | `label` (required), `controlId`, `hint`, `error`, `required`, `optionalLabel`, `hideLabel`, `size`. Exposes `describedBy`, `labelId`, `hintId`, `errorId`. |
-| `app-rms-input` | `label` (required), `id`, `type`, `placeholder`, `hint`, `error`, `required`, `optionalLabel`, `hideLabel`, `autocomplete`, `inputMode`, `maxLength`, `name`, `size`, `disabled`, `readonly`; CVA. |
-| `app-rms-textarea` | same as input plus `rows`, `showCount`; CVA. |
-| `app-rms-select` | `label` (required), `options: {label, value, disabled?}[]`, `placeholder`, `hint`, `error`, `required`, `showClear`, `filter` (auto above 8 options), `size`, `disabled`; CVA. |
+| `app-rms-input` | `label` (required), `id`, `type`, `placeholder`, `hint`, `error`, `required`, `optionalLabel`, `hideLabel`, `autocomplete`, `inputMode`, `maxLength`, `name`, `size`, `disabled`, `readonly`, `invalid` (paint the invalid state before a message exists, e.g. touched + invalid); CVA. |
+| `app-rms-textarea` | same as input plus `rows`, `showCount`, `invalid`; CVA. |
+| `app-rms-select` | `label` (required), `options: {label, value, disabled?}[]`, `placeholder`, `hint`, `error`, `required`, `showClear`, `filter` (auto above 8 options), `size`, `disabled`, `invalid`; CVA. |
 | `app-rms-checkbox` | `label` (required), `description`, `disabled`, `required`; CVA boolean. |
 | `app-rms-switch` | `label` (required), `onLabel`, `offLabel`, `showState`, `disabled`; CVA boolean, `role="switch"`. |
 
