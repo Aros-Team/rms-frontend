@@ -18,6 +18,8 @@ export class RmsSection {
   @Input({ required: true }) title!: string;
   @Input() description = '';
   @Input() level: 2 | 3 = 2;
+  /** Keep the section heading for assistive tech but hide it visually. */
+  @Input() hideHeader = false;
 
   /** Stable per-instance id for aria-labelledby (titles are Spanish prose). */
   readonly headingId = `rms-section-${String(RmsSection.nextId++)}`;

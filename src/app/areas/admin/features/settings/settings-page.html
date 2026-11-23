@@ -66,7 +66,7 @@
           <app-settings-users (dirtyChange)="markDirty('users', $event)" />
         }
         @case ('appearance') {
-          <app-settings-appearance (openAccount)="onTabClick('account')" />
+          <app-settings-appearance />
         }
         @case ('account') {
           <app-settings-account />

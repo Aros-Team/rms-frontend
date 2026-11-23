@@ -1,4 +1,7 @@
 <section class="rms-section" [attr.aria-labelledby]="headingId">
+  @if (hideHeader) {
+    <h2 class="sr-only" [id]="headingId">{{ title }}</h2>
+  } @else {
   <header class="rms-section__header">
     <div class="rms-section__heading">
       @if (level === 2) {
@@ -14,6 +17,7 @@
       <ng-content select="[rmsSectionActions]" />
     </div>
   </header>
+  }
 
   <div class="rms-section__body">
     <ng-content />

@@ -148,7 +148,7 @@ export class SettingsPage implements OnDestroy {
 
   constructor() {
     effect(() => {
-      this.pageContext.set(`Configuración · ${this.activeSectionMeta().description}`);
+      this.pageContext.set(this.activeSectionMeta().description);
     });
   }
 
