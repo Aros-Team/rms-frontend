@@ -9,7 +9,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
-import { FormValidation } from '@app/shared/components/form/form-validation';
+import { fieldError as resolveFieldError } from '@app/shared/lib/form-error';
 import { TablesCache } from '../tables/tables-cache';
 import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
@@ -28,7 +28,6 @@ import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
     DialogModule,
     IconFieldModule,
     InputIconModule,
-    FormValidation,
     LazyLoad,
     TableSkeleton,
     RmsButton,
@@ -68,6 +67,11 @@ export class Areas implements OnInit, OnDestroy {
 
   areaTypeLabel(type: AreaTypeValue): string {
     return this.areaTypes.find((t) => t.value === type)?.label ?? type;
+  }
+
+  /** Validation copy for a control, rendered by the primitive's `[error]`. */
+  fieldError(field: string): string {
+    return resolveFieldError(this.form, field);
   }
 
   ngOnInit(): void {

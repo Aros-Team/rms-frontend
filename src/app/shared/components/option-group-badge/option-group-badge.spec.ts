@@ -2,19 +2,18 @@
  * Tests for the OptionGroupBadgeComponent.
  *
  * Feature: Displays a badge with option group type, label, and color.
- * Contract: Renders correct label, icon, and severity badge for each selection type.
- * Approach: Mount component via TestBed with a test host, set the input, and assert
- * the exact `value`/`icon`/`severity` passed to the `p-tag` child plus the inline
- * compact-style values (p-tag has no style input; `[style]` lands on the host).
+ * Contract: Renders the mapped label and tone through the `app-rms-badge`
+ * primitive for each selection type, preserving the `size` input.
+ * Approach: Mount component via TestBed with a test host, set the input, and
+ * assert the rendered `app-rms-badge` label, tone class and size class.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources, Component } from '@angular/core';
-import { By } from '@angular/platform-browser';
-import { Tag } from 'primeng/tag';
 import { OptionGroupBadgeComponent } from './option-group-badge';
 import { OptionSelectionType } from '@app/shared/models/dto/option-groups/option-selection-type';
 
 import optionGroupBadgeHtml from './option-group-badge.html?raw';
+import badgeHtml from '@app/shared/ui/badge/badge.html?raw';
 
 @Component({
   standalone: true,
@@ -34,6 +33,9 @@ describe('OptionGroupBadgeComponent', () => {
       if (url.endsWith('option-group-badge.html')) {
         return Promise.resolve(optionGroupBadgeHtml as unknown as string);
       }
+      if (url.endsWith('badge.html')) {
+        return Promise.resolve(badgeHtml as unknown as string);
+      }
       return Promise.resolve('');
     });
   });
@@ -51,12 +53,15 @@ describe('OptionGroupBadgeComponent', () => {
     await fixture.whenStable();
   }
 
-  function getTag(): HTMLElement | null {
-    return (fixture.nativeElement as HTMLElement).querySelector('p-tag');
+  function getBadge(): HTMLElement | null {
+    return (fixture.nativeElement as HTMLElement).querySelector('app-rms-badge .rms-badge');
   }
 
-  function getTagComponent(): Tag {
-    return fixture.debugElement.query(By.css('p-tag')).componentInstance as Tag;
+  function expectBadge(label: string, tone: string, size = 'md'): void {
+    const badge = getBadge();
+    expect(badge?.querySelector('.rms-badge__label')?.textContent.trim()).toBe(label);
+    expect(badge?.classList.contains(`rms-badge--${tone}`)).toBe(true);
+    expect(badge?.classList.contains(`rms-badge--${size}`)).toBe(true);
   }
 
   it('should have selector app-option-group-badge', async () => {
@@ -65,54 +70,40 @@ describe('OptionGroupBadgeComponent', () => {
     expect(badge).toBeInstanceOf(OptionGroupBadgeComponent);
   });
 
-  it('should render a p-tag element', async () => {
+  it('should render an app-rms-badge element', async () => {
     await setupHost(OptionSelectionType.SINGLE_CHOICE);
-    expect(getTag()?.tagName.toLowerCase()).toBe('p-tag');
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('app-rms-badge'),
+    ).not.toBeNull();
   });
 
   it('should render SINGLE_CHOICE with correct config', async () => {
     await setupHost(OptionSelectionType.SINGLE_CHOICE);
-    const tag = getTagComponent();
-    expect(tag.value).toBe('Única opción');
-    expect(tag.icon).toBe('pi pi-circle');
-    expect(tag.severity).toBe('info');
+    expectBadge('Única opción', 'info');
   });
 
   it('should render MULTI_SELECT with correct config', async () => {
     await setupHost(OptionSelectionType.MULTI_SELECT);
-    const tag = getTagComponent();
-    expect(tag.value).toBe('Selección múltiple');
-    expect(tag.icon).toBe('pi pi-check-square');
-    expect(tag.severity).toBe('success');
+    expectBadge('Selección múltiple', 'success');
   });
 
   it('should render EXTRA with correct config', async () => {
     await setupHost(OptionSelectionType.EXTRA);
-    const tag = getTagComponent();
-    expect(tag.value).toBe('Extra');
-    expect(tag.icon).toBe('pi pi-plus-circle');
-    expect(tag.severity).toBe('warn');
+    expectBadge('Extra', 'warning');
   });
 
   it('should render REMOVE with correct config', async () => {
     await setupHost(OptionSelectionType.REMOVE);
-    const tag = getTagComponent();
-    expect(tag.value).toBe('Quitar');
-    expect(tag.icon).toBe('pi pi-minus-circle');
-    expect(tag.severity).toBe('danger');
+    expectBadge('Quitar', 'danger');
   });
 
-  it('should apply compact style when size is sm', async () => {
+  it('should pass size sm to the badge', async () => {
     await setupHost(OptionSelectionType.SINGLE_CHOICE, 'sm');
-    const tag = getTag();
-    expect(tag?.style.fontSize).toBe('0.7rem');
-    expect(tag?.style.padding).toBe('0.1rem 0.4rem');
+    expect(getBadge()?.classList.contains('rms-badge--sm')).toBe(true);
   });
 
-  it('should not apply compact style when size is md', async () => {
+  it('should pass size md to the badge', async () => {
     await setupHost(OptionSelectionType.SINGLE_CHOICE, 'md');
-    const tag = getTag();
-    expect(tag?.style.fontSize).toBe('');
-    expect(tag?.style.padding).toBe('');
+    expect(getBadge()?.classList.contains('rms-badge--md')).toBe(true);
   });
 });

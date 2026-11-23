@@ -25,7 +25,12 @@
             "tsConfig": "tsconfig.app.json",
             "allowedCommonJsDependencies": [
               "@stomp/stompjs",
-              "sockjs-client"
+              "sockjs-client",
+              "url-parse",
+              "inherits",
+              "events",
+              "eventsource",
+              "crypto"
             ],
             "serviceWorker": "ngsw-config.json",
             "assets": [

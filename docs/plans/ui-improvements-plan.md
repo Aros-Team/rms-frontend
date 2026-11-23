@@ -257,9 +257,12 @@ Los dos `<img>` de previsualización sin `width`/`height` viven en
 | D8 | Deduplicar el bloque de alto contraste de `src/styles.css` | Hecho: 9 `!important` muertos eliminados; el puente `--p-*` se conserva | pending-parallel-plan, Q5 |
 | — | Regenerar baselines visuales y correr e2e/axe/LHCI | Hecho (ola 4): 125/125 e2e, 63/63 visuales, login 100/100/100/100 | pending-parallel-plan, ola 4 |
 | — | Precarga: era default-on y descargaba 132 chunks en /login | Hecho: opt-in + cookie de sesión + 3 s; login pasa a 40 peticiones y 100 en best-practices | informe, sección 7 |
-| 18 | Converger `app-form-validation` en `[error]` de las primitivas | Pendiente: areas y categories en una lane corta; workers necesita decidir areaId/salary | pending-parallel-plan, Q3 |
-| 16 | Consolidar duplicados de `shared/components` | Auditoría hecha: fusionar `option-group-badge` en `app-rms-badge`, borrar `tree-node-card` (sin consumidores), conservar `removable-chip` | pending-parallel-plan, Q4 |
+| — | `sockjs-client` en el grafo inicial | Hecho: import dinamico solo al conectar; grafo inicial 793.95 kB. Quitarlo del todo requiere endpoint nativo en backend | informe, secciones 7-8 |
+| 8 | `srcset`/AVIF de imagenes de producto | Bloqueado por el contrato de la API | ola 5 |
+| 18 | Converger `app-form-validation` en `[error]` de las primitivas | Hecho en areas y categories con el helper `fieldError()`; workers conserva el componente (usa el mismo helper) hasta decidir areaId/salary | pending-parallel-plan, Q3 |
+| 16 | Consolidar duplicados de `shared/components` | Hecho: `option-group-badge` sobre `app-rms-badge`, `tree-node-card` y `tree-node-skeleton` eliminados; `removable-chip` se conserva | pending-parallel-plan, Q4 |
 | 15 | 26 avisos `no-inline-styles` | Hecho: 0 avisos (geometría dinámica documentada con disable inline) | pending-parallel-plan, P6 |
+| — | `sockjs-client` en el bundle (`unload` deprecado; Lighthouse `/admin` best-practices 81) | Hecho (lane `websocket-lazy`): import dinámico dentro de `connect()` con guarda de concurrencia y cancelación en `disconnect()`; dashboard, inventory, products, tables, orders-table, kitchen, notificaciones y special-selections ya no descargan el chunk hasta abrir el socket. La retirada total exige un endpoint nativo `/ws-native` en el backend | informe, sección 8 |
 
 Solo la ola 4 (QA) se ejecuta al final y sin solaparse con edición de UI.
 

@@ -1,34 +1,8 @@
-@if (backendError) {
+@if (message) {
   <div class="shrink flex-grow ml-1 mt-1">
     <small class="rms-text-danger text-xs">
       <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
-      <span>{{ backendError }}</span>
-    </small>
-  </div>
-} @else if (form.get(field)?.invalid && form.get(field)?.touched) {
-  <div class="shrink flex-grow ml-1 mt-1">
-    <small class="rms-text-danger text-xs">
-      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
-      @if (form.get(field)?.hasError('required')) {
-        <span>Campo requerido</span>
-      }
-      @if (form.get(field)?.hasError('pattern')) {
-        @if (field === 'document') {
-          <span>El documento debe contener solo números</span>
-        }
-        @if (field === 'phone') {
-          <span>El teléfono debe tener 10 dígitos</span>
-        }
-        @if (field === 'name') {
-          <span>El nombre solo permite letras y espacios</span>
-        }
-        @if (field !== 'document' && field !== 'phone' && field !== 'name') {
-          <span>Formato inválido</span>
-        }
-      }
-      @if (form.get(field)?.hasError('email')) {
-        <span>Ingrese un correo electrónico válido</span>
-      }
+      <span>{{ message }}</span>
     </small>
   </div>
 }

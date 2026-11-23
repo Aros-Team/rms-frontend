@@ -1,14 +1,22 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { TagModule } from 'primeng/tag';
 import { OptionSelectionType } from '@app/shared/models/dto/option-groups/option-selection-type';
-import { getSelectionTypeConfig } from '@app/shared/lib/option-selection-type-helper/option-selection-type-helper';
+import { getSelectionTypeConfig, type TagSeverity } from '@app/shared/lib/option-selection-type-helper/option-selection-type-helper';
+import { RmsBadge, type RmsBadgeTone } from '@app/shared/ui/badge/badge';
+
+const TONE_BY_SEVERITY: Record<TagSeverity, RmsBadgeTone> = {
+  success: 'success',
+  info: 'info',
+  warn: 'warning',
+  danger: 'danger',
+  secondary: 'neutral',
+  contrast: 'neutral',
+};
 
 @Component({
   selector: 'app-option-group-badge',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, TagModule],
+  imports: [RmsBadge],
   templateUrl: './option-group-badge.html',
 })
 export class OptionGroupBadgeComponent {
@@ -17,5 +25,9 @@ export class OptionGroupBadgeComponent {
 
   get config() {
     return getSelectionTypeConfig(this.selectionType);
+  }
+
+  get tone(): RmsBadgeTone {
+    return TONE_BY_SEVERITY[this.config.severity];
   }
 }

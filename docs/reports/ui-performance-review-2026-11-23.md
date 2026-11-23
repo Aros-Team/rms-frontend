@@ -489,12 +489,12 @@ code**, not only chunk sizes; a "deferred" preloader can still fetch everything.
 
 | Gate | Result |
 |---|---|
-| Unit (`vitest run`) | **1637 / 1637**, 173 files |
+| Unit (`vitest run`) | **1626 / 1626**, 173 files (11 tests removed with the dead tree components) |
 | Smoke + a11y (`playwright test smoke a11y`) | **125 / 125** |
-| Visual baselines | **63 / 63**; 10 of 63 snapshots regenerated |
+| Visual baselines | **63 / 63**; 10 of 63 snapshots regenerated, all still matching after the last pass |
 | `lint:check` | 0 errors, 0 warnings |
 | `design:check` | clean |
-| Build | warning-free, 803.32 kB raw / 191.06 kB transfer |
+| Build | warning-free, 793.95 kB raw / 188.97 kB transfer |
 | Lighthouse `/login` (production build) | performance 100, accessibility 100, best-practices 100, SEO 100, **40 JS requests** |
 | Lighthouse `/admin` (dev server, local API) | accessibility 100, SEO 100, best-practices 81 (sockjs `unload` deprecation), performance 45-57 with LCP ~7.5 s — dev-mode measurement, not a production gate |
 

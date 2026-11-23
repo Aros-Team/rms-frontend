@@ -252,9 +252,9 @@
                 tooltip="Estimar tiempo" variant="secondary"
                 (click)="openPrepTimeDialog()" />
               @if (baseForm.get('estimatedPrepMinutes')?.value !== null) {
-                <p-tag [value]="(baseForm.get('estimatedPrepMinutes')?.value ?? 0) + ' min'" severity="info" />
+                <app-rms-badge [label]="(baseForm.get('estimatedPrepMinutes')?.value ?? 0) + ' min'" tone="info" />
               } @else {
-                <p-tag value="Sin estimar" severity="secondary" />
+                <app-rms-badge label="Sin estimar" tone="neutral" />
               }
             </div>
           </div>
@@ -344,20 +344,20 @@
                 </span>
               </div>
               <div class="flex items-center justify-center gap-1">
-                <button type="button" pButton icon="pi pi-minus" [text]="true" size="small" severity="secondary" aria-label="Disminuir cantidad"
-                  (click)="decrementQty(existingRecipe, i); $event.stopPropagation()"></button>
+                <app-rms-icon-button icon="pi pi-minus" ariaLabel="Disminuir cantidad" size="sm"
+                  (click)="decrementQty(existingRecipe, i); $event.stopPropagation()" />
                 <input class="rms-input rms-input--sm w-14 text-center" type="number" formControlName="requiredQuantity"
                   [min]="0.001" step="1"
                   [attr.aria-label]="'Cantidad requerida de ' + (findVariantById($any(item).get('supplyVariantId')?.value)?.supplyName ?? 'insumo')" />
-                <button type="button" pButton icon="pi pi-plus" [text]="true" size="small" severity="secondary" aria-label="Aumentar cantidad"
-                  (click)="incrementQty(existingRecipe, i); $event.stopPropagation()"></button>
+                <app-rms-icon-button icon="pi pi-plus" ariaLabel="Aumentar cantidad" size="sm"
+                  (click)="incrementQty(existingRecipe, i); $event.stopPropagation()" />
               </div>
               <div class="text-right text-sm text-muted">
                 {{ getRowPartial($any(item).get('supplyVariantId')?.value, $any(item).get('requiredQuantity')?.value) | money }}
               </div>
               <div class="flex justify-center">
-                <button type="button" pButton icon="pi pi-trash" [text]="true" size="small" severity="danger" aria-label="Eliminar insumo"
-                  (click)="removeExistingRecipeItem(i)"></button>
+                <app-rms-icon-button icon="pi pi-trash" ariaLabel="Eliminar insumo" variant="danger" size="sm"
+                  (click)="removeExistingRecipeItem(i)" />
               </div>
             </div>
           }
@@ -376,20 +376,20 @@
                 </span>
               </div>
               <div class="flex items-center justify-center gap-1">
-                <button type="button" pButton icon="pi pi-minus" [text]="true" size="small" severity="secondary" aria-label="Disminuir cantidad"
-                  (click)="decrementQty(baseRecipe, i); $event.stopPropagation()"></button>
+                <app-rms-icon-button icon="pi pi-minus" ariaLabel="Disminuir cantidad" size="sm"
+                  (click)="decrementQty(baseRecipe, i); $event.stopPropagation()" />
                 <input class="rms-input rms-input--sm w-14 text-center" type="number" formControlName="requiredQuantity"
                   [min]="0.001" step="1"
                   [attr.aria-label]="'Cantidad requerida de ' + (findVariantById($any(item).get('supplyVariantId')?.value)?.supplyName ?? 'insumo')" />
-                <button type="button" pButton icon="pi pi-plus" [text]="true" size="small" severity="secondary" aria-label="Aumentar cantidad"
-                  (click)="incrementQty(baseRecipe, i); $event.stopPropagation()"></button>
+                <app-rms-icon-button icon="pi pi-plus" ariaLabel="Aumentar cantidad" size="sm"
+                  (click)="incrementQty(baseRecipe, i); $event.stopPropagation()" />
               </div>
               <div class="text-right text-sm text-muted">
                 {{ getRowPartial($any(item).get('supplyVariantId')?.value, $any(item).get('requiredQuantity')?.value) | money }}
               </div>
               <div class="flex justify-center">
-                <button type="button" pButton icon="pi pi-trash" [text]="true" size="small" severity="danger" aria-label="Eliminar insumo"
-                  (click)="removeBaseRecipeItem(i)"></button>
+                <app-rms-icon-button icon="pi pi-trash" ariaLabel="Eliminar insumo" variant="danger" size="sm"
+                  (click)="removeBaseRecipeItem(i)" />
               </div>
             </div>
           }
@@ -601,8 +601,8 @@
           </div>
           <div class="flex justify-between">
             <span class="text-muted">Tipo</span>
-            <p-tag [value]="existingOptions().length > 0 ? 'Personalizable' : 'Simple'"
-              [severity]="existingOptions().length > 0 ? 'info' : 'secondary'" />
+            <app-rms-badge [label]="existingOptions().length > 0 ? 'Personalizable' : 'Simple'"
+              [tone]="existingOptions().length > 0 ? 'info' : 'neutral'" />
           </div>
           <div class="flex justify-between">
             <span class="text-muted">Categoría</span>

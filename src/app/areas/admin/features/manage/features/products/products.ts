@@ -27,7 +27,6 @@ import { ProductCostResponse } from '@app/shared/models/dto/products/product-cos
 import { OptionGroupResponse } from '@app/shared/models/dto/option-groups/option-group';
 
 import { SearchInput as SearchInputComponent } from '@app/shared/components/search-input/search-input';
-import { ButtonModule } from 'primeng/button';
 import { FileUploadModule } from 'primeng/fileupload';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ImageModule } from 'primeng/image';
@@ -39,7 +38,6 @@ import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { ToggleSwitch } from 'primeng/toggleswitch';
-import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
 import { SkeletonModule } from 'primeng/skeleton';
 import { MessageModule } from 'primeng/message';
@@ -51,6 +49,7 @@ import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
 import { RmsInput } from '@app/shared/ui/input/input';
 import { RmsTextarea } from '@app/shared/ui/textarea/textarea';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
+import { RmsBadge } from '@app/shared/ui/badge/badge';
 
 import { PrepTimeDialog, type PrepTimeEstimate } from './componentes/prep-time-dialog/prep-time-dialog';
 import { Money } from '@app/shared/pipes/money/money';
@@ -104,14 +103,12 @@ interface OptionFormValue {
     ReactiveFormsModule,
     FormsModule,
     TableModule,
-    ButtonModule,
     SelectModule,
     IftaLabelModule,
     DialogModule,
     InputNumberModule,
     ToastModule,
     ToggleSwitch,
-    TagModule,
     DividerModule,
     SkeletonModule,
     MessageModule,
@@ -131,6 +128,7 @@ interface OptionFormValue {
     RmsInput,
     RmsTextarea,
     RmsPageHeader,
+    RmsBadge,
   ],
   templateUrl: './products.html',
   providers: [MessageService, ConfirmationService],

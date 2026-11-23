@@ -108,12 +108,7 @@
       formControlName="name"
       autocomplete="off"
       [required]="true"
-      [describedByIds]="'error-name-product'" />
-    <app-form-validation id="error-name-product" field="name" />
-
-    @if (productCategoryError()) {
-      <small class="text-rms-danger">{{ productCategoryError() }}</small>
-    }
+      [error]="productNameError()" />
   </form>
 
   <ng-template #footer>
@@ -135,12 +130,7 @@
       formControlName="name"
       autocomplete="off"
       [required]="true"
-      [describedByIds]="'error-name-supply'" />
-    <app-form-validation id="error-name-supply" field="name" />
-
-    @if (supplyCategoryError()) {
-      <small class="text-rms-danger">{{ supplyCategoryError() }}</small>
-    }
+      [error]="supplyNameError()" />
   </form>
 
   <ng-template #footer>
