@@ -222,16 +222,22 @@
                   @for (bar of day.bars; track bar.key) {
                     <div
                       class="week-grid__bar"
+                      [class.week-grid__bar--service]="bar.tone === 'service'"
+                      [class.week-grid__bar--kitchen]="bar.tone === 'kitchen'"
+                      [class.week-grid__bar--cash]="bar.tone === 'cash'"
                       role="listitem"
                       [style.left.%]="bar.left"
                       [style.width.%]="bar.width"
                       [style.top.px]="bar.top"
-                      [attr.title]="bar.workerName + ' · ' + bar.startTime + '–' + bar.endTime"
+                      [attr.title]="
+                        bar.workerName + ' · ' + bar.role + ' · ' + bar.startTime + '–' + bar.endTime
+                      "
                       [attr.aria-label]="
-                        bar.workerName + ', ' + bar.startTime + ' a ' + bar.endTime
+                        bar.workerName + ', ' + bar.role + ', ' + bar.startTime + ' a ' + bar.endTime
                       "
                     >
                       <span class="week-grid__bar-name">{{ bar.workerName }}</span>
+                      <span class="week-grid__bar-area">{{ bar.role }}</span>
                       <span class="week-grid__bar-time">{{ bar.startTime }}–{{ bar.endTime }}</span>
                     </div>
                   }

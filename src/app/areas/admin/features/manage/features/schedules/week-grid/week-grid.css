@@ -742,9 +742,9 @@
   align-items: center;
   gap: var(--rms-space-2);
   overflow: hidden;
-  border-left: 3px solid var(--rms-brand-500);
+  border-left: 3px solid var(--rms-border);
   border-radius: var(--rms-radius-sm);
-  background: var(--rms-brand-soft);
+  background: var(--rms-bg-subtle);
   padding: 0 var(--rms-space-2);
   color: var(--rms-text);
   font-size: var(--rms-type-caption-size);
@@ -757,9 +757,31 @@
   text-overflow: ellipsis;
 }
 
+.week-grid__bar-area {
+  overflow: hidden;
+  color: var(--rms-text-muted);
+  text-overflow: ellipsis;
+}
+
 .week-grid__bar-time {
+  margin-left: auto;
   color: var(--rms-text-secondary);
   font-variant-numeric: tabular-nums;
+}
+
+.week-grid__bar--service {
+  border-left-color: var(--rms-info-solid);
+  background: var(--rms-info-bg);
+}
+
+.week-grid__bar--kitchen {
+  border-left-color: var(--rms-success-solid);
+  background: var(--rms-success-bg);
+}
+
+.week-grid__bar--cash {
+  border-left-color: var(--rms-text-muted);
+  background: var(--rms-bg-subtle);
 }
 
 .week-grid__track-empty {

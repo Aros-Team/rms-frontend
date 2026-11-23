@@ -76,9 +76,13 @@ interface PendingRemoval {
   readonly schedule: ScheduleModel;
 }
 
+type TimelineTone = 'service' | 'kitchen' | 'cash' | 'neutral';
+
 interface TimelineBar {
   readonly key: string;
   readonly workerName: string;
+  readonly role: string;
+  readonly tone: TimelineTone;
   readonly startTime: string;
   readonly endTime: string;
   readonly left: number;
@@ -265,9 +269,30 @@ export class WeekGrid implements OnInit, OnChanges {
           laneEnds[lane] = to;
         }
 
+        const areas = row.areaLabels.map((area) => area.toLowerCase());
+        const tone: TimelineTone = areas.some((area) => area.includes('cocina'))
+          ? 'kitchen'
+          : areas.some((area) => area.includes('caja'))
+            ? 'cash'
+            : areas.some((area) => area.includes('servicio'))
+              ? 'service'
+              : 'neutral';
+
+        const role = areas.some((area) => area.includes('cocina'))
+          ? row.worker.name.toLowerCase().includes('auxiliar')
+            ? 'Auxiliar de cocina'
+            : 'Cocinero'
+          : areas.some((area) => area.includes('caja'))
+            ? 'Cajero'
+            : areas.some((area) => area.includes('servicio'))
+              ? 'Mesero'
+              : 'Sin rol';
+
         bars.push({
           key: `${String(row.workerId)}-${shift.key}`,
           workerName: row.worker.name,
+          role,
+          tone,
           startTime: shift.startTime,
           endTime: shift.endTime,
           left: ((visibleFrom - windowStart) / windowMinutes) * 100,
