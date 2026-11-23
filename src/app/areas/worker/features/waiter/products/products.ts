@@ -9,6 +9,7 @@ import { Logging } from '@app/core/services/logging/logging';
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
 import { ProductOption } from '@app/shared/models/dto/products/product-option';
 import { Money } from '@app/shared/pipes/money/money';
+import { productImageSrcSet } from '@app/shared/lib/product-image';
 
 import { CartaSkeleton } from './skeletons/carta-skeleton';
 import {
@@ -142,6 +143,10 @@ export class Products implements OnInit {
       .slice(0, 2)
       .map((word) => word.charAt(0).toUpperCase())
       .join('');
+  }
+
+  imageSrcSet(product: ProductListResponse): string | null {
+    return productImageSrcSet(product);
   }
 
   addProduct(product: ProductListResponse): void {

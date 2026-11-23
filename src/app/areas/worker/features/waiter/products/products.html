@@ -71,6 +71,8 @@
                   <img
                     class="product-row__image"
                     [src]="product.imageUrl"
+                    [attr.srcset]="imageSrcSet(product)"
+                    sizes="48px"
                     alt=""
                     loading="lazy"
                     decoding="async"

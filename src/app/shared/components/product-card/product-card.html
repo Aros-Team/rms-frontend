@@ -22,7 +22,9 @@
     <div class="relative w-full aspect-square bg-rms-subtle">
       @if (product?.imageUrl) {
         <img
-          [src]="product!.imageUrl!"
+          [src]="imageSrc"
+          [attr.srcset]="imageSrcSet"
+          sizes="(min-width: 1280px) 180px, (min-width: 768px) 160px, 45vw"
           [alt]="product?.name ?? ''"
           width="600"
           height="600"

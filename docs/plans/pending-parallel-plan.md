@@ -113,7 +113,7 @@ migrando. Se elimina en Q5, cuando ya no queda ninguna clase `text-surface-*`.
 ### P3 — Plantillas legacy
 - 2 migrar `products.html`, `product-card.html`, `product-options-modal.html`.
 - 9 añadir `width`/`height` a las 2 previews de `products.html`.
-- 8 `srcset` **no** se hace aquí: bloqueado por contrato de API.
+- 8 `srcset`/AVIF: **srcset responsive cerrado**. El API expone `imageTabletUrl`/`imageDesktopUrl` en `ProductResponse` y el frontend usa `srcset` 400/800/1200w en card, lista waiter, tabla admin y modal. **AVIF sigue bloqueado**: el pipeline de imágenes del backend solo genera WebP.
 
 Archivos: los tres templates y sus `.ts` solo para `imports`.
 
@@ -150,7 +150,7 @@ Archivos: `docs/plans/ui-improvements-plan.md`, `docs/CHANGELOG.md`.
 
 ## 6. Ola 2 — Cinco lanes (~1 día)
 
-> **Estado (2026-11-23): completada.** 1637 tests, lint limpio, build 803.16 kB.
+> **Estado (2026-11-23): completada y cerrada.** 1631+ tests, lint/design:check limpios, build warning-free 793.63 kB. Pendientes reales cerrados: srcset responsive en imágenes de producto (API + frontend), convergencia de validación en workers, y nota histórica de SockJS.
 
 Dependen de la ola 1 por archivos, no por lógica.
 
@@ -198,7 +198,7 @@ Nada de esto se solapa con edición de UI.
 
 | Item | Bloqueo | Se puede adelantar |
 |---|---|---|
-| 8 `srcset`/AVIF | la API no expone miniaturas | el soporte de UI con `srcset` condicional, sí |
+| 8 AVIF | el backend genera WebP; no hay variante AVIF | generar AVIF en `UploadImageService` y exponer URLs |
 | 26 sustituir `p-password`, `p-datepicker`, `p-table`, `p-selectbutton` | requiere primitivas nuevas | no |
 | 12/13 verificar precarga y SW en producción | requiere despliegue | no |
 | 1-5 completo con datos reales | entorno de QA | parcialmente |

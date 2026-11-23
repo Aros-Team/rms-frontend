@@ -21,7 +21,7 @@ import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validator
 import { Worker } from '@app/core/services/workers/worker';
 import { CreateWorkerRequest } from '@app/shared/models/dto/workers/create-worker-request';
 import { MessageService, ConfirmationService } from 'primeng/api';
-import { FormValidation } from '@app/shared/components/form/form-validation';
+import { fieldError as resolveFieldError } from '@app/shared/lib/form-error';
 import { Logging } from '@app/core/services/logging/logging';
 import { UpdateWorkerRequest } from '@app/shared/models/dto/workers/worker-response';
 import { tryToAmount } from '@app/shared/models/dto/common/money';
@@ -34,8 +34,10 @@ import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 import { RmsBadge } from '@app/shared/ui/badge/badge';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
+import { RmsField } from '@app/shared/ui/field/field';
 import { RmsInput } from '@app/shared/ui/input/input';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
+import { RmsSelect, type RmsSelectOption } from '@app/shared/ui/select/select';
 import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
 import { WorkerCard } from './worker-card';
 import { PayrollPanel } from './payroll-panel/payroll-panel';
@@ -75,13 +77,14 @@ interface WorkerFormValue {
     SkeletonModule,
     ConfirmDialogModule,
     DatePickerModule,
-    FormValidation,
     LazyLoad,
     TableSkeleton,
     RmsBadge,
     RmsButton,
     RmsEmptyState,
+    RmsField,
     RmsInput,
+    RmsSelect,
     RmsPageHeader,
     RmsStatusPill,
     WorkerCard,
@@ -130,6 +133,9 @@ export class Workers implements OnInit {
   // Filter to show only WORKER role users (employees)
   workers = computed(() => (this.cache.workers.data() ?? []));
   areas = signal<AreaResponse[]>([]);
+  readonly areaOptions = computed<RmsSelectOption[]>(() =>
+    this.areas().map((area) => ({ label: area.name.toLowerCase(), value: area.id })),
+  );
   editing = false;
   selectedWorker: WorkerResponse | null = null;
   originalSalary = signal<number | null>(null);
@@ -530,6 +536,10 @@ export class Workers implements OnInit {
 
   public getBackendError(field: string): string {
     return this.backendFieldErrors[field] || '';
+  }
+
+  fieldError(field: string): string {
+    return resolveFieldError(this.userForm, field, this.getBackendError(field));
   }
 
   private parseBackendValidationErrors(backendMessage: string): void {

@@ -13,6 +13,7 @@ import { fromApi } from '@app/shared/lib/option-selection-type-mapper/option-sel
 import { OptionSelectionList, SelectionOption } from '@app/shared/components/option-selection-list/option-selection-list';
 import { OptionGroupBadgeComponent } from '@app/shared/components/option-group-badge/option-group-badge';
 import { RemovableChip, RemovableChipData } from '@app/shared/components/removable-chip/removable-chip';
+import { productImageSrcSet } from '@app/shared/lib/product-image';
 
 export interface SelectedOption {
   optionId: number;
@@ -61,6 +62,10 @@ export class ProductOptionsModal {
 
   /** Renders money values inside TS-computed labels (same formatting as the template pipe). */
   private readonly moneyPipe = new MoneyPipe();
+
+  imageSrcSet(): string | null {
+    return productImageSrcSet(this.product);
+  }
 
   // ── Internal state (public for template access) ──
   selectedOptionIds = signal<number[]>([]);

@@ -22,6 +22,20 @@ export class ProductCard {
 
   readonly defaultImage = 'assets/placeholder-product.svg';
 
+  get imageSrc(): string {
+    return this.product?.imageUrl ?? this.defaultImage;
+  }
+
+  get imageSrcSet(): string | null {
+    const p = this.product;
+    if (!p?.imageUrl) return null;
+    const entries: string[] = [];
+    if (p.imageUrl) entries.push(`${p.imageUrl} 400w`);
+    if (p.imageTabletUrl) entries.push(`${p.imageTabletUrl} 800w`);
+    if (p.imageDesktopUrl) entries.push(`${p.imageDesktopUrl} 1200w`);
+    return entries.length > 1 ? entries.join(', ') : null;
+  }
+
   onToggle(event?: Event): void {
     if (this.disabled || this.unavailable || this.loading) return;
     if (!this.product) return;

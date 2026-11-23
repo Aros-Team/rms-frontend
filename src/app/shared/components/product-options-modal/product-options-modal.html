@@ -13,6 +13,8 @@
       @if (product?.imageUrl) {
         <img
           [src]="product!.imageUrl!"
+          [attr.srcset]="imageSrcSet()"
+          sizes="56px"
           [alt]="product!.name"
           width="56"
           height="56"

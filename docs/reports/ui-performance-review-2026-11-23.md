@@ -522,3 +522,22 @@ and the `window.global` shim in `main.ts` are gone. Effects:
 Operational note: a running API must be restarted to load the new endpoint; the
 frontend environment values now point at `ws://.../ws-native` and
 `wss://.../ws-native`.
+
+## 9. Closure follow-up (2026-11-23)
+
+- **Workers validation convergence.** `workers.html` no longer renders
+  `app-form-validation` blocks. `areaId` uses `app-rms-select` with
+  `[error]="fieldError('areaId')"`, `salary` is wrapped in `app-rms-field` with
+  a `p-inputnumber` bound to `aria-describedby`/`aria-invalid`, and the
+  remaining text fields use `[error]` on `app-rms-input`. The component exposes
+  `fieldError()` backed by `resolveFieldError` + backend field errors.
+- **Responsive product images.** The API now returns `imageTabletUrl` and
+  `imageDesktopUrl` alongside `imageUrl` in `ProductResponse`, resolved from the
+  existing tablet/desktop storage variants. The frontend adds
+  `productImageSrcSet()` and wires `srcset="... 400w, ... 800w, ... 1200w"` in
+  `product-card`, waiter carta rows, admin product table and product-options
+  modal. AVIF remains blocked because `UploadImageService` only generates WebP.
+- **Backend tests.** `./gradlew test` in `rms-api` was green (BUILD SUCCESSFUL,
+  6m 8s) after the SockJS removal and the image-variant contract change.
+- **Historical doc.** `docs/sprint-0/feature-matrix.md` now notes the SockJS →
+  native `/ws-native` migration as historical context.

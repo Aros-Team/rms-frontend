@@ -23,6 +23,7 @@ import { ProductOption as ProductOptionDTO, ProductOptionResponse } from '@app/s
 import { ProductOptionCreateRequest, RecipeItemRequest } from '@app/shared/models/dto/products/product-create-request';
 import { ProductImage } from '@app/core/services/product-image/product-image';
 import { ProductImageResponse } from '@app/shared/models/dto/products/product-image-response';
+import { productImageSrcSet } from '@app/shared/lib/product-image';
 import { ProductCostResponse } from '@app/shared/models/dto/products/product-cost-response';
 import { OptionGroupResponse } from '@app/shared/models/dto/option-groups/option-group';
 
@@ -1198,6 +1199,21 @@ export class Products implements OnInit {
     if (!url) return '';
     const marker = this.imageRefreshMarker().get(product.id);
     return marker ? `${url}?v=${String(marker)}` : url;
+  }
+
+  getProductImageSrcSet(product: ProductResponse): string | null {
+    const srcset = productImageSrcSet(product);
+    if (!srcset) return null;
+    const marker = this.imageRefreshMarker().get(product.id);
+    if (!marker) return srcset;
+    const v = String(marker);
+    return srcset
+      .split(', ')
+      .map((entry: string) => {
+        const [url, size] = entry.split(' ');
+        return `${url}?v=${v} ${size}`;
+      })
+      .join(', ');
   }
 
   private markProductImageUpdated(productId: number): void {

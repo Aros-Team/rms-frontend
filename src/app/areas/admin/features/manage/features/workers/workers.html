@@ -232,29 +232,16 @@
     }
 
     <form action="" [formGroup]="userForm" class="flex flex-col gap-4">
-      <p-iftalabel class="w-full">
-        <p-select
-          [options]="areas()"
-          formControlName="areaId"
-          optionLabel="name"
-          optionValue="id"
-          placeholder="Seleccione el area de trabajo"
-          [showClear]="true"
-          class="w-full"
-          appendTo="body"
-          inputId="create.areaId"
-          [pt]="{ label: { 'aria-describedby': 'error-areaId' } }"
-        >
-          <ng-template #item let-area>
-            <span class="text-sm">{{ area.name.toLowerCase() }}</span>
-          </ng-template>
-          <ng-template #selectedItem let-area>
-            <span class="text-sm">{{ area.name.toLowerCase() }}</span>
-          </ng-template>
-        </p-select>
-        <label for="create.areaId">Área de trabajo *</label>
-        <app-form-validation id="error-areaId" field="areaId" [backendError]="getBackendError('areaId')"></app-form-validation>
-      </p-iftalabel>
+      <app-rms-select
+        id="create.areaId"
+        label="Área de trabajo"
+        [required]="true"
+        [options]="areaOptions()"
+        formControlName="areaId"
+        placeholder="Seleccione el area de trabajo"
+        [showClear]="true"
+        [error]="fieldError('areaId')"
+      />
       <app-rms-input
         #firstInputRef
         id="create.document"
@@ -263,9 +250,8 @@
         autocomplete="off"
         formControlName="document"
         placeholder="Número de documento del trabajador"
-        [describedByIds]="'error-document'"
+        [error]="fieldError('document')"
       />
-      <app-form-validation id="error-document" field="document" [backendError]="getBackendError('document')"></app-form-validation>
       <app-rms-input
         id="create.name"
         label="Nombre"
@@ -273,9 +259,8 @@
         autocomplete="off"
         formControlName="name"
         placeholder="Nombre completo del trabajador"
-        [describedByIds]="'error-name'"
+        [error]="fieldError('name')"
       />
-      <app-form-validation id="error-name" field="name" [backendError]="getBackendError('name')"></app-form-validation>
       <app-rms-input
         id="create.email"
         label="Correo electrónico"
@@ -284,30 +269,32 @@
         autocomplete="off"
         formControlName="email"
         placeholder="Correo electrónico del trabajador"
-        [describedByIds]="'error-email'"
+        [error]="fieldError('email')"
       />
-      <app-form-validation id="error-email" field="email" [backendError]="getBackendError('email')"></app-form-validation>
       <app-rms-input
         id="create.address"
         label="Dirección"
         autocomplete="off"
         formControlName="address"
         placeholder="Dirección de residencia del trabajador"
-        [describedByIds]="'error-address'"
+        [error]="fieldError('address')"
       />
-      <app-form-validation id="error-address" field="address" [backendError]="getBackendError('address')"></app-form-validation>
       <app-rms-input
         id="create.phone"
         label="N# Celular"
         autocomplete="off"
         formControlName="phone"
         placeholder="Número de contacto del trabajador"
-        [describedByIds]="'error-phone'"
+        [error]="fieldError('phone')"
       />
-      <app-form-validation id="error-phone" field="phone" [backendError]="getBackendError('phone')"></app-form-validation>
-      <p-iftalabel class="w-full">
+      <app-rms-field
+        #salaryField
+        label="Salario"
+        controlId="create.salary"
+        [error]="fieldError('salary')"
+      >
         <p-inputnumber
-          id="create.salary"
+          inputId="create.salary"
           formControlName="salary"
           [min]="0"
           [maxFractionDigits]="0"
@@ -316,9 +303,10 @@
           class="w-full"
           pTooltip="Solo aplica para trabajadores"
           tooltipPosition="top"
+          [attr.aria-describedby]="salaryField.describedBy"
+          [attr.aria-invalid]="salaryField.hasError ? 'true' : null"
         />
-        <label for="create.salary">Salario</label>
-      </p-iftalabel>
+      </app-rms-field>
       @if (editing && salaryChanged()) {
         <app-rms-input
           id="edit.reason"
@@ -327,9 +315,8 @@
           autocomplete="off"
           formControlName="reason"
           placeholder="Razón del cambio salarial"
-          [describedByIds]="'error-reason'"
+          [error]="fieldError('reason')"
         />
-        <app-form-validation id="error-reason" field="reason" [backendError]="getBackendError('reason')"></app-form-validation>
         <app-rms-input
           id="edit.observations"
           label="Observaciones"

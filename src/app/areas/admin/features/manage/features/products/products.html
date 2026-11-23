@@ -60,6 +60,8 @@
               @if (product.imageUrl) {
                 <img
                   [src]="getProductImageSrc(product)"
+                  [attr.srcset]="getProductImageSrcSet(product)"
+                  sizes="48px"
                   [alt]="product.name"
                   width="48"
                   height="48"
