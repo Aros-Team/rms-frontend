@@ -55,6 +55,8 @@ const ICONS: Record<string, string> = {
   ORDER_CANCELLED: 'pi pi-ban',
   ANALYTICS_ALERT: 'pi pi-chart-bar',
   BUSINESS_RULE_VIOLATED: 'pi pi-exclamation-triangle',
+  WORKER_CLOCK_IN: 'pi pi-sign-in',
+  WORKER_LATE: 'pi pi-clock',
 };
 
 const READY_CODES = new Set(['ORDER_READY']);
