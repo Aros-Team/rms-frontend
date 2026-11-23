@@ -33,6 +33,14 @@ layer, passing a11y suite. The remaining problems are **not** "the app is slow";
 they are **unnecessary weight added on purpose** (chart.js, chat, preloader) and
 **two design generations living side by side**.
 
+> Correction (2026-11-23, post-integration): the 324 kB figure above counts only
+> the artifacts referenced from `index.html`. Angular also fetches the chunks
+> that `main` imports statically, which do not appear in `index.html`; the
+> builder's accounting is **797 kB raw / 189 kB transfer** for the initial graph
+> (baseline before the changes: 788 kB / 185 kB). The budget in `angular.json`
+> measures that number, so the gate is now 810 kB warn / 850 kB error, not
+> 420/500 kB.
+
 ---
 
 ## 1. Performance findings
@@ -69,6 +77,13 @@ Chart.register(
 
 Keep the `registered` guard; add a spec that asserts `Chart.registry` contains
 only the expected ids so a future `registerables` cannot creep back.
+
+**Blocked for the bundle:** the registration change is correct but does **not**
+shrink the chunk yet, because `primeng/chart` imports `chart.js/auto`, which
+registers everything at module load. The 214 kB chart chunk stays until the
+seven `<p-chart>` usages move to a thin canvas wrapper over `chart.js` core (see
+plan lane H). Until then the chart chunk is lazy (64 kB gzip) except on the
+dashboard, where the hourly chart is above the fold.
 
 ### P2 — the assistant is bundled into every admin route (high impact)
 

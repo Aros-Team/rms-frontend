@@ -41,6 +41,7 @@ Reglas no negociables (de `docs/DESIGN.md` y `AGENTS.md`):
 | **4** | Gestión: combos/settings/catálogos + workers/time-logs/payroll | Fase 2 |
 | **5** | Defer de contenido pesado + chat (P2, P4) | Fase 1 |
 | **6** | Gobernanza: lint, imports muertos, doc | Fase 3–4 |
+| **7** | Charts: wrapper propio sobre Chart.js core (lane H) | Fase 1 |
 
 Las fases 1, 2, 5 y 6 son paralelizables entre sí por conjuntos de archivos
 disjuntos. Las fases 3 y 4 dependen visualmente de la fase 2, pero se pueden
@@ -61,7 +62,7 @@ lanes.** Si una lane necesita un cambio fuera de su lista, lo reporta.
 | `src/app/core/preloading/selective-preloading-strategy.ts` (+spec) | Preload diferido (idle/2 s) y respeto a `route.data.preload === false` |
 | `src/app/app.routes.ts` | Añadir `data: { preload: false }` a rutas pesadas (`products`, `combos`, `schedules`, `cashier`, `create-product`) |
 | `ngsw-config.json` | Grupo `app`: `updateMode: "lazy"` |
-| `angular.json` | Presupuesto `initial` 420/500 kB |
+| `angular.json` | Presupuesto `initial` 810/850 kB (el builder cuenta el grafo estático completo: baseline 797 kB) |
 | `public/manifest.webmanifest` | `theme_color`/`background_color` de marca, `orientation: "any"` |
 | `src/index.html` | `id` en metas `theme-color`, `viewport-fit=cover` |
 | `src/app/core/services/theme/theme.ts` | Sincronizar ambas metas `theme-color` en `apply()` |
@@ -133,6 +134,15 @@ directorios; ninguna regla nueva con `!important`.
 **Aceptación:** `marked`/`dompurify` salen del chunk de `admin-area`; ningún
 bloque above-the-fold usa `content-visibility`; `contain-intrinsic-size`
 siempre presente.
+
+### Lane H — `charts` (Fase 7, pendiente)
+
+| Archivo | Cambio |
+|---|---|
+| `src/app/shared/ui/chart/**` (nuevo `rms-chart` con `<canvas>`) | Sustituir `primeng/chart` (`chart.js/auto`, 214 kB) por Chart.js core + el registro selectivo ya existente |
+| `areas/admin/features/{dashboard/components/hourly-sales-chart,analytics/**}` | 7 usos de `<p-chart>` → `<app-rms-chart>`; conservar resize, tabla de datos y resumen accesible |
+
+**Motivo:** `node_modules/primeng/fesm2022/primeng-chart.mjs` hace `import Chart from 'chart.js/auto'`, que registra los ocho tipos y todos los plugins. Mientras exista `ChartModule`, el registro selectivo no reduce el bundle.
 
 ### Lane G — `governance` (Fase 6)
 
