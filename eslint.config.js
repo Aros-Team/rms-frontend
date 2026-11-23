@@ -70,10 +70,14 @@ export default defineConfig([
       ...angular.configs.templateRecommended,
       ...angular.configs.templateAccessibility,
     ],
+    rules: {},
+  },
+  {
+    // Feature code only: primitives legitimately use inline styles for
+    // dynamic geometry (skeleton width, treemap areas, dialog width).
+    files: ["src/app/areas/**/*.html", "src/app/shared/features/**/*.html"],
     rules: {
-      // Inline styles cannot follow light/dark/high-contrast tokens. The one
-      // remaining use (a chart legend swatch reading `var(--rms-chart-*)`) is
-      // reported as a warning until it moves to a class.
+      // Inline styles cannot follow light/dark/high-contrast tokens.
       "@angular-eslint/template/no-inline-styles": "warn",
     },
   },
