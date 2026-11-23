@@ -740,7 +740,7 @@
   align-items: center;
   gap: var(--rms-space-2);
   overflow: hidden;
-  border-left: 3px solid var(--rms-brand-text);
+  border: 1px solid var(--rms-brand-text);
   border-radius: var(--rms-radius-sm);
   background: var(--rms-brand-soft);
   padding: 0 var(--rms-space-2);
