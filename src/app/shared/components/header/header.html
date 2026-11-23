@@ -1,8 +1,5 @@
 <header
-  class="fixed top-0 left-0 flex justify-between items-center h-16 px-4 bg-surface-50 dark:bg-surface-900 w-full max-w-full z-10 min-w-0"
-  [ngClass]="{
-    'z-50': isMobile
-  }">
+  class="fixed top-0 left-0 flex justify-between items-center h-16 px-4 bg-rms-surface border-b border-rms-border w-full max-w-full z-[var(--rms-z-sticky)] min-w-0">
   <section class="flex items-center gap-4 min-w-0 flex-1">
     <a
       [routerLink]="role === 'ADMIN' ? '/admin' : '/worker'"
@@ -11,7 +8,7 @@
       <app-logo [size]="24"></app-logo>
     </a>
     @if (workerType !== 'kitchen') {
-      <span class="hidden sm:inline-block max-w-[10rem] truncate align-middle font-semibold py-1 px-2.5 rounded-md border border-surface-200 dark:border-surface-700 bg-surface-100 dark:bg-surface-800 text-accent lg:max-w-none">{{customer}}</span>
+      <span class="hidden sm:inline-block max-w-[10rem] truncate align-middle font-semibold py-1 px-2.5 rounded-lg border border-rms-border bg-rms-subtle text-accent lg:max-w-none">{{customer}}</span>
     }
 
     @if (displayContext()) {
@@ -28,7 +25,7 @@
            routerLinkActive="!text-accent font-semibold"
            [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
            [attr.aria-current]="rla.isActive ? 'page' : null"
-           class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer text-sm whitespace-nowrap">
+           class="flex items-center gap-2 px-3 py-2 rounded-lg text-rms-ink-secondary hover:bg-rms-subtle transition-colors cursor-pointer text-sm whitespace-nowrap">
           @if (item.icon) {
             <i [class]="item.icon" aria-hidden="true"></i>
           }
@@ -39,7 +36,7 @@
       @if (overflowMenuItems().length > 0) {
         <div class="relative overflow-menu-container">
           <button
-class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 hover:scale-105 transition-all duration-200 cursor-pointer text-sm whitespace-nowrap"
+class="flex items-center gap-2 px-3 py-2 rounded-lg text-rms-ink-secondary hover:bg-rms-subtle hover:scale-105 transition-all duration-200 cursor-pointer text-sm whitespace-nowrap"
             (click)="toggleOverflowMenu($event)"
             aria-label="Ver más opciones de menú"
             title="Ver más opciones">
@@ -47,14 +44,14 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
           </button>
 
           @if (showOverflowMenu()) {
-            <div class="absolute top-full left-0 mt-1 bg-primary-contrast dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg py-2 min-w-48 z-50">
+            <div class="absolute top-full left-0 mt-1 bg-rms-surface border border-rms-border rounded-2xl py-2 min-w-48 z-[var(--rms-z-raised)]">
               @for (item of overflowMenuItems(); track item.id) {
                 <a [routerLink]="item.routerLink"
                    #rla="routerLinkActive"
                    routerLinkActive="!text-accent font-semibold"
                    [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
                    [attr.aria-current]="rla.isActive ? 'page' : null"
-                   class="flex items-center gap-3 px-4 py-2 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 hover:pl-5 transition-all duration-200 cursor-pointer text-sm"
+                   class="flex items-center gap-3 px-4 py-2 text-rms-ink-secondary hover:bg-rms-subtle hover:pl-5 transition-all duration-200 cursor-pointer text-sm"
                    (click)="onOverflowItemClick(item)">
                   @if (item.icon) {
                     <i [class]="item.icon" aria-hidden="true"></i>
@@ -72,7 +69,7 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
 
   <section class="flex items-center gap-3 shrink-0">
     @if (!hideTabletNav) {
-    <button class="md:hidden p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
+    <button class="md:hidden p-2 rounded-lg hover:bg-rms-subtle transition-colors"
       (click)="toggleMenu.emit()"
       [attr.aria-expanded]="menuOpen"
       aria-controls="app-sidebar"
@@ -86,7 +83,7 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
       <div class="relative notifications-container">
         <button
           type="button"
-          class="relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl transition-colors hover:bg-surface-100 dark:hover:bg-surface-800"
+          class="relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-rms-subtle"
           (click)="toggleNotifications($event)"
           [attr.aria-expanded]="showNotifications()"
           aria-haspopup="true"
@@ -98,7 +95,7 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
           <i class="pi pi-bell text-lg text-muted" aria-hidden="true"></i>
           @if (notificationCenter.unreadCount() > 0) {
             <span
-              class="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary-500 px-1 text-[0.625rem] font-bold text-surface-900"
+              class="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rms-brand px-1 text-rms-caption leading-none font-bold text-rms-on-brand"
               aria-hidden="true">{{ notificationCenter.unreadCount() > 9 ? '9+' : notificationCenter.unreadCount() }}</span>
           }
         </button>
@@ -106,12 +103,12 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
         @if (showNotifications()) {
           <div
             id="notifications-panel"
-            class="fixed left-4 right-4 top-16 z-50 mt-2 flex flex-col overflow-hidden rounded-xl border border-surface-200 dark:border-surface-700 bg-primary-contrast dark:bg-surface-800 sm:left-auto sm:right-4 sm:w-[22rem]"
+            class="fixed left-4 right-4 top-16 z-[var(--rms-z-raised)] mt-2 flex flex-col overflow-hidden rounded-2xl border border-rms-border bg-rms-surface sm:left-auto sm:right-4 sm:w-[22rem]"
             role="region"
             aria-label="Notificaciones">
-            <div class="flex items-center justify-between gap-2 border-b border-surface-200 dark:border-surface-700 px-4 py-3">
+            <div class="flex items-center justify-between gap-2 border-b border-rms-border px-4 py-3">
               <div>
-                <p class="text-sm font-semibold text-surface-800 dark:text-surface-100">Notificaciones</p>
+                <p class="text-sm font-semibold text-rms-ink">Notificaciones</p>
                 <p class="text-xs text-muted">
                   @if (notificationCenter.unreadCount() > 0) {
                     {{ notificationCenter.unreadCount() }} sin leer
@@ -133,27 +130,26 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
             <div class="max-h-[22rem] overflow-y-auto">
               @if (notificationCenter.notifications().length === 0) {
                 <div class="flex flex-col items-center px-4 py-8 text-center">
-                  <div class="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-surface-100 dark:bg-surface-700">
+                  <div class="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-rms-subtle">
                     <i class="pi pi-inbox text-muted" aria-hidden="true"></i>
                   </div>
-                  <p class="text-sm font-medium text-surface-700 dark:text-surface-200">Sin notificaciones</p>
+                  <p class="text-sm font-medium text-rms-ink-secondary">Sin notificaciones</p>
                   <p class="mt-0.5 text-xs text-muted">Aquí aparecerán los eventos del restaurante.</p>
                 </div>
               } @else {
                 @for (notification of notificationCenter.notifications(); track notification.id) {
                   <button
                     type="button"
-                    class="flex w-full cursor-pointer items-start gap-3 border-b border-surface-100 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-surface-100 dark:border-surface-700 dark:hover:bg-surface-700"
-                    [class.bg-primary-50]="!notification.read"
-                    [class.dark:bg-primary-900/20]="!notification.read"
+                    class="flex w-full cursor-pointer items-start gap-3 border-b border-rms-border px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-rms-subtle"
+                    [class.bg-rms-brand-soft]="!notification.read"
                     (click)="openNotification(notification)">
-                    <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-100 dark:bg-surface-700">
+                    <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rms-subtle">
                       <i [class]="notification.icon + ' ' + toneClass(notification.tone)" aria-hidden="true"></i>
                     </span>
                     <span class="min-w-0 flex-1">
                       <span class="flex items-baseline justify-between gap-2">
-                        <span class="truncate text-sm font-semibold text-surface-800 dark:text-surface-100">{{ notification.title }}</span>
-                        <span class="shrink-0 text-[0.625rem] text-muted">{{ formatNotificationTime(notification.createdAt) }}</span>
+                        <span class="truncate text-sm font-semibold text-rms-ink">{{ notification.title }}</span>
+                        <span class="shrink-0 text-rms-caption text-muted">{{ formatNotificationTime(notification.createdAt) }}</span>
                       </span>
                       <span class="mt-0.5 block truncate text-xs text-muted">{{ notification.message }}</span>
                     </span>
@@ -166,10 +162,10 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
             </div>
 
             @if (notificationCenter.notifications().length > 0) {
-              <div class="border-t border-surface-200 dark:border-surface-700 p-2">
+              <div class="border-t border-rms-border p-2">
                 <button
                   type="button"
-                  class="w-full cursor-pointer rounded-lg px-3 py-2 text-xs font-medium text-muted transition-colors hover:bg-surface-100 dark:hover:bg-surface-700"
+                  class="w-full cursor-pointer rounded-lg px-3 py-2 text-xs font-medium text-muted transition-colors hover:bg-rms-subtle"
                   (click)="notificationCenter.clear()">
                   Limpiar notificaciones
                 </button>
@@ -183,17 +179,17 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
     <div class="relative user-menu-container">
       <button
         type="button"
-        class="flex items-center gap-2.5 rounded-full border border-surface-200 dark:border-surface-700 bg-primary-contrast dark:bg-surface-800 py-1 pl-1 pr-1 sm:pr-2.5 cursor-pointer transition-colors hover:bg-surface-100 dark:hover:bg-surface-700"
+        class="flex items-center gap-2.5 rounded-full border border-rms-border bg-rms-surface py-1 pl-1 pr-1 sm:pr-2.5 cursor-pointer transition-colors hover:bg-rms-subtle"
         (click)="toggleUserMenu($event)"
         [attr.aria-expanded]="showUserMenu()"
         aria-haspopup="menu"
         [title]="userName()">
         <span
-          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30 text-xs font-bold text-accent"
+          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rms-brand-soft text-xs font-bold text-accent"
           aria-hidden="true">{{ userInitials() }}</span>
         <span class="hidden min-w-0 flex-col items-start leading-tight sm:flex">
-          <span class="max-w-[9rem] truncate text-sm font-semibold text-surface-800 dark:text-surface-100">{{ userName() }}</span>
-          <span class="text-[0.6875rem] text-muted">{{ userRoleLabel() }}</span>
+          <span class="max-w-[9rem] truncate text-sm font-semibold text-rms-ink">{{ userName() }}</span>
+          <span class="text-rms-caption text-muted">{{ userRoleLabel() }}</span>
         </span>
         <i
           class="pi pi-angle-down hidden text-xs text-muted transition-transform sm:block"
@@ -203,10 +199,10 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
 
       @if (showUserMenu()) {
         <div
-          class="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-xl border border-surface-200 dark:border-surface-700 bg-primary-contrast dark:bg-surface-800"
+          class="absolute right-0 top-full z-[var(--rms-z-raised)] mt-2 w-60 overflow-hidden rounded-2xl border border-rms-border bg-rms-surface"
           role="menu">
-          <div class="border-b border-surface-200 dark:border-surface-700 px-4 py-3">
-            <p class="truncate text-sm font-semibold text-surface-800 dark:text-surface-100">{{ userName() }}</p>
+          <div class="border-b border-rms-border px-4 py-3">
+            <p class="truncate text-sm font-semibold text-rms-ink">{{ userName() }}</p>
             @if (userEmail()) {
               <p class="truncate text-xs text-muted">{{ userEmail() }}</p>
             }
@@ -215,7 +211,7 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
             <button
               type="button"
               role="menuitem"
-              class="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left text-sm text-surface-700 dark:text-surface-200 transition-colors hover:bg-surface-100 dark:hover:bg-surface-700"
+              class="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left text-sm text-rms-ink-secondary transition-colors hover:bg-rms-subtle"
               (click)="onLogout()">
               <i class="pi pi-sign-out text-muted" aria-hidden="true"></i>
               <span class="font-medium">Cerrar sesión</span>
@@ -240,7 +236,7 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
   <div class="py-4">
     <div class="flex items-center gap-3">
       <i class="pi pi-exclamation-triangle rms-text-warning text-2xl" aria-hidden="true"></i>
-      <p class="text-surface-700 dark:text-surface-300">
+      <p class="text-rms-ink-secondary">
         ¿Estás seguro de que deseas cerrar sesión?
       </p>
     </div>

@@ -6,10 +6,7 @@ import { AreaRequest, AreaTypeValue } from '@app/shared/models/dto/areas/area';
 import { AreaSimpleResponse } from '@app/shared/models/dto/areas/area-simple-response';
 import { Auth } from '@app/core/services/auth/auth';
 import { DialogModule } from 'primeng/dialog';
-import { IftaLabelModule } from 'primeng/iftalabel';
-import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
-import { SelectModule } from 'primeng/select';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { FormValidation } from '@app/shared/components/form/form-validation';
@@ -17,6 +14,8 @@ import { TablesCache } from '../tables/tables-cache';
 import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsInput } from '@app/shared/ui/input/input';
+import { RmsSelect } from '@app/shared/ui/select/select';
 import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
@@ -27,9 +26,6 @@ import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
     ReactiveFormsModule,
     TableModule,
     DialogModule,
-    IftaLabelModule,
-    InputTextModule,
-    SelectModule,
     IconFieldModule,
     InputIconModule,
     FormValidation,
@@ -39,6 +35,8 @@ import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
     RmsIconButton,
     RmsPageHeader,
     RmsStatusPill,
+    RmsInput,
+    RmsSelect,
   ],
   templateUrl: './areas.html'
 })

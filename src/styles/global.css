@@ -291,6 +291,30 @@ main[tabindex='-1']:focus-visible {
 }
 
 /* ==========================================================================
+   Deferred rendering — only for confirmed off-screen blocks
+   ========================================================================== */
+
+/**
+ * Opt-in rendering deferral for long, self-contained blocks that start below
+ * the fold (analytics table sections, the dashboard's lower panels).
+ *
+ * `content-visibility: auto` lets the browser skip layout and paint while the
+ * block is off-screen. `contain-intrinsic-size` supplies the estimated size the
+ * scrollbar needs, so skipping a block does not make the page jump when the
+ * user scrolls back. Override `--rms-defer-size` with the block's approximate
+ * height.
+ *
+ * Never apply this to above-the-fold content (hero, KPI block, first chart):
+ * the skipped frame delays the critical paint.
+ */
+.rms-defer-view {
+  content-visibility: auto;
+  /* Two-value fallback for engines that reject the four-value form below. */
+  contain-intrinsic-size: auto var(--rms-defer-size, 320px);
+  contain-intrinsic-size: auto none auto var(--rms-defer-size, 320px);
+}
+
+/* ==========================================================================
    Reduced motion — one gate for every current and future animation
    ========================================================================== */
 

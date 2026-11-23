@@ -6,11 +6,7 @@
  * Approach: Mount component via TestBed with test host, manage questions, assert state.
  */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
-import {
-  ɵresolveComponentResources as resolveComponentResources,
-  signal,
-  type WritableSignal,
-} from '@angular/core';
+import { signal, type WritableSignal } from '@angular/core';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { Subject } from 'rxjs';
 
@@ -19,8 +15,11 @@ import { ConfirmationService } from 'primeng/api';
 import type { WizardFormData } from '@app/core/services/combos/combo-wizard-state';
 import { ComboWizardState } from '@app/core/services/combos/combo-wizard-state';
 
+import { resolveUiResources } from '@shared/ui/testing/ui-test-resources';
 import { QuestionsStep } from './questions-step';
 import questionsStepHtml from './questions-step.html?raw';
+import buttonHtml from '@shared/ui/button/button.html?raw';
+import iconButtonHtml from '@shared/ui/icon-button/icon-button.html?raw';
 
 function emptyFormData(): WizardFormData {
   return {
@@ -91,11 +90,10 @@ describe('QuestionsStep', () => {
   let wizardMock: WizardMock;
 
   beforeAll(async () => {
-    await resolveComponentResources((url: string) => {
-      if (url.endsWith('questions-step.html')) {
-        return Promise.resolve(questionsStepHtml as unknown as string);
-      }
-      return Promise.resolve('');
+    await resolveUiResources({
+      'questions-step.html': questionsStepHtml as unknown as string,
+      'button.html': buttonHtml as unknown as string,
+      'icon-button.html': iconButtonHtml as unknown as string,
     });
   });
 

@@ -6,11 +6,7 @@
  * Approach: Mount component via TestBed with test host, configure groups, assert output.
  */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
-import {
-  ɵresolveComponentResources as resolveComponentResources,
-  signal,
-  type WritableSignal,
-} from '@angular/core';
+import { signal, type WritableSignal } from '@angular/core';
 import { beforeAll, describe, expect, it } from 'vitest';
 
 import type { WizardFormData, WizardGroupDraft } from '@app/core/services/combos/combo-wizard-state';
@@ -20,8 +16,11 @@ import type { ProductResponse } from '@app/shared/models/dto/products/product-re
 import { Product } from '@app/core/services/products/product';
 import { of } from 'rxjs';
 
+import { resolveUiResources } from '@shared/ui/testing/ui-test-resources';
 import { GroupStep } from './group-step';
 import groupStepHtml from './group-step.html?raw';
+import badgeHtml from '@shared/ui/badge/badge.html?raw';
+import iconButtonHtml from '@shared/ui/icon-button/icon-button.html?raw';
 
 // ── Test data ───────────────────────────────────────────────────────────
 
@@ -136,11 +135,10 @@ describe('GroupStep', () => {
   let referenceMock: ReferenceMock;
 
   beforeAll(async () => {
-    await resolveComponentResources((url: string) => {
-      if (url.endsWith('group-step.html')) {
-        return Promise.resolve(groupStepHtml as unknown as string);
-      }
-      return Promise.resolve('');
+    await resolveUiResources({
+      'group-step.html': groupStepHtml as unknown as string,
+      'badge.html': badgeHtml as unknown as string,
+      'icon-button.html': iconButtonHtml as unknown as string,
     });
   });
 
@@ -204,7 +202,9 @@ describe('GroupStep', () => {
       const selected = getNative().querySelectorAll('[data-testid="selected-product"]');
       expect(selected.length).toBe(2);
 
-      const removeBtns = getNative().querySelectorAll('[data-testid="remove-product-btn"]');
+      const removeBtns = getNative().querySelectorAll(
+        '[data-testid="remove-product-btn"] button',
+      );
       expect(Array.from(removeBtns).map((btn) => btn.getAttribute('aria-label'))).toEqual([
         'Eliminar Hamburguesa',
         'Eliminar Papas fritas',

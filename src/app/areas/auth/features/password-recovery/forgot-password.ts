@@ -2,26 +2,16 @@ import { Component, inject, signal } from '@angular/core';
 
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { PasswordModule } from 'primeng/password';
 import { MessageModule } from 'primeng/message';
 import { Password } from '@app/core/services/auth/password';
-import { FloatLabelModule } from 'primeng/floatlabel';
-import { InputTextModule } from 'primeng/inputtext';
-import { ButtonModule } from 'primeng/button';
 import { MessageService } from 'primeng/api';
+import { RmsButton } from '@shared/ui/button/button';
+import { RmsInput } from '@shared/ui/input/input';
 
 @Component({
   selector: 'app-forgot-password',
   templateUrl: './forgot-password.html',
-  imports: [
-    ReactiveFormsModule,
-    PasswordModule,
-    MessageModule,
-    FloatLabelModule,
-    InputTextModule,
-    ButtonModule,
-    RouterLink
-  ],
+  imports: [ReactiveFormsModule, MessageModule, RouterLink, RmsButton, RmsInput],
 })
 export class ForgotPassword {
   private passwordService = inject(Password);
@@ -39,6 +29,20 @@ export class ForgotPassword {
   isInvalid(field: string): boolean {
     const control = this.form.get(field);
     return control ? control.invalid && control.touched : false;
+  }
+
+  get emailError(): string {
+    if (!this.isInvalid('email')) {
+      return '';
+    }
+    const errors = this.form.get('email')?.errors;
+    if (errors?.['required']) {
+      return 'Campo requerido';
+    }
+    if (errors?.['email']) {
+      return 'Ingresa un correo válido';
+    }
+    return 'Revisa este campo';
   }
 
   goToLogin(): void {

@@ -9,16 +9,10 @@
   <!-- Creation Form -->
   @if (modalMode() === 'create' && modalIsOpen()) {
     <div class="mb-4 p-4 bg-rms-surface border border-rms-border rounded-xl">
-      <h3 class="text-lg font-semibold mb-4">Crear Mesa</h3>
+      <h3 class="rms-h3 mb-4">Crear Mesa</h3>
       <form [formGroup]="tableForm" (ngSubmit)="saveTable()" class="flex flex-wrap gap-4 items-end">
-        <div class="flex flex-col gap-1">
-          <label for="newTableNumber" class="text-sm text-muted">Número</label>
-          <input pInputText id="newTableNumber" type="number" formControlName="tableNumber" class="w-24" />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label for="newCapacity" class="text-sm text-muted">Capacidad</label>
-          <input pInputText id="newCapacity" type="number" formControlName="capacity" class="w-24" />
-        </div>
+        <app-rms-input id="newTableNumber" label="Número" type="number" formControlName="tableNumber" class="w-24" />
+        <app-rms-input id="newCapacity" label="Capacidad" type="number" formControlName="capacity" class="w-24" />
         <div class="flex gap-2">
           <app-rms-button type="submit" [disabled]="tableForm.invalid" iconStart="pi pi-check">Crear</app-rms-button>
           <app-rms-button variant="secondary" (click)="closeModal()">Cancelar</app-rms-button>
@@ -83,14 +77,8 @@
   header="Editar Mesa"
   width="400px">
   <form [formGroup]="tableForm" (ngSubmit)="saveTable()" (keydown.enter)="saveTable()" class="flex flex-col gap-4">
-    <div>
-      <label for="editTableNumber" class="text-sm text-rms-ink-secondary block mb-1">Número</label>
-      <input pInputText id="editTableNumber" type="number" formControlName="tableNumber" class="w-full" />
-    </div>
-    <div>
-      <label for="editCapacity" class="text-sm text-rms-ink-secondary block mb-1">Capacidad</label>
-      <input pInputText id="editCapacity" type="number" formControlName="capacity" class="w-full" />
-    </div>
+    <app-rms-input id="editTableNumber" label="Número" type="number" formControlName="tableNumber" />
+    <app-rms-input id="editCapacity" label="Capacidad" type="number" formControlName="capacity" />
   </form>
 
   <div rmsDialogFooter>

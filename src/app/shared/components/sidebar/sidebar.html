@@ -2,17 +2,17 @@
     id="app-sidebar"
     [attr.inert]="visible ? null : ''"
     [attr.aria-hidden]="visible ? null : 'true'"
-    class="admin-panel bg-surface-50 dark:bg-surface-900 flex flex-col
-    fixed inset-0 w-full h-full z-[100] transition-transform duration-300 ease-in-out
+    class="admin-panel bg-rms-surface border-l border-rms-border flex flex-col
+    fixed inset-0 w-full h-full z-[var(--rms-z-drawer)] transition-transform duration-300 ease-in-out
     translate-x-full md:translate-x-0
-    md:relative md:inset-auto md:h-full md:z-auto md:shrink-0 md:mb-[1rem]"
+    md:relative md:inset-auto md:h-full md:z-auto md:shrink-0 md:mb-4"
     [class.translate-x-0]="visible"
     [class.translate-x-full]="!visible"
     [class.admin-panel--expanded]="expanded">
 
     <div class="flex items-center justify-between gap-2 p-4 md:hidden" [class.hidden]="expanded">
-        <span class="text-sm font-semibold text-surface-700 dark:text-surface-200">Menú</span>
-        <button class="p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
+        <span class="text-sm font-semibold text-rms-ink">Menú</span>
+        <button class="p-2 rounded-lg hover:bg-rms-subtle transition-colors"
             (click)="closeSidebar()" aria-label="Cerrar menú">
             <i class="pi pi-times text-muted text-xl" aria-hidden="true"></i>
         </button>
@@ -24,7 +24,7 @@
                 <li class="nav-grid__item" [style.animation-delay.ms]="expanded ? i * 30 : 0">
                     <a [routerLink]="item.routerLink"
                         #rla="routerLinkActive"
-                        routerLinkActive="!text-accent font-semibold"
+                        routerLinkActive="!text-accent font-semibold nav-tile--active"
                         [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
                         [attr.aria-current]="rla.isActive ? 'page' : null"
                         class="nav-tile cursor-pointer"
@@ -53,7 +53,7 @@
     </div>
 
     <div
-        class="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden border-t border-surface-200 dark:border-surface-700"
+        class="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden border-t border-rms-border"
         [class.hidden]="!expanded"
         [attr.inert]="expanded ? null : ''"
         [attr.aria-hidden]="expanded ? null : 'true'">

@@ -2,6 +2,9 @@ import { Component, OnInit, inject, ChangeDetectionStrategy, signal } from '@ang
 import { RouterOutlet } from '@angular/router';
 
 import { Layout } from '@app/shared/layout/layout/layout';
+// Declared here so the template can resolve `<app-chat>`, but only referenced
+// from the `@defer` block in admin-area.html. The Angular compiler turns that
+// into a dynamic import, keeping `marked`/`dompurify` out of the eager chunk.
 import { Chat } from '@app/areas/admin/features/chat/chat';
 import { Menu } from '@app/core/services/menu/menu';
 import { ADMIN_NAV } from '@app/core/config/navigation/role-navigation';

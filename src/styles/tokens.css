@@ -188,7 +188,10 @@
   --rms-space-12: 3rem;
   --rms-space-16: 4rem;
 
-  /* Radii */
+  /* Radii — one role per value, mirrored by Tailwind:
+     sm = rounded-lg (controls, buttons, nav items)
+     md = rounded-xl (cards, grouped inputs)
+     lg = rounded-2xl (page panels, sheets) */
   --rms-radius-sm: 0.5rem; /* 8 — controls */
   --rms-radius-md: 0.75rem; /* 12 — cards, grouped inputs */
   --rms-radius-lg: 1rem; /* 16 — page panels */
@@ -226,9 +229,15 @@
   --rms-transition-fast: var(--rms-motion-fast) var(--rms-ease);
   --rms-transition-base: var(--rms-motion-base) var(--rms-ease);
 
-  /* Layers */
+  /* Layers — chrome < sticky < drawer < overlay < dialog < toast.
+     Chrome/header uses `sticky`; the mobile sidebar drawer uses `drawer`;
+     PrimeNG overlays start at `overlay` and dialogs at `dialog`. */
   --rms-z-raised: 10;
+  --rms-z-sticky: 20;
+  --rms-z-drawer: 40;
   --rms-z-overlay: 1000;
+  --rms-z-dialog: 1100;
+  --rms-z-toast: 1200;
 }
 
 /* ==========================================================================

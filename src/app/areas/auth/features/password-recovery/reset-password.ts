@@ -4,13 +4,12 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractContro
 import { NgClass } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PasswordModule } from 'primeng/password';
-import { InputTextModule } from 'primeng/inputtext';
-import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { MessageService } from 'primeng/api';
 import { Password } from '@app/core/services/auth/password';
 import { Logging } from '@app/core/services/logging/logging';
 import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
+import { RmsButton } from '@shared/ui/button/button';
 import {
   hasLowerCase,
   hasMinPasswordLength,
@@ -33,9 +32,8 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
     ReactiveFormsModule,
     NgClass,
     PasswordModule,
-    InputTextModule,
-    ButtonModule,
-    MessageModule
+    MessageModule,
+    RmsButton,
   ],
 })
 export class ResetPassword implements OnInit {
@@ -66,6 +64,33 @@ export class ResetPassword implements OnInit {
       case 'symbol': return hasSymbol(password);
       default: return false;
     }
+  }
+
+  isInvalid(field: string): boolean {
+    const control = this.form.get(field);
+    return control !== null && control.invalid && control.touched;
+  }
+
+  get newPasswordError(): string {
+    if (!this.isInvalid('newPassword')) {
+      return '';
+    }
+    return this.form.get('newPassword')?.errors?.['required']
+      ? 'Campo requerido'
+      : 'Revisa este campo';
+  }
+
+  get confirmPasswordError(): string {
+    if (!this.isInvalid('confirmPassword')) {
+      return '';
+    }
+    if (this.form.get('confirmPassword')?.errors?.['required']) {
+      return 'Campo requerido';
+    }
+    if (this.form.errors?.['mismatch']) {
+      return 'Las contraseñas no coinciden';
+    }
+    return 'Revisa este campo';
   }
 
   ngOnInit(): void {

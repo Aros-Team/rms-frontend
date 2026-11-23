@@ -9,13 +9,10 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ChipModule } from 'primeng/chip';
 import { DatePickerModule } from 'primeng/datepicker';
-import { InputTextModule } from 'primeng/inputtext';
 import { SkeletonModule } from 'primeng/skeleton';
-import { TextareaModule } from 'primeng/textarea';
 
 import { ComboReferenceCache } from '@app/core/services/combos/combo-reference-cache';
 import {
@@ -23,6 +20,10 @@ import {
   type WizardGroupDraft,
 } from '@app/core/services/combos/combo-wizard-state';
 import type { DayOfWeek } from '@app/shared/models/dto/special-selections/schedule-entry';
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
+import { RmsInput } from '@app/shared/ui/input/input';
+import { RmsTextarea } from '@app/shared/ui/textarea/textarea';
 
 const STEP_GENERAL_ID = 'general';
 
@@ -47,13 +48,14 @@ interface ScheduleBlock {
   selector: 'app-general-step[comboWizardStep=general]',
   imports: [
     FormsModule,
-    ButtonModule,
     CheckboxModule,
     ChipModule,
     DatePickerModule,
-    InputTextModule,
     SkeletonModule,
-    TextareaModule,
+    RmsButton,
+    RmsIconButton,
+    RmsInput,
+    RmsTextarea,
   ],
   templateUrl: './general-step.html',
   styleUrl: './general-step.css',

@@ -8,20 +8,21 @@ import { TimeLogEntry } from '@app/shared/models/dto/schedules/time-log-entry';
 
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
-import { TagModule } from 'primeng/tag';
 import { SkeletonModule } from 'primeng/skeleton';
-import { InputTextModule } from 'primeng/inputtext';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
+import { RmsButton } from '@shared/ui/button/button';
+import { RmsBadge } from '@shared/ui/badge/badge';
+import { RmsInput } from '@shared/ui/input/input';
 
 @Component({
   selector: 'app-time-logs',
   imports: [
     FormsModule,
-    ButtonModule, TableModule, TagModule, SkeletonModule, InputTextModule, DatePickerModule, ToastModule,
-    TableSkeleton,
+    ButtonModule, TableModule, SkeletonModule, DatePickerModule, ToastModule,
+    TableSkeleton, RmsButton, RmsBadge, RmsInput,
   ],
   templateUrl: './time-logs.html',
   styleUrl: './time-logs.css',

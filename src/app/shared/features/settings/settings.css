@@ -1,0 +1,42 @@
+:host {
+  display: block;
+}
+
+/* Radio-style choice buttons. Native <button role="radio"> keeps the ARIA
+ * group semantics that app-rms-button cannot express, so the look is shared
+ * here through semantic tokens. */
+.settings-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--rms-space-2);
+  min-height: var(--rms-control-sm);
+  padding: 0 var(--rms-space-3);
+  border: var(--rms-border-width) solid var(--rms-border-strong);
+  border-radius: var(--rms-control-radius);
+  background: var(--rms-bg-surface);
+  color: var(--rms-text);
+  font-family: var(--rms-font-sans);
+  font-weight: var(--rms-weight-semibold);
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    background-color var(--rms-transition-fast),
+    border-color var(--rms-transition-fast),
+    color var(--rms-transition-fast);
+}
+
+.settings-toggle:hover {
+  background: var(--rms-bg-subtle);
+}
+
+.settings-toggle--active {
+  background: var(--rms-brand-500);
+  border-color: var(--rms-brand-500);
+  color: var(--rms-text-on-brand);
+}
+
+.settings-toggle--active:hover {
+  background: var(--rms-brand-600);
+  border-color: var(--rms-brand-600);
+}

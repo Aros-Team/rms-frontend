@@ -500,6 +500,50 @@ Legacy compatibility kept in Round 1 (do not add new uses):
 
 ---
 
+### 11.1 Migration status and new rules (2026-11-23 review)
+
+Reference documents: `docs/reports/ui-performance-review-2026-11-23.md` and
+`docs/plans/ui-improvements-plan.md`.
+
+Adoption is now tracked per area instead of per component. The legacy API
+(`p-button`, `pInputText`, `text-surface-*`, `dark:` pairs,
+`bg-primary-contrast`) is closed to new use and is being removed area by area.
+
+| Area | Status |
+|---|---|
+| `areas/auth/**` | in progress (batch 2026-11-23) |
+| `areas/admin/manage/combos`, `categories`, `areas`, `tables` | in progress (batch 2026-11-23) |
+| `shared/features/settings`, `shared/components/{inline-create-popover,search-input,removable-chip}` | in progress (batch 2026-11-23) |
+| `areas/admin/manage/{workers,time-logs,inventory,schedules}` | in progress (batch 2026-11-23) |
+| `areas/admin/features/dashboard`, analytics | on primitives; deferral applied to off-screen blocks |
+| `areas/admin/manage/products`, `areas/worker/**`, `areas/cashier/**` | next batch |
+
+Radius rule (one radius per role, no `rounded`/`rounded-md` in feature code):
+
+| Role | Value | Utility |
+|---|---|---|
+| Controls, buttons, nav items | 8 px | `rounded-lg` |
+| Cards, grouped inputs | 12 px | `rounded-xl` |
+| Page panels, sheets | 16 px | `rounded-2xl` |
+
+Layer scale (never a numeric `z-[…]` in feature code):
+
+| Token | Value | Use |
+|---|---|---|
+| `--rms-z-raised` | 10 | raised content |
+| `--rms-z-sticky` | 20 | fixed header |
+| `--rms-z-drawer` | 40 | mobile drawer, sidebar |
+| `--rms-z-overlay` | 1000 | scrim, popovers |
+| `--rms-z-dialog` | 1100 | dialogs, sheets |
+| `--rms-z-toast` | 1200 | toasts, skip link |
+
+Deferred rendering: `content-visibility: auto` is allowed only through the
+`.rms-defer-view` utility in `src/styles/global.css`, only on confirmed
+off-screen blocks, and always with `contain-intrinsic-size`. Above-the-fold
+content must never receive it.
+
+---
+
 ## 12. Testing
 
 - Every primitive has a spec under its folder with a contract header following

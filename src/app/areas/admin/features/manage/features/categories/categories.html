@@ -5,10 +5,10 @@
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 p-4 md:p-6">
 
   <!-- ══ CATEGORÍAS DE PRODUCTO ══ -->
-  <div class="bg-primary-contrast rounded-xl border border-surface-200 dark:border-surface-700 p-4 md:p-6">
+  <div class="bg-rms-surface rounded-xl border border-rms-border p-4 md:p-6">
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
       <div>
-        <p class="font-semibold text-surface-800 dark:text-surface-200">Categorías de producto</p>
+        <p class="font-semibold text-rms-ink">Categorías de producto</p>
         <p class="text-xs text-muted mt-0.5">Agrupan los productos de la carta</p>
       </div>
       <app-rms-icon-button icon="pi pi-plus" ariaLabel="Nueva categoría de producto" tooltip="Nueva categoría" (click)="openProductCategoryDialog()" />
@@ -22,7 +22,7 @@
         } @else {
           <div class="flex flex-wrap gap-3">
             @for (c of activeCategories(); track c.id) {
-              <p-chip class="border border-surface-200 dark:border-surface-700">
+              <p-chip class="border border-rms-border">
                 <div class="flex items-center gap-2">
                   <i class="pi pi-tag" aria-hidden="true"></i>
                   <span class="mx-1">{{ c.name }}</span>
@@ -47,7 +47,7 @@
         } @else {
           <div class="flex flex-wrap gap-3">
             @for (c of inactiveCategories(); track c.id) {
-              <p-chip class="border border-surface-200 dark:border-surface-700 opacity-60">
+              <p-chip class="border border-rms-border opacity-60">
                 <div class="flex items-center gap-2">
                   <i class="pi pi-tag" aria-hidden="true"></i>
                   <span class="mx-1 line-through">{{ c.name }}</span>
@@ -67,10 +67,10 @@
   </div>
 
   <!-- ══ CATEGORÍAS DE INSUMO ══ -->
-  <div class="lg:col-span-2 bg-primary-contrast dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700 p-4 md:p-6">
+  <div class="lg:col-span-2 bg-rms-surface rounded-xl border border-rms-border p-4 md:p-6">
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
       <div>
-        <p class="font-semibold text-surface-800 dark:text-surface-200">Categorías de insumo</p>
+        <p class="font-semibold text-rms-ink">Categorías de insumo</p>
         <p class="text-xs text-muted mt-0.5">Agrupan los insumos de la cocina</p>
       </div>
       <app-rms-icon-button icon="pi pi-plus" ariaLabel="Nueva categoría de insumo" tooltip="Nueva categoría de insumo" (click)="openSupplyCategoryDialog()" />
@@ -81,7 +81,7 @@
     } @else {
       <div class="flex flex-wrap gap-3">
         @for (c of supplyCategories(); track c.id) {
-          <p-chip class="border border-surface-200 dark:border-surface-700">
+          <p-chip class="border border-rms-border">
             <div class="flex items-center gap-2">
               <i class="pi pi-tag" aria-hidden="true"></i>
               <span class="mx-1">{{ c.name }}</span>
@@ -102,13 +102,13 @@
   draggable="false" styleClass="w-[28rem]" appendTo="body">
 
   <form [formGroup]="productCategoryForm" class="flex flex-col gap-4 pt-2">
-    <p-iftalabel>
-      <input pInputText id="prod-cat-name" class="w-full" formControlName="name"
-        [invalid]="productCategoryForm.get('name')?.invalid && !!productCategoryForm.get('name')?.touched"
-        autocomplete="off" />
-      <label for="prod-cat-name">Nombre *</label>
-      <app-form-validation field="name" />
-    </p-iftalabel>
+    <app-rms-input
+      id="prod-cat-name"
+      label="Nombre"
+      formControlName="name"
+      autocomplete="off"
+      [required]="true" />
+    <app-form-validation field="name" />
 
     @if (productCategoryError()) {
       <small class="text-rms-danger">{{ productCategoryError() }}</small>
@@ -128,13 +128,13 @@
   draggable="false" styleClass="w-[28rem]" appendTo="body">
 
   <form [formGroup]="supplyCategoryForm" class="flex flex-col gap-4 pt-2">
-    <p-iftalabel>
-      <input pInputText id="sup-cat-name" class="w-full" formControlName="name"
-        [invalid]="supplyCategoryForm.get('name')?.invalid && !!supplyCategoryForm.get('name')?.touched"
-        autocomplete="off" />
-      <label for="sup-cat-name">Nombre *</label>
-      <app-form-validation field="name" />
-    </p-iftalabel>
+    <app-rms-input
+      id="sup-cat-name"
+      label="Nombre"
+      formControlName="name"
+      autocomplete="off"
+      [required]="true" />
+    <app-form-validation field="name" />
 
     @if (supplyCategoryError()) {
       <small class="text-rms-danger">{{ supplyCategoryError() }}</small>

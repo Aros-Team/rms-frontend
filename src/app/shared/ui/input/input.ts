@@ -55,6 +55,12 @@ export class RmsInput implements ControlValueAccessor {
   @Input() placeholder = '';
   @Input() hint = '';
   @Input() error = '';
+  /**
+   * Space-separated ids of messages rendered outside the primitive (for
+   * example a shared `app-form-validation` block). They are merged into
+   * `aria-describedby` without duplicating the hint/error handling.
+   */
+  @Input() describedByIds = '';
   @Input() required = false;
   @Input() optionalLabel = '';
   @Input() hideLabel = false;
@@ -83,6 +89,7 @@ export class RmsInput implements ControlValueAccessor {
     const ids: string[] = [];
     if (this.hint) ids.push(`${this.inputId}-hint`);
     if (this.error) ids.push(`${this.inputId}-error`);
+    if (this.describedByIds) ids.push(this.describedByIds);
     return ids.length > 0 ? ids.join(' ') : null;
   }
 

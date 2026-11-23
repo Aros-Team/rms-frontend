@@ -45,7 +45,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--rms-space-1);
-  border-radius: var(--rms-radius-md);
+  border-radius: var(--rms-radius-sm);
   padding: var(--rms-space-2) var(--rms-space-1);
   color: var(--rms-text-secondary);
   text-align: center;
@@ -57,6 +57,12 @@
 
 .nav-tile:hover {
   background: var(--rms-bg-subtle);
+}
+
+/* Active destination: the selected fill, not a second accent surface. */
+.nav-tile--active,
+.nav-tile--active:hover {
+  background: var(--rms-bg-selected);
 }
 
 .nav-tile__label {

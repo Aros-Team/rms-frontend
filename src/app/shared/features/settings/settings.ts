@@ -12,9 +12,9 @@ import { tryToAmount, type MoneyLike } from '@app/shared/models/dto/common/money
 import { Money } from '@app/shared/pipes/money/money';
 
 import { DialogModule } from 'primeng/dialog';
-import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { SkeletonModule } from 'primeng/skeleton';
+import { RmsButton } from '@app/shared/ui/button/button';
 
 type TabId = 'accesibilidad' | 'horarios' | 'cuenta' | 'cerrar-session';
 
@@ -31,11 +31,12 @@ interface SettingsTab {
     Schedules,
     RouterLink,
     DialogModule,
-    ButtonModule,
+    RmsButton,
     TableModule,
     SkeletonModule,
   ],
   templateUrl: './settings.html',
+  styleUrl: './settings.css',
 })
 export class Settings implements OnInit {
   private authService = inject(Auth);

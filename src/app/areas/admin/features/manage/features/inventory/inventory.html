@@ -22,7 +22,7 @@
   }
 
   <!-- Supplies table -->
-  <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 overflow-hidden">
+  <div class="flex-1 min-h-0 border border-rms-border rounded-xl bg-rms-surface overflow-hidden">
     <p-table
       [value]="pageSupplies() ?? []"
       [paginator]="true"
@@ -81,7 +81,7 @@
         <tr>
           <td class="font-medium text-sm">{{ supply.supplyName }}</td>
           <td class="hidden sm:table-cell text-sm">{{ supply.categoryName }}</td>
-          <td class="text-xs text-muted">{{ supply.quantity }} {{ supply.unitAbbreviation }}</td>
+          <td class="rms-caption">{{ supply.quantity }} {{ supply.unitAbbreviation }}</td>
           <td>
             <span class="flex items-center gap-1">
               <span class="text-sm" data-testid="supply-unit-cost">{{ supply.unitCost | money }}</span>
@@ -105,7 +105,7 @@
       <ng-template #loadingbody>
         <tr>
           <td colspan="6">
-            <div class="min-h-[400px] w-full">
+            <div class="min-h-96 w-full">
               <app-table-skeleton [rowCount]="6" [colCount]="6" />
             </div>
           </td>
@@ -114,7 +114,7 @@
 
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="6" class="text-center text-muted py-6">No hay insumos registrados.</td>
+          <td colspan="6" class="text-center text-rms-ink-secondary py-6">No hay insumos registrados.</td>
         </tr>
       </ng-template>
     </p-table>
@@ -142,7 +142,7 @@
         >{{ i + 1 }}</div>
         <span class="text-sm" [class.font-semibold]="variantStep() === step.key">{{ step.label }}</span>
         @if (i < 2) {
-          <i class="pi pi-chevron-right text-muted text-xs" aria-hidden="true"></i>
+          <i class="pi pi-chevron-right text-rms-ink-muted text-xs" aria-hidden="true"></i>
         }
       </div>
     }
@@ -176,16 +176,13 @@
           <label for="catId">Categoría</label>
         </p-iftalabel>
       } @else {
-        <p-iftalabel>
-          <input
-            pInputText
-            id="catName"
-            formControlName="categoryName"
-            class="w-full"
-            placeholder="Nombre de la nueva categoría"
-          />
-          <label for="catName">Nombre de categoría</label>
-        </p-iftalabel>
+        <app-rms-input
+          class="w-full"
+          label="Nombre de categoría"
+          id="catName"
+          formControlName="categoryName"
+          placeholder="Nombre de la nueva categoría"
+        />
       }
     </form>
     <div class="flex justify-between mt-6">
@@ -197,16 +194,13 @@
   <!-- Step 2: Supply base -->
   @if (variantStep() === 'supply') {
     <form [formGroup]="supplyForm" class="flex flex-col gap-4">
-      <p-iftalabel>
-        <input
-          pInputText
-          id="supName"
-          formControlName="supplyName"
-          class="w-full"
-          placeholder="Nombre del nuevo insumo"
-        />
-        <label for="supName">Nombre del insumo</label>
-      </p-iftalabel>
+      <app-rms-input
+        class="w-full"
+        label="Nombre del insumo"
+        id="supName"
+        formControlName="supplyName"
+        placeholder="Nombre del nuevo insumo"
+      />
     </form>
     <div class="flex justify-between mt-6">
       <app-rms-button variant="secondary" iconStart="pi pi-arrow-left" (click)="variantStep.set('category')">Atrás</app-rms-button>
@@ -256,7 +250,7 @@
         />
         <label for="unitCost">Costo unitario</label>
       </p-iftalabel>
-      <small class="text-muted -mt-3">Necesario para la herramienta de precio sugerido de combinaciones</small>
+      <small class="text-rms-ink-muted -mt-3">Necesario para la herramienta de precio sugerido de combinaciones</small>
     </form>
     <div class="flex justify-between mt-6">
       <app-rms-button variant="secondary" iconStart="pi pi-arrow-left" (click)="variantStep.set('supply')">Atrás</app-rms-button>
@@ -357,7 +351,7 @@
         @for (item of items.controls; track $index) {
           <div
             [formGroupName]="$index"
-            class="flex flex-col gap-2 p-3 rounded-lg border border-surface-200 dark:border-surface-700"
+            class="flex flex-col gap-2 p-3 rounded-lg border border-rms-border"
           >
             <!-- Row 1: insumo + delete -->
             <div class="flex gap-2 items-end">
@@ -465,30 +459,21 @@
   appendTo="body"
 >
   <form [formGroup]="newSupplierForm" class="flex flex-col gap-4 pt-2">
-    <p-iftalabel>
-      <input
-        pInputText
-        id="supplierName"
-        formControlName="name"
-        class="w-full"
-        [class.ng-invalid]="isInvalid(newSupplierForm, 'name')"
-        [class.ng-dirty]="isInvalid(newSupplierForm, 'name')"
-      />
-      <label for="supplierName">Nombre *</label>
-    </p-iftalabel>
-    @if (isInvalid(newSupplierForm, 'name')) {
-      <small class="text-rms-danger -mt-3">El nombre es requerido</small>
-    }
+    <app-rms-input
+      class="w-full"
+      label="Nombre"
+      id="supplierName"
+      formControlName="name"
+      [required]="true"
+      [error]="isInvalid(newSupplierForm, 'name') ? 'El nombre es requerido' : ''"
+    />
 
-    <p-iftalabel>
-      <input
-        pInputText
-        id="supplierContact"
-        formControlName="contact"
-        class="w-full"
-      />
-      <label for="supplierContact">Contacto</label>
-    </p-iftalabel>
+    <app-rms-input
+      class="w-full"
+      label="Contacto"
+      id="supplierContact"
+      formControlName="contact"
+    />
   </form>
 
   <div class="flex justify-end gap-2 mt-6">
@@ -506,7 +491,7 @@
   styleClass="w-[90vw] max-w-[680px]"
   appendTo="body"
 >
-  <p class="text-muted text-sm mb-4">
+  <p class="text-rms-ink-secondary text-sm mb-4">
     Selecciona los insumos y la cantidad a mover desde <strong>Bodega</strong> a <strong>Cocina</strong>.
     La operación es atómica: si algún ítem falla, ninguno se aplica.
   </p>
@@ -516,9 +501,8 @@
     <p-iconfield iconPosition="left" class="flex-1">
       <p-inputicon><i class="pi pi-search" aria-hidden="true"></i></p-inputicon>
       <input
-        pInputText
+        class="rms-input rms-input--md w-full pl-10"
         type="text"
-        class="w-full"
         placeholder="Buscar por nombre..."
         [ngModel]="transferSearch()"
         (ngModelChange)="transferSearch.set($event)"
@@ -570,7 +554,7 @@
           />
           <label [for]="'chk-' + supply.id" class="flex-1 cursor-pointer min-w-0">
             <span class="font-medium text-sm block truncate">{{ supply.supplyName }}</span>
-            <span class="text-xs text-muted">
+            <span class="rms-caption">
               {{ supply.categoryName }} · {{ supply.quantity }} {{ supply.unitAbbreviation }} · Bodega: <strong>{{ supply.stockBodega }}</strong>
             </span>
           </label>
@@ -586,7 +570,7 @@
               />
               <input
                 type="number"
-                class="w-20 text-center border border-surface-300 dark:border-surface-600 rounded-md px-2 py-1 text-sm bg-primary-contrast dark:bg-surface-900"
+                class="rms-input rms-input--sm w-20 text-center px-2"
                 [ngModel]="getTransferQty(supply.id)"
                 (ngModelChange)="setTransferQty(supply.id, +$event)"
                 [min]="0.001"
@@ -610,7 +594,7 @@
   }
 
   <div class="flex justify-between items-center mt-6">
-    <span class="text-sm text-muted">
+    <span class="text-sm text-rms-ink-secondary">
       {{ transferSelected().size }} insumo(s) seleccionado(s)
     </span>
     <div class="flex gap-2">

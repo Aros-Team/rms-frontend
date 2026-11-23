@@ -6,11 +6,13 @@
  * Approach: Mount component via TestBed, type input, advance timers, assert emitted values.
  */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
-import { ɵresolveComponentResources as resolveComponentResources, Component } from '@angular/core';
+import { Component } from '@angular/core';
 
+import { resolveUiResources } from '@shared/ui/testing/ui-test-resources';
 import { SearchInput } from './search-input';
 
 import searchInputHtml from './search-input.html?raw';
+import iconButtonHtml from '@shared/ui/icon-button/icon-button.html?raw';
 
 @Component({
   template: `
@@ -39,11 +41,9 @@ class TestHost {
 
 describe('SearchInput', () => {
   beforeAll(async () => {
-    await resolveComponentResources((url: string) => {
-      if (url.endsWith('search-input.html')) {
-        return Promise.resolve(searchInputHtml as unknown as string);
-      }
-      return Promise.resolve('');
+    await resolveUiResources({
+      'search-input.html': searchInputHtml as unknown as string,
+      'icon-button.html': iconButtonHtml as unknown as string,
     });
   });
 
@@ -125,7 +125,7 @@ describe('SearchInput', () => {
     vi.advanceTimersByTime(300);
     expect(host.searchChanges).toEqual(['foo']);
 
-    const clearButton = (fixture.nativeElement as HTMLElement).querySelector('p-button button');
+    const clearButton = (fixture.nativeElement as HTMLElement).querySelector('app-rms-icon-button button');
     if (!clearButton) throw new Error('clear button not rendered');
     clearButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     fixture.detectChanges();
@@ -138,11 +138,11 @@ describe('SearchInput', () => {
     const fixture = await setupHost({ debounceMs: 300 });
     const root = fixture.nativeElement as HTMLElement;
 
-    expect(root.querySelector('p-button button')).toBeNull();
+    expect(root.querySelector('app-rms-icon-button button')).toBeNull();
 
     typeValue(fixture, 'foo');
 
-    expect(root.querySelector('p-button button')?.tagName.toLowerCase()).toBe('button');
+    expect(root.querySelector('app-rms-icon-button button')?.tagName.toLowerCase()).toBe('button');
   });
 
   it('destination signal updates on input', async () => {

@@ -4,14 +4,13 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractContro
 import { NgClass } from '@angular/common';
 import { DialogModule } from 'primeng/dialog';
 import { PasswordModule } from 'primeng/password';
-import { InputTextModule } from 'primeng/inputtext';
-import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { MessageService } from 'primeng/api';
 import { Password } from '@app/core/services/auth/password';
 import { Auth } from '@app/core/services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
 import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
+import { RmsButton } from '@shared/ui/button/button';
 import {
   hasLowerCase,
   hasMinPasswordLength,
@@ -34,9 +33,8 @@ const passwordMatchValidator: ValidatorFn = (control: AbstractControl): Validati
     NgClass,
     DialogModule,
     PasswordModule,
-    InputTextModule,
-    ButtonModule,
     MessageModule,
+    RmsButton,
   ],
 })
 export class ChangePassword {

@@ -158,7 +158,12 @@
       </div>
     </app-rms-chart-frame>
 
-    <section class="table-grid" aria-label="Detalle del periodo">
+    <!-- Bottom detail tables: below the KPI row and the two charts, so the
+         browser can skip them while they are off-screen. -->
+    <section
+      class="table-grid rms-defer-view"
+      aria-label="Detalle del periodo"
+      style="--rms-defer-size: 34rem">
       <div class="panel">
         <h2 class="panel__title">Detalle por periodo</h2>
         <div class="panel__scroll" role="region" tabindex="0" aria-label="Detalle por periodo, desplazable">

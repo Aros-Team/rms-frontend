@@ -4,9 +4,9 @@
   "description": "Sistema de gestión de restaurante",
   "start_url": "/",
   "display": "standalone",
-  "orientation": "portrait-primary",
-  "background_color": "#1a1a1a",
-  "theme_color": "#F9BB0B",
+  "orientation": "any",
+  "background_color": "#f8fafc",
+  "theme_color": "#FDEFC7",
   "categories": [
     "food",
     "business",

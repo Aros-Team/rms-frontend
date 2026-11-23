@@ -6,11 +6,7 @@
  * Approach: Mount component via TestBed with test host, fill fields, assert validation state.
  */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
-import {
-  ɵresolveComponentResources as resolveComponentResources,
-  signal,
-  type WritableSignal,
-} from '@angular/core';
+import { signal, type WritableSignal } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -19,8 +15,14 @@ import type { WizardFormData, WizardGroupDraft } from '@app/core/services/combos
 import { ComboReferenceCache } from '@app/core/services/combos/combo-reference-cache';
 import { ComboWizardState } from '@app/core/services/combos/combo-wizard-state';
 import type { CategorySimpleResponse } from '@app/shared/models/dto/category/category-simple-response';
+import { resolveUiResources } from '@shared/ui/testing/ui-test-resources';
 import { GeneralStep } from './general-step';
 import generalStepHtml from './general-step.html?raw';
+import buttonHtml from '@shared/ui/button/button.html?raw';
+import fieldHtml from '@shared/ui/field/field.html?raw';
+import iconButtonHtml from '@shared/ui/icon-button/icon-button.html?raw';
+import inputHtml from '@shared/ui/input/input.html?raw';
+import textareaHtml from '@shared/ui/textarea/textarea.html?raw';
 
 function emptyFormData(): WizardFormData {
   return {
@@ -105,11 +107,13 @@ describe('GeneralStep', () => {
   let referenceMock: ReferenceMock;
 
   beforeAll(async () => {
-    await resolveComponentResources((url: string) => {
-      if (url.endsWith('general-step.html')) {
-        return Promise.resolve(generalStepHtml as unknown as string);
-      }
-      return Promise.resolve('');
+    await resolveUiResources({
+      'general-step.html': generalStepHtml as unknown as string,
+      'button.html': buttonHtml as unknown as string,
+      'field.html': fieldHtml as unknown as string,
+      'icon-button.html': iconButtonHtml as unknown as string,
+      'input.html': inputHtml as unknown as string,
+      'textarea.html': textareaHtml as unknown as string,
     });
   });
 
@@ -141,7 +145,9 @@ describe('GeneralStep', () => {
       createComponent({ name: 'Combo Test' });
       await Promise.resolve();
       fixture.detectChanges();
-      const input = getNative().querySelector<HTMLInputElement>('[data-testid="name-input"]');
+      const input = getNative().querySelector<HTMLInputElement>(
+        'app-rms-input[data-testid="name-input"] input',
+      );
       expect(input?.id).toBe('name');
       expect(input?.value).toBe('Combo Test');
       expect(getNative().querySelector('label[for="name"]')?.textContent.trim()).toBe(
@@ -154,7 +160,7 @@ describe('GeneralStep', () => {
       await Promise.resolve();
       fixture.detectChanges();
       const textarea = getNative().querySelector<HTMLTextAreaElement>(
-        '[data-testid="description-input"]',
+        'app-rms-textarea[data-testid="description-input"] textarea',
       );
       expect(textarea?.id).toBe('description');
       expect(textarea?.rows).toBe(3);
@@ -197,7 +203,9 @@ describe('GeneralStep', () => {
   describe('name input updates wizard state', () => {
     it('calls updateData on name change', () => {
       createComponent({ name: 'Original' });
-      const input = getNative().querySelector<HTMLInputElement>('[data-testid="name-input"]');
+      const input = getNative().querySelector<HTMLInputElement>(
+        'app-rms-input[data-testid="name-input"] input',
+      );
       if (!(input instanceof HTMLInputElement)) {
         throw new Error('name input not found');
       }

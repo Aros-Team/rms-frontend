@@ -6,16 +6,13 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TableModule } from 'primeng/table';
-import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
-import { InputTextModule } from 'primeng/inputtext';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { SelectModule } from 'primeng/select';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { TooltipModule } from 'primeng/tooltip';
-import { TagModule } from 'primeng/tag';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DatePickerModule } from 'primeng/datepicker';
@@ -37,6 +34,7 @@ import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 import { RmsBadge } from '@app/shared/ui/badge/badge';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
+import { RmsInput } from '@app/shared/ui/input/input';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
 import { WorkerCard } from './worker-card';
@@ -66,9 +64,7 @@ interface WorkerFormValue {
     RouterModule,
     FormsModule,
     TableModule,
-    ButtonModule,
     DialogModule,
-    InputTextModule,
     IftaLabelModule,
     ReactiveFormsModule,
     InputIconModule,
@@ -76,7 +72,6 @@ interface WorkerFormValue {
     SelectModule,
     InputNumberModule,
     TooltipModule,
-    TagModule,
     SkeletonModule,
     ConfirmDialogModule,
     DatePickerModule,
@@ -86,6 +81,7 @@ interface WorkerFormValue {
     RmsBadge,
     RmsButton,
     RmsEmptyState,
+    RmsInput,
     RmsPageHeader,
     RmsStatusPill,
     WorkerCard,
@@ -202,7 +198,7 @@ export class Workers implements OnInit {
 
   /** Focus first input in modal dialog after it opens */
   focusFirstInput(): void {
-    setTimeout(() => this.firstInputRef?.nativeElement.focus());
+    setTimeout(() => this.firstInputRef?.nativeElement.querySelector('input')?.focus());
   }
 
   createWorker(): void {
@@ -397,7 +393,7 @@ export class Workers implements OnInit {
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Eliminar',
       rejectLabel: 'Cancelar',
-      acceptButtonStyleClass: 'p-button-danger',
+      acceptButtonProps: { severity: 'danger' },
       accept: () => {
         if (!worker.id) {
           this.logger.error('Cannot delete worker without ID');

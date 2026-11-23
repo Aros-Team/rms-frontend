@@ -17,7 +17,6 @@ import {
   type PrimeCostPeriod,
 } from '@app/shared/models/dto/analytics/prime-cost-report';
 import { Money as MoneyPipe } from '@app/shared/pipes/money/money';
-import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsChartFrame } from '@app/shared/ui/chart-frame/chart-frame';
 import { rmsChartPalette } from '@app/shared/ui/chart/chart-theme';
 import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
@@ -57,7 +56,6 @@ interface BreakdownRow {
   imports: [
     ChartModule,
     MoneyPipe,
-    RmsButton,
     RmsChartFrame,
     RmsEmptyState,
     RmsPageHeader,

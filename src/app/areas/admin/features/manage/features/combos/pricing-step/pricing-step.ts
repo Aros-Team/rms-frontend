@@ -8,12 +8,12 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DividerModule } from 'primeng/divider';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { SelectButtonModule } from 'primeng/selectbutton';
 
+import { RmsButton } from '@app/shared/ui/button/button';
 import { ComboReferenceCache } from '@app/core/services/combos/combo-reference-cache';
 import {
   ComboWizardState,
@@ -44,7 +44,7 @@ interface GroupCostView {
   imports: [
     CommonModule,
     FormsModule,
-    ButtonModule,
+    RmsButton,
     CardModule,
     DividerModule,
     InputNumberModule,

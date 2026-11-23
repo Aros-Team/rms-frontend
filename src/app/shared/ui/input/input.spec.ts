@@ -30,6 +30,7 @@ import fieldHtml from '../field/field.html?raw';
         label="Nombre"
         hint="Como aparece en la carta"
         [error]="error"
+        [describedByIds]="describedByIds"
       />
     </form>
   `,
@@ -37,6 +38,7 @@ import fieldHtml from '../field/field.html?raw';
 class InputHost {
   readonly form = new FormGroup({ name: new FormControl('Producto inicial') });
   error = '';
+  describedByIds = '';
 }
 
 describe('RmsInput', () => {
@@ -88,6 +90,19 @@ describe('RmsInput', () => {
     expect(input.getAttribute('aria-invalid')).toBe('true');
     expect(input.getAttribute('aria-describedby')).toBe(
       `${input.id}-hint ${input.id}-error`,
+    );
+  });
+
+  it('merges externally rendered message ids into describedby', () => {
+    fixture.destroy();
+    fixture = TestBed.createComponent(InputHost);
+    host = fixture.componentInstance;
+    host.describedByIds = 'error-name error-name-backend';
+    fixture.detectChanges();
+    input = (fixture.nativeElement as HTMLElement).querySelector('input.rms-input');
+
+    expect(input.getAttribute('aria-describedby')).toBe(
+      `${input.id}-hint error-name error-name-backend`,
     );
   });
 

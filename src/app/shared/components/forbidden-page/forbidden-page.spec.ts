@@ -43,7 +43,9 @@ describe('ForbiddenPage', () => {
       if (url.endsWith('forbidden-page.html')) {
         return Promise.resolve(forbiddenHtml as string);
       }
-      return Promise.reject(new Error(`Unexpected template: ${url}`));
+      // Other suites may register a different component set in the same worker;
+      // unrelated templates resolve to empty so the global resolver stays reusable.
+      return Promise.resolve('');
     });
   });
 

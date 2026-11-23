@@ -12,22 +12,17 @@ import { FormValidation } from '@app/shared/components/form/form-validation';
 import { ChipModule } from 'primeng/chip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
-import { IftaLabelModule } from 'primeng/iftalabel';
-import { InputTextModule } from 'primeng/inputtext';
-import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
+import { RmsInput } from '@app/shared/ui/input/input';
 
 @Component({
   selector: 'app-categories',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
-    IftaLabelModule,
-    InputTextModule,
-    TextareaModule,
     FormValidation,
     ChipModule,
     DialogModule,
@@ -36,6 +31,7 @@ import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
     LazyLoad,
     RmsButton,
     RmsIconButton,
+    RmsInput,
   ],
   templateUrl: './categories.html',
   providers: [MessageService],

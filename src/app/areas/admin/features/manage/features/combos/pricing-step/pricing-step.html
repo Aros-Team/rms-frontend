@@ -1,7 +1,7 @@
 <div class="flex flex-col gap-5 max-w-lg">
   <!-- Section 1: Cost Breakdown -->
   <div class="flex flex-col gap-3">
-    <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-0">
+    <h2 class="rms-h2">
       Desglose de costos
     </h2>
 
@@ -25,10 +25,10 @@
               class="flex items-center justify-between text-sm"
               data-testid="cost-product-row"
             >
-              <span class="text-surface-700 dark:text-surface-300">
+              <span class="text-rms-ink-secondary">
                 {{ product.name }}
               </span>
-              <span class="font-medium text-surface-800 dark:text-surface-200">
+              <span class="font-medium text-rms-ink">
                 {{ product.basePrice | money }}
               </span>
             </div>
@@ -48,7 +48,7 @@
               <span class="text-muted">
                 Subtotal
               </span>
-              <span class="text-surface-800 dark:text-surface-200">
+              <span class="text-rms-ink">
                 {{ group.subtotal | money }}
               </span>
             </div>
@@ -59,10 +59,10 @@
 
     @if (groupCosts().length > 0) {
       <div
-        class="flex items-center justify-between mt-1 pt-3 border-t border-surface-200 dark:border-surface-700"
+        class="flex items-center justify-between mt-1 pt-3 border-t border-rms-border"
         data-testid="total-cost"
       >
-        <span class="text-base font-bold text-surface-900 dark:text-surface-0">
+        <span class="text-base font-bold text-rms-ink">
           Costo total: {{ totalCost() | money }}
         </span>
         <span class="text-sm text-muted">
@@ -75,18 +75,18 @@
   <!-- Section 2: Suggested Retail Price (10% off total cost) -->
   @if (groupCosts().length > 0) {
     <div class="flex flex-col gap-3" data-testid="suggested-price-section">
-      <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-0">
+      <h2 class="rms-h2">
         Precio de venta sugerido
       </h2>
 
       <div
-        class="flex flex-col gap-2 border border-surface-200 dark:border-surface-700 rounded-lg p-3 bg-surface-50 dark:bg-surface-800"
+        class="flex flex-col gap-2 border border-rms-border rounded-xl p-3 bg-rms-subtle"
       >
         <div class="flex items-center justify-between text-sm">
           <span class="text-muted">
             Costo total
           </span>
-          <span class="font-medium text-surface-800 dark:text-surface-200">
+          <span class="font-medium text-rms-ink">
             {{ totalCost() | money }}
           </span>
         </div>
@@ -103,7 +103,7 @@
         <p-divider />
 
         <div class="flex items-center justify-between">
-          <span class="text-sm font-semibold text-surface-700 dark:text-surface-300">
+          <span class="text-sm font-semibold text-rms-ink-secondary">
             Precio de venta sugerido
           </span>
           <span
@@ -114,27 +114,24 @@
           </span>
         </div>
 
-        <p-button
-          label="Usar como precio final"
-          icon="pi pi-check"
-          severity="success"
-          (onClick)="applySuggestedPrice()"
-          data-testid="apply-suggested-price-btn"
-        />
+        <app-rms-button
+          iconStart="pi pi-check"
+          (click)="applySuggestedPrice()"
+          data-testid="apply-suggested-price-btn">Usar como precio final</app-rms-button>
       </div>
     </div>
   }
 
   <!-- Section 3: Final Price -->
   <div class="flex flex-col gap-3">
-    <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-0">
+    <h2 class="rms-h2">
       Precio final
     </h2>
 
     <div class="flex flex-col gap-1">
       <label
         for="finalPrice"
-        class="text-sm font-medium text-surface-700 dark:text-surface-300"
+        class="text-sm font-medium text-rms-ink-secondary"
       >
         Precio final
       </label>
@@ -154,7 +151,7 @@
   <!-- Active toggle -->
   <div class="flex flex-col gap-1">
     <span
-      class="text-sm font-medium text-surface-700 dark:text-surface-300"
+      class="text-sm font-medium text-rms-ink-secondary"
       id="active-label"
     >
       Activo

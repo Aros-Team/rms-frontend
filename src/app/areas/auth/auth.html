@@ -1,6 +1,6 @@
 <a
   href="#main"
-  class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-lg focus:border focus:border-surface-300 focus:bg-primary-contrast focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-surface-900"
+  class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-10 focus:rounded-lg focus:border focus:border-rms-border focus:bg-rms-surface focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-rms-ink"
 >
   Saltar al contenido
 </a>
@@ -8,9 +8,9 @@
 <main
   id="main"
   tabindex="-1"
-  class="flex min-h-dvh w-full flex-col items-center justify-center bg-surface-50 px-4 py-10 dark:bg-surface-900"
+  class="flex min-h-dvh w-full flex-col items-center justify-center bg-rms-page px-4 py-10"
 >
-  <div class="flex w-full max-w-[400px] flex-col gap-8">
+  <div class="flex w-full max-w-[400px] flex-col gap-6">
     <header class="flex items-center gap-3">
       <img
         src="/logo.svg"
@@ -21,15 +21,17 @@
         class="h-12 w-12 flex-shrink-0"
       />
       <div class="min-w-0">
-        <span class="block text-2xl font-black text-surface-900 dark:text-surface-100">RMS</span>
-        <span class="block text-sm text-muted">Sistema de Gestión para restaurantes.</span>
+        <span class="block text-2xl font-black text-rms-ink">RMS</span>
+        <span class="block text-sm text-rms-ink-muted">Sistema de Gestión para restaurantes.</span>
       </div>
     </header>
 
-    <router-outlet />
+    <div class="rounded-xl border border-rms-border bg-rms-surface p-6 sm:p-8">
+      <router-outlet />
+    </div>
 
-    <footer class="flex flex-col items-center gap-2 border-t border-surface-200 pt-4 dark:border-surface-700">
-      <span class="text-xs text-muted">Desarrollado por el equipo AROS</span>
+    <footer class="flex flex-col items-center gap-2 border-t border-rms-border pt-4">
+      <span class="text-xs text-rms-ink-muted">Desarrollado por el equipo AROS</span>
     </footer>
   </div>
 </main>

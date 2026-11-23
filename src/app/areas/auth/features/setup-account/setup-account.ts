@@ -3,9 +3,6 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router, ActivatedRoute } from '@angular/router';
 import { PasswordModule } from 'primeng/password';
-import { InputTextModule } from 'primeng/inputtext';
-import { ButtonModule } from 'primeng/button';
-import { MessageModule } from 'primeng/message';
 import { SetupAccount as SetupAccountService } from '@services/auth/setup-account';
 import { SetupAccountResponse } from '@models/dto/auth/setup-account-response';
 import { SetupPasswordRequest } from '@models/dto/auth/setup-password-request';
@@ -13,6 +10,8 @@ import { MessageService } from 'primeng/api';
 import { Logging } from '@app/core/services/logging/logging';
 import { NgClass } from '@angular/common';
 import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
+import { RmsButton } from '@shared/ui/button/button';
+import { RmsInput } from '@shared/ui/input/input';
 import {
   hasLowerCase,
   hasMinPasswordLength,
@@ -28,10 +27,9 @@ import {
   imports: [
     ReactiveFormsModule,
     PasswordModule,
-    InputTextModule,
-    ButtonModule,
-    MessageModule,
     NgClass,
+    RmsButton,
+    RmsInput,
   ],
   templateUrl: './setup-account.html',
   styleUrl: './setup-account.css',
@@ -209,6 +207,52 @@ export class SetupAccount implements OnInit {
   isAdminStep1Invalid(field: string): boolean {
     const control = this.adminStep1Form.get(field);
     return control !== null && control.invalid && control.touched;
+  }
+
+  get adminNameError(): string {
+    if (!this.isAdminStep1Invalid('name')) {
+      return '';
+    }
+    const errors = this.adminStep1Form.get('name')?.errors;
+    if (errors?.['required']) {
+      return 'El nombre es requerido';
+    }
+    if (errors?.['minlength']) {
+      return 'El nombre debe tener al menos 2 caracteres';
+    }
+    return 'Revisa este campo';
+  }
+
+  get adminDocumentError(): string {
+    if (!this.isAdminStep1Invalid('document')) {
+      return '';
+    }
+    const errors = this.adminStep1Form.get('document')?.errors;
+    if (errors?.['required']) {
+      return 'El documento es requerido';
+    }
+    if (errors?.['minlength']) {
+      return 'El documento debe tener al menos 5 caracteres';
+    }
+    return 'Revisa este campo';
+  }
+
+  get passwordError(): string {
+    if (!this.isInvalid('newPassword')) {
+      return '';
+    }
+    return this.passwordForm.get('newPassword')?.errors?.['required']
+      ? 'La contraseña es requerida'
+      : 'Revisa este campo';
+  }
+
+  get confirmPasswordError(): string {
+    if (!this.isInvalid('confirmPassword')) {
+      return '';
+    }
+    return this.passwordForm.get('confirmPassword')?.errors?.['required']
+      ? 'La confirmación es requerida'
+      : 'Revisa este campo';
   }
 
   retryTokenValidation(): void {

@@ -1,11 +1,11 @@
 <a
   href="#main"
-  class="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-[200] focus:rounded-lg focus:border focus:border-surface-300 focus:bg-primary-contrast focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-surface-900"
+  class="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-[var(--rms-z-toast)] focus:rounded-lg focus:border focus:border-rms-border-strong focus:bg-rms-surface focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-rms-ink"
 >
   Saltar al contenido
 </a>
 
-<div class="flex min-h-dvh flex-col bg-surface-50 pt-16 dark:bg-surface-900">
+<div class="flex min-h-dvh flex-col bg-rms-page pt-16">
   <app-header
     [isMobile]="true"
     [role]="role()"
@@ -31,7 +31,7 @@
 
   @if (navItems().length > 0) {
     <nav
-      class="fixed inset-x-0 bottom-0 z-40 border-t border-surface-200 bg-surface-50 pb-[env(safe-area-inset-bottom)] dark:border-surface-700 dark:bg-surface-900 lg:order-1 lg:static lg:inset-auto lg:z-auto lg:border-t-0 lg:border-b lg:bg-transparent lg:pb-0"
+      class="fixed inset-x-0 bottom-0 z-[var(--rms-z-sticky)] border-t border-rms-border bg-rms-surface pb-[env(safe-area-inset-bottom)] lg:order-1 lg:static lg:inset-auto lg:z-auto lg:border-t-0 lg:border-b lg:bg-transparent lg:pb-0"
       aria-label="Navegación de servicio"
     >
       <ul class="mx-auto flex w-full max-w-3xl items-stretch lg:max-w-7xl lg:items-center lg:gap-1 lg:px-3 lg:pt-3 lg:pb-1">
@@ -41,8 +41,8 @@
               [routerLink]="item.routerLink"
               [queryParams]="item.queryParams ?? {}"
               [attr.aria-current]="isActive(item) ? 'page' : null"
-              class="flex min-h-16 w-full flex-col items-center justify-center gap-1 px-1 py-2 text-xs font-medium text-muted transition-colors hover:bg-surface-100 dark:hover:bg-surface-800 lg:min-h-10 lg:w-auto lg:flex-row lg:gap-2 lg:rounded-lg lg:px-3 lg:py-2"
-              [ngClass]="isActive(item) ? '!text-accent font-semibold lg:bg-surface-100' : ''"
+              class="flex min-h-16 w-full flex-col items-center justify-center gap-1 px-1 py-2 text-xs font-medium text-muted transition-colors hover:bg-rms-subtle lg:min-h-10 lg:w-auto lg:flex-row lg:gap-2 lg:rounded-lg lg:px-3 lg:py-2"
+              [ngClass]="isActive(item) ? '!text-accent font-semibold lg:bg-rms-subtle' : ''"
             >
               <i [class]="item.icon + ' text-lg'" aria-hidden="true"></i>
               <span class="truncate">{{ item.label }}</span>

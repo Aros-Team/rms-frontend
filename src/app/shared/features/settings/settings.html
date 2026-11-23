@@ -1,5 +1,5 @@
 <div class="p-4 md:p-6 max-w-3xl mx-auto">
-  <h1 class="text-xl md:text-2xl font-bold text-surface-900 dark:text-surface-100 mb-4 md:mb-6">
+  <h1 class="rms-h1 mb-4 md:mb-6">
     {{ isAdmin() ? 'Mi cuenta' : 'Configuración' }}
   </h1>
 
@@ -16,9 +16,9 @@
         [attr.tabindex]="activeTab() === tab.id ? 0 : -1"
         (click)="selectTab(tab.id)"
         (keydown)="onTabKeydown($event, i)"
-        class="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 nav-item flex-shrink-0"
-        [class.bg-surface-200]="activeTab() === tab.id"
-        [class.dark:!bg-surface-900]="activeTab() === tab.id"
+        class="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-rms-border bg-rms-subtle text-rms-ink-secondary hover:bg-rms-surface transition-colors duration-200 nav-item flex-shrink-0"
+        [class.bg-rms-surface]="activeTab() === tab.id"
+        [class.text-rms-ink]="activeTab() === tab.id"
       >
         <i [class]="tab.icon" aria-hidden="true"></i>
         <span class="nav-label">{{ tab.label }}</span>
@@ -31,115 +31,95 @@
     <!-- Accesibilidad panel -->
     @case ('accesibilidad') {
       <section id="panel-accesibilidad" role="tabpanel" aria-labelledby="tab-accesibilidad" tabindex="0" class="py-4">
-        <div class="flex flex-col gap-6 bg-primary-contrast border border-surface-200 dark:border-surface-700 rounded-xl">
+        <div class="flex flex-col gap-6 bg-rms-surface border border-rms-border rounded-xl">
           <!-- Font size -->
           <div role="group" aria-labelledby="font-size-label" class="p-4">
-            <span id="font-size-label" class="block font-semibold text-surface-700 dark:text-surface-200 mb-3">Tamaño de letra</span>
+            <span id="font-size-label" class="block rms-label mb-3">Tamaño de letra</span>
             <div class="flex gap-2" role="radiogroup" aria-label="Tamaño de letra">
               <button
                 type="button"
                 role="radio"
-                pButton
-                [class]="currentFontSize() === 'small' ? 'p-button-sm' : 'p-button-outlined p-button-sm'"
-                label="A"
+                [class]="currentFontSize() === 'small' ? 'settings-toggle settings-toggle--active text-xs' : 'settings-toggle text-xs'"
                 aria-label="Pequeño"
-                class="text-xs"
                 [attr.aria-checked]="currentFontSize() === 'small'"
                 (click)="setFontSize('small')"
-              ></button>
+              >A</button>
               <button
                 type="button"
                 role="radio"
-                pButton
-                [class]="currentFontSize() === 'normal' ? 'p-button-sm' : 'p-button-outlined p-button-sm'"
-                label="A"
+                [class]="currentFontSize() === 'normal' ? 'settings-toggle settings-toggle--active text-sm' : 'settings-toggle text-sm'"
                 aria-label="Normal"
-                class="text-sm"
                 [attr.aria-checked]="currentFontSize() === 'normal'"
                 (click)="setFontSize('normal')"
-              ></button>
+              >A</button>
               <button
                 type="button"
                 role="radio"
-                pButton
-                [class]="currentFontSize() === 'large' ? 'p-button-sm' : 'p-button-outlined p-button-sm'"
-                label="A"
+                [class]="currentFontSize() === 'large' ? 'settings-toggle settings-toggle--active text-base' : 'settings-toggle text-base'"
                 aria-label="Grande"
-                class="text-base"
                 [attr.aria-checked]="currentFontSize() === 'large'"
                 (click)="setFontSize('large')"
-              ></button>
+              >A</button>
               <button
                 type="button"
                 role="radio"
-                pButton
-                [class]="currentFontSize() === 'extra-large' ? 'p-button-sm' : 'p-button-outlined p-button-sm'"
-                label="A"
+                [class]="currentFontSize() === 'extra-large' ? 'settings-toggle settings-toggle--active text-lg' : 'settings-toggle text-lg'"
                 aria-label="Extra grande"
-                class="text-lg"
                 [attr.aria-checked]="currentFontSize() === 'extra-large'"
                 (click)="setFontSize('extra-large')"
-              ></button>
+              >A</button>
             </div>
           </div>
 
           <!-- Contrast -->
           <div role="group" aria-labelledby="contrast-label" class="p-4">
-            <span id="contrast-label" class="block font-semibold text-surface-700 dark:text-surface-200 mb-3">Nivel de contraste</span>
+            <span id="contrast-label" class="block rms-label mb-3">Nivel de contraste</span>
             <div class="flex gap-2" role="radiogroup" aria-label="Modo de contraste">
               <button
                 type="button"
                 role="radio"
-                pButton
-                [class]="currentContrast() === 'normal' ? '' : 'p-button-outlined'"
-                label="Normal"
+                [class]="currentContrast() === 'normal' ? 'settings-toggle settings-toggle--active' : 'settings-toggle'"
                 aria-label="Contraste normal"
-                class="p-button-sm"
                 [attr.aria-checked]="currentContrast() === 'normal'"
                 (click)="setContrast('normal')"
-              ></button>
+              >Normal</button>
               <button
                 type="button"
                 role="radio"
-                pButton
-                [class]="currentContrast() === 'high' ? '' : 'p-button-outlined'"
-                label="Alto"
+                [class]="currentContrast() === 'high' ? 'settings-toggle settings-toggle--active' : 'settings-toggle'"
                 aria-label="Alto contraste"
-                class="p-button-sm"
                 [attr.aria-checked]="currentContrast() === 'high'"
                 (click)="setContrast('high')"
-              ></button>
+              >Alto</button>
             </div>
           </div>
 
           <!-- Theme -->
           <div role="group" aria-labelledby="theme-label" class="p-4">
-            <span id="theme-label" class="block font-semibold text-surface-700 dark:text-surface-200 mb-3">Tema de color</span>
+            <span id="theme-label" class="block rms-label mb-3">Tema de color</span>
             <div class="flex gap-2" role="radiogroup" aria-label="Tema de la aplicación">
               <button
                 type="button"
                 role="radio"
-                pButton
-                icon="pi pi-sun"
-                [class]="currentTheme() === 'light' ? '' : 'p-button-outlined'"
-                label="Claro"
+                [class]="currentTheme() === 'light' ? 'settings-toggle settings-toggle--active' : 'settings-toggle'"
                 aria-label="Tema claro"
-                class="p-button-sm"
                 [attr.aria-checked]="currentTheme() === 'light'"
                 (click)="setTheme('light')"
-              ></button>
+              >
+                <i class="pi pi-sun" aria-hidden="true"></i>
+                Claro
+              </button>
               <button
                 type="button"
                 role="radio"
-                pButton
-                icon="pi pi-moon"
-                [class]="currentTheme() === 'dark' ? '' : 'p-button-outlined'"
-                label="Oscuro"
+                [class]="currentTheme() === 'dark' ? 'settings-toggle settings-toggle--active' : 'settings-toggle'"
                 aria-label="Tema oscuro"
-                class="p-button-sm"
                 [attr.aria-checked]="currentTheme() === 'dark'"
                 (click)="setTheme('dark')"
-              ></button>
+              >
+                <i class="pi pi-moon" aria-hidden="true"></i>
+                Oscuro
+              </button>
             </div>
           </div>
         </div>
@@ -157,20 +137,20 @@
     @case ('cuenta') {
       <section id="panel-cuenta" role="tabpanel" aria-labelledby="tab-cuenta" tabindex="0" class="py-4">
         <!-- User info -->
-        <div class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4 mb-4">
-          <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-3">Información del usuario</h2>
+        <div class="border border-rms-border rounded-xl bg-rms-surface p-4 mb-4">
+          <h2 class="rms-h3 mb-3">Información del usuario</h2>
           <div class="space-y-3">
-            <div class="flex justify-between py-2 border-b border-surface-200 dark:border-surface-700">
+            <div class="flex justify-between py-2 border-b border-rms-border">
               <span class="text-muted">Nombre:</span>
-              <span class="font-medium text-surface-900 dark:text-surface-100">{{ userName() }}</span>
+              <span class="font-medium text-rms-ink">{{ userName() }}</span>
             </div>
-            <div class="flex justify-between py-2 border-b border-surface-200 dark:border-surface-700">
+            <div class="flex justify-between py-2 border-b border-rms-border">
               <span class="text-muted">Correo:</span>
-              <span class="font-medium text-surface-900 dark:text-surface-100">{{ userEmail() }}</span>
+              <span class="font-medium text-rms-ink">{{ userEmail() }}</span>
             </div>
             <div class="flex justify-between py-2">
               <span class="text-muted">Rol:</span>
-              <span class="font-medium text-surface-900 dark:text-surface-100">{{ userRole() }}</span>
+              <span class="font-medium text-rms-ink">{{ userRole() }}</span>
             </div>
           </div>
         </div>
@@ -198,13 +178,13 @@
         }
 
         <!-- Change password -->
-        <div class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4 mb-4">
+        <div class="border border-rms-border rounded-xl bg-rms-surface p-4 mb-4">
           <div class="flex justify-between items-center">
             <div>
-              <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-3">Cambiar contraseña</h2>
+              <h2 class="rms-h3 mb-3">Cambiar contraseña</h2>
               <p class="text-sm text-muted">Actualiza tu contraseña periódicamente para mantener tu cuenta segura</p>
             </div>
-            <p-button label="Cambiar" icon="pi pi-lock" (onClick)="changePasswordVisible.set(true)"></p-button>
+            <app-rms-button iconStart="pi pi-lock" (click)="changePasswordVisible.set(true)">Cambiar</app-rms-button>
           </div>
         </div>
         <app-change-password [(visible)]="changePasswordVisible" (passwordChanged)="changePasswordVisible.set(false)"></app-change-password>
@@ -228,8 +208,8 @@
 
         <!-- Salary History (for WORKER role) -->
         @if (!isAdmin()) {
-          <div class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4 mb-4">
-            <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-3">Historial Salarial</h2>
+          <div class="border border-rms-border rounded-xl bg-rms-surface p-4 mb-4">
+            <h2 class="rms-h3 mb-3">Historial Salarial</h2>
             @if (salaryHistoryLoading()) {
               <div class="flex flex-col gap-2">
                 <p-skeleton height="32px" borderRadius="8px" />
@@ -242,7 +222,7 @@
               <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                   <thead>
-                    <tr class="border-b border-surface-200 dark:border-surface-700">
+                    <tr class="border-b border-rms-border">
                       <th class="text-left py-2 px-2 text-muted font-medium">Fecha</th>
                       <th class="text-right py-2 px-2 text-muted font-medium">Anterior</th>
                       <th class="text-right py-2 px-2 text-muted font-medium">Nuevo</th>
@@ -251,11 +231,11 @@
                   </thead>
                   <tbody>
                     @for (entry of salaryHistory(); track entry.changedAt) {
-                      <tr class="border-b border-surface-100 dark:border-surface-800">
-                        <td class="py-2 px-2 text-surface-700 dark:text-surface-300 whitespace-nowrap">{{ formatDateTime(entry.changedAt) }}</td>
-                        <td class="py-2 px-2 text-right font-mono text-surface-700 dark:text-surface-300">{{ formatSalary(entry.oldSalary) }}</td>
-                        <td class="py-2 px-2 text-right font-mono text-surface-700 dark:text-surface-300">{{ formatSalary(entry.newSalary) }}</td>
-                        <td class="py-2 px-2 text-surface-700 dark:text-surface-300">{{ entry.reason }}</td>
+                      <tr class="border-b border-rms-border">
+                        <td class="py-2 px-2 text-rms-ink-secondary whitespace-nowrap">{{ formatDateTime(entry.changedAt) }}</td>
+                        <td class="py-2 px-2 text-right font-mono text-rms-ink-secondary">{{ formatSalary(entry.oldSalary) }}</td>
+                        <td class="py-2 px-2 text-right font-mono text-rms-ink-secondary">{{ formatSalary(entry.newSalary) }}</td>
+                        <td class="py-2 px-2 text-rms-ink-secondary">{{ entry.reason }}</td>
                       </tr>
                     }
                   </tbody>
@@ -266,8 +246,8 @@
         }
 
         <!-- Privacy / Habeas Data -->
-        <div class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4">
-          <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-3">Privacidad</h2>
+        <div class="border border-rms-border rounded-xl bg-rms-surface p-4">
+          <h2 class="rms-h3 mb-3">Privacidad</h2>
           <div class="flex justify-between items-center">
             <div>
               <span class="text-muted">Estado: </span>
@@ -278,15 +258,11 @@
                 <p class="text-sm text-muted mt-1">Aceptado el {{ habeasDataDate() }}</p>
               }
             </div>
-            <button
-              pButton
-              type="button"
-              label="Ver aviso"
-              icon="pi pi-eye"
-              aria-label="Ver aviso de habeas data"
-              (click)="showHabeasDialog = true"
-              class="p-button-outlined"
-            ></button>
+            <app-rms-button
+              variant="secondary"
+              iconStart="pi pi-eye"
+              ariaLabel="Ver aviso de habeas data"
+              (click)="showHabeasDialog = true">Ver aviso</app-rms-button>
           </div>
         </div>
       </section>
@@ -295,24 +271,20 @@
     <!-- Cerrar sesión panel -->
     @case ('cerrar-session') {
       <section id="panel-cerrar-session" role="tabpanel" aria-labelledby="tab-cerrar-session" tabindex="0" class="py-4">
-        <div class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-6 text-center">
+        <div class="border border-rms-border rounded-xl bg-rms-surface p-6 text-center">
           <i class="pi pi-sign-out text-4xl text-muted mb-4 block" aria-hidden="true"></i>
-          <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-100 mb-2">Cerrar sesión</h2>
+          <h2 class="rms-h3 mb-2">Cerrar sesión</h2>
           <p class="text-muted mb-6">
             ¿Estás seguro de que deseas cerrar la sesión actual?
           </p>
           <div class="flex gap-3 justify-center">
-            <p-button
-              label="Cancelar"
-              severity="secondary"
-              (onClick)="activeTab.set('cuenta')"
-            ></p-button>
-            <p-button
-              label="Cerrar sesión"
-              icon="pi pi-sign-out"
-              severity="danger"
-              (onClick)="confirmLogout()"
-            ></p-button>
+            <app-rms-button
+              variant="secondary"
+              (click)="activeTab.set('cuenta')">Cancelar</app-rms-button>
+            <app-rms-button
+              variant="danger"
+              iconStart="pi pi-sign-out"
+              (click)="confirmLogout()">Cerrar sesión</app-rms-button>
           </div>
         </div>
       </section>
@@ -331,7 +303,7 @@
   header="Aviso de Privacidad y Tratamiento de Datos"
   [style]="{width: '90vw', maxWidth: '700px'}"
 >
-  <div class="max-h-[60vh] overflow-y-auto text-sm leading-relaxed text-surface-700 dark:text-surface-300">
+  <div class="max-h-[60vh] overflow-y-auto text-sm leading-relaxed text-rms-ink-secondary">
     <p class="mb-4">
       <strong>RMS</strong> (Restaurant Management System) le informa que es responsable del tratamiento
       de sus datos personales conforme a la Ley 1581 de 2012 y sus decreto reglamentarios.
@@ -375,16 +347,11 @@
   </div>
 
   <div class="flex justify-end gap-2 mt-4">
-    <p-button
-      label="Cerrar"
-      severity="secondary"
-      (onClick)="showHabeasDialog = false"
-    ></p-button>
+    <app-rms-button
+      variant="secondary"
+      (click)="showHabeasDialog = false">Cerrar</app-rms-button>
     @if (!habeasDataAccepted()) {
-      <p-button
-        label="Aceptar"
-        (onClick)="acceptHabeasData()"
-      ></p-button>
+      <app-rms-button (click)="acceptHabeasData()">Aceptar</app-rms-button>
     }
   </div>
 </p-dialog>
@@ -400,21 +367,17 @@
   header="Confirmar cierre de sesión"
   [style]="{width: '90vw', maxWidth: '450px'}"
 >
-  <p class="text-surface-700 dark:text-surface-300">
+  <p class="text-rms-ink-secondary">
     ¿Estás seguro de que deseas cerrar la sesión? Deberás iniciar sesión nuevamente para acceder al sistema.
   </p>
 
   <div class="flex justify-end gap-2 mt-4">
-    <p-button
-      label="Cancelar"
-      severity="secondary"
-      (onClick)="showLogoutDialog = false"
-    ></p-button>
-    <p-button
-      label="Cerrar sesión"
-      icon="pi pi-sign-out"
-      severity="danger"
-      (onClick)="logout()"
-    ></p-button>
+    <app-rms-button
+      variant="secondary"
+      (click)="showLogoutDialog = false">Cancelar</app-rms-button>
+    <app-rms-button
+      variant="danger"
+      iconStart="pi pi-sign-out"
+      (click)="logout()">Cerrar sesión</app-rms-button>
   </div>
 </p-dialog>

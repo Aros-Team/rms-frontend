@@ -1,4 +1,20 @@
-import { Chart, registerables, type ChartOptions } from 'chart.js';
+import {
+  ArcElement,
+  BarController,
+  BarElement,
+  BubbleController,
+  CategoryScale,
+  Chart,
+  DoughnutController,
+  Filler,
+  Legend,
+  LinearScale,
+  LineController,
+  LineElement,
+  PointElement,
+  Tooltip,
+  type ChartOptions,
+} from 'chart.js';
 
 /**
  * One Chart.js configuration for the product.
@@ -83,7 +99,25 @@ export function prefersReducedMotion(): boolean {
  */
 export function applyRmsChartDefaults(): void {
   if (!registered) {
-    Chart.register(...registerables);
+    // Only what the product renders: bar, line, doughnut and bubble. The
+    // legacy `registerables` also pulled radar, polarArea, scatter, the
+    // logarithmic/time scales and every plugin into the chunk.
+    // `Filler` is required by the prime-cost area chart (`fill: true`).
+    Chart.register(
+      BarController,
+      LineController,
+      DoughnutController,
+      BubbleController,
+      BarElement,
+      LineElement,
+      PointElement,
+      ArcElement,
+      CategoryScale,
+      LinearScale,
+      Tooltip,
+      Legend,
+      Filler,
+    );
     registered = true;
   }
 

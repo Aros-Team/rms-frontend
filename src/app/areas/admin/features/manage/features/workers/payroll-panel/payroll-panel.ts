@@ -12,11 +12,9 @@ import {
 import { FormsModule } from '@angular/forms';
 
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DatePickerModule } from 'primeng/datepicker';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
@@ -35,6 +33,9 @@ import {
 } from '@shared/lib/date-format/date-format';
 import { mapHttpError } from '@shared/lib/http-error-mapper/http-error-mapper';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
+import { RmsInput } from '@app/shared/ui/input/input';
 import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
 import type { RmsStatus } from '@app/shared/ui/types/ui-types';
 import { toAmount, type Money as MoneyValue } from '@models/dto/common/money';
@@ -137,16 +138,17 @@ const HALF_CENT = 0.005;
   imports: [
     FormsModule,
     TableModule,
-    ButtonModule,
     CheckboxModule,
     SelectModule,
-    InputTextModule,
     InputNumberModule,
     DatePickerModule,
     SkeletonModule,
     TooltipModule,
     TableSkeleton,
     MoneyPipe,
+    RmsButton,
+    RmsIconButton,
+    RmsInput,
     RmsStatusPill,
   ],
   templateUrl: './payroll-panel.html',
@@ -496,7 +498,7 @@ export class PayrollPanel {
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Eliminar',
       rejectLabel: 'Cancelar',
-      acceptButtonStyleClass: 'p-button-danger',
+      acceptButtonProps: { severity: 'danger' },
       accept: () => {
         this.payrollApi.deleteEvent(event.id).subscribe({
           next: () => {

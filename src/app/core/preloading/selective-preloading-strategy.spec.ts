@@ -1,15 +1,17 @@
 /**
  * Tests for SelectivePreloadingStrategy.
  *
- * Feature: Lazy-route preloading that backs off on constrained connections.
- * Contract: preloads on a normal connection; skips when the user enabled
- *           Save-Data or the connection reports 2G/slow-2G; returns EMPTY
- *           (never calls `load`) when skipping.
- * Approach: Stub `navigator.connection`, call `preload`, assert whether the
- *           loader ran. This is the decision that decides whether the app
- *           downloads ~1 MB of extra chunks.
+ * Feature: Lazy-route preloading that backs off on constrained connections and
+ *          defers the download until after the current route settled.
+ * Contract: preloads after a 2 s delay on a normal connection; skips when the
+ *           user enabled Save-Data, the connection reports 2G/slow-2G, or the
+ *           route declares `data: { preload: false }`; returns EMPTY (never
+ *           calls `load`) when skipping.
+ * Approach: Stub `navigator.connection`, call `preload`, advance fake timers
+ *           and assert whether the loader ran. This is the decision that
+ *           decides whether the app downloads ~1 MB of extra chunks.
  */
-import { of } from 'rxjs';
+import { firstValueFrom, of } from 'rxjs';
 
 import { SelectivePreloadingStrategy } from './selective-preloading-strategy';
 
@@ -24,7 +26,12 @@ describe('SelectivePreloadingStrategy', () => {
     return new SelectivePreloadingStrategy();
   }
 
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
   afterEach(() => {
+    vi.useRealTimers();
     if (original) {
       Object.defineProperty(Navigator.prototype, 'connection', original);
     } else {
@@ -32,22 +39,30 @@ describe('SelectivePreloadingStrategy', () => {
     }
   });
 
-  it('should preload on a normal connection', () => {
+  it('should preload on a normal connection after the delay', async () => {
     const strategy = withConnection({ saveData: false, effectiveType: '4g' });
     const load = vi.fn().mockReturnValue(of(true));
 
-    strategy.preload({ path: 'products' }, load).subscribe();
+    const result = firstValueFrom(strategy.preload({ path: 'products' }, load));
 
+    // Deferred: nothing is fetched while the current route is still loading.
+    expect(load).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(2_000);
+
+    await expect(result).resolves.toBe(true);
     expect(load).toHaveBeenCalledTimes(1);
   });
 
   it('should skip when the user enabled Save-Data', () => {
     const strategy = withConnection({ saveData: true, effectiveType: '4g' });
     const load = vi.fn().mockReturnValue(of(true));
+    const complete = vi.fn();
 
-    strategy.preload({ path: 'products' }, load).subscribe();
+    strategy.preload({ path: 'products' }, load).subscribe({ complete });
 
     expect(load).not.toHaveBeenCalled();
+    expect(complete).toHaveBeenCalledTimes(1);
   });
 
   it('should skip on 2G connections', () => {
@@ -59,6 +74,32 @@ describe('SelectivePreloadingStrategy', () => {
 
       expect(load, effectiveType).not.toHaveBeenCalled();
     }
+  });
+
+  it('should skip routes that opt out with data.preload === false', () => {
+    const strategy = withConnection({ saveData: false, effectiveType: '4g' });
+    const load = vi.fn().mockReturnValue(of(true));
+    const complete = vi.fn();
+
+    strategy
+      .preload({ path: 'products', data: { preload: false } }, load)
+      .subscribe({ complete });
+
+    expect(load).not.toHaveBeenCalled();
+    expect(complete).toHaveBeenCalledTimes(1);
+  });
+
+  it('should preload routes that keep the default preload flag', async () => {
+    const strategy = withConnection({ saveData: false, effectiveType: '4g' });
+    const load = vi.fn().mockReturnValue(of(true));
+
+    const result = firstValueFrom(
+      strategy.preload({ path: 'products', data: { preload: true } }, load),
+    );
+    await vi.advanceTimersByTimeAsync(2_000);
+
+    await expect(result).resolves.toBe(true);
+    expect(load).toHaveBeenCalledTimes(1);
   });
 
   it('should preload when the Network Information API is unavailable', () => {

@@ -5,7 +5,9 @@
  *          the <meta name="color-scheme"> element.
  * Contract: get() returns 'light' by default; set() applies the CSS class,
  *           persists the value and keeps <meta name="color-scheme"> in sync;
- *           toggle() flips between light and dark; isDark() reflects state.
+ *           toggle() flips between light and dark; isDark() reflects state;
+ *           both theme-color metas follow the active theme so the browser
+ *           chrome does not stay on the OS preference after a manual toggle.
  * Approach: Inject service via TestBed, call set/get/toggle, assert exact
  *           values, document class changes and the meta content (the meta is
  *           what themes native browser UI, so a mismatch is a visible bug).
@@ -17,17 +19,34 @@ import { Theme } from './theme';
 describe('Theme', () => {
   let service: Theme;
   let meta: HTMLMetaElement;
+  let lightChrome: HTMLMetaElement;
+  let darkChrome: HTMLMetaElement;
 
   beforeEach(() => {
     localStorage.clear();
     document.documentElement.classList.remove('light', 'dark');
 
-    // The real document declares this meta; mirror it for the test.
+    // The real document declares these metas; mirror them for the test.
     document.head.querySelector('meta[name="color-scheme"]')?.remove();
     meta = document.createElement('meta');
     meta.setAttribute('name', 'color-scheme');
     meta.setAttribute('content', 'light dark');
     document.head.appendChild(meta);
+
+    document.head.querySelector('meta[id="theme-color-light"]')?.remove();
+    document.head.querySelector('meta[id="theme-color-dark"]')?.remove();
+    lightChrome = document.createElement('meta');
+    lightChrome.id = 'theme-color-light';
+    lightChrome.setAttribute('name', 'theme-color');
+    lightChrome.setAttribute('content', '#FDEFC7');
+    lightChrome.setAttribute('media', '(prefers-color-scheme: light)');
+    document.head.appendChild(lightChrome);
+    darkChrome = document.createElement('meta');
+    darkChrome.id = 'theme-color-dark';
+    darkChrome.setAttribute('name', 'theme-color');
+    darkChrome.setAttribute('content', '#0f172a');
+    darkChrome.setAttribute('media', '(prefers-color-scheme: dark)');
+    document.head.appendChild(darkChrome);
 
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({});
@@ -36,6 +55,8 @@ describe('Theme', () => {
 
   afterEach(() => {
     meta.remove();
+    lightChrome.remove();
+    darkChrome.remove();
   });
 
   it('should default to light theme', () => {
@@ -62,6 +83,35 @@ describe('Theme', () => {
 
     service.set('light');
     expect(meta.getAttribute('content')).toBe('light');
+  });
+
+  it('should follow the active theme in both theme-color metas', () => {
+    service.set('dark');
+
+    for (const chrome of [lightChrome, darkChrome]) {
+      expect(chrome.getAttribute('content')).toBe('#0f172a');
+      expect(chrome.hasAttribute('media')).toBe(false);
+    }
+
+    service.set('light');
+
+    for (const chrome of [lightChrome, darkChrome]) {
+      expect(chrome.getAttribute('content')).toBe('#FDEFC7');
+      expect(chrome.hasAttribute('media')).toBe(false);
+    }
+  });
+
+  it('should update the theme-color metas after a toggle', () => {
+    service.set('light');
+    service.toggle();
+
+    expect(lightChrome.getAttribute('content')).toBe('#0f172a');
+    expect(darkChrome.getAttribute('content')).toBe('#0f172a');
+
+    service.toggle();
+
+    expect(lightChrome.getAttribute('content')).toBe('#FDEFC7');
+    expect(darkChrome.getAttribute('content')).toBe('#FDEFC7');
   });
 
   it('should toggle theme', () => {
