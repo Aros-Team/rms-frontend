@@ -4,23 +4,23 @@ import {
   computed,
   EventEmitter,
   HostListener,
-  isDevMode,
+  inject,
   Output,
   signal,
+  effect,
+  OnDestroy,
 } from '@angular/core';
 
+import { PageContext } from '@app/core/services/page-context/page-context';
 import { RmsBadge } from '@shared/ui/badge/badge';
 import { RmsButton } from '@shared/ui/button/button';
 import { RmsDialog } from '@shared/ui/dialog/dialog';
 import { RmsPageHeader } from '@shared/ui/page-header/page-header';
 
 import { AccountSettingsSection } from './sections/account/account-settings';
-import { AdvancedSettingsSection } from './sections/advanced/advanced-settings';
 import { AppearanceSettingsSection } from './sections/appearance/appearance-settings';
 import { BusinessSettings } from './sections/business/business-settings';
 import { CurrencySettingsSection } from './sections/currency/currency-settings';
-import { DemoDataSettingsSection } from './sections/demo-data/demo-data-settings';
-import { IntegrationsSettingsSection } from './sections/integrations/integrations-settings';
 import { LaborSettingsSection } from './sections/labor/labor-settings';
 import { NotificationsSettingsSection } from './sections/notifications/notifications-settings';
 import { OpeningHoursSettingsSection } from './sections/opening-hours/opening-hours-settings';
@@ -34,10 +34,7 @@ export type SettingsSectionId =
   | 'notifications'
   | 'users'
   | 'appearance'
-  | 'account'
-  | 'advanced'
-  | 'integrations'
-  | 'demo';
+  | 'account';
 
 export interface SettingsSection {
   readonly id: SettingsSectionId;
@@ -97,25 +94,6 @@ const SECTIONS: readonly SettingsSection[] = [
     description: 'Perfil, contraseña, privacidad y sesión',
     icon: 'pi pi-user',
   },
-  {
-    id: 'advanced',
-    label: 'Configuración avanzada',
-    description: 'Grupos y entradas del sistema',
-    icon: 'pi pi-sliders-h',
-  },
-  {
-    id: 'integrations',
-    label: 'Integraciones',
-    description: 'Orígenes del despliegue (solo lectura)',
-    icon: 'pi pi-link',
-  },
-  {
-    id: 'demo',
-    label: 'Datos de demostración',
-    description: 'Comandos de seed para desarrollo',
-    icon: 'pi pi-database',
-    devOnly: true,
-  },
 ];
 
 /**
@@ -142,16 +120,13 @@ const SECTIONS: readonly SettingsSection[] = [
     UsersSettingsSection,
     AppearanceSettingsSection,
     AccountSettingsSection,
-    AdvancedSettingsSection,
-    IntegrationsSettingsSection,
-    DemoDataSettingsSection,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SettingsPage {
-  readonly sections: readonly SettingsSection[] = SECTIONS.filter(
-    (section) => section.devOnly !== true || isDevMode(),
-  );
+export class SettingsPage implements OnDestroy {
+  private readonly pageContext = inject(PageContext);
+
+  readonly sections: readonly SettingsSection[] = SECTIONS;
 
   readonly activeSection = signal<SettingsSectionId>('business');
   readonly activeSectionMeta = computed(
@@ -170,6 +145,16 @@ export class SettingsPage {
   private pendingResolve: ((discard: boolean) => void) | null = null;
 
   @Output() readonly dirtyChange = new EventEmitter<boolean>();
+
+  constructor() {
+    effect(() => {
+      this.pageContext.set(`Configuración · ${this.activeSectionMeta().description}`);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.pageContext.clear();
+  }
 
   markDirty(section: SettingsSectionId, dirty: boolean): void {
     const next = { ...this.dirtySections(), [section]: dirty };

@@ -3,22 +3,18 @@
     [compact]="true"
     title="Configuración"
   >
-    <div rmsPageHeaderMeta>
-      @if (hasUnsavedChanges()) {
+    @if (hasUnsavedChanges()) {
+      <div rmsPageHeaderMeta>
         <app-rms-badge label="Cambios sin guardar" tone="warning" variant="soft" [dot]="true" />
-      } @else {
-        <span class="text-rms-caption text-rms-ink-muted">
-          {{ activeSectionMeta().description }}
-        </span>
-      }
-    </div>
+      </div>
+    }
   </app-rms-page-header>
 
-  <div class="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start">
+  <div class="flex min-w-0 flex-col gap-4">
     <nav
-      class="flex shrink-0 gap-2 overflow-x-auto pb-2 lg:w-64 lg:flex-col lg:overflow-visible lg:pb-0"
+      class="flex gap-1 overflow-x-auto border-b border-rms-border"
       role="tablist"
-      aria-orientation="vertical"
+      aria-orientation="horizontal"
       aria-label="Secciones de configuración"
     >
       @for (section of sections; track section.id; let i = $index) {
@@ -31,20 +27,14 @@
           [attr.tabindex]="activeSection() === section.id ? 0 : -1"
           (click)="onTabClick(section.id)"
           (keydown)="onTabKeydown($event, i)"
-          class="flex min-h-11 shrink-0 items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors"
+          class="inline-flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-semibold transition-colors"
           [class.border-rms-brand-text]="activeSection() === section.id"
-          [class.bg-rms-brand-soft]="activeSection() === section.id"
           [class.text-rms-brand-text]="activeSection() === section.id"
-          [class.border-rms-border]="activeSection() !== section.id"
-          [class.text-rms-ink]="activeSection() !== section.id"
+          [class.border-transparent]="activeSection() !== section.id"
+          [class.text-rms-ink-muted]="activeSection() !== section.id"
         >
           <i [class]="section.icon" aria-hidden="true"></i>
-          <span class="flex min-w-0 flex-col">
-            <span class="text-rms-body font-semibold">{{ section.label }}</span>
-            <span class="hidden text-rms-caption text-rms-ink-muted lg:block">
-              {{ section.description }}
-            </span>
-          </span>
+          <span>{{ section.label }}</span>
         </button>
       }
     </nav>
@@ -80,15 +70,6 @@
         }
         @case ('account') {
           <app-settings-account />
-        }
-        @case ('advanced') {
-          <app-settings-advanced />
-        }
-        @case ('integrations') {
-          <app-settings-integrations />
-        }
-        @case ('demo') {
-          <app-settings-demo-data />
         }
       }
     </section>

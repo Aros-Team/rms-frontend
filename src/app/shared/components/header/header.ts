@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd, NavigationStart } from '@angular/router';
 import { MenuItem, Menu } from '@core/services/menu/menu';
 import { Auth } from '@core/services/auth/auth';
+import { PageContext } from '@app/core/services/page-context/page-context';
 import { NotificationCenter, AppNotification } from '@core/services/notifications/notification-center';
 import { Subscription } from 'rxjs';
 import { Logo } from "../logo/logo";
@@ -69,10 +70,12 @@ export class Header implements OnInit, OnDestroy {
   showLogoutDialog = false;
   /** One-line location shown next to the brand: "Restaurante · Carta". */
   readonly routeContext = signal('');
+  readonly displayContext = computed(() => this.pageContext.value() ?? this.routeContext());
 
   private menuService = inject(Menu);
   private authService = inject(Auth);
   private router = inject(Router);
+  private pageContext = inject(PageContext);
 
   ngOnInit(): void {
     if (this.role === 'ADMIN') {

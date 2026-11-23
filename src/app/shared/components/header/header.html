@@ -14,9 +14,9 @@
       <span class="hidden sm:inline-block max-w-[10rem] truncate align-middle font-semibold py-1 px-2.5 rounded-md border border-surface-200 dark:border-surface-700 bg-surface-100 dark:bg-surface-800 text-accent lg:max-w-none">{{customer}}</span>
     }
 
-    @if (routeContext()) {
+    @if (displayContext()) {
       <span class="hidden min-w-0 truncate text-sm text-muted lg:inline-block">
-        {{ routeContext() }}
+        {{ displayContext() }}
       </span>
     }
 
