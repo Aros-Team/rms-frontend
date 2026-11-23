@@ -24,7 +24,7 @@
         </div>
         <div>
           <p class="text-sm font-medium text-muted mb-1">Estado</p>
-          <span [class]="getStatusBadgeClass(order.status)" class="px-2 py-1 rounded-full text-xs font-medium">
+          <span [class]="getStatusBadgeClass(order.status)">
             {{ getStatusText(order.status) }}
           </span>
         </div>

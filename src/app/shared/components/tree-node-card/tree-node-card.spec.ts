@@ -200,11 +200,13 @@ describe('TreeNodeCardComponent', () => {
     expect(el.querySelector('i.pi-box')).toBeNull();
   });
 
-  it('should apply border-l-4 for product type', async () => {
-    await setup({ nodeType: 'product' });
+  it('should mark a product with an accent icon, not a thick side border', async () => {
+    await setup({ nodeType: 'product', icon: 'pi pi-box' });
     const el = fixture.nativeElement as HTMLElement;
     const card = el.querySelector('div');
-    expect(card?.classList.contains('border-l-4')).toBe(true);
+    const icon = el.querySelector('i.pi-box');
+    expect(card?.classList.contains('border-l-4')).toBe(false);
+    expect(icon?.classList.contains('text-accent')).toBe(true);
   });
 
   it('should apply ml-6 for group type', async () => {

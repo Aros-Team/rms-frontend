@@ -8,18 +8,7 @@
       <app-logo [size]="24"></app-logo><span class="max-md:hidden">RMS</span>
     </div>
     @if (workerType !== 'kitchen') {
-      <span class="font-regular bg-primary-500 py-1 px-2.5 rounded-md text-surface-900 break-words shrink-0">{{customer}}</span>
-    }
-
-    @if (selectedMenuItem) {
-    <div class="hidden lg:flex items-center gap-2 ml-4 pl-4 border-l border-surface-200 dark:border-surface-700 shrink-0">
-      @if (selectedMenuItem.icon) {
-      <i [class]="selectedMenuItem.icon + ' text-muted'" aria-hidden="true"></i>
-      }
-      <span class="text-surface-700 dark:text-surface-300 font-medium truncate">
-        {{ selectedMenuItem.description }}
-      </span>
-    </div>
+      <span class="font-semibold py-1 px-2.5 rounded-md border border-surface-200 dark:border-surface-700 bg-surface-100 dark:bg-surface-800 text-accent break-words shrink-0">{{customer}}</span>
     }
 
     @if (!hideTabletNav) {
@@ -98,7 +87,6 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
      <i class="pi pi-times text-lg transition-colors duration-300 text-accent" aria-hidden="true"></i>
    } @else {
      <i class="pi pi-comment text-lg transition-colors duration-300 text-accent" aria-hidden="true"></i>
-     <span class="absolute top-1 right-1 w-2 h-2 bg-primary-500 rounded-full animate-ping"></span>
      <span class="absolute top-1 right-1 w-2 h-2 bg-primary-500 rounded-full"></span>
    }
     </button>
@@ -142,7 +130,7 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
 >
   <div class="py-4">
     <div class="flex items-center gap-3">
-      <i class="pi pi-exclamation-triangle text-yellow-500 text-2xl" aria-hidden="true"></i>
+      <i class="pi pi-exclamation-triangle rms-text-warning text-2xl" aria-hidden="true"></i>
       <p class="text-surface-700 dark:text-surface-300">
         ¿Estás seguro de que deseas cerrar sesión?
       </p>

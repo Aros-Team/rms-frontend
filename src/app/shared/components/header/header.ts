@@ -28,14 +28,12 @@ export class Header implements OnInit, OnDestroy {
   @Input() menuOpen = false;
   customer = environment.customer;
 
-  selectedMenuItem: MenuItem | null = null;
   menuItems: MenuItem[] = [];
   visibleMenuItems = signal<MenuItem[]>([]);
   overflowMenuItems = signal<MenuItem[]>([]);
   showOverflowMenu = signal(false);
   isNavigating = signal(false);
   
-  private menuSubscription: Subscription | undefined;
   private itemsSubscription: Subscription | undefined;
   private navigationSubscription: Subscription | undefined;
   showLogoutDialog = false;
@@ -46,10 +44,6 @@ export class Header implements OnInit, OnDestroy {
   private router = inject(Router);
 
   ngOnInit(): void {
-    this.menuSubscription = this.menuService.selectedMenuItem$.subscribe(item => {
-      this.selectedMenuItem = item;
-    });
-    
     this.itemsSubscription = this.menuService.menuItems$.subscribe(items => {
       this.menuItems = items;
       this.calculateVisibleItems();
@@ -81,7 +75,6 @@ export class Header implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.menuSubscription?.unsubscribe();
     this.itemsSubscription?.unsubscribe();
     this.navigationSubscription?.unsubscribe();
   }

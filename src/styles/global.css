@@ -196,6 +196,100 @@ main[tabindex='-1']:focus-visible {
   border-radius: var(--rms-radius-md);
 }
 
+/* --------------------------------------------------------------------------
+   Status surfaces and badges.
+
+   The status colors already exist as four semantic roles per status. These
+   classes are the only sanctioned way for feature code to paint a status
+   surface, because they keep fills, borders and foregrounds from the same
+   role set. Never rebuild them from the raw Tailwind palette: that is how the
+   same "warning" ends up amber in one screen and gold in the next.
+   -------------------------------------------------------------------------- */
+
+.rms-status-surface--success {
+  border-color: var(--rms-success-border);
+  background: var(--rms-success-bg);
+  color: var(--rms-success-fg);
+}
+
+.rms-status-surface--warning {
+  border-color: var(--rms-warning-border);
+  background: var(--rms-warning-bg);
+  color: var(--rms-warning-fg);
+}
+
+.rms-status-surface--danger {
+  border-color: var(--rms-danger-border);
+  background: var(--rms-danger-bg);
+  color: var(--rms-danger-fg);
+}
+
+.rms-status-surface--info {
+  border-color: var(--rms-info-border);
+  background: var(--rms-info-bg);
+  color: var(--rms-info-fg);
+}
+
+.rms-status-surface--neutral {
+  border-color: var(--rms-neutral-border);
+  background: var(--rms-neutral-bg);
+  color: var(--rms-neutral-fg);
+}
+
+.rms-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rms-space-1);
+  border: var(--rms-border-width) solid transparent;
+  border-radius: var(--rms-radius-full);
+  padding: 0.125rem var(--rms-space-2);
+  font-size: var(--rms-type-caption-size);
+  line-height: var(--rms-type-caption-line);
+  font-weight: var(--rms-weight-semibold);
+  white-space: nowrap;
+}
+
+.rms-status-badge--success {
+  border-color: var(--rms-success-border);
+  background: var(--rms-success-bg);
+  color: var(--rms-success-fg);
+}
+
+.rms-status-badge--warning {
+  border-color: var(--rms-warning-border);
+  background: var(--rms-warning-bg);
+  color: var(--rms-warning-fg);
+}
+
+.rms-status-badge--danger {
+  border-color: var(--rms-danger-border);
+  background: var(--rms-danger-bg);
+  color: var(--rms-danger-fg);
+}
+
+.rms-status-badge--info {
+  border-color: var(--rms-info-border);
+  background: var(--rms-info-bg);
+  color: var(--rms-info-fg);
+}
+
+.rms-status-badge--neutral {
+  border-color: var(--rms-neutral-border);
+  background: var(--rms-neutral-bg);
+  color: var(--rms-neutral-fg);
+}
+
+/* Filled status action (a status-colored button, not a brand CTA). */
+.rms-solid--danger {
+  background: var(--rms-danger-solid);
+  color: var(--rms-danger-on-solid);
+}
+
+.rms-solid--warning {
+  background: var(--rms-warning-solid);
+  color: var(--rms-warning-on-solid);
+}
+
 /* ==========================================================================
    Reduced motion — one gate for every current and future animation
    ========================================================================== */

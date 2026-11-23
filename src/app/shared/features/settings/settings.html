@@ -271,7 +271,7 @@
           <div class="flex justify-between items-center">
             <div>
               <span class="text-muted">Estado: </span>
-              <span [class]="habeasDataAccepted() ? 'text-green-600 dark:text-green-400 font-medium' : 'text-red-600 dark:text-red-400 font-medium'">
+              <span [class]="habeasDataAccepted() ? 'rms-text-success font-medium' : 'rms-text-danger font-medium'">
                 {{ habeasDataAccepted() ? 'Aceptado' : 'Pendiente' }}
               </span>
               @if (habeasDataAccepted()) {

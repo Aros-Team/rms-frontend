@@ -105,7 +105,7 @@ export const ADMIN_NAV: readonly NavItem[] = [
   {
     id: 'settings',
     label: 'Configuración',
-    description: 'Negocio, dinero, personas y sistema',
+    description: 'Preferencias del restaurante',
     icon: 'pi pi-cog',
     routerLink: '/admin/settings',
   },

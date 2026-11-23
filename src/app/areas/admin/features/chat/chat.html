@@ -132,8 +132,8 @@
 
     @if (error()) {
       <div class="flex w-full">
-        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl px-4 py-3 max-w-[80%]">
-          <p class="text-sm text-red-600 dark:text-red-400">{{ error() }}</p>
+        <div class="rms-status-surface--danger border rounded-2xl px-4 py-3 max-w-[80%]">
+          <p class="text-sm">{{ error() }}</p>
         </div>
       </div>
     }
@@ -155,8 +155,8 @@
         class="p-2.5 rounded-xl transition-colors flex-shrink-0"
         [attr.aria-label]="loading() ? 'Detener respuesta' : 'Enviar mensaje'"
         type="button"
-        [class.bg-red-500]="loading()"
-        [class.hover:bg-red-600]="loading()"
+        [class.rms-solid--danger]="loading()"
+        [class.hover:opacity-90]="loading()"
         [class.bg-primary-500]="!loading()"
         [class.hover:bg-primary-600]="!loading()"
         [class.text-white]="true"
