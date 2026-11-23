@@ -10,10 +10,9 @@
     [isMobile]="isMobile"
     [role]="role"
     [workerType]="workerType"
-    [isChatOpen]="isChatOpen"
     [menuOpen]="sidebarVisible && isMobile"
-    (toggleMenu)="toggleSidebar()"
-    (toggleChat)="toggleChatEvent.emit()">
+    [hideTabletNav]="isTablet"
+    (toggleMenu)="toggleSidebar()">
   </app-header>
 
   <app-restricted-banner />
@@ -34,8 +33,15 @@
       </div>
     </main>
 
-    @if (!hideSidebar && !isTablet) {
-      <app-sidebar [visible]="sidebarVisible" [isMobile]="isMobile" (visibleChange)="onSidebarVisibleChange($event)">
+    @if (!hideSidebar) {
+      <app-sidebar
+        [visible]="drawerVisible"
+        [isMobile]="isMobile"
+        [isOverlay]="isMobile"
+        [expanded]="isChatOpen"
+        [chatTemplate]="chatTemplate"
+        (visibleChange)="onSidebarVisibleChange($event)"
+        (toggleChat)="toggleChatEvent.emit()">
       </app-sidebar>
     }
   </div>

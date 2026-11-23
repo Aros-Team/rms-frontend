@@ -1,6 +1,9 @@
-<app-layout [role]="role" [isChatOpen]="isChatOpen()" (toggleChatEvent)="toggleChat()">
+<app-layout [role]="role" [isChatOpen]="isChatOpen()" (toggleChatEvent)="togglePanel()">
   <div class="route-content h-full w-full">
     <router-outlet></router-outlet>
   </div>
+
+  <ng-template #layoutChat>
+    <app-chat (closed)="isChatOpen.set(false)"></app-chat>
+  </ng-template>
 </app-layout>
-<app-chat (closed)="isChatOpen.set(false)"></app-chat>

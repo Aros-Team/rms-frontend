@@ -1,0 +1,98 @@
+:host {
+  display: contents;
+}
+
+/*
+ * The admin panel has two states: a narrow icon rail and an expanded panel
+ * that turns the navigation into a 3x2 matrix and docks the assistant below.
+ * Width lives here so the layout reflows instead of jumping.
+ */
+.admin-panel {
+  transition:
+    width 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    min-width 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Tablet and desktop: permanent right rail with two real states. */
+@media (min-width: 768px) {
+  .admin-panel {
+    width: 6rem;
+    min-width: 6rem;
+  }
+
+  .admin-panel--expanded {
+    width: 23rem;
+    min-width: 23rem;
+  }
+}
+
+.nav-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--rms-space-3);
+}
+
+.nav-grid--expanded {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--rms-space-2);
+}
+
+.nav-tile {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--rms-space-1);
+  border-radius: var(--rms-radius-md);
+  padding: var(--rms-space-2) var(--rms-space-1);
+  color: var(--rms-text-secondary);
+  text-align: center;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.nav-tile:hover {
+  background: var(--rms-bg-subtle);
+}
+
+.nav-tile__label {
+  font-size: 0.5625rem;
+  line-height: 1.25;
+  font-weight: 500;
+  overflow-wrap: normal;
+  hyphens: none;
+}
+
+.nav-grid__item {
+  min-width: 0;
+}
+
+.nav-grid--expanded .nav-grid__item {
+  animation: nav-tile-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes nav-tile-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-panel,
+  .nav-tile {
+    transition: none;
+  }
+
+  .nav-grid--expanded .nav-grid__item {
+    animation: none;
+  }
+}

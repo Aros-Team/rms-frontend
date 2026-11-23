@@ -1,4 +1,4 @@
-import { Component, inject, signal, ChangeDetectionStrategy, OnDestroy, AfterViewChecked, ViewChild, ElementRef, Output, EventEmitter } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy, OnDestroy, AfterViewChecked, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -16,7 +16,6 @@ import { Logging } from '@app/core/services/logging/logging';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Chat implements OnDestroy, AfterViewChecked {
-  @ViewChild('messagesContainer') messagesContainer!: ElementRef;
   @Output() closed = new EventEmitter<void>();
   private scrollInitialized = false;
 
@@ -28,7 +27,6 @@ export class Chat implements OnDestroy, AfterViewChecked {
   currentMessage = signal('');
   loading = signal(false);
   error = signal<string | null>(null);
-  isOpen = signal(false);
   sessionId = signal<string | null>(null);
   copySuccess = signal(false);
   isToolCallActive = signal(false);
@@ -44,19 +42,7 @@ export class Chat implements OnDestroy, AfterViewChecked {
     });
   }
 
-  openChat(): void {
-    this.isOpen.set(true);
-    const panel = document.querySelector('.chat-panel') ?? null;
-    if (panel) {
-      panel.addEventListener('transitionend', () => {
-        const input = panel.querySelector('textarea') ?? null;
-        input?.focus();
-      }, { once: true });
-    }
-  }
-
   closeChat(): void {
-    this.isOpen.set(false);
     this.closed.emit();
   }
 
@@ -65,10 +51,6 @@ export class Chat implements OnDestroy, AfterViewChecked {
       this.abortController.abort();
       this.abortController = null;
     }
-  }
-
-  toggleChat(): void {
-    this.isOpen.set(!this.isOpen());
   }
 
   handleKeydown(event: Event): void {

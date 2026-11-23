@@ -1,13 +1,8 @@
 :host {
-  display: contents;
-}
-
-.chat-panel {
-  border-left: 1px solid var(--surface-200);
-}
-
-:root.dark .chat-panel {
-  border-left-color: var(--surface-700);
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
 }
 
 .message-content {

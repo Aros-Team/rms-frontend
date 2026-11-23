@@ -17,10 +17,8 @@ import { Settings } from '@shared/features/settings/settings';
 })
 export class Header implements OnInit, OnDestroy {
   @Output() toggleMenu = new EventEmitter<void>();
-  @Output() toggleChat = new EventEmitter<void>();
   @Input() isMobile = false;
   @Input() role?: string;
-  @Input() isChatOpen = false;
   @Input() workerType?: string;
   /** When true, hides the tablet inline nav (used when a separate tab bar exists below header) */
   @Input() hideTabletNav = false;

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, Input, Output, EventEmitter, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, OnChanges, SimpleChanges, SimpleChange, inject, Input, Output, EventEmitter, ChangeDetectorRef, ChangeDetectionStrategy, ContentChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { Router, NavigationEnd } from '@angular/router';
@@ -16,12 +16,15 @@ import { Subscription } from 'rxjs';
   imports: [Header, Sidebar, RestrictedBanner, ServerDownBanner, CommonModule],
   templateUrl: './layout.html',
 })
-export class Layout implements OnInit, OnDestroy {
+export class Layout implements OnInit, OnDestroy, OnChanges {
   @Input() workerType?: string;
   @Input() hideSidebar = false;
   @Input() role?: string;
   @Input() isChatOpen = false;
   @Output() toggleChatEvent = new EventEmitter<void>();
+
+  /** Docked assistant declared by the shell; rendered inside the side panel. */
+  @ContentChild('layoutChat') chatTemplate?: TemplateRef<unknown>;
 
   sidebarVisible = false;
   isMobile = false;
@@ -48,6 +51,15 @@ export class Layout implements OnInit, OnDestroy {
     this.routerSubscription?.unsubscribe();
     if (this.resizeHandler) {
       window.removeEventListener('resize', this.resizeHandler);
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    const chat = changes['isChatOpen'] as SimpleChange | undefined;
+    // On phones the panel is the same surface as the drawer: closing the
+    // assistant must also dismiss the drawer instead of leaving an empty sheet.
+    if (chat && !chat.firstChange && !chat.currentValue && this.isMobile) {
+      this.sidebarVisible = false;
     }
   }
 
@@ -80,6 +92,19 @@ export class Layout implements OnInit, OnDestroy {
 
   onSidebarVisibleChange(visible: boolean): void {
     this.sidebarVisible = visible;
+    // The drawer and the docked assistant are the same surface: closing it on
+    // mobile/tablet must also close the panel, not leave an empty overlay.
+    if (!visible && this.isChatOpen) {
+      this.toggleChatEvent.emit();
+    }
+  }
+
+  /** Open state of the off-canvas drawer. Tablet and desktop always show the rail. */
+  get drawerVisible(): boolean {
+    if (this.isMobile) {
+      return this.sidebarVisible || this.isChatOpen;
+    }
+    return true;
   }
 
   onToggleChat(): void {

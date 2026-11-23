@@ -73,25 +73,6 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
     </button>
     }
 
-    @if (role === 'ADMIN') {
-    <button
-      class="relative p-2 rounded-xl cursor-pointer group transition-all duration-300 hover:scale-110 w-10 h-10 flex items-center justify-center shrink-0"
-      [class.bg-primary-100]="!isChatOpen"
-      [class.dark:bg-primary-900/30]="!isChatOpen"
-      [class.bg-surface-100]="isChatOpen"
-      [class.dark:bg-surface-800]="isChatOpen"
-      (click)="toggleChat.emit()"
-      [attr.aria-label]="isChatOpen ? 'Cerrar chat' : 'Abrir chat con asistente IA'"
-      [title]="isChatOpen ? 'Cerrar chat' : 'Asistente IA'">
-   @if (isChatOpen) {
-     <i class="pi pi-times text-lg transition-colors duration-300 text-accent" aria-hidden="true"></i>
-   } @else {
-     <i class="pi pi-comment text-lg transition-colors duration-300 text-accent" aria-hidden="true"></i>
-     <span class="absolute top-1 right-1 w-2 h-2 bg-primary-500 rounded-full"></span>
-   }
-    </button>
-    }
-
     @if (role !== 'ADMIN') {
     <button
       class="p-2 rounded-xl hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer w-10 h-10 flex items-center justify-center shrink-0"
