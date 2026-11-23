@@ -1,5 +1,39 @@
 # Changelog
 
+## [Unreleased] — UI performance and design pass (2026-11-23)
+
+Full UI pass measured against `docs/reports/ui-performance-review-2026-11-23.md`
+and tracked in `docs/plans/ui-improvements-plan.md`. All seven phases landed
+together: 1 633 tests passing, 0 lint errors, a warning-free build and an
+initial graph of 801.44 kB raw / 190.21 kB transfer, still under the 810 kB gate.
+
+### Features
+
+- **design system**: migrate auth, manage (combos, categories, areas, tables,
+  workers, time-logs, inventory, schedules), settings and shared components to
+  the `app-rms-*` primitives; zero `p-button`, `pInputText`, `text-surface-*`
+  and `dark:` pairs remain in the migrated areas
+- **charts**: replace `primeng/chart` with the `app-rms-chart` wrapper over
+  Chart.js core and selective registration; lazy chunk down from 214.53 kB to
+  202.08 kB, charts recolour on theme change
+- **shell**: adopt the fluid shell, where header, sidebar and page share
+  `bg-rms-page` and a single bordered container wraps the content; radii and
+  z-index now come from tokens instead of `z-[…]` values
+- **assistant**: load the chat behind `@defer (when isChatOpen())` in its own
+  lazy chunk (79.63 kB), removing `marked` and DOMPurify from `admin-area`
+- **deferral**: selective preloading with an idle delay and `preload: false` on
+  heavy routes, lazy service-worker updates, and `content-visibility` for
+  off-screen dashboard and analytics blocks
+- **controls**: move `.rms-input` and `.rms-textarea` to `src/styles/controls.css`
+  inside `@layer components`, fixing the 13 native controls that rendered
+  unstyled while keeping utility overrides working
+
+### Documentation
+
+- record the executed phases and the living pending list in
+  `docs/plans/ui-improvements-plan.md`, the migration status and shell decision
+  in `docs/DESIGN.md` 11.1, and the measured results in the performance review
+
 ## [v2.0.0](https://github.com/Aros-Team/rms-frontend/releases/tag/v2.0.0)
 
 ### Features

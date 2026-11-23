@@ -6,6 +6,7 @@
  *  - the visible label is the accessible name (aria-labelledby on the combobox)
  *  - filtering is automatic above 8 options and can be forced
  *  - the error state reaches the combobox (aria-invalid + describedby)
+ *  - externally rendered message ids merge into describedby
  *
  * Approach: TestBed render, query the PrimeNG combobox slot, assert ARIA wiring.
  */
@@ -100,6 +101,22 @@ describe('RmsSelect', () => {
 
     expect(combobox?.getAttribute('aria-invalid')).toBe('true');
     expect(combobox?.getAttribute('aria-describedby')).toBe(`${select.selectId}-error`);
+  });
+
+  it('merges externally rendered message ids into describedby', () => {
+    fixture.destroy();
+    fixture = TestBed.createComponent(RmsSelect);
+    select = fixture.componentInstance;
+    select.label = 'Área';
+    select.options = THREE_OPTIONS;
+    select.hint = 'Área donde trabaja';
+    select.describedByIds = 'error-area error-area-backend';
+    fixture.detectChanges();
+    const combobox = (fixture.nativeElement as HTMLElement).querySelector('[role="combobox"]');
+
+    expect(combobox?.getAttribute('aria-describedby')).toBe(
+      `${select.selectId}-hint error-area error-area-backend`,
+    );
   });
 
   it('registers as a form control without colliding with the ancestor form', async () => {

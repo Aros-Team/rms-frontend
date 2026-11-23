@@ -14,7 +14,9 @@
     "lint:check": "ng lint",
     "contract:shapes": "node scripts/check-request-shapes.mjs",
     "lighthouse": "lhci autorun",
-    "lighthouse:admin": "lhci autorun --config=./.lighthouserc.admin.json"
+    "lighthouse:admin": "lhci autorun --config=./.lighthouserc.admin.json",
+    "design:check": "node scripts/check-design-tokens.mjs",
+    "verify:ui": "npm run lint:check && npm run design:check && npm run test"
   },
   "prettier": {
     "printWidth": 100,

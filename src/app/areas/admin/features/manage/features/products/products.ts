@@ -35,10 +35,8 @@ import { ConfirmPopupModule } from 'primeng/confirmpopup';
 import { DialogModule } from 'primeng/dialog';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
-import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { TagModule } from 'primeng/tag';
@@ -50,6 +48,8 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
+import { RmsInput } from '@app/shared/ui/input/input';
+import { RmsTextarea } from '@app/shared/ui/textarea/textarea';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 
 import { PrepTimeDialog, type PrepTimeEstimate } from './componentes/prep-time-dialog/prep-time-dialog';
@@ -105,8 +105,6 @@ interface OptionFormValue {
     FormsModule,
     TableModule,
     ButtonModule,
-    InputTextModule,
-    TextareaModule,
     SelectModule,
     IftaLabelModule,
     DialogModule,
@@ -130,6 +128,8 @@ interface OptionFormValue {
     Money,
     RmsButton,
     RmsIconButton,
+    RmsInput,
+    RmsTextarea,
     RmsPageHeader,
   ],
   templateUrl: './products.html',

@@ -41,10 +41,8 @@ export default defineConfig([
       // Design-system guardrails (docs/DESIGN.md section 11.1).
       // `registerables` registers every Chart.js controller and element, which
       // is how the chart chunk reached 214 kB for four chart types.
-      // Kept at "warn" while the migration lanes land; promote to "error" once
-      // `shared/ui/chart/chart-theme.ts` registers only what it uses.
       "no-restricted-imports": [
-        "warn",
+        "error",
         {
           paths: [
             {
@@ -78,7 +76,8 @@ export default defineConfig([
     files: ["src/app/areas/**/*.html", "src/app/shared/features/**/*.html"],
     rules: {
       // Inline styles cannot follow light/dark/high-contrast tokens.
-      "@angular-eslint/template/no-inline-styles": "warn",
+      // Data-driven geometry documents its exception inline.
+      "@angular-eslint/template/no-inline-styles": "error",
     },
   },
 ]);

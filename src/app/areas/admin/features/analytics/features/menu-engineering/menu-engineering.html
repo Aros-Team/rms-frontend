@@ -128,7 +128,7 @@
         <ul rmsChartLegend class="chart-legend">
           @for (summary of summaries(); track summary.quadrant) {
             <li>
-              <span class="chart-legend__swatch" [style.background]="quadrantColors()[summary.quadrant]"></span>
+              <span class="chart-legend__swatch" [attr.data-quadrant]="summary.quadrant"></span>
               {{ summary.meta.label }}
             </li>
           }
@@ -153,9 +153,8 @@
 
     <!-- Full product table: below the KPI row and the quadrant matrix. -->
     <section
-      class="panel rms-defer-view"
-      aria-labelledby="menu-table-title"
-      style="--rms-defer-size: 26rem">
+      class="panel rms-defer-view rms-defer-view--lg"
+      aria-labelledby="menu-table-title">
       <h2 id="menu-table-title" class="panel__title">Productos clasificados</h2>
       <div class="panel__scroll" role="region" tabindex="0" aria-label="Productos clasificados, desplazable">
         <table class="data-table">

@@ -1,6 +1,6 @@
 /* @import rules must precede every other rule in the stylesheet. */
 @import "tailwindcss";
-@import "primeicons/primeicons.css";
+@import "./styles/primeicons.css";
 @import "tailwindcss-primeui";
 
 /* Design-system tokens and global primitives. Both are plain CSS custom
@@ -217,7 +217,7 @@ html.dark {
    accessibility theme.
    ======================================== */
 
-/* === Light mode: background surfaces only (text handled by class overrides below) === */
+/* === Light mode: surfaces + PrimeNG text tokens === */
 html[data-contrast="high"]:not(.dark) {
   --p-surface-0: #ffffff;
   --p-surface-50: #ffffff;
@@ -246,7 +246,7 @@ html[data-contrast="high"]:not(.dark) {
   --p-primary-600: color-mix(in srgb, var(--brand-gold), black 45%);
 }
 
-/* === Dark mode: background surfaces only === */
+/* === Dark mode: surfaces + PrimeNG text tokens === */
 html.dark[data-contrast="high"] {
   --p-surface-0: #000000;
   --p-surface-50: #000000;
@@ -265,44 +265,6 @@ html.dark[data-contrast="high"] {
   --p-primary-contrast-color: #000000;
   --p-primary-400: color-mix(in srgb, var(--brand-gold), white 50%);
   --p-primary-600: color-mix(in srgb, var(--brand-gold), white 10%);
-}
-
-/* === Light mode: text surface classes → dark slates for 7:1+ on white === */
-/* (Override classes, not CSS variables, so backgrounds are never affected) */
-html[data-contrast="high"]:not(.dark) .text-surface-300,
-html[data-contrast="high"]:not(.dark) .placeholder\:text-surface-300 {
-  color: #475569 !important;  /* slate-600 */
-}
-html[data-contrast="high"]:not(.dark) .text-surface-400,
-html[data-contrast="high"]:not(.dark) .placeholder\:text-surface-400 {
-  color: #1e293b !important;  /* slate-800 */
-}
-html[data-contrast="high"]:not(.dark) .text-surface-500,
-html[data-contrast="high"]:not(.dark) .placeholder\:text-surface-500 {
-  color: #0f172a !important;  /* slate-900 */
-}
-html[data-contrast="high"]:not(.dark) .text-surface-600,
-html[data-contrast="high"]:not(.dark) .placeholder\:text-surface-600 {
-  color: #020617 !important;  /* slate-950 */
-}
-
-/* === Dark mode: text surface classes → light for 7:1+ on black === */
-html.dark[data-contrast="high"] .text-surface-300 {
-  color: #d4d4d8 !important;
-}
-html.dark[data-contrast="high"] .text-surface-400 {
-  color: #e4e4e7 !important;
-}
-html.dark[data-contrast="high"] .text-surface-500 {
-  color: #ffffff !important;
-}
-html.dark[data-contrast="high"] .text-surface-600 {
-  color: #ffffff !important;
-}
-html.dark[data-contrast="high"] .text-surface-700,
-html.dark[data-contrast="high"] .text-surface-800,
-html.dark[data-contrast="high"] .text-surface-900 {
-  color: #ffffff !important;
 }
 
 /* === Focus — 3px solid brand primary outline with offset === */

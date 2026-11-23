@@ -1,9 +1,29 @@
 # Plan de Implementación: Rendimiento, Diseño y Coherencia Visual
 
 > **Fecha:** 2026-11-23
-> **Estado:** Fases 0-6 ejecutadas; fase 7 (charts) ejecutada; pendientes en §8
+> **Estado:** Fases 0-7 ejecutadas (2026-11-23); la sección 8 es la lista viva de pendientes
 > **Alcance:** `frontend/` (Angular 21 zoneless, PrimeNG 21, Tailwind 4)
 > **Referencia del análisis:** `docs/reports/ui-performance-review-2026-11-23.md`
+
+### Estado de ejecución
+
+Todas las fases se implementaron y verificaron juntas el 2026-11-23. El detalle
+medido está en la sección 7 del informe de referencia.
+
+| Fase | Estado | Fecha | Qué quedó |
+|---|---|---|---|
+| **0** | Ejecutada | 2026-11-23 | Baseline medido (788.31 kB raw / 184.64 kB transfer inicial; chart 214.53 kB) e informe |
+| **1** | Ejecutada | 2026-11-23 | Registro selectivo de Chart.js, precarga diferida (idle + `data.preload: false`), SW `lazy`, presupuesto 810/850 kB, PWA de marca |
+| **2** | Ejecutada | 2026-11-23 | Shell fluido: superficies, escala de radios y capas por token; adiós a `z-[200]` |
+| **3** | Ejecutada | 2026-11-23 | Auth migrado a primitivos, H1 con rol y errores por campo |
+| **4** | Ejecutada | 2026-11-23 | Combos, catálogos, settings, workers/time-logs/payroll migrados |
+| **5** | Ejecutada | 2026-11-23 | Chat en su chunk (`@defer (when isChatOpen())`), bloques bajo el pliegue diferidos, `.rms-defer-view` |
+| **6** | Ejecutada | 2026-11-23 | Lint con guardas en `warn`, imports muertos fuera, NG8113 = 0, `DESIGN.md` sección 11.1 |
+| **7** | Ejecutada | 2026-11-23 | `app-rms-chart` sobre Chart.js core; chunk 214.53 → 202.08 kB |
+
+Resultado global: 1 633 tests en verde, 0 errores de lint (26 warnings de
+estilos inline), build sin warnings y grafo inicial en 801.44 kB / 190.21 kB,
+por debajo del límite de 810 kB.
 
 ---
 
@@ -223,13 +243,35 @@ Los dos `<img>` de previsualización sin `width`/`height` viven en
 
 ---
 
-## 8. Pendientes diferidos (fuera de esta oleada)
+## 8. Pendientes (lista viva)
 
-| ID | Tema | Motivo |
-|---|---|---|
-| P7 | Recortar PrimeIcons a `woff2` | Requiere subsetting del paquete; se aborda tras validar el resto |
-| P8 | `srcset`/AVIF de imágenes de producto | Requiere variantes en el contrato de la API |
-| D2 | Burn-down de 270 `dark:` y 535 `*-surface-*` restantes | Solo tras cerrar las áreas de las lanes C/D/E |
-| D8 | Deduplicar el bloque de alto contraste | Depende de D2 |
-| A2 | Padding `safe-area-inset-*` en PWA | Se valida en dispositivo; `viewport-fit` ya se añade en Lane A |
-| — | Regenerar baselines visuales y correr axe/e2e | Lane de QA al cerrar la oleada |
+Única fuente de lo que queda. El orden y la paralelización se detallan en
+`docs/plans/pending-parallel-plan.md`.
+
+| ID | Tema | Estado | Referencia |
+|---|---|---|---|
+| 2 + 9 | Migrar las tres plantillas legacy (`products.html`, `product-card`, `product-options-modal`) y dar `width`/`height` a las 2 previews | Hecho | pending-parallel-plan, P3 |
+| 7 | Recortar PrimeIcons a `woff2` (retirar las otras cuatro variantes) | Hecho | pending-parallel-plan, P2 |
+| — | Chunk de charts en 202 kB: diferir el chart del dashboard (`@defer (on idle)`) o cambiar de motor | Hecho: dashboard difiere el chart con `@defer (on idle)`; el chunk sigue en 202 kB, sin cargarse en el primer paint | pending-parallel-plan, Q1 |
+| 8 | `srcset`/AVIF de imágenes de producto | Bloqueado por el contrato de la API | pending-parallel-plan, ola 5 |
+| D8 | Deduplicar el bloque de alto contraste de `src/styles.css` | Hecho: 9 `!important` muertos eliminados; el puente `--p-*` se conserva | pending-parallel-plan, Q5 |
+| — | Regenerar baselines visuales y correr e2e/axe/LHCI | Hecho (ola 4): 125/125 e2e, 63/63 visuales, login 100/100/100/100 | pending-parallel-plan, ola 4 |
+| — | Precarga: era default-on y descargaba 132 chunks en /login | Hecho: opt-in + cookie de sesión + 3 s; login pasa a 40 peticiones y 100 en best-practices | informe, sección 7 |
+| 18 | Converger `app-form-validation` en `[error]` de las primitivas | Pendiente: areas y categories en una lane corta; workers necesita decidir areaId/salary | pending-parallel-plan, Q3 |
+| 16 | Consolidar duplicados de `shared/components` | Auditoría hecha: fusionar `option-group-badge` en `app-rms-badge`, borrar `tree-node-card` (sin consumidores), conservar `removable-chip` | pending-parallel-plan, Q4 |
+| 15 | 26 avisos `no-inline-styles` | Hecho: 0 avisos (geometría dinámica documentada con disable inline) | pending-parallel-plan, P6 |
+
+Solo la ola 4 (QA) se ejecuta al final y sin solaparse con edición de UI.
+
+### 8.1 Decisión: shell fluido (2026-11-23)
+
+El shell de trabajo es **fluido**: header, sidebar y página comparten
+`bg-rms-page`, sin borde divisor entre ellos. Exactamente **un contenedor con
+borde** envuelve el contenido (el `<main>` del shell admin y la columna de
+contenido del shell worker), con `border-rms-border-strong` y el radio de panel
+de página. No se reintroducen `border-b`/`border-l` en el chrome ni un segundo
+nivel de superficie.
+
+La regla normativa vive en `docs/DESIGN.md`, sección 11.1; este apartado solo
+registra la decisión y su punto de referencia.
+

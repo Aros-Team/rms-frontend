@@ -83,12 +83,20 @@
           </header>
 
           <section class="flex-shrink-0 rounded-xl border border-rms-border bg-rms-surface p-3">
-            <app-dashboard-hourly-chart
-              [bars]="hourlyRhythm()"
-              [loading]="isOrdersLoading() && orders().length === 0"
-              [error]="ordersError() ?? ''"
-              [closed]="todayClosed()"
-              (retry)="retryDashboard()" />
+            <!-- Chart.js loads after first paint. Placeholder and loading keep
+                 the frame's box (2.875rem header + 0.75rem gap + 7.5rem plot). -->
+            @defer (on idle) {
+              <app-dashboard-hourly-chart
+                [bars]="hourlyRhythm()"
+                [loading]="isOrdersLoading() && orders().length === 0"
+                [error]="ordersError() ?? ''"
+                [closed]="todayClosed()"
+                (retry)="retryDashboard()" />
+            } @placeholder {
+              <div class="min-h-[11.125rem]" aria-hidden="true"></div>
+            } @loading {
+              <div class="min-h-[11.125rem]" role="status" aria-label="Cargando pedidos por hora"></div>
+            }
           </section>
 
           <!-- Contains a chart frame: created only when it approaches the
@@ -175,8 +183,7 @@
 
           <!-- Below the fold on phones, after the sales composition block. -->
           <section
-            class="rms-defer-view flex-1 border border-rms-border rounded-xl bg-rms-surface flex flex-col min-h-0 overflow-hidden"
-            style="--rms-defer-size: 20rem">
+            class="rms-defer-view rms-defer-view--md flex-1 border border-rms-border rounded-xl bg-rms-surface flex flex-col min-h-0 overflow-hidden">
             <header class="flex justify-between items-center p-3 border-b border-rms-border flex-shrink-0">
               <h2 class="text-base font-bold text-rms-ink">Pedidos del Día</h2>
               @if (isOrdersLoading()) {
@@ -283,12 +290,19 @@
     </header>
 
     <section class="flex-shrink-0 rounded-xl border border-rms-border bg-rms-surface p-4">
-      <app-dashboard-hourly-chart
-        [bars]="hourlyRhythm()"
-        [loading]="isOrdersLoading() && orders().length === 0"
-        [error]="ordersError() ?? ''"
-        [closed]="todayClosed()"
-        (retry)="retryDashboard()" />
+      <!-- Chart.js loads after first paint; the placeholder keeps the card height. -->
+      @defer (on idle) {
+        <app-dashboard-hourly-chart
+          [bars]="hourlyRhythm()"
+          [loading]="isOrdersLoading() && orders().length === 0"
+          [error]="ordersError() ?? ''"
+          [closed]="todayClosed()"
+          (retry)="retryDashboard()" />
+      } @placeholder {
+        <div class="min-h-[11.125rem]" aria-hidden="true"></div>
+      } @loading {
+        <div class="min-h-[11.125rem]" role="status" aria-label="Cargando pedidos por hora"></div>
+      }
     </section>
 
     <!-- Contains a chart frame: created only when it approaches the
@@ -376,8 +390,7 @@
     <div class="flex-1 flex gap-4 min-h-0">
       <!-- Tablet branch: below the fold after the hero and hourly chart. -->
       <section
-        class="rms-defer-view w-full border border-rms-border rounded-xl bg-rms-surface flex flex-col overflow-hidden"
-        style="--rms-defer-size: 24rem">
+        class="rms-defer-view rms-defer-view--lg w-full border border-rms-border rounded-xl bg-rms-surface flex flex-col overflow-hidden">
         <header class="flex justify-between items-center p-3 border-b border-rms-border flex-shrink-0">
           <h2 class="text-base font-bold text-rms-ink">Pedidos del Día</h2>
           @if (isOrdersLoading()) {
@@ -646,12 +659,19 @@
     </section>
 
       <section class="flex-shrink-0 rounded-2xl border border-rms-border bg-rms-surface p-3">
-        <app-dashboard-hourly-chart
-          [bars]="hourlyRhythm()"
-          [loading]="isOrdersLoading() && orders().length === 0"
-          [error]="ordersError() ?? ''"
-          [closed]="todayClosed()"
-          (retry)="retryDashboard()" />
+        <!-- Chart.js loads after first paint; the placeholder keeps the card height. -->
+        @defer (on idle) {
+          <app-dashboard-hourly-chart
+            [bars]="hourlyRhythm()"
+            [loading]="isOrdersLoading() && orders().length === 0"
+            [error]="ordersError() ?? ''"
+            [closed]="todayClosed()"
+            (retry)="retryDashboard()" />
+        } @placeholder {
+          <div class="min-h-[11.125rem]" aria-hidden="true"></div>
+        } @loading {
+          <div class="min-h-[11.125rem]" role="status" aria-label="Cargando pedidos por hora"></div>
+        }
       </section>
     </div>
   </div>

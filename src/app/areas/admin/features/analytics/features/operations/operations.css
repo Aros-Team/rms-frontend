@@ -29,3 +29,8 @@
   font-weight: var(--rms-weight-semibold);
   font-variant-numeric: tabular-nums;
 }
+
+/* Legend swatch mirrors the chart series palette (see operations.ts). */
+.chart-legend__swatch--1 {
+  background: var(--rms-chart-1);
+}

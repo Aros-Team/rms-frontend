@@ -2,11 +2,13 @@ import {
   AfterRenderRef,
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   Input,
   OnDestroy,
   ViewChild,
   afterNextRender,
+  inject,
 } from '@angular/core';
 import { Chart, type ChartConfiguration, type ChartData, type ChartOptions } from 'chart.js';
 
@@ -14,6 +16,12 @@ import { applyRmsChartDefaults } from './chart-theme';
 
 /** The four chart types the product renders. */
 export type RmsChartType = 'bar' | 'line' | 'doughnut' | 'bubble';
+
+/** The theme signal both palettes and this component key off. */
+function isDarkTheme(): boolean {
+  if (typeof document === 'undefined') return false;
+  return document.documentElement.classList.contains('dark');
+}
 
 /**
  * `app-rms-chart` — the only Chart.js canvas the product needs.
@@ -30,8 +38,12 @@ export type RmsChartType = 'bar' | 'line' | 'doughnut' | 'bubble';
  *
  * Lifecycle: Chart.js measures the canvas when the chart is constructed, so the
  * first chart is created in `afterNextRender` (not `ngOnInit`). Later input
- * changes destroy the previous instance and create a new one, which also picks
- * up a theme change. `ngOnDestroy` releases it.
+ * changes destroy the previous instance and create a new one. A
+ * `MutationObserver` on `document.documentElement`'s `class` does the same when
+ * the dark theme is toggled, because the palette is read from CSS tokens when
+ * the chart is built; the previous theme value is compared first so unrelated
+ * class churn does not rebuild. `ngOnDestroy` disconnects it and releases the
+ * chart.
  *
  * Accessibility: the canvas is `role="img"` with `ariaLabel` as its name.
  */
@@ -46,6 +58,8 @@ export class RmsChart implements OnDestroy {
 
   private instance?: Chart;
   private renderRef?: AfterRenderRef;
+  private observer?: MutationObserver;
+  private lastDark: boolean | null = null;
 
   private currentType: RmsChartType = 'bar';
   private currentData: ChartData | null = null;
@@ -76,11 +90,44 @@ export class RmsChart implements OnDestroy {
     this.renderRef = afterNextRender(() => {
       this.recreate();
     });
+
+    this.observeTheme();
+    inject(DestroyRef).onDestroy(() => {
+      this.disconnectThemeObserver();
+    });
   }
 
   ngOnDestroy(): void {
     this.renderRef?.destroy();
+    this.disconnectThemeObserver();
     this.destroyChart();
+  }
+
+  /**
+   * Rebuilds on a real light/dark switch. The palette is captured when the
+   * chart is constructed, so re-applying Chart.js defaults is not enough; the
+   * instance has to be created again to read the new tokens. Comparing
+   * `lastDark` keeps unrelated class mutations from rebuilding every time.
+   */
+  private observeTheme(): void {
+    if (typeof MutationObserver === 'undefined' || typeof document === 'undefined') return;
+
+    this.lastDark = isDarkTheme();
+    this.observer = new MutationObserver(() => {
+      const dark = isDarkTheme();
+      if (dark === this.lastDark) return;
+      this.lastDark = dark;
+      this.recreate();
+    });
+    this.observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+  }
+
+  private disconnectThemeObserver(): void {
+    this.observer?.disconnect();
+    this.observer = undefined;
   }
 
   /**

@@ -467,3 +467,38 @@ utilities (`pl-10`, `w-20`, `flex-1`) winning over the base control padding.
 3. PrimeIcons `woff2`-only; product image `srcset`/AVIF (API contract).
 4. Delete the duplicated high-contrast override block in `src/styles.css`.
 5. Regenerate Playwright visual baselines, rerun axe and the LHCI gate.
+
+### QA follow-up: the preloader was still default-on (2026-11-23)
+
+Lighthouse on `/login` (production build) exposed what the bundle report could
+not: the page downloaded **132 JS chunks** and reported a deprecated `unload`
+listener (best-practices 81). The preloading strategy was still default-on, so
+2 s after boot it fetched every admin and worker chunk even without a session,
+and the resulting contention pushed the `/admin` LCP to 7.5 s on the dev server.
+
+Fix: `SelectivePreloadingStrategy` is now opt-in (`data: { preload: true }` on
+four entry screens: dashboard, orders, waiter, kitchen), only when an
+`rms_access` cookie exists, and after a 3 s delay. Login Lighthouse after the
+fix: **performance 100, accessibility 100, best-practices 100, SEO 100, 40 JS
+requests** (down from 132), no deprecation warning.
+
+The general lesson is recorded in the plan: measure **requests and executed
+code**, not only chunk sizes; a "deferred" preloader can still fetch everything.
+
+## 8. Wave 4 verification (2026-11-23)
+
+| Gate | Result |
+|---|---|
+| Unit (`vitest run`) | **1637 / 1637**, 173 files |
+| Smoke + a11y (`playwright test smoke a11y`) | **125 / 125** |
+| Visual baselines | **63 / 63**; 10 of 63 snapshots regenerated |
+| `lint:check` | 0 errors, 0 warnings |
+| `design:check` | clean |
+| Build | warning-free, 803.32 kB raw / 191.06 kB transfer |
+| Lighthouse `/login` (production build) | performance 100, accessibility 100, best-practices 100, SEO 100, **40 JS requests** |
+| Lighthouse `/admin` (dev server, local API) | accessibility 100, SEO 100, best-practices 81 (sockjs `unload` deprecation), performance 45-57 with LCP ~7.5 s — dev-mode measurement, not a production gate |
+
+Known measurement caveat: the admin LHCI config deliberately points at the dev
+server because the seeded local token only works against the local API. Treat
+its performance score as a smoke signal; the login run measures the production
+build and is the real gate.

@@ -5,7 +5,7 @@
   Saltar al contenido
 </a>
 
-<div class="flex min-h-dvh flex-col bg-rms-page pt-16">
+<div class="flex min-h-dvh flex-col bg-rms-page pt-[calc(4rem+env(safe-area-inset-top))]">
   <app-header
     [isMobile]="true"
     [role]="role()"
@@ -41,8 +41,8 @@
               [routerLink]="item.routerLink"
               [queryParams]="item.queryParams ?? {}"
               [attr.aria-current]="isActive(item) ? 'page' : null"
-              class="flex min-h-16 w-full flex-col items-center justify-center gap-1 px-1 py-2 text-xs font-medium text-muted transition-colors hover:bg-rms-subtle lg:min-h-10 lg:w-auto lg:flex-row lg:gap-2 lg:rounded-lg lg:px-3 lg:py-2"
-              [ngClass]="isActive(item) ? '!text-accent font-semibold lg:bg-rms-subtle' : ''"
+              class="rms-nav-item rms-nav-item--bottom"
+              [ngClass]="isActive(item) ? 'rms-nav-item--active' : ''"
             >
               <i [class]="item.icon + ' text-lg'" aria-hidden="true"></i>
               <span class="truncate">{{ item.label }}</span>

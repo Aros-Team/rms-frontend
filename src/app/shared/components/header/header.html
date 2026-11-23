@@ -1,5 +1,5 @@
 <header
-  class="fixed top-0 left-0 flex justify-between items-center h-16 px-4 bg-rms-page w-full max-w-full z-[var(--rms-z-sticky)] min-w-0">
+  class="fixed top-0 left-0 flex justify-between items-center h-[calc(4rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] px-4 bg-rms-page w-full max-w-full z-[var(--rms-z-sticky)] min-w-0">
   <section class="flex items-center gap-4 min-w-0 flex-1">
     <a
       [routerLink]="role === 'ADMIN' ? '/admin' : '/worker'"
@@ -22,10 +22,10 @@
       @for (item of visibleMenuItems(); track item.id) {
         <a [routerLink]="item.routerLink"
            #rla="routerLinkActive"
-           routerLinkActive="!text-accent font-semibold"
+           routerLinkActive="rms-nav-item--active"
            [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
            [attr.aria-current]="rla.isActive ? 'page' : null"
-           class="flex items-center gap-2 px-3 py-2 rounded-lg text-rms-ink-secondary hover:bg-rms-subtle transition-colors cursor-pointer text-sm whitespace-nowrap">
+           class="rms-nav-item rms-nav-item--inline cursor-pointer whitespace-nowrap">
           @if (item.icon) {
             <i [class]="item.icon" aria-hidden="true"></i>
           }
@@ -36,7 +36,7 @@
       @if (overflowMenuItems().length > 0) {
         <div class="relative overflow-menu-container">
           <button
-class="flex items-center gap-2 px-3 py-2 rounded-lg text-rms-ink-secondary hover:bg-rms-subtle hover:scale-105 transition-all duration-200 cursor-pointer text-sm whitespace-nowrap"
+class="rms-nav-item rms-nav-item--inline cursor-pointer whitespace-nowrap hover:scale-105 transition-all duration-200"
             (click)="toggleOverflowMenu($event)"
             aria-label="Ver más opciones de menú"
             title="Ver más opciones">
@@ -48,10 +48,10 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-rms-ink-secondary hover
               @for (item of overflowMenuItems(); track item.id) {
                 <a [routerLink]="item.routerLink"
                    #rla="routerLinkActive"
-                   routerLinkActive="!text-accent font-semibold"
+                   routerLinkActive="rms-nav-item--active"
                    [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
                    [attr.aria-current]="rla.isActive ? 'page' : null"
-                   class="flex items-center gap-3 px-4 py-2 text-rms-ink-secondary hover:bg-rms-subtle hover:pl-5 transition-all duration-200 cursor-pointer text-sm"
+                   class="rms-nav-item rms-nav-item--inline gap-3 py-2 pl-4 pr-4 cursor-pointer hover:pl-5 transition-all duration-200"
                    (click)="onOverflowItemClick(item)">
                   @if (item.icon) {
                     <i [class]="item.icon" aria-hidden="true"></i>

@@ -166,6 +166,11 @@
   } @else {
     <div class="week-grid__calendar" role="region" aria-label="Calendario semanal de turnos">
       <div class="week-grid__calendar-scroll">
+        <!-- Cell geometry (grid width, track height, bar offsets) is computed
+             from the timeline data at runtime, so it cannot be a static class.
+             These three bindings are the documented exception to the
+             no-inline-styles rule. -->
+        <!-- eslint-disable-next-line @angular-eslint/template/no-inline-styles -->
         <div
           class="week-grid__calendar-grid"
           [style.min-width.px]="140 + timelineHours().length * 56"
@@ -197,6 +202,7 @@
                 </span>
               </div>
 
+              <!-- eslint-disable-next-line @angular-eslint/template/no-inline-styles -->
               <div
                 class="week-grid__track"
                 [style.height.px]="day.trackHeight"
@@ -215,6 +221,7 @@
                   <span class="week-grid__track-empty">Sin turnos</span>
                 } @else {
                   @for (bar of day.bars; track bar.key) {
+                    <!-- eslint-disable-next-line @angular-eslint/template/no-inline-styles -->
                     <div
                       class="week-grid__bar"
                       role="listitem"

@@ -74,8 +74,8 @@
           ariaLabel="Pedidos nuevos y recurrentes por periodo"
         />
         <ul rmsChartLegend class="chart-legend">
-          <li><span class="chart-legend__swatch" [style.background]="chartColors().new"></span>Nuevos</li>
-          <li><span class="chart-legend__swatch" [style.background]="chartColors().recurring"></span>Recurrentes</li>
+          <li><span class="chart-legend__swatch chart-legend__swatch--1"></span>Nuevos</li>
+          <li><span class="chart-legend__swatch chart-legend__swatch--2"></span>Recurrentes</li>
         </ul>
         <div rmsChartData>
           <table class="data-table">
@@ -121,9 +121,8 @@
 
     <!-- Retention table: below the KPI row and the new-vs-recurring chart. -->
     <section
-      class="panel rms-defer-view"
-      aria-labelledby="cohort-table-title"
-      style="--rms-defer-size: 22rem">
+      class="panel rms-defer-view rms-defer-view--md"
+      aria-labelledby="cohort-table-title">
       <h2 id="cohort-table-title" class="panel__title">Retención por periodo</h2>
       <div class="panel__scroll" role="region" tabindex="0" aria-label="Retención por periodo, desplazable">
         <table class="data-table">

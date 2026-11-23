@@ -412,6 +412,10 @@ D-012: PrimeNG Dialog for complex flows, native sheet for simple panels.
 | `app-rms-page-header` | `title` (required), `subtitle`, `backLabel`; output `back`. Slots `[rmsPageHeaderMeta]`, `[rmsPageHeaderActions]`. |
 | `app-rms-stat-tile` | `label` (required), `value`, `period`, `delta`, `deltaTone`, `icon`, `loading`, `emphasis`. |
 | `app-rms-chart-frame` | `title` (required), `subtitle`, `height`, `loading`, `empty`, `error`, `emptyMessage`, `emptyActionLabel`, `errorTitle`, `summary`, `dataMode: none\|disclosure\|hidden`, `dataLabel`; outputs `retry`, `emptyAction`. Slots `[rmsChartActions]`, `[rmsChartLegend]`, `[rmsChartData]`. |
+| `app-rms-chart` | `type: bar\|line\|doughnut\|bubble` (required), `data` (required), `options`, `ariaLabel`. |
+
+`app-rms-chart` imports Chart.js core (not `chart.js/auto`), the frame owns the
+summary and the data table, and the canvas is `role="img"`.
 
 ### 9.5 Gallery
 
@@ -551,6 +555,12 @@ Layer scale (never a numeric `z-[…]` in feature code):
 | `--rms-z-overlay` | 1000 | scrim, popovers |
 | `--rms-z-dialog` | 1100 | dialogs, sheets |
 | `--rms-z-toast` | 1200 | toasts, skip link |
+
+Automated gates: `npm run lint:check` (ESLint, including no-inline-styles and
+the Chart.js import guard) and `npm run design:check` (scans templates for
+legacy PrimeNG controls, surface/palette classes, `dark:` pairs, raw hex and
+numeric `z-[…]`). `npm run verify:ui` runs lint, the design gate and the unit
+suite. The dev gallery is exempt from the design gate on purpose.
 
 Deferred rendering: `content-visibility: auto` is allowed only through the
 `.rms-defer-view` utility in `src/styles/global.css`, only on confirmed

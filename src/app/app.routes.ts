@@ -98,11 +98,13 @@ export const routes: Routes = [
         title: 'Panel',
         loadComponent: () =>
           import('@areas/admin/features/dashboard/dashboard').then((m) => m.Dashboard),
+        data: { preload: true },
       },
       {
         path: 'orders',
         title: 'Pedidos',
         loadComponent: () => import('@areas/admin/features/orders/orders').then((m) => m.Orders),
+        data: { preload: true },
       },
       {
         path: 'schedules',
@@ -336,7 +338,7 @@ export const routes: Routes = [
             (m) => m.WaiterDashboard,
           ),
         canActivate: [AreaGuard],
-        data: { workerWorkspaces: ['waiter'] } satisfies WorkerRouteData,
+        data: { workerWorkspaces: ['waiter'], preload: true } satisfies WorkerRouteData,
       },
       {
         path: 'combos/:id',
@@ -352,16 +354,14 @@ export const routes: Routes = [
         loadComponent: () =>
           import('@areas/worker/features/kitchen/kitchen').then((m) => m.Kitchen),
         canActivate: [AreaGuard],
-        data: { workerWorkspaces: ['kitchen'] } satisfies WorkerRouteData,
+        data: { workerWorkspaces: ['kitchen'], preload: true } satisfies WorkerRouteData,
       },
       {
         path: 'cashier',
         title: 'Caja',
         loadComponent: () => import('@areas/cashier/cashier-area').then((m) => m.CashierArea),
         canActivate: [AreaGuard],
-        data: { workerWorkspaces: ['cashier'], preload: false } satisfies WorkerRouteData & {
-          preload: false;
-        },
+        data: { workerWorkspaces: ['cashier'] } satisfies WorkerRouteData,
       },
       {
         path: 'profile',

@@ -195,11 +195,12 @@
           } @else if (previewImage().length > 0) {
             <div class="relative w-full h-[220px] flex items-center justify-center">
               <img [src]="previewImage()[0].desktopUrl" alt="Imagen del producto"
+                width="220" height="220"
                 class="max-w-full max-h-full object-contain rounded-lg" />
-              <p-button icon="pi pi-times" severity="danger" size="small" [rounded]="true"
-                styleClass="!absolute !top-2 !right-2"
-                pTooltip="Eliminar imagen" tooltipPosition="top"
-                (onClick)="removeImage(previewImage()[0]); $event.stopPropagation()" />
+              <app-rms-icon-button icon="pi pi-times" variant="danger" size="sm"
+                class="!absolute !top-2 !right-2"
+                ariaLabel="Eliminar imagen" tooltip="Eliminar imagen"
+                (click)="removeImage(previewImage()[0]); $event.stopPropagation()" />
             </div>
           } @else if (!canUploadImage()) {
             <i class="pi pi-image text-4xl text-rms-ink-muted mb-3" aria-hidden="true"></i>
@@ -219,11 +220,12 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
           <!-- Nombre -->
-          <p-iftalabel class="md:col-span-2">
-            <input pInputText id="name" class="w-full" formControlName="name"
-              [invalid]="isInvalid(baseForm, 'name')" />
-            <label for="name">Nombre del producto *</label>
-          </p-iftalabel>
+          <app-rms-input
+            id="name"
+            class="md:col-span-2"
+            label="Nombre del producto"
+            formControlName="name"
+            [required]="true" />
 
           <!-- Categoría + Área (same row) -->
           <p-iftalabel>
@@ -258,12 +260,14 @@
           </div>
 
           <!-- Descripción -->
-          <p-iftalabel class="md:col-span-2">
-            <textarea pTextarea id="description" class="w-full" formControlName="description"
-              rows="3" autoResize="true"
-              placeholder="Descripción opcional del producto"></textarea>
-            <label for="description">Descripción</label>
-          </p-iftalabel>
+          <app-rms-textarea
+            id="description"
+            class="md:col-span-2"
+            label="Descripción"
+            formControlName="description"
+            [rows]="3"
+            placeholder="Descripción opcional del producto"
+          />
         </div>
       </form>
     </div>
@@ -285,7 +289,8 @@
       <div class="flex items-center justify-between px-3">
         <div class="flex items-center gap-2 min-w-0">
           @if (previewImage().length > 0) {
-            <img [src]="previewImage()[0].desktopUrl" alt="" class="w-10 h-10 bg-rms-subtle object-contain rounded-lg shrink-0" />
+            <img [src]="previewImage()[0].desktopUrl" alt="" width="40" height="40"
+              class="w-10 h-10 bg-rms-subtle object-contain rounded-lg shrink-0" />
           }
           <span class="text-sm font-semibold text-rms-ink truncate">
             {{ baseForm.get('name')?.value || 'Producto sin nombre' }}
@@ -341,8 +346,9 @@
               <div class="flex items-center justify-center gap-1">
                 <button type="button" pButton icon="pi pi-minus" [text]="true" size="small" severity="secondary" aria-label="Disminuir cantidad"
                   (click)="decrementQty(existingRecipe, i); $event.stopPropagation()"></button>
-                <input pInputText type="number" class="w-14 text-center text-sm" formControlName="requiredQuantity"
-                  [min]="0.001" step="1" />
+                <input class="rms-input rms-input--sm w-14 text-center" type="number" formControlName="requiredQuantity"
+                  [min]="0.001" step="1"
+                  [attr.aria-label]="'Cantidad requerida de ' + (findVariantById($any(item).get('supplyVariantId')?.value)?.supplyName ?? 'insumo')" />
                 <button type="button" pButton icon="pi pi-plus" [text]="true" size="small" severity="secondary" aria-label="Aumentar cantidad"
                   (click)="incrementQty(existingRecipe, i); $event.stopPropagation()"></button>
               </div>
@@ -372,8 +378,9 @@
               <div class="flex items-center justify-center gap-1">
                 <button type="button" pButton icon="pi pi-minus" [text]="true" size="small" severity="secondary" aria-label="Disminuir cantidad"
                   (click)="decrementQty(baseRecipe, i); $event.stopPropagation()"></button>
-                <input pInputText type="number" class="w-14 text-center text-sm" formControlName="requiredQuantity"
-                  [min]="0.001" step="1" />
+                <input class="rms-input rms-input--sm w-14 text-center" type="number" formControlName="requiredQuantity"
+                  [min]="0.001" step="1"
+                  [attr.aria-label]="'Cantidad requerida de ' + (findVariantById($any(item).get('supplyVariantId')?.value)?.supplyName ?? 'insumo')" />
                 <button type="button" pButton icon="pi pi-plus" [text]="true" size="small" severity="secondary" aria-label="Aumentar cantidad"
                   (click)="incrementQty(baseRecipe, i); $event.stopPropagation()"></button>
               </div>

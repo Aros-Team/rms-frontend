@@ -38,33 +38,13 @@
   gap: var(--rms-space-2);
 }
 
+/*
+ * `.nav-tile` is only the rail's slot in the grid now: the item skin (display,
+ * direction, padding, colour, radius, hover, active) comes from the shared
+ * `.rms-nav-item` / `.rms-nav-item--tile` classes in `src/styles/global.css`.
+ */
 .nav-tile {
-  display: flex;
   min-width: 0;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--rms-space-1);
-  border-radius: var(--rms-radius-sm);
-  padding: var(--rms-space-2) var(--rms-space-1);
-  color: var(--rms-text-secondary);
-  text-align: center;
-  transition:
-    background-color 180ms ease,
-    color 180ms ease,
-    transform 180ms ease;
-}
-
-.nav-tile:hover {
-  background: var(--rms-bg-subtle);
-}
-
-.nav-tile__label {
-  font-size: 0.5625rem;
-  line-height: 1.25;
-  font-weight: 500;
-  overflow-wrap: normal;
-  hyphens: none;
 }
 
 .nav-grid__item {
@@ -87,8 +67,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .admin-panel,
-  .nav-tile {
+  .admin-panel {
     transition: none;
   }
 

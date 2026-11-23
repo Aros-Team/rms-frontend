@@ -6,9 +6,9 @@
   </div>
 } @else {
   <div
-    class="flex flex-col w-full border rounded-xl bg-primary-contrast overflow-hidden transition-colors"
-    [class.border-surface-200]="!selected"
-    [class.border-primary]="selected"
+    class="flex flex-col w-full border rounded-xl bg-rms-surface overflow-hidden transition-colors"
+    [class.border-rms-border]="!selected"
+    [class.border-rms-brand-text]="selected"
     [class.opacity-50]="disabled"
     [class.pointer-events-none]="disabled || unavailable"
     [class.cursor-pointer]="!disabled && !unavailable"
@@ -19,7 +19,7 @@
     role="option"
     [attr.aria-selected]="selected"
   >
-    <div class="relative w-full aspect-square bg-surface-100 dark:bg-surface-800">
+    <div class="relative w-full aspect-square bg-rms-subtle">
       @if (product?.imageUrl) {
         <img
           [src]="product!.imageUrl!"
@@ -44,20 +44,20 @@
       }
 
       @if (selected) {
-        <div class="absolute inset-0 bg-primary/20 flex items-center justify-center">
+        <div class="absolute inset-0 bg-rms-brand/20 flex items-center justify-center">
           <i class="pi pi-check-circle text-accent text-2xl" aria-hidden="true"></i>
         </div>
       }
 
       @if (unavailable) {
-        <div class="absolute top-2 left-2 bg-surface-600 text-surface-0 text-xs font-bold px-2 py-0.5 rounded">
+        <div class="absolute top-2 left-2 bg-rms-ink-secondary text-rms-ink-inverse text-xs font-bold px-2 py-0.5 rounded">
           No disponible
         </div>
       }
     </div>
 
     <div class="flex flex-col gap-1 p-2">
-      <span class="text-xs sm:text-sm font-medium text-surface-900 truncate leading-tight">{{ product?.name }}</span>
+      <span class="text-xs sm:text-sm font-medium text-rms-ink truncate leading-tight">{{ product?.name }}</span>
       <span class="text-xs sm:text-sm font-semibold text-muted" [class.line-through]="unavailable">
         {{ product?.basePrice | money }}
       </span>

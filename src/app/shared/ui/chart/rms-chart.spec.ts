@@ -90,6 +90,8 @@ describe('RmsChart', () => {
   afterEach(() => {
     fixture?.destroy();
     fixture = undefined;
+    document.documentElement.classList.remove('dark');
+    document.documentElement.classList.remove('rms-unrelated');
     vi.restoreAllMocks();
   });
 
@@ -171,5 +173,36 @@ describe('RmsChart', () => {
     const second = Chart.getChart(element);
     expect(second).toBeDefined();
     expect(second).not.toBe(first);
+  });
+
+  it('rebuilds the chart when the dark class is toggled', async () => {
+    installCanvasContextStub();
+    const mounted = await setup();
+    const element = canvas(mounted) as HTMLCanvasElement;
+    const first = Chart.getChart(element);
+    expect(first).toBeDefined();
+
+    document.documentElement.classList.add('dark');
+    await Promise.resolve();
+
+    const second = Chart.getChart(element);
+    expect(second).toBeDefined();
+    expect(second).not.toBe(first);
+    expect(() => {
+      mounted.destroy();
+    }).not.toThrow();
+  });
+
+  it('does not rebuild when an unrelated class changes', async () => {
+    installCanvasContextStub();
+    const mounted = await setup();
+    const element = canvas(mounted) as HTMLCanvasElement;
+    const first = Chart.getChart(element);
+
+    document.documentElement.classList.add('rms-unrelated');
+    await Promise.resolve();
+    document.documentElement.classList.remove('rms-unrelated');
+
+    expect(Chart.getChart(element)).toBe(first);
   });
 });

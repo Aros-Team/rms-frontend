@@ -43,3 +43,12 @@
 .panel__scroll {
   max-height: 30rem;
 }
+
+/* Legend swatches mirror the chart series palette (see cohort.ts). */
+.chart-legend__swatch--1 {
+  background: var(--rms-chart-1);
+}
+
+.chart-legend__swatch--2 {
+  background: var(--rms-chart-2);
+}

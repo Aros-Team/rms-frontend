@@ -65,8 +65,8 @@
   styleClass="w-[400px]"
 >
   <form [formGroup]="form" class="flex flex-col gap-4">
-    <app-rms-input id="name" label="Nombre" formControlName="name" [required]="true" />
-    <app-form-validation field="name"></app-form-validation>
+    <app-rms-input id="name" label="Nombre" formControlName="name" [required]="true" [describedByIds]="'error-name'" />
+    <app-form-validation id="error-name" field="name"></app-form-validation>
 
     <app-rms-select
       id="type"
@@ -74,8 +74,9 @@
       [options]="areaTypes"
       formControlName="type"
       placeholder="Seleccionar tipo"
-      [required]="true" />
-    <app-form-validation field="type"></app-form-validation>
+      [required]="true"
+      [describedByIds]="'error-type'" />
+    <app-form-validation id="error-type" field="type"></app-form-validation>
   </form>
 
   <ng-template pTemplate="footer">

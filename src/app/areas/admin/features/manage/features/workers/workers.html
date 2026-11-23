@@ -242,6 +242,8 @@
           [showClear]="true"
           class="w-full"
           appendTo="body"
+          inputId="create.areaId"
+          [pt]="{ label: { 'aria-describedby': 'error-areaId' } }"
         >
           <ng-template #item let-area>
             <span class="text-sm">{{ area.name.toLowerCase() }}</span>
@@ -251,7 +253,7 @@
           </ng-template>
         </p-select>
         <label for="create.areaId">Área de trabajo *</label>
-        <app-form-validation field="areaId" [backendError]="getBackendError('areaId')"></app-form-validation>
+        <app-form-validation id="error-areaId" field="areaId" [backendError]="getBackendError('areaId')"></app-form-validation>
       </p-iftalabel>
       <app-rms-input
         #firstInputRef

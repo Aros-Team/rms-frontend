@@ -326,17 +326,13 @@
         <label for="totalAmount">Total pagado</label>
       </p-iftalabel>
 
-      <p-iftalabel>
-        <textarea
-          pTextarea
-          id="notes"
-          formControlName="notes"
-          rows="2"
-          class="w-full"
-          placeholder="Observaciones opcionales"
-        ></textarea>
-        <label for="notes">Notas</label>
-      </p-iftalabel>
+      <app-rms-textarea
+        id="notes"
+        label="Notas"
+        formControlName="notes"
+        [rows]="2"
+        placeholder="Observaciones opcionales"
+      />
     </div>
 
     <div>

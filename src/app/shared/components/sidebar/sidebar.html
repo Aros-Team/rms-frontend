@@ -2,7 +2,7 @@
     id="app-sidebar"
     [attr.inert]="visible ? null : ''"
     [attr.aria-hidden]="visible ? null : 'true'"
-    class="admin-panel bg-rms-page flex flex-col
+    class="admin-panel bg-rms-page flex flex-col pt-[env(safe-area-inset-top)]
     fixed inset-0 w-full h-full z-[var(--rms-z-drawer)] transition-transform duration-300 ease-in-out
     translate-x-full md:translate-x-0
     md:relative md:inset-auto md:h-full md:z-auto md:shrink-0 md:mb-4"
@@ -24,16 +24,16 @@
                 <li class="nav-grid__item" [style.animation-delay.ms]="expanded ? i * 30 : 0">
                     <a [routerLink]="item.routerLink"
                         #rla="routerLinkActive"
-                        routerLinkActive="!text-accent font-semibold"
+                        routerLinkActive="rms-nav-item--active"
                         [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
                         [attr.aria-current]="rla.isActive ? 'page' : null"
-                        class="nav-tile cursor-pointer"
+                        class="rms-nav-item rms-nav-item--tile nav-tile cursor-pointer"
                         [attr.title]="expanded ? null : item.label"
                         (click)="onMenuItemClick(item)">
                         @if (item.icon) {
                             <i [class]="item.icon + ' text-lg'" aria-hidden="true"></i>
                         }
-                        <span class="nav-tile__label">{{ item.label }}</span>
+                        <span class="nav-tile__label rms-nav-item__label">{{ item.label }}</span>
                     </a>
                 </li>
             }
@@ -43,12 +43,12 @@
     <div class="mt-auto p-2 lg:px-3 lg:pb-3" [class.hidden]="expanded">
         <button
             type="button"
-            class="nav-tile w-full cursor-pointer"
+            class="rms-nav-item rms-nav-item--tile nav-tile w-full cursor-pointer"
             (click)="toggleChat.emit()"
             aria-label="Abrir asistente ABI"
             title="Asistente ABI">
             <i class="pi pi-comments text-lg" aria-hidden="true"></i>
-            <span class="nav-tile__label">Asistente</span>
+            <span class="nav-tile__label rms-nav-item__label">Asistente</span>
         </button>
     </div>
 

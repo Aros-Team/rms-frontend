@@ -51,8 +51,8 @@
         @for (cat of ref.categories(); track cat.id) {
           <p-chip
             [label]="cat.name"
-            [style]="isCategorySelected(cat.id) ? 'background: var(--rms-bg-selected); border: 1px solid var(--rms-brand-text);' : 'background: var(--rms-bg-subtle); border: 1px solid var(--rms-border);'"
-            class="cursor-pointer"
+            class="chip cursor-pointer"
+            [class.chip--selected]="isCategorySelected(cat.id)"
             (click)="toggleCategory(cat.id)"
           />
         } @empty {
@@ -81,8 +81,8 @@
               @for (day of allDays; track day.value) {
                 <p-chip
                   [label]="day.label"
-                  [style]="isDayInBlock(block.id, day.value) ? 'background: var(--rms-bg-selected); border: 1px solid var(--rms-brand-text);' : 'background: var(--rms-bg-subtle); border: 1px solid var(--rms-border);'"
-                  class="cursor-pointer"
+                  class="chip cursor-pointer"
+                  [class.chip--selected]="isDayInBlock(block.id, day.value)"
                   (click)="toggleBlockDay(block.id, day.value)"
                 />
               }

@@ -107,8 +107,9 @@
       label="Nombre"
       formControlName="name"
       autocomplete="off"
-      [required]="true" />
-    <app-form-validation field="name" />
+      [required]="true"
+      [describedByIds]="'error-name-product'" />
+    <app-form-validation id="error-name-product" field="name" />
 
     @if (productCategoryError()) {
       <small class="text-rms-danger">{{ productCategoryError() }}</small>
@@ -133,8 +134,9 @@
       label="Nombre"
       formControlName="name"
       autocomplete="off"
-      [required]="true" />
-    <app-form-validation field="name" />
+      [required]="true"
+      [describedByIds]="'error-name-supply'" />
+    <app-form-validation id="error-name-supply" field="name" />
 
     @if (supplyCategoryError()) {
       <small class="text-rms-danger">{{ supplyCategoryError() }}</small>

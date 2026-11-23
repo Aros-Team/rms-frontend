@@ -42,6 +42,8 @@ export interface WorkerRouteData {
   readonly anyWorker?: true;
   /** Workspaces allowed to enter the route. Empty/absent means deny. */
   readonly workerWorkspaces?: readonly WorkerWorkspace[];
+  /** Opt this entry screen into idle preloading (see SelectivePreloadingStrategy). */
+  readonly preload?: true;
 }
 
 const WORKSPACE_AREAS: Readonly<Record<WorkerWorkspace, readonly AreaTypeValue[]>> = {
