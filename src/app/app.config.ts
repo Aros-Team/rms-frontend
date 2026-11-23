@@ -36,7 +36,7 @@ import { routes } from './app.routes';
  * in `src/environments/theme.ts`. Reference: `docs/design/waiter-service.md`
  * § 2 (Color Tokens) and § 9 (PrimeNG + Tailwind v4 Mapping Cheat Sheet).
  *
- * - `Primary`  — brand gold `#F9BB0B` ramp.
+ * - `Primary`  — cream `#FDEFC7` fill with dark-gold ink `#896511`.
  * - `Semantic` — info/success/warn ramps (functional state colors).
  * - `Surface`  — slate enterprise family `#f8fafc` → `#64748b` (App-in-Card).
  */
@@ -59,8 +59,8 @@ const arosPreset = definePreset(Aura, {
       100: '#fdf0c8',
       200: '#fbe08f',
       300: '#f9cf52',
-      400: '#f9bb0b',
-      500: '#f9bb0b',
+      400: '#fdefc7',
+      500: '#fdefc7',
       600: '#d9a209',
       700: '#b07e06',
       800: '#8a6508',
@@ -264,9 +264,9 @@ const arosPreset = definePreset(Aura, {
         light: {
           root: {
             primary: {
-              color: '#1e1b19',
-              hoverColor: '#1e1b19',
-              activeColor: '#1e1b19',
+              color: '#896511',
+              hoverColor: '#896511',
+              activeColor: '#896511',
             },
             info: {
               background: '{Semantic.info.600}',
@@ -324,9 +324,9 @@ const arosPreset = definePreset(Aura, {
         dark: {
           root: {
             primary: {
-              color: '#1e1b19',
-              hoverColor: '#1e1b19',
-              activeColor: '#1e1b19',
+              color: '#896511',
+              hoverColor: '#896511',
+              activeColor: '#896511',
             },
           },
           text: {

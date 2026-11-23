@@ -145,7 +145,7 @@
    ======================================== */
 :root {
   /* Raw brand colour, used to derive high-contrast tints without cycles. */
-  --brand-gold: #F9BB0B;
+  --brand-gold: #fdefc7;
 
   color-scheme: light dark;
 
@@ -160,10 +160,7 @@
 
 /* ========================================
    Accent text
-   The brand gold (#F9BB0B) is a *fill* colour: as text on a light surface it
-   is 1.7:1, and no amount of it can reach 4.5:1 without turning brown. So the
-   palette stays for fills and the accent gets its own, readable value that
-   flips with the theme — dark bronze on light, pale gold on dark.
+   The brand fill is cream (#FDEFC7); its ink is dark gold (#896511).
    ======================================== */
 :root {
   --accent-text: var(--rms-brand-text); /* 5.3:1 on #ffffff, 5.1:1 on the slate-50 page */

@@ -67,15 +67,34 @@ The theme boots in `index.html` before first paint and is kept in sync by
 | `--rms-neutral-800` | `#1e293b` | Card surface (dark) |
 | `--rms-neutral-900` | `#0f172a` | Page (dark), primary text (light) |
 | `--rms-neutral-950` | `#020617` | Sunken surface (dark) |
-| `--rms-brand-500` | `#f9bb0b` | **Fill only**: primary CTA, selected marker |
+| `--rms-brand-500` | `#fdefc7` | **Fill only**: primary CTA, selected marker |
 | `--rms-brand-600` | `#d9a209` | Primary hover |
 | `--rms-brand-700` | `#b07e06` | Primary active, large graphic strokes |
-| `--rms-brand-text` | `#8a6508` / `#f2daa2` | Brand-coloured **text** |
+| `--rms-brand-text` | `#8a6508` / `#f2daa2` | Brand-coloured **text and borders** |
 | `--rms-brand-soft` | `#fef7e0` / `#2a230f` | Selected row/badge background |
-| `--rms-on-brand` | `#1e1b19` | Text/icon on a gold fill (9.49:1) |
+| `--rms-on-brand` | `#896511` | Dark-gold **ink** on the cream fill |
 
-Hard rule: `#f9bb0b` is never text and never a small icon. On a gold fill use
-`--rms-text-on-brand`, never white.
+### 2.1.1 Hard rule — a colour keeps its role
+
+Every colour has exactly one job: **fill**, **ink** or **border**. The pair is
+deliberate and must never be inverted:
+
+- `#fdefc7` is the **fill** (background). It is never text or a border colour
+  for content on white.
+- `#896511` is the **ink/border** (dark gold). It is **never a background**:
+  no `background: #896511`, no `bg-[#896511]`, no inline `background-color`
+  with that value. The same applies to every `*-text`, `*-fg`, `*-border` and
+  `*-on-*` token: those tokens are ink, not surfaces.
+- The only legitimate dark-gold surface is a status/solid token that explicitly
+  says `*-solid` and carries its matching `*-on-solid` ink. Brand text is not
+  one of them.
+- Do not repurpose a global palette token to fix one component, and do not
+  invert a fill/ink pair when a design change arrives. Change the component to
+  the token with the correct role; if the pair itself changes, update both
+  tokens and re-run contrast checks.
+- Before touching a brand value, list every surface that reads it (buttons,
+  tabs, badges, charts, calendars) and run the a11y suite; a palette edit is a
+  cross-product change, not a one-screen change.
 
 ### 2.2 Semantic roles
 
@@ -493,3 +512,22 @@ Legacy compatibility kept in Round 1 (do not add new uses):
   icons hidden, and one H1 where the component owns it.
 - Run `npm run lint:check`, `npx tsc -p tsconfig.app.json --noEmit` and
   `npm run build` before handing off.
+
+### Hard rule — fill vs ink (incident 2026-11-23)
+
+A palette edit set the dark-gold ink (`#896511`) as `primary.contrastColor` to
+put it on the new cream fill. Because legacy surfaces read
+`--p-primary-contrast-color` as a **background** (`bg-primary-contrast`), the
+header account chip and cards turned dark gold with dark text. The mistake was
+using one token for two roles.
+
+Rules going forward:
+
+1. Fill tokens (`--rms-brand-500`, `--rms-brand-soft`, `*-bg`, `*-solid`) are
+   backgrounds; ink tokens (`--rms-brand-text`, `*-fg`, `*-text`, `*-on-*`)
+   are text/borders. Never cross them.
+2. `#896511` is ink/border only; `#fdefc7` is a fill only.
+3. A component-level fix must not edit the global ramp. Add or use a
+   role-specific token instead.
+4. Any change to a role token requires the a11y suite before commit, including
+   the schedules calendar (small 12 px text on tinted bars).
