@@ -217,9 +217,6 @@
                   @for (bar of day.bars; track bar.key) {
                     <div
                       class="week-grid__bar"
-                      [class.week-grid__bar--service]="bar.tone === 'service'"
-                      [class.week-grid__bar--kitchen]="bar.tone === 'kitchen'"
-                      [class.week-grid__bar--cash]="bar.tone === 'cash'"
                       role="listitem"
                       [style.left.%]="bar.left"
                       [style.width.%]="bar.width"

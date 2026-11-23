@@ -740,11 +740,11 @@
   align-items: center;
   gap: var(--rms-space-2);
   overflow: hidden;
-  border-left: 3px solid var(--rms-border);
+  border-left: 3px solid var(--rms-brand-text);
   border-radius: var(--rms-radius-sm);
-  background: var(--rms-shift-cash-bg);
+  background: var(--rms-brand-soft);
   padding: 0 var(--rms-space-2);
-  color: var(--rms-shift-cash-fg);
+  color: var(--rms-brand-text);
   font-size: var(--rms-type-caption-size);
   white-space: nowrap;
 }
@@ -769,23 +769,7 @@
   opacity: 0.85;
 }
 
-.week-grid__bar--service {
-  border-left-color: var(--rms-shift-service-accent);
-  background: var(--rms-shift-service-bg);
-  color: var(--rms-shift-service-fg);
-}
 
-.week-grid__bar--kitchen {
-  border-left-color: var(--rms-shift-kitchen-accent);
-  background: var(--rms-shift-kitchen-bg);
-  color: var(--rms-shift-kitchen-fg);
-}
-
-.week-grid__bar--cash {
-  border-left-color: var(--rms-shift-cash-accent);
-  background: var(--rms-shift-cash-bg);
-  color: var(--rms-shift-cash-fg);
-}
 
 .week-grid__track-empty {
   position: absolute;

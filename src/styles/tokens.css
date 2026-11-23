@@ -41,16 +41,6 @@
   --rms-brand-text: #8a6508; /* 5.32:1 on white */
   --rms-brand-soft: #fef7e0; /* selected row / badge background */
 
-  /* Shift bars: dark surfaces with the light tint of the same hue as text. */
-  --rms-shift-service-bg: #1e3a8a;
-  --rms-shift-service-fg: #dbeafe;
-  --rms-shift-service-accent: #93c5fd;
-  --rms-shift-kitchen-bg: #065f46;
-  --rms-shift-kitchen-fg: #d1fae5;
-  --rms-shift-kitchen-accent: #6ee7b7;
-  --rms-shift-cash-bg: #334155;
-  --rms-shift-cash-fg: #e2e8f0;
-  --rms-shift-cash-accent: #cbd5e1;
   --rms-on-brand: #1e1b19; /* 9.49:1 on gold */
 
   /* Type families */
