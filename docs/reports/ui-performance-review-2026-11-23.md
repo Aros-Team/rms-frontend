@@ -507,9 +507,11 @@ build and is the real gate.
 
 The backend now exposes `/ws-native` (`registry.addEndpoint("/ws-native")`
 without `withSockJS()`), with the same allowed origins and the same
-`WebSocketChannelInterceptor`. `/ws` stays as a legacy SockJS endpoint.
+`WebSocketChannelInterceptor`. The legacy SockJS endpoint `/ws` was removed:
+nothing in the repository used it and the browser/mobile clients now speak STOMP
+over the native transport.
 
-The frontend `WebSocket` service uses STOMP over a native `brokerURL`
+After SockJS was fully removed, the frontend `WebSocket` service uses STOMP over a native `brokerURL`
 (normalising `http(s)://` to `ws(s)://`), and `sockjs-client`, `@types/sockjs-client`
 and the `window.global` shim in `main.ts` are gone. Effects:
 
