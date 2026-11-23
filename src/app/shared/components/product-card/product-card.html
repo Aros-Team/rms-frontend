@@ -19,14 +19,14 @@
     role="option"
     [attr.aria-selected]="selected"
   >
-    <div class="relative w-full aspect-[3/2] bg-surface-100 dark:bg-surface-800">
+    <div class="relative w-full aspect-square bg-surface-100 dark:bg-surface-800">
       @if (product?.imageUrl) {
         <img
           [src]="product!.imageUrl!"
           [alt]="product?.name ?? ''"
           width="600"
-          height="400"
-          class="w-full h-full object-cover"
+          height="600"
+          class="w-full h-full object-contain"
           loading="lazy"
           decoding="async"
           (error)="$any($event.target).src = defaultImage"
@@ -36,8 +36,8 @@
           [src]="defaultImage"
           [alt]="product?.name ?? ''"
           width="600"
-          height="400"
-          class="w-full h-full object-cover"
+          height="600"
+          class="w-full h-full object-contain"
           loading="lazy"
           decoding="async"
         />

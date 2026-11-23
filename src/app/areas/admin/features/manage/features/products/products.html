@@ -63,7 +63,7 @@
                   [alt]="product.name"
                   width="48"
                   height="48"
-                  class="w-12 h-12 object-cover rounded shrink-0"
+                  class="w-12 h-12 bg-rms-subtle object-contain rounded shrink-0"
                   loading="lazy"
                   decoding="async"
                 />
@@ -285,7 +285,7 @@
       <div class="flex items-center justify-between px-3">
         <div class="flex items-center gap-2 min-w-0">
           @if (previewImage().length > 0) {
-            <img [src]="previewImage()[0].desktopUrl" alt="" class="w-10 h-10 object-cover rounded-lg shrink-0" />
+            <img [src]="previewImage()[0].desktopUrl" alt="" class="w-10 h-10 bg-rms-subtle object-contain rounded-lg shrink-0" />
           }
           <span class="text-sm font-semibold text-rms-ink truncate">
             {{ baseForm.get('name')?.value || 'Producto sin nombre' }}
