@@ -1,5 +1,6 @@
 <div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.workers" (appLazyLoadVisible)="onVisible()">
-  <app-rms-page-header title="Administración de trabajadores">
+  <app-rms-page-header
+    [compact]="true" title="Administración de trabajadores">
     <div rmsPageHeaderActions>
       <app-rms-button iconStart="pi pi-user-plus" (click)="showCreationModal()">
         Nuevo empleado

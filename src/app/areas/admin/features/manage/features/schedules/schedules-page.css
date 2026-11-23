@@ -10,7 +10,7 @@
 .schedules-page {
   display: flex;
   flex-direction: column;
-  gap: var(--rms-space-4);
+  gap: var(--rms-space-3);
   min-width: 0;
 }
 

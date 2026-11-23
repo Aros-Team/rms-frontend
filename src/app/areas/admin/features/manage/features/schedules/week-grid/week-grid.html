@@ -200,7 +200,7 @@
               <div
                 class="week-grid__track"
                 [style.height.px]="day.trackHeight"
-                role="list"
+                [attr.role]="day.bars.length > 0 ? 'list' : null"
                 [attr.aria-label]="day.label + ' ' + dayNumber(day.date)"
               >
                 <div class="week-grid__cells" aria-hidden="true">

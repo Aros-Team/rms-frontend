@@ -34,6 +34,15 @@ class PageHeaderHost {
   backClicks = 0;
 }
 
+@Component({
+  standalone: true,
+  imports: [RmsPageHeader],
+  template: `<app-rms-page-header title="Pedidos" [compact]="true" />`,
+})
+class CompactPageHeaderHost {
+  readonly compact = true;
+}
+
 describe('RmsPageHeader', () => {
   let fixture: ComponentFixture<PageHeaderHost>;
   let host: PageHeaderHost;
@@ -58,6 +67,17 @@ describe('RmsPageHeader', () => {
 
     expect(headings).toHaveLength(1);
     expect(headings[0].textContent.trim()).toBe('Pedidos');
+  });
+
+  it('keeps the H1 for assistive tech in compact mode', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ imports: [CompactPageHeaderHost] });
+    const compact = TestBed.createComponent(CompactPageHeaderHost);
+    compact.detectChanges();
+
+    const heading = (compact.nativeElement as HTMLElement).querySelector('h1');
+    expect(heading?.classList.contains('sr-only')).toBe(true);
+    expect(heading?.textContent.trim()).toBe('Pedidos');
   });
 
   it('renders the subtitle', () => {

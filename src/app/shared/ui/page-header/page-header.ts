@@ -16,12 +16,15 @@ import { RmsButton } from '../button/button';
 @Component({
   selector: 'app-rms-page-header',
   templateUrl: './page-header.html',
+  host: { '[class.rms-page-header-host--compact]': 'compact' },
   styleUrl: './page-header.css',
   imports: [RmsButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RmsPageHeader {
   @Input({ required: true }) title!: string;
+  /** List pages: keep the H1 for assistive tech but hide the large title. */
+  @Input() compact = false;
   @Input() subtitle = '';
   /** Detail pages show a back link instead of a second H1. */
   @Input() backLabel = '';

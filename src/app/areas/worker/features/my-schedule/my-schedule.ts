@@ -37,7 +37,6 @@ import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsCard } from '@app/shared/ui/card/card';
 import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
 import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
-import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 import { RmsSection } from '@app/shared/ui/section/section';
 import { RmsSkeleton } from '@app/shared/ui/skeleton/skeleton';
 
@@ -91,7 +90,6 @@ type ClockAction = 'in' | 'out';
     RmsCard,
     RmsEmptyState,
     RmsIconButton,
-    RmsPageHeader,
     RmsSection,
     RmsSkeleton,
   ],

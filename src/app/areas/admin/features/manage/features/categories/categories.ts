@@ -19,7 +19,6 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
-import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 
 @Component({
   selector: 'app-categories',
@@ -37,7 +36,6 @@ import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
     LazyLoad,
     RmsButton,
     RmsIconButton,
-    RmsPageHeader,
   ],
   templateUrl: './categories.html',
   providers: [MessageService],

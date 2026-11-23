@@ -1,7 +1,8 @@
 <p-toast />
 
 <div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.suppliesPage" (appLazyLoadVisible)="onVisible()">
-  <app-rms-page-header title="Inventario e Insumos">
+  <app-rms-page-header
+    [compact]="true" title="Inventario e Insumos">
     <div rmsPageHeaderActions>
       <app-search-input
         placeholder="Buscar compra..."

@@ -1,5 +1,6 @@
 <div class="analytics-page">
-  <app-rms-page-header title="Tu carta, clasificada" [subtitle]="subtitle()">
+  <app-rms-page-header
+    [compact]="true" title="Tu carta, clasificada" [subtitle]="subtitle()">
     <span rmsPageHeaderMeta>
       @if (refreshedLabel(); as label) {
         Datos actualizados: {{ label }}

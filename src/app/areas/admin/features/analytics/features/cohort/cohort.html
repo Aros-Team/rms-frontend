@@ -1,5 +1,6 @@
 <div class="analytics-page">
-  <app-rms-page-header title="Cohortes de clientes" [subtitle]="subtitle()">
+  <app-rms-page-header
+    [compact]="true" title="Cohortes de clientes" [subtitle]="subtitle()">
     <span rmsPageHeaderMeta>
       @if (strategy(); as strategyLabel) {
         Huella: {{ strategyLabel }}

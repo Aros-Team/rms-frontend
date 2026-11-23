@@ -1,5 +1,6 @@
 <div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.areas" (appLazyLoadVisible)="onVisible()">
-  <app-rms-page-header title="Áreas de Trabajo">
+  <app-rms-page-header
+    [compact]="true" title="Áreas de Trabajo">
     <div rmsPageHeaderActions>
       <app-rms-button iconStart="pi pi-plus" (click)="showCreateModal()">Nueva área</app-rms-button>
     </div>

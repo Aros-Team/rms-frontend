@@ -1,5 +1,6 @@
 <div class="analytics-page">
-  <app-rms-page-header title="Eficiencia operativa" [subtitle]="subtitle()">
+  <app-rms-page-header
+    [compact]="true" title="Eficiencia operativa" [subtitle]="subtitle()">
     <span rmsPageHeaderMeta>Comparado con {{ previousLabel() }}</span>
     <div rmsPageHeaderActions>
       <app-rms-button
