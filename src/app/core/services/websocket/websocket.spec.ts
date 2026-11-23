@@ -1,64 +1,43 @@
-/**
- * Tests for the lazy SockJS loading in `WebSocket`.
- *
- * Contract:
- *  - `sockjs-client` is only touched when `connect()` runs, never on service
- *    creation, so screens that merely inject the service do not pull the chunk;
- *  - `connect()` keeps returning `void` synchronously;
- *  - concurrent `connect()` calls share one import and one client;
- *  - `disconnect()` while the import is unresolved prevents client creation.
- */
 import { TestBed } from '@angular/core/testing';
-import { beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 
 import { Logging } from '@app/core/services/logging/logging';
 import { WebSocket } from './websocket';
 
-interface FakeClientConfig {
-  webSocketFactory: () => unknown;
+interface FakeClientOptions {
+  brokerURL?: string;
   connectHeaders?: Record<string, string>;
 }
 
-const sockJs = vi.hoisted(() => {
-  function fakeSockJs(url: string): { url: string; kind: string } {
-    return { url, kind: 'sockjs' };
-  }
-  return { factory: vi.fn(fakeSockJs) };
-});
+const { FakeClient, instances } = vi.hoisted(() => {
+  const instances: FakeClient[] = [];
 
-const stomp = vi.hoisted(() => {
-  const instances: FakeStompClient[] = [];
-
-  class FakeStompClient {
+  class FakeClient {
     active = false;
-    socket: unknown = null;
-    config: FakeClientConfig;
+    options: FakeClientOptions;
     onConnect?: (frame: unknown) => void;
+    onStompError?: (frame: unknown) => void;
+    onWebSocketError?: (event: unknown) => void;
+    onWebSocketClose?: (event: unknown) => void;
+    onDisconnect?: () => void;
 
-    constructor(config: FakeClientConfig) {
-      this.config = config;
+    activate = vi.fn(() => {
+      this.active = true;
+    });
+    deactivate = vi.fn(() => {
+      this.active = false;
+    });
+    subscribe = vi.fn(() => ({ unsubscribe: vi.fn() }));
+
+    constructor(options: FakeClientOptions) {
+      this.options = options;
       instances.push(this);
     }
-
-    activate(): void {
-      this.active = true;
-      this.socket = this.config.webSocketFactory();
-    }
-
-    deactivate(): void {
-      this.active = false;
-    }
-
-    subscribe(): { unsubscribe: () => void } {
-      return { unsubscribe: () => undefined };
-    }
   }
 
-  return { FakeStompClient, instances };
+  return { FakeClient, instances };
 });
 
-vi.mock('sockjs-client', () => ({ default: sockJs.factory }));
-vi.mock('@stomp/stompjs', () => ({ Client: stomp.FakeStompClient }));
+vi.mock('@stomp/stompjs', () => ({ Client: FakeClient }));
 
 const logger = {
   debug: vi.fn(),
@@ -67,114 +46,83 @@ const logger = {
   error: vi.fn(),
 };
 
-describe('WebSocket lazy SockJS import', () => {
+describe('WebSocket (native STOMP)', () => {
   let service: WebSocket;
 
-  // The Vite module runner resolves dynamic imports over one or more macrotasks
-  // (the stale-attempt case starts two loads), so wait a bounded number of ticks.
-  const flushAsyncWork = async (): Promise<void> => {
-    for (let tick = 0; tick < 5; tick++) {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    }
-    await Promise.resolve();
-  };
-
   beforeEach(() => {
-    sockJs.factory.mockClear();
-    stomp.instances.length = 0;
-    logger.debug.mockClear();
-    logger.info.mockClear();
-    logger.warn.mockClear();
-    logger.error.mockClear();
-
+    instances.length = 0;
+    vi.clearAllMocks();
+    TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [{ provide: Logging, useValue: logger }],
+      providers: [WebSocket, { provide: Logging, useValue: logger }],
     });
     service = TestBed.inject(WebSocket);
   });
 
-  it('does not touch SockJS until connect() is called', async () => {
-    expect(sockJs.factory).not.toHaveBeenCalled();
-    await flushAsyncWork();
-    expect(sockJs.factory).not.toHaveBeenCalled();
-    expect(stomp.instances).toHaveLength(0);
+  afterEach(() => {
+    service.ngOnDestroy();
   });
 
-  it('returns void synchronously and imports SockJS after connect()', async () => {
-    expectTypeOf<typeof service.connect>().returns.toBeVoid();
+  it('connects to the native endpoint with the bearer header', () => {
+    // Typed as void so a future async signature change fails the build.
+    const connect: (url: string, token: string) => void = service.connect.bind(service);
+    connect('ws://localhost:8080/ws-native', 'token-1');
 
-    service.connect('http://localhost:8080/ws', 'token-123');
-
-    // Nothing is imported nor constructed during the synchronous call.
-    expect(sockJs.factory).not.toHaveBeenCalled();
-    expect(stomp.instances).toHaveLength(0);
-
-    await flushAsyncWork();
-
-    expect(sockJs.factory).toHaveBeenCalledTimes(1);
-    expect(stomp.instances).toHaveLength(1);
-    expect(stomp.instances[0].config).toMatchObject({
-      connectHeaders: { Authorization: 'Bearer token-123' },
+    expect(instances).toHaveLength(1);
+    expect(instances[0].options.brokerURL).toBe('ws://localhost:8080/ws-native');
+    expect(instances[0].options.connectHeaders).toEqual({
+      Authorization: 'Bearer token-1',
     });
-    expect(stomp.instances[0].active).toBe(true);
-    expect(stomp.instances[0].socket).toEqual({
-      url: 'http://localhost:8080/ws',
-      kind: 'sockjs',
-    });
+    expect(instances[0].activate).toHaveBeenCalledTimes(1);
   });
 
-  it('coalesces rapid connect() calls into a single import and client', async () => {
-    service.connect('http://localhost:8080/ws', 'token-123');
-    service.connect('http://localhost:8080/ws', 'token-123');
+  it('normalises http(s) endpoints to ws(s)', () => {
+    service.connect('http://localhost:8080/ws-native', 'token');
+    expect(instances[0].options.brokerURL).toBe('ws://localhost:8080/ws-native');
 
-    await flushAsyncWork();
-
-    expect(sockJs.factory).toHaveBeenCalledTimes(1);
-    expect(stomp.instances).toHaveLength(1);
+    service.disconnect();
+    service.connect('https://api.rms.aros.services/ws-native', 'token');
+    expect(instances[1].options.brokerURL).toBe('wss://api.rms.aros.services/ws-native');
   });
 
-  it('skips the import when a client is already active', async () => {
-    service.connect('http://localhost:8080/ws', 'token-123');
-    await flushAsyncWork();
-    sockJs.factory.mockClear();
+  it('does not open a second client while one is active', () => {
+    service.connect('ws://localhost:8080/ws-native', 'token');
+    service.connect('ws://localhost:8080/ws-native', 'token');
 
-    service.connect('http://localhost:8080/ws', 'token-123');
-    await flushAsyncWork();
-
-    expect(sockJs.factory).not.toHaveBeenCalled();
-    expect(stomp.instances).toHaveLength(1);
+    expect(instances).toHaveLength(1);
   });
 
-  it('does not create a client when disconnect() runs while the import is in flight', async () => {
-    service.connect('http://localhost:8080/ws', 'token-123');
+  it('deactivates the client on disconnect', () => {
+    service.connect('ws://localhost:8080/ws-native', 'token');
+    const client = instances[0];
+
     service.disconnect();
 
-    await flushAsyncWork();
-
-    expect(stomp.instances).toHaveLength(0);
-    expect(sockJs.factory).not.toHaveBeenCalled();
+    expect(client.deactivate).toHaveBeenCalledTimes(1);
+    expect(service.isConnected()).toBe(false);
   });
 
-  it('allows a retry after disconnect() cancelled a pending import', async () => {
-    service.connect('http://localhost:8080/ws', 'token-123');
-    service.disconnect();
-    await flushAsyncWork();
+  it('reports the connection state when the STOMP handshake completes', () => {
+    service.connect('ws://localhost:8080/ws-native', 'token');
+    const states: boolean[] = [];
+    service.connection$.subscribe((connected) => states.push(connected));
 
-    service.connect('http://localhost:8080/ws', 'token-123');
-    await flushAsyncWork();
+    instances[0].onConnect?.({});
 
-    expect(stomp.instances).toHaveLength(1);
-    expect(sockJs.factory).toHaveBeenCalledTimes(1);
+    expect(service.isConnected()).toBe(true);
+    expect(states).toEqual([false, true]);
   });
 
-  it('ignores the stale import when a new connect() follows a disconnect()', async () => {
-    service.connect('http://localhost:8080/ws', 'token-123');
-    service.disconnect();
-    service.connect('http://localhost:8080/ws', 'token-123');
+  it('subscribes to topics only after the connection is established', () => {
+    const received: unknown[] = [];
+    service.subscribeToTopic('topic/orders').subscribe((value) => received.push(value));
+    expect(instances).toHaveLength(0);
 
-    await flushAsyncWork();
+    service.connect('ws://localhost:8080/ws-native', 'token');
+    const client = instances[0];
+    client.onConnect?.({});
 
-    expect(stomp.instances).toHaveLength(1);
-    expect(stomp.instances[0].active).toBe(true);
+    expect(client.subscribe).toHaveBeenCalledTimes(1);
+    expect(client.subscribe.mock.calls[0][0]).toBe('topic/orders');
   });
 });

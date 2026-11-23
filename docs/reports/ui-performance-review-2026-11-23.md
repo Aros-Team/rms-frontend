@@ -502,3 +502,21 @@ Known measurement caveat: the admin LHCI config deliberately points at the dev
 server because the seeded local token only works against the local API. Treat
 its performance score as a smoke signal; the login run measures the production
 build and is the real gate.
+
+### Native WebSocket (2026-11-23)
+
+The backend now exposes `/ws-native` (`registry.addEndpoint("/ws-native")`
+without `withSockJS()`), with the same allowed origins and the same
+`WebSocketChannelInterceptor`. `/ws` stays as a legacy SockJS endpoint.
+
+The frontend `WebSocket` service uses STOMP over a native `brokerURL`
+(normalising `http(s)://` to `ws(s)://`), and `sockjs-client`, `@types/sockjs-client`
+and the `window.global` shim in `main.ts` are gone. Effects:
+
+- no `sockjs-client` in any chunk, no deprecated `unload` listener;
+- initial graph 793.63 kB / 188.56 kB, warning-free build;
+- `/admin` Lighthouse best-practices no longer penalised by the transport.
+
+Operational note: a running API must be restarted to load the new endpoint; the
+frontend environment values now point at `ws://.../ws-native` and
+`wss://.../ws-native`.

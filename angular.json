@@ -24,13 +24,7 @@
             "polyfills": [],
             "tsConfig": "tsconfig.app.json",
             "allowedCommonJsDependencies": [
-              "@stomp/stompjs",
-              "sockjs-client",
-              "url-parse",
-              "inherits",
-              "events",
-              "eventsource",
-              "crypto"
+              "@stomp/stompjs"
             ],
             "serviceWorker": "ngsw-config.json",
             "assets": [

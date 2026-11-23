@@ -4,13 +4,6 @@ import { Observable, Subject, BehaviorSubject, share } from 'rxjs';
 
 import { Logging } from '@app/core/services/logging/logging';
 
-/**
- * Minimal constructor shape for the dynamically imported SockJS transport.
- * Kept structural so this file has no static (bundle-time) dependency on
- * the SockJS transport; that module is loaded only when `connect()` runs.
- */
-type SockJSTransport = new (url: string) => globalThis.WebSocket;
-
 export interface WebSocketMessage<T = unknown> {
   destination: string;
   body: T;
@@ -22,19 +15,22 @@ export interface CacheInvalidationEvent {
   id?: number;
 }
 
+/**
+ * STOMP client over a native WebSocket.
+ *
+ * The backend exposes `/ws-native` (`registry.addEndpoint` without
+ * `withSockJS()`); `/ws` remains as a legacy SockJS endpoint for older clients.
+ * Using the native transport removes `sockjs-client` from the bundle and its
+ * deprecated `unload` listener from Lighthouse best-practices.
+ *
+ * `connect()` accepts either an `http(s)://` URL (converted to `ws(s)://`) or an
+ * already-native `ws(s)://` URL, so environments can store either form.
+ */
 @Injectable({ providedIn: 'root' })
 export class WebSocket implements OnDestroy {
   private logger = inject(Logging);
   private client?: Client;
   private connected = false;
-
-  // Guards the async SockJS import so rapid connect() calls share one attempt.
-  // A numeric token (0 = none in flight) also invalidates stale imports that
-  // resolve after a disconnect() or a newer connect().
-  private connectAttempt = 0;
-  private attemptSeq = 0;
-  // Set by disconnect() while the import is unresolved, so no client is created.
-  private connectCancelled = false;
 
   // Subjects keyed by topic — one Subject per topic, receives raw STOMP messages
   private topicSubjects = new Map<string, Subject<unknown>>();
@@ -69,50 +65,15 @@ export class WebSocket implements OnDestroy {
       return;
     }
 
-    if (this.connectAttempt !== 0) {
-      this.logger.debug('WebSocket: Connection attempt already in progress, skipping');
-      return;
-    }
-
-    const attempt = ++this.attemptSeq;
-    this.connectAttempt = attempt;
-    this.connectCancelled = false;
-    this.logger.info('WebSocket: Connecting to', wsUrl);
-
-    // Load SockJS on demand: the module is only needed once a screen actually
-    // opens the socket, so it stays out of the initial bundle.
-    void import('sockjs-client')
-      .then(({ default: SockJS }) => {
-        // Superseded by disconnect() or by a newer connect() while loading.
-        if (this.connectAttempt !== attempt) {
-          this.logger.debug('WebSocket: Stale SockJS import ignored');
-          return;
-        }
-
-        this.connectAttempt = 0;
-
-        if (this.connectCancelled) {
-          this.connectCancelled = false;
-          this.logger.debug('WebSocket: Connect cancelled before client creation');
-          return;
-        }
-
-        this.createClient(wsUrl, token, SockJS);
-      })
-      .catch((error: unknown) => {
-        if (this.connectAttempt === attempt) {
-          this.connectAttempt = 0;
-          this.connectCancelled = false;
-        }
-        this.logger.error('WebSocket: Failed to load SockJS transport', error);
-      });
+    const brokerUrl = this.toBrokerUrl(wsUrl);
+    this.logger.info('WebSocket: Connecting to', brokerUrl);
+    this.createClient(brokerUrl, token);
   }
 
-  /** Builds, wires and activates the STOMP client around a loaded SockJS factory. */
-  private createClient(wsUrl: string, token: string, SockJS: SockJSTransport): void {
+  /** Builds, wires and activates the STOMP client over a native WebSocket. */
+  private createClient(brokerUrl: string, token: string): void {
     this.client = new Client({
-      // Use SockJS as transport factory — required by Spring Boot's SockJS endpoint
-      webSocketFactory: () => new SockJS(wsUrl),
+      brokerURL: brokerUrl,
       connectHeaders: {
         Authorization: `Bearer ${token}`,
       },
@@ -211,18 +172,14 @@ export class WebSocket implements OnDestroy {
       this.createStompSubscription(topic, subject);
     }
 
-return this.topicObservables.get(topic) as Observable<T>;
+    return this.topicObservables.get(topic) as Observable<T>;
   }
 
   disconnect(): void {
-    // Cancel a pending lazy import so it cannot create a client afterwards.
-    if (this.connectAttempt !== 0) {
-      this.connectAttempt = 0;
-      this.connectCancelled = true;
-    }
-
     if (this.client) {
-      this.stompSubscriptions.forEach((sub) => { sub.unsubscribe(); });
+      this.stompSubscriptions.forEach((sub) => {
+        sub.unsubscribe();
+      });
       this.stompSubscriptions.clear();
       this.client.deactivate();
       this.connected = false;
@@ -246,13 +203,27 @@ return this.topicObservables.get(topic) as Observable<T>;
 
   ngOnDestroy(): void {
     this.disconnect();
-    this.topicSubjects.forEach((subject) => { subject.complete(); });
+    this.topicSubjects.forEach((subject) => {
+      subject.complete();
+    });
     this.topicSubjects.clear();
     this.topicObservables.clear();
     this.cacheInvalidationSubject.complete();
   }
 
   // ─── Private helpers ───────────────────────────────────────────────────────
+
+  /** Normalises `http(s)://` endpoints to the native `ws(s)://` scheme. */
+  private toBrokerUrl(url: string): string {
+    const trimmed = url.trim();
+    if (trimmed.startsWith('https://')) {
+      return `wss://${trimmed.slice('https://'.length)}`;
+    }
+    if (trimmed.startsWith('http://')) {
+      return `ws://${trimmed.slice('http://'.length)}`;
+    }
+    return trimmed;
+  }
 
   /** Called after every successful (re)connect to restore active topic subscriptions. */
   private resubscribeAll(): void {
