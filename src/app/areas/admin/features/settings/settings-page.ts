@@ -55,43 +55,44 @@ const SECTIONS: readonly SettingsSection[] = [
   {
     id: 'openingHours',
     label: 'Horario de atención',
-    description: 'Apertura por día y alertas de cobertura',
+    description:
+      'Define cuándo abre el restaurante cada día. El dashboard y la cobertura de turnos usan esta ventana.',
     icon: 'pi pi-clock',
   },
   {
     id: 'currency',
     label: 'Moneda',
-    description: 'Código, símbolo y decimales',
+    description: 'Define la moneda que usan los nuevos importes y los totales del sistema.',
     icon: 'pi pi-dollar',
   },
   {
     id: 'labor',
     label: 'Nómina',
-    description: 'Modo de costo y tarifa por hora',
+    description: 'Elige cómo el motor de costos calcula la mano de obra de cada producto.',
     icon: 'pi pi-briefcase',
   },
   {
     id: 'notifications',
     label: 'Notificaciones',
-    description: 'Sonidos, vibración y alertas',
+    description: 'Preferencias globales de avisos para cocina, inventario y pedidos.',
     icon: 'pi pi-bell',
   },
   {
     id: 'users',
     label: 'Usuarios y roles',
-    description: 'Rol, áreas y estado de acceso',
+    description: 'Cambia el rol, las áreas y el estado de acceso de cada persona.',
     icon: 'pi pi-users',
   },
   {
     id: 'appearance',
     label: 'Apariencia',
-    description: 'Tema, tamaño de texto y contraste',
+    description: 'Preferencias de este dispositivo. No cambian la configuración del restaurante.',
     icon: 'pi pi-palette',
   },
   {
     id: 'account',
     label: 'Cuenta',
-    description: 'Perfil, contraseña, privacidad y sesión',
+    description: 'Tu perfil, la contraseña, el aviso de privacidad y la sesión actual.',
     icon: 'pi pi-user',
   },
 ];

@@ -11,13 +11,6 @@
       <app-rms-button variant="secondary" iconStart="pi pi-refresh" (click)="retry()">
         Actualizar
       </app-rms-button>
-      <app-rms-button
-        variant="secondary"
-        iconStart="pi pi-download"
-        [disabled]="items().length === 0"
-        (click)="exportCsv()">
-        Exportar CSV
-      </app-rms-button>
     </div>
   </app-rms-page-header>
 
