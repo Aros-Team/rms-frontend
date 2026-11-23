@@ -1,5 +1,51 @@
 # Changelog
 
+## [v3.3.0](https://github.com/Aros-Team/rms-frontend/releases/tag/v3.3.0)
+
+### Features
+
+- **shell**: role-aware shells, navigation and guarded landing
+- **design-system**: semantic tokens, primitives and chart theme
+- **routing**: expose the design-system gallery at /dev/ui (dev only)
+- **waiter**: usable mobile order workflow on the design system
+- **analytics**: five-module workspace on the design system
+- **cashier**: payment workspace with tenders, receipt and cash shift
+- **kitchen**: TV line-cook board with stations, timers and alerts
+- **recipes**: usable recipe editor with live costing
+- **admin**: real top-selling, working sorting and design-system pilot
+- **settings**: full admin settings workspace
+- **schedules**: first-class weekly grid with conflict-aware assignments
+- **admin**: migrate the manage modules to the design system
+- **admin**: migrate the remaining wizard and modal internals
+- **kitchen,schedule**: consume station, readiness and clock APIs
+- **dashboard,schedules**: fit the dashboard and plan individual shifts
+- **dashboard**: stack the hourly chart, surface tables and fill the treemap
+- **dashboard**: limit the product ranking to six rows
+- **settings,schedules**: opening hours bound the day and expose gaps
+- **schedules**: weekly hour calendar and 42-hour guardrails
+- **schedules**: show the shift role and tone bars by area
+- **admin**: dock the assistant in a two-state right panel
+- **notifications**: persist the global admin feed
+- **shell**: compact page headers and a location line in the masthead
+- **settings**: horizontal tabs and context in the masthead
+- **notifications**: icons for worker attendance events
+- **ui**: apply UI performance and consistency pass
+- **ui**: finish design-system migration and chart bundle pass
+- **ui**: finish pending migration, guards and QA baselines
+- **websocket**: use native STOMP over /ws-native and drop SockJS
+- **ui**: add a pre-submit invalid state to the form primitives
+- **ui**: close pending validation, responsive images and doc follow-ups
+
+### Bug Fixes
+
+- **dashboard**: keep the sales KPI on one line and attribute categories
+- **a11y**: zero serious or critical axe violations
+- **a11y**: name the dashboard category chart
+- **admin**: pluralize the dashboard completed-orders count
+- **shell,dashboard**: restore navigation and rebuild the dashboard charts
+- **lint**: infer the logo color input type
+- **products**: show full images in square thumbnails
+
 ## [Unreleased] — UI performance and design pass (2026-11-23)
 
 Full UI pass measured against `docs/reports/ui-performance-review-2026-11-23.md`
