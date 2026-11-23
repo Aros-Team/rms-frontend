@@ -8,12 +8,12 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ConfirmPopupModule } from 'primeng/confirmpopup';
-import { InputTextModule } from 'primeng/inputtext';
 import { ConfirmationService } from 'primeng/api';
 
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
 import { ComboWizardState } from '@app/core/services/combos/combo-wizard-state';
 import type { WizardQuestionDraft } from '@app/core/services/combos/combo-wizard-state';
 import { STEP_QUESTIONS_ID } from '../combo-wizard';
@@ -22,10 +22,10 @@ import { STEP_QUESTIONS_ID } from '../combo-wizard';
   selector: 'app-questions-step[comboWizardStep=questions]',
   imports: [
     FormsModule,
-    ButtonModule,
     CheckboxModule,
     ConfirmPopupModule,
-    InputTextModule,
+    RmsButton,
+    RmsIconButton,
   ],
   templateUrl: './questions-step.html',
   styleUrl: './questions-step.css',

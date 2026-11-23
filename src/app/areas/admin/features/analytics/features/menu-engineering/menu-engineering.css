@@ -137,6 +137,23 @@
   max-height: 38rem;
 }
 
+/* Legend swatches mirror the quadrant colours (see menu-engineering.ts). */
+.chart-legend__swatch[data-quadrant='STAR'] {
+  background: var(--rms-success-fg);
+}
+
+.chart-legend__swatch[data-quadrant='PLOWHORSE'] {
+  background: var(--rms-warning-fg);
+}
+
+.chart-legend__swatch[data-quadrant='PUZZLE'] {
+  background: var(--rms-info-fg);
+}
+
+.chart-legend__swatch[data-quadrant='DOG'] {
+  background: var(--rms-danger-fg);
+}
+
 .empty-cell {
   padding: var(--rms-space-4);
   color: var(--rms-text-muted);

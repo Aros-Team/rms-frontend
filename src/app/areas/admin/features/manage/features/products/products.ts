@@ -23,11 +23,11 @@ import { ProductOption as ProductOptionDTO, ProductOptionResponse } from '@app/s
 import { ProductOptionCreateRequest, RecipeItemRequest } from '@app/shared/models/dto/products/product-create-request';
 import { ProductImage } from '@app/core/services/product-image/product-image';
 import { ProductImageResponse } from '@app/shared/models/dto/products/product-image-response';
+import { productImageSrcSet } from '@app/shared/lib/product-image';
 import { ProductCostResponse } from '@app/shared/models/dto/products/product-cost-response';
 import { OptionGroupResponse } from '@app/shared/models/dto/option-groups/option-group';
 
 import { SearchInput as SearchInputComponent } from '@app/shared/components/search-input/search-input';
-import { ButtonModule } from 'primeng/button';
 import { FileUploadModule } from 'primeng/fileupload';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ImageModule } from 'primeng/image';
@@ -35,13 +35,10 @@ import { ConfirmPopupModule } from 'primeng/confirmpopup';
 import { DialogModule } from 'primeng/dialog';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
-import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { ToggleSwitch } from 'primeng/toggleswitch';
-import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
 import { SkeletonModule } from 'primeng/skeleton';
 import { MessageModule } from 'primeng/message';
@@ -50,7 +47,10 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
+import { RmsInput } from '@app/shared/ui/input/input';
+import { RmsTextarea } from '@app/shared/ui/textarea/textarea';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
+import { RmsBadge } from '@app/shared/ui/badge/badge';
 
 import { PrepTimeDialog, type PrepTimeEstimate } from './componentes/prep-time-dialog/prep-time-dialog';
 import { Money } from '@app/shared/pipes/money/money';
@@ -104,16 +104,12 @@ interface OptionFormValue {
     ReactiveFormsModule,
     FormsModule,
     TableModule,
-    ButtonModule,
-    InputTextModule,
-    TextareaModule,
     SelectModule,
     IftaLabelModule,
     DialogModule,
     InputNumberModule,
     ToastModule,
     ToggleSwitch,
-    TagModule,
     DividerModule,
     SkeletonModule,
     MessageModule,
@@ -130,7 +126,10 @@ interface OptionFormValue {
     Money,
     RmsButton,
     RmsIconButton,
+    RmsInput,
+    RmsTextarea,
     RmsPageHeader,
+    RmsBadge,
   ],
   templateUrl: './products.html',
   providers: [MessageService, ConfirmationService],
@@ -1200,6 +1199,21 @@ export class Products implements OnInit {
     if (!url) return '';
     const marker = this.imageRefreshMarker().get(product.id);
     return marker ? `${url}?v=${String(marker)}` : url;
+  }
+
+  getProductImageSrcSet(product: ProductResponse): string | null {
+    const srcset = productImageSrcSet(product);
+    if (!srcset) return null;
+    const marker = this.imageRefreshMarker().get(product.id);
+    if (!marker) return srcset;
+    const v = String(marker);
+    return srcset
+      .split(', ')
+      .map((entry: string) => {
+        const [url, size] = entry.split(' ');
+        return `${url}?v=${v} ${size}`;
+      })
+      .join(', ');
   }
 
   private markProductImageUpdated(productId: number): void {

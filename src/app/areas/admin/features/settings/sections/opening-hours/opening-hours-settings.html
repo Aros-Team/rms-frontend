@@ -1,6 +1,6 @@
 <app-rms-section
   title="Horario de atención"
-  description="Define cuándo abre el restaurante cada día. El dashboard y la cobertura de turnos usan esta ventana."
+  [hideHeader]="true"
 >
   @if (loading()) {
     <div class="flex flex-col gap-2">

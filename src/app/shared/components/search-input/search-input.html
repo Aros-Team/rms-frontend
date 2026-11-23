@@ -1,22 +1,22 @@
 <div class="flex gap-2 items-center w-full lg:w-80">
-  <p-iconfield iconPosition="left" class="flex-1">
-    <p-inputicon><i class="pi pi-search" aria-hidden="true"></i></p-inputicon>
+  <div class="relative flex-1">
+    <i
+      class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-rms-ink-muted"
+      aria-hidden="true"></i>
     <input
-      pInputText
       type="text"
-      class="w-full"
+      class="rms-input rms-input--md w-full pl-10"
       [ngModel]="value()"
       (ngModelChange)="onInput($event)"
       [placeholder]="placeholder"
-    />
-  </p-iconfield>
+      [attr.aria-label]="placeholder" />
+  </div>
   @if (value()) {
-    <p-button
+    <app-rms-icon-button
       icon="pi pi-times"
-      severity="secondary"
-      [text]="true"
-      size="small"
-      (click)="clear()"
-    />
+      ariaLabel="Limpiar búsqueda"
+      variant="secondary"
+      size="sm"
+      (click)="clear()" />
   }
 </div>

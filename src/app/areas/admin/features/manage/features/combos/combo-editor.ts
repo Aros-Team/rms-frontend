@@ -4,13 +4,10 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { catchError, EMPTY } from 'rxjs';
 
-import { ButtonModule } from 'primeng/button';
 import { TabsModule } from 'primeng/tabs';
-import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { SelectModule } from 'primeng/select';
 import { ToggleSwitch } from 'primeng/toggleswitch';
-import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { OrderList } from 'primeng/orderlist';
 import { DialogModule } from 'primeng/dialog';
@@ -33,6 +30,10 @@ import { Area } from '@app/core/services/areas/area';
 import { AreaResponse } from '@app/shared/models/dto/areas/area';
 import { toAmount } from '@app/shared/models/dto/common/money';
 import { Money } from '@app/shared/pipes/money/money';
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
+import { RmsInput } from '@app/shared/ui/input/input';
+import { RmsTextarea } from '@app/shared/ui/textarea/textarea';
 
 // ─── Schedule UI types ──────────────────────────────────────────────────────
 interface ScheduleEntry {
@@ -51,14 +52,15 @@ interface ScheduleDay {
   imports: [
     FormsModule,
     RouterModule,
-    ButtonModule,
     TabsModule,
-    InputTextModule,
     InputNumberModule,
     SelectModule,
     ToggleSwitch,
-    TextareaModule,
     ToastModule,
+    RmsButton,
+    RmsIconButton,
+    RmsInput,
+    RmsTextarea,
     OrderList,
     DialogModule,
     TableModule,

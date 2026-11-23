@@ -38,20 +38,24 @@ export class OrderDetailDialog {
     return calculateTotalPrice(this.order);
   }
 
+  /**
+   * Status badges read the documented status roles, not the Tailwind palette.
+   * Mapping: queue is waiting (warning), preparing is in flight (info), ready
+   * and delivered are resolved (success), cancelled is destructive (danger).
+   */
   getStatusBadgeClass(status: string): string {
     switch (status) {
       case 'DELIVERED':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
       case 'READY':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+        return 'rms-status-badge rms-status-badge--success';
       case 'PREPARING':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+        return 'rms-status-badge rms-status-badge--info';
       case 'QUEUE':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
+        return 'rms-status-badge rms-status-badge--warning';
       case 'CANCELLED':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+        return 'rms-status-badge rms-status-badge--danger';
       default:
-        return 'bg-surface-100 text-surface-800 dark:bg-surface-700 dark:text-surface-300';
+        return 'rms-status-badge rms-status-badge--neutral';
     }
   }
 

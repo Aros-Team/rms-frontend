@@ -1,11 +1,12 @@
 <div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.areas" (appLazyLoadVisible)="onVisible()">
-  <app-rms-page-header title="Áreas de Trabajo">
+  <app-rms-page-header
+    [compact]="true" title="Áreas de Trabajo">
     <div rmsPageHeaderActions>
       <app-rms-button iconStart="pi pi-plus" (click)="showCreateModal()">Nueva área</app-rms-button>
     </div>
   </app-rms-page-header>
 
-  <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast dark:bg-surface-800 overflow-hidden">
+  <div class="flex-1 min-h-0 border border-rms-border rounded-xl bg-rms-surface overflow-hidden">
     <p-table #dt [value]="areas()" [loading]="cache.areas.isLoading()" [showLoader]="false" [paginator]="true" [rows]="10" [scrollable]="true" scrollHeight="flex" responsiveLayout="scroll" styleClass="h-full" sortMode="multiple">
       <ng-template #header>
         <tr>
@@ -64,25 +65,16 @@
   styleClass="w-[400px]"
 >
   <form [formGroup]="form" class="flex flex-col gap-4">
-    <p-iftalabel>
-      <input pInputText id="name" formControlName="name" class="w-full" />
-      <label for="name">Nombre</label>
-      <app-form-validation field="name"></app-form-validation>
-    </p-iftalabel>
+    <app-rms-input id="name" label="Nombre" formControlName="name" [required]="true" [error]="fieldError('name')" />
 
-    <p-iftalabel>
-      <p-select
-        inputId="type"
-        [options]="areaTypes"
-        formControlName="type"
-        placeholder="Seleccionar tipo"
-        class="w-full"
-        optionLabel="label"
-        optionValue="value"
-      />
-      <label for="type">Tipo de área</label>
-      <app-form-validation field="type"></app-form-validation>
-    </p-iftalabel>
+    <app-rms-select
+      id="type"
+      label="Tipo de área"
+      [options]="areaTypes"
+      formControlName="type"
+      placeholder="Seleccionar tipo"
+      [required]="true"
+      [error]="fieldError('type')" />
   </form>
 
   <ng-template pTemplate="footer">

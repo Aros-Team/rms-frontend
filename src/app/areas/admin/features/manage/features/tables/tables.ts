@@ -3,7 +3,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { RouterModule } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { TableModule } from 'primeng/table';
 import { IftaLabelModule } from 'primeng/iftalabel';
@@ -21,6 +20,7 @@ import { environment } from '@environments/environment';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsDialog } from '@app/shared/ui/dialog/dialog';
 import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
+import { RmsInput } from '@app/shared/ui/input/input';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
 
@@ -34,7 +34,6 @@ const WS_TOPICS = {
   imports: [
     RouterModule,
     ReactiveFormsModule,
-    InputTextModule,
     InputNumberModule,
     TableModule,
     IftaLabelModule,
@@ -45,6 +44,7 @@ const WS_TOPICS = {
     RmsButton,
     RmsDialog,
     RmsEmptyState,
+    RmsInput,
     RmsPageHeader,
     RmsStatusPill,
   ],

@@ -113,13 +113,14 @@ describe('ProductCard', () => {
     expect(img?.getAttribute('src')).toBe('assets/placeholder-product.svg');
   });
 
-  it('selected state shows primary border and check icon', async () => {
+  it('selected state shows brand ink border and check icon', async () => {
     const fixture = await setupHost({ selected: true });
     const root = fixture.nativeElement as HTMLElement;
     const card = getCardEl(root);
     if (!card) throw new Error('card not rendered');
 
-    expect(card.classList.contains('border-primary')).toBe(true);
+    expect(card.classList.contains('border-rms-brand-text')).toBe(true);
+    expect(card.classList.contains('border-rms-border')).toBe(false);
     expect(card.getAttribute('aria-selected')).toBe('true');
     const check = card.querySelector('.pi-check-circle');
     expect(check?.classList.contains('text-accent')).toBe(true);
@@ -142,8 +143,9 @@ describe('ProductCard', () => {
     const fixture = await setupHost({ unavailable: true });
     const root = fixture.nativeElement as HTMLElement;
 
-    const badge = root.querySelector('[role="option"] .bg-surface-600');
+    const badge = root.querySelector('[role="option"] .bg-rms-ink-secondary');
     expect(badge?.textContent.trim()).toBe('No disponible');
+    expect(badge?.classList.contains('text-rms-ink-inverse')).toBe(true);
 
     const card = getCardEl(root);
     if (!card) throw new Error('card not rendered');

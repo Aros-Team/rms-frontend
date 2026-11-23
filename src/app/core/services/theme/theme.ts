@@ -4,6 +4,10 @@ export type ThemeName = 'light' | 'dark';
 
 const STORAGE_KEY = 'theme';
 
+/** Address-bar colours; match the manifest and `index.html`. */
+const CHROME_LIGHT = '#FDEFC7';
+const CHROME_DARK = '#0f172a';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -79,6 +83,8 @@ export class Theme {
 
   /** Applies a theme to the DOM without persisting it. */
   private apply(theme: ThemeName): void {
+    if (typeof document === 'undefined') return;
+
     const element = document.documentElement;
 
     element.classList.toggle('dark', theme === 'dark');
@@ -88,5 +94,16 @@ export class Theme {
     document
       .querySelector('meta[name="color-scheme"]')
       ?.setAttribute('content', theme);
+
+    // Browser chrome: both theme-colour metas carry the active colour with no
+    // media query, so the address bar follows a manual toggle instead of only
+    // the OS preference.
+    const chrome = theme === 'dark' ? CHROME_DARK : CHROME_LIGHT;
+
+    for (const id of ['theme-color-light', 'theme-color-dark']) {
+      const meta = document.querySelector<HTMLMetaElement>(`meta[id="${id}"]`);
+      meta?.removeAttribute('media');
+      meta?.setAttribute('content', chrome);
+    }
   }
 }

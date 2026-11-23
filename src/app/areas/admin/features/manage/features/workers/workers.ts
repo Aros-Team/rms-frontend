@@ -6,16 +6,13 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TableModule } from 'primeng/table';
-import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
-import { InputTextModule } from 'primeng/inputtext';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { SelectModule } from 'primeng/select';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { TooltipModule } from 'primeng/tooltip';
-import { TagModule } from 'primeng/tag';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DatePickerModule } from 'primeng/datepicker';
@@ -24,7 +21,7 @@ import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validator
 import { Worker } from '@app/core/services/workers/worker';
 import { CreateWorkerRequest } from '@app/shared/models/dto/workers/create-worker-request';
 import { MessageService, ConfirmationService } from 'primeng/api';
-import { FormValidation } from '@app/shared/components/form/form-validation';
+import { fieldError as resolveFieldError } from '@app/shared/lib/form-error';
 import { Logging } from '@app/core/services/logging/logging';
 import { UpdateWorkerRequest } from '@app/shared/models/dto/workers/worker-response';
 import { tryToAmount } from '@app/shared/models/dto/common/money';
@@ -37,7 +34,10 @@ import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 import { RmsBadge } from '@app/shared/ui/badge/badge';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
+import { RmsField } from '@app/shared/ui/field/field';
+import { RmsInput } from '@app/shared/ui/input/input';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
+import { RmsSelect, type RmsSelectOption } from '@app/shared/ui/select/select';
 import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
 import { WorkerCard } from './worker-card';
 import { PayrollPanel } from './payroll-panel/payroll-panel';
@@ -66,9 +66,7 @@ interface WorkerFormValue {
     RouterModule,
     FormsModule,
     TableModule,
-    ButtonModule,
     DialogModule,
-    InputTextModule,
     IftaLabelModule,
     ReactiveFormsModule,
     InputIconModule,
@@ -76,16 +74,17 @@ interface WorkerFormValue {
     SelectModule,
     InputNumberModule,
     TooltipModule,
-    TagModule,
     SkeletonModule,
     ConfirmDialogModule,
     DatePickerModule,
-    FormValidation,
     LazyLoad,
     TableSkeleton,
     RmsBadge,
     RmsButton,
     RmsEmptyState,
+    RmsField,
+    RmsInput,
+    RmsSelect,
     RmsPageHeader,
     RmsStatusPill,
     WorkerCard,
@@ -134,6 +133,9 @@ export class Workers implements OnInit {
   // Filter to show only WORKER role users (employees)
   workers = computed(() => (this.cache.workers.data() ?? []));
   areas = signal<AreaResponse[]>([]);
+  readonly areaOptions = computed<RmsSelectOption[]>(() =>
+    this.areas().map((area) => ({ label: area.name.toLowerCase(), value: area.id })),
+  );
   editing = false;
   selectedWorker: WorkerResponse | null = null;
   originalSalary = signal<number | null>(null);
@@ -202,7 +204,7 @@ export class Workers implements OnInit {
 
   /** Focus first input in modal dialog after it opens */
   focusFirstInput(): void {
-    setTimeout(() => this.firstInputRef?.nativeElement.focus());
+    setTimeout(() => this.firstInputRef?.nativeElement.querySelector('input')?.focus());
   }
 
   createWorker(): void {
@@ -397,7 +399,7 @@ export class Workers implements OnInit {
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Eliminar',
       rejectLabel: 'Cancelar',
-      acceptButtonStyleClass: 'p-button-danger',
+      acceptButtonProps: { severity: 'danger' },
       accept: () => {
         if (!worker.id) {
           this.logger.error('Cannot delete worker without ID');
@@ -534,6 +536,10 @@ export class Workers implements OnInit {
 
   public getBackendError(field: string): string {
     return this.backendFieldErrors[field] || '';
+  }
+
+  fieldError(field: string): string {
+    return resolveFieldError(this.userForm, field, this.getBackendError(field));
   }
 
   private parseBackendValidationErrors(backendMessage: string): void {

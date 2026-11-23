@@ -1,7 +1,10 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, ViewChild, signal, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { Layout } from '@app/shared/layout/layout/layout';
+// Declared here so the template can resolve `<app-chat>`, but only referenced
+// from the `@defer` block in admin-area.html. The Angular compiler turns that
+// into a dynamic import, keeping `marked`/`dompurify` out of the eager chunk.
 import { Chat } from '@app/areas/admin/features/chat/chat';
 import { Menu } from '@app/core/services/menu/menu';
 import { ADMIN_NAV } from '@app/core/config/navigation/role-navigation';
@@ -13,9 +16,7 @@ import { ADMIN_NAV } from '@app/core/config/navigation/role-navigation';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminArea implements OnInit {
-  @ViewChild(Chat) chatComponent?: Chat;
   private menuService = inject(Menu);
-  private cdr = inject(ChangeDetectorRef);
 
   role = 'ADMIN';
   isChatOpen = signal(false);
@@ -24,10 +25,8 @@ export class AdminArea implements OnInit {
     this.configureAdminMenu();
   }
 
-  toggleChat(): void {
-    this.chatComponent?.toggleChat();
-    this.isChatOpen.set(this.chatComponent?.isOpen() ?? false);
-    this.cdr.markForCheck();
+  togglePanel(): void {
+    this.isChatOpen.update(open => !open);
   }
 
   private configureAdminMenu(): void {

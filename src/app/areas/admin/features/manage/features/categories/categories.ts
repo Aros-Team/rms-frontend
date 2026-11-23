@@ -7,29 +7,22 @@ import { Supply } from '@app/core/services/supplies/supply';
 import { CategoriesCache } from './categories-cache';
 import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 
-import { FormValidation } from '@app/shared/components/form/form-validation';
+import { fieldError as resolveFieldError } from '@app/shared/lib/form-error';
 
 import { ChipModule } from 'primeng/chip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
-import { IftaLabelModule } from 'primeng/iftalabel';
-import { InputTextModule } from 'primeng/inputtext';
-import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
-import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
+import { RmsInput } from '@app/shared/ui/input/input';
 
 @Component({
   selector: 'app-categories',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
-    IftaLabelModule,
-    InputTextModule,
-    TextareaModule,
-    FormValidation,
     ChipModule,
     DialogModule,
     ConfirmDialogModule,
@@ -37,7 +30,7 @@ import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
     LazyLoad,
     RmsButton,
     RmsIconButton,
-    RmsPageHeader,
+    RmsInput,
   ],
   templateUrl: './categories.html',
   providers: [MessageService],
@@ -74,6 +67,24 @@ export class Categories implements OnInit {
   });
   supplyCategorySaved = signal(false);
   supplyCategoryError = signal<string | null>(null);
+
+  /** Validation copy for the product-category name, backend message first. */
+  productNameError(): string {
+    return resolveFieldError(
+      this.productCategoryForm,
+      'name',
+      this.productCategoryError() ?? undefined,
+    );
+  }
+
+  /** Validation copy for the supply-category name, backend message first. */
+  supplyNameError(): string {
+    return resolveFieldError(
+      this.supplyCategoryForm,
+      'name',
+      this.supplyCategoryError() ?? undefined,
+    );
+  }
 
   ngOnInit(): void {
     // Force load on first visit if no data

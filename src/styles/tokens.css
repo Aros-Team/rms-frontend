@@ -35,12 +35,13 @@
   --rms-neutral-950: #020617;
 
   /* Brand ramp. Gold is a FILL. It is never text and never a small icon. */
-  --rms-brand-500: #f9bb0b;
+  --rms-brand-500: #fdefc7;
   --rms-brand-600: #d9a209;
   --rms-brand-700: #b07e06;
   --rms-brand-text: #8a6508; /* 5.32:1 on white */
   --rms-brand-soft: #fef7e0; /* selected row / badge background */
-  --rms-on-brand: #1e1b19; /* 9.49:1 on gold */
+
+  --rms-on-brand: #896511; /* dark gold ink on the cream fill */
 
   /* Type families */
   --rms-font-sans: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -187,7 +188,10 @@
   --rms-space-12: 3rem;
   --rms-space-16: 4rem;
 
-  /* Radii */
+  /* Radii — one role per value, mirrored by Tailwind:
+     sm = rounded-lg (controls, buttons, nav items)
+     md = rounded-xl (cards, grouped inputs)
+     lg = rounded-2xl (page panels, sheets) */
   --rms-radius-sm: 0.5rem; /* 8 — controls */
   --rms-radius-md: 0.75rem; /* 12 — cards, grouped inputs */
   --rms-radius-lg: 1rem; /* 16 — page panels */
@@ -225,9 +229,15 @@
   --rms-transition-fast: var(--rms-motion-fast) var(--rms-ease);
   --rms-transition-base: var(--rms-motion-base) var(--rms-ease);
 
-  /* Layers */
+  /* Layers — chrome < sticky < drawer < overlay < dialog < toast.
+     Chrome/header uses `sticky`; the mobile sidebar drawer uses `drawer`;
+     PrimeNG overlays start at `overlay` and dialogs at `dialog`. */
   --rms-z-raised: 10;
+  --rms-z-sticky: 20;
+  --rms-z-drawer: 40;
   --rms-z-overlay: 1000;
+  --rms-z-dialog: 1100;
+  --rms-z-toast: 1200;
 }
 
 /* ==========================================================================

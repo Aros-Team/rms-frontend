@@ -196,6 +196,254 @@ main[tabindex='-1']:focus-visible {
   border-radius: var(--rms-radius-md);
 }
 
+/* --------------------------------------------------------------------------
+   Status surfaces and badges.
+
+   The status colors already exist as four semantic roles per status. These
+   classes are the only sanctioned way for feature code to paint a status
+   surface, because they keep fills, borders and foregrounds from the same
+   role set. Never rebuild them from the raw Tailwind palette: that is how the
+   same "warning" ends up amber in one screen and gold in the next.
+   -------------------------------------------------------------------------- */
+
+.rms-status-surface--success {
+  border-color: var(--rms-success-border);
+  background: var(--rms-success-bg);
+  color: var(--rms-success-fg);
+}
+
+.rms-status-surface--warning {
+  border-color: var(--rms-warning-border);
+  background: var(--rms-warning-bg);
+  color: var(--rms-warning-fg);
+}
+
+.rms-status-surface--danger {
+  border-color: var(--rms-danger-border);
+  background: var(--rms-danger-bg);
+  color: var(--rms-danger-fg);
+}
+
+.rms-status-surface--info {
+  border-color: var(--rms-info-border);
+  background: var(--rms-info-bg);
+  color: var(--rms-info-fg);
+}
+
+.rms-status-surface--neutral {
+  border-color: var(--rms-neutral-border);
+  background: var(--rms-neutral-bg);
+  color: var(--rms-neutral-fg);
+}
+
+.rms-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rms-space-1);
+  border: var(--rms-border-width) solid transparent;
+  border-radius: var(--rms-radius-full);
+  padding: 0.125rem var(--rms-space-2);
+  font-size: var(--rms-type-caption-size);
+  line-height: var(--rms-type-caption-line);
+  font-weight: var(--rms-weight-semibold);
+  white-space: nowrap;
+}
+
+.rms-status-badge--success {
+  border-color: var(--rms-success-border);
+  background: var(--rms-success-bg);
+  color: var(--rms-success-fg);
+}
+
+.rms-status-badge--warning {
+  border-color: var(--rms-warning-border);
+  background: var(--rms-warning-bg);
+  color: var(--rms-warning-fg);
+}
+
+.rms-status-badge--danger {
+  border-color: var(--rms-danger-border);
+  background: var(--rms-danger-bg);
+  color: var(--rms-danger-fg);
+}
+
+.rms-status-badge--info {
+  border-color: var(--rms-info-border);
+  background: var(--rms-info-bg);
+  color: var(--rms-info-fg);
+}
+
+.rms-status-badge--neutral {
+  border-color: var(--rms-neutral-border);
+  background: var(--rms-neutral-bg);
+  color: var(--rms-neutral-fg);
+}
+
+/* Filled status action (a status-colored button, not a brand CTA). */
+.rms-solid--danger {
+  background: var(--rms-danger-solid);
+  color: var(--rms-danger-on-solid);
+}
+
+.rms-solid--warning {
+  background: var(--rms-warning-solid);
+  color: var(--rms-warning-on-solid);
+}
+
+/* ==========================================================================
+   Deferred rendering — only for confirmed off-screen blocks
+   ========================================================================== */
+
+/**
+ * Opt-in rendering deferral for long, self-contained blocks that start below
+ * the fold (analytics table sections, the dashboard's lower panels).
+ *
+ * `content-visibility: auto` lets the browser skip layout and paint while the
+ * block is off-screen. `contain-intrinsic-size` supplies the estimated size the
+ * scrollbar needs, so skipping a block does not make the page jump when the
+ * user scrolls back. Add one of the `--sm|md|lg|xl` modifiers below for the
+ * block's approximate height.
+ *
+ * Never apply this to above-the-fold content (hero, KPI block, first chart):
+ * the skipped frame delays the critical paint.
+ */
+.rms-defer-view {
+  content-visibility: auto;
+  /* Two-value fallback for engines that reject the four-value form below. */
+  contain-intrinsic-size: auto var(--rms-defer-size, 320px);
+  contain-intrinsic-size: auto none auto var(--rms-defer-size, 320px);
+}
+
+/* Approximate heights for the deferred blocks. Pick the closest step; these
+   are placeholders for the scrollbar, not layout constraints. */
+.rms-defer-view--sm {
+  --rms-defer-size: 18rem;
+}
+
+.rms-defer-view--md {
+  --rms-defer-size: 22rem;
+}
+
+.rms-defer-view--lg {
+  --rms-defer-size: 24rem;
+}
+
+.rms-defer-view--xl {
+  --rms-defer-size: 34rem;
+}
+
+/* ==========================================================================
+   Navigation items — one visual contract for the three shells
+   ==========================================================================
+
+   The same destination is rendered by the header tablet nav, the sidebar rail
+   and the worker bottom nav. They differ in layout, not in what a nav item is,
+   so the shared skin lives here and the shells only add their variant:
+
+     .rms-nav-item            base: inline-flex, centred, 8 px radius, motion
+                              on colour/background, secondary text colour
+     .rms-nav-item--inline    header: row, 0.5rem 0.75rem padding, body size
+     .rms-nav-item--tile      sidebar rail: column, 9 px uppercase label block
+     .rms-nav-item--bottom    worker: column + 4rem tall, full width; row from
+                              1024 px, matching the old `lg:` rules
+     .rms-nav-item--active    text + weight only, never a filled background
+
+   Focus is not defined here on purpose: the global focus ring in this file is
+   the single source of truth, so variants must never add an outline.
+   -------------------------------------------------------------------------- */
+
+@layer components {
+  .rms-nav-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--rms-space-1);
+    border-radius: var(--rms-radius-sm);
+    color: var(--rms-text-secondary);
+    font-family: var(--rms-font-sans);
+    text-align: center;
+    transition:
+      color var(--rms-transition-fast),
+      background-color var(--rms-transition-fast);
+  }
+
+  .rms-nav-item:hover,
+  .rms-nav-item:focus-visible {
+    background: var(--rms-bg-subtle);
+  }
+
+  /* Header tablet nav: a horizontal row of destinations. */
+  .rms-nav-item--inline {
+    flex-direction: row;
+    padding: 0.5rem 0.75rem;
+    font-size: var(--rms-type-body-size);
+    line-height: var(--rms-type-body-line);
+  }
+
+  /* Sidebar rail: icon above a small uppercase caption. */
+  .rms-nav-item--tile {
+    flex-direction: column;
+    padding: var(--rms-space-2) var(--rms-space-1);
+  }
+
+  .rms-nav-item--tile .rms-nav-item__label {
+    display: block;
+    font-size: 0.5625rem;
+    line-height: 1.25;
+    font-weight: var(--rms-weight-medium);
+    text-transform: uppercase;
+    overflow-wrap: normal;
+    hyphens: none;
+  }
+
+  /* Worker shell: a thumb-reachable bar on phones, a row of tabs from 1024 px.
+     Width and direction stay out of the markup: iOS-style utilities such as
+     `w-full`/`flex-col` would otherwise outrank the desktop media query. */
+  .rms-nav-item--bottom {
+    flex-direction: column;
+    width: 100%;
+    min-height: 4rem;
+    padding: var(--rms-space-2) var(--rms-space-1);
+    font-size: var(--rms-type-caption-size);
+    line-height: 1.25;
+    font-weight: var(--rms-weight-medium);
+  }
+
+  @media (min-width: 1024px) {
+    .rms-nav-item--bottom {
+      flex-direction: row;
+      width: auto;
+      min-height: 2.5rem;
+      gap: var(--rms-space-2);
+      padding: var(--rms-space-2) var(--rms-space-3);
+      font-size: var(--rms-type-body-size);
+      line-height: var(--rms-type-body-line);
+    }
+  }
+
+  /* Active stays text + weight so it composes with hover/focus backgrounds. */
+  .rms-nav-item--active {
+    color: var(--rms-brand-text);
+    font-weight: var(--rms-weight-semibold);
+  }
+}
+
+/* ==========================================================================
+   Dialog widths — one place for the responsive 90vw + max-width pair
+   ========================================================================== */
+
+/* Two classes so the rule outranks PrimeNG's `.p-dialog` defaults without
+   `!important`, regardless of stylesheet order. */
+.p-dialog.rms-dialog--md {
+  width: 90vw;
+  max-width: 700px;
+}
+
+.p-dialog.rms-dialog--sm {
+  width: 90vw;
+  max-width: 450px;
+}
+
 /* ==========================================================================
    Reduced motion — one gate for every current and future animation
    ========================================================================== */

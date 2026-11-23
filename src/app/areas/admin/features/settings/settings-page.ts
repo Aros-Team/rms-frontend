@@ -4,23 +4,23 @@ import {
   computed,
   EventEmitter,
   HostListener,
-  isDevMode,
+  inject,
   Output,
   signal,
+  effect,
+  OnDestroy,
 } from '@angular/core';
 
+import { PageContext } from '@app/core/services/page-context/page-context';
 import { RmsBadge } from '@shared/ui/badge/badge';
 import { RmsButton } from '@shared/ui/button/button';
 import { RmsDialog } from '@shared/ui/dialog/dialog';
 import { RmsPageHeader } from '@shared/ui/page-header/page-header';
 
 import { AccountSettingsSection } from './sections/account/account-settings';
-import { AdvancedSettingsSection } from './sections/advanced/advanced-settings';
 import { AppearanceSettingsSection } from './sections/appearance/appearance-settings';
 import { BusinessSettings } from './sections/business/business-settings';
 import { CurrencySettingsSection } from './sections/currency/currency-settings';
-import { DemoDataSettingsSection } from './sections/demo-data/demo-data-settings';
-import { IntegrationsSettingsSection } from './sections/integrations/integrations-settings';
 import { LaborSettingsSection } from './sections/labor/labor-settings';
 import { NotificationsSettingsSection } from './sections/notifications/notifications-settings';
 import { OpeningHoursSettingsSection } from './sections/opening-hours/opening-hours-settings';
@@ -34,10 +34,7 @@ export type SettingsSectionId =
   | 'notifications'
   | 'users'
   | 'appearance'
-  | 'account'
-  | 'advanced'
-  | 'integrations'
-  | 'demo';
+  | 'account';
 
 export interface SettingsSection {
   readonly id: SettingsSectionId;
@@ -58,63 +55,45 @@ const SECTIONS: readonly SettingsSection[] = [
   {
     id: 'openingHours',
     label: 'Horario de atención',
-    description: 'Apertura por día y alertas de cobertura',
+    description:
+      'Define cuándo abre el restaurante cada día. El dashboard y la cobertura de turnos usan esta ventana.',
     icon: 'pi pi-clock',
   },
   {
     id: 'currency',
     label: 'Moneda',
-    description: 'Código, símbolo y decimales',
+    description: 'Define la moneda que usan los nuevos importes y los totales del sistema.',
     icon: 'pi pi-dollar',
   },
   {
     id: 'labor',
     label: 'Nómina',
-    description: 'Modo de costo y tarifa por hora',
+    description: 'Elige cómo el motor de costos calcula la mano de obra de cada producto.',
     icon: 'pi pi-briefcase',
   },
   {
     id: 'notifications',
     label: 'Notificaciones',
-    description: 'Sonidos, vibración y alertas',
+    description: 'Preferencias globales de avisos para cocina, inventario y pedidos.',
     icon: 'pi pi-bell',
   },
   {
     id: 'users',
     label: 'Usuarios y roles',
-    description: 'Rol, áreas y estado de acceso',
+    description: 'Cambia el rol, las áreas y el estado de acceso de cada persona.',
     icon: 'pi pi-users',
   },
   {
     id: 'appearance',
     label: 'Apariencia',
-    description: 'Tema, tamaño de texto y contraste',
+    description: 'Preferencias de este dispositivo. No cambian la configuración del restaurante.',
     icon: 'pi pi-palette',
   },
   {
     id: 'account',
     label: 'Cuenta',
-    description: 'Perfil, contraseña, privacidad y sesión',
+    description: 'Tu perfil, la contraseña, el aviso de privacidad y la sesión actual.',
     icon: 'pi pi-user',
-  },
-  {
-    id: 'advanced',
-    label: 'Configuración avanzada',
-    description: 'Grupos y entradas del sistema',
-    icon: 'pi pi-sliders-h',
-  },
-  {
-    id: 'integrations',
-    label: 'Integraciones',
-    description: 'Orígenes del despliegue (solo lectura)',
-    icon: 'pi pi-link',
-  },
-  {
-    id: 'demo',
-    label: 'Datos de demostración',
-    description: 'Comandos de seed para desarrollo',
-    icon: 'pi pi-database',
-    devOnly: true,
   },
 ];
 
@@ -142,16 +121,13 @@ const SECTIONS: readonly SettingsSection[] = [
     UsersSettingsSection,
     AppearanceSettingsSection,
     AccountSettingsSection,
-    AdvancedSettingsSection,
-    IntegrationsSettingsSection,
-    DemoDataSettingsSection,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SettingsPage {
-  readonly sections: readonly SettingsSection[] = SECTIONS.filter(
-    (section) => section.devOnly !== true || isDevMode(),
-  );
+export class SettingsPage implements OnDestroy {
+  private readonly pageContext = inject(PageContext);
+
+  readonly sections: readonly SettingsSection[] = SECTIONS;
 
   readonly activeSection = signal<SettingsSectionId>('business');
   readonly activeSectionMeta = computed(
@@ -170,6 +146,16 @@ export class SettingsPage {
   private pendingResolve: ((discard: boolean) => void) | null = null;
 
   @Output() readonly dirtyChange = new EventEmitter<boolean>();
+
+  constructor() {
+    effect(() => {
+      this.pageContext.set(this.activeSectionMeta().description);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.pageContext.clear();
+  }
 
   markDirty(section: SettingsSectionId, dirty: boolean): void {
     const next = { ...this.dirtySections(), [section]: dirty };

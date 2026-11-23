@@ -13,10 +13,12 @@
       @if (product?.imageUrl) {
         <img
           [src]="product!.imageUrl!"
+          [attr.srcset]="imageSrcSet()"
+          sizes="56px"
           [alt]="product!.name"
           width="56"
           height="56"
-          class="w-14 h-14 rounded-xl object-cover shrink-0"
+          class="w-14 h-14 rounded-xl bg-rms-subtle object-contain shrink-0"
           loading="lazy"
           decoding="async"
           (error)="$any($event.target).hidden = true"
@@ -54,7 +56,7 @@
     <!-- Loading state -->
     @if (loading) {
       <div class="flex flex-col items-center justify-center py-12 gap-3">
-        <i class="pi pi-spin pi-spinner text-2xl text-primary-700 dark:text-primary-300" aria-hidden="true"></i>
+        <i class="pi pi-spin pi-spinner text-2xl text-rms-brand-text" aria-hidden="true"></i>
         <span class="text-sm text-muted">Cargando opciones...</span>
       </div>
     }

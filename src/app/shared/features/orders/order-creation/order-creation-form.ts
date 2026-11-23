@@ -13,11 +13,14 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Logging } from '@core/services/logging/logging';
 import { mapHttpError } from '@app/shared/lib/http-error-mapper/http-error-mapper';
 import { Money } from '@app/shared/pipes/money/money';
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
+import { RmsInput } from '@app/shared/ui/input/input';
 
 @Component({
   selector: 'app-order-creation-form',
   templateUrl: './order-creation-form.html',
-  imports: [CommonModule, ReactiveFormsModule, Money],
+  imports: [CommonModule, ReactiveFormsModule, Money, RmsButton, RmsIconButton, RmsInput],
 })
 export class OrderCreationForm implements OnInit {
   private fb = inject(FormBuilder);

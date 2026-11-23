@@ -28,6 +28,7 @@ import type { OpeningHoursDay } from '@app/shared/models/dto/settings/settings';
 import type { DayOfWeek } from '@app/shared/models/dto/schedules/shift';
 import {
   DAY_LABELS,
+  DAY_ORDER,
   LEGAL_WEEKLY_HOURS,
   MAX_WEEKLY_HOURS,
   buildCoverage,
@@ -40,6 +41,7 @@ import {
   isSameLocalDay,
   scheduleMinutes,
   startOfWeek,
+  timeToMinutes,
   weekDates,
   type AssignmentConflictReport,
   type OpeningDay,
@@ -48,7 +50,6 @@ import {
 } from '@app/core/services/schedules/schedule-planning';
 import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
 
-import { RmsBadge } from '@app/shared/ui/badge/badge';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsDialog } from '@app/shared/ui/dialog/dialog';
 import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
@@ -72,6 +73,28 @@ interface WorkerRowView {
 interface PendingRemoval {
   readonly worker: WorkerResponse;
   readonly schedule: ScheduleModel;
+}
+
+interface TimelineBar {
+  readonly key: string;
+  readonly workerName: string;
+  readonly role: string;
+  readonly startTime: string;
+  readonly endTime: string;
+  readonly left: number;
+  readonly width: number;
+  readonly top: number;
+}
+
+interface TimelineDay {
+  readonly dayOfWeek: DayOfWeek;
+  readonly label: string;
+  readonly date: Date;
+  readonly closed: boolean;
+  readonly bars: readonly TimelineBar[];
+  readonly trackHeight: number;
+  readonly workerCount: number;
+  readonly minutes: number;
 }
 
 interface RemovalDrag {
@@ -113,7 +136,6 @@ const ASSIGNMENT_ERRORS = new Map<string, string>([
   selector: 'app-week-grid',
   imports: [
     FormsModule,
-    RmsBadge,
     RmsButton,
     RmsDialog,
     RmsEmptyState,
@@ -172,6 +194,113 @@ export class WeekGrid implements OnInit, OnChanges {
 
   readonly weekStart = computed(() => startOfWeek(this.weekAnchor()));
   readonly dates = computed(() => weekDates(this.weekAnchor()));
+
+  /** Hour window of the calendar: the weekly opening hours, or the shifts as fallback. */
+  readonly timelineRange = computed(() => {
+    const openings = Object.values(this.openingsByDay()).filter((day) => !day.closed);
+    if (openings.length > 0) {
+      return {
+        start: Math.min(...openings.map((day) => day.openHour)),
+        end: Math.max(...openings.map((day) => day.closeHour)),
+      };
+    }
+    let start = 23;
+    let end = 0;
+    for (const row of this.filteredRows()) {
+      for (const day of row.week.days) {
+        for (const shift of day.shifts) {
+          const from = timeToMinutes(shift.startTime);
+          const to = timeToMinutes(shift.endTime);
+          if (from === null || to === null || to <= from) continue;
+          start = Math.min(start, Math.floor(from / 60));
+          end = Math.max(end, Math.ceil(to / 60));
+        }
+      }
+    }
+    return end > start ? { start, end } : { start: 8, end: 22 };
+  });
+
+  readonly timelineHours = computed(() => {
+    const range = this.timelineRange();
+    return Array.from({ length: range.end - range.start }, (_, index) => range.start + index);
+  });
+
+  /** Weekly calendar: one horizontal lane set per day, bars spanning their hours. */
+  readonly timelineDays = computed<readonly TimelineDay[]>(() => {
+    const range = this.timelineRange();
+    const windowStart = range.start * 60;
+    const windowMinutes = Math.max(1, (range.end - range.start) * 60);
+    const dates = this.dates();
+
+    return DAY_ORDER.map((dayOfWeek, index) => {
+      const opening = this.openingsByDay()[dayOfWeek];
+      const closed = opening?.closed === true;
+      const shifts = (closed ? [] : this.filteredRows())
+        .flatMap((row) => {
+          const day = row.week.days.find((candidate) => candidate.dayOfWeek === dayOfWeek);
+          return (day?.shifts ?? []).map((shift) => ({ row, shift }));
+        })
+        .filter(({ shift }) => shift.minutes > 0)
+        .sort(
+          (left, right) =>
+            (timeToMinutes(left.shift.startTime) ?? 0) - (timeToMinutes(right.shift.startTime) ?? 0),
+        );
+
+      const laneEnds: number[] = [];
+      const bars: TimelineBar[] = [];
+      for (const { row, shift } of shifts) {
+        const from = timeToMinutes(shift.startTime);
+        const to = timeToMinutes(shift.endTime);
+        if (from === null || to === null || to <= from) continue;
+        const visibleFrom = Math.max(from, windowStart);
+        const visibleTo = Math.min(to, windowStart + windowMinutes);
+        if (visibleTo <= visibleFrom) continue;
+
+        let lane = laneEnds.findIndex((end) => end <= from);
+        if (lane < 0) {
+          lane = laneEnds.length;
+          laneEnds.push(to);
+        } else {
+          laneEnds[lane] = to;
+        }
+
+        const areas = row.areaLabels.map((area) => area.toLowerCase());
+        const role = areas.some((area) => area.includes('cocina'))
+          ? row.worker.name.toLowerCase().includes('auxiliar')
+            ? 'Auxiliar de cocina'
+            : 'Cocinero'
+          : areas.some((area) => area.includes('caja'))
+            ? 'Cajero'
+            : areas.some((area) => area.includes('servicio'))
+              ? 'Mesero'
+              : 'Sin rol';
+
+        bars.push({
+          key: `${String(row.workerId)}-${shift.key}`,
+          workerName: row.worker.name,
+          role,
+          startTime: shift.startTime,
+          endTime: shift.endTime,
+          left: ((visibleFrom - windowStart) / windowMinutes) * 100,
+          width: ((visibleTo - visibleFrom) / windowMinutes) * 100,
+          top: lane * 28 + 4,
+        });
+      }
+
+      const minutes = shifts.reduce((total, entry) => total + entry.shift.minutes, 0);
+      return {
+        dayOfWeek,
+        label: DAY_LABELS[dayOfWeek],
+        date: dates[index],
+        closed,
+        bars: closed ? [] : bars,
+        trackHeight: Math.max(1, laneEnds.length) * 28 + 8,
+        workerCount: new Set(shifts.map((entry) => entry.row.workerId)).size,
+        minutes,
+      };
+    });
+  });
+
   readonly isCurrentWeek = computed(() =>
     isSameLocalDay(this.weekStart(), startOfWeek(new Date())),
   );
@@ -521,7 +650,7 @@ export class WeekGrid implements OnInit, OnChanges {
         this.savingWorkerId.set(null);
         this.savingScheduleId.set(null);
         const serverWarning = result.warning?.trim() ?? '';
-        // The server is authoritative for the 48 h rule; only append local
+        // The server is authoritative for the 42 h rule; only append local
         // warnings that it does not cover (for example a >12 h day).
         const localWarnings = report.warnings.filter(
           (warning) => serverWarning.length === 0 || !warning.includes('semanales'),

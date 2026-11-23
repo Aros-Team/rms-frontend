@@ -2,18 +2,8 @@
   display: block;
 }
 
-/*
- * PrimeNG sizes the canvas for a 150 px fallback; the chart frame is shorter,
- * so the x-axis labels were drawn below the visible plot. Pin the canvas to
- * the frame height.
- */
-:host ::ng-deep p-chart,
-:host ::ng-deep p-chart > div {
-  display: block;
-  height: 100%;
-  width: 100%;
-}
-
+/* The frame sets the plot height; the canvas fills it. Chart.js draws the
+   axis labels inside that box instead of below the visible plot. */
 :host ::ng-deep canvas {
   height: 100% !important;
   width: 100% !important;

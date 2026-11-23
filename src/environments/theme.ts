@@ -4,7 +4,7 @@
  * Functional palette (primary + semantic + slate enterprise surface family).
  * Source of truth: `docs/design/waiter-service.md` § 2 (Color Tokens).
  *
- * - `primary`            — gold `#F9BB0B` (brand, active CTAs).
+ * - `primary`            — cream `#FDEFC7` fill with dark-gold ink `#896511`.
  * - `semantic.info`      — blue `#3b82f6` (secondary container / "Preparing in Kitchen").
  * - `semantic.success`   — emerald `#10b981` (tertiary container / "Ready at Pass").
  * - `semantic.warn`      — amber `#f59e0b` (pending / "In Queue" status).
@@ -17,7 +17,7 @@ export const theme = {
     200: '#f8ecd1',
     300: '#f5e3b8',
     400: '#f2daa2',
-    500: '#F9BB0B',
+    500: '#fdefc7',
     600: '#c69409',
     700: '#392d11',
     800: '#57441a',

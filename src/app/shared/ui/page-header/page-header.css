@@ -71,3 +71,21 @@
     width: 100%;
   }
 }
+
+/* Compact list pages: no visible H1, only the action/meta toolbar. */
+:host(.rms-page-header-host--compact) .rms-page-header {
+  margin-bottom: 0;
+  gap: var(--rms-space-2);
+}
+
+:host(.rms-page-header-host--compact) .rms-page-header__row {
+  align-items: center;
+}
+
+:host(.rms-page-header-host--compact) .rms-page-header__subtitle {
+  display: none;
+}
+
+:host(.rms-page-header-host--compact) .rms-page-header__meta {
+  margin-top: 0;
+}

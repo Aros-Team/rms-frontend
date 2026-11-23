@@ -2,89 +2,41 @@
   transform: scale(0.8);
 }
 
-.current-date ::ng-deep .p-datepicker {
-
-  border-radius: none;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  width: 100%;
-}
-
-.current-date ::ng-deep .p-datepicker-panel {
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  width: 100%;
-}
-
-.current-date ::ng-deep .p-datepicker-header {
-  background: transparent;
-  border: none;
-}
-
-.current-date ::ng-deep .p-datepicker-calendar {
-  background: transparent;
-  width: 100%;
-}
-
+/* Inline month calendar. Colours come from the semantic tokens, so light,
+   dark and high contrast need no separate `html.dark` block. */
+.current-date ::ng-deep .p-datepicker,
+.current-date ::ng-deep .p-datepicker-panel,
+.current-date ::ng-deep .p-datepicker-header,
+.current-date ::ng-deep .p-datepicker-calendar,
 .current-date ::ng-deep .p-datepicker-calendar-container {
   background: transparent;
+  border: none;
+  box-shadow: none;
   width: 100%;
 }
 
 .current-date ::ng-deep .p-datepicker-calendar td span {
-  color: var(--surface-700);
+  color: var(--rms-text);
 }
 
 .current-date ::ng-deep .p-datepicker-calendar td.p-datepicker-today span {
-  background: var(--primary-100);
-  color: var(--primary-700);
-  font-weight: 700;
+  background: var(--rms-brand-soft);
+  color: var(--rms-brand-text);
+  font-weight: var(--rms-weight-bold);
 }
 
 .current-date ::ng-deep .p-datepicker-calendar td.p-highlight span {
-  background: var(--primary-500);
-  color: var(--primary-contrast);
+  background: var(--rms-brand-500);
+  color: var(--rms-text-on-brand);
 }
 
 .current-date ::ng-deep .p-datepicker-title {
-  color: var(--surface-900);
-  font-weight: 600;
+  color: var(--rms-text);
+  font-weight: var(--rms-weight-semibold);
 }
 
-.current-date ::ng-deep .p-datepicker-calendar th {
-  color: var(--surface-600);
-}
-
+.current-date ::ng-deep .p-datepicker-calendar th,
 .current-date ::ng-deep .p-datepicker-prev,
 .current-date ::ng-deep .p-datepicker-next {
-  color: var(--surface-600);
-}
-
-html.dark .current-date ::ng-deep .p-datepicker-calendar td span {
-  color: var(--surface-300);
-}
-
-html.dark .current-date ::ng-deep .p-datepicker-calendar td.p-datepicker-today span {
-  background: var(--primary-900);
-  color: var(--primary-200);
-}
-
-html.dark .current-date ::ng-deep .p-datepicker-calendar td.p-highlight span {
-  background: var(--primary-400);
-  color: var(--surface-900);
-}
-
-html.dark .current-date ::ng-deep .p-datepicker-title {
-  color: var(--surface-100);
-}
-
-html.dark .current-date ::ng-deep .p-datepicker-calendar th {
-  color: var(--surface-400);
-}
-
-html.dark .current-date ::ng-deep .p-datepicker-prev,
-html.dark .current-date ::ng-deep .p-datepicker-next {
-  color: var(--surface-400);
+  color: var(--rms-text-secondary);
 }

@@ -33,4 +33,9 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
+  /* The docked period selector sits below this viewport. Reserve the last
+     row so a chart's bottom legend or link never renders flush against the
+     dock edge. */
+  padding-block-end: var(--rms-space-6);
+  scroll-padding-block-end: var(--rms-space-6);
 }

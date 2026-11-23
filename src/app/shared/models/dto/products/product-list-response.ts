@@ -14,6 +14,10 @@ export interface ProductListResponse {
   areaName?: string;
   /** Signed URL of the primary image (mobile variant), `null` when the product has none. */
   imageUrl?: string | null;
+  /** Signed URL of the primary image (tablet variant). */
+  imageTabletUrl?: string | null;
+  /** Signed URL of the primary image (desktop variant). */
+  imageDesktopUrl?: string | null;
   estimatedPrepMinutes?: number;
   selectionType?: SelectionType;
 }

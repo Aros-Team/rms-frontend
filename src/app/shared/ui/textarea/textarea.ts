@@ -43,6 +43,14 @@ export class RmsTextarea implements ControlValueAccessor {
   @Input() placeholder = '';
   @Input() hint = '';
   @Input() error = '';
+  /** Invalid state without a rendered message (touched but not submitted). */
+  @Input() invalid = false;
+  /**
+   * Space-separated ids of messages rendered outside the primitive (for
+   * example a shared `app-form-validation` block). They are merged into
+   * `aria-describedby` without duplicating the hint/error handling.
+   */
+  @Input() describedByIds = '';
   @Input() required = false;
   @Input() optionalLabel = '';
   @Input() hideLabel = false;
@@ -70,6 +78,7 @@ export class RmsTextarea implements ControlValueAccessor {
     const ids: string[] = [];
     if (this.hint) ids.push(`${this.inputId}-hint`);
     if (this.error) ids.push(`${this.inputId}-error`);
+    if (this.describedByIds) ids.push(this.describedByIds);
     return ids.length > 0 ? ids.join(' ') : null;
   }
 

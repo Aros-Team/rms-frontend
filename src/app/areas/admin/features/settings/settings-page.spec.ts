@@ -3,7 +3,7 @@
  *
  * Feature: `/admin/settings` with one tab per section.
  * Contract:
- *  - eleven sections exist in development, including Cuenta and the dev-only demo card;
+ *  - eight sections exist in development, ending with Cuenta;
  *  - only the active section is mounted, so switching issues that section's
  *    request and nothing else;
  *  - the tablist supports arrow/Home/End navigation and exposes ARIA state;
@@ -100,7 +100,7 @@ describe('SettingsPage', () => {
     return element;
   }
 
-  it('exposes every section, including the dev-only demo card', () => {
+  it('exposes every section, ending with Cuenta', () => {
     expect(component.sections.map((section) => section.id)).toEqual([
       'business',
       'openingHours',
@@ -110,11 +110,8 @@ describe('SettingsPage', () => {
       'users',
       'appearance',
       'account',
-      'advanced',
-      'integrations',
-      'demo',
     ]);
-    expect(tabs().length).toBe(11);
+    expect(tabs().length).toBe(8);
     expect(tab('business').getAttribute('aria-selected')).toBe('true');
     expect(tab('currency').getAttribute('aria-selected')).toBe('false');
   });
@@ -146,7 +143,7 @@ describe('SettingsPage', () => {
     tab('business').dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
     fixture.detectChanges();
 
-    expect(component.activeSection()).toBe('demo');
+    expect(component.activeSection()).toBe('account');
   });
 
   it('resolves the route guard immediately when nothing is dirty', async () => {

@@ -3,54 +3,9 @@
   min-width: 0;
 }
 
-.rms-textarea {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  min-height: 6rem;
-  padding: var(--rms-space-2) var(--rms-space-3);
-  border: var(--rms-border-width) solid var(--rms-control-border);
-  border-radius: var(--rms-control-radius);
-  background: var(--rms-control-bg);
-  color: var(--rms-text);
-  font-family: var(--rms-font-sans);
-  font-size: var(--rms-type-body-size);
-  line-height: var(--rms-type-body-line);
-  resize: vertical;
-  transition:
-    border-color var(--rms-transition-fast),
-    background-color var(--rms-transition-fast);
-}
-
-.rms-textarea::placeholder {
-  color: var(--rms-text-muted);
-  opacity: 1;
-}
-
-.rms-textarea:hover:not(:disabled) {
-  border-color: var(--rms-neutral-400);
-}
-
-.rms-textarea:focus-visible {
-  border-color: var(--rms-focus);
-}
-
-.rms-textarea:disabled {
-  background: var(--rms-bg-disabled);
-  border-color: var(--rms-border);
-  color: var(--rms-text-disabled);
-  cursor: not-allowed;
-}
-
-.rms-textarea__count {
-  display: block;
-  margin-top: var(--rms-space-1);
-  text-align: end;
-  font-size: var(--rms-type-caption-size);
-  line-height: var(--rms-type-caption-line);
-  color: var(--rms-text-muted);
-  font-variant-numeric: tabular-nums;
-}
+/* Base control styles live in `src/styles/controls.css` (global, layered) so
+   the same classes work on native textareas in feature templates. Only the
+   component-scoped invalid state stays here. */
 
 :host-context(.rms-field--invalid) .rms-textarea {
   border-color: var(--rms-danger-fg);

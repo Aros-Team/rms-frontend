@@ -1,33 +1,24 @@
-
-<form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5 w-full">
-  <h1 class="text-xl font-bold text-surface-900 dark:text-surface-100">Iniciar sesión</h1>
-
-  <!-- Email -->
-  <div class="flex flex-col gap-1.5">
-    <label for="username" class="text-sm font-medium text-surface-700 dark:text-surface-300">Correo electrónico</label>
-    <div class="relative">
-      <input
-        pInputText
-        id="username"
-        type="email"
-        formControlName="username"
-        [invalid]="isInvalid('username')"
-        placeholder="usuario@dominio.com"
-        autocomplete="username"
-        class="w-full pl-10"
-      />
-
-    </div>
-    @if (isInvalid('username')) {
-      <small class="text-red-600 dark:text-red-400">Campo requerido</small>
-    }
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex w-full flex-col gap-5" novalidate>
+  <div class="flex flex-col gap-1">
+    <h1 class="rms-h1 text-rms-ink">Iniciar sesión</h1>
+    <p class="rms-body text-rms-ink-muted">Ingresa con tu correo y contraseña.</p>
   </div>
 
-  <!-- Password -->
-  <div class="flex flex-col gap-1.5">
-    <label for="password" class="text-sm text-surface-700 dark:text-surface-300">Contraseña</label>
+  <app-rms-input
+    id="username"
+    type="email"
+    formControlName="username"
+    label="Correo electrónico"
+    placeholder="usuario@dominio.com"
+    autocomplete="username"
+    [error]="usernameError"
+    [required]="true"
+  />
+
+  <div class="flex flex-col gap-2">
+    <label for="password" class="rms-label text-rms-ink">Contraseña</label>
     <p-password
-      id="password"
+      inputId="password"
       formControlName="password"
       [invalid]="isInvalid('password')"
       [feedback]="false"
@@ -37,61 +28,45 @@
       autocomplete="current-password"
       ariaLabel="Contraseña"
     />
-    @if (isInvalid('password')) {
-      <small class="text-red-600 dark:text-red-400">Campo requerido</small>
+    @if (passwordError) {
+      <p class="rms-text-danger text-sm" role="alert">{{ passwordError }}</p>
     }
   </div>
 
-  <!-- Terms Checkbox + Forgot password -->
-  <!-- The terms trigger must NOT live inside the <label>: interactive content
-       inside a label is invalid and clicking it also toggled the checkbox. -->
-  <div class="flex flex-col gap-2 -mt-1">
-    <div class="flex items-center gap-2 min-w-0">
-      <p-checkbox
-        formControlName="termsAccepted"
-        [binary]="true"
-        inputId="terms"
-      />
-      <span class="text-sm whitespace-nowrap text-muted">
-        <label for="terms" class="cursor-pointer">Acepto los&nbsp;</label>
-        <button
-          type="button"
-          (click)="showHabeasData()"
-          class="underline cursor-pointer bg-transparent border-none p-0 text-sm text-surface-700 dark:text-surface-200"
-        >
-          términos y condiciones
-        </button>
-      </span>
-    </div>
+  <!-- The terms trigger lives outside the checkbox label: interactive content
+       inside a <label> is invalid and clicking it also toggled the checkbox. -->
+  <div class="flex flex-col gap-1 border-t border-rms-border pt-4">
+    <app-rms-checkbox
+      formControlName="termsAccepted"
+      label="Acepto los términos y condiciones"
+    />
+    <button
+      type="button"
+      (click)="showHabeasData()"
+      class="min-h-11 self-start text-left text-sm text-rms-brand-text underline underline-offset-2 hover:text-rms-ink"
+    >
+      Leer los términos y condiciones
+    </button>
     <a
       [routerLink]="['/forgot-password']"
-      class="text-sm underline whitespace-nowrap text-surface-700 dark:text-surface-300"
+      class="inline-flex min-h-11 items-center self-start text-sm text-rms-brand-text underline underline-offset-2 hover:text-rms-ink"
     >
       ¿Olvidaste tu contraseña?
     </a>
   </div>
 
-  <!-- Submit -->
-  <p-button
+  <app-rms-button
     type="submit"
-    class="mt-2"
-    [disabled]="formStatus() === 'Occuped' || form.invalid"
+    size="lg"
+    iconEnd="pi pi-arrow-right"
+    [disabled]="form.invalid"
     [loading]="formStatus() === 'Occuped'"
-    styleClass="w-full justify-center gap-2"
+    [block]="true"
   >
-    @if (formStatus() === 'Free') {
-      <span class="flex items-center gap-2">
-        Entrar al sistema
-        <i class="pi pi-arrow-right" aria-hidden="true"></i>
-      </span>
-    }
-    @if (formStatus() === 'Occuped') {
-      <span>Autenticando...</span>
-    }
-  </p-button>
+    Entrar al sistema
+  </app-rms-button>
 
-  <!-- Restricted Access Note -->
-  <div class="mt-8 pt-4 border-t border-surface-200 dark:border-surface-700">
-    <p class="text-center text-xs text-muted">Acceso restringido a personal autorizado</p>
+  <div class="border-t border-rms-border pt-4">
+    <p class="text-center text-xs text-rms-ink-muted">Acceso restringido a personal autorizado</p>
   </div>
 </form>

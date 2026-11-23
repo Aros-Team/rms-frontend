@@ -1,10 +1,10 @@
 @if (crumbs().length > 1) {
   <nav aria-label="Ruta de navegación" class="min-w-0">
-    <ol class="flex min-w-0 flex-wrap items-center gap-1 text-xs text-muted">
+    <ol class="rms-caption flex min-w-0 flex-wrap items-center gap-1">
       @for (crumb of crumbs(); track crumb.url) {
         <li class="flex min-w-0 items-center gap-1">
           @if (crumb.current) {
-            <span aria-current="page" class="truncate font-medium text-surface-700 dark:text-surface-200">
+            <span aria-current="page" class="truncate font-medium text-rms-ink">
               {{ crumb.label }}
             </span>
           } @else {

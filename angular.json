@@ -24,8 +24,7 @@
             "polyfills": [],
             "tsConfig": "tsconfig.app.json",
             "allowedCommonJsDependencies": [
-              "@stomp/stompjs",
-              "sockjs-client"
+              "@stomp/stompjs"
             ],
             "serviceWorker": "ngsw-config.json",
             "assets": [
@@ -44,8 +43,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "820kB",
-                  "maximumError": "900kB"
+                  "maximumWarning": "810kB",
+                  "maximumError": "850kB"
                 },
                 {
                   "type": "any",

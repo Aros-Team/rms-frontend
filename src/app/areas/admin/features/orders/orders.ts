@@ -1,11 +1,10 @@
 import { Component } from '@angular/core';
 
 import { OrdersTable } from '@areas/admin/features/orders/components/orders-table/orders-table';
-import { RmsPageHeader } from '@shared/ui/page-header/page-header';
 
 @Component({
   selector: 'app-orders',
-  imports: [OrdersTable, RmsPageHeader],
+  imports: [OrdersTable],
   templateUrl: './orders.html',
 })
 export class Orders {

@@ -1,5 +1,6 @@
 <div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.workers" (appLazyLoadVisible)="onVisible()">
-  <app-rms-page-header title="Administración de trabajadores">
+  <app-rms-page-header
+    [compact]="true" title="Administración de trabajadores">
     <div rmsPageHeaderActions>
       <app-rms-button iconStart="pi pi-user-plus" (click)="showCreationModal()">
         Nuevo empleado
@@ -9,7 +10,7 @@
 
   <!-- Tab navigation -->
   <nav aria-label="Navegación de empleados">
-    <div class="flex gap-1 mb-4 border-b border-surface-200 dark:border-surface-700" role="tablist">
+    <div class="flex gap-1 mb-4 border-b border-rms-border" role="tablist">
       <button
         #tabEmpleados
         role="tab"
@@ -18,8 +19,8 @@
         [attr.aria-selected]="activeEmployeeTab() === 'list'"
         class="px-4 py-2 text-sm font-medium rounded-t-lg border border-b-0 transition-colors cursor-pointer"
         [ngClass]="{
-          'bg-primary-contrast dark:bg-surface-800 text-accent border-surface-200 dark:border-surface-700': activeEmployeeTab() === 'list',
-          'bg-transparent text-muted border-transparent hover:text-surface-700 hover:text-muted': activeEmployeeTab() !== 'list'
+          'bg-rms-surface text-accent border-rms-border': activeEmployeeTab() === 'list',
+          'bg-transparent text-rms-ink-secondary border-transparent hover:text-rms-ink': activeEmployeeTab() !== 'list'
         }"
         (click)="switchTab('list')"
         (keydown.enter)="$event.preventDefault(); switchTab('list')"
@@ -33,8 +34,8 @@
         [attr.aria-selected]="activeEmployeeTab() === 'time-logs'"
         class="px-4 py-2 text-sm font-medium rounded-t-lg border border-b-0 transition-colors cursor-pointer"
         [ngClass]="{
-          'bg-primary-contrast dark:bg-surface-800 text-accent border-surface-200 dark:border-surface-700': activeEmployeeTab() === 'time-logs',
-          'bg-transparent text-muted border-transparent hover:text-surface-700 hover:text-muted': activeEmployeeTab() !== 'time-logs'
+          'bg-rms-surface text-accent border-rms-border': activeEmployeeTab() === 'time-logs',
+          'bg-transparent text-rms-ink-secondary border-transparent hover:text-rms-ink': activeEmployeeTab() !== 'time-logs'
         }"
         (click)="switchTab('time-logs')"
         (keydown.enter)="$event.preventDefault(); switchTab('time-logs')"
@@ -48,8 +49,8 @@
         [attr.aria-selected]="activeEmployeeTab() === 'payroll'"
         class="px-4 py-2 text-sm font-medium rounded-t-lg border border-b-0 transition-colors cursor-pointer"
         [ngClass]="{
-          'bg-primary-contrast dark:bg-surface-800 text-accent border-surface-200 dark:border-surface-700': activeEmployeeTab() === 'payroll',
-          'bg-transparent text-muted border-transparent hover:text-surface-700 hover:text-muted': activeEmployeeTab() !== 'payroll'
+          'bg-rms-surface text-accent border-rms-border': activeEmployeeTab() === 'payroll',
+          'bg-transparent text-rms-ink-secondary border-transparent hover:text-rms-ink': activeEmployeeTab() !== 'payroll'
         }"
         (click)="switchTab('payroll')"
         (keydown.enter)="$event.preventDefault(); switchTab('payroll')"
@@ -68,7 +69,7 @@
     @if (cache.workers.isLoading() && workers().length === 0) {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         @for (skeleton of [1,2,3,4,5,6,7,8]; track skeleton) {
-          <div class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast p-4 flex flex-col gap-3">
+          <div class="border border-rms-border rounded-xl bg-rms-surface p-4 flex flex-col gap-3">
             <div class="flex items-center gap-3">
               <p-skeleton shape="circle" size="3rem" />
               <div class="flex-1 space-y-2">
@@ -120,17 +121,21 @@
     class="flex-1 min-h-0 flex flex-col"
   >
     <!-- Filters -->
-    <div class="flex flex-wrap gap-3 mb-4 p-4 border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-100 dark:bg-surface-800">
+    <div class="flex flex-wrap gap-3 mb-4 p-4 border border-rms-border rounded-xl bg-rms-subtle">
+      <app-rms-input
+        class="w-32"
+        id="filter-worker-id"
+        label="ID del trabajador"
+        type="number"
+        [(ngModel)]="filterWorkerId"
+        placeholder="ID del trabajador"
+      />
       <div class="flex flex-col gap-1">
-        <label class="text-xs text-muted" for="filter-worker-id">ID del trabajador</label>
-        <input pInputText id="filter-worker-id" type="number" [(ngModel)]="filterWorkerId" placeholder="ID del trabajador" class="w-32" />
-      </div>
-      <div class="flex flex-col gap-1">
-        <label class="text-xs text-muted" for="filter-from">Desde</label>
+        <label class="rms-label" for="filter-from">Desde</label>
         <p-datepicker id="filter-from" [(ngModel)]="filterFrom" [showTime]="true" dateFormat="dd/mm/yy" placeholder="Fecha inicio"></p-datepicker>
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-xs text-muted" for="filter-to">Hasta</label>
+        <label class="rms-label" for="filter-to">Hasta</label>
         <p-datepicker id="filter-to" [(ngModel)]="filterTo" [showTime]="true" dateFormat="dd/mm/yy" placeholder="Fecha fin"></p-datepicker>
       </div>
       <div class="flex items-end gap-2">
@@ -141,7 +146,7 @@
 
     <!-- Table -->
     <div
-      class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast overflow-hidden"
+      class="flex-1 min-h-0 border border-rms-border rounded-xl bg-rms-surface overflow-hidden"
       aria-live="polite"
       [attr.aria-busy]="timeLogLoading()"
     >
@@ -189,7 +194,7 @@
           </ng-template>
           <ng-template pTemplate="emptymessage">
             <tr>
-              <td colspan="6" class="text-center p-4 text-muted">Sin registros de ingreso</td>
+              <td colspan="6" class="text-center p-4 text-rms-ink-secondary">Sin registros de ingreso</td>
             </tr>
           </ng-template>
         </p-table>
@@ -215,109 +220,81 @@
   [modal]="true"
   [(visible)]="creationModalVisible"
   draggable="false"
-  styleClass="w-[90vw] max-w-[500px] p-2 z-[400000]"
+  styleClass="w-[90vw] max-w-[500px] p-2"
   appendTo="body"
   (onShow)="focusFirstInput()"
 >
   <div class="p-4">
     @if (editing) {
-    <span class="p-text-secondary block mb-8">Edita la información del trabajador</span>
+    <span class="text-rms-ink-secondary block mb-8">Edita la información del trabajador</span>
     } @else {
-    <span class="p-text-secondary block mb-8">Crea un nuevo trabajador</span>
+    <span class="text-rms-ink-secondary block mb-8">Crea un nuevo trabajador</span>
     }
 
     <form action="" [formGroup]="userForm" class="flex flex-col gap-4">
-      <p-iftalabel class="w-full">
-        <p-select
-          [options]="areas()"
-          formControlName="areaId"
-          optionLabel="name"
-          optionValue="id"
-          placeholder="Seleccione el area de trabajo"
-          [showClear]="true"
-          class="w-full"
-          appendTo="body"
-        >
-          <ng-template #item let-area>
-            <span class="text-sm">{{ area.name.toLowerCase() }}</span>
-          </ng-template>
-          <ng-template #selectedItem let-area>
-            <span class="text-sm">{{ area.name.toLowerCase() }}</span>
-          </ng-template>
-        </p-select>
-        <label for="create.areaId">Área de trabajo *</label>
-        <app-form-validation field="areaId" [backendError]="getBackendError('areaId')"></app-form-validation>
-      </p-iftalabel>
-      <p-iftalabel class="w-full">
-        <input
-          #firstInputRef
-          pInputText
-          id="create.document"
-          class="w-full"
-          autocomplete="off"
-          formControlName="document"
-          placeholder="Número de documento del trabajador"
-          aria-describedby="error-document"
-        />
-        <label for="create.document">Documento *</label>
-        <app-form-validation id="error-document" field="document" [backendError]="getBackendError('document')"></app-form-validation>
-      </p-iftalabel>
-      <p-iftalabel class="w-full">
-        <input
-          pInputText
-          id="create.name"
-          class="w-full"
-          autocomplete="off"
-          formControlName="name"
-          placeholder="Nombre completo del trabajador"
-          aria-describedby="error-name"
-        />
-        <label for="create.name">Nombre *</label>
-        <app-form-validation id="error-name" field="name" [backendError]="getBackendError('name')"></app-form-validation>
-      </p-iftalabel>
-      <p-iftalabel class="w-full">
-        <input
-          pInputText
-          type="email"
-          id="create.email"
-          class="w-full"
-          autocomplete="off"
-          formControlName="email"
-          placeholder="Correo electrónico del trabajador"
-          aria-describedby="error-email"
-        />
-        <label for="create.email">Correo electrónico *</label>
-        <app-form-validation id="error-email" field="email" [backendError]="getBackendError('email')"></app-form-validation>
-      </p-iftalabel>
-      <p-iftalabel class="w-full">
-        <input
-          pInputText
-          id="create.address"
-          class="w-full"
-          autocomplete="off"
-          formControlName="address"
-          placeholder="Dirección de residencia del trabajador"
-          aria-describedby="error-address"
-        />
-        <label for="create.address">Dirección</label>
-        <app-form-validation id="error-address" field="address" [backendError]="getBackendError('address')"></app-form-validation>
-      </p-iftalabel>
-      <p-iftalabel class="w-full">
-        <input
-          pInputText
-          id="create.phone"
-          class="w-full"
-          autocomplete="off"
-          formControlName="phone"
-          placeholder="Número de contacto del trabajador"
-          aria-describedby="error-phone"
-        />
-        <label for="create.phone">N# Celular</label>
-        <app-form-validation id="error-phone" field="phone" [backendError]="getBackendError('phone')"></app-form-validation>
-      </p-iftalabel>
-      <p-iftalabel class="w-full">
+      <app-rms-select
+        id="create.areaId"
+        label="Área de trabajo"
+        [required]="true"
+        [options]="areaOptions()"
+        formControlName="areaId"
+        placeholder="Seleccione el area de trabajo"
+        [showClear]="true"
+        [error]="fieldError('areaId')"
+      />
+      <app-rms-input
+        #firstInputRef
+        id="create.document"
+        label="Documento"
+        [required]="true"
+        autocomplete="off"
+        formControlName="document"
+        placeholder="Número de documento del trabajador"
+        [error]="fieldError('document')"
+      />
+      <app-rms-input
+        id="create.name"
+        label="Nombre"
+        [required]="true"
+        autocomplete="off"
+        formControlName="name"
+        placeholder="Nombre completo del trabajador"
+        [error]="fieldError('name')"
+      />
+      <app-rms-input
+        id="create.email"
+        label="Correo electrónico"
+        type="email"
+        [required]="true"
+        autocomplete="off"
+        formControlName="email"
+        placeholder="Correo electrónico del trabajador"
+        [error]="fieldError('email')"
+      />
+      <app-rms-input
+        id="create.address"
+        label="Dirección"
+        autocomplete="off"
+        formControlName="address"
+        placeholder="Dirección de residencia del trabajador"
+        [error]="fieldError('address')"
+      />
+      <app-rms-input
+        id="create.phone"
+        label="N# Celular"
+        autocomplete="off"
+        formControlName="phone"
+        placeholder="Número de contacto del trabajador"
+        [error]="fieldError('phone')"
+      />
+      <app-rms-field
+        #salaryField
+        label="Salario"
+        controlId="create.salary"
+        [error]="fieldError('salary')"
+      >
         <p-inputnumber
-          id="create.salary"
+          inputId="create.salary"
           formControlName="salary"
           [min]="0"
           [maxFractionDigits]="0"
@@ -326,34 +303,27 @@
           class="w-full"
           pTooltip="Solo aplica para trabajadores"
           tooltipPosition="top"
+          [attr.aria-describedby]="salaryField.describedBy"
+          [attr.aria-invalid]="salaryField.hasError ? 'true' : null"
         />
-        <label for="create.salary">Salario</label>
-      </p-iftalabel>
+      </app-rms-field>
       @if (editing && salaryChanged()) {
-        <p-iftalabel class="w-full">
-          <input
-            pInputText
-            id="edit.reason"
-            class="w-full"
-            autocomplete="off"
-            formControlName="reason"
-            placeholder="Razón del cambio salarial"
-            aria-describedby="error-reason"
-          />
-          <label for="edit.reason">Razón *</label>
-          <app-form-validation id="error-reason" field="reason" [backendError]="getBackendError('reason')"></app-form-validation>
-        </p-iftalabel>
-        <p-iftalabel class="w-full">
-          <input
-            pInputText
-            id="edit.observations"
-            class="w-full"
-            autocomplete="off"
-            formControlName="observations"
-            placeholder="Observaciones adicionales"
-          />
-          <label for="edit.observations">Observaciones</label>
-        </p-iftalabel>
+        <app-rms-input
+          id="edit.reason"
+          label="Razón"
+          [required]="true"
+          autocomplete="off"
+          formControlName="reason"
+          placeholder="Razón del cambio salarial"
+          [error]="fieldError('reason')"
+        />
+        <app-rms-input
+          id="edit.observations"
+          label="Observaciones"
+          autocomplete="off"
+          formControlName="observations"
+          placeholder="Observaciones adicionales"
+        />
       }
     </form>
 
@@ -375,7 +345,7 @@
   [modal]="true"
   [(visible)]="scheduleDialogVisible"
   draggable="false"
-  styleClass="w-[500px] z-[400000]"
+  styleClass="w-[500px]"
   appendTo="body"
   (onHide)="closeScheduleDialog()"
 >
@@ -385,11 +355,11 @@
     } @else {
       <div class="flex flex-col gap-2 max-h-[400px] overflow-y-auto">
         @for (schedule of allSchedules(); track schedule.id) {
-          <div class="flex items-center justify-between p-3 border border-surface-200 dark:border-surface-700 rounded-lg bg-surface-50 dark:bg-surface-800">
+          <div class="flex items-center justify-between p-3 border border-rms-border rounded-lg bg-rms-subtle">
             <div class="flex flex-col min-w-0">
-              <span class="font-medium text-surface-900 dark:text-surface-0">{{ schedule.name }}</span>
+              <span class="font-medium text-rms-ink">{{ schedule.name }}</span>
               @if (schedule.description) {
-                <span class="text-sm text-muted">{{ schedule.description }}</span>
+                <span class="text-sm text-rms-ink-secondary">{{ schedule.description }}</span>
               }
             </div>
             @if (isScheduleAssigned(schedule.id)) {

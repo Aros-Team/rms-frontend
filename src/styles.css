@@ -1,6 +1,6 @@
 /* @import rules must precede every other rule in the stylesheet. */
 @import "tailwindcss";
-@import "primeicons/primeicons.css";
+@import "./styles/primeicons.css";
 @import "tailwindcss-primeui";
 
 /* Design-system tokens and global primitives. Both are plain CSS custom
@@ -8,6 +8,7 @@
    screens keep their current appearance while new code reads the tokens. */
 @import "./styles/tokens.css";
 @import "./styles/global.css";
+@import "./styles/controls.css";
 
 /* Archivo — variable font (weights 400-900).
    Self-hosted subsets so `font-medium` (500), `font-semibold` (600) and
@@ -145,7 +146,7 @@
    ======================================== */
 :root {
   /* Raw brand colour, used to derive high-contrast tints without cycles. */
-  --brand-gold: #F9BB0B;
+  --brand-gold: #fdefc7;
 
   color-scheme: light dark;
 
@@ -160,10 +161,7 @@
 
 /* ========================================
    Accent text
-   The brand gold (#F9BB0B) is a *fill* colour: as text on a light surface it
-   is 1.7:1, and no amount of it can reach 4.5:1 without turning brown. So the
-   palette stays for fills and the accent gets its own, readable value that
-   flips with the theme — dark bronze on light, pale gold on dark.
+   The brand fill is cream (#FDEFC7); its ink is dark gold (#896511).
    ======================================== */
 :root {
   --accent-text: var(--rms-brand-text); /* 5.3:1 on #ffffff, 5.1:1 on the slate-50 page */
@@ -208,10 +206,6 @@ html.dark {
   font-size: 39px;
 }
 
-.header {
-  @apply bg-surface-100 dark:bg-surface-800 flex items-center justify-between gap-2 rounded-2xl rounded-b-none p-2 px-4;
-}
-
 /* ========================================
    High Contrast Mode - data-contrast="high"
    Applied by Accessibility service on <html> element
@@ -223,7 +217,7 @@ html.dark {
    accessibility theme.
    ======================================== */
 
-/* === Light mode: background surfaces only (text handled by class overrides below) === */
+/* === Light mode: surfaces + PrimeNG text tokens === */
 html[data-contrast="high"]:not(.dark) {
   --p-surface-0: #ffffff;
   --p-surface-50: #ffffff;
@@ -252,7 +246,7 @@ html[data-contrast="high"]:not(.dark) {
   --p-primary-600: color-mix(in srgb, var(--brand-gold), black 45%);
 }
 
-/* === Dark mode: background surfaces only === */
+/* === Dark mode: surfaces + PrimeNG text tokens === */
 html.dark[data-contrast="high"] {
   --p-surface-0: #000000;
   --p-surface-50: #000000;
@@ -271,44 +265,6 @@ html.dark[data-contrast="high"] {
   --p-primary-contrast-color: #000000;
   --p-primary-400: color-mix(in srgb, var(--brand-gold), white 50%);
   --p-primary-600: color-mix(in srgb, var(--brand-gold), white 10%);
-}
-
-/* === Light mode: text surface classes → dark slates for 7:1+ on white === */
-/* (Override classes, not CSS variables, so backgrounds are never affected) */
-html[data-contrast="high"]:not(.dark) .text-surface-300,
-html[data-contrast="high"]:not(.dark) .placeholder\:text-surface-300 {
-  color: #475569 !important;  /* slate-600 */
-}
-html[data-contrast="high"]:not(.dark) .text-surface-400,
-html[data-contrast="high"]:not(.dark) .placeholder\:text-surface-400 {
-  color: #1e293b !important;  /* slate-800 */
-}
-html[data-contrast="high"]:not(.dark) .text-surface-500,
-html[data-contrast="high"]:not(.dark) .placeholder\:text-surface-500 {
-  color: #0f172a !important;  /* slate-900 */
-}
-html[data-contrast="high"]:not(.dark) .text-surface-600,
-html[data-contrast="high"]:not(.dark) .placeholder\:text-surface-600 {
-  color: #020617 !important;  /* slate-950 */
-}
-
-/* === Dark mode: text surface classes → light for 7:1+ on black === */
-html.dark[data-contrast="high"] .text-surface-300 {
-  color: #d4d4d8 !important;
-}
-html.dark[data-contrast="high"] .text-surface-400 {
-  color: #e4e4e7 !important;
-}
-html.dark[data-contrast="high"] .text-surface-500 {
-  color: #ffffff !important;
-}
-html.dark[data-contrast="high"] .text-surface-600 {
-  color: #ffffff !important;
-}
-html.dark[data-contrast="high"] .text-surface-700,
-html.dark[data-contrast="high"] .text-surface-800,
-html.dark[data-contrast="high"] .text-surface-900 {
-  color: #ffffff !important;
 }
 
 /* === Focus — 3px solid brand primary outline with offset === */

@@ -1,195 +1,444 @@
-<div class="setup-card">
-    <div class="setup-header">
-      <div class="setup-icon">
-        <i class="pi pi-user-edit text-white text-2xl" aria-hidden="true"></i>
-      </div>
-      <h1>Activar cuenta</h1>
-      <p class="setup-subtitle">Completa tus datos para activar tu cuenta</p>
+<div class="flex w-full flex-col gap-6">
+  <div class="flex flex-col items-center gap-3 text-center">
+    <div class="flex h-16 w-16 items-center justify-center rounded-full bg-rms-brand">
+      <i class="pi pi-user-edit text-2xl text-rms-on-brand" aria-hidden="true"></i>
     </div>
+    <h1 class="rms-h1 text-rms-ink">Activar cuenta</h1>
+    <p class="rms-body text-rms-ink-muted">Completa tus datos para activar tu cuenta</p>
+  </div>
 
-    @if (loading()) {
-      <div class="loading-state" role="status">
-        <i class="pi pi-spin pi-spinner text-[2rem]" aria-hidden="true"></i>
-        <p>Validando enlace...</p>
+  @if (loading()) {
+    <div class="flex flex-col items-center gap-3 py-8 text-center text-rms-ink-muted" role="status">
+      <i class="pi pi-spin pi-spinner text-2xl" aria-hidden="true"></i>
+      <p class="rms-body">Validando enlace...</p>
+    </div>
+  }
+
+  @if (error(); as currentError) {
+    <div
+      class="rms-status-surface--danger flex flex-col items-center gap-3 rounded-xl border p-4 text-center"
+      role="alert"
+    >
+      @switch (currentError) {
+        @case ('missing_token') {
+          <i class="pi pi-link text-5xl" aria-hidden="true"></i>
+          <h2 class="rms-h2">Enlace incompleto</h2>
+          <p class="rms-body">
+            Abre el enlace de invitación completo que recibiste por correo. Este enlace no incluye
+            el token de activación.
+          </p>
+        }
+        @case ('invalid') {
+          <i class="pi pi-exclamation-triangle text-5xl" aria-hidden="true"></i>
+          <h2 class="rms-h2">Enlace inválido o expirado</h2>
+          <p class="rms-body">
+            Este enlace no es válido o ya expiró. Contacta al administrador para recibir uno nuevo.
+          </p>
+        }
+        @case ('already_used') {
+          <i class="pi pi-check-circle text-5xl" aria-hidden="true"></i>
+          <h2 class="rms-h2">Cuenta ya activada</h2>
+          <p class="rms-body">Esta cuenta ya fue activada anteriormente.</p>
+        }
+        @default {
+          <i class="pi pi-exclamation-circle text-5xl" aria-hidden="true"></i>
+          <h2 class="rms-h2">No se pudo activar la cuenta</h2>
+          <p class="rms-body">
+            Ocurrió un error al procesar el enlace. Intenta de nuevo o contacta al administrador.
+          </p>
+        }
+      }
+
+      @if (serverDetail(); as detail) {
+        <p class="rms-body" data-testid="setup-server-detail">{{ detail }}</p>
+      }
+
+      <app-rms-button
+        type="button"
+        variant="secondary"
+        size="lg"
+        iconStart="pi pi-sign-in"
+        (click)="goToLogin()"
+      >
+        Ir al login
+      </app-rms-button>
+    </div>
+  }
+
+  @if (success()) {
+    <div
+      class="rms-status-surface--success flex flex-col items-center gap-3 rounded-xl border p-6 text-center"
+    >
+      <i class="pi pi-check-circle text-5xl" aria-hidden="true"></i>
+      <h2 class="rms-h2">¡Cuenta activada exitosamente!</h2>
+      <p class="rms-body">Redirigiendo al login...</p>
+    </div>
+  }
+
+  @if (!loading() && !error() && !success() && userData()) {
+    @if (isAdmin()) {
+      <!-- ADMIN Stepper -->
+      <div class="rms-body rounded-lg bg-rms-subtle px-3 py-3 text-center text-rms-ink-muted">
+        <strong class="text-rms-ink">Paso {{ currentStep() }} de 2</strong> —
+        {{ currentStep() === 1 ? 'Tus datos' : 'Contraseña' }}
       </div>
-    }
 
-    @if (error(); as currentError) {
-      <div class="setup-error" role="alert">
-        @switch (currentError) {
-          @case ('missing_token') {
-            <i class="pi pi-link setup-error-icon" aria-hidden="true"></i>
-            <h2>Enlace incompleto</h2>
-            <p>Abre el enlace de invitación completo que recibiste por correo. Este enlace no incluye el token de activación.</p>
-          }
-          @case ('invalid') {
-            <i class="pi pi-exclamation-triangle setup-error-icon" aria-hidden="true"></i>
-            <h2>Enlace inválido o expirado</h2>
-            <p>Este enlace no es válido o ya expiró. Contacta al administrador para recibir uno nuevo.</p>
-          }
-          @case ('already_used') {
-            <i class="pi pi-check-circle setup-error-icon" aria-hidden="true"></i>
-            <h2>Cuenta ya activada</h2>
-            <p>Esta cuenta ya fue activada anteriormente.</p>
-          }
-          @default {
-            <i class="pi pi-exclamation-circle setup-error-icon" aria-hidden="true"></i>
-            <h2>No se pudo activar la cuenta</h2>
-            <p>Ocurrió un error al procesar el enlace. Intenta de nuevo o contacta al administrador.</p>
-          }
-        }
-
-        @if (serverDetail(); as detail) {
-          <p data-testid="setup-server-detail">{{ detail }}</p>
-        }
-
-        <button pButton type="button" icon="pi pi-sign-in" (click)="goToLogin()">Ir al login</button>
-      </div>
-    }
-
-    @if (success()) {
-      <div class="setup-success">
-        <i class="pi pi-check-circle setup-success-icon" aria-hidden="true"></i>
-        <h2>¡Cuenta activada exitosamente!</h2>
-        <p>Redirigiendo al login...</p>
-      </div>
-    }
-
-    @if (!loading() && !error() && !success() && userData()) {
-      @if (isAdmin()) {
-        <!-- ADMIN Stepper -->
-        <div class="step-indicator">
-          <strong>Paso {{ currentStep() }} de 2</strong> — {{ currentStep() === 1 ? 'Tus datos' : 'Contraseña' }}
-        </div>
-
-        @if (currentStep() === 1) {
-          <form [formGroup]="adminStep1Form" (ngSubmit)="goToStep2()">
-            <div class="setup-readonly-field">
-              <label for="admin-email" class="setup-readonly-label">Correo electrónico</label>
-              <input pInputText id="admin-email" [value]="userData()!.email" readonly class="setup-readonly-input" />
-            </div>
-
-            <div class="setup-form-field">
-              <label for="admin-name" class="setup-label">Nombre completo</label>
-              <input pInputText formControlName="name" id="admin-name" placeholder="Ingresa tu nombre" class="w-full" />
-              @if (isAdminStep1Invalid('name')) {
-                <small class="setup-error-small">El nombre es requerido (mínimo 2 caracteres)</small>
-              }
-            </div>
-
-            <div class="setup-form-field">
-              <label for="admin-document" class="setup-label">Documento de identidad</label>
-              <input pInputText formControlName="document" id="admin-document" placeholder="Ingresa tu documento" class="w-full" />
-              @if (isAdminStep1Invalid('document')) {
-                <small class="setup-error-small">El documento es requerido (mínimo 5 caracteres)</small>
-              }
-            </div>
-
-            <button pButton type="submit" icon="pi pi-arrow-right" iconPos="right" class="w-full">Continuar</button>
-          </form>
-        }
-
-        @if (currentStep() === 2) {
-          <form [formGroup]="passwordForm" (ngSubmit)="onSubmitPassword()">
-            <div class="setup-readonly-field">
-              <label for="admin-email-2" class="setup-readonly-label">Correo electrónico</label>
-              <input pInputText id="admin-email-2" [value]="userData()!.email" readonly class="setup-readonly-input" />
-            </div>
-
-            <div class="setup-form-field">
-              <label for="admin-password" class="setup-label">Contraseña</label>
-              <p-password formControlName="newPassword" id="admin-password" [toggleMask]="true" [feedback]="false" placeholder="Crea una contraseña" styleClass="w-full" ariaLabel="Crear contraseña"></p-password>
-            </div>
-
-            <div class="setup-form-field">
-              <label for="admin-confirm-password" class="setup-label">Confirmar contraseña</label>
-              <p-password formControlName="confirmPassword" id="admin-confirm-password" [toggleMask]="true" [feedback]="false" placeholder="Confirma la contraseña" styleClass="w-full" ariaLabel="Confirmar contraseña"></p-password>
-            </div>
-
-            <div class="password-requirements">
-              <h4>Requisitos de contraseña:</h4>
-              <ul>
-                <li [class.valid]="checkPasswordRequirement(getPasswordValue('newPassword'), 'minLength')">
-                  <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'minLength') ? 'pi-check' : 'pi-times'" aria-hidden="true"></i>
-                  Mínimo 8 caracteres
-                </li>
-                <li [class.valid]="checkPasswordRequirement(getPasswordValue('newPassword'), 'upperCase')">
-                  <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'upperCase') ? 'pi-check' : 'pi-times'" aria-hidden="true"></i>
-                  Al menos 1 mayúscula
-                </li>
-                <li [class.valid]="checkPasswordRequirement(getPasswordValue('newPassword'), 'lowerCase')">
-                  <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'lowerCase') ? 'pi-check' : 'pi-times'" aria-hidden="true"></i>
-                  Al menos 1 minúscula
-                </li>
-                <li [class.valid]="checkPasswordRequirement(getPasswordValue('newPassword'), 'number')">
-                  <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'number') ? 'pi-check' : 'pi-times'" aria-hidden="true"></i>
-                  Al menos 1 número
-                </li>
-                <li [class.valid]="checkPasswordRequirement(getPasswordValue('newPassword'), 'symbol')">
-                  <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'symbol') ? 'pi-check' : 'pi-times'" aria-hidden="true"></i>
-                  Al menos 1 símbolo (ej. ! @ # $ _ -)
-                </li>
-              </ul>
-            </div>
-
-            <div class="flex gap-2">
-              <button pButton type="button" icon="pi pi-arrow-left" severity="secondary" (click)="goToStep1()" class="flex-1">Atrás</button>
-              <button pButton type="submit" icon="pi pi-check" [loading]="loading()" class="flex-1">Activar cuenta</button>
-            </div>
-          </form>
-        }
-      } @else {
-        <!-- WORKER Single Form -->
-        <form [formGroup]="passwordForm" (ngSubmit)="onSubmitPassword()">
-          <div class="setup-readonly-field">
-            <label for="worker-email" class="setup-readonly-label">Correo electrónico</label>
-            <input pInputText id="worker-email" [value]="userData()!.email" readonly class="setup-readonly-input" />
+      @if (currentStep() === 1) {
+        <form
+          [formGroup]="adminStep1Form"
+          (ngSubmit)="goToStep2()"
+          class="flex flex-col gap-5"
+          novalidate
+        >
+          <div class="flex flex-col gap-1">
+            <span class="rms-label">Correo electrónico</span>
+            <span class="rms-body text-rms-ink">{{ userData()!.email }}</span>
           </div>
 
-          <div class="setup-form-field">
-            <label for="worker-password" class="setup-label">Contraseña</label>
-            <p-password formControlName="newPassword" id="worker-password" [toggleMask]="true" [feedback]="false" placeholder="Crea una contraseña" styleClass="w-full" ariaLabel="Crear contraseña"></p-password>
-            @if (isInvalid('newPassword')) {
-              <small class="setup-error-small">La contraseña es requerida</small>
+          <app-rms-input
+            id="admin-name"
+            formControlName="name"
+            label="Nombre completo"
+            placeholder="Ingresa tu nombre"
+            autocomplete="name"
+            [error]="adminNameError"
+            [required]="true"
+          />
+
+          <app-rms-input
+            id="admin-document"
+            formControlName="document"
+            label="Documento de identidad"
+            placeholder="Ingresa tu documento"
+            [error]="adminDocumentError"
+            [required]="true"
+          />
+
+          <app-rms-button type="submit" size="lg" iconEnd="pi pi-arrow-right" [block]="true">
+            Continuar
+          </app-rms-button>
+        </form>
+      }
+
+      @if (currentStep() === 2) {
+        <form
+          [formGroup]="passwordForm"
+          (ngSubmit)="onSubmitPassword()"
+          class="flex flex-col gap-5"
+          novalidate
+        >
+          <div class="flex flex-col gap-1">
+            <span class="rms-label">Correo electrónico</span>
+            <span class="rms-body text-rms-ink">{{ userData()!.email }}</span>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label for="admin-password" class="rms-label text-rms-ink">Contraseña</label>
+            <p-password
+              inputId="admin-password"
+              formControlName="newPassword"
+              [toggleMask]="true"
+              [feedback]="false"
+              placeholder="Crea una contraseña"
+              autocomplete="new-password"
+              fluid
+              ariaLabel="Crear contraseña"
+            />
+            @if (passwordError) {
+              <p class="rms-text-danger text-sm" role="alert">{{ passwordError }}</p>
             }
           </div>
 
-          <div class="setup-form-field">
-            <label for="worker-confirm-password" class="setup-label">Confirmar contraseña</label>
-            <p-password formControlName="confirmPassword" id="worker-confirm-password" [toggleMask]="true" [feedback]="false" placeholder="Confirma la contraseña" styleClass="w-full" ariaLabel="Confirmar contraseña"></p-password>
-            @if (isInvalid('confirmPassword')) {
-              <small class="setup-error-small">La confirmación es requerida</small>
+          <div class="flex flex-col gap-2">
+            <label for="admin-confirm-password" class="rms-label text-rms-ink">
+              Confirmar contraseña
+            </label>
+            <p-password
+              inputId="admin-confirm-password"
+              formControlName="confirmPassword"
+              [toggleMask]="true"
+              [feedback]="false"
+              placeholder="Confirma la contraseña"
+              autocomplete="new-password"
+              fluid
+              ariaLabel="Confirmar contraseña"
+            />
+            @if (confirmPasswordError) {
+              <p class="rms-text-danger text-sm" role="alert">{{ confirmPasswordError }}</p>
             }
           </div>
 
-          <div class="password-requirements">
-            <h4>Requisitos de contraseña:</h4>
-            <ul>
-              <li [class.valid]="checkPasswordRequirement(getPasswordValue('newPassword'), 'minLength')">
-                <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'minLength') ? 'pi-check' : 'pi-times'" aria-hidden="true"></i>
+          <div class="rounded-lg border border-rms-border bg-rms-subtle p-4">
+            <h2 class="rms-h4 text-rms-ink">Requisitos de contraseña</h2>
+            <ul class="mt-2 flex list-none flex-col gap-2 p-0">
+              <li
+                class="flex items-center gap-2 text-sm"
+                [ngClass]="
+                  checkPasswordRequirement(getPasswordValue('newPassword'), 'minLength')
+                    ? 'text-rms-success'
+                    : 'text-rms-ink-muted'
+                "
+              >
+                <i
+                  class="pi"
+                  [ngClass]="
+                    checkPasswordRequirement(getPasswordValue('newPassword'), 'minLength')
+                      ? 'pi-check'
+                      : 'pi-times'
+                  "
+                  aria-hidden="true"
+                ></i>
                 Mínimo 8 caracteres
               </li>
-              <li [class.valid]="checkPasswordRequirement(getPasswordValue('newPassword'), 'upperCase')">
-                <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'upperCase') ? 'pi-check' : 'pi-times'" aria-hidden="true"></i>
+              <li
+                class="flex items-center gap-2 text-sm"
+                [ngClass]="
+                  checkPasswordRequirement(getPasswordValue('newPassword'), 'upperCase')
+                    ? 'text-rms-success'
+                    : 'text-rms-ink-muted'
+                "
+              >
+                <i
+                  class="pi"
+                  [ngClass]="
+                    checkPasswordRequirement(getPasswordValue('newPassword'), 'upperCase')
+                      ? 'pi-check'
+                      : 'pi-times'
+                  "
+                  aria-hidden="true"
+                ></i>
                 Al menos 1 mayúscula
               </li>
-              <li [class.valid]="checkPasswordRequirement(getPasswordValue('newPassword'), 'lowerCase')">
-                <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'lowerCase') ? 'pi-check' : 'pi-times'" aria-hidden="true"></i>
+              <li
+                class="flex items-center gap-2 text-sm"
+                [ngClass]="
+                  checkPasswordRequirement(getPasswordValue('newPassword'), 'lowerCase')
+                    ? 'text-rms-success'
+                    : 'text-rms-ink-muted'
+                "
+              >
+                <i
+                  class="pi"
+                  [ngClass]="
+                    checkPasswordRequirement(getPasswordValue('newPassword'), 'lowerCase')
+                      ? 'pi-check'
+                      : 'pi-times'
+                  "
+                  aria-hidden="true"
+                ></i>
                 Al menos 1 minúscula
               </li>
-              <li [class.valid]="checkPasswordRequirement(getPasswordValue('newPassword'), 'number')">
-                <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'number') ? 'pi-check' : 'pi-times'" aria-hidden="true"></i>
+              <li
+                class="flex items-center gap-2 text-sm"
+                [ngClass]="
+                  checkPasswordRequirement(getPasswordValue('newPassword'), 'number')
+                    ? 'text-rms-success'
+                    : 'text-rms-ink-muted'
+                "
+              >
+                <i
+                  class="pi"
+                  [ngClass]="
+                    checkPasswordRequirement(getPasswordValue('newPassword'), 'number')
+                      ? 'pi-check'
+                      : 'pi-times'
+                  "
+                  aria-hidden="true"
+                ></i>
                 Al menos 1 número
               </li>
-              <li [class.valid]="checkPasswordRequirement(getPasswordValue('newPassword'), 'symbol')">
-                <i class="pi" [ngClass]="checkPasswordRequirement(getPasswordValue('newPassword'), 'symbol') ? 'pi-check' : 'pi-times'" aria-hidden="true"></i>
+              <li
+                class="flex items-center gap-2 text-sm"
+                [ngClass]="
+                  checkPasswordRequirement(getPasswordValue('newPassword'), 'symbol')
+                    ? 'text-rms-success'
+                    : 'text-rms-ink-muted'
+                "
+              >
+                <i
+                  class="pi"
+                  [ngClass]="
+                    checkPasswordRequirement(getPasswordValue('newPassword'), 'symbol')
+                      ? 'pi-check'
+                      : 'pi-times'
+                  "
+                  aria-hidden="true"
+                ></i>
                 Al menos 1 símbolo (ej. ! @ # $ _ -)
               </li>
             </ul>
           </div>
 
-          <button pButton type="submit" icon="pi pi-check" [loading]="loading()" class="w-full">Activar cuenta</button>
+          <div class="flex flex-col gap-3 sm:flex-row">
+            <app-rms-button
+              type="button"
+              variant="secondary"
+              iconStart="pi pi-arrow-left"
+              (click)="goToStep1()"
+              [block]="true"
+            >
+              Atrás
+            </app-rms-button>
+            <app-rms-button type="submit" iconStart="pi pi-check" [loading]="loading()" [block]="true">
+              Activar cuenta
+            </app-rms-button>
+          </div>
         </form>
       }
+    } @else {
+      <!-- WORKER Single Form -->
+      <form
+        [formGroup]="passwordForm"
+        (ngSubmit)="onSubmitPassword()"
+        class="flex flex-col gap-5"
+        novalidate
+      >
+        <div class="flex flex-col gap-1">
+          <span class="rms-label">Correo electrónico</span>
+          <span class="rms-body text-rms-ink">{{ userData()!.email }}</span>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="worker-password" class="rms-label text-rms-ink">Contraseña</label>
+          <p-password
+            inputId="worker-password"
+            formControlName="newPassword"
+            [toggleMask]="true"
+            [feedback]="false"
+            placeholder="Crea una contraseña"
+            autocomplete="new-password"
+            fluid
+            ariaLabel="Crear contraseña"
+          />
+          @if (passwordError) {
+            <p class="rms-text-danger text-sm" role="alert">{{ passwordError }}</p>
+          }
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="worker-confirm-password" class="rms-label text-rms-ink">
+            Confirmar contraseña
+          </label>
+          <p-password
+            inputId="worker-confirm-password"
+            formControlName="confirmPassword"
+            [toggleMask]="true"
+            [feedback]="false"
+            placeholder="Confirma la contraseña"
+            autocomplete="new-password"
+            fluid
+            ariaLabel="Confirmar contraseña"
+          />
+          @if (confirmPasswordError) {
+            <p class="rms-text-danger text-sm" role="alert">{{ confirmPasswordError }}</p>
+          }
+        </div>
+
+        <div class="rounded-lg border border-rms-border bg-rms-subtle p-4">
+          <h2 class="rms-h4 text-rms-ink">Requisitos de contraseña</h2>
+          <ul class="mt-2 flex list-none flex-col gap-2 p-0">
+            <li
+              class="flex items-center gap-2 text-sm"
+              [ngClass]="
+                checkPasswordRequirement(getPasswordValue('newPassword'), 'minLength')
+                  ? 'text-rms-success'
+                  : 'text-rms-ink-muted'
+              "
+            >
+              <i
+                class="pi"
+                [ngClass]="
+                  checkPasswordRequirement(getPasswordValue('newPassword'), 'minLength')
+                    ? 'pi-check'
+                    : 'pi-times'
+                "
+                aria-hidden="true"
+              ></i>
+              Mínimo 8 caracteres
+            </li>
+            <li
+              class="flex items-center gap-2 text-sm"
+              [ngClass]="
+                checkPasswordRequirement(getPasswordValue('newPassword'), 'upperCase')
+                  ? 'text-rms-success'
+                  : 'text-rms-ink-muted'
+              "
+            >
+              <i
+                class="pi"
+                [ngClass]="
+                  checkPasswordRequirement(getPasswordValue('newPassword'), 'upperCase')
+                    ? 'pi-check'
+                    : 'pi-times'
+                "
+                aria-hidden="true"
+              ></i>
+              Al menos 1 mayúscula
+            </li>
+            <li
+              class="flex items-center gap-2 text-sm"
+              [ngClass]="
+                checkPasswordRequirement(getPasswordValue('newPassword'), 'lowerCase')
+                  ? 'text-rms-success'
+                  : 'text-rms-ink-muted'
+              "
+            >
+              <i
+                class="pi"
+                [ngClass]="
+                  checkPasswordRequirement(getPasswordValue('newPassword'), 'lowerCase')
+                    ? 'pi-check'
+                    : 'pi-times'
+                "
+                aria-hidden="true"
+              ></i>
+              Al menos 1 minúscula
+            </li>
+            <li
+              class="flex items-center gap-2 text-sm"
+              [ngClass]="
+                checkPasswordRequirement(getPasswordValue('newPassword'), 'number')
+                  ? 'text-rms-success'
+                  : 'text-rms-ink-muted'
+              "
+            >
+              <i
+                class="pi"
+                [ngClass]="
+                  checkPasswordRequirement(getPasswordValue('newPassword'), 'number')
+                    ? 'pi-check'
+                    : 'pi-times'
+                "
+                aria-hidden="true"
+              ></i>
+              Al menos 1 número
+            </li>
+            <li
+              class="flex items-center gap-2 text-sm"
+              [ngClass]="
+                checkPasswordRequirement(getPasswordValue('newPassword'), 'symbol')
+                  ? 'text-rms-success'
+                  : 'text-rms-ink-muted'
+              "
+            >
+              <i
+                class="pi"
+                [ngClass]="
+                  checkPasswordRequirement(getPasswordValue('newPassword'), 'symbol')
+                    ? 'pi-check'
+                    : 'pi-times'
+                "
+                aria-hidden="true"
+              ></i>
+              Al menos 1 símbolo (ej. ! @ # $ _ -)
+            </li>
+          </ul>
+        </div>
+
+        <app-rms-button type="submit" size="lg" iconStart="pi pi-check" [loading]="loading()" [block]="true">
+          Activar cuenta
+        </app-rms-button>
+      </form>
     }
+  }
 </div>

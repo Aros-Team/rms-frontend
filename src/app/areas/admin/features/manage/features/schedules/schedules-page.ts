@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 
 import { ShiftPlanner } from './shift-planner/shift-planner';
 import { TimeLogsPanel } from './time-logs-panel/time-logs-panel';
@@ -38,7 +37,7 @@ const TABS: readonly TabDefinition[] = [
  */
 @Component({
   selector: 'app-schedules-page',
-  imports: [RmsPageHeader, ShiftPlanner, TimeLogsPanel, WeekGrid],
+  imports: [ShiftPlanner, TimeLogsPanel, WeekGrid],
   templateUrl: './schedules-page.html',
   styleUrl: './schedules-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

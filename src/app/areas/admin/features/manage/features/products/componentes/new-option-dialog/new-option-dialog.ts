@@ -15,13 +15,13 @@ import { toAmount } from '@app/shared/models/dto/common/money';
 import { DialogModule } from 'primeng/dialog';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { DividerModule } from 'primeng/divider';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
+import { RmsInput } from '@app/shared/ui/input/input';
 
 @Component({
   selector: 'app-new-option-dialog',
@@ -32,7 +32,6 @@ import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
     FormsModule,
     DialogModule,
     IftaLabelModule,
-    InputTextModule,
     InputNumberModule,
     SelectModule,
     DividerModule,
@@ -40,6 +39,7 @@ import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
     Money,
     RmsButton,
     RmsIconButton,
+    RmsInput,
   ],
   providers: [MessageService],
   templateUrl: './new-option-dialog.html',

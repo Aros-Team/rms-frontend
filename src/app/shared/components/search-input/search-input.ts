@@ -12,23 +12,14 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 
-import { ButtonModule } from 'primeng/button';
-import { IconFieldModule } from 'primeng/iconfield';
-import { InputIconModule } from 'primeng/inputicon';
-import { InputTextModule } from 'primeng/inputtext';
+import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
 
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-search-input',
-  imports: [
-    ButtonModule,
-    FormsModule,
-    IconFieldModule,
-    InputIconModule,
-    InputTextModule,
-  ],
+  imports: [FormsModule, RmsIconButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './search-input.html',
 })

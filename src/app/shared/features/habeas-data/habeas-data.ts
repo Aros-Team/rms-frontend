@@ -1,13 +1,13 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 
 import { DialogModule } from 'primeng/dialog';
-import { ButtonModule } from 'primeng/button';
+import { RmsButton } from '@app/shared/ui/button/button';
 import { Subscription } from 'rxjs';
 import { HabeasDataEvents } from './habeas-data-events';
 
 @Component({
   selector: 'app-habeas-data',
-  imports: [DialogModule, ButtonModule],
+  imports: [DialogModule, RmsButton],
   templateUrl: './habeas-data.html'
 })
 export class HabeasData implements OnInit, OnDestroy {

@@ -30,9 +30,12 @@ export class Auth {
   private platformId = inject(PLATFORM_ID);
 
   private _token: string | undefined;
-  private _userData?: UserInfo;
+  private _userData = signal<UserInfo | undefined>(undefined);
   private _restricted = signal<boolean>(false);
-  
+
+  /** Reactive session user, so chrome (headers, menus) updates when it loads. */
+  readonly userData = this._userData.asReadonly();
+
   private tfaTokenSubject = new BehaviorSubject<string | null>(null);
   tfaToken$ = this.tfaTokenSubject.asObservable();
 
@@ -85,7 +88,7 @@ export class Auth {
         this.extractRestrictedClaim(storedToken);
         this.logger.info('Session restored successfully');
         
-        if (this._userData === undefined) {
+        if (this._userData() === undefined) {
           setTimeout(() => {
             this.loadUserInfo();
           }, 0);
@@ -210,7 +213,7 @@ export class Auth {
 
   logout(): void {
     this._token = undefined;
-    this._userData = undefined;
+    this._userData.set(undefined);
     this._restricted.set(false);
     this.tfaTokenSubject.next(null);
     this.pendingUsername = null;
@@ -227,7 +230,7 @@ export class Auth {
   }
 
   getData(): UserInfo | undefined {
-    return this._userData;
+    return this._userData();
   }
 
   isRestricted(): boolean {
@@ -278,7 +281,7 @@ export class Auth {
   loadUserInfo(): Observable<UserInfo> {
     return this.http.get<UserInfo>('auth').pipe(
       tap((userInfo: UserInfo) => {
-        this._userData = userInfo;
+        this._userData.set(userInfo);
         this.logger.info('User info loaded successfully');
       }),
       catchError((err: unknown) => {

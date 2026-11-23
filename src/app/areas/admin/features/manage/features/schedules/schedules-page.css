@@ -10,7 +10,7 @@
 .schedules-page {
   display: flex;
   flex-direction: column;
-  gap: var(--rms-space-4);
+  gap: var(--rms-space-3);
   min-width: 0;
 }
 
@@ -44,7 +44,7 @@
 }
 
 .schedules-tabs__tab[aria-selected='true'] {
-  border-bottom-color: var(--rms-brand-500);
+  border-bottom-color: var(--rms-brand-text);
   color: var(--rms-brand-text);
 }
 

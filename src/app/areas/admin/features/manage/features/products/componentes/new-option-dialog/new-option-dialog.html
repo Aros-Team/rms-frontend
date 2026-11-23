@@ -11,39 +11,40 @@
       <label for="opt-category">Categoría de opción *</label>
     </p-iftalabel>
 
-    <p-iftalabel>
-      <input pInputText id="opt-name" class="w-full" formControlName="name"
-        [invalid]="newOptionForm.get('name')?.invalid && !!newOptionForm.get('name')?.touched"
-        autocomplete="off" />
-      <label for="opt-name">Nombre de la opción *</label>
-    </p-iftalabel>
+    <app-rms-input
+      id="opt-name"
+      label="Nombre de la opción"
+      formControlName="name"
+      autocomplete="off"
+      [required]="true"
+      [error]="newOptionForm.get('name')?.invalid && !!newOptionForm.get('name')?.touched ? 'Escribe un nombre para la opción.' : ''" />
   </form>
 
   <p-divider />
   <div class="flex items-center justify-between mb-3">
     <div>
-      <span class="font-medium text-rms-ink">Insumos de esta opción</span>
-      <p class="text-xs text-muted mt-0.5">Ingredientes que consume esta variante del inventario</p>
+      <span class="rms-h4">Insumos de esta opción</span>
+      <p class="text-rms-caption text-rms-ink-muted mt-0.5">Ingredientes que consume esta variante del inventario</p>
     </div>
     <app-rms-button variant="secondary" size="sm" iconStart="pi pi-plus" (click)="addNewOptionRecipeItem()">Agregar insumo</app-rms-button>
   </div>
 
   @if (newOptionRecipe.length === 0) {
-    <p class="text-sm text-muted italic">Sin insumos — la opción no descuenta stock</p>
+    <p class="text-sm text-rms-ink-muted italic">Sin insumos — la opción no descuenta stock</p>
   }
 
   <div class="flex flex-col gap-2">
     @for (item of newOptionRecipe.controls; track $index; let i = $index) {
       <div>
         <div [formGroup]="$any(item)" class="flex gap-2 items-end bg-rms-subtle border border-rms-border rounded-lg p-3">
-          <div class="flex-1">
-            <span class="text-xs text-muted mb-1 block">Insumo *</span>
+          <div class="flex-1 flex flex-col gap-1">
+            <span class="rms-label">Insumo *</span>
             <p-select [options]="supplyVariantOptions()" optionLabel="displayName" optionValue="id"
               formControlName="supplyVariantId" placeholder="Seleccionar insumo"
               class="w-full" [filter]="true" filterBy="displayName" appendTo="body" />
           </div>
-          <div class="w-24">
-            <span class="text-xs text-muted mb-1 block">Cantidad *</span>
+          <div class="w-24 flex flex-col gap-1">
+            <span class="rms-label">Cantidad *</span>
             <p-inputnumber formControlName="requiredQuantity" [min]="0.001"
               [minFractionDigits]="0" [maxFractionDigits]="3" class="w-full" />
           </div>
@@ -54,7 +55,7 @@
             (click)="removeNewOptionRecipeItem(i)" />
         </div>
         @if (findVariantById($any(item).get('supplyVariantId')?.value); as v) {
-          <p class="text-xs text-muted mt-1 px-1">
+          <p class="text-rms-caption text-rms-ink-muted mt-1 px-1">
             {{ v.quantity }} {{ v.unitAbbreviation }} = {{ v.unitCost | money }} por unidad
             @if (hasNoCost(v)) {
               <span class="text-rms-warning"> · sin costo definido</span>

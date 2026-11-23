@@ -1,13 +1,12 @@
 import { Component, Input } from '@angular/core';
-import { theme } from '@environments/theme';
-
 @Component({
   selector: 'app-logo',
   imports: [],
   templateUrl: './logo.html',
 })
 export class Logo {
-  @Input() color: string = theme.primary[500];
+  /** Matches the dark brand text used by the header wordmark and active tabs. */
+  @Input() color = 'var(--rms-brand-text)';
   @Input() size = 150;
 
 }

@@ -1,5 +1,6 @@
 import { Component, Input, OnInit, inject } from "@angular/core";
 import { ControlContainer, FormGroup, FormGroupDirective } from "@angular/forms";
+import { fieldError } from '@app/shared/lib/form-error';
 
 @Component({
   selector: 'app-form-validation',
@@ -12,7 +13,11 @@ export class FormValidation implements OnInit {
   @Input() backendError?: string;
 
   private parentFormGroup = inject(FormGroupDirective);
-  
+
+  get message(): string {
+    return fieldError(this.form, this.field, this.backendError);
+  }
+
   ngOnInit(): void {
     this.form = this.parentFormGroup.form;
   }

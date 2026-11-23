@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 
 import { Accessibility, type ContrastMode, type FontSize } from '@services/accessibility/accessibility';
 import { Theme, type ThemeName } from '@services/theme/theme';
@@ -21,9 +21,6 @@ import { RmsSection } from '@shared/ui/section/section';
 export class AppearanceSettingsSection {
   private readonly themeService = inject(Theme);
   private readonly accessibility = inject(Accessibility);
-
-  /** Asks the settings page to open its Cuenta section. */
-  @Output() readonly openAccount = new EventEmitter<void>();
 
   readonly theme = signal<ThemeName>(this.themeService.get());
   readonly fontSize = this.accessibility.fontSize;

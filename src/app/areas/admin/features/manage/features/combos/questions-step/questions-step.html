@@ -2,17 +2,15 @@
 
 <div class="flex flex-col gap-4">
   <div class="flex items-center justify-between">
-    <h2 class="text-lg font-bold text-surface-900 dark:text-surface-0">
+    <h2 class="rms-h2">
       Preguntas adicionales
     </h2>
-    <p-button
-      label="Agregar pregunta"
-      icon="pi pi-plus"
-      severity="secondary"
-      size="small"
-      (onClick)="addQuestion()"
-      data-testid="add-question-btn"
-    />
+    <app-rms-button
+      variant="secondary"
+      iconStart="pi pi-plus"
+      size="sm"
+      (click)="addQuestion()"
+      data-testid="add-question-btn">Agregar pregunta</app-rms-button>
   </div>
 
   <p class="text-sm text-muted">
@@ -21,7 +19,7 @@
 
   @if (questions().length === 0) {
     <div
-      class="flex flex-col items-center justify-center py-10 gap-2 border border-dashed border-surface-300 dark:border-surface-600 rounded-xl bg-surface-50 dark:bg-surface-800"
+      class="flex flex-col items-center justify-center py-10 gap-2 border border-dashed border-rms-border-strong rounded-xl bg-rms-subtle"
       data-testid="empty-state"
     >
       <i class="pi pi-question-circle text-3xl text-muted" aria-hidden="true"></i>
@@ -33,16 +31,16 @@
     <div class="flex flex-col gap-3" data-testid="questions-list">
       @for (question of questions(); track $index; let idx = $index) {
         <div
-          class="flex items-center gap-3 border border-surface-200 dark:border-surface-700 rounded-lg bg-primary-contrast p-3"
+          class="flex items-center gap-3 border border-rms-border rounded-xl bg-rms-surface p-3"
           data-testid="question-row"
         >
           <div class="flex-1">
             <input
-              pInputText
-              class="w-full"
+              class="rms-input rms-input--md w-full"
               [ngModel]="question.question"
               (ngModelChange)="onQuestionChange(idx, $event)"
               placeholder="Escribe la pregunta..."
+              aria-label="Pregunta {{ idx + 1 }}"
               data-testid="question-input"
             />
           </div>
@@ -57,19 +55,19 @@
             />
             <label
               [for]="'required-' + idx"
-              class="text-sm text-surface-700 dark:text-surface-300 cursor-pointer"
+              class="text-sm text-rms-ink-secondary cursor-pointer"
             >
               (Obligatorio)
             </label>
           </div>
 
-          <p-button
+          <app-rms-icon-button
             icon="pi pi-trash"
-            severity="danger"
-            size="small"
-            (onClick)="confirmRemove($event, idx)"
-            data-testid="remove-question-btn"
-          />
+            ariaLabel="Eliminar pregunta"
+            variant="danger"
+            size="sm"
+            (click)="confirmRemove($event, idx)"
+            data-testid="remove-question-btn" />
         </div>
       }
     </div>

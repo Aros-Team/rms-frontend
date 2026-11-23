@@ -1,5 +1,6 @@
 <div class="analytics-page">
-  <app-rms-page-header title="Tu carta, clasificada" [subtitle]="subtitle()">
+  <app-rms-page-header
+    [compact]="true" title="Tu carta, clasificada" [subtitle]="subtitle()">
     <span rmsPageHeaderMeta>
       @if (refreshedLabel(); as label) {
         Datos actualizados: {{ label }}
@@ -12,13 +13,6 @@
         [loading]="refreshing()"
         (click)="refresh()">
         Actualizar
-      </app-rms-button>
-      <app-rms-button
-        variant="secondary"
-        iconStart="pi pi-download"
-        [disabled]="report() === null"
-        (click)="exportCsv()">
-        Exportar CSV
       </app-rms-button>
     </div>
   </app-rms-page-header>
@@ -125,11 +119,16 @@
         dataMode="disclosure"
         dataLabel="Ver datos del mapa"
         (retry)="reload()">
-        <p-chart type="bubble" [data]="chartData()" [options]="chartOptions" [ariaLabel]="chartSummary()" />
+        <app-rms-chart
+          type="bubble"
+          [data]="chartData()"
+          [options]="chartOptions"
+          [ariaLabel]="chartSummary()"
+        />
         <ul rmsChartLegend class="chart-legend">
           @for (summary of summaries(); track summary.quadrant) {
             <li>
-              <span class="chart-legend__swatch" [style.background]="quadrantColors()[summary.quadrant]"></span>
+              <span class="chart-legend__swatch" [attr.data-quadrant]="summary.quadrant"></span>
               {{ summary.meta.label }}
             </li>
           }
@@ -152,7 +151,10 @@
       </app-rms-chart-frame>
     </section>
 
-    <section class="panel" aria-labelledby="menu-table-title">
+    <!-- Full product table: below the KPI row and the quadrant matrix. -->
+    <section
+      class="panel rms-defer-view rms-defer-view--lg"
+      aria-labelledby="menu-table-title">
       <h2 id="menu-table-title" class="panel__title">Productos clasificados</h2>
       <div class="panel__scroll" role="region" tabindex="0" aria-label="Productos clasificados, desplazable">
         <table class="data-table">

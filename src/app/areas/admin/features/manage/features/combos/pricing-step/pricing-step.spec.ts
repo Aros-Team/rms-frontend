@@ -6,11 +6,7 @@
  * Approach: Mount component via TestBed with test host, set prices, assert calculations.
  */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
-import {
-  ɵresolveComponentResources as resolveComponentResources,
-  signal,
-  type WritableSignal,
-} from '@angular/core';
+import { signal, type WritableSignal } from '@angular/core';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import type { WizardFormData, WizardStepId } from '@app/core/services/combos/combo-wizard-state';
@@ -18,8 +14,10 @@ import { ComboReferenceCache } from '@app/core/services/combos/combo-reference-c
 import { ComboWizardState } from '@app/core/services/combos/combo-wizard-state';
 import type { ProductResponse } from '@app/shared/models/dto/products/product-response';
 
+import { resolveUiResources } from '@shared/ui/testing/ui-test-resources';
 import { PricingStep } from './pricing-step';
 import pricingStepHtml from './pricing-step.html?raw';
+import buttonHtml from '@shared/ui/button/button.html?raw';
 
 function emptyFormData(): WizardFormData {
   return {
@@ -107,11 +105,9 @@ describe('PricingStep', () => {
   let referenceMock: ReferenceMock;
 
   beforeAll(async () => {
-    await resolveComponentResources((url: string) => {
-      if (url.endsWith('pricing-step.html')) {
-        return Promise.resolve(pricingStepHtml as unknown as string);
-      }
-      return Promise.resolve('');
+    await resolveUiResources({
+      'pricing-step.html': pricingStepHtml as unknown as string,
+      'button.html': buttonHtml as unknown as string,
     });
   });
 

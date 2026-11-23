@@ -1,15 +1,7 @@
 <div class="analytics-page">
-  <app-rms-page-header title="Eficiencia operativa" [subtitle]="subtitle()">
+  <app-rms-page-header
+    [compact]="true" title="Eficiencia operativa" [subtitle]="subtitle()">
     <span rmsPageHeaderMeta>Comparado con {{ previousLabel() }}</span>
-    <div rmsPageHeaderActions>
-      <app-rms-button
-        variant="secondary"
-        iconStart="pi pi-download"
-        [disabled]="report() === null"
-        (click)="exportCsv()">
-        Exportar CSV
-      </app-rms-button>
-    </div>
   </app-rms-page-header>
 
   <app-analytics-notice
@@ -92,9 +84,14 @@
         dataMode="disclosure"
         dataLabel="Ver datos de rotación"
         (retry)="reload()">
-        <p-chart type="bar" [data]="chartData()" [options]="chartOptions" ariaLabel="Turnos por franja horaria" />
+        <app-rms-chart
+          type="bar"
+          [data]="chartData()"
+          [options]="chartOptions"
+          ariaLabel="Turnos por franja horaria"
+        />
         <ul rmsChartLegend class="chart-legend">
-          <li><span class="chart-legend__swatch" style="background: var(--rms-chart-1)"></span>Turnos</li>
+          <li><span class="chart-legend__swatch chart-legend__swatch--1"></span>Turnos</li>
         </ul>
         <div rmsChartData>
           <table class="data-table">
@@ -114,7 +111,10 @@
         </div>
       </app-rms-chart-frame>
 
-      <div class="panel">
+      <!-- Detail panel next to the chart: skipped while off-screen on narrow
+           viewports, where it stacks below the chart. Not the chart card, so
+           no canvas measures a skipped container. -->
+      <div class="panel rms-defer-view rms-defer-view--sm">
         <h2 class="panel__title">Detalle por franja</h2>
         <table class="data-table">
           <caption class="sr-only">Rotación, cubiertos y mesas por franja horaria</caption>

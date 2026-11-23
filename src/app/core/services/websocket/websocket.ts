@@ -1,7 +1,6 @@
 import { Injectable, inject, OnDestroy } from '@angular/core';
 import { Client, StompSubscription } from '@stomp/stompjs';
 import { Observable, Subject, BehaviorSubject, share } from 'rxjs';
-import SockJS from 'sockjs-client';
 
 import { Logging } from '@app/core/services/logging/logging';
 
@@ -16,6 +15,17 @@ export interface CacheInvalidationEvent {
   id?: number;
 }
 
+/**
+ * STOMP client over a native WebSocket.
+ *
+ * The backend exposes `/ws-native` (`registry.addEndpoint` without
+ * `withSockJS()`); `/ws` remains as a legacy SockJS endpoint for older clients.
+ * Using the native transport removes `sockjs-client` from the bundle and its
+ * deprecated `unload` listener from Lighthouse best-practices.
+ *
+ * `connect()` accepts either an `http(s)://` URL (converted to `ws(s)://`) or an
+ * already-native `ws(s)://` URL, so environments can store either form.
+ */
 @Injectable({ providedIn: 'root' })
 export class WebSocket implements OnDestroy {
   private logger = inject(Logging);
@@ -55,11 +65,15 @@ export class WebSocket implements OnDestroy {
       return;
     }
 
-    this.logger.info('WebSocket: Connecting to', wsUrl);
+    const brokerUrl = this.toBrokerUrl(wsUrl);
+    this.logger.info('WebSocket: Connecting to', brokerUrl);
+    this.createClient(brokerUrl, token);
+  }
 
+  /** Builds, wires and activates the STOMP client over a native WebSocket. */
+  private createClient(brokerUrl: string, token: string): void {
     this.client = new Client({
-      // Use SockJS as transport factory — required by Spring Boot's SockJS endpoint
-      webSocketFactory: () => new SockJS(wsUrl),
+      brokerURL: brokerUrl,
       connectHeaders: {
         Authorization: `Bearer ${token}`,
       },
@@ -158,12 +172,14 @@ export class WebSocket implements OnDestroy {
       this.createStompSubscription(topic, subject);
     }
 
-return this.topicObservables.get(topic) as Observable<T>;
+    return this.topicObservables.get(topic) as Observable<T>;
   }
 
   disconnect(): void {
     if (this.client) {
-      this.stompSubscriptions.forEach((sub) => { sub.unsubscribe(); });
+      this.stompSubscriptions.forEach((sub) => {
+        sub.unsubscribe();
+      });
       this.stompSubscriptions.clear();
       this.client.deactivate();
       this.connected = false;
@@ -187,13 +203,27 @@ return this.topicObservables.get(topic) as Observable<T>;
 
   ngOnDestroy(): void {
     this.disconnect();
-    this.topicSubjects.forEach((subject) => { subject.complete(); });
+    this.topicSubjects.forEach((subject) => {
+      subject.complete();
+    });
     this.topicSubjects.clear();
     this.topicObservables.clear();
     this.cacheInvalidationSubject.complete();
   }
 
   // ─── Private helpers ───────────────────────────────────────────────────────
+
+  /** Normalises `http(s)://` endpoints to the native `ws(s)://` scheme. */
+  private toBrokerUrl(url: string): string {
+    const trimmed = url.trim();
+    if (trimmed.startsWith('https://')) {
+      return `wss://${trimmed.slice('https://'.length)}`;
+    }
+    if (trimmed.startsWith('http://')) {
+      return `ws://${trimmed.slice('http://'.length)}`;
+    }
+    return trimmed;
+  }
 
   /** Called after every successful (re)connect to restore active topic subscriptions. */
   private resubscribeAll(): void {

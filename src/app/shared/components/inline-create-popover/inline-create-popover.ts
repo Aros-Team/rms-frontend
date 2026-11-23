@@ -2,11 +2,12 @@ import { Component, Input, Output, EventEmitter, signal, ViewChild, ChangeDetect
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Popover, PopoverModule } from 'primeng/popover';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { SelectModule } from 'primeng/select';
 import { SelectItem } from 'primeng/api';
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsField } from '@app/shared/ui/field/field';
+import { RmsInput } from '@app/shared/ui/input/input';
 
 export interface InlineCreateField {
   name: string;
@@ -21,7 +22,16 @@ export interface InlineCreateField {
   selector: 'app-inline-create-popover',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, FormsModule, PopoverModule, ButtonModule, InputTextModule, InputNumberModule, SelectModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    PopoverModule,
+    InputNumberModule,
+    SelectModule,
+    RmsButton,
+    RmsField,
+    RmsInput,
+  ],
   templateUrl: './inline-create-popover.html',
   styleUrl: './inline-create-popover.css',
 })

@@ -7,11 +7,16 @@
   [error]="error"
   [emptyMessage]="closed ? 'Hoy el restaurante está cerrado' : 'Aún no hay pedidos entregados hoy'"
   [summary]="summary"
-  dataMode="disclosure"
+  dataMode="hidden"
   dataLabel="Ver pedidos por hora"
   (retry)="retry.emit()"
 >
-  <p-chart type="bar" [data]="data" [options]="options" ariaLabel="Pedidos entregados por hora del día" />
+  <app-rms-chart
+    type="bar"
+    [data]="data"
+    [options]="options"
+    ariaLabel="Pedidos entregados por hora del día"
+  />
   <table rmsChartData>
     <caption class="sr-only">Pedidos entregados por hora del día</caption>
     <thead>

@@ -12,7 +12,7 @@
 
   <div class="rms-page-header__row">
     <div class="rms-page-header__heading">
-      <h1 class="rms-page-header__title">{{ title }}</h1>
+      <h1 [class.rms-page-header__title]="!compact" [class.sr-only]="compact">{{ title }}</h1>
       @if (subtitle) {
         <p class="rms-page-header__subtitle">{{ subtitle }}</p>
       }

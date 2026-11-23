@@ -3,24 +3,23 @@ import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validator
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { PasswordModule } from 'primeng/password';
-import { MessageModule } from 'primeng/message'
-import { Auth } from '@services/auth/auth';
-import { InputTextModule } from 'primeng/inputtext';
-import { ButtonModule } from 'primeng/button'
 import { MessageService } from 'primeng/api';
+import { Auth } from '@services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
-import { CheckboxModule } from 'primeng/checkbox';
 import { HabeasDataEvents } from '@shared/features/habeas-data/habeas-data-events';
 import { UserInfo } from '@models/domain/user/user-info';
 import { resolveReturnUrl } from '@shared/lib/auth-navigation/auth-navigation';
 import { extractProblemDetail } from '@shared/lib/problem-detail/problem-detail';
+import { RmsButton } from '@shared/ui/button/button';
+import { RmsCheckbox } from '@shared/ui/checkbox/checkbox';
+import { RmsInput } from '@shared/ui/input/input';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-login-form',
   templateUrl: './login.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, PasswordModule, MessageModule, InputTextModule, ButtonModule, RouterLink, CheckboxModule],
+  imports: [ReactiveFormsModule, PasswordModule, RouterLink, RmsButton, RmsCheckbox, RmsInput],
 })
 export class LoginForm implements OnInit, OnDestroy {
   private authService = inject(Auth);
@@ -152,6 +151,36 @@ export class LoginForm implements OnInit, OnDestroy {
   isInvalid(value: string): boolean {
     const control = this.form.get(value);
     return control ? control.invalid && control.touched : false;
+  }
+
+  /**
+   * Field copy that names the actual failure. A missing value and a malformed
+   * address are not the same error, so the required check wins only when it is
+   * the one that failed.
+   */
+  get usernameError(): string {
+    if (!this.isInvalid('username')) {
+      return '';
+    }
+    const errors = this.form.get('username')?.errors;
+    if (errors?.['required']) {
+      return 'Campo requerido';
+    }
+    if (errors?.['email']) {
+      return 'Ingresa un correo válido';
+    }
+    return 'Revisa este campo';
+  }
+
+  get passwordError(): string {
+    if (!this.isInvalid('password')) {
+      return '';
+    }
+    const errors = this.form.get('password')?.errors;
+    if (errors?.['required']) {
+      return 'Campo requerido';
+    }
+    return 'Revisa este campo';
   }
 
   /**

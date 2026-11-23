@@ -67,15 +67,34 @@ The theme boots in `index.html` before first paint and is kept in sync by
 | `--rms-neutral-800` | `#1e293b` | Card surface (dark) |
 | `--rms-neutral-900` | `#0f172a` | Page (dark), primary text (light) |
 | `--rms-neutral-950` | `#020617` | Sunken surface (dark) |
-| `--rms-brand-500` | `#f9bb0b` | **Fill only**: primary CTA, selected marker |
+| `--rms-brand-500` | `#fdefc7` | **Fill only**: primary CTA, selected marker |
 | `--rms-brand-600` | `#d9a209` | Primary hover |
 | `--rms-brand-700` | `#b07e06` | Primary active, large graphic strokes |
-| `--rms-brand-text` | `#8a6508` / `#f2daa2` | Brand-coloured **text** |
+| `--rms-brand-text` | `#8a6508` / `#f2daa2` | Brand-coloured **text and borders** |
 | `--rms-brand-soft` | `#fef7e0` / `#2a230f` | Selected row/badge background |
-| `--rms-on-brand` | `#1e1b19` | Text/icon on a gold fill (9.49:1) |
+| `--rms-on-brand` | `#896511` | Dark-gold **ink** on the cream fill |
 
-Hard rule: `#f9bb0b` is never text and never a small icon. On a gold fill use
-`--rms-text-on-brand`, never white.
+### 2.1.1 Hard rule — a colour keeps its role
+
+Every colour has exactly one job: **fill**, **ink** or **border**. The pair is
+deliberate and must never be inverted:
+
+- `#fdefc7` is the **fill** (background). It is never text or a border colour
+  for content on white.
+- `#896511` is the **ink/border** (dark gold). It is **never a background**:
+  no `background: #896511`, no `bg-[#896511]`, no inline `background-color`
+  with that value. The same applies to every `*-text`, `*-fg`, `*-border` and
+  `*-on-*` token: those tokens are ink, not surfaces.
+- The only legitimate dark-gold surface is a status/solid token that explicitly
+  says `*-solid` and carries its matching `*-on-solid` ink. Brand text is not
+  one of them.
+- Do not repurpose a global palette token to fix one component, and do not
+  invert a fill/ink pair when a design change arrives. Change the component to
+  the token with the correct role; if the pair itself changes, update both
+  tokens and re-run contrast checks.
+- Before touching a brand value, list every surface that reads it (buttons,
+  tabs, badges, charts, calendars) and run the a11y suite; a palette edit is a
+  cross-product change, not a one-screen change.
 
 ### 2.2 Semantic roles
 
@@ -346,9 +365,9 @@ uses signals. Keep it that way for every new primitive.
 | Component | API |
 |---|---|
 | `app-rms-field` | `label` (required), `controlId`, `hint`, `error`, `required`, `optionalLabel`, `hideLabel`, `size`. Exposes `describedBy`, `labelId`, `hintId`, `errorId`. |
-| `app-rms-input` | `label` (required), `id`, `type`, `placeholder`, `hint`, `error`, `required`, `optionalLabel`, `hideLabel`, `autocomplete`, `inputMode`, `maxLength`, `name`, `size`, `disabled`, `readonly`; CVA. |
-| `app-rms-textarea` | same as input plus `rows`, `showCount`; CVA. |
-| `app-rms-select` | `label` (required), `options: {label, value, disabled?}[]`, `placeholder`, `hint`, `error`, `required`, `showClear`, `filter` (auto above 8 options), `size`, `disabled`; CVA. |
+| `app-rms-input` | `label` (required), `id`, `type`, `placeholder`, `hint`, `error`, `required`, `optionalLabel`, `hideLabel`, `autocomplete`, `inputMode`, `maxLength`, `name`, `size`, `disabled`, `readonly`, `invalid` (paint the invalid state before a message exists, e.g. touched + invalid); CVA. |
+| `app-rms-textarea` | same as input plus `rows`, `showCount`, `invalid`; CVA. |
+| `app-rms-select` | `label` (required), `options: {label, value, disabled?}[]`, `placeholder`, `hint`, `error`, `required`, `showClear`, `filter` (auto above 8 options), `size`, `disabled`, `invalid`; CVA. |
 | `app-rms-checkbox` | `label` (required), `description`, `disabled`, `required`; CVA boolean. |
 | `app-rms-switch` | `label` (required), `onLabel`, `offLabel`, `showState`, `disabled`; CVA boolean, `role="switch"`. |
 
@@ -393,6 +412,10 @@ D-012: PrimeNG Dialog for complex flows, native sheet for simple panels.
 | `app-rms-page-header` | `title` (required), `subtitle`, `backLabel`; output `back`. Slots `[rmsPageHeaderMeta]`, `[rmsPageHeaderActions]`. |
 | `app-rms-stat-tile` | `label` (required), `value`, `period`, `delta`, `deltaTone`, `icon`, `loading`, `emphasis`. |
 | `app-rms-chart-frame` | `title` (required), `subtitle`, `height`, `loading`, `empty`, `error`, `emptyMessage`, `emptyActionLabel`, `errorTitle`, `summary`, `dataMode: none\|disclosure\|hidden`, `dataLabel`; outputs `retry`, `emptyAction`. Slots `[rmsChartActions]`, `[rmsChartLegend]`, `[rmsChartData]`. |
+| `app-rms-chart` | `type: bar\|line\|doughnut\|bubble` (required), `data` (required), `options`, `ariaLabel`. |
+
+`app-rms-chart` imports Chart.js core (not `chart.js/auto`), the frame owns the
+summary and the data table, and the canvas is `role="img"`.
 
 ### 9.5 Gallery
 
@@ -439,6 +462,13 @@ Don't:
 - Don't put a legend inside a canvas or absolute over a table.
 - Don't create ad-hoc sizes or radii; extend the scale in a PR owned by DS.
 
+Control classes (`.rms-input`, `.rms-input--sm|lg`, `.rms-textarea`,
+`.rms-textarea__count`) are **global**, declared in `src/styles/controls.css`
+inside `@layer components`. They are used both inside the primitives and on
+native controls where a primitive does not fit (search boxes, steppers, time
+fields). Do not redefine them in feature CSS; Tailwind utilities still override
+their padding/width because utilities sit in the later layer.
+
 Utility equivalents available from the Tailwind bridge:
 `bg-rms-page|surface|subtle|sunken`, `border-rms-border|border-strong`,
 `text-rms-ink|ink-secondary|ink-muted|ink-inverse`, `bg-rms-brand`,
@@ -481,6 +511,64 @@ Legacy compatibility kept in Round 1 (do not add new uses):
 
 ---
 
+### 11.1 Migration status and new rules (2026-11-23 review)
+
+Reference documents: `docs/reports/ui-performance-review-2026-11-23.md` and
+`docs/plans/ui-improvements-plan.md`.
+
+Adoption is now tracked per area instead of per component. The legacy API
+(`p-button`, `pInputText`, `text-surface-*`, `dark:` pairs,
+`bg-primary-contrast`) is closed to new use and is being removed area by area.
+
+| Area | Status |
+|---|---|
+| `areas/auth/**` | migrated (2026-11-23) |
+| `areas/admin/manage/combos`, `categories`, `areas`, `tables` | migrated (2026-11-23) |
+| `shared/features/settings`, `shared/components/{inline-create-popover,search-input,removable-chip}` | migrated (2026-11-23) |
+| `areas/admin/manage/{workers,time-logs,inventory,schedules}` | migrated (2026-11-23) |
+| `areas/admin/features/dashboard`, analytics | migrated; charts use `app-rms-chart` (Chart.js core); off-screen blocks deferred |
+| `shared/components`, error pages, skeletons, chat, orders, product creation | migrated (2026-11-23) |
+| `areas/admin/manage/products`, `areas/worker/**`, `areas/cashier/**`, product card/options | next batch (3 legacy templates) |
+
+Shell surfaces (decision 2026-11-23): the workstation shell is **fluid**.
+Header, sidebar and the page share `bg-rms-page`; there is no divider border
+between them. Exactly one bordered container wraps the content (`<main>` in the
+admin shell, the content column in the worker shell), using
+`border-rms-border-strong` and the page-panel radius. Do not reintroduce
+`border-b`/`border-l` on the chrome or a second surface level for the shell.
+
+Radius rule (one radius per role, no `rounded`/`rounded-md` in feature code):
+
+| Role | Value | Utility |
+|---|---|---|
+| Controls, buttons, nav items | 8 px | `rounded-lg` |
+| Cards, grouped inputs | 12 px | `rounded-xl` |
+| Page panels, sheets | 16 px | `rounded-2xl` |
+
+Layer scale (never a numeric `z-[…]` in feature code):
+
+| Token | Value | Use |
+|---|---|---|
+| `--rms-z-raised` | 10 | raised content |
+| `--rms-z-sticky` | 20 | fixed header |
+| `--rms-z-drawer` | 40 | mobile drawer, sidebar |
+| `--rms-z-overlay` | 1000 | scrim, popovers |
+| `--rms-z-dialog` | 1100 | dialogs, sheets |
+| `--rms-z-toast` | 1200 | toasts, skip link |
+
+Automated gates: `npm run lint:check` (ESLint, including no-inline-styles and
+the Chart.js import guard) and `npm run design:check` (scans templates for
+legacy PrimeNG controls, surface/palette classes, `dark:` pairs, raw hex and
+numeric `z-[…]`). `npm run verify:ui` runs lint, the design gate and the unit
+suite. The dev gallery is exempt from the design gate on purpose.
+
+Deferred rendering: `content-visibility: auto` is allowed only through the
+`.rms-defer-view` utility in `src/styles/global.css`, only on confirmed
+off-screen blocks, and always with `contain-intrinsic-size`. Above-the-fold
+content must never receive it.
+
+---
+
 ## 12. Testing
 
 - Every primitive has a spec under its folder with a contract header following
@@ -493,3 +581,22 @@ Legacy compatibility kept in Round 1 (do not add new uses):
   icons hidden, and one H1 where the component owns it.
 - Run `npm run lint:check`, `npx tsc -p tsconfig.app.json --noEmit` and
   `npm run build` before handing off.
+
+### Hard rule — fill vs ink (incident 2026-11-23)
+
+A palette edit set the dark-gold ink (`#896511`) as `primary.contrastColor` to
+put it on the new cream fill. Because legacy surfaces read
+`--p-primary-contrast-color` as a **background** (`bg-primary-contrast`), the
+header account chip and cards turned dark gold with dark text. The mistake was
+using one token for two roles.
+
+Rules going forward:
+
+1. Fill tokens (`--rms-brand-500`, `--rms-brand-soft`, `*-bg`, `*-solid`) are
+   backgrounds; ink tokens (`--rms-brand-text`, `*-fg`, `*-text`, `*-on-*`)
+   are text/borders. Never cross them.
+2. `#896511` is ink/border only; `#fdefc7` is a fill only.
+3. A component-level fix must not edit the global ramp. Add or use a
+   role-specific token instead.
+4. Any change to a role token requires the a11y suite before commit, including
+   the schedules calendar (small 12 px text on tinted bars).

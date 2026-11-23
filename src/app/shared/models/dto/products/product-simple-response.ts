@@ -8,6 +8,10 @@ export interface ProductSimpleResponse {
   categoryId: number;
   categoryName: string;
   areaId: number;
-  /** Signed URL of the primary image (mobile variant). */
+  /** Signed URL of the primary image (mobile variant), `null` when the product has none. */
   imageUrl?: string | null;
+  /** Signed URL of the primary image (tablet variant). */
+  imageTabletUrl?: string | null;
+  /** Signed URL of the primary image (desktop variant). */
+  imageDesktopUrl?: string | null;
 }

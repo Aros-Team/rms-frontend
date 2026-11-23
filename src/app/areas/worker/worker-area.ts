@@ -97,18 +97,32 @@ export class WorkerArea implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Wait for the session user data with a bounded retry (50 x 100 ms = 5 s).
+   * If it never arrives, stop polling and send the user to login. The promise
+   * stays pending on timeout so `ngOnInit` does not run the workspace chain
+   * (which would navigate to /forbidden and cancel the login redirect).
+   */
   private waitForUserData(): Promise<void> {
     const userData = this.authService.getData();
     if (userData) {
       return Promise.resolve();
     }
+    const maxAttempts = 50;
     return new Promise<void>((resolve) => {
+      let attempts = 0;
       const check = () => {
         if (this.authService.getData()) {
           resolve();
-        } else {
-          setTimeout(check, 100);
+          return;
         }
+        attempts++;
+        if (attempts >= maxAttempts) {
+          this.logger.warn('WorkerArea: user data unavailable after 5 s, redirecting to login');
+          void this.router.navigate(['/login']);
+          return;
+        }
+        setTimeout(check, 100);
       };
       setTimeout(check, 100);
     });

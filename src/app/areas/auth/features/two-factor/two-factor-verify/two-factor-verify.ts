@@ -2,23 +2,17 @@ import { Component, inject, signal } from '@angular/core';
 
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { InputTextModule } from 'primeng/inputtext';
-import { ButtonModule } from 'primeng/button';
-import { MessageModule } from 'primeng/message';
 import { MessageService } from 'primeng/api';
 import { Auth } from '@services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
 import { UserInfo } from '@models/domain/user/user-info';
 import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
+import { RmsButton } from '@shared/ui/button/button';
+import { RmsInput } from '@shared/ui/input/input';
 
 @Component({
   selector: 'app-two-factor-verify',
-  imports: [
-    ReactiveFormsModule,
-    InputTextModule,
-    ButtonModule,
-    MessageModule
-  ],
+  imports: [ReactiveFormsModule, RmsButton, RmsInput],
   templateUrl: './two-factor-verify.html',
   styleUrl: './two-factor-verify.css',
 })
@@ -68,6 +62,20 @@ export class TwoFactorVerify {
   isInvalid(value: string): boolean {
     const control = this.form.get(value);
     return control !== null && control.invalid && control.touched;
+  }
+
+  get codeError(): string {
+    if (!this.isInvalid('code')) {
+      return '';
+    }
+    const errors = this.form.get('code')?.errors;
+    if (errors?.['required']) {
+      return 'Campo requerido';
+    }
+    if (errors?.['minlength'] || errors?.['maxlength']) {
+      return 'Ingresa el código de 6 dígitos';
+    }
+    return 'Revisa este campo';
   }
 
   goBack(): void {

@@ -14,10 +14,10 @@ import { FormsModule } from '@angular/forms';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import type { CdkDragDrop } from '@angular/cdk/drag-drop';
 
-import { ButtonModule } from 'primeng/button';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { InputTextModule } from 'primeng/inputtext';
 
+import { RmsBadge } from '@app/shared/ui/badge/badge';
+import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
 import { ComboReferenceCache } from '@app/core/services/combos/combo-reference-cache';
 import { ComboWizardState } from '@app/core/services/combos/combo-wizard-state';
 import type { WizardGroupDraft } from '@app/core/services/combos/combo-wizard-state';
@@ -31,7 +31,15 @@ import { categoryStepId } from '../combo-wizard';
 
 @Component({
   selector: 'app-group-step[comboWizardStep=category]',
-  imports: [CommonModule, FormsModule, ButtonModule, InputNumberModule, InputTextModule, DragDropModule, ProductCard],
+  imports: [
+    CommonModule,
+    FormsModule,
+    InputNumberModule,
+    DragDropModule,
+    ProductCard,
+    RmsBadge,
+    RmsIconButton,
+  ],
   templateUrl: './group-step.html',
   styleUrl: './group-step.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

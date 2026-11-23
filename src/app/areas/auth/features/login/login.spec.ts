@@ -73,7 +73,9 @@ describe('LoginForm navigation', () => {
       if (url.endsWith('login.html')) {
         return Promise.resolve(loginHtml as string);
       }
-      return Promise.reject(new Error(`Unexpected template: ${url}`));
+      // UI primitives (input, button, checkbox) are irrelevant to these
+      // navigation assertions; resolve their templates to empty strings.
+      return Promise.resolve('');
     });
   });
 
@@ -297,5 +299,56 @@ describe('LoginForm error messages', () => {
     component.onSubmit();
 
     expect(errorToast().detail).toBe('Ha ocurrido un error inesperado. Por favor, intente nuevamente.');
+  });
+});
+
+describe('LoginForm field errors', () => {
+  function create(): LoginForm {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [LoginForm],
+      providers: [
+        provideRouter([]),
+        { provide: Auth, useValue: { login: vi.fn(), logout: vi.fn() } },
+        { provide: ActivatedRoute, useValue: { queryParams: of({}) } },
+        { provide: MessageService, useValue: { add: vi.fn() } },
+        {
+          provide: Logging,
+          useValue: { auth: vi.fn(), routing: vi.fn(), error: vi.fn(), info: vi.fn() },
+        },
+      ],
+    });
+    const component = TestBed.createComponent(LoginForm).componentInstance;
+    component.ngOnInit();
+    return component;
+  }
+
+  afterEach(() => {
+    TestBed.resetTestingModule();
+  });
+
+  it('distinguishes a missing username from a malformed one', () => {
+    const component = create();
+    const username = component.form.get('username');
+
+    username?.markAsTouched();
+    expect(component.usernameError).toBe('Campo requerido');
+
+    username?.setValue('not-an-email');
+    expect(component.usernameError).toBe('Ingresa un correo válido');
+
+    username?.setValue('ana@rms.test');
+    expect(component.usernameError).toBe('');
+  });
+
+  it('reports the password requirement instead of a generic error', () => {
+    const component = create();
+    const password = component.form.get('password');
+
+    password?.markAsTouched();
+    expect(component.passwordError).toBe('Campo requerido');
+
+    password?.setValue('secret');
+    expect(component.passwordError).toBe('');
   });
 });

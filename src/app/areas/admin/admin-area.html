@@ -1,6 +1,23 @@
-<app-layout [role]="role" [isChatOpen]="isChatOpen()" (toggleChatEvent)="toggleChat()">
+<app-layout [role]="role" [isChatOpen]="isChatOpen()" (toggleChatEvent)="togglePanel()">
   <div class="route-content h-full w-full">
     <router-outlet></router-outlet>
   </div>
+
+  <ng-template #layoutChat>
+    <!-- The assistant is only fetched on first open. Keeping `Chat` in the
+         component imports lets the compiler resolve it and rewrite the import
+         into the defer block's dynamic import, so `marked`/`dompurify` land in
+         a lazy chunk instead of the admin-area chunk. -->
+    @defer (when isChatOpen()) {
+      <app-chat (closed)="isChatOpen.set(false)"></app-chat>
+    } @placeholder {
+      <div class="p-4">
+        <p class="rms-caption">Cargando asistente…</p>
+      </div>
+    } @loading {
+      <div class="p-4" role="status" aria-live="polite">
+        <p class="rms-caption">Cargando asistente…</p>
+      </div>
+    }
+  </ng-template>
 </app-layout>
-<app-chat (closed)="isChatOpen.set(false)"></app-chat>

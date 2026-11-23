@@ -1,14 +1,6 @@
 <div class="analytics-page">
-  <app-rms-page-header title="Rentabilidad" [subtitle]="subtitle()">
-    <div rmsPageHeaderActions>
-      <app-rms-button
-        variant="secondary"
-        iconStart="pi pi-download"
-        [disabled]="report() === null"
-        (click)="exportCsv()">
-        Exportar CSV
-      </app-rms-button>
-    </div>
+  <app-rms-page-header
+    [compact]="true" title="Rentabilidad" [subtitle]="subtitle()">
   </app-rms-page-header>
 
   <app-analytics-notice
@@ -67,10 +59,15 @@
         dataMode="disclosure"
         dataLabel="Ver datos de ventas"
         (retry)="reload()">
-        <p-chart type="line" [data]="salesData()" [options]="salesOptions" ariaLabel="Ventas brutas y netas por periodo" />
+        <app-rms-chart
+          type="line"
+          [data]="salesData()"
+          [options]="salesOptions"
+          ariaLabel="Ventas brutas y netas por periodo"
+        />
         <ul rmsChartLegend class="chart-legend">
-          <li><span class="chart-legend__swatch" [style.background]="salesColors().net"></span>Ventas netas</li>
-          <li><span class="chart-legend__swatch chart-legend__swatch--dashed" [style.border-color]="salesColors().gross"></span>Ventas brutas</li>
+          <li><span class="chart-legend__swatch chart-legend__swatch--1"></span>Ventas netas</li>
+          <li><span class="chart-legend__swatch chart-legend__swatch--dashed chart-legend__swatch--line-7"></span>Ventas brutas</li>
         </ul>
         <div rmsChartData>
           <table class="data-table">
@@ -102,11 +99,16 @@
         dataMode="disclosure"
         dataLabel="Ver datos de márgenes"
         (retry)="reload()">
-        <p-chart type="line" [data]="marginData()" [options]="marginOptions" ariaLabel="Costo primo y márgenes por periodo" />
+        <app-rms-chart
+          type="line"
+          [data]="marginData()"
+          [options]="marginOptions"
+          ariaLabel="Costo primo y márgenes por periodo"
+        />
         <ul rmsChartLegend class="chart-legend">
-          <li><span class="chart-legend__swatch" [style.background]="marginColors().prime"></span>Costo primo</li>
-          <li><span class="chart-legend__swatch" [style.background]="marginColors().gross"></span>Margen bruto</li>
-          <li><span class="chart-legend__swatch chart-legend__swatch--dashed" [style.border-color]="marginColors().net"></span>Margen neto</li>
+          <li><span class="chart-legend__swatch chart-legend__swatch--4"></span>Costo primo</li>
+          <li><span class="chart-legend__swatch chart-legend__swatch--2"></span>Margen bruto</li>
+          <li><span class="chart-legend__swatch chart-legend__swatch--dashed chart-legend__swatch--line-5"></span>Margen neto</li>
         </ul>
         <div rmsChartData>
           <table class="data-table">
@@ -140,10 +142,15 @@
       dataMode="disclosure"
       dataLabel="Ver datos de COGS"
       (retry)="reload()">
-      <p-chart type="bar" [data]="cogsData()" [options]="cogsOptions" ariaLabel="Costo de lo vendido por categoría" />
+      <app-rms-chart
+        type="bar"
+        [data]="cogsData()"
+        [options]="cogsOptions"
+        ariaLabel="Costo de lo vendido por categoría"
+      />
       <ul rmsChartLegend class="chart-legend">
         @for (row of cogsRows(); track row.key) {
-          <li><span class="chart-legend__swatch" [style.background]="cogsColor(row.key)"></span>{{ row.label }}</li>
+          <li><span class="chart-legend__swatch" [attr.data-series]="row.key"></span>{{ row.label }}</li>
         }
       </ul>
       <div rmsChartData>
@@ -166,7 +173,11 @@
       </div>
     </app-rms-chart-frame>
 
-    <section class="table-grid" aria-label="Detalle del periodo">
+    <!-- Bottom detail tables: below the KPI row and the two charts, so the
+         browser can skip them while they are off-screen. -->
+    <section
+      class="table-grid rms-defer-view rms-defer-view--xl"
+      aria-label="Detalle del periodo">
       <div class="panel">
         <h2 class="panel__title">Detalle por periodo</h2>
         <div class="panel__scroll" role="region" tabindex="0" aria-label="Detalle por periodo, desplazable">

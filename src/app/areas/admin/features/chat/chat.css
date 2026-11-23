@@ -1,13 +1,8 @@
 :host {
-  display: contents;
-}
-
-.chat-panel {
-  border-left: 1px solid var(--surface-200);
-}
-
-:root.dark .chat-panel {
-  border-left-color: var(--surface-700);
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
 }
 
 .message-content {
@@ -99,33 +94,28 @@
 
 /* Links */
 .message-content a {
-  color: var(--primary-500);
+  color: var(--rms-link);
   text-decoration: underline;
 }
 
 .message-content a:hover {
-  color: var(--primary-600);
+  color: var(--rms-link-hover);
 }
 
-/* Blockquotes - callouts */
+/* Blockquotes - callouts. A quiet inset surface, not a thick accent bar. */
 .message-content blockquote {
-  border-left: 3px solid var(--primary-400);
-  margin: 0.75rem 0;
-  padding: 0.5rem 1rem;
-  background: var(--primary-50);
-  border-radius: 0 0.5rem 0.5rem 0;
-  color: var(--surface-700);
+  margin: var(--rms-space-3) 0;
+  padding: var(--rms-space-3) var(--rms-space-4);
+  border: var(--rms-border-width) solid var(--rms-border);
+  border-radius: var(--rms-radius-md);
+  background: var(--rms-bg-subtle);
+  color: var(--rms-text-secondary);
 }
 
-.dark .message-content blockquote {
-  background: var(--primary-900);
-}
-
-/* Horizontal rules */
 .message-content hr {
   border: none;
-  border-top: 1px solid var(--surface-200);
-  margin: 1rem 0;
+  border-top: var(--rms-border-width) solid var(--rms-border);
+  margin: var(--rms-space-4) 0;
 }
 
 ::ng-deep .message-content table {

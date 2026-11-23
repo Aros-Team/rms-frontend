@@ -1,9 +1,4 @@
 <div class="schedules-page">
-  <app-rms-page-header
-    title="Horarios"
-    subtitle="Planifica la semana, resuelve cruces y revisa la asistencia del equipo."
-  />
-
   <nav class="schedules-tabs" role="tablist" aria-label="Secciones de horarios">
     @for (tab of tabs; track tab.id; let index = $index) {
       <button
@@ -22,6 +17,8 @@
       </button>
     }
   </nav>
+
+  <h1 class="sr-only">Horarios</h1>
 
   @switch (activeTab()) {
     @case ('semana') {

@@ -3,9 +3,8 @@
  *
  * Feature: `/admin/settings` → Apariencia.
  * Contract: theme, font size and contrast delegate to the existing `Theme` and
- * `Accessibility` services (persisted locally), the density control is
- * documented as unsupported, and the account actions delegate to the sibling
- * Cuenta section through the `openAccount` output.
+ * `Accessibility` services (persisted locally) and the density control is
+ * documented as unsupported.
  *
  * Approach: mount with the real services, call the handlers and assert the DOM
  * attributes the global stylesheet reads.
@@ -76,17 +75,10 @@ describe('AppearanceSettingsSection', () => {
     expect(document.documentElement.getAttribute('data-contrast')).toBe('high');
   });
 
-  it('documents density as not configurable and opens the account section', () => {
+  it('documents density as not configurable', () => {
     const text = (fixture.nativeElement as HTMLElement).textContent;
-    const button = [...(fixture.nativeElement as HTMLElement).querySelectorAll('button')].find(
-      (candidate) => candidate.textContent.includes('Cuenta y contraseña'),
-    );
-    let opened = 0;
-    component.openAccount.subscribe(() => (opened += 1));
 
     expect(text).toContain('La densidad de tablas todavía no es una preferencia configurable');
-    expect(button).toBeDefined();
-    if (button) button.click();
-    expect(opened).toBe(1);
+    expect(text).not.toContain('Cuenta y contraseña');
   });
 });

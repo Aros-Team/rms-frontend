@@ -1573,5 +1573,62 @@
       }
     ],
     "status": "done"
+  },
+  {
+    "id": 52,
+    "type": "chore",
+    "name": "design-pass",
+    "title": "Unify status tokens, masthead and worker navigation",
+    "description": "Design audit pass: status tokens, bare masthead, no repeated orientation subtitles, cashier desktop navigation and analytics dock spacing.",
+    "acceptance": [
+      "Tokens and masthead consistent",
+      "Cashier has a desktop navigation",
+      "No repeated subtitles",
+      "Gates green"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Implement and verify the design pass",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 53,
+    "type": "feat",
+    "name": "weekly-calendar",
+    "title": "Replace the coverage table and worker grid with a weekly hour calendar",
+    "description": "One calendar per week: days as rows, hours on the axis, one horizontal bar per shift that spans its hours, stacked lanes for overlapping workers.",
+    "acceptance": [
+      "Coverage table and worker-by-day grid removed",
+      "Each day shows shift bars spanning their hours",
+      "Overlapping shifts stack in lanes",
+      "Closed days and days without shifts are explicit",
+      "Gates green"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Add the timeline model and lane layout",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Render the calendar and remove the old tables",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Tests, baselines and harness",
+        "status": "in_progress",
+        "agent": "implementer"
+      }
+    ],
+    "status": "in_progress"
   }
 ]

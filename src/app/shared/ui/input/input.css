@@ -3,55 +3,9 @@
   min-width: 0;
 }
 
-.rms-input {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  height: var(--rms-control-md);
-  padding: 0 var(--rms-space-3);
-  border: var(--rms-border-width) solid var(--rms-control-border);
-  border-radius: var(--rms-control-radius);
-  background: var(--rms-control-bg);
-  color: var(--rms-text);
-  font-family: var(--rms-font-sans);
-  font-size: var(--rms-type-body-size);
-  line-height: var(--rms-type-body-line);
-  transition:
-    border-color var(--rms-transition-fast),
-    background-color var(--rms-transition-fast);
-}
-
-.rms-input::placeholder {
-  color: var(--rms-text-muted);
-  opacity: 1;
-}
-
-.rms-input:hover:not(:disabled) {
-  border-color: var(--rms-neutral-400);
-}
-
-.rms-input:focus-visible {
-  border-color: var(--rms-focus);
-}
-
-.rms-input--sm {
-  height: var(--rms-control-sm);
-  padding: 0 var(--rms-space-2);
-  font-size: var(--rms-type-caption-size);
-}
-
-.rms-input--lg {
-  height: var(--rms-control-lg);
-  padding: 0 var(--rms-space-4);
-  font-size: var(--rms-type-body-lg-size);
-}
-
-.rms-input:disabled {
-  background: var(--rms-bg-disabled);
-  border-color: var(--rms-border);
-  color: var(--rms-text-disabled);
-  cursor: not-allowed;
-}
+/* Base control styles live in `src/styles/controls.css` (global, layered) so
+   the same classes work on native inputs in feature templates. Only the
+   component-scoped invalid state stays here. */
 
 /* The field wrapper sets --invalid on the group; paint the control from it. */
 :host-context(.rms-field--invalid) .rms-input {

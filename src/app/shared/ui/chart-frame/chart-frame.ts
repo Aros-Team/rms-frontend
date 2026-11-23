@@ -27,7 +27,7 @@ import { applyRmsChartDefaults } from '../chart/chart-theme';
  *
  *   <app-rms-chart-frame title="Ventas" subtitle="Últimos 6 meses"
  *                        summary="Ventas netas por mes" dataMode="disclosure">
- *     <p-chart type="line" [data]="data" [options]="options" />
+ *     <app-rms-chart type="line" [data]="data" [options]="options" />
  *     <ul rmsChartLegend>…HTML legend…</ul>
  *     <table rmsChartData>…same numbers…</table>
  *   </app-rms-chart-frame>

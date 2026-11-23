@@ -5,7 +5,6 @@ import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
-import { InputTextModule } from 'primeng/inputtext';
 import { Subscription } from 'rxjs';
 import { Order, OrderStatus } from '@app/core/services/orders/order';
 import {
@@ -45,7 +44,6 @@ const WS_TOPICS = {
     SelectModule,
     FormsModule,
     DialogModule,
-    InputTextModule,
     TableSkeleton,
     Money,
     RmsButton,

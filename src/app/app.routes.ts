@@ -98,11 +98,13 @@ export const routes: Routes = [
         title: 'Panel',
         loadComponent: () =>
           import('@areas/admin/features/dashboard/dashboard').then((m) => m.Dashboard),
+        data: { preload: true },
       },
       {
         path: 'orders',
         title: 'Pedidos',
         loadComponent: () => import('@areas/admin/features/orders/orders').then((m) => m.Orders),
+        data: { preload: true },
       },
       {
         path: 'schedules',
@@ -111,6 +113,7 @@ export const routes: Routes = [
           import('@areas/admin/features/manage/features/schedules/schedules-page').then(
             (m) => m.SchedulesPage,
           ),
+        data: { preload: false },
       },
       {
         path: 'manage',
@@ -129,6 +132,7 @@ export const routes: Routes = [
               import('@areas/admin/features/manage/features/products/products').then(
                 (m) => m.Products,
               ),
+            data: { preload: false },
           },
           {
             path: 'products/:id/recipe',
@@ -163,6 +167,7 @@ export const routes: Routes = [
             title: 'Combos',
             loadComponent: () =>
               import('@areas/admin/features/manage/features/combos/combos').then((m) => m.Combos),
+            data: { preload: false },
           },
           {
             path: 'combos/new',
@@ -171,6 +176,7 @@ export const routes: Routes = [
               import('@areas/admin/features/manage/features/combos/combo-wizard-page').then(
                 (m) => m.ComboWizardPage,
               ),
+            data: { preload: false },
           },
           {
             path: 'combos/:id/edit',
@@ -179,6 +185,7 @@ export const routes: Routes = [
               import('@areas/admin/features/manage/features/combos/combo-wizard-page').then(
                 (m) => m.ComboWizardPage,
               ),
+            data: { preload: false },
           },
           {
             path: 'combos/:id/history',
@@ -187,6 +194,7 @@ export const routes: Routes = [
               import('@areas/admin/features/manage/features/combos/combo-history').then(
                 (m) => m.ComboHistory,
               ),
+            data: { preload: false },
           },
           {
             path: 'orders-create',
@@ -203,6 +211,7 @@ export const routes: Routes = [
               import('@areas/admin/features/manage/features/workers/workers').then(
                 (m) => m.Workers,
               ),
+            data: { preload: false },
           },
           {
             path: 'workers/:id/salary-history',
@@ -219,6 +228,7 @@ export const routes: Routes = [
               import('@areas/admin/features/manage/features/inventory/inventory').then(
                 (m) => m.Inventory,
               ),
+            data: { preload: false },
           },
         ],
       },
@@ -240,6 +250,7 @@ export const routes: Routes = [
               import('@areas/admin/features/analytics/features/prime-cost/prime-cost').then(
                 (m) => m.PrimeCost,
               ),
+            data: { preload: false },
           },
           {
             path: 'menu-engineering',
@@ -248,6 +259,7 @@ export const routes: Routes = [
               import(
                 '@areas/admin/features/analytics/features/menu-engineering/menu-engineering'
               ).then((m) => m.MenuEngineering),
+            data: { preload: false },
           },
           {
             path: 'operations',
@@ -256,6 +268,7 @@ export const routes: Routes = [
               import('@areas/admin/features/analytics/features/operations/operations').then(
                 (m) => m.Operations,
               ),
+            data: { preload: false },
           },
           {
             path: 'cohort',
@@ -264,6 +277,7 @@ export const routes: Routes = [
               import('@areas/admin/features/analytics/features/cohort/cohort').then(
                 (m) => m.Cohort,
               ),
+            data: { preload: false },
           },
           {
             path: 'alerts',
@@ -272,6 +286,7 @@ export const routes: Routes = [
               import('@areas/admin/features/analytics/features/alerts/alerts').then(
                 (m) => m.Alerts,
               ),
+            data: { preload: false },
           },
         ],
       },
@@ -281,6 +296,7 @@ export const routes: Routes = [
         loadComponent: () =>
           import('@areas/admin/features/settings/settings-page').then((m) => m.SettingsPage),
         canDeactivate: [settingsUnsavedChangesGuard],
+        data: { preload: false },
       },
       {
         path: 'create-product',
@@ -289,6 +305,7 @@ export const routes: Routes = [
           import('@areas/admin/features/product-creation/product-creation-form').then(
             (m) => m.ProductCreationForm,
           ),
+        data: { preload: false },
       },
       {
         path: 'profile',
@@ -321,7 +338,7 @@ export const routes: Routes = [
             (m) => m.WaiterDashboard,
           ),
         canActivate: [AreaGuard],
-        data: { workerWorkspaces: ['waiter'] } satisfies WorkerRouteData,
+        data: { workerWorkspaces: ['waiter'], preload: true } satisfies WorkerRouteData,
       },
       {
         path: 'combos/:id',
@@ -337,7 +354,7 @@ export const routes: Routes = [
         loadComponent: () =>
           import('@areas/worker/features/kitchen/kitchen').then((m) => m.Kitchen),
         canActivate: [AreaGuard],
-        data: { workerWorkspaces: ['kitchen'] } satisfies WorkerRouteData,
+        data: { workerWorkspaces: ['kitchen'], preload: true } satisfies WorkerRouteData,
       },
       {
         path: 'cashier',

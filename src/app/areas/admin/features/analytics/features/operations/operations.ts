@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
 import type { ChartData } from 'chart.js';
-import { ChartModule } from 'primeng/chart';
 
 import { AnalyticsCache } from '@app/core/services/analytics/analytics-cache';
 import { downloadCsv, operationsCsv } from '@app/core/services/analytics/analytics-csv';
@@ -9,9 +8,9 @@ import { moneyAmount, percentChange } from '@app/core/services/analytics/analyti
 import { AnalyticsPeriodState } from '@app/core/services/analytics/analytics-period-state';
 import { bucketLabel, previousRange, rangeLabel } from '@app/core/services/analytics/analytics-utils';
 import { Money as MoneyPipe } from '@app/shared/pipes/money/money';
-import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsChartFrame } from '@app/shared/ui/chart-frame/chart-frame';
 import { rmsChartPalette } from '@app/shared/ui/chart/chart-theme';
+import { RmsChart } from '@app/shared/ui/chart/rms-chart';
 import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 import { RmsStatTile } from '@app/shared/ui/stat-tile/stat-tile';
@@ -34,9 +33,8 @@ const DAY_PART_LABEL: Record<string, string> = {
 @Component({
   selector: 'app-analytics-operations',
   imports: [
-    ChartModule,
     MoneyPipe,
-    RmsButton,
+    RmsChart,
     RmsChartFrame,
     RmsEmptyState,
     RmsPageHeader,

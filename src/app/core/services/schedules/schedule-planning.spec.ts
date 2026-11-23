@@ -210,25 +210,24 @@ describe('assignment conflicts', () => {
     expect(report.blocking.some((message) => message.includes('máximo operativo'))).toBe(true);
   });
 
-  it('allows a legal-range assignment and warns only above the legal reference', () => {
-    const apoyo = schedule(5, 'Apoyo', [shift('MONDAY', '16:00', '18:00')]);
+  it('allows exactly 42 h and blocks anything above the limit', () => {
+    const exact = fullWeek(7, 'Base', '08:00', '14:00');
     const allowed = detectAssignmentConflicts({
       workerName: 'Ana',
       workerAreaIds: SERVICE_AREA,
       assignedSchedules: [],
-      candidate: apoyo,
+      candidate: exact,
     });
     expect(allowed.blocking).toEqual([]);
-    expect(allowed.weeklyMinutes).toBe(120);
+    expect(allowed.weeklyMinutes).toBe(42 * 60);
 
-    const warning = detectAssignmentConflicts({
+    const over = detectAssignmentConflicts({
       workerName: 'Ana',
       workerAreaIds: SERVICE_AREA,
-      assignedSchedules: [fullWeek(7, 'Base', '08:00', '14:00')],
+      assignedSchedules: [exact],
       candidate: fullWeek(6, 'Extra', '16:00', '17:00'),
     });
-    expect(warning.blocking).toEqual([]);
-    expect(warning.warnings.some((message) => message.includes('legales'))).toBe(true);
+    expect(over.blocking.some((message) => message.includes('máximo operativo'))).toBe(true);
   });
 });
 

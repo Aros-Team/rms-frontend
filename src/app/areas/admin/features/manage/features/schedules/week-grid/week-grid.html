@@ -26,11 +26,6 @@
       </app-rms-button>
     </div>
 
-    <p class="week-grid__weekhint rms-caption">
-      Distribución semanal de los turnos individuales. Las semanas comparten el horario
-      recurrente del equipo.
-    </p>
-
     <div class="week-grid__filters">
       <app-rms-select
         id="schedule-area-filter"
@@ -58,85 +53,24 @@
     </div>
   </header>
 
-  @if (filteredRows().length > 0 && coverage().max > 0) {
-    <section class="week-grid__coverage" aria-labelledby="coverage-heading">
-      <div class="week-grid__coverage-head">
-        <h3 id="coverage-heading" class="rms-h4">Cobertura por hora</h3>
-        <p class="rms-caption">
-          Trabajadores programados en cada día y hora dentro del horario de atención. El máximo
-          de la semana es {{ coverage().max }} {{ coverage().max === 1 ? 'persona' : 'personas' }}.
-        </p>
+  @if (coverageGaps().length > 0) {
+    <div class="week-grid__coverage-alert" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <div>
+        <strong>
+          Faltan trabajadores en {{ coverageGaps().length }}
+          {{ coverageGaps().length === 1 ? 'hora' : 'horas' }} del horario de atención.
+        </strong>
+        <ul class="week-grid__gap-list">
+          @for (gap of coverageGaps().slice(0, 8); track gap.dayOfWeek + '-' + gap.hour) {
+            <li>{{ dayLabel(gap.dayOfWeek) }} {{ gap.hour }}:00</li>
+          }
+          @if (coverageGaps().length > 8) {
+            <li>y {{ coverageGaps().length - 8 }} más</li>
+          }
+        </ul>
       </div>
-
-      @if (coverageGaps().length > 0) {
-        <div class="week-grid__coverage-alert" role="alert">
-          <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
-          <div>
-            <strong>
-              Faltan trabajadores en {{ coverageGaps().length }}
-              {{ coverageGaps().length === 1 ? 'hora' : 'horas' }} del horario de atención.
-            </strong>
-            <ul class="week-grid__gap-list">
-              @for (gap of coverageGaps().slice(0, 8); track gap.dayOfWeek + '-' + gap.hour) {
-                <li>{{ dayLabel(gap.dayOfWeek) }} {{ gap.hour }}:00</li>
-              }
-              @if (coverageGaps().length > 8) {
-                <li>y {{ coverageGaps().length - 8 }} más</li>
-              }
-            </ul>
-          </div>
-        </div>
-      }
-      <div class="week-grid__coverage-scroll" tabindex="0" role="group" aria-label="Tabla de cobertura por hora">
-        <table class="coverage-table">
-          <caption class="sr-only">
-            Cantidad de trabajadores programados por día y hora
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col">Día</th>
-              @for (hour of coverage().hours; track hour) {
-                <th scope="col">{{ hour }}:00</th>
-              }
-            </tr>
-          </thead>
-          <tbody>
-            @for (row of coverage().rows; track row.dayOfWeek) {
-              <tr>
-                <th scope="row">
-                  {{ row.label }}
-                  @if (dayClosed(row.dayOfWeek)) {
-                    <span class="coverage-day-closed">cerrado</span>
-                  }
-                </th>
-                @for (count of row.counts; track $index; let i = $index) {
-                  <td
-                    class="coverage-cell"
-                    [class.week-grid__cov--closed]="!isOpenHour(row.dayOfWeek, coverage().hours[i])"
-                    [class.week-grid__cov--gap]="isOpenHour(row.dayOfWeek, coverage().hours[i]) && count === 0"
-                    [class.week-grid__cov--low]="isOpenHour(row.dayOfWeek, coverage().hours[i]) && count === 1"
-                    [class.week-grid__cov--mid]="isOpenHour(row.dayOfWeek, coverage().hours[i]) && count === 2"
-                    [class.week-grid__cov--high]="isOpenHour(row.dayOfWeek, coverage().hours[i]) && count >= 3"
-                    [attr.aria-label]="
-                      dayLabel(row.dayOfWeek) + ' ' + coverage().hours[i] + ':00, ' +
-                      (isOpenHour(row.dayOfWeek, coverage().hours[i])
-                        ? (count + (count === 1 ? ' trabajador' : ' trabajadores'))
-                        : 'cerrado')
-                    "
-                  >
-                    @if (!isOpenHour(row.dayOfWeek, coverage().hours[i])) {
-                      ·
-                    } @else {
-                      {{ count }}
-                    }
-                  </td>
-                }
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </section>
+    </div>
   }
 
   @if (notice(); as message) {
@@ -230,106 +164,87 @@
       (action)="clearFilters()"
     />
   } @else {
-    <div class="week-grid__scroll">
-      <div class="week-grid__table" role="table" aria-label="Horario semanal de trabajadores">
-        <div class="week-grid__head" role="row">
-          <div class="week-grid__corner" role="columnheader">
-            <span>Trabajador</span>
-            <span class="rms-caption">{{ filteredRows().length }} en total</span>
+    <div class="week-grid__calendar" role="region" aria-label="Calendario semanal de turnos">
+      <div class="week-grid__calendar-scroll">
+        <!-- Cell geometry (grid width, track height, bar offsets) is computed
+             from the timeline data at runtime, so it cannot be a static class.
+             These three bindings are the documented exception to the
+             no-inline-styles rule. -->
+        <!-- eslint-disable-next-line @angular-eslint/template/no-inline-styles -->
+        <div
+          class="week-grid__calendar-grid"
+          [style.min-width.px]="140 + timelineHours().length * 56"
+        >
+          <div class="week-grid__axis">
+            <div class="week-grid__axis-label">Día</div>
+            <div class="week-grid__axis-hours">
+              @for (hour of timelineHours(); track hour) {
+                <span class="week-grid__axis-hour">{{ hour }}:00</span>
+              }
+            </div>
           </div>
-          @for (date of dates(); track date.getTime()) {
+
+          @for (day of timelineDays(); track day.dayOfWeek) {
             <div
-              class="week-grid__dayhead"
-              [class.week-grid__dayhead--today]="isToday(date)"
-              role="columnheader"
+              class="week-grid__day"
+              [class.week-grid__day--closed]="day.closed"
+              [class.week-grid__day--today]="isToday(day.date)"
             >
-              <span class="week-grid__weekday">{{ weekday(date) }}</span>
-              <span class="week-grid__daynum">{{ dayNumber(date) }}</span>
+              <div class="week-grid__day-label">
+                <span class="week-grid__weekday">{{ day.label }}</span>
+                <span class="week-grid__daynum">{{ dayNumber(day.date) }}</span>
+                <span class="rms-caption week-grid__day-meta">
+                  @if (day.closed) {
+                    Cerrado
+                  } @else {
+                    {{ day.workerCount }} pers. · {{ formatMinutes(day.minutes) }}
+                  }
+                </span>
+              </div>
+
+              <!-- eslint-disable-next-line @angular-eslint/template/no-inline-styles -->
+              <div
+                class="week-grid__track"
+                [style.height.px]="day.trackHeight"
+                [attr.role]="day.bars.length > 0 ? 'list' : null"
+                [attr.aria-label]="day.label + ' ' + dayNumber(day.date)"
+              >
+                <div class="week-grid__cells" aria-hidden="true">
+                  @for (hour of timelineHours(); track hour) {
+                    <span class="week-grid__cell"></span>
+                  }
+                </div>
+
+                @if (day.closed) {
+                  <span class="week-grid__track-empty">Cerrado</span>
+                } @else if (day.bars.length === 0) {
+                  <span class="week-grid__track-empty">Sin turnos</span>
+                } @else {
+                  @for (bar of day.bars; track bar.key) {
+                    <!-- eslint-disable-next-line @angular-eslint/template/no-inline-styles -->
+                    <div
+                      class="week-grid__bar"
+                      role="listitem"
+                      [style.left.%]="bar.left"
+                      [style.width.%]="bar.width"
+                      [style.top.px]="bar.top"
+                      [attr.title]="
+                        bar.workerName + ' · ' + bar.role + ' · ' + bar.startTime + '–' + bar.endTime
+                      "
+                      [attr.aria-label]="
+                        bar.workerName + ', ' + bar.role + ', ' + bar.startTime + ' a ' + bar.endTime
+                      "
+                    >
+                      <span class="week-grid__bar-name">{{ bar.workerName }}</span>
+                      <span class="week-grid__bar-area">{{ bar.role }}</span>
+                      <span class="week-grid__bar-time">{{ bar.startTime }}–{{ bar.endTime }}</span>
+                    </div>
+                  }
+                }
+              </div>
             </div>
           }
         </div>
-
-        @for (row of filteredRows(); track row.workerId) {
-          <div
-            class="week-grid__row"
-            [class.week-grid__row--dragover]="dragOverWorkerId() === row.workerId"
-            [class.week-grid__row--conflict]="row.overlapMessages.length > 0"
-            role="row"
-            (dragover)="onDragOver($event, row.worker)"
-            (dragleave)="onDragLeave($event, row.worker)"
-            (drop)="onDrop($event, row.worker)"
-          >
-            <div class="week-grid__worker" role="rowheader">
-              <div class="week-grid__worker-top">
-                <span class="week-grid__worker-name">{{ row.worker.name }}</span>
-                <span class="week-grid__hours rms-tabular">
-                  {{ formatMinutes(row.week.weeklyMinutes) }}
-                </span>
-              </div>
-              <div class="week-grid__worker-meta">
-                @for (area of row.areaLabels; track area) {
-                  <app-rms-badge [label]="area" tone="neutral" />
-                }
-                @if (row.areaLabels.length === 0) {
-                  <app-rms-badge label="Sin área" tone="warning" />
-                }
-                @if (row.overMax) {
-                  <app-rms-badge
-                    [label]="'Sobre ' + maxWeeklyHours + ' h'"
-                    tone="danger"
-                    [dot]="true"
-                  />
-                } @else if (row.overLegal) {
-                  <app-rms-badge
-                    [label]="'Sobre ' + legalWeeklyHours + ' h'"
-                    tone="warning"
-                    [dot]="true"
-                  />
-                }
-              </div>
-            </div>
-
-            @for (day of row.week.days; track day.dayOfWeek) {
-              <div class="week-grid__cell" role="cell">
-                @for (shift of day.shifts; track shift.key) {
-                  <button
-                    type="button"
-                    class="shift-block"
-                    draggable="true"
-                    [class.shift-block--conflict]="row.overlapKeys.has(shift.key)"
-                    [title]="
-                      row.overlapKeys.has(shift.key)
-                        ? 'Turnos superpuestos: revisa la franja'
-                        : 'Pulsa para quitar, o arrastra a la zona de descarte'
-                    "
-                    (dragstart)="onShiftDragStart($event, row.worker, shift)"
-                    (dragend)="onShiftDragEnd()"
-                    (click)="removeShift(row.worker, shift)"
-                  >
-                    <span class="sr-only">Quitar turno: </span>
-                    <span class="shift-block__time rms-tabular">
-                      <span>{{ shift.startTime }}</span>
-                      <span class="shift-block__sep" aria-hidden="true">–</span>
-                      <span>{{ shift.endTime }}</span>
-                    </span>
-                    <span class="shift-block__name">{{ shift.scheduleName }}</span>
-                    @if (row.overlapKeys.has(shift.key)) {
-                      <span class="shift-block__flag">
-                        <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
-                        Cruce
-                      </span>
-                    }
-                    <span class="sr-only">
-                      de {{ row.worker.name }}, {{ dayLabel(shift.dayOfWeek) }}
-                    </span>
-                  </button>
-                } @empty {
-                  <span class="week-grid__empty" aria-hidden="true">—</span>
-                }
-              </div>
-            }
-          </div>
-        }
       </div>
     </div>
 

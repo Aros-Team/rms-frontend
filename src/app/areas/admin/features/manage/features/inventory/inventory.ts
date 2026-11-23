@@ -27,12 +27,10 @@ import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { InputTextModule } from 'primeng/inputtext';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { SkeletonModule } from 'primeng/skeleton';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
-import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { DatePickerModule } from 'primeng/datepicker';
@@ -47,6 +45,8 @@ import { RmsBadge } from '@app/shared/ui/badge/badge';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
 import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
+import { RmsInput } from '@app/shared/ui/input/input';
+import { RmsTextarea } from '@app/shared/ui/textarea/textarea';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 
 // Wizard step type
@@ -59,7 +59,6 @@ type VariantStep = 'category' | 'supply' | 'variant';
     TableModule,
     SkeletonModule,
     IconFieldModule,
-    InputTextModule,
     InputIconModule,
     SelectModule,
     IftaLabelModule,
@@ -67,7 +66,6 @@ type VariantStep = 'category' | 'supply' | 'variant';
     ReactiveFormsModule,
     FormsModule,
     InputNumberModule,
-    TextareaModule,
     ToastModule,
     DatePickerModule,
     MultiSelectModule,
@@ -82,6 +80,8 @@ type VariantStep = 'category' | 'supply' | 'variant';
     RmsButton,
     RmsEmptyState,
     RmsIconButton,
+    RmsInput,
+    RmsTextarea,
     RmsPageHeader,
   ],
   providers: [MessageService],
