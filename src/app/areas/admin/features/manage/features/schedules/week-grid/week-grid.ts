@@ -50,7 +50,6 @@ import {
 } from '@app/core/services/schedules/schedule-planning';
 import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
 
-import { RmsBadge } from '@app/shared/ui/badge/badge';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsDialog } from '@app/shared/ui/dialog/dialog';
 import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
@@ -140,7 +139,6 @@ const ASSIGNMENT_ERRORS = new Map<string, string>([
   selector: 'app-week-grid',
   imports: [
     FormsModule,
-    RmsBadge,
     RmsButton,
     RmsDialog,
     RmsEmptyState,

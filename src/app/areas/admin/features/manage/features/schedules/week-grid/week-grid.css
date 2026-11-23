@@ -744,9 +744,9 @@
   overflow: hidden;
   border-left: 3px solid var(--rms-border);
   border-radius: var(--rms-radius-sm);
-  background: var(--rms-bg-subtle);
+  background: var(--rms-shift-cash-bg);
   padding: 0 var(--rms-space-2);
-  color: var(--rms-text);
+  color: var(--rms-shift-cash-fg);
   font-size: var(--rms-type-caption-size);
   white-space: nowrap;
 }
@@ -759,29 +759,34 @@
 
 .week-grid__bar-area {
   overflow: hidden;
-  color: var(--rms-text-muted);
+  color: inherit;
+  opacity: 0.8;
   text-overflow: ellipsis;
 }
 
 .week-grid__bar-time {
   margin-left: auto;
-  color: var(--rms-text-secondary);
+  color: inherit;
   font-variant-numeric: tabular-nums;
+  opacity: 0.85;
 }
 
 .week-grid__bar--service {
-  border-left-color: var(--rms-info-solid);
-  background: var(--rms-info-bg);
+  border-left-color: var(--rms-shift-service-accent);
+  background: var(--rms-shift-service-bg);
+  color: var(--rms-shift-service-fg);
 }
 
 .week-grid__bar--kitchen {
-  border-left-color: var(--rms-success-solid);
-  background: var(--rms-success-bg);
+  border-left-color: var(--rms-shift-kitchen-accent);
+  background: var(--rms-shift-kitchen-bg);
+  color: var(--rms-shift-kitchen-fg);
 }
 
 .week-grid__bar--cash {
-  border-left-color: var(--rms-text-muted);
-  background: var(--rms-bg-subtle);
+  border-left-color: var(--rms-shift-cash-accent);
+  background: var(--rms-shift-cash-bg);
+  color: var(--rms-shift-cash-fg);
 }
 
 .week-grid__track-empty {
