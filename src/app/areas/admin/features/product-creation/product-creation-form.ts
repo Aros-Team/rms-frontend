@@ -7,6 +7,9 @@ import { Logging } from '@app/core/services/logging/logging';
 import { Product } from '@app/core/services/products/product';
 import { AreaSimpleResponse } from '@app/shared/models/dto/areas/area-simple-response';
 import { CategorySimpleResponse } from '@app/shared/models/dto/category/category-simple-response';
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsInput } from '@app/shared/ui/input/input';
+import { RmsTextarea } from '@app/shared/ui/textarea/textarea';
 
 /**
  * Minimal product form. It posts to `POST /v1/products` through the `Product`
@@ -16,7 +19,7 @@ import { CategorySimpleResponse } from '@app/shared/models/dto/category/category
 @Component({
   selector: 'app-product-creation-form',
   templateUrl: './product-creation-form.html',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RmsButton, RmsInput, RmsTextarea],
 })
 export class ProductCreationForm implements OnInit {
   private productService = inject(Product);

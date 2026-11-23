@@ -1,5 +1,5 @@
 <div class="flex flex-col gap-4">
-  <div class="rounded-lg border border-rms-border p-4">
+  <div class="rounded-xl border border-rms-border p-4">
     <div class="flex flex-col lg:flex-row justify-between gap-4">
       <div class="flex flex-col sm:flex-row gap-3 flex-wrap items-start sm:items-center flex-1">
         <p-select 
@@ -12,11 +12,10 @@
         />
 
         <input
-          pInputText
           type="search"
           name="orderSearch"
           placeholder="Buscar pedido"
-          class="w-full sm:w-56"
+          class="rms-input rms-input--md w-full sm:w-56"
           [(ngModel)]="search"
           (ngModelChange)="onSearchChange()"
           aria-label="Buscar pedido"
@@ -54,7 +53,7 @@
     </div>
   </div>
 
-  <div class="rounded-lg border border-rms-border p-4 flex-1 min-h-0" [attr.aria-busy]="loading">
+  <div class="rounded-xl border border-rms-border p-4 flex-1 min-h-0" [attr.aria-busy]="loading">
     @if (loading) {
       <p class="sr-only" role="status">Cargando pedidos…</p>
     }
@@ -71,7 +70,7 @@
       scrollHeight="flex" 
       [paginator]="true" 
       [rowsPerPageOptions]="[10, 20, 50]"
-      styleClass="h-full rounded-lg overflow-hidden"
+      styleClass="h-full rounded-xl overflow-hidden"
       [tableStyle]="{'min-width': '900px'}"
       [loading]="loading"
       [showLoader]="false"
@@ -133,7 +132,7 @@
                 }
               </div>
             } @else {
-              <span class="text-muted text-sm">Sin productos</span>
+              <span class="text-rms-ink-muted text-sm">Sin productos</span>
             }
           </td>
           
@@ -173,7 +172,7 @@
 </div>
 
 @if (error) {
-  <div class="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-rms-danger bg-rms-subtle p-4 text-rms-danger" role="alert">
+  <div class="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-rms-danger bg-rms-subtle p-4 text-rms-danger" role="alert">
     <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
     <span class="min-w-0 flex-1">{{ error }}</span>
     <app-rms-button size="sm" variant="secondary" iconStart="pi pi-refresh" (click)="retry()">
@@ -191,21 +190,21 @@
 >
   @if (selectedOrder) {
     <div class="flex flex-col gap-4">
-      <div class="grid grid-cols-2 gap-4 p-4 bg-rms-subtle rounded-lg">
+      <div class="grid grid-cols-2 gap-4 p-4 bg-rms-subtle rounded-xl">
         <div>
-          <span class="text-muted text-sm">Estado:</span>
+          <span class="text-rms-ink-muted text-sm">Estado:</span>
           <app-rms-status-pill [label]="getStatusLabel(selectedOrder.status)" [status]="getStatusRole(selectedOrder.status)" />
         </div>
         <div>
-          <span class="text-muted text-sm">Mesa:</span>
+          <span class="text-rms-ink-muted text-sm">Mesa:</span>
           <div class="font-medium">Mesa {{ selectedOrder.tableId }}</div>
         </div>
         <div>
-          <span class="text-muted text-sm">Fecha:</span>
+          <span class="text-rms-ink-muted text-sm">Fecha:</span>
           <div class="font-medium">{{ formatDate(selectedOrder.date) }}</div>
         </div>
         <div>
-          <span class="text-muted text-sm">Total:</span>
+          <span class="text-rms-ink-muted text-sm">Total:</span>
           <div class="font-medium text-lg">{{ (selectedOrder.total ?? getOrderTotal(selectedOrder)) | money }}</div>
         </div>
       </div>
@@ -214,7 +213,7 @@
         <h3 class="font-medium mb-3 text-rms-ink">Productos</h3>
         <div class="flex flex-col gap-2">
           @for (detail of selectedOrder.details; track detail.id) {
-            <div class="flex items-center justify-between p-3 bg-rms-surface border border-rms-border rounded-lg">
+            <div class="flex items-center justify-between p-3 bg-rms-surface border border-rms-border rounded-xl">
               <div class="flex flex-col">
                 <span class="font-medium">{{ detail.productName }}</span>
               </div>

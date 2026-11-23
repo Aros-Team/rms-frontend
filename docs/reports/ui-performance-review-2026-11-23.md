@@ -421,3 +421,49 @@ Suggested ESLint guards (cheap, high leverage):
 - `npm run build` has zero warnings; initial budget ≤ 500 kB.
 - `/dev/ui` gallery becomes the visual regression reference for light, dark and
   high contrast.
+
+---
+
+## 7. Post-integration results (2026-11-23)
+
+All lanes in `docs/plans/ui-improvements-plan.md` were implemented and verified
+together.
+
+| Metric | Before | After |
+|---|---|---|
+| Initial graph (builder accounting) | 788.31 kB raw / 184.64 kB transfer | **801.44 kB / 190.21 kB** (new code: controls.css, `app-rms-chart`; still under the 810 kB warn gate) |
+| Chart lazy chunk | 214.53 kB / 63.90 kB gzip | **202.08 kB / 60.95 kB gzip** |
+| Assistant chunk | inside `admin-area` (marked + DOMPurify) | **own lazy `chat` chunk, 79.63 kB** |
+| Preload on boot | all 144 lazy chunks (~700 kB gzip) | none by default; idle delay + `data.preload: false` on heavy routes |
+| Service-worker update | prefetch every chunk | lazy |
+| Legacy API in migrated areas | 63 `p-button`, 21 `pInputText`, 270 `dark:` | **0** in all migrated areas |
+| Raw `z-[…]` in features | 4 × `z-[400000]` + others | **0** (layer tokens) |
+| Tests | 1 628 | **1 633 passing** |
+| Lint | warnings only | **0 errors** (26 inline-style warnings) |
+| Build | 3 NG8113 warnings | **warning-free** |
+
+### Chart chunk correction
+
+The chart chunk only fell 12 kB, not the estimated 60–100 kB. Once
+`primeng/chart` was removed the unused controllers and scales did leave the
+graph (no `RadarController`, `PolarAreaController`, `ScatterController`,
+`LogarithmicScale` or `TimeScale` in the output), but Chart.js core, its helpers
+and `@kurkle/color` dominate the remaining 202 kB. Further reduction requires
+either deferring the dashboard chart off the first paint (`@defer (on idle)`) or
+replacing Chart.js; both are recorded as follow-ups.
+
+### Defect found during integration
+
+`.rms-input` / `.rms-textarea` were component-scoped, so the 13 native controls
+that use those classes in feature templates rendered unstyled. They now live in
+`src/styles/controls.css` inside `@layer components`, which also keeps Tailwind
+utilities (`pl-10`, `w-20`, `flex-1`) winning over the base control padding.
+
+### Remaining work
+
+1. Migrate the last three legacy templates: `manage/products/products.html`,
+   `shared/components/product-card`, `product-options-modal`.
+2. `@defer (on idle)` for the dashboard hourly chart, or a lighter chart engine.
+3. PrimeIcons `woff2`-only; product image `srcset`/AVIF (API contract).
+4. Delete the duplicated high-contrast override block in `src/styles.css`.
+5. Regenerate Playwright visual baselines, rerun axe and the LHCI gate.

@@ -1,44 +1,42 @@
-<section class="flex h-full min-h-0 w-full flex-col overflow-hidden bg-surface-50 dark:bg-surface-900">
-  <div class="flex items-center justify-between gap-2 border-b border-surface-200 dark:border-surface-700 px-4 py-3">
+<section class="flex h-full min-h-0 w-full flex-col overflow-hidden bg-rms-page">
+  <div class="flex items-center justify-between gap-2 border-b border-rms-border px-4 py-3">
     <div class="flex min-w-0 items-center gap-3">
-      <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30">
-        <i class="pi pi-comments text-accent" aria-hidden="true"></i>
+      <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rms-brand-soft">
+        <i class="pi pi-comments text-rms-brand-text" aria-hidden="true"></i>
       </div>
       <div class="min-w-0">
-        <h2 class="truncate text-base font-semibold text-surface-700 dark:text-surface-100">ABI</h2>
-        <p class="truncate text-xs text-muted">Asistente de Negocio</p>
+        <h2 class="rms-h4 truncate text-rms-ink">ABI</h2>
+        <p class="rms-caption truncate">Asistente de Negocio</p>
       </div>
     </div>
     <div class="flex shrink-0 items-center gap-1">
       @if (messages().length > 0) {
-        <button
-          class="rounded-lg p-2 transition-colors hover:bg-surface-100 dark:hover:bg-surface-800"
-          (click)="clearChat()"
-          aria-label="Limpiar chat"
-          title="Limpiar chat">
-          <i class="pi pi-trash text-muted" aria-hidden="true"></i>
-        </button>
+        <app-rms-icon-button
+          icon="pi pi-trash"
+          ariaLabel="Limpiar chat"
+          tooltip="Limpiar chat"
+          size="sm"
+          (click)="clearChat()" />
       }
-      <button
-        class="rounded-lg p-2 transition-colors hover:bg-surface-100 dark:hover:bg-surface-800"
-        (click)="closeChat()"
-        aria-label="Cerrar panel del asistente"
-        title="Cerrar panel">
-        <i class="pi pi-times text-muted" aria-hidden="true"></i>
-      </button>
+      <app-rms-icon-button
+        icon="pi pi-times"
+        ariaLabel="Cerrar panel del asistente"
+        tooltip="Cerrar panel"
+        size="sm"
+        (click)="closeChat()" />
     </div>
   </div>
 
   <div class="messages-container flex-1 min-h-0 w-full space-y-3 overflow-y-auto p-3" role="log" aria-live="polite">
     @if (messages().length === 0 && !loading()) {
       <div class="flex h-full flex-col items-center justify-center px-4 text-center">
-        <div class="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30">
-          <i class="pi pi-sparkles text-accent text-2xl" aria-hidden="true"></i>
+        <div class="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-rms-brand-soft">
+          <i class="pi pi-sparkles text-rms-brand-text text-2xl" aria-hidden="true"></i>
         </div>
-        <h3 class="mb-2 text-base font-semibold text-surface-700 dark:text-surface-200">
+        <h3 class="rms-h4 mb-2 text-rms-ink">
           ¡Hola! Soy tu asistente de negocio
         </h3>
-        <p class="max-w-[260px] text-sm text-muted">
+        <p class="max-w-[260px] text-sm text-rms-ink-muted">
           Consultas sobre ventas, inventario, pedidos o lo que necesites para tu restaurante.
         </p>
       </div>
@@ -47,15 +45,14 @@
     @for (message of messages(); track trackByMessageId($index, message)) {
       <div class="flex w-full" [class.flex-row-reverse]="message.role === 'user'">
         <div
-          class="max-w-[85%] overflow-hidden rounded-2xl px-3.5 py-2.5 break-words"
-          [class.bg-surface-600]="message.role === 'user'"
-          [class.dark:bg-surface-500]="message.role === 'user'"
-          [class.text-white]="message.role === 'user'"
-          [class.bg-surface-100]="message.role === 'assistant'"
-          [class.dark:bg-surface-800]="message.role === 'assistant'">
+          class="max-w-[85%] overflow-hidden rounded-xl px-3.5 py-2.5 break-words"
+          [class.bg-rms-brand]="message.role === 'user'"
+          [class.text-rms-on-brand]="message.role === 'user'"
+          [class.bg-rms-subtle]="message.role === 'assistant'"
+          [class.text-rms-ink]="message.role === 'assistant'">
           @if (message.role === 'assistant') {
             <span
-              class="message-content text-sm leading-relaxed text-surface-700 dark:text-surface-200 [&>*]:text-inherit"
+              class="message-content text-sm leading-relaxed [&>*]:text-inherit"
               [innerHTML]="parseMarkdown(message.content)"></span>
           } @else {
             <p class="message-content text-sm leading-relaxed">{{ message.content }}</p>
@@ -64,17 +61,18 @@
           <div class="mt-1 flex items-center justify-end gap-2">
             <span
               class="text-xs"
-              [class.text-white/70]="message.role === 'user'"
-              [class.text-muted]="message.role === 'assistant'">
+              [class.text-rms-on-brand]="message.role === 'user'"
+              [class.opacity-80]="message.role === 'user'"
+              [class.text-rms-ink-muted]="message.role === 'assistant'">
               {{ formatTime(message.timestamp) }}
             </span>
             @if (message.role === 'assistant') {
               <button
-                class="text-muted transition-colors hover:text-accent"
+                class="text-rms-ink-muted transition-colors hover:text-rms-brand-text"
                 (click)="copyMessage(message.content)"
                 [title]="copySuccess() ? '¡Copiado!' : 'Copiar'">
                 @if (copySuccess()) {
-                  <i class="pi pi-check text-xs text-accent" aria-hidden="true"></i>
+                  <i class="pi pi-check text-xs text-rms-brand-text" aria-hidden="true"></i>
                 } @else {
                   <i class="pi pi-copy text-xs" aria-hidden="true"></i>
                 }
@@ -87,19 +85,19 @@
 
     @if (loading()) {
       <div class="flex w-full">
-        <div class="rounded-2xl bg-surface-100 px-3.5 py-2.5 dark:bg-surface-800">
+        <div class="rounded-xl bg-rms-subtle px-3.5 py-2.5">
           <div class="flex items-center gap-2">
             <div class="typing-indicator flex gap-1">
-              <span class="h-2 w-2 rounded-full bg-surface-400"></span>
-              <span class="h-2 w-2 rounded-full bg-surface-400"></span>
-              <span class="h-2 w-2 rounded-full bg-surface-400"></span>
+              <span class="h-2 w-2 rounded-full bg-rms-ink-muted"></span>
+              <span class="h-2 w-2 rounded-full bg-rms-ink-muted"></span>
+              <span class="h-2 w-2 rounded-full bg-rms-ink-muted"></span>
             </div>
             @if (processMessage()) {
-              <span class="text-xs italic text-muted">{{ processMessage() }}</span>
+              <span class="text-xs italic text-rms-ink-muted">{{ processMessage() }}</span>
             } @else if (pendingMessage()) {
-              <span class="text-xs italic text-muted">{{ pendingMessage() }}</span>
+              <span class="text-xs italic text-rms-ink-muted">{{ pendingMessage() }}</span>
             } @else if (isToolCallActive()) {
-              <span class="text-xs italic text-muted">Consultando negocio...</span>
+              <span class="text-xs italic text-rms-ink-muted">Consultando negocio...</span>
             }
           </div>
         </div>
@@ -108,42 +106,38 @@
 
     @if (error()) {
       <div class="flex w-full">
-        <div class="rms-status-surface--danger max-w-[85%] rounded-2xl border px-3.5 py-2.5">
+        <div class="rms-status-surface--danger max-w-[85%] rounded-xl px-3.5 py-2.5">
           <p class="text-sm">{{ error() }}</p>
         </div>
       </div>
     }
   </div>
 
-  <div class="border-t border-surface-200 dark:border-surface-700 p-3">
+  <div class="border-t border-rms-border p-3">
     <div class="flex items-center gap-2">
       <textarea
         [(ngModel)]="currentMessage"
         placeholder="Escribe tu mensaje..."
         aria-label="Mensaje para el asistente"
-        class="w-full rounded-xl border border-surface-300 dark:border-surface-600 bg-primary-contrast dark:bg-surface-800 px-3.5 py-2.5 text-sm text-surface-700 dark:text-surface-200 placeholder-surface-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
+        class="w-full rounded-lg border border-rms-border bg-rms-surface px-3.5 py-2.5 text-sm text-rms-ink placeholder:text-rms-ink-muted"
         [rows]="1"
         (keydown.enter)="handleKeydown($event)"
         [disabled]="loading()"></textarea>
-      <button
-        class="flex-shrink-0 rounded-xl p-2.5 transition-colors"
-        [attr.aria-label]="loading() ? 'Detener respuesta' : 'Enviar mensaje'"
-        type="button"
-        [class.rms-solid--danger]="loading()"
-        [class.hover:opacity-90]="loading()"
-        [class.bg-primary-500]="!loading()"
-        [class.hover:bg-primary-600]="!loading()"
-        [class.text-white]="true"
-        [class.disabled:opacity-50]="true"
-        [class.disabled:cursor-not-allowed]="true"
-        [disabled]="!loading() && (!currentMessage().trim() || loading())"
-        (click)="loading() ? cancelStream() : sendMessage()">
-        @if (loading()) {
-          <i class="pi pi-stop" aria-hidden="true"></i>
-        } @else {
-          <i class="pi pi-send" aria-hidden="true"></i>
-        }
-      </button>
+      @if (loading()) {
+        <app-rms-icon-button
+          class="shrink-0"
+          icon="pi pi-stop"
+          ariaLabel="Detener respuesta"
+          variant="danger"
+          (click)="cancelStream()" />
+      } @else {
+        <app-rms-button
+          class="shrink-0"
+          iconStart="pi pi-send"
+          ariaLabel="Enviar mensaje"
+          [disabled]="!currentMessage().trim()"
+          (click)="sendMessage()" />
+      }
     </div>
   </div>
 </section>

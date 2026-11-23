@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import type { ChartData, ChartOptions, TooltipItem } from 'chart.js';
-import { ChartModule } from 'primeng/chart';
 
 import { RmsChartFrame } from '@shared/ui/chart-frame/chart-frame';
 import { readRmsToken } from '@shared/ui/chart/chart-theme';
+import { RmsChart } from '@shared/ui/chart/rms-chart';
 
 export interface HourlySalesBar {
   hour: number;
@@ -26,7 +26,7 @@ export interface HourlySalesBar {
   selector: 'app-dashboard-hourly-chart',
   templateUrl: './hourly-sales-chart.html',
   styleUrl: './hourly-sales-chart.css',
-  imports: [ChartModule, RmsChartFrame],
+  imports: [RmsChart, RmsChartFrame],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HourlySalesChart {

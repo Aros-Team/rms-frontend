@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } 
 import { FormsModule } from '@angular/forms';
 import type { ChartData } from 'chart.js';
 import { finalize } from 'rxjs';
-import { ChartModule } from 'primeng/chart';
 
 import { AnalyticsCache } from '@app/core/services/analytics/analytics-cache';
 import { downloadCsv, menuEngineeringCsv } from '@app/core/services/analytics/analytics-csv';
@@ -19,6 +18,7 @@ import { Money as MoneyPipe } from '@app/shared/pipes/money/money';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsChartFrame } from '@app/shared/ui/chart-frame/chart-frame';
 import { readRmsToken } from '@app/shared/ui/chart/chart-theme';
+import { RmsChart } from '@app/shared/ui/chart/rms-chart';
 import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 import { RmsSelect, type RmsSelectOption } from '@app/shared/ui/select/select';
@@ -83,10 +83,10 @@ const QUADRANT_ORDER: Record<MenuQuadrant, number> = {
 @Component({
   selector: 'app-analytics-menu-engineering',
   imports: [
-    ChartModule,
     FormsModule,
     MoneyPipe,
     RmsButton,
+    RmsChart,
     RmsChartFrame,
     RmsEmptyState,
     RmsPageHeader,

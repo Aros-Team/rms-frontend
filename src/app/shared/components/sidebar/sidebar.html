@@ -2,7 +2,7 @@
     id="app-sidebar"
     [attr.inert]="visible ? null : ''"
     [attr.aria-hidden]="visible ? null : 'true'"
-    class="admin-panel bg-rms-surface border-l border-rms-border flex flex-col
+    class="admin-panel bg-rms-page flex flex-col
     fixed inset-0 w-full h-full z-[var(--rms-z-drawer)] transition-transform duration-300 ease-in-out
     translate-x-full md:translate-x-0
     md:relative md:inset-auto md:h-full md:z-auto md:shrink-0 md:mb-4"
@@ -24,7 +24,7 @@
                 <li class="nav-grid__item" [style.animation-delay.ms]="expanded ? i * 30 : 0">
                     <a [routerLink]="item.routerLink"
                         #rla="routerLinkActive"
-                        routerLinkActive="!text-accent font-semibold nav-tile--active"
+                        routerLinkActive="!text-accent font-semibold"
                         [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
                         [attr.aria-current]="rla.isActive ? 'page' : null"
                         class="nav-tile cursor-pointer"

@@ -82,19 +82,19 @@ describe('TreeNodeSkeletonComponent', () => {
   describe('count', () => {
     it('should render 1 skeleton item by default', async () => {
       const fixture = await setup(1, 1);
-      const items = fixture.debugElement.queryAll(By.css('.rounded-lg'));
+      const items = fixture.debugElement.queryAll(By.css('.rounded-xl'));
       expect(items.length).toBe(1);
     });
 
     it('should render 3 skeleton items when count=3', async () => {
       const fixture = await setup(1, 3);
-      const items = fixture.debugElement.queryAll(By.css('.rounded-lg'));
+      const items = fixture.debugElement.queryAll(By.css('.rounded-xl'));
       expect(items.length).toBe(3);
     });
 
     it('should render 5 skeleton items when count=5', async () => {
       const fixture = await setup(1, 5);
-      const items = fixture.debugElement.queryAll(By.css('.rounded-lg'));
+      const items = fixture.debugElement.queryAll(By.css('.rounded-xl'));
       expect(items.length).toBe(5);
     });
   });
@@ -102,7 +102,7 @@ describe('TreeNodeSkeletonComponent', () => {
   describe('skeleton elements per item', () => {
     it('should show 1 circle skeleton + 2 line skeletons per item', async () => {
       const fixture = await setup(1, 2);
-      const items = fixture.debugElement.queryAll(By.css('.rounded-lg'));
+      const items = fixture.debugElement.queryAll(By.css('.rounded-xl'));
       items.forEach((item) => {
         const skeletons = item.queryAll(By.css('p-skeleton'));
         expect(skeletons.length).toBe(3);
@@ -116,7 +116,7 @@ describe('TreeNodeSkeletonComponent', () => {
 
     it('should have correct dimensions for line skeletons', async () => {
       const fixture = await setup(1, 1);
-      const item = fixture.debugElement.query(By.css('.rounded-lg'));
+      const item = fixture.debugElement.query(By.css('.rounded-xl'));
       const skeletons = item.queryAll(By.css('p-skeleton'));
 
       const skeleton1 = skeletons[1].componentInstance as { width: string; height: string };

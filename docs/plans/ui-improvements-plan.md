@@ -1,7 +1,7 @@
 # Plan de Implementación: Rendimiento, Diseño y Coherencia Visual
 
 > **Fecha:** 2026-11-23
-> **Estado:** En ejecución
+> **Estado:** Fases 0-6 ejecutadas; fase 7 (charts) ejecutada; pendientes en §8
 > **Alcance:** `frontend/` (Angular 21 zoneless, PrimeNG 21, Tailwind 4)
 > **Referencia del análisis:** `docs/reports/ui-performance-review-2026-11-23.md`
 
@@ -135,7 +135,7 @@ directorios; ninguna regla nueva con `!important`.
 bloque above-the-fold usa `content-visibility`; `contain-intrinsic-size`
 siempre presente.
 
-### Lane H — `charts` (Fase 7, pendiente)
+### Lane H — `charts` (Fase 7, ejecutada)
 
 | Archivo | Cambio |
 |---|---|

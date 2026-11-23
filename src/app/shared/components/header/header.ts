@@ -8,12 +8,12 @@ import { NotificationCenter, AppNotification } from '@core/services/notification
 import { Subscription } from 'rxjs';
 import { Logo } from "../logo/logo";
 import { environment } from '@environments/environment';
-import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
+import { RmsButton } from '@app/shared/ui/button/button';
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule, Logo, RouterModule, ButtonModule, DialogModule],
+  imports: [CommonModule, Logo, RouterModule, DialogModule, RmsButton],
   templateUrl: './header.html',
 })
 export class Header implements OnInit, OnDestroy {

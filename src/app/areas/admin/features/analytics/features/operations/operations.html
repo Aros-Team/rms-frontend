@@ -84,7 +84,12 @@
         dataMode="disclosure"
         dataLabel="Ver datos de rotación"
         (retry)="reload()">
-        <p-chart type="bar" [data]="chartData()" [options]="chartOptions" ariaLabel="Turnos por franja horaria" />
+        <app-rms-chart
+          type="bar"
+          [data]="chartData()"
+          [options]="chartOptions"
+          ariaLabel="Turnos por franja horaria"
+        />
         <ul rmsChartLegend class="chart-legend">
           <li><span class="chart-legend__swatch" style="background: var(--rms-chart-1)"></span>Turnos</li>
         </ul>

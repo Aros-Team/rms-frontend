@@ -1,5 +1,5 @@
 <header
-  class="fixed top-0 left-0 flex justify-between items-center h-16 px-4 bg-rms-surface border-b border-rms-border w-full max-w-full z-[var(--rms-z-sticky)] min-w-0">
+  class="fixed top-0 left-0 flex justify-between items-center h-16 px-4 bg-rms-page w-full max-w-full z-[var(--rms-z-sticky)] min-w-0">
   <section class="flex items-center gap-4 min-w-0 flex-1">
     <a
       [routerLink]="role === 'ADMIN' ? '/admin' : '/worker'"
@@ -243,14 +243,7 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-rms-ink-secondary hover
   </div>
 
   <div class="flex justify-end gap-2 mt-4">
-    <p-button
-      label="Cancelar"
-      severity="secondary"
-      (onClick)="cancelLogout()"
-    ></p-button>
-    <p-button
-      label="Cerrar Sesión"
-      (onClick)="confirmLogout()"
-    ></p-button>
+    <app-rms-button variant="secondary" (click)="cancelLogout()">Cancelar</app-rms-button>
+    <app-rms-button (click)="confirmLogout()">Cerrar Sesión</app-rms-button>
   </div>
 </p-dialog>

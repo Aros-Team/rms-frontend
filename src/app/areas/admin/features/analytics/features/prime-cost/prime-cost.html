@@ -59,7 +59,12 @@
         dataMode="disclosure"
         dataLabel="Ver datos de ventas"
         (retry)="reload()">
-        <p-chart type="line" [data]="salesData()" [options]="salesOptions" ariaLabel="Ventas brutas y netas por periodo" />
+        <app-rms-chart
+          type="line"
+          [data]="salesData()"
+          [options]="salesOptions"
+          ariaLabel="Ventas brutas y netas por periodo"
+        />
         <ul rmsChartLegend class="chart-legend">
           <li><span class="chart-legend__swatch" [style.background]="salesColors().net"></span>Ventas netas</li>
           <li><span class="chart-legend__swatch chart-legend__swatch--dashed" [style.border-color]="salesColors().gross"></span>Ventas brutas</li>
@@ -94,7 +99,12 @@
         dataMode="disclosure"
         dataLabel="Ver datos de márgenes"
         (retry)="reload()">
-        <p-chart type="line" [data]="marginData()" [options]="marginOptions" ariaLabel="Costo primo y márgenes por periodo" />
+        <app-rms-chart
+          type="line"
+          [data]="marginData()"
+          [options]="marginOptions"
+          ariaLabel="Costo primo y márgenes por periodo"
+        />
         <ul rmsChartLegend class="chart-legend">
           <li><span class="chart-legend__swatch" [style.background]="marginColors().prime"></span>Costo primo</li>
           <li><span class="chart-legend__swatch" [style.background]="marginColors().gross"></span>Margen bruto</li>
@@ -132,7 +142,12 @@
       dataMode="disclosure"
       dataLabel="Ver datos de COGS"
       (retry)="reload()">
-      <p-chart type="bar" [data]="cogsData()" [options]="cogsOptions" ariaLabel="Costo de lo vendido por categoría" />
+      <app-rms-chart
+        type="bar"
+        [data]="cogsData()"
+        [options]="cogsOptions"
+        ariaLabel="Costo de lo vendido por categoría"
+      />
       <ul rmsChartLegend class="chart-legend">
         @for (row of cogsRows(); track row.key) {
           <li><span class="chart-legend__swatch" [style.background]="cogsColor(row.key)"></span>{{ row.label }}</li>

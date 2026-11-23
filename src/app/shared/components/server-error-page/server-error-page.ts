@@ -1,6 +1,6 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
-import { ButtonModule } from 'primeng/button';
+import { RmsButton } from '@app/shared/ui/button/button';
 import { Auth } from '@services/auth/auth';
 import { ServerStatus } from '@core/services/server-status/server-status';
 import { homeRouteFor } from '@app/core/config/navigation/role-navigation';
@@ -9,7 +9,7 @@ import { homeRouteFor } from '@app/core/config/navigation/role-navigation';
   selector: 'app-server-error-page',
   templateUrl: './server-error-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule],
+  imports: [RmsButton],
 })
 export class ServerErrorPage {
   private authService = inject(Auth);

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { ButtonModule } from 'primeng/button';
+import { RmsButton } from '@app/shared/ui/button/button';
 import { Auth } from '@services/auth/auth';
 import { homeRouteFor } from '@app/core/config/navigation/role-navigation';
 
@@ -8,7 +8,7 @@ import { homeRouteFor } from '@app/core/config/navigation/role-navigation';
   selector: 'app-forbidden-page',
   templateUrl: './forbidden-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule],
+  imports: [RmsButton],
 })
 export class ForbiddenPage {
   private authService = inject(Auth);

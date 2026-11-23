@@ -1,0 +1,117 @@
+/**
+ * Global control classes.
+ *
+ * `.rms-input` / `.rms-textarea` are used in two places:
+ *   - inside `app-rms-input` / `app-rms-textarea` (their own template), and
+ *   - as plain classes on native inputs where the primitive does not fit
+ *     (search boxes, quantity steppers, time fields).
+ *
+ * Component styles are scoped by Angular, so a class used in a feature template
+ * resolved to nothing and those inputs rendered unstyled. They live here, in
+ * `@layer components`, so Tailwind utilities (`pl-10`, `w-20`, `flex-1`) still
+ * win over the base padding/width, which is how the feature templates use them.
+ *
+ * Feature code must not read raw values: every declaration below uses a
+ * semantic token. The primitives keep only `:host` and invalid-state rules.
+ */
+
+@layer components {
+  .rms-input {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    height: var(--rms-control-md);
+    padding: 0 var(--rms-space-3);
+    border: var(--rms-border-width) solid var(--rms-control-border);
+    border-radius: var(--rms-control-radius);
+    background: var(--rms-control-bg);
+    color: var(--rms-text);
+    font-family: var(--rms-font-sans);
+    font-size: var(--rms-type-body-size);
+    line-height: var(--rms-type-body-line);
+    transition:
+      border-color var(--rms-transition-fast),
+      background-color var(--rms-transition-fast);
+  }
+
+  .rms-input::placeholder {
+    color: var(--rms-text-muted);
+    opacity: 1;
+  }
+
+  .rms-input:hover:not(:disabled) {
+    border-color: var(--rms-neutral-400);
+  }
+
+  .rms-input:focus-visible {
+    border-color: var(--rms-focus);
+  }
+
+  .rms-input--sm {
+    height: var(--rms-control-sm);
+    padding: 0 var(--rms-space-2);
+    font-size: var(--rms-type-caption-size);
+  }
+
+  .rms-input--lg {
+    height: var(--rms-control-lg);
+    padding: 0 var(--rms-space-4);
+    font-size: var(--rms-type-body-lg-size);
+  }
+
+  .rms-input:disabled {
+    background: var(--rms-bg-disabled);
+    border-color: var(--rms-border);
+    color: var(--rms-text-disabled);
+    cursor: not-allowed;
+  }
+
+  .rms-textarea {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    min-height: 6rem;
+    padding: var(--rms-space-2) var(--rms-space-3);
+    border: var(--rms-border-width) solid var(--rms-control-border);
+    border-radius: var(--rms-control-radius);
+    background: var(--rms-control-bg);
+    color: var(--rms-text);
+    font-family: var(--rms-font-sans);
+    font-size: var(--rms-type-body-size);
+    line-height: var(--rms-type-body-line);
+    resize: vertical;
+    transition:
+      border-color var(--rms-transition-fast),
+      background-color var(--rms-transition-fast);
+  }
+
+  .rms-textarea::placeholder {
+    color: var(--rms-text-muted);
+    opacity: 1;
+  }
+
+  .rms-textarea:hover:not(:disabled) {
+    border-color: var(--rms-neutral-400);
+  }
+
+  .rms-textarea:focus-visible {
+    border-color: var(--rms-focus);
+  }
+
+  .rms-textarea:disabled {
+    background: var(--rms-bg-disabled);
+    border-color: var(--rms-border);
+    color: var(--rms-text-disabled);
+    cursor: not-allowed;
+  }
+
+  .rms-textarea__count {
+    display: block;
+    margin-top: var(--rms-space-1);
+    text-align: end;
+    font-size: var(--rms-type-caption-size);
+    line-height: var(--rms-type-caption-line);
+    color: var(--rms-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+}

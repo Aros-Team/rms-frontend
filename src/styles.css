@@ -8,6 +8,7 @@
    screens keep their current appearance while new code reads the tokens. */
 @import "./styles/tokens.css";
 @import "./styles/global.css";
+@import "./styles/controls.css";
 
 /* Archivo — variable font (weights 400-900).
    Self-hosted subsets so `font-medium` (500), `font-semibold` (600) and

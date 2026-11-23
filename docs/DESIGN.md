@@ -458,6 +458,13 @@ Don't:
 - Don't put a legend inside a canvas or absolute over a table.
 - Don't create ad-hoc sizes or radii; extend the scale in a PR owned by DS.
 
+Control classes (`.rms-input`, `.rms-input--sm|lg`, `.rms-textarea`,
+`.rms-textarea__count`) are **global**, declared in `src/styles/controls.css`
+inside `@layer components`. They are used both inside the primitives and on
+native controls where a primitive does not fit (search boxes, steppers, time
+fields). Do not redefine them in feature CSS; Tailwind utilities still override
+their padding/width because utilities sit in the later layer.
+
 Utility equivalents available from the Tailwind bridge:
 `bg-rms-page|surface|subtle|sunken`, `border-rms-border|border-strong`,
 `text-rms-ink|ink-secondary|ink-muted|ink-inverse`, `bg-rms-brand`,
@@ -511,12 +518,20 @@ Adoption is now tracked per area instead of per component. The legacy API
 
 | Area | Status |
 |---|---|
-| `areas/auth/**` | in progress (batch 2026-11-23) |
-| `areas/admin/manage/combos`, `categories`, `areas`, `tables` | in progress (batch 2026-11-23) |
-| `shared/features/settings`, `shared/components/{inline-create-popover,search-input,removable-chip}` | in progress (batch 2026-11-23) |
-| `areas/admin/manage/{workers,time-logs,inventory,schedules}` | in progress (batch 2026-11-23) |
-| `areas/admin/features/dashboard`, analytics | on primitives; deferral applied to off-screen blocks |
-| `areas/admin/manage/products`, `areas/worker/**`, `areas/cashier/**` | next batch |
+| `areas/auth/**` | migrated (2026-11-23) |
+| `areas/admin/manage/combos`, `categories`, `areas`, `tables` | migrated (2026-11-23) |
+| `shared/features/settings`, `shared/components/{inline-create-popover,search-input,removable-chip}` | migrated (2026-11-23) |
+| `areas/admin/manage/{workers,time-logs,inventory,schedules}` | migrated (2026-11-23) |
+| `areas/admin/features/dashboard`, analytics | migrated; charts use `app-rms-chart` (Chart.js core); off-screen blocks deferred |
+| `shared/components`, error pages, skeletons, chat, orders, product creation | migrated (2026-11-23) |
+| `areas/admin/manage/products`, `areas/worker/**`, `areas/cashier/**`, product card/options | next batch (3 legacy templates) |
+
+Shell surfaces (decision 2026-11-23): the workstation shell is **fluid**.
+Header, sidebar and the page share `bg-rms-page`; there is no divider border
+between them. Exactly one bordered container wraps the content (`<main>` in the
+admin shell, the content column in the worker shell), using
+`border-rms-border-strong` and the page-panel radius. Do not reintroduce
+`border-b`/`border-l` on the chrome or a second surface level for the shell.
 
 Radius rule (one radius per role, no `rounded`/`rounded-md` in feature code):
 

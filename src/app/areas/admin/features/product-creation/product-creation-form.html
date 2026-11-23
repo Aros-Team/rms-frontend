@@ -1,51 +1,61 @@
-<h2 class="text-xl font-bold">Create product form</h2>
-<div class="my-4"></div>
+<h2 class="rms-h2 mb-4">Create product form</h2>
 
 <div class="m-5">
-  <form [formGroup]="form" (ngSubmit)="createProduct()">
-    <input
-      type="text"
-      placeholder="name"
-      formControlName="name"
-      class="border rounded p-1 mb-2"
-    />
-    <br />
-    <input
-      type="number"
-      placeholder="base price"
-      formControlName="basePrice"
-      class="border rounded p-1 mb-2"
-    />
-    <br />
-    <input
-      type="number"
-      placeholder="estimated prep minutes"
-      formControlName="estimatedPrepMinutes"
-      class="border rounded p-1 mb-2"
-    />
-    <br />
-    <textarea
-      placeholder="description"
-      formControlName="description"
-      class="border rounded p-1 mb-2"
-    ></textarea>
-    <br />
-    <select formControlName="categoryId" aria-label="Categoría" class="border rounded p-1 mb-2">
-      <option [ngValue]="null" disabled>Select category</option>
-      @for (category of categories(); track category.id) {
-        <option [ngValue]="category.id">{{ category.name }}</option>
-      }
-    </select>
-    <br />
-    <select formControlName="areaId" aria-label="Área de preparación" class="border rounded p-1 mb-2">
-      <option [ngValue]="null" disabled>Select preparation area</option>
-      @for (area of areas(); track area.id) {
-        <option [ngValue]="area.id">{{ area.name }}</option>
-      }
-    </select>
-    <br />
-    <button type="submit" class="rounded-xl px-4 py-1 bg-surface-800 text-surface-0 min-w-30">
-      Send
-    </button>
+  <form [formGroup]="form" (ngSubmit)="createProduct()" class="flex max-w-md flex-col gap-4">
+    <app-rms-input label="Name" formControlName="name" />
+
+    <div class="flex flex-col gap-1">
+      <label class="rms-label" for="base-price">Base price</label>
+      <input
+        id="base-price"
+        type="number"
+        formControlName="basePrice"
+        class="w-full rounded-lg border border-rms-border bg-rms-surface p-2 text-rms-ink"
+      />
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="rms-label" for="prep-minutes">Estimated prep minutes</label>
+      <input
+        id="prep-minutes"
+        type="number"
+        formControlName="estimatedPrepMinutes"
+        class="w-full rounded-lg border border-rms-border bg-rms-surface p-2 text-rms-ink"
+      />
+    </div>
+
+    <app-rms-textarea label="Description" formControlName="description" />
+
+    <div class="flex flex-col gap-1">
+      <label class="rms-label" for="category-id">Category</label>
+      <select
+        id="category-id"
+        formControlName="categoryId"
+        class="w-full rounded-lg border border-rms-border bg-rms-surface p-2 text-rms-ink"
+      >
+        <option [ngValue]="null" disabled>Select category</option>
+        @for (category of categories(); track category.id) {
+          <option [ngValue]="category.id">{{ category.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="rms-label" for="area-id">Preparation area</label>
+      <select
+        id="area-id"
+        formControlName="areaId"
+        class="w-full rounded-lg border border-rms-border bg-rms-surface p-2 text-rms-ink"
+      >
+        <option [ngValue]="null" disabled>Select preparation area</option>
+        @for (area of areas(); track area.id) {
+          <option [ngValue]="area.id">{{ area.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div>
+      <app-rms-button type="submit" iconStart="pi pi-check">Send</app-rms-button>
+    </div>
   </form>
 </div>

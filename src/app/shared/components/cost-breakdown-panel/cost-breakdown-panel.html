@@ -1,25 +1,25 @@
 @if (breakdown) {
-  <div class="bg-surface-50 dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 p-4">
-    <h4 class="font-semibold text-surface-900 dark:text-surface-0 mb-3">Desglose de costos</h4>
+  <div class="bg-rms-subtle rounded-xl border border-rms-border p-4">
+    <h4 class="rms-h4 text-rms-ink mb-3">Desglose de costos</h4>
 
     <!-- Base cost -->
-    <div class="flex justify-between items-center py-2 border-b border-surface-200 dark:border-surface-700">
-      <span class="text-sm text-muted">Costo base</span>
-      <span class="text-sm font-medium text-surface-800 dark:text-surface-100">{{ breakdown.baseCost | money }}</span>
+    <div class="flex justify-between items-center py-2 border-b border-rms-border">
+      <span class="text-sm text-rms-ink-muted">Costo base</span>
+      <span class="text-sm font-medium text-rms-ink">{{ breakdown.baseCost | money }}</span>
     </div>
 
     <!-- Options cost -->
     @if (breakdown.options && breakdown.options.length > 0) {
-      <div class="py-2 border-b border-surface-200 dark:border-surface-700">
+      <div class="py-2 border-b border-rms-border">
         <div class="flex justify-between items-center mb-1">
-          <span class="text-sm text-muted">Opciones</span>
+          <span class="text-sm text-rms-ink-muted">Opciones</span>
           <span class="text-sm font-medium text-accent">{{ breakdown.projectedOptionCost | money }}</span>
         </div>
         @if (!compact) {
           @for (option of breakdown.options; track option.optionId) {
             <div class="flex justify-between items-center pl-4 py-1">
-              <span class="text-xs text-muted">{{ option.name }}</span>
-              <span class="text-xs text-muted">{{ option.cost | money }}</span>
+              <span class="text-xs text-rms-ink-muted">{{ option.name }}</span>
+              <span class="text-xs text-rms-ink-muted">{{ option.cost | money }}</span>
             </div>
           }
         }
@@ -28,12 +28,12 @@
 
     <!-- Categories cost -->
     @if (!compact && breakdown.categories && breakdown.categories.length > 0) {
-      <div class="py-2 border-b border-surface-200 dark:border-surface-700">
-        <span class="text-sm text-muted mb-1 block">Categorías</span>
+      <div class="py-2 border-b border-rms-border">
+        <span class="text-sm text-rms-ink-muted mb-1 block">Categorías</span>
         @for (cat of breakdown.categories; track cat.categoryId) {
           <div class="flex justify-between items-center pl-4 py-1">
-            <span class="text-xs text-muted">{{ cat.name }}</span>
-            <span class="text-xs text-muted">{{ cat.slotProjectedCost | money }}</span>
+            <span class="text-xs text-rms-ink-muted">{{ cat.name }}</span>
+            <span class="text-xs text-rms-ink-muted">{{ cat.slotProjectedCost | money }}</span>
           </div>
         }
       </div>
@@ -41,8 +41,8 @@
 
     <!-- Total -->
     <div class="flex justify-between items-center pt-2">
-      <span class="text-sm font-semibold text-surface-900 dark:text-surface-0">Costo efectivo</span>
-      <span class="text-sm font-bold text-primary-700 dark:text-primary-300">{{ breakdown.projectedEffectiveCost | money }}</span>
+      <span class="text-sm font-semibold text-rms-ink">Costo efectivo</span>
+      <span class="text-sm font-bold text-rms-brand-text">{{ breakdown.projectedEffectiveCost | money }}</span>
     </div>
   </div>
 }

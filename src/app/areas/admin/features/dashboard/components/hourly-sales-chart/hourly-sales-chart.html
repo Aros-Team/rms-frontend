@@ -11,7 +11,12 @@
   dataLabel="Ver pedidos por hora"
   (retry)="retry.emit()"
 >
-  <p-chart type="bar" [data]="data" [options]="options" ariaLabel="Pedidos entregados por hora del día" />
+  <app-rms-chart
+    type="bar"
+    [data]="data"
+    [options]="options"
+    ariaLabel="Pedidos entregados por hora del día"
+  />
   <table rmsChartData>
     <caption class="sr-only">Pedidos entregados por hora del día</caption>
     <thead>

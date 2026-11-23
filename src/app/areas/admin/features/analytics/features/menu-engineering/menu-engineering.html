@@ -119,7 +119,12 @@
         dataMode="disclosure"
         dataLabel="Ver datos del mapa"
         (retry)="reload()">
-        <p-chart type="bubble" [data]="chartData()" [options]="chartOptions" [ariaLabel]="chartSummary()" />
+        <app-rms-chart
+          type="bubble"
+          [data]="chartData()"
+          [options]="chartOptions"
+          [ariaLabel]="chartSummary()"
+        />
         <ul rmsChartLegend class="chart-legend">
           @for (summary of summaries(); track summary.quadrant) {
             <li>

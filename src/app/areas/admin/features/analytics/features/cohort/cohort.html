@@ -67,7 +67,12 @@
         dataMode="disclosure"
         dataLabel="Ver datos de cohorte"
         (retry)="reload()">
-        <p-chart type="bar" [data]="chartData()" [options]="chartOptions" ariaLabel="Pedidos nuevos y recurrentes por periodo" />
+        <app-rms-chart
+          type="bar"
+          [data]="chartData()"
+          [options]="chartOptions"
+          ariaLabel="Pedidos nuevos y recurrentes por periodo"
+        />
         <ul rmsChartLegend class="chart-legend">
           <li><span class="chart-legend__swatch" [style.background]="chartColors().new"></span>Nuevos</li>
           <li><span class="chart-legend__swatch" [style.background]="chartColors().recurring"></span>Recurrentes</li>

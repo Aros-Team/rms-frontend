@@ -8,7 +8,7 @@
   header="Aviso de Privacidad y Tratamiento de Datos"
   [style]="{width: '90vw', maxWidth: '700px'}"
 >
-  <div class="max-h-[60vh] overflow-y-auto text-sm leading-relaxed text-surface-700 dark:text-surface-300" [style.fontSize.px]="fontSize">
+  <div class="max-h-[60vh] overflow-y-auto text-sm leading-relaxed text-rms-ink-secondary" [style.fontSize.px]="fontSize">
     <p class="mb-4">
       <strong>RMS</strong> (Restaurant Management System) le informa que es responsable del tratamiento 
       de sus datos personales conforme a la Ley 1581 de 2012 y sus decreto reglamentarios.
@@ -46,20 +46,13 @@
       puede contactarnos a través de los canales establecidos por la organización.
     </p>
 
-    <p class="text-xs text-muted mt-6">
+    <p class="rms-caption mt-6">
       Fecha de última actualización: {{ lastUpdateDate }}
     </p>
   </div>
 
   <div class="flex justify-end gap-2 mt-4">
-    <p-button 
-      label="Rechazar" 
-      severity="secondary" 
-      (onClick)="reject()"
-    ></p-button>
-    <p-button 
-      label="Aceptar" 
-      (onClick)="accept()"
-    ></p-button>
+    <app-rms-button variant="secondary" (click)="reject()">Rechazar</app-rms-button>
+    <app-rms-button (click)="accept()">Aceptar</app-rms-button>
   </div>
 </p-dialog>

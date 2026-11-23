@@ -7,10 +7,12 @@ import DOMPurify from 'dompurify';
 import { Chat as ChatApi } from '@app/core/services/chat/chat';
 import { ChatMessage, ChatRequest } from '@app/core/services/chat/chat.models';
 import { Logging } from '@app/core/services/logging/logging';
+import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
 
 @Component({
   selector: 'app-chat',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RmsButton, RmsIconButton],
   templateUrl: './chat.html',
   styleUrl: './chat.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
