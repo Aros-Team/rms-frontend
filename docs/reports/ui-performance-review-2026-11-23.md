@@ -494,9 +494,9 @@ code**, not only chunk sizes; a "deferred" preloader can still fetch everything.
 | Visual baselines | **63 / 63**; 10 of 63 snapshots regenerated, all still matching after the last pass |
 | `lint:check` | 0 errors, 0 warnings |
 | `design:check` | clean |
-| Build | warning-free, 793.95 kB raw / 188.97 kB transfer |
+| Build | warning-free, 793.63 kB raw / 188.56 kB transfer |
 | Lighthouse `/login` (production build) | performance 100, accessibility 100, best-practices 100, SEO 100, **40 JS requests** |
-| Lighthouse `/admin` (dev server, local API) | accessibility 100, SEO 100, best-practices 81 (sockjs `unload` deprecation), performance 45-57 with LCP ~7.5 s — dev-mode measurement, not a production gate |
+| Lighthouse `/admin` (dev server, local API) | accessibility 100, SEO 100, **best-practices 100** (native WebSocket, no `unload` deprecation), performance ~42-44 with LCP ~7.5 s — dev-mode measurement, not a production gate |
 
 Known measurement caveat: the admin LHCI config deliberately points at the dev
 server because the seeded local token only works against the local API. Treat
