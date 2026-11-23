@@ -60,15 +60,13 @@ export const DAY_SHORT_LABELS: Readonly<Record<DayOfWeek, string>> = {
 /**
  * Hard weekly ceiling used by the client before it posts an assignment.
  *
- * 66 h = six 11 h days. It is an operational guardrail, not the legal limit:
- * the legal ceiling (48 h today, 42 h from 2026) is shown as a warning and
- * must be enforced by payroll/backend (`P3-BE-RL-05`) because it depends on
- * the worker's contract, not on the schedule module.
+ * Colombian law caps the ordinary week at 42 h; the API rejects anything
+ * above that, so the client blocks it before touching the network.
  */
-export const MAX_WEEKLY_HOURS = 66;
+export const MAX_WEEKLY_HOURS = 42;
 
-/** Legal reference limit, surfaced as a non-blocking warning. */
-export const LEGAL_WEEKLY_HOURS = 48;
+/** Legal weekly limit; assignments above it are rejected by the API. */
+export const LEGAL_WEEKLY_HOURS = 42;
 
 /** A single day above this is flagged as a warning. */
 export const MAX_DAILY_HOURS = 12;

@@ -99,8 +99,8 @@ describe('WeekGrid', () => {
           workerId: 7,
           scheduleId: 2,
           weeklyHours: 10,
-          legalWeeklyHours: 48,
-          hardWeeklyCapHours: 66,
+          legalWeeklyHours: 42,
+          hardWeeklyCapHours: 42,
           warning: null,
         }),
       ),
@@ -143,7 +143,21 @@ describe('WeekGrid', () => {
 
     const text = (fixture.nativeElement as HTMLElement).textContent;
     expect(text).toContain('Ana Pérez');
-    expect(text).toContain('Mañana');
+    expect(text).toContain('11:00–15:00');
+  });
+
+  it('lays out each day as horizontal shift bars across the hour axis', async () => {
+    await mount();
+
+    const monday = component.timelineDays().find((day) => day.dayOfWeek === 'MONDAY');
+
+    expect(monday?.bars).toHaveLength(1);
+    expect(monday?.bars[0].startTime).toBe('11:00');
+    expect(monday?.bars[0].endTime).toBe('15:00');
+    expect(monday?.bars[0].left).toBe(0);
+    expect(monday?.bars[0].width).toBe(100);
+    expect(monday?.workerCount).toBe(1);
+    expect(component.timelineHours()).toEqual([11, 12, 13, 14]);
   });
 
   it('blocks a worker without an area before any request', async () => {
@@ -199,9 +213,9 @@ describe('WeekGrid', () => {
         workerId: 7,
         scheduleId: 2,
         weeklyHours: 63,
-        legalWeeklyHours: 48,
-        hardWeeklyCapHours: 66,
-        warning: 'Weekly hours 63.00 exceed the 48 h legal reference',
+        legalWeeklyHours: 42,
+        hardWeeklyCapHours: 42,
+        warning: 'Weekly hours 45.00 exceed the 42 h legal reference',
       }),
     );
     await mount();
@@ -211,7 +225,7 @@ describe('WeekGrid', () => {
     component.attemptAssign(worker, candidate);
     fixture.detectChanges();
 
-    expect(component.notice()).toContain('Weekly hours 63.00 exceed the 48 h legal reference');
+    expect(component.notice()).toContain('Weekly hours 45.00 exceed the 42 h legal reference');
     expect(component.actionError()).toBeNull();
   });
 

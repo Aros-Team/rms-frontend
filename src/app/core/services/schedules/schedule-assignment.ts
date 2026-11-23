@@ -12,8 +12,8 @@ export class ScheduleAssignment {
   /**
    * Assigns a whole schedule and returns the server-computed weekly hours.
    *
-   * `warning` carries the non-blocking 48 h notice; the client shows it instead
-   * of re-implementing the hour rule. Overlaps, duplicates and the 66 h cap are
+   * `warning` documents the 42 h limit; the client shows it instead of
+   * re-implementing the hour rule. Overlaps, duplicates and the 42 h cap are
    * rejected server-side with 409.
    */
   assign(workerId: number, scheduleId: number): Observable<ScheduleAssignmentResponse> {

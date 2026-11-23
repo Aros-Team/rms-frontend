@@ -54,9 +54,9 @@ describe('ScheduleAssignment service', () => {
       workerId: 1001,
       scheduleId: 2,
       weeklyHours: 63,
-      legalWeeklyHours: 48,
-      hardWeeklyCapHours: 66,
-      warning: 'Weekly hours 63.00 exceed the 48 h legal reference',
+      legalWeeklyHours: 42,
+      hardWeeklyCapHours: 42,
+      warning: 'Weekly hours 45.00 exceed the 42 h legal reference',
     };
     req.flush(response, { status: 201, statusText: 'Created' });
 
