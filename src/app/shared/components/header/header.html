@@ -4,11 +4,20 @@
     'z-50': isMobile
   }">
   <section class="flex items-center gap-4 min-w-0 flex-1">
-    <div class="flex items-center text-accent font-black text-[1.5rem] min-w-0 shrink-0">
-      <app-logo [size]="24"></app-logo><span class="max-md:hidden">RMS</span>
-    </div>
+    <a
+      [routerLink]="role === 'ADMIN' ? '/admin' : '/worker'"
+      class="flex items-center text-accent font-black text-[1.5rem] min-w-0 shrink-0 rounded-lg transition-opacity hover:opacity-80"
+      aria-label="Ir al inicio">
+      <app-logo [size]="24"></app-logo>
+    </a>
     @if (workerType !== 'kitchen') {
-      <span class="font-semibold py-1 px-2.5 rounded-md border border-surface-200 dark:border-surface-700 bg-surface-100 dark:bg-surface-800 text-accent break-words shrink-0">{{customer}}</span>
+      <span class="hidden sm:inline-block max-w-[10rem] truncate align-middle font-semibold py-1 px-2.5 rounded-md border border-surface-200 dark:border-surface-700 bg-surface-100 dark:bg-surface-800 text-accent lg:max-w-none">{{customer}}</span>
+    }
+
+    @if (routeContext()) {
+      <span class="hidden min-w-0 truncate text-sm text-muted lg:inline-block">
+        {{ routeContext() }}
+      </span>
     }
 
     @if (!hideTabletNav) {
@@ -61,7 +70,7 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
     }
   </section>
 
-  <section class="flex items-center gap-4 shrink-0">
+  <section class="flex items-center gap-3 shrink-0">
     @if (!hideTabletNav) {
     <button class="md:hidden p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
       (click)="toggleMenu.emit()"
@@ -73,31 +82,150 @@ class="flex items-center gap-2 px-3 py-2 rounded-lg text-surface-700 dark:text-s
     </button>
     }
 
-    @if (role !== 'ADMIN') {
-    <button
-      class="p-2 rounded-xl hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer w-10 h-10 flex items-center justify-center shrink-0"
-      (click)="showSettingsDialog = true"
-      aria-label="Configuración"
-      title="Configuración">
-      <i class="pi pi-cog text-muted" aria-hidden="true"></i>
-    </button>
+    @if (role === 'ADMIN' && workerType !== 'kitchen') {
+      <div class="relative notifications-container">
+        <button
+          type="button"
+          class="relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl transition-colors hover:bg-surface-100 dark:hover:bg-surface-800"
+          (click)="toggleNotifications($event)"
+          [attr.aria-expanded]="showNotifications()"
+          aria-haspopup="true"
+          aria-controls="notifications-panel"
+          [attr.aria-label]="notificationCenter.unreadCount() > 0
+            ? 'Notificaciones, ' + notificationCenter.unreadCount() + ' sin leer'
+            : 'Notificaciones'"
+          title="Notificaciones">
+          <i class="pi pi-bell text-lg text-muted" aria-hidden="true"></i>
+          @if (notificationCenter.unreadCount() > 0) {
+            <span
+              class="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary-500 px-1 text-[0.625rem] font-bold text-surface-900"
+              aria-hidden="true">{{ notificationCenter.unreadCount() > 9 ? '9+' : notificationCenter.unreadCount() }}</span>
+          }
+        </button>
+
+        @if (showNotifications()) {
+          <div
+            id="notifications-panel"
+            class="fixed left-4 right-4 top-16 z-50 mt-2 flex flex-col overflow-hidden rounded-xl border border-surface-200 dark:border-surface-700 bg-primary-contrast dark:bg-surface-800 sm:left-auto sm:right-4 sm:w-[22rem]"
+            role="region"
+            aria-label="Notificaciones">
+            <div class="flex items-center justify-between gap-2 border-b border-surface-200 dark:border-surface-700 px-4 py-3">
+              <div>
+                <p class="text-sm font-semibold text-surface-800 dark:text-surface-100">Notificaciones</p>
+                <p class="text-xs text-muted">
+                  @if (notificationCenter.unreadCount() > 0) {
+                    {{ notificationCenter.unreadCount() }} sin leer
+                  } @else {
+                    Todo al día
+                  }
+                </p>
+              </div>
+              @if (notificationCenter.unreadCount() > 0) {
+                <button
+                  type="button"
+                  class="cursor-pointer text-xs font-semibold text-accent hover:underline"
+                  (click)="notificationCenter.markAllRead()">
+                  Marcar todas
+                </button>
+              }
+            </div>
+
+            <div class="max-h-[22rem] overflow-y-auto">
+              @if (notificationCenter.notifications().length === 0) {
+                <div class="flex flex-col items-center px-4 py-8 text-center">
+                  <div class="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-surface-100 dark:bg-surface-700">
+                    <i class="pi pi-inbox text-muted" aria-hidden="true"></i>
+                  </div>
+                  <p class="text-sm font-medium text-surface-700 dark:text-surface-200">Sin notificaciones</p>
+                  <p class="mt-0.5 text-xs text-muted">Aquí aparecerán los eventos del restaurante.</p>
+                </div>
+              } @else {
+                @for (notification of notificationCenter.notifications(); track notification.id) {
+                  <button
+                    type="button"
+                    class="flex w-full cursor-pointer items-start gap-3 border-b border-surface-100 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-surface-100 dark:border-surface-700 dark:hover:bg-surface-700"
+                    [class.bg-primary-50]="!notification.read"
+                    [class.dark:bg-primary-900/20]="!notification.read"
+                    (click)="openNotification(notification)">
+                    <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-100 dark:bg-surface-700">
+                      <i [class]="notification.icon + ' ' + toneClass(notification.tone)" aria-hidden="true"></i>
+                    </span>
+                    <span class="min-w-0 flex-1">
+                      <span class="flex items-baseline justify-between gap-2">
+                        <span class="truncate text-sm font-semibold text-surface-800 dark:text-surface-100">{{ notification.title }}</span>
+                        <span class="shrink-0 text-[0.625rem] text-muted">{{ formatNotificationTime(notification.createdAt) }}</span>
+                      </span>
+                      <span class="mt-0.5 block truncate text-xs text-muted">{{ notification.message }}</span>
+                    </span>
+                    @if (!notification.read) {
+                      <span class="mt-2 h-2 w-2 shrink-0 rounded-full bg-primary-500" aria-hidden="true"></span>
+                    }
+                  </button>
+                }
+              }
+            </div>
+
+            @if (notificationCenter.notifications().length > 0) {
+              <div class="border-t border-surface-200 dark:border-surface-700 p-2">
+                <button
+                  type="button"
+                  class="w-full cursor-pointer rounded-lg px-3 py-2 text-xs font-medium text-muted transition-colors hover:bg-surface-100 dark:hover:bg-surface-700"
+                  (click)="notificationCenter.clear()">
+                  Limpiar notificaciones
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
     }
+
+    <div class="relative user-menu-container">
+      <button
+        type="button"
+        class="flex items-center gap-2.5 rounded-full border border-surface-200 dark:border-surface-700 bg-primary-contrast dark:bg-surface-800 py-1 pl-1 pr-1 sm:pr-2.5 cursor-pointer transition-colors hover:bg-surface-100 dark:hover:bg-surface-700"
+        (click)="toggleUserMenu($event)"
+        [attr.aria-expanded]="showUserMenu()"
+        aria-haspopup="menu"
+        [title]="userName()">
+        <span
+          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30 text-xs font-bold text-accent"
+          aria-hidden="true">{{ userInitials() }}</span>
+        <span class="hidden min-w-0 flex-col items-start leading-tight sm:flex">
+          <span class="max-w-[9rem] truncate text-sm font-semibold text-surface-800 dark:text-surface-100">{{ userName() }}</span>
+          <span class="text-[0.6875rem] text-muted">{{ userRoleLabel() }}</span>
+        </span>
+        <i
+          class="pi pi-angle-down hidden text-xs text-muted transition-transform sm:block"
+          [class.rotate-180]="showUserMenu()"
+          aria-hidden="true"></i>
+      </button>
+
+      @if (showUserMenu()) {
+        <div
+          class="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-xl border border-surface-200 dark:border-surface-700 bg-primary-contrast dark:bg-surface-800"
+          role="menu">
+          <div class="border-b border-surface-200 dark:border-surface-700 px-4 py-3">
+            <p class="truncate text-sm font-semibold text-surface-800 dark:text-surface-100">{{ userName() }}</p>
+            @if (userEmail()) {
+              <p class="truncate text-xs text-muted">{{ userEmail() }}</p>
+            }
+          </div>
+          <div class="py-1">
+            <button
+              type="button"
+              role="menuitem"
+              class="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left text-sm text-surface-700 dark:text-surface-200 transition-colors hover:bg-surface-100 dark:hover:bg-surface-700"
+              (click)="onLogout()">
+              <i class="pi pi-sign-out text-muted" aria-hidden="true"></i>
+              <span class="font-medium">Cerrar sesión</span>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
   </section>
 </header>
-
-<!-- ═══ Settings Modal (full settings component) ═══ -->
-<p-dialog
-  [(visible)]="showSettingsDialog"
-  [modal]="true"
-  [closable]="true"
-  [closeOnEscape]="true"
-  [draggable]="false"
-  [resizable]="false"
-  header="Configuración"
-  [style]="{width: '95vw', maxWidth: '800px', height: '90vh'}"
->
-  <app-settings></app-settings>
-</p-dialog>
 
 <p-dialog
   [(visible)]="showLogoutDialog"
