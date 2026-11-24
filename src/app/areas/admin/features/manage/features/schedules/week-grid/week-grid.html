@@ -8,7 +8,7 @@
         (click)="previousWeek()"
       />
       <div>
-        <h2 id="week-grid-heading" class="rms-h3">Semana del {{ weekRangeLabel() }}</h2>
+        <h2 id="week-grid-heading" class="rms-h4">Semana del {{ weekRangeLabel() }}</h2>
       </div>
       <app-rms-icon-button
         icon="pi pi-chevron-right"
@@ -253,9 +253,7 @@
         {{ filteredRows().length }} trabajadores · {{ formatMinutes(totalWeeklyMinutes()) }} asignadas
         en la vista.
       </span>
-      <app-rms-button variant="link" size="sm" (click)="openTimeLogs.emit()">
-        Ver registros de asistencia
-      </app-rms-button>
+
     </footer>
   }
 </section>

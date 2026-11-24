@@ -30,9 +30,10 @@
 .rms-section__description {
   margin: var(--rms-space-1) 0 0;
   max-width: 70ch;
-  font-size: var(--rms-type-body-size);
-  line-height: var(--rms-type-body-line);
-  color: var(--rms-text-secondary);
+  font-size: var(--rms-type-caption-size);
+  font-style: italic;
+  line-height: var(--rms-type-caption-line);
+  color: #475569;
 }
 
 .rms-section__actions {

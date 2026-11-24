@@ -1,9 +1,6 @@
 <div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0">
   <app-rms-page-header
     [compact]="true" title="Combinaciones especiales">
-    <div rmsPageHeaderActions>
-      <app-rms-button iconStart="pi pi-plus" (click)="navigateToNew()">Nuevo combo</app-rms-button>
-    </div>
   </app-rms-page-header>
 
   <!-- Content container -->
@@ -12,6 +9,11 @@
       <app-table-skeleton />
     } @else {
       <p-table [value]="combos()">
+        <ng-template pTemplate="caption">
+          <div class="flex justify-end">
+            <app-rms-button iconStart="pi pi-plus" (click)="navigateToNew()">Nuevo combo</app-rms-button>
+          </div>
+        </ng-template>
         <ng-template pTemplate="header">
           <tr>
             <th>Nombre</th>

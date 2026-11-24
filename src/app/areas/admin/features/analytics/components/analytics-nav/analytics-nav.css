@@ -6,6 +6,7 @@
 
 .analytics-nav-list {
   @apply flex flex-nowrap overflow-x-auto gap-1 md:gap-2;
+  border-bottom: var(--rms-border-width) solid var(--rms-border);
   scrollbar-width: none;
 }
 

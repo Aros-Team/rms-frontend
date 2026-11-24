@@ -1,11 +1,6 @@
 <div class="flex flex-col  md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.products" (appLazyLoadVisible)="onVisible()">
   <app-rms-page-header
     [compact]="true" [title]="title">
-    <div rmsPageHeaderActions>
-      <app-rms-button iconStart="pi pi-plus" (click)="showCreationModal()">
-        Nuevo producto
-      </app-rms-button>
-    </div>
   </app-rms-page-header>
 
   <!-- Table -->
@@ -36,11 +31,14 @@
           <app-rms-button variant="secondary" size="sm" iconStart="pi pi-filter-slash" (click)="dt1.clear()">
             Limpiar
           </app-rms-button>
-          <div class="flex items-center gap-2 ml-auto">
+          <div class="flex items-center gap-4 ml-auto">
             <div class="flex items-center gap-2">
               <label for="includeInactive" class="text-sm text-muted cursor-pointer select-none">Mostrar inactivos</label>
               <p-toggleswitch [ngModel]="includeInactive()" (ngModelChange)="setIncludeInactive($event)" inputId="includeInactive" />
             </div>
+            <app-rms-button iconStart="pi pi-plus" (click)="showCreationModal()">
+              Nuevo producto
+            </app-rms-button>
           </div>
         </div>
       </ng-template>

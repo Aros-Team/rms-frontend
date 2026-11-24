@@ -7,12 +7,12 @@
 
 .manage-nav-bar {
   @apply flex-shrink-0 sticky top-0 z-10 px-4 md:px-6;
-  border-bottom-color: var(--p-surface-200);
   background-color: var(--p-surface-50);
 }
 
 .manage-nav-list {
   @apply flex flex-nowrap overflow-x-auto gap-1 md:gap-2;
+  border-bottom: var(--rms-border-width) solid var(--rms-border);
   scrollbar-width: none;
 }
 
@@ -52,6 +52,5 @@
 }
 
 .manage-nav-bar:where(.dark, .dark *) {
-  border-bottom-color: var(--p-surface-700);
   background-color: var(--p-surface-900);
 }

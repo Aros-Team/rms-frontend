@@ -388,9 +388,11 @@ main[tabindex='-1']:focus-visible {
 
   .rms-nav-item--tile .rms-nav-item__label {
     display: block;
+    width: 100%;
     font-size: 0.5625rem;
     line-height: 1.25;
     font-weight: var(--rms-weight-medium);
+    text-align: center;
     text-transform: uppercase;
     overflow-wrap: normal;
     hyphens: none;

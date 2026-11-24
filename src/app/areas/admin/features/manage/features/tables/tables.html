@@ -1,71 +1,57 @@
 <div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.tables" (appLazyLoadVisible)="onVisible()">
   <app-rms-page-header
     [compact]="true" [title]="title">
-    <div rmsPageHeaderActions>
-      <app-rms-button iconStart="pi pi-plus" (click)="showCreationModal()">Nueva mesa</app-rms-button>
-    </div>
   </app-rms-page-header>
 
   <!-- Creation Form -->
-  @if (modalMode() === 'create' && modalIsOpen()) {
-    <div class="mb-4 p-4 bg-rms-surface border border-rms-border rounded-xl">
-      <h3 class="rms-h3 mb-4">Crear Mesa</h3>
-      <form [formGroup]="tableForm" (ngSubmit)="saveTable()" class="flex flex-wrap gap-4 items-end">
-        <app-rms-input id="newTableNumber" label="Número" type="number" formControlName="tableNumber" class="w-24" />
-        <app-rms-input id="newCapacity" label="Capacidad" type="number" formControlName="capacity" class="w-24" />
-        <div class="flex gap-2">
-          <app-rms-button type="submit" [disabled]="tableForm.invalid" iconStart="pi pi-check">Crear</app-rms-button>
-          <app-rms-button variant="secondary" (click)="closeModal()">Cancelar</app-rms-button>
-        </div>
-      </form>
-    </div>
-  }
+  <div class="mb-4 p-4 bg-rms-surface border border-rms-border rounded-xl w-fit max-w-full">
+    <h3 class="rms-h3 mb-4">Crear Mesa</h3>
+    <form [formGroup]="tableForm" (ngSubmit)="saveTable()" class="flex flex-wrap gap-4 items-end">
+      <app-rms-input id="newTableNumber" label="Número" type="number" formControlName="tableNumber" class="w-24" />
+      <app-rms-input id="newCapacity" label="Capacidad" type="number" formControlName="capacity" class="w-24" />
+      <div class="flex gap-2">
+        <app-rms-button type="submit" [disabled]="tableForm.invalid" iconStart="pi pi-check">Crear</app-rms-button>
+        <app-rms-button variant="secondary" (click)="showCreationModal()">Cancelar</app-rms-button>
+      </div>
+    </form>
+  </div>
 
   <!-- Tables Grid -->
-  <div class="flex-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+  <div class="flex-1 grid grid-cols-[repeat(auto-fill,7rem)] gap-3 content-start">
     @if (loading()) {
       @for (i of [1,2,3,4,5,6]; track i) {
         <div class="h-32 bg-rms-subtle rounded-xl animate-pulse"></div>
       }
-    } @else if (tables().length === 0) {
-      <div class="col-span-full">
-        <app-rms-empty-state
-          icon="pi pi-table"
-          title="No hay mesas configuradas"
-          message="Crea la primera mesa para empezar a tomar pedidos."
-          actionLabel="Crear primera mesa"
-          actionIcon="pi pi-plus"
-          (action)="showCreationModal()" />
-      </div>
     } @else {
       @for (table of tables(); track table.id) {
         <div 
-          class="relative bg-rms-surface border border-rms-border rounded-xl p-4 flex flex-col gap-2 hover:border-rms-border-strong transition-colors cursor-pointer"
+          class="relative bg-rms-surface border border-rms-border rounded-xl p-2 flex flex-col items-center justify-center gap-1 hover:border-rms-border-strong transition-colors cursor-pointer aspect-square"
           (click)="showEditModal(table)"
           (keydown.enter)="showEditModal(table)"
           tabindex="0"
           role="button"
         >
-          <div class="text-center">
-            <span class="text-3xl font-bold text-rms-ink">#{{ table.tableNumber }}</span>
+          <div class="flex items-center justify-center gap-3">
+            <span class="text-xl font-semibold text-rms-ink-secondary">#{{ table.tableNumber }}</span>
+            <span class="flex items-center gap-1 text-muted text-xs">
+              <i class="pi pi-users text-xs" aria-hidden="true"></i>
+              {{ table.capacity }}
+            </span>
           </div>
           
-          <div class="flex items-center justify-center gap-2 text-muted">
-            <i class="pi pi-users text-xs" aria-hidden="true"></i>
-            <span class="text-sm">{{ table.capacity }} personas</span>
-          </div>
-          
-          <div class="flex justify-center mt-auto">
+          <div class="flex w-full justify-center px-0.5">
             <app-rms-status-pill
               [label]="getStatusLabel(table.status)"
               [status]="getStatusTone(table.status)" />
           </div>
 
-          <div class="absolute top-2 right-2 opacity-0 hover:opacity-100 transition-opacity">
+          <div class="absolute top-1.5 right-1.5 opacity-0 hover:opacity-100 transition-opacity">
             <i class="pi pi-pencil text-xs text-muted" aria-hidden="true"></i>
           </div>
         </div>
       }
+
+
     }
   </div>
 </div>

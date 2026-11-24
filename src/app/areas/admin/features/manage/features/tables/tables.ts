@@ -86,6 +86,7 @@ export class Tables implements OnInit {
       this.cache.tables.refresh();
     }
     this.connectWebSocket();
+    this.showCreationModal();
   }
 
   onVisible(): void {
@@ -148,7 +149,7 @@ export class Tables implements OnInit {
             life: 3000,
           });
           this.loadTables();
-          this.closeModal();
+          this.showCreationModal();
         },
         error: () => {
           this.messageService.add({

@@ -1,5 +1,5 @@
 <div class="flex flex-col gap-4">
-  <div class="rounded-xl border border-rms-border p-4">
+  <div class="rounded-xl">
     <div class="flex flex-col lg:flex-row justify-between gap-4">
       <div class="flex flex-col sm:flex-row gap-3 flex-wrap items-start sm:items-center flex-1">
         <p-select 
@@ -53,7 +53,7 @@
     </div>
   </div>
 
-  <div class="rounded-xl border border-rms-border p-4 flex-1 min-h-0" [attr.aria-busy]="loading">
+  <div class="rounded-xl border border-rms-border flex-1 min-h-0" [attr.aria-busy]="loading">
     @if (loading) {
       <p class="sr-only" role="status">Cargando pedidos…</p>
     }

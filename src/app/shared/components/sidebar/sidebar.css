@@ -44,7 +44,16 @@
  * `.rms-nav-item` / `.rms-nav-item--tile` classes in `src/styles/global.css`.
  */
 .nav-tile {
+  display: flex;
+  width: 100%;
   min-width: 0;
+}
+
+.nav-tile__label {
+  display: block;
+  width: 100%;
+  font-size: 0.5625rem;
+  text-align: center;
 }
 
 .nav-grid__item {
