@@ -158,7 +158,7 @@ export class Header implements OnInit, OnDestroy {
         'create-product': 'Crea un producto para la carta',
         profile: 'Gestiona los datos de tu cuenta',
       };
-      if (segments.length === 1) return 'Resumen de la operación de hoy';
+      if (segments.length === 1) return '';
       return descriptions[segments[1] ?? ''] ?? '';
     }
 
