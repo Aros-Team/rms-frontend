@@ -1,24 +1,22 @@
 <header
-  class="fixed top-0 left-0 flex justify-between items-center h-[calc(4rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] px-4 bg-rms-page w-full max-w-full z-[var(--rms-z-sticky)] min-w-0">
-  <section class="flex items-center gap-2 min-w-0 flex-1">
+  class="fixed top-0 left-0 flex justify-between items-center h-[calc(4.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] px-4 md:px-6 bg-rms-page w-full max-w-full z-[var(--rms-z-sticky)] min-w-0 gap-4">
+  <section class="flex items-center gap-3 min-w-0 flex-1">
     <a
       [routerLink]="role === 'ADMIN' ? '/admin' : '/worker'"
-      class="flex items-center text-accent font-black text-[1.5rem] min-w-0 shrink-0 rounded-lg transition-opacity hover:opacity-80"
+      class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rms-brand-soft text-rms-brand-text transition-opacity hover:opacity-80"
       aria-label="Ir al inicio">
-      <app-logo [size]="24"></app-logo>
+      <app-logo [size]="22"></app-logo>
     </a>
+
     @if (workerType !== 'kitchen') {
-      <span class="hidden sm:inline-block max-w-[10rem] truncate align-middle font-semibold text-accent lg:max-w-none">{{customer}}</span>
-    }
-
-    @if (workerType !== 'kitchen' && displayContext()) {
-      <span class="hidden lg:inline-block text-rms-ink-muted" aria-hidden="true">|</span>
-    }
-
-    @if (displayContext()) {
-      <span class="hidden min-w-0 truncate text-xs italic text-[#475569] lg:inline-block">
-        {{ displayContext() }}
-      </span>
+      <div class="flex min-w-0 flex-col justify-center" data-testid="restaurant-identity">
+        <span class="truncate text-sm font-semibold leading-tight text-rms-ink">{{ customer }}</span>
+        @if (role === 'ADMIN') {
+          <span
+            class="hidden truncate text-rms-caption leading-tight text-rms-ink-muted sm:block"
+            data-testid="restaurant-subtitle">Panel de administración</span>
+        }
+      </div>
     }
 
     @if (!hideTabletNav) {
@@ -73,13 +71,13 @@ class="rms-nav-item rms-nav-item--inline cursor-pointer whitespace-nowrap hover:
 
   <section class="flex items-center gap-3 shrink-0">
     @if (!hideTabletNav) {
-    <button class="md:hidden p-2 rounded-lg hover:bg-rms-subtle transition-colors"
+    <button class="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-rms-subtle transition-colors md:hidden"
       (click)="toggleMenu.emit()"
       [attr.aria-expanded]="menuOpen"
       aria-controls="app-sidebar"
       [attr.aria-label]="menuOpen ? 'Cerrar menú' : 'Abrir menú'"
       [title]="menuOpen ? 'Cerrar menú' : 'Abrir menú'">
-      <i class="pi pi-bars text-muted" aria-hidden="true"></i>
+      <i class="pi pi-bars text-lg text-rms-ink-muted" aria-hidden="true"></i>
     </button>
     }
 
@@ -95,19 +93,21 @@ class="rms-nav-item rms-nav-item--inline cursor-pointer whitespace-nowrap hover:
           [attr.aria-label]="notificationCenter.unreadCount() > 0
             ? 'Notificaciones, ' + notificationCenter.unreadCount() + ' sin leer'
             : 'Notificaciones'"
-          title="Notificaciones">
-          <i class="pi pi-bell text-lg text-muted" aria-hidden="true"></i>
+          title="Notificaciones"
+          data-testid="notifications-button">
+          <i class="pi pi-bell text-lg text-rms-ink-muted" aria-hidden="true"></i>
           @if (notificationCenter.unreadCount() > 0) {
             <span
               class="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rms-brand px-1 text-rms-caption leading-none font-bold text-rms-on-brand"
-              aria-hidden="true">{{ notificationCenter.unreadCount() > 9 ? '9+' : notificationCenter.unreadCount() }}</span>
+              aria-hidden="true"
+              data-testid="notifications-badge">{{ notificationCenter.unreadCount() > 9 ? '9+' : notificationCenter.unreadCount() }}</span>
           }
         </button>
 
         @if (showNotifications()) {
           <div
             id="notifications-panel"
-            class="fixed left-4 right-4 top-16 z-[var(--rms-z-raised)] mt-2 flex flex-col overflow-hidden rounded-2xl border border-rms-border bg-rms-surface sm:left-auto sm:right-4 sm:w-[22rem]"
+            class="fixed left-4 right-4 top-[calc(4.5rem+env(safe-area-inset-top))] z-[var(--rms-z-raised)] mt-2 flex flex-col overflow-hidden rounded-2xl border border-rms-border bg-rms-surface sm:left-auto sm:right-4 sm:w-[22rem]"
             role="region"
             aria-label="Notificaciones">
             <div class="flex items-center justify-between gap-2 border-b border-rms-border px-4 py-3">
@@ -178,27 +178,32 @@ class="rms-nav-item rms-nav-item--inline cursor-pointer whitespace-nowrap hover:
           </div>
         }
       </div>
+
+      <span class="hidden h-6 w-px bg-rms-border sm:block" aria-hidden="true" data-testid="header-actions-divider"></span>
     }
 
     <div class="relative user-menu-container">
       <button
         type="button"
-        class="flex items-center gap-2.5 rounded-full border border-rms-border bg-rms-surface py-1 pl-1 pr-1 sm:pr-2.5 cursor-pointer transition-colors hover:bg-rms-subtle"
+        class="flex items-center gap-2.5 rounded-lg border border-rms-border bg-rms-surface py-1 pl-1 pr-1 sm:pr-2.5 cursor-pointer transition-colors hover:bg-rms-subtle"
         (click)="toggleUserMenu($event)"
         [attr.aria-expanded]="showUserMenu()"
         aria-haspopup="menu"
-        [title]="userName()">
+        [title]="userName()"
+        data-testid="user-menu-button">
         <span
-          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rms-brand-soft text-xs font-bold text-accent"
-          aria-hidden="true">{{ userInitials() }}</span>
+          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rms-brand-soft text-xs font-bold text-rms-brand-text"
+          aria-hidden="true"
+          data-testid="user-avatar">{{ userInitials() }}</span>
         <span class="hidden min-w-0 flex-col items-start leading-tight sm:flex">
-          <span class="max-w-[9rem] truncate text-sm font-semibold text-rms-ink">{{ userName() }}</span>
-          <span class="text-rms-caption text-muted">{{ userRoleLabel() }}</span>
+          <span class="max-w-[9rem] truncate text-sm font-semibold text-rms-ink" data-testid="user-name">{{ userName() }}</span>
+          <span class="text-rms-caption text-rms-ink-muted" data-testid="user-role">{{ userRoleLabel() }}</span>
         </span>
         <i
-          class="pi pi-angle-down hidden text-xs text-muted transition-transform sm:block"
+          class="pi pi-angle-down hidden text-xs text-rms-ink-muted transition-transform sm:block"
           [class.rotate-180]="showUserMenu()"
-          aria-hidden="true"></i>
+          aria-hidden="true"
+          data-testid="user-menu-chevron"></i>
       </button>
 
       @if (showUserMenu()) {

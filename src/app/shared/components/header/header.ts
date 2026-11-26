@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd, NavigationStart } from '@angular/router';
 import { MenuItem, Menu } from '@core/services/menu/menu';
 import { Auth } from '@core/services/auth/auth';
-import { PageContext } from '@app/core/services/page-context/page-context';
 import { NotificationCenter, AppNotification } from '@core/services/notifications/notification-center';
 import { Subscription } from 'rxjs';
 import { Logo } from "../logo/logo";
@@ -68,14 +67,10 @@ export class Header implements OnInit, OnDestroy {
   private itemsSubscription: Subscription | undefined;
   private navigationSubscription: Subscription | undefined;
   showLogoutDialog = false;
-  /** One-line location shown next to the brand: "Restaurante · Carta". */
-  readonly routeContext = signal('');
-  readonly displayContext = computed(() => this.pageContext.value() ?? this.routeContext());
 
   private menuService = inject(Menu);
   private authService = inject(Auth);
   private router = inject(Router);
-  private pageContext = inject(PageContext);
 
   ngOnInit(): void {
     if (this.role === 'ADMIN') {
@@ -104,7 +99,6 @@ export class Header implements OnInit, OnDestroy {
 
   private syncMenuItemFromRoute(): void {
     const url = this.router.url;
-    this.routeContext.set(this.describeRoute(url));
     const matched = this.menuItems.find(item => {
       if (!item.routerLink) return false;
       if (item.exact) return url === item.routerLink;
@@ -113,67 +107,6 @@ export class Header implements OnInit, OnDestroy {
     if (matched) {
       this.menuService.selectMenuItem(matched);
     }
-  }
-
-  private describeRoute(url: string): string {
-    const [path, query = ''] = url.split('?');
-    const params = new URLSearchParams(query);
-    const segments = path.split('/').filter(Boolean);
-
-    if (segments[0] === 'admin') {
-      if (segments[1] === 'manage') {
-        const descriptions: Record<string, string> = {
-          products: 'Gestiona los productos de la carta',
-          categories: 'Organiza las categorías de la carta',
-          tables: 'Administra las mesas del salón',
-          areas: 'Organiza las áreas de preparación',
-          combos: 'Crea y edita los combos del menú',
-          workers: 'Gestiona el equipo de trabajo',
-          inventory: 'Gestiona insumos e ingredientes',
-        };
-        return descriptions[segments[2] ?? ''] ?? 'Administra tu restaurante';
-      }
-      if (segments[1] === 'analytics') {
-        const descriptions: Record<string, string> = {
-          'prime-cost': 'Analiza la rentabilidad del negocio',
-          operations: 'Revisa la operación y el flujo de ventas',
-          cohort: 'Analiza la retención de clientes',
-          'menu-engineering': 'Clasifica la carta por rentabilidad',
-          alerts: 'Revisa las alertas del negocio',
-        };
-        return descriptions[segments[2] ?? 'prime-cost'] ?? 'Analiza el rendimiento del negocio';
-      }
-      if (segments[1] === 'schedules') {
-        const tab = params.get('tab') ?? 'semana';
-        const descriptions: Record<string, string> = {
-          semana: 'Planifica los turnos del equipo',
-          turnos: 'Organiza los turnos del equipo',
-          registros: 'Consulta la asistencia del equipo',
-        };
-        return descriptions[tab] ?? 'Planifica los turnos del equipo';
-      }
-      const descriptions: Record<string, string> = {
-        orders: 'Gestiona los pedidos del día',
-        settings: 'Configura el restaurante',
-        'create-product': 'Crea un producto para la carta',
-        profile: 'Gestiona los datos de tu cuenta',
-      };
-      if (segments.length === 1) return '';
-      return descriptions[segments[1] ?? ''] ?? '';
-    }
-
-    if (segments[0] === 'worker') {
-      const descriptions: Record<string, string> = {
-        waiter: 'Toma pedidos y gestiona las mesas',
-        kitchen: 'Gestiona la preparación de pedidos',
-        cashier: 'Cobra y gestiona la caja',
-        'my-schedule': 'Consulta tus turnos y registros',
-        profile: 'Gestiona los datos de tu cuenta',
-      };
-      return descriptions[segments[1] ?? ''] ?? '';
-    }
-
-    return '';
   }
 
   ngOnDestroy(): void {

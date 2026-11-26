@@ -1630,5 +1630,31 @@
       }
     ],
     "status": "in_progress"
+  },
+  {
+    "id": 54,
+    "type": "fix",
+    "name": "header-redesign",
+    "title": "Redesign the shared header hierarchy and identity area",
+    "description": "Simplify the shell header: restaurant identity with a discrete admin subtitle instead of the route slogan, no fictitious restaurant selector, clearer notification/profile separation, and a compact 72px height using the existing page surface and brand tokens.",
+    "acceptance": [
+      "Header height is 72px and both layouts offset for it",
+      "Restaurant name plus 'Panel de administración' replace the route slogan",
+      "No restaurant-selector chevron because no selector exists",
+      "Notifications and profile stay aligned but visually separated",
+      "Header keeps bg-rms-page and no bottom divider (shell decision)",
+      "No raw colours, shadows or hardcoded sizes outside tokens",
+      "Header spec covers identity, subtitle and role behaviour",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Implement the header redesign, layout offsets, dead-code cleanup and spec",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
   }
 ]

@@ -4,14 +4,10 @@ import {
   computed,
   EventEmitter,
   HostListener,
-  inject,
   Output,
   signal,
-  effect,
-  OnDestroy,
 } from '@angular/core';
 
-import { PageContext } from '@app/core/services/page-context/page-context';
 import { RmsBadge } from '@shared/ui/badge/badge';
 import { RmsButton } from '@shared/ui/button/button';
 import { RmsDialog } from '@shared/ui/dialog/dialog';
@@ -124,9 +120,7 @@ const SECTIONS: readonly SettingsSection[] = [
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SettingsPage implements OnDestroy {
-  private readonly pageContext = inject(PageContext);
-
+export class SettingsPage {
   readonly sections: readonly SettingsSection[] = SECTIONS;
 
   readonly activeSection = signal<SettingsSectionId>('business');
@@ -146,16 +140,6 @@ export class SettingsPage implements OnDestroy {
   private pendingResolve: ((discard: boolean) => void) | null = null;
 
   @Output() readonly dirtyChange = new EventEmitter<boolean>();
-
-  constructor() {
-    effect(() => {
-      this.pageContext.set(this.activeSectionMeta().description);
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.pageContext.clear();
-  }
 
   markDirty(section: SettingsSectionId, dirty: boolean): void {
     const next = { ...this.dirtySections(), [section]: dirty };
