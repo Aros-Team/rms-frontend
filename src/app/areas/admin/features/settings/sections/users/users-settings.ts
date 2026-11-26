@@ -196,6 +196,13 @@ export class UsersSettingsSection implements OnInit {
     if (value === 'ACTIVE' || value === 'INACTIVE') this.statusDraft.set(value);
   }
 
+  /** Keeps an exclusive area alone as soon as the admin selects it. */
+  onAreasChange(areaIds: number[] | null): void {
+    const ids = areaIds ?? [];
+    const exclusive = this.areas().find((area) => area.exclusive && ids.includes(area.id));
+    this.areaDraft.set(exclusive === undefined ? ids : [exclusive.id]);
+  }
+
   onRoleFilterChange(value: string | number | null): void {
     if (value === 'ALL' || value === 'ADMIN' || value === 'WORKER') {
       this.roleFilter.set(value);

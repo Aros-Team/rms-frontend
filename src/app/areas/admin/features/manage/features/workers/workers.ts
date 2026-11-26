@@ -12,6 +12,7 @@ import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { SelectModule } from 'primeng/select';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { TooltipModule } from 'primeng/tooltip';
 import { SkeletonModule } from 'primeng/skeleton';
@@ -39,7 +40,6 @@ import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
 import { RmsField } from '@app/shared/ui/field/field';
 import { RmsInput } from '@app/shared/ui/input/input';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
-import { RmsSelect, type RmsSelectOption } from '@app/shared/ui/select/select';
 import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
 import { WorkerCard } from './worker-card';
 import { PayrollPanel } from './payroll-panel/payroll-panel';
@@ -57,7 +57,7 @@ interface WorkerFormValue {
   phone: string;
   address: string | null,
   jobTitle: string | null,
-  areaId: number | null,
+  areaIds: number[],
   salary: number | null,
   reason: string | null,
   observations: string | null,
@@ -76,6 +76,7 @@ interface WorkerFormValue {
     InputIconModule,
     IconFieldModule,
     SelectModule,
+    MultiSelectModule,
     InputNumberModule,
     TooltipModule,
     SkeletonModule,
@@ -88,7 +89,6 @@ interface WorkerFormValue {
     RmsEmptyState,
     RmsField,
     RmsInput,
-    RmsSelect,
     RmsPageHeader,
     RmsStatusPill,
     WorkerCard,
@@ -156,9 +156,6 @@ export class Workers implements OnInit {
   /** Text pushed by the assistant deep link (`?search=`). */
   readonly workerSearch = signal('');
   areas = signal<AreaResponse[]>([]);
-  readonly areaOptions = computed<RmsSelectOption[]>(() =>
-    this.areas().map((area) => ({ label: area.name.toLowerCase(), value: area.id })),
-  );
   editing = false;
   selectedWorker: WorkerResponse | null = null;
   originalSalary = signal<number | null>(null);
@@ -175,7 +172,7 @@ export class Workers implements OnInit {
     salary: new FormControl<number | null>(null),
     reason: new FormControl<string | null>(null),
     observations: new FormControl<string | null>(null),
-    areaId: new FormControl<number | null>(null, [(control: AbstractControl) => Validators.required(control)]),
+    areaIds: new FormControl<number[]>([], [(control: AbstractControl) => Validators.required(control)]),
   });
 
   creationModalVisible = false;
@@ -229,6 +226,18 @@ export class Workers implements OnInit {
     this.userForm.get('salary')?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => { this.salaryValue.set(val as number | null); });
+
+    this.userForm.get('areaIds')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((ids) => { this.enforceExclusiveAreas((ids as number[] | null) ?? []); });
+  }
+
+  /** Keeps an exclusive area alone as soon as the admin selects it. */
+  private enforceExclusiveAreas(ids: readonly number[]): void {
+    const exclusive = this.areas().find((area) => area.exclusive && ids.includes(area.id));
+    if (exclusive !== undefined && ids.length > 1) {
+      this.userForm.patchValue({ areaIds: [exclusive.id] }, { emitEvent: false });
+    }
   }
 
   onVisible(): void {
@@ -538,8 +547,8 @@ export class Workers implements OnInit {
       email: formValue.email,
       phone: formValue.phone,
       address: formValue.address ?? '',
-      areas: formValue.areaId != null ? [formValue.areaId] : [],
-      jobTitle: formValue.jobTitle?.trim() ? formValue.jobTitle.trim() : null,
+      areas: formValue.areaIds,
+      jobTitle: this.normalizedJobTitle(formValue.jobTitle),
     };
 
     if (this.salaryChanged()) {
@@ -724,7 +733,7 @@ export class Workers implements OnInit {
       phone: data.phone ?? '',
       address: data.address ?? '',
       jobTitle: data.jobTitle ?? '',
-      areaId: data.assignedAreas?.[0] ?? null,
+      areaIds: [...(data.assignedAreas ?? [])],
       salary: tryToAmount(data.salary),
     });
   }
@@ -741,10 +750,16 @@ export class Workers implements OnInit {
       email: formValue.email,
       phone: formValue.phone,
       address: formValue.address ?? undefined,
-      areas: formValue.areaId != null ? [formValue.areaId] : [],
-      jobTitle: formValue.jobTitle?.trim() ? formValue.jobTitle.trim() : null,
+      areas: formValue.areaIds,
+      jobTitle: this.normalizedJobTitle(formValue.jobTitle),
       salary: formValue.salary ?? undefined,
     };
+  }
+
+  private normalizedJobTitle(value: string | null): string | null {
+    if (value === null) return null;
+    const trimmed = value.trim();
+    return trimmed.length === 0 ? null : trimmed;
   }
 
   private searchForWorkers(): void {

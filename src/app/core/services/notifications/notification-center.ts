@@ -57,6 +57,7 @@ const ICONS: Record<string, string> = {
   BUSINESS_RULE_VIOLATED: 'pi pi-exclamation-triangle',
   WORKER_CLOCK_IN: 'pi pi-sign-in',
   WORKER_LATE: 'pi pi-clock',
+  WORKER_MODULE_ASSIGNED: 'pi pi-th-large',
 };
 
 const READY_CODES = new Set(['ORDER_READY']);
@@ -114,6 +115,8 @@ export class NotificationCenter implements OnDestroy {
 
   readonly notifications = this.items.asReadonly();
   readonly unreadCount = computed(() => this.unread());
+  /** Workers read their own targeted feed instead of the global admin feed. */
+  readonly workerFeed = computed(() => this.auth.getData()?.role === 'WORKER');
 
   start(): void {
     if (this.started) return;
@@ -126,9 +129,15 @@ export class NotificationCenter implements OnDestroy {
       return;
     }
 
+    const user = this.auth.getData();
+    const topic =
+      user?.role === 'WORKER'
+        ? `/topic/users/${String(user.id)}/notifications`
+        : NOTIFICATIONS_TOPIC;
+
     this.ws.connect(environment.wsUrl, token);
     this.subscriptions.push(
-      this.ws.subscribeToTopic<NotificationWire>(NOTIFICATIONS_TOPIC).subscribe({
+      this.ws.subscribeToTopic<NotificationWire>(topic).subscribe({
         next: (wire) => {
           this.receive(wire);
         },
@@ -141,7 +150,8 @@ export class NotificationCenter implements OnDestroy {
 
   /** Reloads the persisted feed (used when the panel opens). */
   refresh(): void {
-    this.http.get<NotificationPageWire>('v1/notifications', { params: { limit: 50 } }).subscribe({
+    const url = this.workerFeed() ? 'v1/notifications/me' : 'v1/notifications';
+    this.http.get<NotificationPageWire>(url, { params: { limit: 50 } }).subscribe({
       next: (page) => {
         this.items.set(page.items.map(toItem));
         this.unread.set(page.unreadCount);
@@ -161,7 +171,10 @@ export class NotificationCenter implements OnDestroy {
       this.unread.update((count) => Math.max(0, count - 1));
     }
 
-    this.http.patch(`v1/notifications/${String(id)}/read`, null).subscribe({
+    const url = this.workerFeed()
+      ? `v1/notifications/me/${String(id)}/read`
+      : `v1/notifications/${String(id)}/read`;
+    this.http.patch(url, null).subscribe({
       error: (err: unknown) => {
         this.logger.error('Notification center: failed to mark read', err);
         this.refresh();
@@ -173,7 +186,8 @@ export class NotificationCenter implements OnDestroy {
     this.items.update((items) => items.map((item) => ({ ...item, read: true })));
     this.unread.set(0);
 
-    this.http.post('v1/notifications/read-all', null).subscribe({
+    const url = this.workerFeed() ? 'v1/notifications/me/read-all' : 'v1/notifications/read-all';
+    this.http.post(url, null).subscribe({
       error: (err: unknown) => {
         this.logger.error('Notification center: failed to mark all read', err);
         this.refresh();

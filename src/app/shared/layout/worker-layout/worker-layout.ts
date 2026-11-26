@@ -15,7 +15,9 @@ import { Header } from '../../components/header/header';
 import { Breadcrumbs } from '../../components/breadcrumbs/breadcrumbs';
 import { ServerDownBanner } from '../../components/server-down-banner/server-down-banner';
 import type { NavItem, WorkerWorkspace } from '@app/core/config/navigation/role-navigation';
-import { WORKER_NAV } from '@app/core/config/navigation/role-navigation';
+import { canAccessWorkspace } from '@app/core/config/navigation/role-navigation';
+import { WORKER_MODULES } from '@app/core/config/navigation/worker-modules';
+import { Auth } from '@app/core/services/auth/auth';
 
 /**
  * Worker shell chrome.
@@ -42,8 +44,18 @@ export class WorkerLayout {
   readonly workerType = input<WorkerWorkspace>('waiter');
   readonly role = input<string | undefined>(undefined);
 
-  readonly navItems = computed<readonly NavItem[]>(() => WORKER_NAV[this.workerType()]);
+  private readonly auth = inject(Auth);
+
+  readonly navItems = computed<readonly NavItem[]>(
+    () => WORKER_MODULES.find((module) => module.id === this.workerType())?.nav ?? [],
+  );
   readonly isKitchen = computed(() => this.workerType() === 'kitchen');
+
+  /** Every module the signed-in worker can enter, for the module switcher. */
+  readonly accessibleModules = computed(() => {
+    const user = this.auth.userData();
+    return WORKER_MODULES.filter((module) => canAccessWorkspace(user, module.id));
+  });
 
   readonly currentUrl = signal('');
 

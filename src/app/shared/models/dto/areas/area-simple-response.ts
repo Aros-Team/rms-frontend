@@ -5,4 +5,5 @@ export interface AreaSimpleResponse {
   name: string;
   type: AreaTypeValue;
   enabled: boolean;
+  exclusive?: boolean;
 }

@@ -323,7 +323,7 @@ describe('Workers — payroll tab', () => {
         name: 'Ana Perez',
         email: 'ana@rms.co',
         phone: '3001234567',
-        areaId: 1,
+        areaIds: [1],
       });
       component.createWorker();
 
@@ -419,7 +419,7 @@ describe('Workers — payroll tab', () => {
         name: 'Ana Pérez',
         email: 'ana@rms.co',
         phone: '3001234567',
-        areaId: 1,
+        areaIds: [1],
       });
       const file = new File(['portrait'], 'ana.jpg', { type: 'image/jpeg' });
       component.onImageSelect({

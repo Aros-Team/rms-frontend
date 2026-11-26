@@ -288,16 +288,24 @@
     </div>
 
     <form action="" [formGroup]="userForm" class="flex flex-col gap-4">
-      <app-rms-select
-        id="create.areaId"
-        label="Área de trabajo"
-        [required]="true"
-        [options]="areaOptions()"
-        formControlName="areaId"
-        placeholder="Seleccione el area de trabajo"
-        [showClear]="true"
-        [error]="fieldError('areaId')"
-      />
+      <div class="flex flex-col gap-1">
+        <label class="rms-label" for="create.areaIds">Área de trabajo</label>
+        <p-multiSelect
+          inputId="create.areaIds"
+          [options]="areas()"
+          optionLabel="name"
+          optionValue="id"
+          display="chip"
+          placeholder="Seleccione el área de trabajo"
+          appendTo="body"
+          formControlName="areaIds" />
+        @if (fieldError('areaIds')) {
+          <p class="text-xs text-rms-danger" role="alert">{{ fieldError('areaIds') }}</p>
+        }
+        <p class="text-xs text-rms-ink-muted">
+          Un área exclusiva no se puede combinar con otras.
+        </p>
+      </div>
       <app-rms-input
         id="create.jobTitle"
         label="Rol"

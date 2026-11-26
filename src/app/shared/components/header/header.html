@@ -81,7 +81,7 @@ class="rms-nav-item rms-nav-item--inline cursor-pointer whitespace-nowrap hover:
     </button>
     }
 
-    @if (role === 'ADMIN' && workerType !== 'kitchen') {
+    @if (role === 'ADMIN' || role === 'WORKER') {
       <div class="relative notifications-container">
         <button
           type="button"
@@ -165,7 +165,7 @@ class="rms-nav-item rms-nav-item--inline cursor-pointer whitespace-nowrap hover:
               }
             </div>
 
-            @if (notificationCenter.notifications().length > 0) {
+            @if (notificationCenter.notifications().length > 0 && !notificationCenter.workerFeed()) {
               <div class="border-t border-rms-border p-2">
                 <button
                   type="button"

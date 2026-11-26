@@ -86,10 +86,12 @@ export class WorkerCard {
   });
 
   areaName = computed(() => {
-    const areaId = this.worker().assignedAreas?.[0];
-    if (areaId == null) return 'Sin área';
-    const area = this.areas().find(a => a.id === areaId);
-    return area?.name ?? 'Sin área';
+    const ids = this.worker().assignedAreas ?? [];
+    const names = ids.flatMap((areaId) => {
+      const area = this.areas().find(a => a.id === areaId);
+      return area === undefined ? [] : [area.name];
+    });
+    return names.length > 0 ? names.join(', ') : 'Sin área';
   });
 
   jobTitleLabel = computed(() => {

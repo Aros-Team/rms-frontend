@@ -5,6 +5,7 @@ import { Area } from '@app/core/services/areas/area';
 import { AreaRequest, AreaTypeValue } from '@app/shared/models/dto/areas/area';
 import { AreaSimpleResponse } from '@app/shared/models/dto/areas/area-simple-response';
 import { Auth } from '@app/core/services/auth/auth';
+import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -14,6 +15,7 @@ import { TablesCache } from '../tables/tables-cache';
 import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsCheckbox } from '@app/shared/ui/checkbox/checkbox';
 import { RmsInput } from '@app/shared/ui/input/input';
 import { RmsSelect } from '@app/shared/ui/select/select';
 import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
@@ -31,6 +33,7 @@ import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
     LazyLoad,
     TableSkeleton,
     RmsButton,
+    RmsCheckbox,
     RmsIconButton,
     RmsPageHeader,
     RmsStatusPill,
@@ -43,6 +46,7 @@ export class Areas implements OnInit, OnDestroy {
   private areaService = inject(Area);
   private fb = inject(FormBuilder);
   private authService = inject(Auth);
+  private messages = inject(MessageService);
   private areasSubscription: Subscription | null = null;
   readonly cache = inject(TablesCache);
 
@@ -54,6 +58,7 @@ export class Areas implements OnInit, OnDestroy {
   form: FormGroup = this.fb.group({
     name: ['', (control: AbstractControl) => Validators.required(control)],
     type: ['', (control: AbstractControl) => Validators.required(control)],
+    exclusive: [false],
   });
 
   /** Area types accepted by the API (`AreaType` enum). */
@@ -104,6 +109,7 @@ export class Areas implements OnInit, OnDestroy {
     this.form.patchValue({
       name: area.name,
       type: area.type,
+      exclusive: area.exclusive === true,
     });
     this.modalVisible = true;
   };
@@ -119,6 +125,7 @@ export class Areas implements OnInit, OnDestroy {
           this.loadAreas();
           this.modalVisible = false;
         },
+        error: (error: unknown) => { this.showSaveError(error); },
       });
     } else {
       this.areaService.createArea(data).subscribe({
@@ -126,9 +133,23 @@ export class Areas implements OnInit, OnDestroy {
           this.loadAreas();
           this.modalVisible = false;
         },
+        error: (error: unknown) => { this.showSaveError(error); },
       });
     }
   };
+
+  private showSaveError(error: unknown): void {
+    const detail =
+      error !== null && typeof error === 'object' && 'error' in error
+        ? (error as { error?: { detail?: string } }).error?.detail
+        : undefined;
+    this.messages.add({
+      severity: 'error',
+      summary: 'No se pudo guardar el área',
+      detail: detail ?? 'Revisa los datos e inténtalo de nuevo.',
+      life: 6000,
+    });
+  }
 
   toggleArea = (area: AreaSimpleResponse): void => {
     this.areaService.toggleArea(area.id).subscribe({

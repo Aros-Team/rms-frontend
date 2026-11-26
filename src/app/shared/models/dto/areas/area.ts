@@ -7,6 +7,8 @@ export type AreaTypeValue = 'KITCHEN' | 'SERVICE' | 'BAR' | 'GRILL' | 'CASH';
 export interface AreaRequest {
   name: string;
   type: AreaTypeValue;
+  /** An exclusive area cannot be combined with other areas. */
+  exclusive: boolean;
 }
 
 export interface AreaResponse {
@@ -14,4 +16,6 @@ export interface AreaResponse {
   name: string;
   type: AreaTypeValue;
   enabled: boolean;
+  /** An exclusive area cannot be combined with other areas. */
+  exclusive: boolean;
 }

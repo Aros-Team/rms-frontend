@@ -6,6 +6,19 @@ import { RoleGuard } from '@core/guards/role/role';
 import { RedirectGuard } from '@app/core/guards/redirect-guard/redirect-guard';
 import { settingsUnsavedChangesGuard } from '@areas/admin/features/settings/settings-unsaved-changes.guard';
 import type { WorkerRouteData } from '@app/core/config/navigation/role-navigation';
+import { WORKER_MODULES } from '@app/core/config/navigation/worker-modules';
+
+/** One lazy route per registered worker module (plug-in / plug-out). */
+const workerModuleRoutes: Routes = WORKER_MODULES.map((module) => ({
+  path: module.id,
+  title: module.title,
+  loadComponent: module.loadComponent,
+  canActivate: [AreaGuard],
+  data: {
+    workerWorkspaces: [module.id],
+    preload: module.preload,
+  } satisfies WorkerRouteData,
+}));
 
 /**
  * Route table.
@@ -330,16 +343,7 @@ export const routes: Routes = [
         canActivate: [AreaGuard],
         data: { workerLanding: true } satisfies WorkerRouteData,
       },
-      {
-        path: 'waiter',
-        title: 'Tomar pedidos',
-        loadComponent: () =>
-          import('@areas/worker/features/waiter/waiter-dashboard/waiter-dashboard').then(
-            (m) => m.WaiterDashboard,
-          ),
-        canActivate: [AreaGuard],
-        data: { workerWorkspaces: ['waiter'], preload: true } satisfies WorkerRouteData,
-      },
+      ...workerModuleRoutes,
       {
         path: 'combos/:id',
         title: 'Detalle del combo',
@@ -347,21 +351,6 @@ export const routes: Routes = [
           import('@areas/worker/features/waiter/combos/combo-detail').then((m) => m.ComboDetail),
         canActivate: [AreaGuard],
         data: { workerWorkspaces: ['waiter'] } satisfies WorkerRouteData,
-      },
-      {
-        path: 'kitchen',
-        title: 'Cocina',
-        loadComponent: () =>
-          import('@areas/worker/features/kitchen/kitchen').then((m) => m.Kitchen),
-        canActivate: [AreaGuard],
-        data: { workerWorkspaces: ['kitchen'], preload: true } satisfies WorkerRouteData,
-      },
-      {
-        path: 'cashier',
-        title: 'Caja',
-        loadComponent: () => import('@areas/cashier/cashier-area').then((m) => m.CashierArea),
-        canActivate: [AreaGuard],
-        data: { workerWorkspaces: ['cashier'] } satisfies WorkerRouteData,
       },
       {
         path: 'profile',

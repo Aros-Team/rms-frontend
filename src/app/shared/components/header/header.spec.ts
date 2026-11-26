@@ -42,6 +42,7 @@ const notificationCenterStub = {
   clear: vi.fn(),
   unreadCount: () => 2,
   notifications: () => [],
+  workerFeed: () => false,
 };
 
 describe('Header', () => {

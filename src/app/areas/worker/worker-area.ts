@@ -26,19 +26,11 @@ import {
   isServiceWorker,
   primaryWorkerWorkspace,
 } from '@app/core/config/navigation/role-navigation';
+import { moduleForUrl } from '@app/core/config/navigation/worker-modules';
 
 /** Chrome for a URL, or `null` when the route does not identify a workspace. */
 function workspaceForUrl(url: string): WorkerWorkspace | null {
-  if (url.startsWith('/worker/kitchen')) {
-    return 'kitchen';
-  }
-  if (url.startsWith('/worker/cashier')) {
-    return 'cashier';
-  }
-  if (url.startsWith('/worker/waiter') || url.startsWith('/worker/combos')) {
-    return 'waiter';
-  }
-  return null;
+  return (moduleForUrl(url)?.id as WorkerWorkspace | undefined) ?? null;
 }
 
 @Component({

@@ -6,15 +6,10 @@
  *
  * Contract:
  *  - `ADMIN_NAV` is the admin shell menu (app-in-card + right rail).
- *  - `WORKER_NAV` maps each worker workspace to its navigation items; the
- *    kitchen workspace has no navigation (a station board has no tabs).
- *  - Workspace membership comes from the API area types:
- *      waiter  -> SERVICE | BAR
- *      kitchen -> KITCHEN | GRILL
- *      cashier -> CASH
- *  - Landing priority for multi-area workers is cashier > waiter > kitchen,
- *    so a CASH worker always reaches the cashier area instead of the waiter
- *    home.
+ *  - Worker modules live in `worker-modules.ts`; this file derives the
+ *    workspace matrix, landing priority and navigation from that registry.
+ *  - Landing priority is declared per module (`priority`), so adding a module
+ *    does not require touching guards, the shell or the login redirect.
  *
  * Pure functions only: guards, the login redirect and the error pages share
  * the exact same matrix, so it can be unit tested without TestBed.
@@ -22,19 +17,11 @@
 import type { AreaTypeValue } from '@models/dto/areas/area';
 import type { UserInfo } from '@models/domain/user/user-info';
 
-export type WorkerWorkspace = 'waiter' | 'kitchen' | 'cashier';
+import type { NavItem, WorkerWorkspace } from './worker-modules';
+import { WORKER_MODULES } from './worker-modules';
 
-export interface NavItem {
-  readonly id: string;
-  readonly label: string;
-  readonly description: string;
-  readonly icon: string;
-  readonly routerLink: string;
-  readonly exact?: boolean;
-  readonly queryParams?: Readonly<Record<string, string>>;
-}
+export type { NavItem, WorkerWorkspace } from './worker-modules';
 
-/** Route `data` contract consumed by `AreaGuard`. */
 export interface WorkerRouteData {
   /** Dispatch the worker to their landing screen. */
   readonly workerLanding?: true;
@@ -43,29 +30,33 @@ export interface WorkerRouteData {
   /** Workspaces allowed to enter the route. Empty/absent means deny. */
   readonly workerWorkspaces?: readonly WorkerWorkspace[];
   /** Opt this entry screen into idle preloading (see SelectivePreloadingStrategy). */
-  readonly preload?: true;
+  readonly preload?: boolean;
 }
 
-const WORKSPACE_AREAS: Readonly<Record<WorkerWorkspace, readonly AreaTypeValue[]>> = {
-  cashier: ['CASH'],
-  waiter: ['SERVICE', 'BAR'],
-  kitchen: ['KITCHEN', 'GRILL'],
-};
+/** Navigation items per module, kept as a record for existing consumers. */
+export const WORKER_NAV = Object.fromEntries(
+  WORKER_MODULES.map((module) => [module.id, module.nav]),
+) as unknown as Record<WorkerWorkspace, readonly NavItem[]>;
 
-/** Multi-area landing priority. CASH first: it has nowhere else to go. */
-const WORKSPACE_PRIORITY: readonly WorkerWorkspace[] = ['cashier', 'waiter', 'kitchen'];
+/** Landing route per module. */
+export const WORKSPACE_HOME = Object.fromEntries(
+  WORKER_MODULES.map((module) => [module.id, module.home]),
+) as unknown as Record<WorkerWorkspace, string>;
 
-export const WORKSPACE_HOME: Readonly<Record<WorkerWorkspace, string>> = {
-  waiter: '/worker/waiter',
-  kitchen: '/worker/kitchen',
-  cashier: '/worker/cashier',
-};
+/** Human label per module. */
+export const WORKSPACE_LABEL = Object.fromEntries(
+  WORKER_MODULES.map((module) => [module.id, module.label]),
+) as unknown as Record<WorkerWorkspace, string>;
 
-export const WORKSPACE_LABEL: Readonly<Record<WorkerWorkspace, string>> = {
-  waiter: 'Servicio de mesa',
-  kitchen: 'Cocina',
-  cashier: 'Caja',
-};
+const WORKSPACE_AREAS: Readonly<Record<WorkerWorkspace, readonly AreaTypeValue[]>> =
+  Object.fromEntries(
+    WORKER_MODULES.map((module) => [module.id, module.areaTypes]),
+  ) as unknown as Record<WorkerWorkspace, readonly AreaTypeValue[]>;
+
+/** Multi-area landing priority, declared by each module. */
+const WORKSPACE_PRIORITY: readonly WorkerWorkspace[] = [...WORKER_MODULES]
+  .sort((left, right) => left.priority - right.priority)
+  .map((module) => module.id);
 
 export const ADMIN_NAV: readonly NavItem[] = [
   {
@@ -113,63 +104,6 @@ export const ADMIN_NAV: readonly NavItem[] = [
   },
 ];
 
-export const WORKER_NAV: Readonly<Record<WorkerWorkspace, readonly NavItem[]>> = {
-  waiter: [
-    {
-      id: 'menu',
-      label: 'Menú',
-      description: 'Menú del día',
-      icon: 'pi pi-sun',
-      routerLink: '/worker/waiter',
-      exact: true,
-      queryParams: { tab: 'menu' },
-    },
-    {
-      id: 'carta',
-      label: 'Carta',
-      description: 'Seleccionar productos',
-      icon: 'pi pi-book',
-      routerLink: '/worker/waiter',
-      exact: true,
-      queryParams: { tab: 'carta' },
-    },
-    {
-      id: 'pedidos',
-      label: 'Pedidos',
-      description: 'Pedidos del día',
-      icon: 'pi pi-list',
-      routerLink: '/worker/waiter',
-      exact: true,
-      queryParams: { tab: 'pedidos' },
-    },
-    {
-      id: 'cuenta',
-      label: 'Cuenta',
-      description: 'Ajustes de cuenta y horario',
-      icon: 'pi pi-user',
-      routerLink: '/worker/profile',
-    },
-  ],
-  kitchen: [],
-  cashier: [
-    {
-      id: 'caja',
-      label: 'Caja',
-      description: 'Cobros y turno de caja',
-      icon: 'pi pi-wallet',
-      routerLink: '/worker/cashier',
-      exact: true,
-    },
-    {
-      id: 'cuenta',
-      label: 'Cuenta',
-      description: 'Ajustes de cuenta',
-      icon: 'pi pi-user',
-      routerLink: '/worker/profile',
-    },
-  ],
-};
-
 /** Area types assigned to the user (empty when unauthenticated). */
 export function userAreaTypes(user: Pick<UserInfo, 'areas'> | undefined): AreaTypeValue[] {
   return (user?.areas ?? []).flatMap((area) => (area.type ? [area.type] : []));
@@ -177,12 +111,12 @@ export function userAreaTypes(user: Pick<UserInfo, 'areas'> | undefined): AreaTy
 
 export function canAccessWorkspace(
   user: Pick<UserInfo, 'areas'> | undefined,
-  workspace: WorkerWorkspace,
+  workspace: string,
 ): boolean {
   if (!user) {
     return false;
   }
-  const required = WORKSPACE_AREAS[workspace];
+  const required = WORKSPACE_AREAS[workspace as WorkerWorkspace];
   return userAreaTypes(user).some((type) => required.includes(type));
 }
 

@@ -56,7 +56,7 @@ describe('NotificationCenter', () => {
         },
         {
           provide: Auth,
-          useValue: { getToken: () => 'token' },
+          useValue: { getToken: () => 'token', getData: () => ({ id: 1, role: 'ADMIN' }) },
         },
         { provide: Logging, useValue: { warn: vi.fn(), error: vi.fn(), info: vi.fn() } },
       ],

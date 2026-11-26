@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Output, EventEmitter, inject, Input, signal, computed, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, Output, EventEmitter, inject, Input, signal, computed, effect, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd, NavigationStart } from '@angular/router';
 import { MenuItem, Menu } from '@core/services/menu/menu';
@@ -72,11 +72,19 @@ export class Header implements OnInit, OnDestroy {
   private authService = inject(Auth);
   private router = inject(Router);
 
-  ngOnInit(): void {
-    if (this.role === 'ADMIN') {
-      this.notificationCenter.start();
-    }
+  constructor() {
+    // The shell renders before `/auth` resolves; start the feed as soon as the
+    // session user exists so workers subscribe to their own topic and endpoint.
+    effect(() => {
+      const user = this.authService.userData();
+      const role = user?.role ?? this.role;
+      if (user !== undefined && (role === 'ADMIN' || role === 'WORKER')) {
+        this.notificationCenter.start();
+      }
+    });
+  }
 
+  ngOnInit(): void {
     this.itemsSubscription = this.menuService.menuItems$.subscribe(items => {
       this.menuItems = items;
       this.calculateVisibleItems();
@@ -213,6 +221,15 @@ export class Header implements OnInit, OnDestroy {
   openNotification(notification: AppNotification): void {
     this.notificationCenter.markRead(notification.id);
     this.showNotifications.set(false);
+
+    // A new worker module only appears after `/auth` is fetched again, so a
+    // module-assignment notification performs a full reload instead of a
+    // client-side navigation.
+    if (notification.code === 'WORKER_MODULE_ASSIGNED') {
+      window.location.assign(notification.route ?? '/worker');
+      return;
+    }
+
     if (notification.route) {
       void this.router.navigateByUrl(notification.route);
     }

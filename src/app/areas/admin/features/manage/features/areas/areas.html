@@ -15,6 +15,7 @@
           <th class="text-xs md:text-sm" pSortableColumn="name">Nombre <p-sortIcon field="name" /></th>
           <th class="text-xs md:text-sm" pSortableColumn="type">Tipo <p-sortIcon field="type" /></th>
           <th class="text-xs md:text-sm">Estado</th>
+          <th class="text-xs md:text-sm">Exclusiva</th>
           <th class="text-center text-xs md:text-sm">Acc.</th>
         </tr>
       </ng-template>
@@ -26,6 +27,11 @@
             <app-rms-status-pill
               [label]="area.enabled ? 'Activo' : 'Inactivo'"
               [status]="area.enabled ? 'success' : 'danger'" />
+          </td>
+          <td>
+            <app-rms-status-pill
+              [label]="area.exclusive ? 'Sí' : 'No'"
+              [status]="area.exclusive ? 'warning' : 'neutral'" />
           </td>
           <td>
             <div class="flex gap-1 items-center justify-center">
@@ -44,16 +50,16 @@
       </ng-template>
       <ng-template #loadingbody>
         <tr>
-          <td colspan="4">
+          <td colspan="5">
             <div class="min-h-[400px] w-full">
-              <app-table-skeleton [rowCount]="6" [colCount]="4" />
+              <app-table-skeleton [rowCount]="6" [colCount]="5" />
             </div>
           </td>
         </tr>
       </ng-template>
       <ng-template #emptymessage>
         <tr>
-          <td colspan="4" class="text-center">No hay áreas registradas</td>
+          <td colspan="5" class="text-center">No hay áreas registradas</td>
         </tr>
       </ng-template>
     </p-table>
@@ -77,6 +83,12 @@
       placeholder="Seleccionar tipo"
       [required]="true"
       [error]="fieldError('type')" />
+
+    <app-rms-checkbox
+      id="exclusive"
+      label="Área exclusiva"
+      description="Un trabajador con esta área no puede tener ninguna otra."
+      formControlName="exclusive" />
   </form>
 
   <ng-template pTemplate="footer">
