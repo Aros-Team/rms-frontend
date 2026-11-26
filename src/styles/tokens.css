@@ -93,16 +93,16 @@
   --rms-success-solid: #047857;
   --rms-success-on-solid: #ffffff;
 
-  --rms-warning-fg: #92400e;
-  --rms-warning-bg: #fffbeb;
-  --rms-warning-border: #fde68a;
-  --rms-warning-solid: #b45309;
+  --rms-warning-fg: #854d0e;
+  --rms-warning-bg: #fefce8;
+  --rms-warning-border: #fde047;
+  --rms-warning-solid: #a16207;
   --rms-warning-on-solid: #ffffff;
 
-  --rms-danger-fg: #b91c1c;
-  --rms-danger-bg: #fef2f2;
-  --rms-danger-border: #fecaca;
-  --rms-danger-solid: #b91c1c;
+  --rms-danger-fg: #9f1239;
+  --rms-danger-bg: #fff1f2;
+  --rms-danger-border: #fda4af;
+  --rms-danger-solid: #be123c;
   --rms-danger-on-solid: #ffffff;
 
   --rms-info-fg: #1d4ed8;
@@ -116,6 +116,22 @@
   --rms-neutral-border: var(--rms-neutral-200);
   --rms-neutral-solid: var(--rms-neutral-600);
   --rms-neutral-on-solid: #ffffff;
+
+  /* Menu-engineering quadrants. A cool categorical quartet for data-viz,
+     deliberately separate from the status traffic-lights: revenue analysis is
+     not an alert. Read only by the analytics feature. */
+  --rms-quadrant-star-fg: #0f766e;
+  --rms-quadrant-star-bg: #f0fdfa;
+  --rms-quadrant-star-border: #99f6e4;
+  --rms-quadrant-plowhorse-fg: #475569;
+  --rms-quadrant-plowhorse-bg: #f1f5f9;
+  --rms-quadrant-plowhorse-border: #cbd5e1;
+  --rms-quadrant-puzzle-fg: #4338ca;
+  --rms-quadrant-puzzle-bg: #eef2ff;
+  --rms-quadrant-puzzle-border: #c7d2fe;
+  --rms-quadrant-dog-fg: #9f1239;
+  --rms-quadrant-dog-bg: #fff1f2;
+  --rms-quadrant-dog-border: #fecdd3;
 
   /* Chart system. Series colors pass 3:1 as graphics in both themes. */
   --rms-chart-1: #1d4ed8;
@@ -286,10 +302,10 @@
   --rms-warning-solid: #f59e0b;
   --rms-warning-on-solid: var(--rms-on-brand);
 
-  --rms-danger-fg: #fca5a5;
-  --rms-danger-bg: #2a1215;
-  --rms-danger-border: #991b1b;
-  --rms-danger-solid: #ef4444;
+  --rms-danger-fg: #fda4af;
+  --rms-danger-bg: #2b1018;
+  --rms-danger-border: #9f1239;
+  --rms-danger-solid: #f43f5e;
   --rms-danger-on-solid: var(--rms-on-brand);
 
   --rms-info-fg: #93c5fd;
@@ -303,6 +319,19 @@
   --rms-neutral-border: var(--rms-neutral-700);
   --rms-neutral-solid: var(--rms-neutral-600);
   --rms-neutral-on-solid: #ffffff;
+
+  --rms-quadrant-star-fg: #5eead4;
+  --rms-quadrant-star-bg: #042f2e;
+  --rms-quadrant-star-border: #0f766e;
+  --rms-quadrant-plowhorse-fg: #cbd5e1;
+  --rms-quadrant-plowhorse-bg: #172033;
+  --rms-quadrant-plowhorse-border: #475569;
+  --rms-quadrant-puzzle-fg: #a5b4fc;
+  --rms-quadrant-puzzle-bg: #171a3a;
+  --rms-quadrant-puzzle-border: #4338ca;
+  --rms-quadrant-dog-fg: #fda4af;
+  --rms-quadrant-dog-bg: #2b1018;
+  --rms-quadrant-dog-border: #9f1239;
 
   --rms-chart-1: #60a5fa;
   --rms-chart-2: #2dd4bf;
@@ -343,14 +372,22 @@
     --rms-brand-text: #6f5306;
     --rms-success-fg: #064e3b;
     --rms-success-border: #047857;
-    --rms-warning-fg: #78350f;
-    --rms-warning-border: #b45309;
-    --rms-danger-fg: #991b1b;
-    --rms-danger-border: #b91c1c;
+    --rms-warning-fg: #713f12;
+    --rms-warning-border: #a16207;
+    --rms-danger-fg: #881337;
+    --rms-danger-border: #be123c;
     --rms-info-fg: #1e3a8a;
     --rms-info-border: #1d4ed8;
     --rms-neutral-fg: var(--rms-neutral-950);
     --rms-neutral-border: var(--rms-neutral-500);
+    --rms-quadrant-star-fg: #115e59;
+    --rms-quadrant-star-border: #0f766e;
+    --rms-quadrant-plowhorse-fg: #1e293b;
+    --rms-quadrant-plowhorse-border: #475569;
+    --rms-quadrant-puzzle-fg: #3730a3;
+    --rms-quadrant-puzzle-border: #4338ca;
+    --rms-quadrant-dog-fg: #881337;
+    --rms-quadrant-dog-border: #be123c;
     --rms-table-row-hover: var(--rms-neutral-100);
   }
 
@@ -372,12 +409,20 @@
     --rms-success-border: #10b981;
     --rms-warning-fg: #fde68a;
     --rms-warning-border: #f59e0b;
-    --rms-danger-fg: #fecaca;
-    --rms-danger-border: #ef4444;
+    --rms-danger-fg: #fecdd3;
+    --rms-danger-border: #fb7185;
     --rms-info-fg: #bfdbfe;
     --rms-info-border: #60a5fa;
     --rms-neutral-fg: var(--rms-neutral-50);
     --rms-neutral-border: var(--rms-neutral-400);
+    --rms-quadrant-star-fg: #99f6e4;
+    --rms-quadrant-star-border: #2dd4bf;
+    --rms-quadrant-plowhorse-fg: #e2e8f0;
+    --rms-quadrant-plowhorse-border: #94a3b8;
+    --rms-quadrant-puzzle-fg: #c7d2fe;
+    --rms-quadrant-puzzle-border: #818cf8;
+    --rms-quadrant-dog-fg: #fecdd3;
+    --rms-quadrant-dog-border: #fb7185;
     --rms-table-row-hover: #172033;
   }
 }
@@ -398,14 +443,22 @@ html[data-contrast='high'] {
   --rms-brand-text: #6f5306;
   --rms-success-fg: #064e3b;
   --rms-success-border: #047857;
-  --rms-warning-fg: #78350f;
-  --rms-warning-border: #b45309;
-  --rms-danger-fg: #991b1b;
-  --rms-danger-border: #b91c1c;
+  --rms-warning-fg: #713f12;
+  --rms-warning-border: #a16207;
+  --rms-danger-fg: #881337;
+  --rms-danger-border: #be123c;
   --rms-info-fg: #1e3a8a;
   --rms-info-border: #1d4ed8;
   --rms-neutral-fg: var(--rms-neutral-950);
   --rms-neutral-border: var(--rms-neutral-500);
+  --rms-quadrant-star-fg: #115e59;
+  --rms-quadrant-star-border: #0f766e;
+  --rms-quadrant-plowhorse-fg: #1e293b;
+  --rms-quadrant-plowhorse-border: #475569;
+  --rms-quadrant-puzzle-fg: #3730a3;
+  --rms-quadrant-puzzle-border: #4338ca;
+  --rms-quadrant-dog-fg: #881337;
+  --rms-quadrant-dog-border: #be123c;
   --rms-table-row-hover: var(--rms-neutral-100);
 }
 
@@ -427,11 +480,19 @@ html.dark[data-contrast='high'] {
   --rms-success-border: #10b981;
   --rms-warning-fg: #fde68a;
   --rms-warning-border: #f59e0b;
-  --rms-danger-fg: #fecaca;
-  --rms-danger-border: #ef4444;
+  --rms-danger-fg: #fecdd3;
+  --rms-danger-border: #fb7185;
   --rms-info-fg: #bfdbfe;
   --rms-info-border: #60a5fa;
   --rms-neutral-fg: var(--rms-neutral-50);
   --rms-neutral-border: var(--rms-neutral-400);
+  --rms-quadrant-star-fg: #99f6e4;
+  --rms-quadrant-star-border: #2dd4bf;
+  --rms-quadrant-plowhorse-fg: #e2e8f0;
+  --rms-quadrant-plowhorse-border: #94a3b8;
+  --rms-quadrant-puzzle-fg: #c7d2fe;
+  --rms-quadrant-puzzle-border: #818cf8;
+  --rms-quadrant-dog-fg: #fecdd3;
+  --rms-quadrant-dog-border: #fb7185;
   --rms-table-row-hover: #172033;
 }

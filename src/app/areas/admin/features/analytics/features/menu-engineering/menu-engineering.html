@@ -91,7 +91,7 @@
           <button
             type="button"
             class="quadrant"
-            [attr.data-status]="summary.meta.status"
+            [attr.data-quadrant]="summary.quadrant"
             [class.quadrant--selected]="isSelected(summary.quadrant)"
             [attr.aria-pressed]="isSelected(summary.quadrant)"
             (click)="toggleQuadrant(summary.quadrant)">
@@ -193,9 +193,10 @@
                 <td>{{ formatPct(row.marginPct, 1) }}</td>
                 <td>{{ row.item.totalContribution | money }}</td>
                 <td>
-                  <app-rms-status-pill
-                    [label]="quadrantMeta(row.item.quadrant).label"
-                    [status]="quadrantMeta(row.item.quadrant).status" />
+                  <span class="quadrant-tag" [attr.data-quadrant]="row.item.quadrant">
+                    <span class="quadrant-tag__dot" aria-hidden="true"></span>
+                    {{ quadrantMeta(row.item.quadrant).label }}
+                  </span>
                 </td>
               </tr>
             } @empty {

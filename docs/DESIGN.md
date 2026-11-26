@@ -137,8 +137,8 @@ Every status has four roles: `fg` (text), `bg` (soft fill), `border`, `solid`
 | Status | fg | bg | border | solid |
 |---|---|---|---|---|
 | success | `#065f46` | `#ecfdf5` | `#a7f3d0` | `#047857` |
-| warning | `#92400e` | `#fffbeb` | `#fde68a` | `#b45309` |
-| danger | `#b91c1c` | `#fef2f2` | `#fecaca` | `#b91c1c` |
+| warning | `#854d0e` | `#fefce8` | `#fde047` | `#a16207` |
+| danger | `#9f1239` | `#fff1f2` | `#fda4af` | `#be123c` |
 | info | `#1d4ed8` | `#eff6ff` | `#bfdbfe` | `#1d4ed8` |
 | neutral | `#334155` | `#f1f5f9` | `#e2e8f0` | `#475569` |
 
@@ -169,7 +169,13 @@ the lighter counterparts. Fixed mappings:
 - Sales actual = series 1. Comparison = series 7 (dashed).
 - COGS: FOOD 5, BEVERAGE 1, ALCOHOL 4, OTHER 7.
 - Labor by area: FOH 2, BOH 5.
-- Menu quadrants: STAR success, PLOWHORSE warning, PUZZLE info, DOG danger.
+- Menu quadrants are data, not alerts: they read the dedicated
+  `--rms-quadrant-{star,plowhorse,puzzle,dog}-{fg,bg,border}` tokens, a cool
+  categorical quartet (teal / slate / indigo / rose). The matrix card stays
+  neutral and only its rail and filled icon chip carry colour; `--status` tones
+  are reserved for real operational states. Chart markers also differ by shape
+  (`circle`, `rectRot`, `triangle`, `rect`), so the series never rely on hue
+  alone.
 - Prime cost line = danger, margin = success. Two lines maximum.
 
 ---

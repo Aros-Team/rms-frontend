@@ -33,10 +33,16 @@
 }
 
 .quadrant {
+  --q-fg: var(--rms-neutral-fg);
+  --q-border: var(--rms-border);
+
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--rms-space-2);
-  padding: var(--rms-space-3);
+  padding: var(--rms-space-3) var(--rms-space-3) var(--rms-space-3)
+    calc(var(--rms-space-4) + 2px);
+  overflow: hidden;
   border: var(--rms-border-width) solid var(--rms-border);
   border-radius: var(--rms-radius-md);
   background: var(--rms-bg-surface);
@@ -45,24 +51,38 @@
   cursor: pointer;
 }
 
-.quadrant[data-status='success'] {
-  border-color: var(--rms-success-border);
-  background: var(--rms-success-bg);
+/* A thin, saturated rail carries the category colour; the card itself stays
+   neutral so the matrix never reads as a traffic light. */
+.quadrant::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--q-fg);
 }
 
-.quadrant[data-status='warning'] {
-  border-color: var(--rms-warning-border);
-  background: var(--rms-warning-bg);
+.quadrant:hover {
+  border-color: var(--q-border);
 }
 
-.quadrant[data-status='info'] {
-  border-color: var(--rms-info-border);
-  background: var(--rms-info-bg);
+.quadrant[data-quadrant='STAR'] {
+  --q-fg: var(--rms-quadrant-star-fg);
+  --q-border: var(--rms-quadrant-star-border);
 }
 
-.quadrant[data-status='danger'] {
-  border-color: var(--rms-danger-border);
-  background: var(--rms-danger-bg);
+.quadrant[data-quadrant='PLOWHORSE'] {
+  --q-fg: var(--rms-quadrant-plowhorse-fg);
+  --q-border: var(--rms-quadrant-plowhorse-border);
+}
+
+.quadrant[data-quadrant='PUZZLE'] {
+  --q-fg: var(--rms-quadrant-puzzle-fg);
+  --q-border: var(--rms-quadrant-puzzle-border);
+}
+
+.quadrant[data-quadrant='DOG'] {
+  --q-fg: var(--rms-quadrant-dog-fg);
+  --q-border: var(--rms-quadrant-dog-border);
 }
 
 .quadrant--selected {
@@ -81,24 +101,22 @@
   display: inline-flex;
   align-items: center;
   gap: var(--rms-space-2);
+  color: var(--q-fg);
   font-size: var(--rms-type-body-size);
   font-weight: var(--rms-weight-semibold);
 }
 
-.quadrant[data-status='success'] .quadrant__name {
-  color: var(--rms-success-fg);
-}
-
-.quadrant[data-status='warning'] .quadrant__name {
-  color: var(--rms-warning-fg);
-}
-
-.quadrant[data-status='info'] .quadrant__name {
-  color: var(--rms-info-fg);
-}
-
-.quadrant[data-status='danger'] .quadrant__name {
-  color: var(--rms-danger-fg);
+/* Filled icon chip: the most saturated colour on the card, and a second cue
+   besides hue (each quadrant also uses its own glyph). */
+.quadrant__name i {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--rms-radius-full);
+  background: var(--q-fg);
+  color: var(--rms-bg-surface);
+  font-size: 0.75rem;
 }
 
 .quadrant__count {
@@ -137,21 +155,65 @@
   max-height: 38rem;
 }
 
-/* Legend swatches mirror the quadrant colours (see menu-engineering.ts). */
+/* Legend swatches mirror the quadrant colours and marker shapes (see
+   menu-engineering.ts `QUADRANT_POINT_STYLE`). */
 .chart-legend__swatch[data-quadrant='STAR'] {
-  background: var(--rms-success-fg);
+  border-radius: var(--rms-radius-full);
+  background: var(--rms-quadrant-star-fg);
 }
 
 .chart-legend__swatch[data-quadrant='PLOWHORSE'] {
-  background: var(--rms-warning-fg);
+  border-radius: 1px;
+  background: var(--rms-quadrant-plowhorse-fg);
+  transform: rotate(45deg);
 }
 
 .chart-legend__swatch[data-quadrant='PUZZLE'] {
-  background: var(--rms-info-fg);
+  border-radius: 0;
+  background: var(--rms-quadrant-puzzle-fg);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
 }
 
 .chart-legend__swatch[data-quadrant='DOG'] {
-  background: var(--rms-danger-fg);
+  border-radius: 1px;
+  background: var(--rms-quadrant-dog-fg);
+}
+
+/* Quadrant tag in the product table: dot + label, same token as the matrix. */
+.quadrant-tag {
+  --q-fg: var(--rms-neutral-fg);
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rms-space-2);
+  color: var(--q-fg);
+  font-size: var(--rms-type-caption-size);
+  font-weight: var(--rms-weight-semibold);
+  white-space: nowrap;
+}
+
+.quadrant-tag[data-quadrant='STAR'] {
+  --q-fg: var(--rms-quadrant-star-fg);
+}
+
+.quadrant-tag[data-quadrant='PLOWHORSE'] {
+  --q-fg: var(--rms-quadrant-plowhorse-fg);
+}
+
+.quadrant-tag[data-quadrant='PUZZLE'] {
+  --q-fg: var(--rms-quadrant-puzzle-fg);
+}
+
+.quadrant-tag[data-quadrant='DOG'] {
+  --q-fg: var(--rms-quadrant-dog-fg);
+}
+
+.quadrant-tag__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex-shrink: 0;
+  border-radius: var(--rms-radius-full);
+  background: var(--q-fg);
 }
 
 .empty-cell {

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import type { ChartData } from 'chart.js';
+import type { ChartData, PointStyle } from 'chart.js';
 import { finalize } from 'rxjs';
 
 import { AnalyticsCache } from '@app/core/services/analytics/analytics-cache';
@@ -23,8 +23,6 @@ import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 import { RmsSelect, type RmsSelectOption } from '@app/shared/ui/select/select';
 import { RmsStatTile } from '@app/shared/ui/stat-tile/stat-tile';
-import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
-import type { RmsStatus } from '@app/shared/ui/types/ui-types';
 
 import { AnalyticsNotice } from '../../components/analytics-notice/analytics-notice';
 import { bubbleOptions, formatPct } from '../../analytics-chart-options';
@@ -33,7 +31,6 @@ interface QuadrantMeta {
   label: string;
   icon: string;
   action: string;
-  status: RmsStatus;
 }
 
 interface QuadrantSummary {
@@ -51,26 +48,30 @@ const QUADRANT_META: Record<MenuQuadrant, QuadrantMeta> = {
     label: 'Estrella',
     icon: 'pi pi-star-fill',
     action: 'Venden bien y dejan buena ganancia. Protégelos.',
-    status: 'success',
   },
   PLOWHORSE: {
     label: 'Caballo de batalla',
     icon: 'pi pi-thumbs-up',
     action: 'Venden mucho pero dejan poca ganancia. Ajusta precio o costo.',
-    status: 'warning',
   },
   PUZZLE: {
     label: 'Rompecabezas',
     icon: 'pi pi-lightbulb',
     action: 'Dejan ganancia pero no se venden. Promuévelos.',
-    status: 'info',
   },
   DOG: {
     label: 'A revisar',
     icon: 'pi pi-flag',
     action: 'No venden ni dejan ganancia. Candidatos a salir.',
-    status: 'danger',
   },
+};
+
+/** One chart marker per quadrant so the series never rely on hue alone. */
+const QUADRANT_POINT_STYLE: Record<MenuQuadrant, PointStyle> = {
+  STAR: 'circle',
+  PLOWHORSE: 'rectRot',
+  PUZZLE: 'triangle',
+  DOG: 'rect',
 };
 
 const QUADRANT_ORDER: Record<MenuQuadrant, number> = {
@@ -92,7 +93,6 @@ const QUADRANT_ORDER: Record<MenuQuadrant, number> = {
     RmsPageHeader,
     RmsSelect,
     RmsStatTile,
-    RmsStatusPill,
     AnalyticsNotice,
   ],
   templateUrl: './menu-engineering.html',
@@ -204,10 +204,10 @@ export class MenuEngineering {
   readonly chartOptions = bubbleOptions();
 
   readonly quadrantColors = computed<Record<MenuQuadrant, string>>(() => ({
-    STAR: readRmsToken('--rms-success-fg', '#065f46'),
-    PLOWHORSE: readRmsToken('--rms-warning-fg', '#92400e'),
-    PUZZLE: readRmsToken('--rms-info-fg', '#1d4ed8'),
-    DOG: readRmsToken('--rms-danger-fg', '#b91c1c'),
+    STAR: readRmsToken('--rms-quadrant-star-fg', '#0f766e'),
+    PLOWHORSE: readRmsToken('--rms-quadrant-plowhorse-fg', '#475569'),
+    PUZZLE: readRmsToken('--rms-quadrant-puzzle-fg', '#4338ca'),
+    DOG: readRmsToken('--rms-quadrant-dog-fg', '#9f1239'),
   }));
 
   readonly chartData = computed<ChartData<'bubble'>>(() => {
@@ -227,6 +227,7 @@ export class MenuEngineering {
           })),
         backgroundColor: `${colors[quadrant]}99`,
         borderColor: colors[quadrant],
+        pointStyle: QUADRANT_POINT_STYLE[quadrant],
       })),
     };
   });
