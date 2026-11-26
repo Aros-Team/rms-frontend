@@ -138,6 +138,9 @@ export class Alerts {
 
   readonly openOnPage = computed(() => this.items().filter((item) => item.status === 'OPEN').length);
   readonly redOnPage = computed(() => this.items().filter((item) => item.severity === 'RED').length);
+  readonly yellowOnPage = computed(
+    () => this.items().filter((item) => item.severity === 'YELLOW').length,
+  );
 
   private request?: Subscription;
 

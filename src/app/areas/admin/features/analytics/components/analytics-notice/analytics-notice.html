@@ -1,10 +1,14 @@
 @if (forbidden) {
   <div class="notice notice--warning" role="alert">
-    <p class="notice__title">Sin permiso</p>
-    <p class="notice__text">Tu rol no tiene acceso a la analítica del restaurante.</p>
+    <i class="pi pi-lock notice__icon" aria-hidden="true"></i>
+    <div class="notice__body">
+      <p class="notice__title">Sin permiso</p>
+      <p class="notice__text">Tu rol no tiene acceso a la analítica del restaurante.</p>
+    </div>
   </div>
 } @else if (error) {
   <div class="notice notice--danger" role="alert">
+    <i class="pi pi-exclamation-circle notice__icon" aria-hidden="true"></i>
     <div class="notice__body">
       <p class="notice__title">{{ errorTitle }}</p>
       <p class="notice__text">{{ error }}</p>
@@ -17,11 +21,14 @@
 
 @if (showNotes) {
   <div class="notice notice--warning" role="status">
-    <p class="notice__title">Datos parciales</p>
-    <ul class="notice__list">
-      @for (note of notes; track note) {
-        <li>{{ note }}</li>
-      }
-    </ul>
+    <i class="pi pi-info-circle notice__icon" aria-hidden="true"></i>
+    <div class="notice__body">
+      <p class="notice__title">Datos parciales</p>
+      <ul class="notice__list">
+        @for (note of notes; track note) {
+          <li>{{ note }}</li>
+        }
+      </ul>
+    </div>
   </div>
 }

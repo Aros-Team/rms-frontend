@@ -164,19 +164,22 @@ Domain mapping (do not invent per-screen colours):
 
 `--rms-chart-1..8`, plus `--rms-chart-grid`, `--rms-chart-axis`,
 `--rms-chart-legend-text`, `--rms-chart-tooltip-bg|text|border`. Dark values are
-the lighter counterparts. Fixed mappings:
+the lighter counterparts. The palette is one muted cool ramp shared by every
+chart, dashboard included: azure, teal, violet, rose, cyan, sage, steel blue and
+plum. There is no brown/terracotta and no neutral-gray series. Fixed mappings:
 
 - Sales actual = series 1. Comparison = series 7 (dashed).
-- COGS: FOOD 5, BEVERAGE 1, ALCOHOL 4, OTHER 7.
-- Labor by area: FOH 2, BOH 5.
+- COGS: FOOD 5, BEVERAGE 1, ALCOHOL 4, OTHER 6.
+- Labor by area: FOH 2, BOH 3.
+- Prime cost = series 4 (rose), gross margin = series 2 (teal), net margin =
+  series 3 (violet, dashed).
 - Menu quadrants are data, not alerts: they read the dedicated
   `--rms-quadrant-{star,plowhorse,puzzle,dog}-{fg,bg,border}` tokens, a cool
-  categorical quartet (teal / slate / indigo / rose). The matrix card stays
+  categorical quartet (teal / steel blue / violet / rose). The matrix card stays
   neutral and only its rail and filled icon chip carry colour; `--status` tones
   are reserved for real operational states. Chart markers also differ by shape
   (`circle`, `rectRot`, `triangle`, `rect`), so the series never rely on hue
   alone.
-- Prime cost line = danger, margin = success. Two lines maximum.
 
 ---
 

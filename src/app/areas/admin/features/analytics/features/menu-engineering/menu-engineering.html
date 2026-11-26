@@ -59,18 +59,18 @@
 
     <section class="kpi-grid" aria-label="Resumen de la carta">
       <app-rms-stat-tile
-        label="Productos analizados"
-        [value]="stats().count"
-        [period]="rangeLabel()"
-        [loading]="busy()"
-        icon="pi pi-box" />
-      <app-rms-stat-tile
         label="Contribución total"
         [value]="stats().contribution | money"
         [period]="rangeLabel()"
         [loading]="busy()"
         icon="pi pi-chart-bar"
         [emphasis]="true" />
+      <app-rms-stat-tile
+        label="Productos analizados"
+        [value]="stats().count"
+        [period]="rangeLabel()"
+        [loading]="busy()"
+        icon="pi pi-box" />
       <app-rms-stat-tile
         label="Ventas típicas"
         [value]="stats().medianVolume ?? null"

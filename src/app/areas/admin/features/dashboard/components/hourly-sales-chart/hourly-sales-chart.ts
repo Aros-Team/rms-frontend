@@ -101,7 +101,7 @@ export class HourlySalesChart {
   }
 
   private buildData(rows: readonly HourlySalesBar[]): ChartData<'bar'> {
-    const normal = readRmsToken('--rms-chart-1', '#1d4ed8');
+    const normal = readRmsToken('--rms-chart-1', '#4f6fca');
     const current = readRmsToken('--rms-info-solid', '#0369a1');
     return {
       labels: rows.map((row) => row.label),

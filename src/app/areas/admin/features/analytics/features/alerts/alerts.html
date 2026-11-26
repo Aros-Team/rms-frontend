@@ -1,6 +1,7 @@
 <div class="analytics-page">
   <app-rms-page-header
-    title="Alertas de variación">
+    title="Alertas de variación"
+    subtitle="Desvíos de costo, ventas y margen detectados en el periodo.">
     <span rmsPageHeaderMeta class="page-meta">
       @if (total() > 0) {
         {{ pageLabel() }}
@@ -31,9 +32,10 @@
   }
 
   <section class="kpi-grid" aria-label="Resumen de alertas">
-    <app-rms-stat-tile label="Alertas" [value]="total()" period="en los filtros actuales" icon="pi pi-bell" />
     <app-rms-stat-tile label="Abiertas" [value]="openOnPage()" period="en esta página" icon="pi pi-exclamation-circle" [emphasis]="true" />
+    <app-rms-stat-tile label="Alertas" [value]="total()" period="en los filtros actuales" icon="pi pi-bell" />
     <app-rms-stat-tile label="Rojas" [value]="redOnPage()" period="en esta página" icon="pi pi-exclamation-triangle" />
+    <app-rms-stat-tile label="Amarillas" [value]="yellowOnPage()" period="en esta página" icon="pi pi-exclamation-circle" />
   </section>
 
   <div class="filters" role="group" aria-label="Filtros de alertas">

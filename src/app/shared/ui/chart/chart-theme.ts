@@ -35,25 +35,25 @@ import {
  */
 
 const FALLBACKS_LIGHT = [
-  '#1d4ed8',
-  '#0f766e',
-  '#6d28d9',
-  '#be185d',
-  '#b45309',
-  '#4d7c0f',
-  '#475569',
-  '#9f1239',
+  '#4f6fca',
+  '#3f8a80',
+  '#7a63b8',
+  '#b35c7d',
+  '#3f8fa0',
+  '#5c8a6a',
+  '#5f7b9e',
+  '#9b5fa8',
 ];
 
 const FALLBACKS_DARK = [
-  '#60a5fa',
-  '#2dd4bf',
-  '#a78bfa',
-  '#f472b6',
-  '#fbbf24',
-  '#a3e635',
-  '#94a3b8',
-  '#fb7185',
+  '#93b0f0',
+  '#7fc9be',
+  '#b8a2e8',
+  '#e3a0b8',
+  '#8cc6dc',
+  '#9ac7a5',
+  '#9db4d1',
+  '#d3a0dd',
 ];
 
 let registered = false;

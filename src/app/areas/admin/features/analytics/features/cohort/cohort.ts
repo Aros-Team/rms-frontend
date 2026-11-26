@@ -12,14 +12,13 @@ import { RmsBadge } from '@app/shared/ui/badge/badge';
 import type { RmsBadgeTone } from '@app/shared/ui/badge/badge';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsChartFrame } from '@app/shared/ui/chart-frame/chart-frame';
-import { rmsChartPalette } from '@app/shared/ui/chart/chart-theme';
 import { RmsChart } from '@app/shared/ui/chart/rms-chart';
 import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 import { RmsStatTile } from '@app/shared/ui/stat-tile/stat-tile';
 
 import { AnalyticsNotice } from '../../components/analytics-notice/analytics-notice';
-import { countBarOptions, formatPct } from '../../analytics-chart-options';
+import { analyticsSeriesColors, countBarOptions, formatPct } from '../../analytics-chart-options';
 
 const STRATEGY_LABEL: Record<CohortFingerprintStrategy, string> = {
   PHONE: 'Teléfono',
@@ -100,21 +99,21 @@ export class Cohort {
 
   readonly chartOptions = countBarOptions('Pedidos', true);
   readonly chartData = computed<ChartData<'bar'>>(() => {
-    const palette = rmsChartPalette();
+    const colors = analyticsSeriesColors();
     return {
       labels: this.rows().map((row) => row.label),
       datasets: [
         {
           label: 'Nuevos',
           data: this.rows().map((row) => row.newClients),
-          backgroundColor: palette[0],
+          backgroundColor: colors.cohort.new,
           borderWidth: 0,
           stack: 'clients',
         },
         {
           label: 'Recurrentes',
           data: this.rows().map((row) => row.recurringClients),
-          backgroundColor: palette[1],
+          backgroundColor: colors.cohort.recurring,
           borderWidth: 0,
           stack: 'clients',
         },
@@ -122,10 +121,7 @@ export class Cohort {
     };
   });
 
-  readonly chartColors = computed(() => {
-    const palette = rmsChartPalette();
-    return { new: palette[0], recurring: palette[1] };
-  });
+  readonly chartColors = computed(() => analyticsSeriesColors().cohort);
 
   constructor() {
     effect(() => {

@@ -120,28 +120,29 @@
   /* Menu-engineering quadrants. A cool categorical quartet for data-viz,
      deliberately separate from the status traffic-lights: revenue analysis is
      not an alert. Read only by the analytics feature. */
-  --rms-quadrant-star-fg: #0f766e;
-  --rms-quadrant-star-bg: #f0fdfa;
-  --rms-quadrant-star-border: #99f6e4;
-  --rms-quadrant-plowhorse-fg: #475569;
-  --rms-quadrant-plowhorse-bg: #f1f5f9;
-  --rms-quadrant-plowhorse-border: #cbd5e1;
-  --rms-quadrant-puzzle-fg: #4338ca;
-  --rms-quadrant-puzzle-bg: #eef2ff;
-  --rms-quadrant-puzzle-border: #c7d2fe;
-  --rms-quadrant-dog-fg: #9f1239;
-  --rms-quadrant-dog-bg: #fff1f2;
-  --rms-quadrant-dog-border: #fecdd3;
+  --rms-quadrant-star-fg: #2f6f68;
+  --rms-quadrant-star-bg: #eff8f6;
+  --rms-quadrant-star-border: #b9dcd6;
+  --rms-quadrant-plowhorse-fg: #4f6b8a;
+  --rms-quadrant-plowhorse-bg: #f1f5fa;
+  --rms-quadrant-plowhorse-border: #c6d2e0;
+  --rms-quadrant-puzzle-fg: #6a52a8;
+  --rms-quadrant-puzzle-bg: #f4f1fb;
+  --rms-quadrant-puzzle-border: #d3c9ec;
+  --rms-quadrant-dog-fg: #a84f70;
+  --rms-quadrant-dog-bg: #fbf1f5;
+  --rms-quadrant-dog-border: #ecc9d6;
 
-  /* Chart system. Series colors pass 3:1 as graphics in both themes. */
-  --rms-chart-1: #1d4ed8;
-  --rms-chart-2: #0f766e;
-  --rms-chart-3: #6d28d9;
-  --rms-chart-4: #be185d;
-  --rms-chart-5: #b45309;
-  --rms-chart-6: #4d7c0f;
-  --rms-chart-7: #475569;
-  --rms-chart-8: #9f1239;
+  /* Chart system. Series colors pass 3:1 as graphics in both themes.
+     One muted cool palette for every chart, including the dashboard. */
+  --rms-chart-1: #4f6fca;
+  --rms-chart-2: #3f8a80;
+  --rms-chart-3: #7a63b8;
+  --rms-chart-4: #b35c7d;
+  --rms-chart-5: #3f8fa0;
+  --rms-chart-6: #5c8a6a;
+  --rms-chart-7: #5f7b9e;
+  --rms-chart-8: #9b5fa8;
   --rms-chart-comparison: var(--rms-chart-7);
   --rms-chart-grid: var(--rms-border);
   --rms-chart-axis: var(--rms-text-muted);
@@ -320,27 +321,27 @@
   --rms-neutral-solid: var(--rms-neutral-600);
   --rms-neutral-on-solid: #ffffff;
 
-  --rms-quadrant-star-fg: #5eead4;
-  --rms-quadrant-star-bg: #042f2e;
-  --rms-quadrant-star-border: #0f766e;
-  --rms-quadrant-plowhorse-fg: #cbd5e1;
-  --rms-quadrant-plowhorse-bg: #172033;
-  --rms-quadrant-plowhorse-border: #475569;
-  --rms-quadrant-puzzle-fg: #a5b4fc;
-  --rms-quadrant-puzzle-bg: #171a3a;
-  --rms-quadrant-puzzle-border: #4338ca;
-  --rms-quadrant-dog-fg: #fda4af;
-  --rms-quadrant-dog-bg: #2b1018;
-  --rms-quadrant-dog-border: #9f1239;
+  --rms-quadrant-star-fg: #7fc9be;
+  --rms-quadrant-star-bg: #123330;
+  --rms-quadrant-star-border: #2f6f68;
+  --rms-quadrant-plowhorse-fg: #9db4d1;
+  --rms-quadrant-plowhorse-bg: #172231;
+  --rms-quadrant-plowhorse-border: #4f6b8a;
+  --rms-quadrant-puzzle-fg: #b8a2e8;
+  --rms-quadrant-puzzle-bg: #241b38;
+  --rms-quadrant-puzzle-border: #6a52a8;
+  --rms-quadrant-dog-fg: #e3a0b8;
+  --rms-quadrant-dog-bg: #331923;
+  --rms-quadrant-dog-border: #a84f70;
 
-  --rms-chart-1: #60a5fa;
-  --rms-chart-2: #2dd4bf;
-  --rms-chart-3: #a78bfa;
-  --rms-chart-4: #f472b6;
-  --rms-chart-5: #fbbf24;
-  --rms-chart-6: #a3e635;
-  --rms-chart-7: #94a3b8;
-  --rms-chart-8: #fb7185;
+  --rms-chart-1: #93b0f0;
+  --rms-chart-2: #7fc9be;
+  --rms-chart-3: #b8a2e8;
+  --rms-chart-4: #e3a0b8;
+  --rms-chart-5: #8cc6dc;
+  --rms-chart-6: #9ac7a5;
+  --rms-chart-7: #9db4d1;
+  --rms-chart-8: #d3a0dd;
 
   --rms-table-row-hover: var(--rms-bg-subtle);
   --rms-table-row-selected: var(--rms-brand-soft);
@@ -380,14 +381,14 @@
     --rms-info-border: #1d4ed8;
     --rms-neutral-fg: var(--rms-neutral-950);
     --rms-neutral-border: var(--rms-neutral-500);
-    --rms-quadrant-star-fg: #115e59;
-    --rms-quadrant-star-border: #0f766e;
-    --rms-quadrant-plowhorse-fg: #1e293b;
-    --rms-quadrant-plowhorse-border: #475569;
-    --rms-quadrant-puzzle-fg: #3730a3;
-    --rms-quadrant-puzzle-border: #4338ca;
-    --rms-quadrant-dog-fg: #881337;
-    --rms-quadrant-dog-border: #be123c;
+    --rms-quadrant-star-fg: #1f5a54;
+    --rms-quadrant-star-border: #2f6f68;
+    --rms-quadrant-plowhorse-fg: #334f6d;
+    --rms-quadrant-plowhorse-border: #4f6b8a;
+    --rms-quadrant-puzzle-fg: #4f3a8a;
+    --rms-quadrant-puzzle-border: #6a52a8;
+    --rms-quadrant-dog-fg: #8a3a58;
+    --rms-quadrant-dog-border: #a84f70;
     --rms-table-row-hover: var(--rms-neutral-100);
   }
 
@@ -415,14 +416,14 @@
     --rms-info-border: #60a5fa;
     --rms-neutral-fg: var(--rms-neutral-50);
     --rms-neutral-border: var(--rms-neutral-400);
-    --rms-quadrant-star-fg: #99f6e4;
-    --rms-quadrant-star-border: #2dd4bf;
-    --rms-quadrant-plowhorse-fg: #e2e8f0;
-    --rms-quadrant-plowhorse-border: #94a3b8;
-    --rms-quadrant-puzzle-fg: #c7d2fe;
-    --rms-quadrant-puzzle-border: #818cf8;
-    --rms-quadrant-dog-fg: #fecdd3;
-    --rms-quadrant-dog-border: #fb7185;
+    --rms-quadrant-star-fg: #99e0d5;
+    --rms-quadrant-star-border: #7fc9be;
+    --rms-quadrant-plowhorse-fg: #b9cbe1;
+    --rms-quadrant-plowhorse-border: #9db4d1;
+    --rms-quadrant-puzzle-fg: #cfbcf5;
+    --rms-quadrant-puzzle-border: #b8a2e8;
+    --rms-quadrant-dog-fg: #f2bcd0;
+    --rms-quadrant-dog-border: #e3a0b8;
     --rms-table-row-hover: #172033;
   }
 }
@@ -451,14 +452,14 @@ html[data-contrast='high'] {
   --rms-info-border: #1d4ed8;
   --rms-neutral-fg: var(--rms-neutral-950);
   --rms-neutral-border: var(--rms-neutral-500);
-  --rms-quadrant-star-fg: #115e59;
-  --rms-quadrant-star-border: #0f766e;
-  --rms-quadrant-plowhorse-fg: #1e293b;
-  --rms-quadrant-plowhorse-border: #475569;
-  --rms-quadrant-puzzle-fg: #3730a3;
-  --rms-quadrant-puzzle-border: #4338ca;
-  --rms-quadrant-dog-fg: #881337;
-  --rms-quadrant-dog-border: #be123c;
+  --rms-quadrant-star-fg: #1f5a54;
+  --rms-quadrant-star-border: #2f6f68;
+  --rms-quadrant-plowhorse-fg: #334f6d;
+  --rms-quadrant-plowhorse-border: #4f6b8a;
+  --rms-quadrant-puzzle-fg: #4f3a8a;
+  --rms-quadrant-puzzle-border: #6a52a8;
+  --rms-quadrant-dog-fg: #8a3a58;
+  --rms-quadrant-dog-border: #a84f70;
   --rms-table-row-hover: var(--rms-neutral-100);
 }
 
@@ -486,13 +487,13 @@ html.dark[data-contrast='high'] {
   --rms-info-border: #60a5fa;
   --rms-neutral-fg: var(--rms-neutral-50);
   --rms-neutral-border: var(--rms-neutral-400);
-  --rms-quadrant-star-fg: #99f6e4;
-  --rms-quadrant-star-border: #2dd4bf;
-  --rms-quadrant-plowhorse-fg: #e2e8f0;
-  --rms-quadrant-plowhorse-border: #94a3b8;
-  --rms-quadrant-puzzle-fg: #c7d2fe;
-  --rms-quadrant-puzzle-border: #818cf8;
-  --rms-quadrant-dog-fg: #fecdd3;
-  --rms-quadrant-dog-border: #fb7185;
+  --rms-quadrant-star-fg: #99e0d5;
+  --rms-quadrant-star-border: #7fc9be;
+  --rms-quadrant-plowhorse-fg: #b9cbe1;
+  --rms-quadrant-plowhorse-border: #9db4d1;
+  --rms-quadrant-puzzle-fg: #cfbcf5;
+  --rms-quadrant-puzzle-border: #b8a2e8;
+  --rms-quadrant-dog-fg: #f2bcd0;
+  --rms-quadrant-dog-border: #e3a0b8;
   --rms-table-row-hover: #172033;
 }

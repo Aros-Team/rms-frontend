@@ -19,8 +19,8 @@
   background: var(--rms-chart-4);
 }
 
-.chart-legend__swatch--line-5 {
-  border-color: var(--rms-chart-5);
+.chart-legend__swatch--line-3 {
+  border-color: var(--rms-chart-3);
 }
 
 .chart-legend__swatch--line-7 {
@@ -40,7 +40,7 @@
 }
 
 .chart-legend__swatch[data-series='OTHER'] {
-  background: var(--rms-chart-7);
+  background: var(--rms-chart-6);
 }
 
 @media (max-width: 640px) {

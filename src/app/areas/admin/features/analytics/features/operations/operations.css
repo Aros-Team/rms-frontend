@@ -2,20 +2,6 @@
   display: block;
 }
 
-@media (min-width: 640px) {
-  /* Six KPIs: three per row keeps the second row balanced instead of the
-     4 + 2 orphan auto-fit produces on 1024-wide admin viewports. */
-  .kpi-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1360px) {
-  .kpi-grid {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
-}
-
 .metrics {
   display: flex;
   flex-direction: column;

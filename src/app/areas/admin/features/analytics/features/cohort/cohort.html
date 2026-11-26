@@ -39,18 +39,18 @@
   } @else {
     <section class="kpi-grid" aria-label="Indicadores de cohorte">
       <app-rms-stat-tile
-        label="Clientes nuevos"
-        [value]="report()?.newClients ?? null"
-        [period]="rangeLabel()"
-        [loading]="busy()"
-        icon="pi pi-user-plus" />
-      <app-rms-stat-tile
         label="Clientes recurrentes"
         [value]="report()?.recurringClients ?? null"
         [period]="rangeLabel()"
         [loading]="busy()"
         icon="pi pi-users"
         [emphasis]="true" />
+      <app-rms-stat-tile
+        label="Clientes nuevos"
+        [value]="report()?.newClients ?? null"
+        [period]="rangeLabel()"
+        [loading]="busy()"
+        icon="pi pi-user-plus" />
       <app-rms-stat-tile
         label="Tasa de recurrencia"
         [value]="formatPct(report()?.recurringRatePct, 1)"

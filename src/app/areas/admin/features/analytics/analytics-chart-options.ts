@@ -3,6 +3,7 @@ import type { ChartOptions } from 'chart.js';
 import {
   rmsBarOptions,
   rmsChartAxisColor,
+  rmsChartPalette,
   rmsDoughnutOptions,
   rmsLineOptions,
 } from '@app/shared/ui/chart/chart-theme';
@@ -38,6 +39,41 @@ export function shortNumber(value: number | string): string {
 export function formatPct(value: number | null | undefined, decimals = 1): string {
   if (value === null || value === undefined || Number.isNaN(value)) return '—';
   return `${value.toFixed(decimals)}%`;
+}
+
+/**
+ * One semantic mapping for every analytics chart.
+ *
+ * Feature components must not index the raw palette directly: the meaning
+ * (net sales, cost, margin, comparison) owns the colour so the same metric
+ * reads the same in all five modules, on the same ramp the dashboard uses.
+ */
+export function analyticsSeriesColors() {
+  const palette = rmsChartPalette();
+  return {
+    primary: palette[0],
+    comparison: palette[6],
+    netSales: palette[0],
+    grossSales: palette[6],
+    primeCost: palette[3],
+    grossMargin: palette[1],
+    netMargin: palette[2],
+    cogs: {
+      FOOD: palette[4],
+      BEVERAGE: palette[0],
+      ALCOHOL: palette[3],
+      OTHER: palette[5],
+    },
+    labor: {
+      FOH: palette[1],
+      BOH: palette[2],
+      OTHER: palette[6],
+    },
+    cohort: {
+      new: palette[0],
+      recurring: palette[1],
+    },
+  } as const;
 }
 
 export function moneyLineOptions(unit: string): ChartOptions<'line'> {

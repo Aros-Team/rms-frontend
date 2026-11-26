@@ -204,10 +204,10 @@ export class MenuEngineering {
   readonly chartOptions = bubbleOptions();
 
   readonly quadrantColors = computed<Record<MenuQuadrant, string>>(() => ({
-    STAR: readRmsToken('--rms-quadrant-star-fg', '#0f766e'),
-    PLOWHORSE: readRmsToken('--rms-quadrant-plowhorse-fg', '#475569'),
-    PUZZLE: readRmsToken('--rms-quadrant-puzzle-fg', '#4338ca'),
-    DOG: readRmsToken('--rms-quadrant-dog-fg', '#9f1239'),
+    STAR: readRmsToken('--rms-quadrant-star-fg', '#2f6f68'),
+    PLOWHORSE: readRmsToken('--rms-quadrant-plowhorse-fg', '#4f6b8a'),
+    PUZZLE: readRmsToken('--rms-quadrant-puzzle-fg', '#6a52a8'),
+    DOG: readRmsToken('--rms-quadrant-dog-fg', '#a84f70'),
   }));
 
   readonly chartData = computed<ChartData<'bubble'>>(() => {

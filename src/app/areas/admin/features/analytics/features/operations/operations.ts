@@ -10,7 +10,6 @@ import { bucketLabel, previousRange, rangeLabel } from '@app/core/services/analy
 import { Money as MoneyPipe } from '@app/shared/pipes/money/money';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsChartFrame } from '@app/shared/ui/chart-frame/chart-frame';
-import { rmsChartPalette } from '@app/shared/ui/chart/chart-theme';
 import { RmsChart } from '@app/shared/ui/chart/rms-chart';
 import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
@@ -18,7 +17,7 @@ import { RmsStatTile } from '@app/shared/ui/stat-tile/stat-tile';
 import type { RmsDeltaTone } from '@app/shared/ui/stat-tile/stat-tile';
 
 import { AnalyticsNotice } from '../../components/analytics-notice/analytics-notice';
-import { countBarOptions, formatPct } from '../../analytics-chart-options';
+import { analyticsSeriesColors, countBarOptions, formatPct } from '../../analytics-chart-options';
 
 interface Delta {
   text: string;
@@ -89,14 +88,14 @@ export class Operations {
 
   readonly chartOptions = countBarOptions('Turnos');
   readonly chartData = computed<ChartData<'bar'>>(() => {
-    const palette = rmsChartPalette();
+    const colors = analyticsSeriesColors();
     return {
       labels: this.dayPartRows().map((row) => row.label),
       datasets: [
         {
           label: 'Turnos',
           data: this.dayPartRows().map((row) => row.turns),
-          backgroundColor: palette[0],
+          backgroundColor: colors.primary,
           borderWidth: 0,
         },
       ],

@@ -18,7 +18,6 @@ import {
 import { Money as MoneyPipe } from '@app/shared/pipes/money/money';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsChartFrame } from '@app/shared/ui/chart-frame/chart-frame';
-import { rmsChartPalette } from '@app/shared/ui/chart/chart-theme';
 import { RmsChart } from '@app/shared/ui/chart/rms-chart';
 import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
@@ -26,6 +25,7 @@ import { RmsStatTile } from '@app/shared/ui/stat-tile/stat-tile';
 
 import { AnalyticsNotice } from '../../components/analytics-notice/analytics-notice';
 import {
+  analyticsSeriesColors,
   formatPct,
   moneyBarOptions,
   moneyLineOptions,
@@ -171,7 +171,7 @@ export class PrimeCost {
   readonly cogsOptions = moneyBarOptions('Costo', true);
 
   readonly salesData = computed<ChartData<'line'>>(() => {
-    const palette = rmsChartPalette();
+    const colors = analyticsSeriesColors();
     const rows = this.tableRows();
     return {
       labels: rows.map((row) => row.label),
@@ -179,8 +179,8 @@ export class PrimeCost {
         {
           label: 'Ventas netas',
           data: rows.map((row) => moneyValue(row.netSales)),
-          borderColor: palette[0],
-          backgroundColor: `${palette[0]}22`,
+          borderColor: colors.netSales,
+          backgroundColor: `${colors.netSales}22`,
           fill: true,
           tension: 0.3,
           pointRadius: 2,
@@ -188,7 +188,7 @@ export class PrimeCost {
         {
           label: 'Ventas brutas',
           data: rows.map((row) => moneyValue(row.grossSales)),
-          borderColor: palette[6],
+          borderColor: colors.grossSales,
           borderDash: [4, 4],
           backgroundColor: 'transparent',
           fill: false,
@@ -200,7 +200,7 @@ export class PrimeCost {
   });
 
   readonly marginData = computed<ChartData<'line'>>(() => {
-    const palette = rmsChartPalette();
+    const colors = analyticsSeriesColors();
     const rows = this.tableRows();
     return {
       labels: rows.map((row) => row.label),
@@ -208,8 +208,8 @@ export class PrimeCost {
         {
           label: 'Costo primo',
           data: rows.map((row) => row.primeCostPct),
-          borderColor: palette[3],
-          backgroundColor: `${palette[3]}22`,
+          borderColor: colors.primeCost,
+          backgroundColor: `${colors.primeCost}22`,
           fill: false,
           tension: 0.3,
           pointRadius: 2,
@@ -217,8 +217,8 @@ export class PrimeCost {
         {
           label: 'Margen bruto',
           data: rows.map((row) => row.margins?.grossProfitPct ?? null),
-          borderColor: palette[1],
-          backgroundColor: `${palette[1]}22`,
+          borderColor: colors.grossMargin,
+          backgroundColor: `${colors.grossMargin}22`,
           fill: false,
           tension: 0.3,
           pointRadius: 2,
@@ -226,7 +226,7 @@ export class PrimeCost {
         {
           label: 'Margen neto',
           data: rows.map((row) => row.margins?.netProfitPct ?? null),
-          borderColor: palette[4],
+          borderColor: colors.netMargin,
           borderDash: [4, 4],
           backgroundColor: 'transparent',
           fill: false,
@@ -238,24 +238,16 @@ export class PrimeCost {
   });
 
   readonly salesColors = computed(() => {
-    const palette = rmsChartPalette();
-    return { net: palette[0], gross: palette[6] };
+    const colors = analyticsSeriesColors();
+    return { net: colors.netSales, gross: colors.grossSales };
   });
 
   readonly marginColors = computed(() => {
-    const palette = rmsChartPalette();
-    return { prime: palette[3], gross: palette[1], net: palette[4] };
+    const colors = analyticsSeriesColors();
+    return { prime: colors.primeCost, gross: colors.grossMargin, net: colors.netMargin };
   });
 
-  readonly cogsColors = computed(() => {
-    const palette = rmsChartPalette();
-    return {
-      FOOD: palette[4],
-      BEVERAGE: palette[0],
-      ALCOHOL: palette[3],
-      OTHER: palette[6],
-    };
-  });
+  readonly cogsColors = computed(() => analyticsSeriesColors().cogs);
 
   readonly cogsData = computed<ChartData<'bar'>>(() => {
     const rows = this.tableRows();

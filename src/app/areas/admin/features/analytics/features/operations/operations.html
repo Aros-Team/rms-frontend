@@ -64,22 +64,6 @@
         [deltaTone]="turnsDelta().tone"
         [loading]="busy()"
         icon="pi pi-replay" />
-      <app-rms-stat-tile
-        label="Participación de nómina"
-        [value]="formatPct(report()?.labor?.sharePct, 1)"
-        [period]="rangeLabel()"
-        [delta]="laborDelta().text"
-        [deltaTone]="laborDelta().tone"
-        [loading]="busy()"
-        icon="pi pi-percentage" />
-      <app-rms-stat-tile
-        label="Ocupación media"
-        [value]="minutes(report()?.avgOccupancyMinutes)"
-        period="por pedido entregado"
-        [delta]="occupancyDelta().text"
-        [deltaTone]="occupancyDelta().tone"
-        [loading]="busy()"
-        icon="pi pi-stopwatch" />
     </section>
 
     <section class="chart-grid" aria-label="Rotación por franja">
@@ -153,6 +137,14 @@
           <div class="metrics__row">
             <dt>Costo de nómina</dt>
             <dd>{{ report()?.labor?.totalCost | money }}</dd>
+          </div>
+          <div class="metrics__row">
+            <dt>Participación de nómina</dt>
+            <dd>{{ formatPct(report()?.labor?.sharePct, 1) }}</dd>
+          </div>
+          <div class="metrics__row">
+            <dt>Ocupación media</dt>
+            <dd>{{ minutes(report()?.avgOccupancyMinutes) }}</dd>
           </div>
         </dl>
       </div>
