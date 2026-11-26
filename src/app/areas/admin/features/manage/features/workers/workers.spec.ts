@@ -34,6 +34,7 @@ import { TimeLog } from '@app/core/services/schedules/time-log';
 import { Schedule } from '@app/core/services/schedules/schedule';
 import { ScheduleAssignment } from '@app/core/services/schedules/schedule-assignment';
 import { Worker } from '@app/core/services/workers/worker';
+import { WorkerImage } from '@app/core/services/worker-image/worker-image';
 import type { PayrollEventResponse, PayrollResponse } from '@models/dto/payroll';
 import type { WorkerResponse } from '@models/dto/workers/worker-response';
 
@@ -99,6 +100,8 @@ describe('Workers — payroll tab', () => {
     getWorkers: ReturnType<typeof vi.fn>;
     createWorker: ReturnType<typeof vi.fn>;
   };
+  let scheduleApi: { getAll: ReturnType<typeof vi.fn> };
+  let assignmentApi: { getAssignments: ReturnType<typeof vi.fn> };
 
   const now = new Date();
   const year = now.getFullYear();
@@ -146,6 +149,9 @@ describe('Workers — payroll tab', () => {
       createWorker: vi.fn(() => of({ ...WORKER, password: null })),
     };
 
+    scheduleApi = { getAll: vi.fn(() => of([])) };
+    assignmentApi = { getAssignments: vi.fn(() => of([])) };
+
     payrollApi = {
       getAllPayrolls: vi.fn(() => of([])),
       getPayrollsByPeriod: vi.fn(() => of([])),
@@ -176,13 +182,22 @@ describe('Workers — payroll tab', () => {
       providers: [
         provideRouter([]),
         { provide: Worker, useValue: workerApi },
+        {
+          provide: WorkerImage,
+          useValue: {
+            getImages: vi.fn(() => of([])),
+            uploadImage: vi.fn(() => of({})),
+            replaceImage: vi.fn(() => of([])),
+            deleteImage: vi.fn(() => of({})),
+          },
+        },
         { provide: Area, useValue: { getAreas: vi.fn(() => of([])) } },
         { provide: Payroll, useValue: payrollApi },
         { provide: TimeLog, useValue: timeLogApi },
-        { provide: Schedule, useValue: { getAll: vi.fn(() => of([])) } },
+        { provide: Schedule, useValue: scheduleApi },
         {
           provide: ScheduleAssignment,
-          useValue: { getAssignments: vi.fn(() => of([])) },
+          useValue: assignmentApi,
         },
         { provide: MessageService, useValue: { add: vi.fn() } },
         ConfirmationService,
@@ -347,6 +362,94 @@ describe('Workers — payroll tab', () => {
       component.userForm.get('salary')?.setValue(1500000);
 
       expect(component.salaryChanged()).toBe(true);
+    });
+  });
+
+  describe('employee schedule summary', () => {
+    it('shows the assigned day range, window and weekly hours on the card', async () => {
+      assignmentApi.getAssignments.mockReturnValue(of([1]));
+      scheduleApi.getAll.mockReturnValue(
+        of([
+          {
+            id: 1,
+            name: 'Turno de Ana Pérez',
+            shifts: [
+              { dayOfWeek: 'MONDAY', startTime: '08:00:00', endTime: '16:00:00' },
+              { dayOfWeek: 'TUESDAY', startTime: '08:00:00', endTime: '16:00:00' },
+              { dayOfWeek: 'WEDNESDAY', startTime: '08:00:00', endTime: '16:00:00' },
+              { dayOfWeek: 'THURSDAY', startTime: '08:00:00', endTime: '16:00:00' },
+              { dayOfWeek: 'FRIDAY', startTime: '08:00:00', endTime: '16:00:00' },
+            ],
+          },
+        ]),
+      );
+
+      await mount();
+      component.onVisible();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      fixture.detectChanges();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      fixture.detectChanges();
+
+      expect(component.workers().length).toBe(1);
+      const schedules = component.schedulesForWorker(7);
+      expect(schedules.length).toBe(1);
+      expect(schedules[0].shifts.length).toBe(5);
+    });
+  });
+
+  describe('worker portrait', () => {
+    it('stages the chosen photo and uploads it after the worker is created', async () => {
+      await mount();
+      const imageApi = TestBed.inject(WorkerImage) as unknown as {
+        uploadImage: ReturnType<typeof vi.fn>;
+      };
+      Object.defineProperty(URL, 'createObjectURL', {
+        value: vi.fn(() => 'blob:worker'),
+        configurable: true,
+      });
+      Object.defineProperty(URL, 'revokeObjectURL', {
+        value: vi.fn(),
+        configurable: true,
+      });
+
+      component.showCreationModal();
+      component.userForm.patchValue({
+        document: '1094',
+        name: 'Ana Pérez',
+        email: 'ana@rms.co',
+        phone: '3001234567',
+        areaId: 1,
+      });
+      const file = new File(['portrait'], 'ana.jpg', { type: 'image/jpeg' });
+      component.onImageSelect({
+        target: { files: [file], value: 'ana.jpg' },
+      } as unknown as Event);
+
+      expect(component.pendingImageFile()).toBe(file);
+      expect(component.imagePreview()).toBe('blob:worker');
+
+      component.createWorker();
+
+      expect(imageApi.uploadImage).toHaveBeenCalledWith(7, file);
+    });
+
+    it('rejects files that are not images and files above 5 MB', async () => {
+      await mount();
+      component.showCreationModal();
+
+      component.onImageSelect({
+        target: { files: [new File(['x'], 'doc.pdf', { type: 'application/pdf' })], value: 'x' },
+      } as unknown as Event);
+      expect(component.imageError()).toContain('Formato no permitido');
+
+      const big = new File(['x'], 'big.jpg', { type: 'image/jpeg' });
+      Object.defineProperty(big, 'size', { value: 5 * 1024 * 1024 + 1 });
+      component.onImageSelect({
+        target: { files: [big], value: 'big.jpg' },
+      } as unknown as Event);
+      expect(component.imageError()).toContain('5 MB');
+      expect(component.pendingImageFile()).toBeNull();
     });
   });
 });

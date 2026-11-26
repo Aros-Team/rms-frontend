@@ -16,6 +16,8 @@ export interface WorkerResponse {
    * `toAmount()` before any math or form binding.
    */
   salary?: Money | null;
+  /** Profile image URL (tablet variant), or null when the worker has no photo. */
+  imageUrl?: string | null;
 }
 
 export interface UpdateWorkerRequest {

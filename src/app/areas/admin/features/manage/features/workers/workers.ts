@@ -1,10 +1,11 @@
 import { NgClass } from '@angular/common';
-import { Component, OnInit, inject, computed, DestroyRef, signal, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, inject, computed, effect, DestroyRef, signal, ViewChild, ElementRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { TableModule } from 'primeng/table';
 import { DialogModule } from 'primeng/dialog';
 import { IftaLabelModule } from 'primeng/iftalabel';
@@ -19,6 +20,7 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { WorkerResponse } from '@app/shared/models/dto/workers/worker-response';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Worker } from '@app/core/services/workers/worker';
+import { WorkerImage } from '@app/core/services/worker-image/worker-image';
 import { CreateWorkerRequest } from '@app/shared/models/dto/workers/create-worker-request';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { fieldError as resolveFieldError } from '@app/shared/lib/form-error';
@@ -96,6 +98,7 @@ interface WorkerFormValue {
 })
 export class Workers implements OnInit {
   private workerService = inject(Worker);
+  private workerImageService = inject(WorkerImage);
   private areaService = inject(Area);
   private messageService = inject(MessageService);
   private logger = inject(Logging);
@@ -176,6 +179,30 @@ export class Workers implements OnInit {
   creationModalVisible = false;
   modificationModalVisible = false;
 
+  /** Worker portrait staged in the create/edit dialog. */
+  readonly imagePreview = signal<string | null>(null);
+  readonly pendingImageFile = signal<File | null>(null);
+  readonly removeExistingImage = signal(false);
+  readonly imageBusy = signal(false);
+  readonly imageError = signal<string | null>(null);
+  private currentImageId: number | null = null;
+  private existingImageUrl: string | null = null;
+  private previewObjectUrl: string | null = null;
+  private readonly maxImageBytes = 5 * 1024 * 1024;
+  private readonly loadedScheduleAssignments = new Set<number>();
+  private schedulesRequested = false;
+
+  constructor() {
+    // Keep the card counts and summaries in sync with the worker list without opening
+    // the assignment dialog for every employee.
+    effect(() => {
+      const workers = this.cache.workers.data();
+      if (workers !== null) {
+        this.loadAssignmentsFor(workers);
+      }
+    });
+  }
+
   /** Errors from backend validation (400 errors with field-specific messages) */
   private backendFieldErrors: Record<string, string> = {};
 
@@ -205,11 +232,13 @@ export class Workers implements OnInit {
   onVisible(): void {
     this.cache.workers.loadIfStale();
     this.searchForAreas();
+    this.loadSchedules();
   }
 
   closeModals(): void {
     this.modificationModalVisible = false;
     this.creationModalVisible = false;
+    this.resetImageState();
   }
 
   showModificationModal(worker: WorkerResponse): void {
@@ -223,6 +252,12 @@ export class Workers implements OnInit {
     this.salaryValue.set(salary);
     this.userForm.patchValue({ reason: null, observations: null });
     this.creationModalVisible = true;
+    this.resetImageState();
+    this.existingImageUrl = worker.imageUrl ?? null;
+    this.imagePreview.set(this.existingImageUrl);
+    if (worker.id != null) {
+      this.loadWorkerImage(worker.id);
+    }
   }
 
   showCreationModal(): void {
@@ -236,6 +271,158 @@ export class Workers implements OnInit {
   /** Focus first input in modal dialog after it opens */
   focusFirstInput(): void {
     setTimeout(() => this.firstInputRef?.nativeElement.querySelector('input')?.focus());
+  }
+
+  /** Two-letter monogram shown while the worker has no portrait. */
+  imageInitials(): string {
+    const name = (this.userForm.get('name')?.value as string | undefined) ?? '';
+    const parts = name.trim().split(/\s+/).filter((part) => part.length > 0);
+    if (parts.length === 0) {
+      return '?';
+    }
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  /** Stages the chosen file and shows a local preview until the worker is saved. */
+  onImageSelect(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (file === undefined) {
+      return;
+    }
+    this.imageError.set(null);
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      this.imageError.set('Formato no permitido. Usa JPG, PNG o WebP.');
+      return;
+    }
+    if (file.size > this.maxImageBytes) {
+      this.imageError.set('La imagen supera los 5 MB.');
+      return;
+    }
+    this.revokePreviewUrl();
+    const objectUrl = URL.createObjectURL(file);
+    this.previewObjectUrl = objectUrl;
+    this.pendingImageFile.set(file);
+    this.removeExistingImage.set(false);
+    this.imagePreview.set(objectUrl);
+  }
+
+  /** Removes the staged portrait, or marks the saved one for deletion. */
+  removeWorkerImage(): void {
+    this.imageError.set(null);
+    if (this.pendingImageFile() !== null) {
+      this.revokePreviewUrl();
+      this.pendingImageFile.set(null);
+      this.imagePreview.set(this.removeExistingImage() ? null : this.existingImageUrl);
+      return;
+    }
+    if (this.currentImageId !== null) {
+      this.removeExistingImage.set(true);
+      this.imagePreview.set(null);
+    }
+  }
+
+  private loadWorkerImage(workerId: number): void {
+    this.workerImageService.getImages(workerId).subscribe({
+      next: (images) => {
+        // A portrait chosen while the request was in flight wins.
+        if (this.pendingImageFile() !== null) {
+          return;
+        }
+        if (images.length === 0) {
+          return;
+        }
+        const first = images[0];
+        this.currentImageId = first.id;
+        const url = first.tabletUrl || first.mobileUrl;
+        this.existingImageUrl = url;
+        if (!this.removeExistingImage()) {
+          this.imagePreview.set(url);
+        }
+      },
+      error: () => {
+        // The worker still opens; the stored `imageUrl` keeps the current preview.
+      },
+    });
+  }
+
+  /**
+   * Persists the staged portrait after the worker itself was created/updated.
+   * A failed upload never loses the worker: it only shows a warning.
+   */
+  private saveWorkerImage(workerId: number, editing: boolean, done: () => void): void {
+    const file = this.pendingImageFile();
+    if (file !== null) {
+      this.imageBusy.set(true);
+      const request: Observable<unknown> = editing
+        ? this.workerImageService.replaceImage(workerId, file)
+        : this.workerImageService.uploadImage(workerId, file);
+      request.subscribe({
+        next: () => {
+          this.imageBusy.set(false);
+          done();
+        },
+        error: (err: HttpErrorResponse) => {
+          this.logger.error('Error saving worker image:', err);
+          this.imageBusy.set(false);
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Trabajador guardado',
+            detail: 'La foto no se pudo guardar. Puedes intentarlo de nuevo desde la edición.',
+            life: 6000,
+          });
+          done();
+        },
+      });
+      return;
+    }
+
+    const imageId = this.currentImageId;
+    if (this.removeExistingImage() && imageId !== null) {
+      this.imageBusy.set(true);
+      this.workerImageService.deleteImage(imageId).subscribe({
+        next: () => {
+          this.imageBusy.set(false);
+          done();
+        },
+        error: (err: HttpErrorResponse) => {
+          this.logger.error('Error deleting worker image:', err);
+          this.imageBusy.set(false);
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Trabajador guardado',
+            detail: 'La foto no se pudo quitar.',
+            life: 6000,
+          });
+          done();
+        },
+      });
+      return;
+    }
+
+    done();
+  }
+
+  private resetImageState(): void {
+    this.revokePreviewUrl();
+    this.pendingImageFile.set(null);
+    this.removeExistingImage.set(false);
+    this.imagePreview.set(null);
+    this.imageError.set(null);
+    this.imageBusy.set(false);
+    this.currentImageId = null;
+    this.existingImageUrl = null;
+  }
+
+  private revokePreviewUrl(): void {
+    if (this.previewObjectUrl !== null) {
+      URL.revokeObjectURL(this.previewObjectUrl);
+      this.previewObjectUrl = null;
+    }
   }
 
   createWorker(): void {
@@ -253,14 +440,16 @@ export class Workers implements OnInit {
     this.backendFieldErrors = {};
 
     this.workerService.createWorker(this.formToRequest()).subscribe({
-      next: () => {
-        this.closeModals();
-        this.searchForWorkers();
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Operación exitosa',
-          detail: 'El trabajador ha sido creado. Se enviará una contraseña al correo.',
-          life: 5000,
+      next: (created) => {
+        this.saveWorkerImage(created.id, false, () => {
+          this.closeModals();
+          this.searchForWorkers();
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Operación exitosa',
+            detail: 'El trabajador ha sido creado. Se enviará una contraseña al correo.',
+            life: 5000,
+          });
         });
       },
       error: (err: HttpErrorResponse) => {
@@ -327,6 +516,7 @@ export class Workers implements OnInit {
     this.backendFieldErrors = {};
 
     const formValue = this.userForm.value as WorkerFormValue;
+    const workerId = this.selectedWorker.id;
 
     if (this.salaryChanged()) {
       if (!formValue.reason || formValue.reason.trim() === '') {
@@ -357,13 +547,15 @@ export class Workers implements OnInit {
 
     this.workerService.updateWorker(this.selectedWorker.id, updateData).subscribe({
       next: () => {
-        this.closeModals();
-        this.searchForWorkers();
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Operación exitosa',
-          detail: 'El trabajador ha sido actualizado correctamente.',
-          life: 5000,
+        this.saveWorkerImage(workerId, true, () => {
+          this.closeModals();
+          this.searchForWorkers();
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Operación exitosa',
+            detail: 'El trabajador ha sido actualizado correctamente.',
+            life: 5000,
+          });
         });
       },
       error: (err: HttpErrorResponse) => {
@@ -561,6 +753,52 @@ export class Workers implements OnInit {
     });
   }
 
+  private loadSchedules(): void {
+    if (this.schedulesRequested) return;
+    this.schedulesRequested = true;
+    this.scheduleService.getAll().subscribe({
+      next: (schedules) => {
+        this.allSchedules.set(schedules);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.schedulesRequested = false;
+        this.logger.error('Failed to load schedules', err);
+      },
+    });
+  }
+
+  /** Loads the assignments of every listed worker once, so the cards can show them. */
+  private loadAssignmentsFor(workers: readonly WorkerResponse[]): void {
+    for (const worker of workers) {
+      const workerId = worker.id;
+      if (workerId === undefined || this.loadedScheduleAssignments.has(workerId)) continue;
+      this.loadedScheduleAssignments.add(workerId);
+      this.scheduleAssignmentService.getAssignments(workerId).subscribe({
+        next: (scheduleIds) => {
+          this.userAssignedSchedules.update((map) => {
+            const next = new Map(map);
+            next.set(workerId, scheduleIds);
+            return next;
+          });
+        },
+        error: (err: HttpErrorResponse) => {
+          this.loadedScheduleAssignments.delete(workerId);
+          this.logger.error('Failed to load schedule assignments', err);
+        },
+      });
+    }
+  }
+
+  /** Schedules currently assigned to the worker, for the card summary. */
+  schedulesForWorker(workerId: number): readonly ScheduleModel[] {
+    const ids = this.userAssignedSchedules().get(workerId) ?? [];
+    if (ids.length === 0) return [];
+    const catalog = this.allSchedules();
+    return ids
+      .map((id) => catalog.find((schedule) => schedule.id === id))
+      .filter((schedule): schedule is ScheduleModel => schedule !== undefined);
+  }
+
   public isValidField(field: string): boolean {
     return !!(this.userForm.get(field)?.valid && this.userForm.get(field)?.touched);
   }
@@ -697,17 +935,7 @@ export class Workers implements OnInit {
     this.scheduleDialogVisible.set(true);
     this.scheduleDialogLoading.set(true);
     this.workerAssignedScheduleIds.set([]);
-    this.allSchedules.set([]);
-
-    this.scheduleService.getAll().subscribe({
-      next: (schedules) => {
-        this.allSchedules.set(schedules);
-      },
-      error: (err: HttpErrorResponse) => {
-        this.logger.error('Failed to load schedules', err);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al cargar horarios' });
-      },
-    });
+    this.loadSchedules();
 
     this.scheduleAssignmentService.getAssignments(workerId).subscribe({
       next: (scheduleIds) => {
@@ -801,18 +1029,5 @@ export class Workers implements OnInit {
 
   isScheduleAssigning(scheduleId: number): boolean {
     return this.assigningScheduleIds().has(scheduleId);
-  }
-
-  getAssignedScheduleCount(userId: number): string {
-    const count = this.userAssignedSchedules().get(userId)?.length;
-    return count !== undefined ? String(count) : '-';
-  }
-
-  getScheduleCount(userId: number): number {
-    return this.userAssignedSchedules().get(userId)?.length ?? 0;
-  }
-
-  hasScheduleData(userId: number): boolean {
-    return this.userAssignedSchedules().has(userId);
   }
 }

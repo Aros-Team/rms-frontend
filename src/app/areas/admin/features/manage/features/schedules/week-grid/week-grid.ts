@@ -78,6 +78,7 @@ interface PendingRemoval {
 interface TimelineBar {
   readonly key: string;
   readonly workerName: string;
+  readonly imageUrl?: string | null;
   readonly role: string;
   readonly startTime: string;
   readonly endTime: string;
@@ -278,6 +279,7 @@ export class WeekGrid implements OnInit, OnChanges {
         bars.push({
           key: `${String(row.workerId)}-${shift.key}`,
           workerName: row.worker.name,
+          imageUrl: row.worker.imageUrl,
           role,
           startTime: shift.startTime,
           endTime: shift.endTime,

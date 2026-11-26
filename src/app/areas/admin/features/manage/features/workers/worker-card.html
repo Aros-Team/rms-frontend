@@ -1,9 +1,16 @@
 <app-rms-card padding="sm">
   <div class="flex flex-col gap-3">
     <div class="flex items-center gap-3">
-      <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 bg-rms-brand-soft text-rms-brand-text">
-        {{ initials() }}
-      </div>
+      @if (worker().imageUrl; as imageUrl) {
+        <img
+          class="w-12 h-12 rounded-full object-cover flex-shrink-0"
+          [src]="imageUrl"
+          [alt]="'Foto de ' + worker().name" />
+      } @else {
+        <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 bg-rms-brand-soft text-rms-brand-text">
+          {{ initials() }}
+        </div>
+      }
       <div class="min-w-0 flex-1">
         <h3 class="font-medium text-rms-ink truncate">{{ worker().name }}</h3>
         <p class="text-sm text-rms-ink-muted truncate">{{ worker().email }}</p>
@@ -16,11 +23,15 @@
         <span class="text-rms-ink-muted">Área</span>
         <span class="text-rms-ink-secondary font-medium">{{ areaName() }}</span>
       </div>
+      <div class="flex justify-between items-center gap-3">
+        <span class="text-rms-ink-muted">Horario</span>
+        <span class="text-rms-ink-secondary font-medium text-right">{{ scheduleSummary() }}</span>
+      </div>
       <div class="flex justify-between items-center">
-        <span class="text-rms-ink-muted">Horarios</span>
+        <span class="text-rms-ink-muted">Turnos</span>
         <app-rms-badge
-          [label]="assignedScheduleCount() + ' asignados'"
-          [tone]="assignedScheduleCount() > 0 ? 'info' : 'neutral'" />
+          [label]="assignedSchedules().length + ' · ' + weeklyHoursLabel()"
+          [tone]="assignedSchedules().length > 0 ? 'info' : 'neutral'" />
       </div>
     </div>
 

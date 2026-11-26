@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- **workers**: upload, replace and remove the worker portrait from the create/edit dialog, and
+  show it on the employee card (falls back to the initials monogram).
+- **workers**: employee cards now load the assigned schedules up front and show the day range,
+  time window and weekly hours instead of an empty counter.
+- **schedules**: show the worker portrait inside each shift bar of the weekly grid.
+
 ## [v3.3.0](https://github.com/Aros-Team/rms-frontend/releases/tag/v3.3.0)
 
 ### Features

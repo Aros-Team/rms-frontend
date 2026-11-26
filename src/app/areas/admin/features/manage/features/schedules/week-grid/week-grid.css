@@ -617,11 +617,12 @@
   border: var(--rms-border-width) solid var(--rms-border);
   border-radius: var(--rms-radius-md);
   background: var(--rms-surface);
-  overflow: hidden;
+  overflow: visible;
 }
 
+/* The page already scrolls; the grid must not create a second scroll container. */
 .week-grid__calendar-scroll {
-  overflow-x: auto;
+  overflow-x: visible;
 }
 
 .week-grid__calendar-grid {
@@ -753,6 +754,14 @@
   overflow: hidden;
   font-weight: var(--rms-weight-semibold);
   text-overflow: ellipsis;
+}
+
+.week-grid__bar-avatar {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .week-grid__bar-area {

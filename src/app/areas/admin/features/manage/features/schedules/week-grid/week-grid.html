@@ -235,6 +235,9 @@
                         bar.workerName + ', ' + bar.role + ', ' + bar.startTime + ' a ' + bar.endTime
                       "
                     >
+                      @if (bar.imageUrl) {
+                        <img class="week-grid__bar-avatar" [src]="bar.imageUrl" alt="" />
+                      }
                       <span class="week-grid__bar-name">{{ bar.workerName }}</span>
                       <span class="week-grid__bar-area">{{ bar.role }}</span>
                       <span class="week-grid__bar-time">{{ bar.startTime }}–{{ bar.endTime }}</span>

@@ -115,7 +115,7 @@
           <app-worker-card
             [worker]="worker"
             [areas]="areas()"
-            [assignedScheduleCount]="getScheduleCount(worker.id!)"
+            [assignedSchedules]="schedulesForWorker(worker.id!)"
             (assignSchedule)="openScheduleDialog(worker)"
             (edit)="showModificationModal(worker)"
             (retryEmail)="retrySetupEmail(worker)"
@@ -244,6 +244,48 @@
     } @else {
     <span class="text-rms-ink-secondary block mb-8">Crea un nuevo trabajador</span>
     }
+
+    <div class="flex items-center gap-4 mb-6">
+      <div class="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center font-bold text-xl flex-shrink-0 bg-rms-brand-soft text-rms-brand-text">
+        @if (imagePreview(); as preview) {
+          <img class="w-full h-full object-cover" [src]="preview" alt="Foto del trabajador" />
+        } @else {
+          {{ imageInitials() }}
+        }
+      </div>
+      <div class="min-w-0 flex flex-col gap-2">
+        <input
+          #workerImageInput
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          hidden
+          (change)="onImageSelect($event)" />
+        <div class="flex flex-wrap gap-2">
+          <app-rms-button
+            variant="secondary"
+            size="sm"
+            iconStart="pi pi-camera"
+            [loading]="imageBusy()"
+            (click)="workerImageInput.click()">
+            {{ imagePreview() ? 'Cambiar foto' : 'Agregar foto' }}
+          </app-rms-button>
+          @if (imagePreview() || pendingImageFile()) {
+            <app-rms-button
+              variant="danger"
+              size="sm"
+              iconStart="pi pi-trash"
+              [disabled]="imageBusy()"
+              (click)="removeWorkerImage()">
+              Quitar
+            </app-rms-button>
+          }
+        </div>
+        <p class="text-xs text-rms-ink-muted">JPG, PNG o WebP · máximo 5 MB</p>
+        @if (imageError(); as message) {
+          <p class="text-xs text-rms-danger" role="alert">{{ message }}</p>
+        }
+      </div>
+    </div>
 
     <form action="" [formGroup]="userForm" class="flex flex-col gap-4">
       <app-rms-select
