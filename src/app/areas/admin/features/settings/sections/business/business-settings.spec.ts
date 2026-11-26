@@ -129,7 +129,7 @@ describe('BusinessSettings', () => {
         () =>
           new HttpErrorResponse({
             status: 400,
-            error: { detail: 'restaurantName: Restaurant name is required' },
+            error: { detail: 'restaurantName: El nombre del restaurante es obligatorio' },
           }),
       ),
     );
@@ -138,7 +138,7 @@ describe('BusinessSettings', () => {
     component.save();
     fixture.detectChanges();
 
-    expect(component.controlError('restaurantName')).toBe('Restaurant name is required');
+    expect(component.controlError('restaurantName')).toBe('El nombre del restaurante es obligatorio');
     expect(component.saveError()).toBe('');
   });
 

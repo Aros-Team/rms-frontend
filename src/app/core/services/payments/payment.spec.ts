@@ -224,7 +224,7 @@ describe('Payment', () => {
 
     const request = httpMock.expectOne((candidate) => candidate.url === 'v1/payments');
     request.flush(
-      { detail: 'Order 1 is already paid', paymentId: 9001 },
+      { detail: 'El pedido 1 ya fue pagado', paymentId: 9001 },
       { status: 409, statusText: 'Conflict' },
     );
 

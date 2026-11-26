@@ -38,12 +38,12 @@ describe('problem-detail', () => {
 
   it('splits a bean-validation detail into field and message', () => {
     const error = response(400, {
-      detail: 'restaurantName: Restaurant name is required',
+      detail: 'restaurantName: El nombre del restaurante es obligatorio',
     });
 
     expect(problemFieldError(error)).toEqual({
       field: 'restaurantName',
-      message: 'Restaurant name is required',
+      message: 'El nombre del restaurante es obligatorio',
     });
   });
 

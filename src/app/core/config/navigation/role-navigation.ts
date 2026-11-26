@@ -70,7 +70,7 @@ export const WORKSPACE_LABEL: Readonly<Record<WorkerWorkspace, string>> = {
 export const ADMIN_NAV: readonly NavItem[] = [
   {
     id: 'dashboard',
-    label: 'Dashboard',
+    label: 'Inicio',
     description: 'Vista general del restaurante',
     icon: 'pi pi-home',
     routerLink: '/admin',

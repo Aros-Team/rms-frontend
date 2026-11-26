@@ -28,7 +28,7 @@ function httpError(status: number, body: unknown): HttpErrorResponse {
 
 describe('extractPaymentId', () => {
   it('reads a numeric paymentId', () => {
-    expect(extractPaymentId(httpError(409, { detail: 'Already paid', paymentId: 9001 }))).toBe(9001);
+    expect(extractPaymentId(httpError(409, { detail: 'Ya pagado', paymentId: 9001 }))).toBe(9001);
   });
 
   it('reads a numeric-string paymentId', () => {
@@ -52,10 +52,10 @@ describe('extractPaymentId', () => {
 
 describe('paymentErrorMessage', () => {
   it('prefers the server detail', () => {
-    const error = httpError(409, { detail: 'Order 12 is already paid by payment 9001' });
+    const error = httpError(409, { detail: 'El pedido 12 ya fue pagado con el pago 9001' });
 
     expect(paymentErrorMessage(error, 'Fallback')).toBe(
-      'Order 12 is already paid by payment 9001',
+      'El pedido 12 ya fue pagado con el pago 9001',
     );
   });
 
@@ -78,11 +78,11 @@ describe('httpStatus', () => {
 
 describe('isShiftConflict', () => {
   it('treats a 409 without paymentId as a shift conflict', () => {
-    expect(isShiftConflict(httpError(409, { detail: 'Shift is not open' }))).toBe(true);
+    expect(isShiftConflict(httpError(409, { detail: 'No hay un turno de caja abierto; abre la caja antes de cobrar' }))).toBe(true);
   });
 
   it('does not treat an already-paid 409 as a shift conflict', () => {
-    expect(isShiftConflict(httpError(409, { detail: 'Already paid', paymentId: 7 }))).toBe(false);
+    expect(isShiftConflict(httpError(409, { detail: 'Ya pagado', paymentId: 7 }))).toBe(false);
   });
 
   it('is false for other statuses', () => {

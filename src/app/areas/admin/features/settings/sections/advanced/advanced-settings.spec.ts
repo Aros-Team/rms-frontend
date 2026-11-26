@@ -229,7 +229,7 @@ describe('AdvancedSettingsSection', () => {
         () =>
           new HttpErrorResponse({
             status: 409,
-            error: { detail: 'Group still has entries' },
+            error: { detail: 'El grupo de configuración todavía tiene entradas' },
           }),
       ),
     );
@@ -237,7 +237,7 @@ describe('AdvancedSettingsSection', () => {
     component.askDeleteGroup(GROUPS[0]);
     component.confirmGroupDeletion();
 
-    expect(component.actionError()).toBe('Group still has entries');
+    expect(component.actionError()).toBe('El grupo de configuración todavía tiene entradas');
     expect(messages.add).not.toHaveBeenCalledWith(
       expect.objectContaining({ summary: 'Grupo eliminado' }),
     );

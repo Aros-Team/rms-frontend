@@ -294,7 +294,7 @@ describe('CashierArea', () => {
         () =>
           new HttpErrorResponse({
             status: 409,
-            error: { detail: 'Order 900029 is already paid', paymentId: 77 },
+            error: { detail: 'El pedido 900029 ya fue pagado', paymentId: 77 },
           }),
       ),
     );

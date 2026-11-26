@@ -1,11 +1,11 @@
-<h2 class="rms-h2 mb-4">Create product form</h2>
+<h2 class="rms-h2 mb-4">Crear producto</h2>
 
 <div class="m-5">
   <form [formGroup]="form" (ngSubmit)="createProduct()" class="flex max-w-md flex-col gap-4">
-    <app-rms-input label="Name" formControlName="name" />
+    <app-rms-input label="Nombre" formControlName="name" />
 
     <div class="flex flex-col gap-1">
-      <label class="rms-label" for="base-price">Base price</label>
+      <label class="rms-label" for="base-price">Precio base</label>
       <input
         id="base-price"
         type="number"
@@ -15,7 +15,7 @@
     </div>
 
     <div class="flex flex-col gap-1">
-      <label class="rms-label" for="prep-minutes">Estimated prep minutes</label>
+      <label class="rms-label" for="prep-minutes">Minutos de preparación estimados</label>
       <input
         id="prep-minutes"
         type="number"
@@ -24,16 +24,16 @@
       />
     </div>
 
-    <app-rms-textarea label="Description" formControlName="description" />
+    <app-rms-textarea label="Descripción" formControlName="description" />
 
     <div class="flex flex-col gap-1">
-      <label class="rms-label" for="category-id">Category</label>
+      <label class="rms-label" for="category-id">Categoría</label>
       <select
         id="category-id"
         formControlName="categoryId"
         class="w-full rounded-lg border border-rms-border bg-rms-surface p-2 text-rms-ink"
       >
-        <option [ngValue]="null" disabled>Select category</option>
+        <option [ngValue]="null" disabled>Seleccionar categoría</option>
         @for (category of categories(); track category.id) {
           <option [ngValue]="category.id">{{ category.name }}</option>
         }
@@ -41,13 +41,13 @@
     </div>
 
     <div class="flex flex-col gap-1">
-      <label class="rms-label" for="area-id">Preparation area</label>
+      <label class="rms-label" for="area-id">Área de preparación</label>
       <select
         id="area-id"
         formControlName="areaId"
         class="w-full rounded-lg border border-rms-border bg-rms-surface p-2 text-rms-ink"
       >
-        <option [ngValue]="null" disabled>Select preparation area</option>
+        <option [ngValue]="null" disabled>Seleccionar área de preparación</option>
         @for (area of areas(); track area.id) {
           <option [ngValue]="area.id">{{ area.name }}</option>
         }
@@ -55,7 +55,7 @@
     </div>
 
     <div>
-      <app-rms-button type="submit" iconStart="pi pi-check">Send</app-rms-button>
+      <app-rms-button type="submit" iconStart="pi pi-check">Crear producto</app-rms-button>
     </div>
   </form>
 </div>

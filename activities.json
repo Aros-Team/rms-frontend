@@ -1656,5 +1656,40 @@
       }
     ],
     "status": "done"
+  },
+  {
+    "id": 55,
+    "type": "fix",
+    "name": "ui-spanish-consistency",
+    "title": "Make every user-facing string Spanish across the UI and API errors",
+    "description": "Remove English/mixed strings hardcoded in the frontend and localize the backend messages that are rendered as RFC 7807 detail, so the interface stays Spanish even on errors.",
+    "acceptance": [
+      "No English hardcoded UI copy remains in routed screens",
+      "Sidebar main item reads Inicio and matches route titles",
+      "Backend user-facing exception/problem detail messages are Spanish",
+      "Frontend and API tests assert the Spanish messages",
+      "Harness green in both repos"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Translate frontend hardcoded strings (nav, dashboard, auth, product form, datepicker)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Update frontend specs that asserted English backend details",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Verify: frontend harness green",
+        "status": "done",
+        "agent": "reviewer"
+      }
+    ],
+    "status": "done"
   }
 ]

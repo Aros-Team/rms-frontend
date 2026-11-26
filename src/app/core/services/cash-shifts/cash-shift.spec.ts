@@ -170,7 +170,7 @@ describe('CashShift', () => {
 
     const request = httpMock.expectOne('v1/cash-shifts/open');
     request.flush(
-      { detail: 'A shift is already open' },
+      { detail: 'Ya hay un turno de caja abierto; ciérralo antes de abrir otro' },
       { status: 409, statusText: 'Conflict' },
     );
 

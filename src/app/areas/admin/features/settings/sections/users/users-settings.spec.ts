@@ -227,7 +227,7 @@ describe('UsersSettingsSection', () => {
         () =>
           new HttpErrorResponse({
             status: 400,
-            error: { detail: 'The last administrator cannot be demoted' },
+            error: { detail: 'Debe quedar al menos un administrador activo' },
           }),
       ),
     );
@@ -237,7 +237,7 @@ describe('UsersSettingsSection', () => {
     component.requestSave();
     component.confirmSave();
 
-    expect(component.dialogError()).toBe('The last administrator cannot be demoted');
+    expect(component.dialogError()).toBe('Debe quedar al menos un administrador activo');
     expect(api.listUsers).toHaveBeenCalledTimes(2);
     expect(messages.add).not.toHaveBeenCalledWith(
       expect.objectContaining({ severity: 'success' }),

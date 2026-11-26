@@ -28,8 +28,8 @@ describe('mapHttpError', () => {
   });
 
   it('surfaces the order 409 detail instead of the menu message', () => {
-    const err = new HttpErrorResponse({ status: 409, error: { detail: 'Table not available' } });
-    expect(mapHttpError(err, 'order')).toBe('Table not available');
+    const err = new HttpErrorResponse({ status: 409, error: { detail: 'La mesa no está disponible' } });
+    expect(mapHttpError(err, 'order')).toBe('La mesa no está disponible');
   });
 
   it('returns 409 schedule message', () => {

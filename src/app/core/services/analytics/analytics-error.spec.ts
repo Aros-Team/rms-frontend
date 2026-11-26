@@ -15,10 +15,14 @@ describe('describeAnalyticsError', () => {
   it('keeps the RFC 7807 detail from a real HttpErrorResponse', () => {
     const error = new HttpErrorResponse({
       status: 422,
-      error: { type: '/analytics/invalid-range', title: 'Invalid range', detail: 'to < from' },
+      error: {
+        type: '/analytics/invalid-range',
+        title: 'Rango inválido',
+        detail: "'to' no puede ser anterior a 'from'",
+      },
     });
     const info = describeAnalyticsError(error);
-    expect(info.detail).toBe('to < from');
+    expect(info.detail).toBe("'to' no puede ser anterior a 'from'");
     expect(info.forbidden).toBe(false);
     expect(info.status).toBe(422);
   });
@@ -30,8 +34,9 @@ describe('describeAnalyticsError', () => {
   });
 
   it('reads the preserved problem body from AnalyticsRequestError', () => {
-    const error = new AnalyticsRequestError(422, { detail: 'bucket=monthly but from is not YYYY-MM' });
-    expect(describeAnalyticsError(error).detail).toBe('bucket=monthly but from is not YYYY-MM');
+    const detail = 'Formato de periodo inválido para el bucket monthly';
+    const error = new AnalyticsRequestError(422, { detail });
+    expect(describeAnalyticsError(error).detail).toBe(detail);
   });
 
   it('falls back to a retry-friendly sentence for transport failures', () => {

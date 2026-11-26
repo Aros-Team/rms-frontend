@@ -95,7 +95,7 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        title: 'Panel',
+        title: 'Inicio',
         loadComponent: () =>
           import('@areas/admin/features/dashboard/dashboard').then((m) => m.Dashboard),
         data: { preload: true },
@@ -387,7 +387,7 @@ export const routes: Routes = [
   },
   {
     path: 'dev/ui',
-    title: 'Design system',
+    title: 'Sistema de diseño',
     loadComponent: () => import('@shared/ui/gallery/gallery').then((m) => m.UiGallery),
     canMatch: [() => isDevMode()],
   },

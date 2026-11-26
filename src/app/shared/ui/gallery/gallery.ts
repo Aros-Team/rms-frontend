@@ -103,8 +103,8 @@ export class UiGallery {
 
   readonly tokenGroups: TokenGroup[] = [
     {
-      title: 'Neutral ramp',
-      description: 'One slate family for light, dark and high contrast.',
+      title: 'Escala neutra',
+      description: 'Una sola familia de grises para tema claro, oscuro y alto contraste.',
       swatches: [
         { token: '--rms-neutral-0' },
         { token: '--rms-neutral-50' },
@@ -121,20 +121,20 @@ export class UiGallery {
       ],
     },
     {
-      title: 'Brand',
-      description: 'Gold is a fill. Text uses brand-text; on a gold fill use on-brand.',
+      title: 'Marca',
+      description: 'El dorado es relleno. El texto usa brand-text; sobre relleno dorado usa on-brand.',
       swatches: [
-        { token: '--rms-brand-500', note: 'fill' },
-        { token: '--rms-brand-600', note: 'hover' },
-        { token: '--rms-brand-700', note: 'active' },
-        { token: '--rms-brand-text', note: 'text' },
-        { token: '--rms-brand-soft', note: 'selected bg' },
-        { token: '--rms-on-brand', note: 'ink on gold' },
+        { token: '--rms-brand-500', note: 'relleno' },
+        { token: '--rms-brand-600', note: 'resalte' },
+        { token: '--rms-brand-700', note: 'activo' },
+        { token: '--rms-brand-text', note: 'texto' },
+        { token: '--rms-brand-soft', note: 'fondo seleccionado' },
+        { token: '--rms-on-brand', note: 'tinta sobre dorado' },
       ],
     },
     {
-      title: 'Surfaces',
-      description: 'Elevation is a surface step plus a border, never a shadow.',
+      title: 'Superficies',
+      description: 'La elevación es un paso de superficie más un borde, nunca una sombra.',
       swatches: [
         { token: '--rms-bg-page' },
         { token: '--rms-bg-surface' },
@@ -147,8 +147,8 @@ export class UiGallery {
       ],
     },
     {
-      title: 'Text and borders',
-      description: 'Every text token passes AA on its intended surface.',
+      title: 'Texto y bordes',
+      description: 'Cada token de texto cumple AA sobre su superficie prevista.',
       swatches: [
         { token: '--rms-text' },
         { token: '--rms-text-secondary' },
@@ -161,8 +161,8 @@ export class UiGallery {
       ],
     },
     {
-      title: 'Status — success',
-      description: 'fg is the only role allowed on text.',
+      title: 'Estado — éxito',
+      description: 'fg es el único rol permitido sobre texto.',
       swatches: [
         { token: '--rms-success-fg', note: 'fg' },
         { token: '--rms-success-bg', note: 'bg' },
@@ -171,8 +171,8 @@ export class UiGallery {
       ],
     },
     {
-      title: 'Status — warning',
-      description: 'Pending, reserved, in queue, low stock.',
+      title: 'Estado — advertencia',
+      description: 'Pendiente, reservado, en cola, stock bajo.',
       swatches: [
         { token: '--rms-warning-fg', note: 'fg' },
         { token: '--rms-warning-bg', note: 'bg' },
@@ -181,8 +181,8 @@ export class UiGallery {
       ],
     },
     {
-      title: 'Status — danger',
-      description: 'Cancelled, zero stock, destructive.',
+      title: 'Estado — peligro',
+      description: 'Cancelado, stock cero, destructivo.',
       swatches: [
         { token: '--rms-danger-fg', note: 'fg' },
         { token: '--rms-danger-bg', note: 'bg' },
@@ -191,8 +191,8 @@ export class UiGallery {
       ],
     },
     {
-      title: 'Status — info and neutral',
-      description: 'Preparing, occupied; delivered, dirty, inactive.',
+      title: 'Estado — información y neutro',
+      description: 'Preparando, ocupada; entregado, sucia, inactivo.',
       swatches: [
         { token: '--rms-info-fg', note: 'info fg' },
         { token: '--rms-info-bg', note: 'info bg' },
@@ -201,8 +201,8 @@ export class UiGallery {
       ],
     },
     {
-      title: 'Charts',
-      description: 'Categorical series pass 3:1 as graphics in both themes.',
+      title: 'Gráficos',
+      description: 'Las series categóricas cumplen 3:1 como gráficos en ambos temas.',
       swatches: [
         { token: '--rms-chart-1' },
         { token: '--rms-chart-2' },
@@ -219,17 +219,17 @@ export class UiGallery {
   ];
 
   readonly typeScale = [
-    { className: 'rms-display', label: 'Display', meta: '36 / 44 · 700' },
+    { className: 'rms-display', label: 'Título grande', meta: '36 / 44 · 700' },
     { className: 'rms-h1', label: 'H1 · Pedidos del día', meta: '30 / 38 · 700' },
     { className: 'rms-h2', label: 'H2 · Ventas', meta: '24 / 32 · 700' },
     { className: 'rms-h3', label: 'H3 · Detalle por categoría', meta: '20 / 28 · 600' },
     { className: 'rms-h4', label: 'H4 · Panel', meta: '16 / 24 · 600' },
-    { className: 'rms-body-lg', label: 'Body large · texto de servicio', meta: '16 / 26 · 400' },
-    { className: 'rms-body', label: 'Body · texto de administración', meta: '14 / 22 · 400' },
-    { className: 'rms-caption', label: 'Caption · actualizado hace 2 minutos', meta: '12 / 18 · 400' },
-    { className: 'rms-label', label: 'Label · NOMBRE', meta: '12 / 16 · 600' },
-    { className: 'rms-numeric', label: 'Numeric · $ 28.000', meta: '16 / 24 · 600 · tabular' },
-    { className: 'rms-numeric-lg', label: 'Numeric large · $ 1.284.000', meta: '30 / 36 · 700 · tabular' },
+    { className: 'rms-body-lg', label: 'Cuerpo grande · texto de servicio', meta: '16 / 26 · 400' },
+    { className: 'rms-body', label: 'Cuerpo · texto de administración', meta: '14 / 22 · 400' },
+    { className: 'rms-caption', label: 'Leyenda · actualizado hace 2 minutos', meta: '12 / 18 · 400' },
+    { className: 'rms-label', label: 'Etiqueta · NOMBRE', meta: '12 / 16 · 600' },
+    { className: 'rms-numeric', label: 'Numérico · $ 28.000', meta: '16 / 24 · 600 · tabular' },
+    { className: 'rms-numeric-lg', label: 'Numérico grande · $ 1.284.000', meta: '30 / 36 · 700 · tabular' },
   ];
 
   readonly spacing = [
@@ -246,17 +246,17 @@ export class UiGallery {
   ];
 
   readonly radii = [
-    { token: '--rms-radius-sm', label: '8 · controls' },
-    { token: '--rms-radius-md', label: '12 · cards' },
-    { token: '--rms-radius-lg', label: '16 · panels' },
-    { token: '--rms-radius-full', label: 'full · pills' },
+    { token: '--rms-radius-sm', label: '8 · controles' },
+    { token: '--rms-radius-md', label: '12 · tarjetas' },
+    { token: '--rms-radius-lg', label: '16 · paneles' },
+    { token: '--rms-radius-full', label: 'completo · píldoras' },
   ];
 
   readonly motion = [
-    { token: '--rms-motion-fast', label: '120ms · hover, focus, color' },
-    { token: '--rms-motion-base', label: '180ms · expand, tab, toast' },
-    { token: '--rms-motion-slow', label: '280ms · sheet, drawer' },
-    { token: '--rms-motion-chart', label: '240ms · first chart render' },
+    { token: '--rms-motion-fast', label: '120ms · resalte, foco, color' },
+    { token: '--rms-motion-base', label: '180ms · expandir, pestaña, aviso' },
+    { token: '--rms-motion-slow', label: '280ms · hoja, panel lateral' },
+    { token: '--rms-motion-chart', label: '240ms · primer renderizado del gráfico' },
     { token: '--rms-ease', label: 'cubic-bezier(.2, 0, 0, 1)' },
     { token: '--rms-ease-exit', label: 'cubic-bezier(.4, 0, 1, 1)' },
   ];

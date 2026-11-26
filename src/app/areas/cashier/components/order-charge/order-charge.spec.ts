@@ -275,10 +275,10 @@ describe('CashierOrderCharge', () => {
   });
 
   it('renders the server error with role alert', async () => {
-    await setup({ submitError: 'Order 900029 is already paid by payment 1' });
+    await setup({ submitError: 'El pedido 900029 ya fue pagado con el pago 1' });
 
     expect(root.querySelector('[role="alert"]')?.textContent.trim()).toBe(
-      'Order 900029 is already paid by payment 1',
+      'El pedido 900029 ya fue pagado con el pago 1',
     );
   });
 

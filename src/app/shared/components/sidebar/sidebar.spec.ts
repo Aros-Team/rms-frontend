@@ -72,7 +72,7 @@ describe('Sidebar', () => {
     sidebar.visible = true;
     sidebar.isMobile = false;
     TestBed.inject(Menu).setMenuItems([
-      { id: 'dashboard', label: 'Dashboard', description: '', routerLink: '/admin' },
+      { id: 'dashboard', label: 'Inicio', description: '', routerLink: '/admin' },
       { id: 'orders', label: 'Pedidos', description: '', routerLink: '/admin/orders' },
     ]);
     fixture.componentRef.setInput('expanded', true);
