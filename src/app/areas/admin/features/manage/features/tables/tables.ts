@@ -19,7 +19,6 @@ import { Auth } from '@app/core/services/auth/auth';
 import { environment } from '@environments/environment';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsDialog } from '@app/shared/ui/dialog/dialog';
-import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
 import { RmsInput } from '@app/shared/ui/input/input';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
@@ -43,7 +42,6 @@ const WS_TOPICS = {
     LazyLoad,
     RmsButton,
     RmsDialog,
-    RmsEmptyState,
     RmsInput,
     RmsPageHeader,
     RmsStatusPill,
