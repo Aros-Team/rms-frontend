@@ -123,12 +123,26 @@ function buildProduct(overrides: Partial<ProductResponse> = {}): ProductResponse
     areaId: 1,
     areaName: 'Cocina',
     estimatedPrepMinutes: 10,
+    requiredWorkers: 1,
+    prepTimeMode: 'ESTIMATED',
     recipe: [
       { id: 1, supplyVariantId: 301, requiredQuantity: 0.5 },
       { id: 2, supplyVariantId: 302, requiredQuantity: 0.25 },
     ],
     optionGroupIds: [1],
     ...overrides,
+  };
+}
+
+function buildPrepTime() {
+  return {
+    estimatedPrepMinutes: 10,
+    realPrepMinutes: 14,
+    realPrepSampleCount: 24,
+    prepTimeMode: 'ESTIMATED' as const,
+    usedPrepMinutes: 10,
+    usedSource: 'ESTIMATED' as const,
+    minimumSamples: 10,
   };
 }
 
@@ -209,6 +223,7 @@ interface Env {
     getCost: ReturnType<typeof vi.fn>;
     getCostBreakdown: ReturnType<typeof vi.fn>;
     getOptions: ReturnType<typeof vi.fn>;
+    getPrepTime: ReturnType<typeof vi.fn>;
   };
   optionStub: { updateOption: ReturnType<typeof vi.fn> };
   imageStub: {
@@ -237,6 +252,7 @@ function configure(productId = '7'): Env {
     getCost: vi.fn().mockReturnValue(of(buildCost())),
     getCostBreakdown: vi.fn().mockReturnValue(of(buildBreakdown())),
     getOptions: vi.fn().mockReturnValue(of(buildOptions())),
+    getPrepTime: vi.fn().mockReturnValue(of(buildPrepTime())),
   };
   const optionStub = { updateOption: vi.fn().mockReturnValue(of(buildOptions()[0])) };
   const imageStub = {
@@ -371,6 +387,61 @@ describe('ProductRecipePage', () => {
     expect(page.marginPeriod()).toBe('Costo primo 10,0 %');
   });
 
+  it('shows both prep times and uses the real one only when selected', () => {
+    const fixture = mount(configure());
+    const page = fixture.componentInstance;
+
+    expect(page.realPrepLabel()).toContain('14');
+    expect(page.realPrepLabel()).toContain('24 muestra');
+    expect(page.effectivePrepSource()).toBe('ESTIMATED');
+    expect(page.laborMicro()).toBe(800_000_000n);
+
+    page.updatePrepTimeMode('REAL');
+    fixture.detectChanges();
+
+    expect(page.effectivePrepSource()).toBe('REAL');
+    expect(page.effectivePrepMinutes()).toBe(14);
+    // server labor 800 for the saved 10 min; the draft uses the real 14 min
+    expect(page.laborMicro()).toBe(1_120_000_000n);
+  });
+
+  it('multiplies labor by the number of people required', () => {
+    const fixture = mount(configure());
+    const page = fixture.componentInstance;
+
+    page.updateRequiredWorkers('3');
+
+    // server labor = 800 for 1 person; draft says 3 people
+    expect(page.laborMicro()).toBe(2_400_000_000n);
+    expect(page.totalMicro()).toBe(4_400_000_000n);
+    expect(page.dirty()).toBe(true);
+    expect(page.laborPeriod()).toContain('3 persona');
+  });
+
+  it('validates the required-workers field', () => {
+    const fixture = mount(configure());
+    const page = fixture.componentInstance;
+
+    page.updateRequiredWorkers('0');
+    expect(page.workersError()).toContain('al menos una persona');
+    expect(page.canSave()).toBe(false);
+
+    page.updateRequiredWorkers('2,5');
+    expect(page.workersError()).toContain('entero');
+
+    page.updateRequiredWorkers('2');
+    expect(page.workersError()).toBe('');
+  });
+
+  it('explains the labor formula in the tooltip', () => {
+    const fixture = mount(configure());
+    const page = fixture.componentInstance;
+
+    expect(page.laborTooltip()).toContain('min ÷ 60');
+    expect(page.laborTooltip()).toContain('persona');
+    expect(page.laborTooltip()).toContain('AUTO');
+  });
+
   it('recomputes the total after a quantity edit and marks the cost stale', () => {
     const fixture = mount(configure());
     const page = fixture.componentInstance;
@@ -405,7 +476,7 @@ describe('ProductRecipePage', () => {
     ).toBe(false);
   });
 
-  it('saves the recipe and re-sends the option associations', async () => {
+  it('saves the recipe without rewriting the option associations', async () => {
     const env = configure();
     const fixture = mount();
     const page = fixture.componentInstance;
@@ -423,12 +494,17 @@ describe('ProductRecipePage', () => {
     expect(id).toBe(7);
     expect(request['name']).toBe('Lentejas nuevas');
     expect(request['basePrice']).toBe(29000);
+    expect(request['requiredWorkers']).toBe(1);
+    expect(request['estimatedPrepMinutes']).toBe(10);
+    expect(request['prepTimeMode']).toBe('ESTIMATED');
     expect(request['recipe']).toEqual([
       { supplyVariantId: 301, requiredQuantity: 0.5 },
       { supplyVariantId: 302, requiredQuantity: 0.25 },
     ]);
-    expect(request['optionIds']).toEqual([1, 2]);
-    expect(request['optionExtras']).toEqual([{ optionId: 1, extraPrice: 2500 }]);
+    // Option associations now live behind dedicated endpoints; the recipe save
+    // omits them so the API preserves whatever the manager wrote.
+    expect('optionIds' in request).toBe(false);
+    expect('optionExtras' in request).toBe(false);
     expect('active' in request).toBe(false);
 
     expect(page.dirty()).toBe(false);
@@ -507,7 +583,7 @@ describe('ProductRecipePage', () => {
     );
   });
 
-  it('blocks saving when the options could not be loaded', () => {
+  it('keeps saving available when the options summary could not be loaded', () => {
     const env = configure();
     env.productStub.getOptions.mockReturnValue(throwError(() => htmlError(500, 'boom')));
     const fixture = mount();
@@ -516,10 +592,8 @@ describe('ProductRecipePage', () => {
     page.updatePrice('29000');
 
     expect(page.optionsError()).not.toBeNull();
-    expect(page.canSave()).toBe(false);
-    expect(page.formErrors()).toContain(
-      'No se pudieron cargar las opciones del producto. Guardar ahora eliminaría sus asociaciones.',
-    );
+    // Option associations are preserved by the API when optionIds is omitted.
+    expect(page.canSave()).toBe(true);
   });
 
   it('requires an acknowledgement before replacing a costed option recipe', async () => {
@@ -564,17 +638,6 @@ describe('ProductRecipePage', () => {
 
     expect(page.optionNeedsAck()).toBe(false);
     expect(page.canSaveOption()).toBe(true);
-  });
-
-  it('shows the replacement warning and current option cost in the dialog', () => {
-    const fixture = mount(configure());
-    const page = fixture.componentInstance;
-
-    page.openOptionEditor(page.optionGroups()[0], page.options()[0]);
-    fixture.detectChanges();
-
-    expect(document.body.textContent).toContain('Guardar reemplaza la receta completa de la opción');
-    expect(document.body.textContent).toContain('Costo actual');
   });
 
   it('confirms before leaving with unsaved changes', () => {
@@ -669,7 +732,6 @@ describe('ProductRecipePage', () => {
     const fixture = mount();
 
     expect(fixture.componentInstance.optionGroups()).toEqual([]);
-    expect(root(fixture).textContent).toContain('Sin opciones asociadas');
   });
 
   it('blocks saving duplicate ingredients with a clear message', () => {

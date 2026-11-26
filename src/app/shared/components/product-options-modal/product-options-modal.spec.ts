@@ -136,6 +136,48 @@ describe('ProductOptionsModal', () => {
     });
   });
 
+  describe('required groups', () => {
+    it('should expose required groups in groupMeta', () => {
+      const component = setup();
+      component.requiredGroupIds = [2];
+
+      const meta = component.groupMeta();
+      expect(meta.find((group) => group.groupId === 2)?.required).toBe(true);
+      expect(meta.find((group) => group.groupId === 1)?.required).toBe(false);
+    });
+
+    it('should block confirm until every required group has a selection', () => {
+      const component = setup();
+      component.requiredGroupIds = [1, 2];
+      component.selectedOptionIds.set([]);
+
+      expect(component.canConfirm()).toBe(false);
+      expect(component.missingRequiredGroups().map((group) => group.groupName)).toEqual([
+        'Guarniciones',
+        'Extras',
+      ]);
+
+      component.selectedOptionIds.set([10]);
+      expect(component.canConfirm()).toBe(false);
+
+      component.selectedOptionIds.set([10, 20]);
+      expect(component.canConfirm()).toBe(true);
+    });
+
+    it('should not emit confirm while a required group is missing', () => {
+      const component = setup();
+      component.requiredGroupIds = [1];
+      component.selectedOptionIds.set([]);
+      const emitted: ProductOptionsConfirmEvent[] = [];
+      component.confirm.subscribe((event) => emitted.push(event));
+
+      component.onConfirm();
+
+      expect(emitted).toHaveLength(0);
+      expect(component.validationMessage()).toContain('Guarniciones');
+    });
+  });
+
   describe('removeSelection', () => {
     it('should remove the given optionId from selections', () => {
       const component = setup();

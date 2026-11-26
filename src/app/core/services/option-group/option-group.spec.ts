@@ -22,6 +22,7 @@ describe('OptionGroup service', () => {
     description: 'Elige tus toppings',
     selectionType: 'SINGLE_CHOICE',
     productIds: [10, 11],
+    required: false,
   };
 
   beforeEach(() => {

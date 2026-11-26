@@ -71,6 +71,11 @@
               {{ group.groupName }}
             </span>
             <app-option-group-badge [selectionType]="group.selectionType" size="sm" />
+            @if (group.required) {
+              <span class="text-[0.65rem] font-semibold uppercase tracking-wide text-rms-warning">
+                Obligatorio
+              </span>
+            }
           </div>
 
           <!-- Option selection list -->
@@ -161,6 +166,22 @@
       </div>
     }
 
+    @if (!loading && missingRequiredGroups().length > 0) {
+      <div class="modal-error flex items-center gap-2 px-4 py-3 rounded-2xl" role="alert">
+        <i class="pi pi-exclamation-circle text-sm shrink-0" aria-hidden="true"></i>
+        <p class="text-sm flex-1">
+          Falta elegir en: {{ missingRequiredLabel() }}
+        </p>
+      </div>
+    }
+
+    @if (validationMessage(); as message) {
+      <div class="modal-error flex items-center gap-2 px-4 py-3 rounded-2xl" role="alert">
+        <i class="pi pi-exclamation-circle text-sm shrink-0" aria-hidden="true"></i>
+        <p class="text-sm flex-1">{{ message }}</p>
+      </div>
+    }
+
     <!-- Error banner -->
     @if (error) {
       <div class="modal-error flex items-center gap-2 px-4 py-3 rounded-2xl">
@@ -182,7 +203,7 @@
     <div class="flex flex-col gap-2 w-full">
       <button
         class="w-full min-h-12 py-3 rounded-xl text-base font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-rms-brand text-rms-on-brand hover:opacity-90"
-        [disabled]="loading || !!error"
+        [disabled]="loading || !!error || !canConfirm()"
         (click)="onConfirm()"
         type="button">
         @if (loading) {

@@ -14,4 +14,6 @@ export interface OptionGroupResponse {
   description?: string;
   selectionType: ApiSelectionType;
   productIds: number[];
+  /** Whether the group is mandatory for the product it was queried for. */
+  required: boolean;
 }

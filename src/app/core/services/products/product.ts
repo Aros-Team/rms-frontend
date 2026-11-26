@@ -7,6 +7,7 @@ import { ProductUpdateRequest } from '@app/shared/models/dto/products/product-up
 import { ProductOption } from '@app/shared/models/dto/products/product-option';
 import { ProductCostResponse } from '@app/shared/models/dto/products/product-cost-response';
 import { ProductCostBreakdownResponse } from '@app/shared/models/dto/products/product-cost-breakdown-response';
+import { ProductPrepTimeResponse } from '@app/shared/models/dto/products/product-prep-time-response';
 import { type PageEnvelope, unwrapPage } from '@app/shared/models/dto/common/pagination';
 import { Observable, catchError, map, of } from 'rxjs';
 import { toAmount } from '@app/shared/models/dto/common/money';
@@ -122,6 +123,10 @@ export class Product {
     return this.http.get<ProductResponse>('v1/products/' + String(id));
   }
 
+  public getPrepTime(productId: number): Observable<ProductPrepTimeResponse> {
+    return this.http.get<ProductPrepTimeResponse>(`v1/products/${String(productId)}/prep-time`);
+  }
+
   public getCost(productId: number): Observable<ProductCostResponse> {
     return this.http.get<ProductCostResponse>('v1/products/' + String(productId) + '/cost');
   }
@@ -170,4 +175,44 @@ export class Product {
     return this.http.get<ProductOption[]>('v1/products/' + String(productId) + '/options');
   }
 
+  /** Associates an existing option with a product and sets its surcharge. */
+  public associateOption(
+    productId: number,
+    optionId: number,
+    extraPrice: number,
+  ): Observable<object> {
+    return this.http.post<object>(`v1/products/${String(productId)}/options`, {
+      optionId,
+      extraPrice,
+    });
+  }
+
+  /** Updates the per-product surcharge of an already-associated option. */
+  public updateOptionExtraPrice(
+    productId: number,
+    optionId: number,
+    extraPrice: number,
+  ): Observable<object> {
+    return this.http.put<object>(
+      `v1/products/${String(productId)}/options/${String(optionId)}`,
+      { extraPrice },
+    );
+  }
+
+  /** Removes one option association from a product. */
+  public detachOption(productId: number, optionId: number): Observable<object> {
+    return this.http.delete<object>(
+      `v1/products/${String(productId)}/options/${String(optionId)}`,
+    );
+  }
+
+  /**
+   * Detaches an option group from a product. The group and its options remain
+   * in the catalogue (detach only, ADR-0002).
+   */
+  public detachOptionGroup(productId: number, optionGroupId: number): Observable<object> {
+    return this.http.delete<object>(
+      `v1/products/${String(productId)}/option-groups/${String(optionGroupId)}`,
+    );
+  }
 }

@@ -25,6 +25,7 @@ import type { ProductResponse } from '@app/shared/models/dto/products/product-re
 import type { ProductUpdateRequest } from '@app/shared/models/dto/products/product-update-request';
 import type { ProductCostResponse } from '@app/shared/models/dto/products/product-cost-response';
 import type { ProductCostBreakdownResponse } from '@app/shared/models/dto/products/product-cost-breakdown-response';
+import type { ProductPrepTimeResponse } from '@app/shared/models/dto/products/product-prep-time-response';
 import type { ProductImageResponse } from '@app/shared/models/dto/products/product-image-response';
 import type {
   ProductOption,
@@ -39,17 +40,17 @@ import { fromApiString } from '@app/shared/lib/option-selection-type-mapper/opti
 import { RmsBadge } from '@app/shared/ui/badge/badge';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsCard } from '@app/shared/ui/card/card';
-import { RmsCheckbox } from '@app/shared/ui/checkbox/checkbox';
 import { RmsDialog } from '@app/shared/ui/dialog/dialog';
-import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
 import { RmsInput } from '@app/shared/ui/input/input';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
-import { RmsSelect } from '@app/shared/ui/select/select';
+import { RmsSelect, type RmsSelectOption } from '@app/shared/ui/select/select';
 import { RmsSkeleton } from '@app/shared/ui/skeleton/skeleton';
 import { RmsStatTile } from '@app/shared/ui/stat-tile/stat-tile';
+import { TooltipModule } from 'primeng/tooltip';
 import { Money as MoneyPipe } from '@app/shared/pipes/money/money';
 
 import { RecipeIngredientEditor, type RecipeVariantView } from './recipe-ingredient-editor';
+import { OptionGroupsManager } from '../option-groups-manager/option-groups-manager';
 import { RecipeLaborMode, laborModeLabel } from './recipe-labor-mode';
 import {
   currencyOf,
@@ -57,6 +58,7 @@ import {
   formatAmountInput,
   formatPercent,
   hourlyRateMicro,
+  laborForPreparation,
   lineCostMicro,
   marginOf,
   microToMoney,
@@ -78,6 +80,9 @@ interface RecipeDraft {
   categoryId: number | null;
   areaId: number | null;
   salePrice: string;
+  requiredWorkers: string;
+  estimatedPrepMinutes: string;
+  prepTimeMode: 'ESTIMATED' | 'REAL' | 'AUTO';
 }
 
 interface PageFailure {
@@ -102,7 +107,15 @@ interface OptionEditorTarget {
   costed: boolean;
 }
 
-const EMPTY_DRAFT: RecipeDraft = { name: '', categoryId: null, areaId: null, salePrice: '' };
+const EMPTY_DRAFT: RecipeDraft = {
+  name: '',
+  categoryId: null,
+  areaId: null,
+  salePrice: '',
+  requiredWorkers: '1',
+  estimatedPrepMinutes: '0',
+  prepTimeMode: 'ESTIMATED',
+};
 
 /**
  * Product recipe and costing page (`/admin/manage/products/:id/recipe`).
@@ -112,16 +125,15 @@ const EMPTY_DRAFT: RecipeDraft = { name: '', categoryId: null, areaId: null, sal
  *    the whole aggregate (there is no recipe-only endpoint, P3-BE-RL-12).
  *  - `GET /v1/products/{id}/cost` and `/cost-breakdown` are the server truth for
  *    material, labor, total and per-option costs.
- *  - `PUT /v1/product-options/{id}` is the only option-recipe write path and the
- *    option read endpoints do **not** return the recipe, so the option editor is
- *    an explicit replacement flow with a confirmation for costed options.
- *  - `PUT /v1/products/{id}` deletes every product-option association unless
- *    `optionIds` is sent again, so the save payload always re-sends the current
- *    associations and their surcharges (data-loss guard).
+ *  - Option recipes are read through the option-group endpoints and written with
+ *    `PUT /v1/product-options/{id}`. Option-to-product associations use the
+ *    dedicated `/products/{id}/options` endpoints.
+ *  - `PUT /v1/products/{id}` preserves option associations when `optionIds` is
+ *    omitted, so the recipe save no longer rewrites them (ADR-0001/0002).
  *
- * The page is read-only for `description`, `estimatedPrepMinutes` and `active`:
- * the update endpoint silently ignores the first two and has no `active` field,
- * so exposing them would be a dead control (documented in the lane report).
+ * The page keeps `description` and `active` read-only. Preparation time is shown
+ * but not edited here; the number of people required is editable because it
+ * participates in the labor formula (ADR-0004).
  */
 @Component({
   selector: 'app-product-recipe-page',
@@ -132,15 +144,15 @@ const EMPTY_DRAFT: RecipeDraft = { name: '', categoryId: null, areaId: null, sal
     RmsBadge,
     RmsButton,
     RmsCard,
-    RmsCheckbox,
     RmsDialog,
-    RmsEmptyState,
     RmsInput,
     RmsPageHeader,
     RmsSelect,
     RmsSkeleton,
     RmsStatTile,
+    TooltipModule,
     RecipeIngredientEditor,
+    OptionGroupsManager,
     MoneyPipe,
   ],
   templateUrl: './product-recipe-page.html',
@@ -178,6 +190,9 @@ export class ProductRecipePage implements OnInit {
   readonly costLoading = signal(false);
   readonly costError = signal<string | null>(null);
   readonly costLoadedAt = signal<Date | null>(null);
+  readonly prepTime = signal<ProductPrepTimeResponse | null>(null);
+  readonly prepTimeLoading = signal(false);
+  readonly prepTimeError = signal<string | null>(null);
 
   // ── Options, images, labor mode ──────────────────────────────────
   readonly options = signal<ProductOption[]>([]);
@@ -256,10 +271,9 @@ export class ProductRecipePage implements OnInit {
     if (this.categoryError().length > 0) errors.push(this.categoryError());
     if (this.areaError().length > 0) errors.push(this.areaError());
     if (this.priceError().length > 0) errors.push(this.priceError());
+    if (this.workersError().length > 0) errors.push(this.workersError());
+    if (this.estimatedMinutesError().length > 0) errors.push(this.estimatedMinutesError());
     errors.push(...this.recipeValidation().errors);
-    if (this.optionsError() !== null) {
-      errors.push('No se pudieron cargar las opciones del producto. Guardar ahora eliminaría sus asociaciones.');
-    }
     if (this.variantsError() !== undefined) {
       errors.push('No se pudo cargar el catálogo de insumos: no se puede validar la receta.');
     }
@@ -274,6 +288,10 @@ export class ProductRecipePage implements OnInit {
       categoryId: draft.categoryId,
       areaId: draft.areaId,
       salePrice: price === null ? draft.salePrice.trim() : String(price),
+      requiredWorkers: this.workersValue() ?? draft.requiredWorkers.trim(),
+      estimatedPrepMinutes:
+        this.estimatedMinutesValue() ?? draft.estimatedPrepMinutes.trim(),
+      prepTimeMode: draft.prepTimeMode,
       recipe: recipeSnapshot(this.recipeRows()),
     });
   }
@@ -314,9 +332,91 @@ export class ProductRecipePage implements OnInit {
     ),
   );
 
+  readonly workersValue = computed(() => {
+    const raw = this.draft().requiredWorkers.trim();
+    if (raw.length === 0) return null;
+    const parsed = Number(raw);
+    return Number.isInteger(parsed) && parsed >= 1 ? parsed : null;
+  });
+
+  readonly workersError = computed(() => {
+    const raw = this.draft().requiredWorkers.trim();
+    if (raw.length === 0) return 'Indica cuántas personas preparan el producto';
+    const parsed = Number(raw);
+    if (!Number.isInteger(parsed)) return 'Usa un número entero de personas';
+    if (parsed < 1) return 'Debe haber al menos una persona';
+    if (parsed > 50) return 'Máximo 50 personas';
+    return '';
+  });
+
+  readonly serverWorkers = computed(() => this.product()?.requiredWorkers ?? 1);
+
+  readonly estimatedMinutesValue = computed(() => {
+    const raw = this.draft().estimatedPrepMinutes.trim();
+    if (raw.length === 0) return null;
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+  });
+
+  readonly estimatedMinutesError = computed(() => {
+    const raw = this.draft().estimatedPrepMinutes.trim();
+    if (raw.length === 0) return 'Indica el tiempo estimado en minutos';
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed)) return 'Usa un número de minutos';
+    if (parsed < 0) return 'El tiempo no puede ser negativo';
+    if (parsed > 600) return 'Máximo 600 minutos';
+    return '';
+  });
+
+  readonly prepTimeModeOptions: RmsSelectOption[] = [
+    { label: 'Estimado (base editable)', value: 'ESTIMATED' },
+    { label: 'Real medido', value: 'REAL' },
+    { label: 'Automático: real si hay datos', value: 'AUTO' },
+  ];
+
+  readonly realPrepLabel = computed(() => {
+    const prep = this.prepTime();
+    if (prep?.realPrepMinutes == null) return 'Sin datos';
+    return `${String(Number(prep.realPrepMinutes.toFixed(1)))} min · ${String(prep.realPrepSampleCount)} muestra(s)`;
+  });
+
+  readonly realPrepAvailable = computed(() => {
+    const prep = this.prepTime();
+    return prep !== null
+      && prep.realPrepMinutes !== null
+      && prep.realPrepSampleCount >= prep.minimumSamples;
+  });
+
+  readonly effectivePrepMinutes = computed(() => {
+    const draft = this.draft();
+    const estimated = this.estimatedMinutesValue();
+    const real = this.prepTime()?.realPrepMinutes ?? null;
+    if (draft.prepTimeMode === 'REAL' && real !== null && this.realPrepAvailable()) return real;
+    if (draft.prepTimeMode === 'AUTO' && real !== null && this.realPrepAvailable()) return real;
+    return estimated;
+  });
+
+  readonly effectivePrepSource = computed<'ESTIMATED' | 'REAL'>(() => {
+    const draft = this.draft();
+    const real = this.prepTime()?.realPrepMinutes ?? null;
+    return draft.prepTimeMode !== 'ESTIMATED' && real !== null && this.realPrepAvailable()
+      ? 'REAL'
+      : 'ESTIMATED';
+  });
+
   readonly laborMicro = computed(() => {
     const cost = this.cost();
-    return cost === null ? null : moneyToMicro(cost.laborCost);
+    if (cost === null) return null;
+    const serverLabor = moneyToMicro(cost.laborCost);
+    const serverMinutes =
+      cost.prepTimeUsedMinutes ?? this.product()?.estimatedPrepMinutes ?? null;
+    return laborForPreparation(
+      serverLabor,
+      serverMinutes,
+      this.serverWorkers(),
+      this.effectivePrepMinutes(),
+      this.workersValue() ?? this.serverWorkers(),
+    );
   });
 
   readonly totalMicro = computed(() => this.materialMicro() + (this.laborMicro() ?? 0n));
@@ -343,7 +443,7 @@ export class ProductRecipePage implements OnInit {
   });
 
   readonly materialPeriod = computed(() => {
-    if (this.costLoading()) return 'Consultando el costo del servidor…';
+    if (this.costLoading()) return 'Consultando el costo guardado…';
     if (this.missingCostCount() > 0) {
       const count = this.missingCostCount();
       return `${String(count)} ${count === 1 ? 'insumo sin costo unitario' : 'insumos sin costo unitario'}: material parcial`;
@@ -353,17 +453,39 @@ export class ProductRecipePage implements OnInit {
   });
 
   readonly hourlyRateMoney = computed(() => {
+    const cost = this.cost();
+    const serverLabor = cost === null ? null : moneyToMicro(cost.laborCost);
     const micro = hourlyRateMicro(
-      this.laborMicro(),
-      this.product()?.estimatedPrepMinutes ?? null,
+      serverLabor,
+      this.cost()?.prepTimeUsedMinutes ?? this.product()?.estimatedPrepMinutes ?? null,
+      this.serverWorkers(),
     );
     return micro === null ? null : microToMoney(micro, this.currency());
   });
 
   readonly laborPeriod = computed(() => {
-    const minutes = this.product()?.estimatedPrepMinutes ?? null;
+    const minutes = this.effectivePrepMinutes();
     if (minutes === null || minutes <= 0) return 'El producto no tiene tiempo de preparación';
-    return `${String(minutes)} min de preparación`;
+    const workers = this.workersValue() ?? this.serverWorkers();
+    const source = this.effectivePrepSource() === 'REAL' ? 'tiempo real' : 'tiempo estimado';
+    return `${String(Number(minutes.toFixed(1)))} min (${source}) · ${String(workers)} persona(s)`;
+  });
+
+  readonly laborTooltip = computed(() => {
+    const minutes = this.effectivePrepMinutes();
+    const workers = this.workersValue() ?? this.serverWorkers();
+    const rate = this.hourlyRateMoney();
+    const mode = this.laborModeText();
+    const real = this.prepTime();
+    const formula =
+      minutes !== null && minutes > 0 && rate !== null
+        ? `Mano de obra = (${String(Number(minutes.toFixed(1)))} min ÷ 60) × ${this.moneyText(rate)}/h por persona × ${String(workers)} persona(s).`
+        : 'Mano de obra = (minutos de preparación ÷ 60) × tarifa del área por persona × personas.';
+    const realText =
+      real === null
+        ? 'Todavía no hay suficientes tiempos reales medidos.'
+        : `Tiempo real: ${real.realPrepMinutes === null ? 'sin datos' : String(Number(real.realPrepMinutes.toFixed(1))) + ' min'} · ${String(real.realPrepSampleCount)} muestra(s); se requieren ${String(real.minimumSamples)}.`;
+    return `${formula} ${realText} El costo usa ${this.effectivePrepSource() === 'REAL' ? 'el tiempo real' : 'el tiempo estimado'}. La tarifa se obtiene de la nómina o de los salarios de los trabajadores del área. Modo de tarifa: ${mode}.`;
   });
 
   readonly totalPeriod = computed(() => {
@@ -417,7 +539,7 @@ export class ProductRecipePage implements OnInit {
         'Hay insumos sin costo unitario configurado; el costo de material es parcial.',
       );
     }
-    const minutes = this.product()?.estimatedPrepMinutes ?? null;
+    const minutes = this.effectivePrepMinutes();
     if (minutes === null || minutes <= 0) {
       warnings.push('El producto no tiene tiempo de preparación: el costo de mano de obra es 0.');
     }
@@ -544,6 +666,9 @@ export class ProductRecipePage implements OnInit {
       categoryId: product.categoryId,
       areaId: product.areaId,
       salePrice: formatAmountInput(product.basePrice),
+      requiredWorkers: String(product.requiredWorkers ?? 1),
+      estimatedPrepMinutes: String(product.estimatedPrepMinutes ?? 0),
+      prepTimeMode: product.prepTimeMode ?? 'ESTIMATED',
     });
     this.recipeRows.set(recipeRowsFromRecipe(product.recipe));
     this.baseline.set(this.draftSnapshot());
@@ -554,10 +679,19 @@ export class ProductRecipePage implements OnInit {
   private loadCosts(silent = false): void {
     const id = this.product()?.id;
     if (id === undefined) return;
-    if (!silent) this.costLoading.set(true);
+    if (!silent) {
+      this.costLoading.set(true);
+      this.prepTimeLoading.set(true);
+    }
     this.costError.set(null);
 
     forkJoin({
+      prepTime: this.productService.getPrepTime(id).pipe(
+        catchError((err: unknown) => {
+          this.prepTimeError.set(this.problemMessage(err, 'No se pudieron leer los tiempos reales'));
+          return of(null);
+        }),
+      ),
       cost: this.productService.getCost(id).pipe(
         catchError((err: unknown) => {
           this.costError.set(this.problemMessage(err, 'No se pudo calcular el costo del producto'));
@@ -567,13 +701,15 @@ export class ProductRecipePage implements OnInit {
       breakdown: this.productService.getCostBreakdown(id).pipe(catchError(() => of(null))),
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(({ cost, breakdown }) => {
+      .subscribe(({ prepTime, cost, breakdown }) => {
+        if (prepTime !== null) this.prepTime.set(prepTime);
         if (cost !== null) {
           this.cost.set(cost);
           this.costLoadedAt.set(new Date());
         }
         if (breakdown !== null) this.breakdown.set(breakdown);
         this.costLoading.set(false);
+        this.prepTimeLoading.set(false);
       });
   }
 
@@ -636,6 +772,22 @@ export class ProductRecipePage implements OnInit {
     this.clearSaveState();
   }
 
+  updateRequiredWorkers(value: string): void {
+    this.draft.update((draft) => ({ ...draft, requiredWorkers: value }));
+    this.clearSaveState();
+  }
+
+  updateEstimatedPrepMinutes(value: string): void {
+    this.draft.update((draft) => ({ ...draft, estimatedPrepMinutes: value }));
+    this.clearSaveState();
+  }
+
+  updatePrepTimeMode(value: string | number | null): void {
+    const mode = value === 'REAL' || value === 'AUTO' ? value : 'ESTIMATED';
+    this.draft.update((draft) => ({ ...draft, prepTimeMode: mode }));
+    this.clearSaveState();
+  }
+
   updateRecipeRows(rows: RecipeRow[]): void {
     this.recipeRows.set(rows);
     this.clearSaveState();
@@ -676,14 +828,12 @@ export class ProductRecipePage implements OnInit {
       basePrice: price,
       categoryId: draft.categoryId,
       areaId: draft.areaId,
-      estimatedPrepMinutes: product.estimatedPrepMinutes,
+      requiredWorkers: this.workersValue() ?? 1,
+      estimatedPrepMinutes: this.estimatedMinutesValue() ?? 0,
+      prepTimeMode: this.draft().prepTimeMode,
       recipe: this.recipeValidation().payload,
-      // `PUT /products/{id}` deletes every association first; re-sending the
-      // current options and their surcharges is what keeps them alive.
-      optionIds: this.options().map((option) => option.id),
-      optionExtras: this.options()
-        .filter((option) => toAmount(option.extraPrice) > 0)
-        .map((option) => ({ optionId: option.id, extraPrice: toAmount(option.extraPrice) })),
+      // Option associations are owned by the option-groups manager through
+      // dedicated endpoints; omitting optionIds makes the API preserve them.
     };
 
     this.productService
@@ -701,7 +851,7 @@ export class ProductRecipePage implements OnInit {
         this.applyProduct(updated);
         this.saving.set(false);
         this.saveSuccess.set(
-          'Cambios guardados. El costo del servidor se recalculó con la nueva receta.',
+          'Cambios guardados. El costo guardado se recalculó con la nueva receta.',
         );
         this.cache.invalidateProductList();
         this.wsService.emitCacheInvalidation('products', 'update', product.id);
@@ -711,6 +861,13 @@ export class ProductRecipePage implements OnInit {
   }
 
   // ── Option recipes ───────────────────────────────────────────────
+  onOptionsChanged(): void {
+    if (this.productId > 0) {
+      this.loadCosts(true);
+      this.loadOptions(this.productId, true);
+    }
+  }
+
   optionCost(option: ProductOption): Money | null {
     return this.optionCostById().get(option.id) ?? option.cost ?? null;
   }
@@ -908,6 +1065,14 @@ export class ProductRecipePage implements OnInit {
   // ── Helpers ──────────────────────────────────────────────────────
   laborModeText(): string {
     return laborModeLabel(this.laborMode());
+  }
+
+  private moneyText(value: Money): string {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: this.currency(),
+      maximumFractionDigits: 0,
+    }).format(toAmount(value));
   }
 
   private toFailure(err: unknown): PageFailure {

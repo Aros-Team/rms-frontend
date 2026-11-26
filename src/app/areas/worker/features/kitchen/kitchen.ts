@@ -34,8 +34,11 @@ import { KitchenAlerts } from './kitchen-alerts';
 import {
   groupKitchenLines,
   isLineReady,
+  isLineStarted,
   lineReadyAt,
+  lineStartedAt,
   pendingDetailIds,
+  unstartedDetailIds,
   totalKitchenItems,
   type KitchenLine,
 } from './kitchen-lines';
@@ -107,7 +110,7 @@ interface KitchenColumnView {
 const STATUS_LABEL: Record<string, string> = {
   QUEUE: 'En cola',
   PREPARING: 'Preparando',
-  READY: 'Lista',
+  READY: 'Preparado',
   DELIVERED: 'Entregada',
   CANCELLED: 'Cancelada',
 };
@@ -319,7 +322,7 @@ export class Kitchen implements OnInit, OnDestroy {
     },
   ]);
 
-  readonly nextOrder = computed<OrderResponse | null>(() => this.queueOrders()[0] ?? null);
+  readonly nextOrder = computed<OrderResponse | null>(() => this.queueView()[0] ?? null);
   readonly nextAgeLabel = computed(() => {
     const order = this.nextOrder();
     return order ? formatAge(orderAgeMs(order.date, this.now())) : '';
@@ -780,15 +783,21 @@ export class Kitchen implements OnInit, OnDestroy {
    */
   prepareNext(): void {
     if (this.preparingNext()) return;
-    if (this.queueOrders().length === 0) return;
+    const next = this.nextOrder();
+    if (next === null) return;
 
     this.preparingNext.set(true);
     this.error.set(null);
 
-    this.orderService.prepareNext().subscribe({
+    const areaId = this.selectedAreaId();
+    const request =
+      areaId === null
+        ? this.orderService.prepareNext()
+        : this.orderService.startArea(next.id, areaId);
+    request.subscribe({
       next: (order) => {
         this.preparingNext.set(false);
-        this.moveOrder('preparing', order);
+        this.applyOrderUpdate(order);
         this.announce(`Pedido #${String(order.id)} en preparación.`);
       },
       error: (error: unknown) => {
@@ -805,11 +814,16 @@ export class Kitchen implements OnInit, OnDestroy {
     this.setProcessing(order.id, true);
     this.error.set(null);
 
-    this.orderService.prepareOrder(order.id).subscribe({
+    const areaId = this.selectedAreaId();
+    const request =
+      areaId === null
+        ? this.orderService.prepareOrder(order.id)
+        : this.orderService.startArea(order.id, areaId);
+    request.subscribe({
       next: (updated) => {
         this.setProcessing(order.id, false);
-        this.moveOrder('preparing', updated);
-        this.announce(`Pedido #${String(updated.id)} en preparación.`);
+        this.applyOrderUpdate(updated);
+        this.announce(`Pedido #${String(updated.id)} preparándose en la estación.`);
       },
       error: (error: unknown) => {
         this.setProcessing(order.id, false);
@@ -878,6 +892,103 @@ export class Kitchen implements OnInit, OnDestroy {
     };
 
     step(0);
+  }
+
+  /** Starts one grouped line's pending physical rows. */
+  startLine(order: OrderResponse, line: KitchenLine): void {
+    const pending = unstartedDetailIds(line);
+    if (pending.length === 0) return;
+    const token = this.lineToken(order.id, line.key);
+    if (this.lineProcessing().has(token)) return;
+    this.setLineProcessing(token, true);
+    this.error.set(null);
+    let index = 0;
+    const step = (): void => {
+      if (index >= pending.length) {
+        this.setLineProcessing(token, false);
+        return;
+      }
+      this.orderService.startDetail(order.id, pending[index]).subscribe({
+        next: (updated) => {
+          this.applyOrderUpdate(updated);
+          index += 1;
+          step();
+        },
+        error: (error: unknown) => {
+          this.setLineProcessing(token, false);
+          this.error.set(problemDetail(error) ?? 'No se pudo iniciar el ítem.');
+        },
+      });
+    };
+    step();
+  }
+
+  /** Starts every pending line of a station group. */
+  startStation(order: OrderResponse, group: StationGroup<KitchenLine>): void {
+    const areaId = stationAreaId(group.station.key);
+    if (areaId === null) {
+      for (const line of group.items) this.startLine(order, line);
+      return;
+    }
+    if (this.isProcessing(order.id)) return;
+    this.setProcessing(order.id, true);
+    this.error.set(null);
+    this.orderService.startArea(order.id, areaId).subscribe({
+      next: (updated) => {
+        this.setProcessing(order.id, false);
+        this.applyOrderUpdate(updated);
+      },
+      error: (error: unknown) => {
+        this.setProcessing(order.id, false);
+        this.error.set(problemDetail(error) ?? 'No se pudo iniciar la estación.');
+      },
+    });
+  }
+
+  /** Marks every pending line of a station group ready. */
+  markStationReady(order: OrderResponse, group: StationGroup<KitchenLine>): void {
+    const areaId = stationAreaId(group.station.key);
+    if (areaId === null) {
+      for (const line of group.items) this.markLineReady(order, line);
+      return;
+    }
+    if (this.isProcessing(order.id)) return;
+    this.setProcessing(order.id, true);
+    this.error.set(null);
+    this.orderService.markAreaReady(order.id, areaId).subscribe({
+      next: (updated) => {
+        this.setProcessing(order.id, false);
+        this.applyOrderUpdate(updated);
+        if (updated.status === 'READY') {
+          this.announce(`Pedido #${String(updated.id)} preparado.`);
+        }
+      },
+      error: (error: unknown) => {
+        this.setProcessing(order.id, false);
+        this.error.set(problemDetail(error) ?? 'No se pudo marcar la estación como lista.');
+      },
+    });
+  }
+
+  stationHasUnstarted(group: StationGroup<KitchenLine>): boolean {
+    return group.items.some((line) => !isLineReady(line) && unstartedDetailIds(line).length > 0);
+  }
+
+  stationHasPending(group: StationGroup<KitchenLine>): boolean {
+    return group.items.some((line) => !isLineReady(line));
+  }
+
+  lineStarted(line: KitchenLine): boolean {
+    return isLineStarted(line);
+  }
+
+  lineStartLabel(line: KitchenLine): string {
+    const raw = lineStartedAt(line);
+    return raw === null ? '' : formatClock(new Date(raw));
+  }
+
+  lineUnstarted(line: KitchenLine): boolean {
+    return unstartedDetailIds(line).length > 0;
   }
 
   askDeliver(order: OrderResponse): void {

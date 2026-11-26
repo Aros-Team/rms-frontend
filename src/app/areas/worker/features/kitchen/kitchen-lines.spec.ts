@@ -185,8 +185,8 @@ describe('kitchen lines', () => {
 
     expect(grouped.quantity).toBe(2);
     expect(grouped.details).toEqual([
-      { id: 1, ready: true, readyAt: '2026-11-22T12:00:00' },
-      { id: 2, ready: false, readyAt: null },
+      { id: 1, ready: true, readyAt: '2026-11-22T12:00:00', preparationStartedAt: null },
+      { id: 2, ready: false, readyAt: null, preparationStartedAt: null },
     ]);
     expect(isLineReady(grouped)).toBe(false);
     expect(pendingDetailIds(grouped)).toEqual([2]);

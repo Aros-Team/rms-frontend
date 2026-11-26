@@ -577,6 +577,9 @@ kbd {
 }
 
 .detail__station-title {
+  display: flex;
+  align-items: center;
+  gap: var(--rms-space-2);
   margin: 0;
   color: var(--rms-text-secondary);
   font-size: var(--rms-type-caption-size);
@@ -734,4 +737,11 @@ kbd {
   .ticket__timer {
     border: var(--rms-border-width) solid ButtonText;
   }
+}
+
+.station__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rms-space-1);
+  margin-left: auto;
 }

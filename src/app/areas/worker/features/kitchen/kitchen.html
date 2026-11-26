@@ -184,6 +184,20 @@
                       <h3 class="station__title">
                         {{ group.station.name }}
                         <span class="station__count">{{ stationItemCount(group) }}</span>
+                        <span class="station__actions">
+                          @if (stationHasUnstarted(group)) {
+                            <app-rms-button variant="secondary" size="sm" iconStart="pi pi-play"
+                              [disabled]="isProcessing(order.id)" (click)="startStation(order, group)">
+                              Iniciar estación
+                            </app-rms-button>
+                          }
+                          @if (stationHasPending(group)) {
+                            <app-rms-button variant="secondary" size="sm" iconStart="pi pi-check"
+                              [disabled]="isProcessing(order.id)" (click)="markStationReady(order, group)">
+                              Todo listo
+                            </app-rms-button>
+                          }
+                        </span>
                       </h3>
                       <ul class="station__lines">
                         @for (line of group.items; track line.key) {
@@ -225,7 +239,18 @@
                                 @if (lineProgress(line); as progress) {
                                   <span class="line__ready-at rms-tabular">{{ progress }}</span>
                                 }
-                                @if (order.status === 'PREPARING') {
+                                @if (lineUnstarted(line)) {
+                                  <app-rms-button
+                                    variant="secondary"
+                                    size="lg"
+                                    iconStart="pi pi-play"
+                                    [loading]="isLineProcessing(order.id, line.key)"
+                                    [disabled]="isLineProcessing(order.id, line.key)"
+                                    (click)="startLine(order, line)"
+                                  >
+                                    Iniciar
+                                  </app-rms-button>
+                                } @else if (order.status === 'PREPARING') {
                                   <app-rms-button
                                     variant="secondary"
                                     size="lg"
@@ -336,7 +361,23 @@
 
       @for (group of detailGroups(); track group.station.key) {
         <section class="detail__station">
-          <h3 class="detail__station-title">{{ group.station.name }}</h3>
+          <h3 class="detail__station-title">
+            {{ group.station.name }}
+            <span class="station__actions">
+              @if (stationHasUnstarted(group)) {
+                <app-rms-button variant="secondary" size="sm" iconStart="pi pi-play"
+                  [disabled]="isProcessing(order.id)" (click)="startStation(order, group)">
+                  Iniciar estación
+                </app-rms-button>
+              }
+              @if (stationHasPending(group)) {
+                <app-rms-button variant="secondary" size="sm" iconStart="pi pi-check"
+                  [disabled]="isProcessing(order.id)" (click)="markStationReady(order, group)">
+                  Todo listo
+                </app-rms-button>
+              }
+            </span>
+          </h3>
           <ul class="detail__lines">
             @for (line of group.items; track line.key) {
               <li class="detail-line" [class.detail-line--ready]="lineReady(line)">
@@ -376,7 +417,18 @@
                     @if (lineProgress(line); as progress) {
                       <span class="rms-caption">{{ progress }}</span>
                     }
-                    @if (order.status === 'PREPARING') {
+                    @if (lineUnstarted(line)) {
+                      <app-rms-button
+                        variant="secondary"
+                        size="lg"
+                        iconStart="pi pi-play"
+                        [loading]="isLineProcessing(order.id, line.key)"
+                        [disabled]="isLineProcessing(order.id, line.key)"
+                        (click)="startLine(order, line)"
+                      >
+                        Iniciar
+                      </app-rms-button>
+                    } @else if (order.status === 'PREPARING') {
                       <app-rms-button
                         variant="secondary"
                         size="lg"

@@ -107,6 +107,7 @@
     [visible]="showOptionsModal()"
     [product]="pendingProduct()"
     [options]="modalOptions()"
+    [requiredGroupIds]="modalRequiredGroupIds()"
     [loading]="modalOptionsLoading()"
     [error]="optionsError()"
     (confirm)="onConfirmOptions($event)"

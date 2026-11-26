@@ -1,0 +1,271 @@
+<app-rms-card
+  title="Grupos de opciones"
+  [subtitle]="groups().length + ' grupos configurados para este producto'">
+  <span rmsCardActions>
+    <app-rms-button size="sm" iconStart="pi pi-plus" (click)="openCreateGroup()">
+      Nuevo grupo
+    </app-rms-button>
+  </span>
+
+  @if (loading()) {
+    <app-rms-skeleton variant="rect" height="10rem" ariaLabel="Cargando grupos de opciones" />
+  } @else if (error(); as message) {
+    <div class="text-sm rounded-lg border border-rms-danger/30 bg-rms-danger/5 p-4" role="alert">
+      <p class="font-medium text-rms-danger">No se pudieron cargar los grupos de opciones</p>
+      <p class="text-rms-ink-secondary mt-1">{{ message }}</p>
+      <app-rms-button size="sm" variant="secondary" iconStart="pi pi-refresh" (click)="reload()">
+        Reintentar
+      </app-rms-button>
+    </div>
+  } @else if (groups().length === 0) {
+    <app-rms-empty-state
+      icon="pi pi-sliders-h"
+      title="Sin grupos de opciones"
+      message="Crea un grupo (por ejemplo Proteína o Base carbohidratos) y define las opciones que el mesero podrá elegir."
+      actionLabel="Crear primer grupo"
+      actionIcon="pi pi-plus"
+      (action)="openCreateGroup()" />
+  } @else {
+    <div class="flex flex-col gap-4">
+      @for (group of groups(); track group.id) {
+        <section class="rounded-xl border border-rms-border bg-rms-surface" [attr.aria-label]="group.name">
+          <header class="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-rms-border">
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <h4 class="text-sm font-semibold text-rms-ink truncate">{{ group.name }}</h4>
+                <app-rms-badge [label]="selectionLabel(group.selectionType)" tone="neutral" variant="outline" />
+                @if (group.required) {
+                  <app-rms-badge label="Obligatorio" tone="warning" />
+                } @else {
+                  <app-rms-badge label="Opcional" tone="neutral" />
+                }
+                <span class="text-xs text-rms-ink-muted">
+                  {{ groupOptionCount(group) }} opción(es)
+                </span>
+              </div>
+              @if (group.description) {
+                <p class="text-xs text-rms-ink-muted mt-1">{{ group.description }}</p>
+              }
+            </div>
+            <div class="flex items-center gap-1">
+              <app-rms-button size="sm" variant="secondary" iconStart="pi pi-pencil" (click)="openEditGroup(group)">
+                Editar grupo
+              </app-rms-button>
+              <app-rms-button size="sm" variant="secondary" iconStart="pi pi-plus" (click)="openCreateOption(group)">
+                Agregar opción
+              </app-rms-button>
+              <app-rms-button
+                size="sm"
+                variant="secondary"
+                iconStart="pi pi-unlink"
+                (click)="askDetachGroup(group)">
+                Quitar del producto
+              </app-rms-button>
+            </div>
+          </header>
+
+          @if (group.required && groupOptionCount(group) === 0) {
+            <div class="mx-4 mt-3 rounded-lg border border-rms-warning/40 bg-rms-warning/10 px-3 py-2 text-xs text-rms-ink-secondary" role="note">
+              Este grupo es obligatorio pero no tiene opciones asociadas. Agrega al menos una opción
+              para que el mesero pueda tomar pedidos de este producto.
+            </div>
+          }
+
+          @if (group.options.length === 0) {
+            <p class="px-4 py-4 text-sm text-rms-ink-muted">
+              Este grupo todavía no tiene opciones. Usa «Agregar opción» para crear la primera.
+            </p>
+          } @else {
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <caption class="sr-only">Opciones del grupo {{ group.name }}</caption>
+                <thead>
+                  <tr class="text-left text-xs uppercase tracking-wide text-rms-ink-muted">
+                    <th scope="col" class="px-4 py-2 font-medium">Opción</th>
+                    <th scope="col" class="px-4 py-2 font-medium">Receta</th>
+                    <th scope="col" class="px-4 py-2 font-medium text-right">Precio extra</th>
+                    <th scope="col" class="px-4 py-2 font-medium">Estado</th>
+                    <th scope="col" class="px-4 py-2"><span class="sr-only">Acciones</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (option of group.options; track option.id) {
+                    <tr class="border-t border-rms-border">
+                      <td class="px-4 py-2 font-medium text-rms-ink">{{ option.name }}</td>
+                      <td class="px-4 py-2 text-rms-ink-secondary">
+                        {{ option.recipe.length === 0 ? 'Sin insumos' : option.recipe.length + ' insumo(s)' }}
+                      </td>
+                      <td class="px-4 py-2 text-right tabular-nums">{{ option.extraPrice | money }}</td>
+                      <td class="px-4 py-2">
+                        @if (option.associated) {
+                          <app-rms-badge label="En el producto" tone="success" />
+                        } @else {
+                          <app-rms-badge label="No asociada" tone="warning" />
+                        }
+                      </td>
+                      <td class="px-4 py-2">
+                        <div class="flex items-center justify-end gap-1">
+                          @if (!option.associated) {
+                            <app-rms-button size="sm" variant="secondary" iconStart="pi pi-plus" (click)="associateExisting(group, option)">
+                              Asociar
+                            </app-rms-button>
+                          }
+                          <app-rms-button size="sm" variant="secondary" iconStart="pi pi-pencil" (click)="openEditOption(group, option)">
+                            Editar
+                          </app-rms-button>
+                          @if (option.associated) {
+                            <app-rms-button size="sm" variant="secondary" iconStart="pi pi-unlink" (click)="detachOption(option)">
+                              Quitar
+                            </app-rms-button>
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </section>
+      }
+    </div>
+  }
+</app-rms-card>
+
+<!-- ── Group dialog ─────────────────────────────────────────────── -->
+<app-rms-dialog
+  [visible]="groupDialogOpen()"
+  (visibleChange)="onGroupDialogVisible($event)"
+  [header]="editingGroupId() === null ? 'Nuevo grupo de opciones' : 'Editar grupo de opciones'"
+  width="560px">
+  <div class="flex flex-col gap-4">
+    <app-rms-input
+      label="Nombre del grupo"
+      [required]="true"
+      placeholder="Ej: Proteína, Base carbohidratos"
+      [ngModel]="groupDraft().name"
+      (ngModelChange)="updateGroupName($event)" />
+    <app-rms-input
+      label="Descripción"
+      [optionalLabel]="'(opcional)'"
+      placeholder="Ej: Elige la proteína principal del plato"
+      [ngModel]="groupDraft().description"
+      (ngModelChange)="updateGroupDescription($event)" />
+    <app-rms-select
+      label="Tipo de selección"
+      [options]="selectionOptions"
+      [ngModel]="groupDraft().selectionType"
+      (ngModelChange)="updateGroupSelectionType($event)" />
+    <app-rms-checkbox
+      label="Obligatorio para el mesero"
+      description="El pedido no se podrá enviar sin elegir una opción de este grupo."
+      [ngModel]="groupDraft().required"
+      (ngModelChange)="updateGroupRequired($event)" />
+    @if (groupError(); as message) {
+      <p class="text-sm text-rms-danger" role="alert">{{ message }}</p>
+    }
+  </div>
+  <div rmsDialogFooter class="flex justify-end gap-2">
+    <app-rms-button variant="secondary" (click)="onGroupDialogVisible(false)">Cancelar</app-rms-button>
+    <app-rms-button iconStart="pi pi-check" [loading]="groupSaving()" (click)="saveGroup()">
+      Guardar grupo
+    </app-rms-button>
+  </div>
+</app-rms-dialog>
+
+<!-- ── Option dialog ────────────────────────────────────────────── -->
+<app-rms-dialog
+  [visible]="optionDialogOpen()"
+  (visibleChange)="onOptionDialogVisible($event)"
+  [header]="optionDialogHeader()"
+  width="860px">
+  <div class="flex flex-col gap-4">
+    <app-rms-input
+      label="Nombre de la opción"
+      [required]="true"
+      placeholder="Ej: Huevo, Arepa, Sin cebolla"
+      [ngModel]="optionDraft().name"
+      (ngModelChange)="updateOptionName($event)" />
+    <app-rms-input
+      label="Precio extra en este producto"
+      hint="0 si la opción no tiene recargo. Se guarda por producto."
+      inputMode="decimal"
+      [error]="optionPriceError()"
+      [ngModel]="optionDraft().extraPrice"
+      (ngModelChange)="updateOptionExtraPrice($event)" />
+
+    <div class="flex flex-col gap-2">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-semibold text-rms-ink">Receta de la opción</p>
+          <p class="text-xs text-rms-ink-muted">
+            Insumos que consume o descuenta esta opción al elegirse.
+          </p>
+        </div>
+        <app-rms-button size="sm" variant="secondary" iconStart="pi pi-plus" (click)="addOptionRecipeRow()">
+          Agregar insumo
+        </app-rms-button>
+      </div>
+
+      @if (variantsLoading() && variants().length === 0) {
+        <app-rms-skeleton variant="rect" height="8rem" ariaLabel="Cargando insumos" />
+      } @else {
+        <app-recipe-ingredient-editor
+          [rows]="optionRows()"
+          [variants]="variants()"
+          [disabled]="optionSaving()"
+          emptyTitle="Sin insumos en la opción"
+          emptyMessage="Agrega los insumos que componen esta opción."
+          (rowsChange)="updateOptionRows($event)" />
+      }
+
+      @if (editingOptionId() !== null && optionRows().length > 0) {
+        <app-rms-checkbox
+          label="Confirmo que quiero reemplazar la receta actual de la opción"
+          description="Guardar reemplaza la receta completa de la opción."
+          [ngModel]="optionReplacementAck()"
+          (ngModelChange)="updateOptionAck($event)" />
+      }
+
+      @if (optionError(); as message) {
+        <p class="text-sm text-rms-danger" role="alert">{{ message }}</p>
+      }
+    </div>
+  </div>
+  <div rmsDialogFooter class="flex justify-end gap-2">
+    <app-rms-button variant="secondary" (click)="onOptionDialogVisible(false)">Cancelar</app-rms-button>
+    <app-rms-button
+      iconStart="pi pi-check"
+      [loading]="optionSaving()"
+      [disabled]="!canSaveOption() || (editingOptionId() !== null && optionRows().length > 0 && !optionReplacementAck())"
+      (click)="saveOption()">
+      Guardar opción
+    </app-rms-button>
+  </div>
+</app-rms-dialog>
+
+<!-- ── Detach group confirmation ────────────────────────────────── -->
+<app-rms-dialog
+  [visible]="detachDialogOpen()"
+  (visibleChange)="onDetachDialogVisible($event)"
+  header="Quitar grupo del producto"
+  width="520px">
+  @if (detachTarget(); as target) {
+    <div class="flex flex-col gap-3 text-sm text-rms-ink-secondary">
+      <p>
+        «{{ target.name }}» dejará de aplicarse a este producto. Sus opciones también se quitarán
+        del producto, pero el grupo y las opciones se conservan en la base de datos para una futura
+        pantalla de catálogo reutilizable.
+      </p>
+      @if (detachError(); as message) {
+        <p class="text-rms-danger" role="alert">{{ message }}</p>
+      }
+    </div>
+  }
+  <div rmsDialogFooter class="flex justify-end gap-2">
+    <app-rms-button variant="secondary" (click)="onDetachDialogVisible(false)">Cancelar</app-rms-button>
+    <app-rms-button variant="danger" iconStart="pi pi-unlink" [loading]="detaching()" (click)="confirmDetachGroup()">
+      Quitar del producto
+    </app-rms-button>
+  </div>
+</app-rms-dialog>

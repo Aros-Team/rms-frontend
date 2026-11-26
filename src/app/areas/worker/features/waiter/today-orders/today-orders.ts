@@ -34,7 +34,7 @@ import { TodayOrdersSkeleton } from './skeletons/today-orders-skeleton';
 const STATUS_LABEL: Record<string, string> = {
   QUEUE: 'En cola',
   PREPARING: 'Preparando',
-  READY: 'Lista',
+  READY: 'Preparado',
   DELIVERED: 'Entregada',
   CANCELLED: 'Cancelada',
 };
@@ -55,6 +55,9 @@ interface OrderLineView {
   total: number;
   options: string;
   instructions: string;
+  detailIds: number[];
+  ready: boolean;
+  delivered: boolean;
 }
 
 function lineKey(detail: OrderDetailItem): string {
@@ -70,6 +73,9 @@ function groupLines(details: readonly OrderDetailItem[]): OrderLineView[] {
     if (current) {
       current.quantity += 1;
       current.total = current.unitPrice * current.quantity;
+      current.detailIds.push(detail.id);
+      current.ready = current.ready && detail.ready === true;
+      current.delivered = current.delivered && detail.delivered === true;
       continue;
     }
     lines.set(key, {
@@ -80,6 +86,9 @@ function groupLines(details: readonly OrderDetailItem[]): OrderLineView[] {
       total: calculateLineTotal(detail),
       options: (detail.selectedOptions ?? []).map((option) => option.name).join(', '),
       instructions: detail.instructions ?? '',
+      detailIds: [detail.id],
+      ready: detail.ready === true,
+      delivered: detail.delivered === true,
     });
   }
   return [...lines.values()];
@@ -129,7 +138,7 @@ export class TodayOrders implements OnInit {
     { label: 'Todos', value: '' },
     { label: 'En cola', value: 'QUEUE' },
     { label: 'Preparando', value: 'PREPARING' },
-    { label: 'Lista', value: 'READY' },
+    { label: 'Preparado', value: 'READY' },
     { label: 'Entregada', value: 'DELIVERED' },
     { label: 'Cancelada', value: 'CANCELLED' },
   ] as const;
@@ -248,6 +257,36 @@ export class TodayOrders implements OnInit {
     if (this.selectedStatus() === status) return;
     this.selectedStatus.set(status);
     this.fetchOrders();
+  }
+
+  deliverLine(order: OrderResponse, line: OrderLineView): void {
+    if (this.isProcessing(order.id) || !line.ready || line.delivered) return;
+    this.toggleProcessing(order.id);
+    let index = 0;
+    const step = (): void => {
+      if (index >= line.detailIds.length) {
+        this.clearProcessing(order.id);
+        return;
+      }
+      this.orderService.deliverDetail(order.id, line.detailIds[index]).subscribe({
+        next: (updated) => {
+          this.orders.update((list) => list.map((item) => (item.id === updated.id ? updated : item)));
+          index += 1;
+          step();
+        },
+        error: (err: unknown) => {
+          const status = err instanceof HttpErrorResponse ? err.status : 0;
+          this.messageService.add({
+            severity: status === 400 ? 'warn' : 'error',
+            summary: status === 409 ? 'Conflicto' : 'Error al entregar',
+            detail: extractError(err),
+            life: 6000,
+          });
+          this.clearProcessing(order.id);
+        },
+      });
+    };
+    step();
   }
 
   deliverOrder(order: OrderResponse): void {

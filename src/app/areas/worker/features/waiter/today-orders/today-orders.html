@@ -105,6 +105,23 @@
                       }
                     </span>
                     <span class="order-line__total">{{ line.total | money }}</span>
+                    <span class="order-line__state">
+                      @if (line.delivered) {
+                        <app-rms-status-pill label="Entregado" status="neutral" />
+                      } @else if (line.ready) {
+                        <app-rms-status-pill label="Listo" status="success" />
+                        <app-rms-button
+                          size="sm"
+                          iconStart="pi pi-check"
+                          [loading]="isProcessing(order.id)"
+                          [disabled]="isProcessing(order.id) || order.status === 'DELIVERED'"
+                          (click)="deliverLine(order, line)">
+                          Entregar
+                        </app-rms-button>
+                      } @else {
+                        <app-rms-status-pill label="Preparando" status="info" />
+                      }
+                    </span>
                   </li>
                 }
               </ul>

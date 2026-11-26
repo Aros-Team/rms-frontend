@@ -12,7 +12,6 @@ import { ProductCache } from './product-cache';
 import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 import { ProductOption } from '@app/core/services/product-option/product-option';
 import { WebSocket } from '@app/core/services/websocket/websocket';
-import { OptionsChangedPayload } from './step3-options/step3-options';
 import { Step3Options } from './step3-options/step3-options';
 import { mapHttpError } from '@app/shared/lib/http-error-mapper/http-error-mapper';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -25,7 +24,6 @@ import { ProductImage } from '@app/core/services/product-image/product-image';
 import { ProductImageResponse } from '@app/shared/models/dto/products/product-image-response';
 import { productImageSrcSet } from '@app/shared/lib/product-image';
 import { ProductCostResponse } from '@app/shared/models/dto/products/product-cost-response';
-import { OptionGroupResponse } from '@app/shared/models/dto/option-groups/option-group';
 
 import { SearchInput as SearchInputComponent } from '@app/shared/components/search-input/search-input';
 import { FileUploadModule } from 'primeng/fileupload';
@@ -267,7 +265,6 @@ export class Products implements OnInit {
   isSubmitting = signal(false);
   createdProduct = signal<ProductResponse | null>(null);
   existingOptions = signal<ProductOptionDTO[]>([]);
-  optionGroups = signal<OptionGroupResponse[]>([]);
   existingRecipe: FormArray = this.fb.array([]);
   private existingRecipeCategoryMap = new Map<number, number | null>();
   private existingRecipeRowIds: number[] = [];
@@ -348,6 +345,8 @@ export class Products implements OnInit {
     name: ['', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.minLength(2)(control)]],
     description: [''],
     estimatedPrepMinutes: [null, (control: AbstractControl) => Validators.min(0)(control)],
+    requiredWorkers: [1, [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.min(1)(control)]],
+    prepTimeMode: ['ESTIMATED'],
     categoryId: [null, (control: AbstractControl) => Validators.required(control)],
     areaId: [null, (control: AbstractControl) => Validators.required(control)],
   });
@@ -456,7 +455,6 @@ export class Products implements OnInit {
   selectedOptionIds = signal<number[]>([]);
 
   // Step 3 options state
-  step3OptionsChanged = signal<OptionsChangedPayload>({ optionIds: [], optionExtras: [] });
 
   ngOnInit(): void {
     // Force load on first visit if no data
@@ -519,12 +517,12 @@ export class Products implements OnInit {
   showCreationModal(): void {
     this.cache.referenceData.loadIfStale();
     this.baseForm.reset();
+    this.baseForm.patchValue({ requiredWorkers: 1, prepTimeMode: 'ESTIMATED' });
     this.prepTimeEstimate.set(null);
     this.baseRecipe.clear();
     this.optionsArray.clear();
     this.createdProduct.set(null);
     this.existingOptions.set([]);
-    this.optionGroups.set([]);
     this.existingRecipe.clear();
     this.existingRecipeCategoryMap.clear();
     this.existingRecipeRowIds = [];
@@ -819,6 +817,16 @@ export class Products implements OnInit {
 
   // ── Wizard navigation ────────────────────────────────────────────
 
+  private prepTimeModeValue(): 'ESTIMATED' | 'REAL' | 'AUTO' {
+    const value = this.baseForm.get('prepTimeMode')?.value as string | null;
+    return value === 'REAL' || value === 'AUTO' ? value : 'ESTIMATED';
+  }
+
+  private requiredWorkersValue(): number {
+    const parsed = Number(this.baseForm.get('requiredWorkers')?.value ?? 1);
+    return Number.isInteger(parsed) && parsed >= 1 ? parsed : 1;
+  }
+
   submitStep1(): void {
     if (this.baseForm.invalid) { this.baseForm.markAllAsTouched(); return; }
 
@@ -849,6 +857,8 @@ export class Products implements OnInit {
         areaId: v.areaId,
         recipe: [],
         optionIds: [],
+        requiredWorkers: this.requiredWorkersValue(),
+        prepTimeMode: this.prepTimeModeValue(),
       }).pipe(
         switchMap((product: ProductResponse) => {
           this.createdProduct.set(product);
@@ -901,14 +911,8 @@ export class Products implements OnInit {
 
   // ── Step 3 options handler ───────────────────────────────────────
 
-  onOptionsChanged(payload: OptionsChangedPayload): void {
-    this.step3OptionsChanged.set(payload);
-  }
-
   submitStep3(): void {
     this.isSubmitting.set(true);
-
-    const { optionIds, optionExtras } = this.step3OptionsChanged();
 
     const v = this.baseForm.value as {
       id?: number | null;
@@ -917,6 +921,7 @@ export class Products implements OnInit {
       areaId: number;
       description: string;
       estimatedPrepMinutes: number | null;
+      requiredWorkers: number | null;
     };
     const merged = new Map<number, RecipeItemRequest>();
     for (const r of this.existingRecipe.value as RecipeItemRequest[]) {
@@ -935,9 +940,9 @@ export class Products implements OnInit {
       categoryId: v.categoryId,
       areaId: v.areaId,
       estimatedPrepMinutes: v.estimatedPrepMinutes ?? undefined,
+      requiredWorkers: this.requiredWorkersValue(),
+      prepTimeMode: this.prepTimeModeValue(),
       recipe: recipeItems,
-      optionIds,
-      optionExtras: optionExtras.length > 0 ? optionExtras : undefined,
     }).pipe(
       catchError(err => {
         this.logger.error('Error saving product with options', err);
@@ -993,7 +998,7 @@ export class Products implements OnInit {
     }
     const saved = this.createdProduct();
     if (!saved) return;
-    const v = this.baseForm.value as { name: string; description: string | null; categoryId: number; areaId: number; estimatedPrepMinutes: number | null };
+    const v = this.baseForm.value as { name: string; description: string | null; categoryId: number; areaId: number; estimatedPrepMinutes: number | null; requiredWorkers: number | null };
     const merged = new Map<number, RecipeItemRequest>();
     for (const r of this.existingRecipe.value as RecipeItemRequest[]) {
       merged.set(r.supplyVariantId, r);
@@ -1008,8 +1013,9 @@ export class Products implements OnInit {
       categoryId: v.categoryId,
       areaId: v.areaId,
       estimatedPrepMinutes: v.estimatedPrepMinutes ?? undefined,
+      requiredWorkers: this.requiredWorkersValue(),
+      prepTimeMode: this.prepTimeModeValue(),
       recipe: Array.from(merged.values()),
-      optionIds: this.selectedOptionIds(),
     }).subscribe({
       next: () => {
         this.wsService.emitCacheInvalidation('products', 'update');
@@ -1143,6 +1149,8 @@ export class Products implements OnInit {
       areaId,
       recipe: [],
       optionIds: [],
+      requiredWorkers: this.requiredWorkersValue(),
+      prepTimeMode: this.prepTimeModeValue(),
     }).pipe(
       catchError(err => {
         this.logger.error('Error creating draft product for image staging', err);

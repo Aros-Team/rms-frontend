@@ -32,6 +32,7 @@ export interface GroupMeta {
   groupId: number;
   groupName: string;
   selectionType: OptionSelectionType;
+  required: boolean;
   options: SelectionOption[];
 }
 
@@ -45,7 +46,25 @@ export interface GroupMeta {
 export class ProductOptionsModal {
   // ── Inputs ──
   @Input() product: ProductListResponse | null = null;
-  @Input() options: ProductOption[] = [];
+
+  private readonly optionsState = signal<ProductOption[]>([]);
+
+  /** Product options for the modal. Stored as a signal so the computeds invalidate on change. */
+  @Input() set options(value: ProductOption[] | null | undefined) {
+    this.optionsState.set(value ?? []);
+  }
+
+  get options(): ProductOption[] {
+    return this.optionsState();
+  }
+
+  private readonly requiredGroupIdsState = signal<readonly number[]>([]);
+
+  /** Option groups marked as required for this product. */
+  @Input() set requiredGroupIds(value: readonly number[] | null | undefined) {
+    this.requiredGroupIdsState.set(value ?? []);
+  }
+
   @Input() loading = false;
   @Input() error: string | null = null;
   @Input() visible = false;
@@ -74,7 +93,8 @@ export class ProductOptionsModal {
 
   // ── Computed: group options by optionGroupId ──
   readonly groupMeta = computed<GroupMeta[]>(() => {
-    const opts = this.options;
+    const opts = this.optionsState();
+    const required = new Set(this.requiredGroupIdsState());
     const map = new Map<number, GroupMeta>();
 
     for (const opt of opts) {
@@ -85,6 +105,7 @@ export class ProductOptionsModal {
           groupId: gid,
           groupName: opt.optionGroupName,
           selectionType: fromApi(opt.categorySelectionType),
+          required: required.has(gid),
           options: [],
         };
         map.set(gid, group);
@@ -102,7 +123,7 @@ export class ProductOptionsModal {
   // ── Computed: chips for currently selected options ──
   readonly selectedChips = computed<RemovableChipData[]>(() => {
     const selIds = this.selectedOptionIds();
-    const opts = this.options;
+    const opts = this.optionsState();
     return selIds
       .map(id => opts.find(o => o.id === id))
       .filter((o): o is ProductOption => !!o)
@@ -116,12 +137,29 @@ export class ProductOptionsModal {
   // ── Computed: accumulated extraCharge from selected options ──
   readonly extraCharge = computed(() => {
     const selIds = this.selectedOptionIds();
-    const opts = this.options;
+    const opts = this.optionsState();
     return selIds.reduce((sum, id) => {
       const opt = opts.find(o => o.id === id);
       return sum + toAmount(opt?.extraPrice);
     }, 0);
   });
+
+  /** Required groups that still have no selected option. */
+  readonly missingRequiredGroups = computed<GroupMeta[]>(() => {
+    const selected = new Set(this.selectedOptionIds());
+    return this.groupMeta().filter(
+      (group) =>
+        group.required && !group.options.some((option) => selected.has(option.id)),
+    );
+  });
+
+  readonly canConfirm = computed(() => this.missingRequiredGroups().length === 0);
+
+  readonly missingRequiredLabel = computed(() =>
+    this.missingRequiredGroups().map((group) => group.groupName).join(', '),
+  );
+
+  readonly validationMessage = signal('');
 
   // ── Reset state when dialog opens ──
   constructor() {
@@ -130,6 +168,7 @@ export class ProductOptionsModal {
         this.selectedOptionIds.set(this.initialOptionIds);
         this.instructions.set(this.initialInstructions);
         this.quantity.set(this.initialQuantity);
+        this.validationMessage.set('');
       }
     });
   }
@@ -180,10 +219,19 @@ export class ProductOptionsModal {
     const prod = this.product;
     if (!prod) return;
 
+    const missing = this.missingRequiredGroups();
+    if (missing.length > 0) {
+      this.validationMessage.set(
+        `Falta elegir en: ${missing.map((group) => group.groupName).join(', ')}`,
+      );
+      return;
+    }
+    this.validationMessage.set('');
+
     const selIds = this.selectedOptionIds();
     const selOptions: SelectedOption[] = selIds.map(id => ({
       optionId: id,
-      optionName: this.options.find(o => o.id === id)?.name ?? '',
+      optionName: this.optionsState().find(o => o.id === id)?.name ?? '',
     }));
 
     this.confirm.emit({

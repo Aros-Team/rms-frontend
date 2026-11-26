@@ -22,4 +22,6 @@ export interface ProductCreateRequest {
   optionIds?: number[];
   optionExtras?: OptionExtrasItem[];
   estimatedPrepMinutes?: number;
+  requiredWorkers?: number;
+  prepTimeMode?: 'ESTIMATED' | 'REAL' | 'AUTO';
 }

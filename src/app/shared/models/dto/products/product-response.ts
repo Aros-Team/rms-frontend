@@ -20,6 +20,10 @@ export interface ProductResponse {
   areaName: string;
   recipe: ProductRecipeItem[];
   estimatedPrepMinutes?: number;
+  /** People working on the product during its preparation time. Defaults to 1. */
+  requiredWorkers?: number;
+  /** Estimated/real/auto preparation-time source used for costing. */
+  prepTimeMode?: 'ESTIMATED' | 'REAL' | 'AUTO';
   /** Signed URL of the primary image (mobile variant), `null` when the product has none. */
   imageUrl?: string | null;
   /** Signed URL of the primary image (tablet variant). */

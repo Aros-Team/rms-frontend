@@ -16,6 +16,8 @@ export interface ProductOption {
   cost?: Money;
   extraPrice?: Money;
   categorySelectionType?: ApiSelectionType;
+  /** Option ingredient recipe, when returned by the option-group endpoints. */
+  recipe?: { supplyVariantId: number; requiredQuantity: number }[];
 }
 
 export interface ProductOptionRequest {

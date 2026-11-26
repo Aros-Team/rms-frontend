@@ -2,8 +2,11 @@ import { Component, OnInit, inject, signal, computed, DestroyRef, ChangeDetectio
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { MasterData } from '@app/core/services/master-data/master-data';
+import { OptionGroup } from '@app/core/services/option-group/option-group';
 import { OrderDock, DockItem, DockOptionGroup } from '@app/core/services/order-dock/order-dock';
 import { Logging } from '@app/core/services/logging/logging';
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
@@ -53,6 +56,7 @@ const ALL_CATEGORIES = 'all';
 })
 export class Products implements OnInit {
   private readonly masterData = inject(MasterData);
+  private readonly optionGroupService = inject(OptionGroup);
   private readonly dock = inject(OrderDock);
   private readonly logger = inject(Logging);
   private readonly destroyRef = inject(DestroyRef);
@@ -66,6 +70,7 @@ export class Products implements OnInit {
   readonly showOptionsModal = signal(false);
   readonly pendingProduct = signal<ProductListResponse | null>(null);
   readonly modalOptions = signal<ProductOption[]>([]);
+  readonly modalRequiredGroupIds = signal<number[]>([]);
   readonly modalOptionsLoading = signal(false);
   readonly optionsError = signal<string | null>(null);
   private optionsSeq = 0;
@@ -152,6 +157,7 @@ export class Products implements OnInit {
   addProduct(product: ProductListResponse): void {
     this.pendingProduct.set(product);
     this.modalOptions.set([]);
+    this.modalRequiredGroupIds.set([]);
     this.showOptionsModal.set(true);
     this.error.set(null);
     this.optionsError.set(null);
@@ -162,13 +168,22 @@ export class Products implements OnInit {
     const seq = ++this.optionsSeq;
     this.modalOptionsLoading.set(true);
 
-    this.masterData
-      .getProductOptions(product.id)
+    forkJoin({
+      options: this.masterData
+        .getProductOptions(product.id)
+        .pipe(catchError(() => of([] as ProductOption[]))),
+      groups: this.optionGroupService
+        .getProductOptionGroups(product.id)
+        .pipe(catchError(() => of([]))),
+    })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (options) => {
+        next: ({ options, groups }) => {
           if (seq !== this.optionsSeq) return;
           this.modalOptions.set(options);
+          this.modalRequiredGroupIds.set(
+            groups.filter((group) => group.required).map((group) => group.id),
+          );
           this.modalOptionsLoading.set(false);
         },
         error: (err: unknown) => {
@@ -212,6 +227,7 @@ export class Products implements OnInit {
     this.showOptionsModal.set(false);
     this.pendingProduct.set(null);
     this.modalOptions.set([]);
+    this.modalRequiredGroupIds.set([]);
     this.optionsError.set(null);
   }
 }

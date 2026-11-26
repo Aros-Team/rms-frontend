@@ -164,7 +164,9 @@ describe('Kitchen', () => {
         ]),
       ],
       PREPARING: [
-        makeOrder(103, 'PREPARING', '2026-01-01T11:50:00', [detail(1031, 1, 'Hamburguesa')]),
+        makeOrder(103, 'PREPARING', '2026-01-01T11:50:00', [
+          detail(1031, 1, 'Hamburguesa', { preparationStartedAt: '2026-01-01T11:55:00' }),
+        ]),
       ],
       READY: [
         makeOrder(104, 'READY', '2026-01-01T11:40:00', [detail(1041, 2, 'Limonada')]),

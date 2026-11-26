@@ -398,3 +398,11 @@
   color: var(--rms-info-fg);
   font-size: var(--rms-type-caption-size);
 }
+
+.order-line__state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--rms-space-1);
+  flex-shrink: 0;
+}

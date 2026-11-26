@@ -293,6 +293,34 @@ export class Order {
     return this.http.put<OrderResponse>(`v1/orders/${String(id)}/prepare`, {});
   }
 
+  startDetail(orderId: number, detailId: number): Observable<OrderResponse> {
+    return this.http.put<OrderResponse>(
+      `v1/orders/${String(orderId)}/details/${String(detailId)}/start`,
+      {},
+    );
+  }
+
+  startArea(orderId: number, areaId: number): Observable<OrderResponse> {
+    return this.http.put<OrderResponse>(
+      `v1/orders/${String(orderId)}/areas/${String(areaId)}/start`,
+      {},
+    );
+  }
+
+  markAreaReady(orderId: number, areaId: number): Observable<OrderResponse> {
+    return this.http.put<OrderResponse>(
+      `v1/orders/${String(orderId)}/areas/${String(areaId)}/ready`,
+      {},
+    );
+  }
+
+  deliverDetail(orderId: number, detailId: number): Observable<OrderResponse> {
+    return this.http.put<OrderResponse>(
+      `v1/orders/${String(orderId)}/details/${String(detailId)}/deliver`,
+      {},
+    );
+  }
+
   markAsReady(id: number): Observable<OrderResponse> {
     return this.http.put<OrderResponse>(`v1/orders/${String(id)}/ready`, {});
   }

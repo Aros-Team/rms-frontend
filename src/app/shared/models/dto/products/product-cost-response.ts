@@ -16,4 +16,10 @@ export interface ProductCostResponse {
   materialCost: Money;
   laborCost: Money;
   breakdown: CostItem[];
+  estimatedPrepMinutes?: number | null;
+  realPrepMinutes?: number | null;
+  realPrepSampleCount?: number;
+  prepTimeMode?: 'ESTIMATED' | 'REAL' | 'AUTO';
+  prepTimeUsedSource?: 'ESTIMATED' | 'REAL';
+  prepTimeUsedMinutes?: number | null;
 }

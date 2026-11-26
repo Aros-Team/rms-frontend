@@ -17,6 +17,12 @@ export class ProductOption {
     return this.http.get<ProductOptionResponse>(`v1/product-options/${String(id)}`);
   }
 
+  public getOptionsByGroup(optionGroupId: number): Observable<ProductOptionResponse[]> {
+    return this.http.get<ProductOptionResponse[]>(
+      `v1/option-groups/${String(optionGroupId)}/options`,
+    );
+  }
+
   public createOption(data: ProductOptionRequest): Observable<ProductOptionResponse> {
     return this.http.post<ProductOptionResponse>('v1/product-options', data);
   }

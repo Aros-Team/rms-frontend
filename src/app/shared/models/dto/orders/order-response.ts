@@ -90,6 +90,12 @@ export interface OrderDetailItem {
   ready?: boolean;
   /** When the line was marked ready; absent while it is not ready. */
   readyAt?: string | null;
+  /** When the line's station started it. */
+  preparationStartedAt?: string | null;
+  /** Whether this line was delivered to the customer. */
+  delivered?: boolean;
+  /** When the line was delivered. */
+  deliveredAt?: string | null;
   selectionType?: SelectionType;
   groupSelections?: OrderGroupSelectionResolved[];
   additionsResolved?: OrderAdditionResolved[];
@@ -108,6 +114,8 @@ export interface OrderResponse {
    * `money` pipe and normalize with `toAmount()` before math.
    */
   total?: Money | number;
+  preparedAt?: string | null;
+  deliveredAt?: string | null;
 }
 
 /**

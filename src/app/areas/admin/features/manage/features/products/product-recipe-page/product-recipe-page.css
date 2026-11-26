@@ -488,3 +488,48 @@
   justify-content: flex-end;
   gap: var(--rms-space-2);
 }
+
+.prep-time-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rms-space-2);
+  margin-top: var(--rms-space-4);
+  padding: var(--rms-space-3);
+  border: var(--rms-border-width) solid var(--rms-border);
+  border-radius: var(--rms-radius-md);
+  background: var(--rms-surface-subtle);
+}
+
+.prep-time-panel__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rms-space-3);
+}
+
+.prep-time-panel__row app-rms-input,
+.prep-time-panel__row app-rms-select {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.prep-time-panel__real {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--rms-space-2);
+  font-size: var(--rms-type-caption-size);
+}
+
+.prep-time-panel__label {
+  color: var(--rms-text-muted);
+}
+
+.prep-time-panel__value {
+  color: var(--rms-text);
+  font-weight: var(--rms-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.prep-time-panel__hint {
+  color: var(--rms-text-muted);
+}

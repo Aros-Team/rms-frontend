@@ -137,10 +137,6 @@
                 <p class="product-readonly__value">
                   {{ product()?.description || 'Sin descripción' }}
                 </p>
-                <p class="product-readonly__hint">
-                  La descripción y el tiempo de preparación se definen al crear el producto: el
-                  endpoint de actualización no los persiste (P3-BE-RL-12).
-                </p>
               </div>
             </div>
 
@@ -227,109 +223,24 @@
               (rowsChange)="updateRecipeRows($event)" />
           }
         </app-rms-card>
-
-        <app-rms-card
-          title="Opciones del producto"
-          [subtitle]="options().length + ' opciones asociadas'">
-          <span rmsCardActions class="recipe-card-meta">
-            <app-rms-badge [label]="costedCount() + ' con costo'" tone="success" />
-            @if (uncostedCount() > 0) {
-              <app-rms-badge [label]="uncostedCount() + ' sin costo'" tone="warning" />
-            }
-          </span>
-
-          @if (optionsLoading()) {
-            <app-rms-skeleton variant="rect" height="8rem" ariaLabel="Cargando opciones" />
-          } @else if (optionsError(); as message) {
-            <div class="recipe-notice recipe-notice--danger" role="alert">
-              <i class="pi pi-times-circle" aria-hidden="true"></i>
-              <div>
-                <p class="recipe-notice__title">No se pudieron cargar las opciones</p>
-                <p>{{ message }}</p>
-                <p>
-                  Guardar ahora eliminaría las asociaciones de opciones del producto; por eso la
-                  acción de guardar está bloqueada hasta recuperarlas.
-                </p>
-                <app-rms-button
-                  size="sm"
-                  variant="secondary"
-                  iconStart="pi pi-refresh"
-                  (click)="retryOptions()">
-                  Reintentar
-                </app-rms-button>
-              </div>
-            </div>
-          } @else if (options().length === 0) {
-            <app-rms-empty-state
-              icon="pi pi-sliders-h"
-              title="Sin opciones asociadas"
-              message="Asigna grupos de opciones desde la carta de productos para poder costear sus recetas."
-              actionLabel="Volver a productos"
-              actionIcon="pi pi-arrow-left"
-              (action)="goBack()" />
-          } @else {
-            <p class="recipe-hint">
-              El costo de cada opción sale de su propia receta. El API no devuelve los ingredientes
-              actuales de una opción, así que editarlos es un reemplazo completo (P3-BE-RL-12).
-            </p>
-
-            @for (group of optionGroups(); track group.id) {
-              <section class="option-group" [attr.aria-label]="group.name">
-                <header class="option-group__header">
-                  <h4 class="option-group__title">{{ group.name }}</h4>
-                  <app-rms-badge
-                    [label]="selectionLabel(group.selectionType)"
-                    tone="neutral"
-                    variant="outline" />
-                </header>
-                <div class="option-table-wrap">
-                  <table class="option-table">
-                    <caption class="sr-only">Opciones del grupo {{ group.name }}</caption>
-                    <thead>
-                      <tr>
-                        <th scope="col">Opción</th>
-                        <th scope="col" class="option-table__numeric">Costo</th>
-                        <th scope="col" class="option-table__numeric">Precio extra</th>
-                        <th scope="col"><span class="sr-only">Acciones</span></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      @for (option of group.options; track option.id) {
-                        <tr>
-                          <td>{{ option.name }}</td>
-                          <td class="option-table__numeric">
-                            <app-rms-badge
-                              [label]="optionCostLabel(option)"
-                              [tone]="optionCostTone(option)" />
-                            <span class="option-table__cost">
-                              {{ optionCost(option) | money }}
-                            </span>
-                          </td>
-                          <td class="option-table__numeric">{{ option.extraPrice | money }}</td>
-                          <td class="option-table__actions">
-                            <app-rms-button
-                              variant="secondary"
-                              size="sm"
-                              iconStart="pi pi-pencil"
-                              (click)="openOptionEditor(group, option)">
-                              Editar receta
-                            </app-rms-button>
-                          </td>
-                        </tr>
-                      }
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-            }
-          }
-        </app-rms-card>
+        <app-option-groups-manager
+          [productId]="product()?.id ?? 0"
+          (changed)="onOptionsChanged()" />
       </div>
 
       <aside class="recipe-aside" aria-label="Costeo del producto">
         <app-rms-card
           title="Costeo en vivo"
-          subtitle="El material y el margen siguen tu borrador; la mano de obra viene del API.">
+          subtitle="El material y el margen siguen tu borrador; la mano de obra usa la tarifa del área y las personas que definas.">
+          <span rmsCardActions>
+            <i
+              class="pi pi-info-circle cursor-help"
+              [pTooltip]="laborTooltip()"
+              tooltipPosition="top"
+              tabindex="0"
+              role="img"
+              aria-label="Cómo se calcula la mano de obra"></i>
+          </span>
           <div class="cost-grid">
             <app-rms-stat-tile
               label="Material"
@@ -359,6 +270,35 @@
               icon="pi pi-percentage" />
           </div>
 
+          <div class="prep-time-panel">
+            <div class="prep-time-panel__row">
+              <app-rms-input
+                label="Tiempo estimado base"
+                inputMode="decimal"
+                hint="Minutos. Se mantiene como referencia de hora pico / baja demanda."
+                [ngModel]="draft().estimatedPrepMinutes"
+                (ngModelChange)="updateEstimatedPrepMinutes($event)"
+                [error]="dirty() ? estimatedMinutesError() : ''" />
+              <app-rms-select
+                label="Usar para costeo"
+                [options]="prepTimeModeOptions"
+                [ngModel]="draft().prepTimeMode"
+                (ngModelChange)="updatePrepTimeMode($event)" />
+            </div>
+            <div class="prep-time-panel__real">
+              <span class="prep-time-panel__label">Tiempo real medido</span>
+              <span class="prep-time-panel__value">{{ realPrepLabel() }}</span>
+              @if (!realPrepAvailable()) {
+                <span class="prep-time-panel__hint">
+                  Se requieren al menos {{ prepTime()?.minimumSamples ?? 10 }} muestras.
+                </span>
+              }
+              @if (prepTimeError(); as message) {
+                <span class="prep-time-panel__hint text-rms-danger">{{ message }}</span>
+              }
+            </div>
+          </div>
+
           <div class="cost-price">
             <app-rms-input
               label="Precio de venta"
@@ -367,6 +307,13 @@
               [ngModel]="draft().salePrice"
               (ngModelChange)="updatePrice($event)"
               [error]="dirty() ? priceError() : ''" />
+            <app-rms-input
+              label="Personas para preparar"
+              inputMode="numeric"
+              hint="Cuántas personas trabajan en paralelo durante el tiempo de preparación."
+              [ngModel]="draft().requiredWorkers"
+              (ngModelChange)="updateRequiredWorkers($event)"
+              [error]="dirty() ? workersError() : ''" />
             <app-rms-button
               variant="secondary"
               size="sm"
@@ -376,14 +323,11 @@
               Usar sugerido {{ suggestedMoney() | money }}
             </app-rms-button>
           </div>
-          <p class="cost-formula">
-            Precio sugerido = costo total × 1,3. Margen = (precio − costo) ÷ precio.
-          </p>
 
           @if (dirty()) {
             <div class="cost-stale" role="status">
               <app-rms-badge label="Costos sin guardar" tone="warning" [dot]="true" />
-              <span>El servidor conserva la receta anterior. Guarda para fijar este costo.</span>
+              <span>Los datos guardados conservan la receta anterior. Guarda para fijar este costo.</span>
             </div>
           }
 
@@ -400,30 +344,35 @@
               <dt>Total guardado</dt>
               <dd>{{ serverTotalMoney() | money }}</dd>
             </div>
+            <div>
+              <dt>Tiempo estimado</dt>
+              <dd>{{ product()?.estimatedPrepMinutes ?? 0 }} min</dd>
+            </div>
+            <div>
+              <dt>Tiempo real</dt>
+              <dd>{{ realPrepLabel() }}</dd>
+            </div>
+            <div>
+              <dt>Tiempo usado</dt>
+              <dd>{{ prepTime()?.usedPrepMinutes ?? cost()?.prepTimeUsedMinutes ?? 0 }} min ({{ (prepTime()?.usedSource ?? cost()?.prepTimeUsedSource) === 'REAL' ? 'real' : 'estimado' }})</dd>
+            </div>
+            <div>
+              <dt>Personas por preparación</dt>
+              <dd>{{ product()?.requiredWorkers ?? 1 }}</dd>
+            </div>
             @if (hourlyRateMoney(); as rate) {
               <div>
-                <dt>Tarifa aplicada</dt>
+                <dt>Tarifa por persona / h</dt>
                 <dd>{{ rate | money }} / h</dd>
               </div>
             }
-            <div>
-              <dt>Modo de mano de obra</dt>
-              <dd>{{ laborModeText() }}</dd>
-            </div>
           </dl>
-          <p class="cost-note">
-            El modo configurado todavía no cambia el cálculo: el API usa la tarifa real del área
-            para el mes en curso (P4-REC-05 / P4-SET-04).
-          </p>
-          @if (updatedLabel(); as label) {
-            <p class="cost-note">Costos del servidor leídos a las {{ label }}.</p>
-          }
 
           @if (costError(); as message) {
             <div class="recipe-notice recipe-notice--danger" role="alert">
               <i class="pi pi-times-circle" aria-hidden="true"></i>
               <div>
-                <p class="recipe-notice__title">No se pudo leer el costo del servidor</p>
+                <p class="recipe-notice__title">No se pudo leer el costo guardado</p>
                 <p>{{ message }}</p>
                 <app-rms-button
                   size="sm"
@@ -438,7 +387,7 @@
         </app-rms-card>
 
         <app-rms-card
-          title="Desglose del servidor"
+          title="Desglose de datos guardados"
           subtitle="Costos guardados, incluida la proyección de las opciones.">
           @if (breakdown() !== null) {
             <dl class="cost-server">
@@ -468,74 +417,6 @@
   }
 </div>
 
-<app-rms-dialog
-  [visible]="optionEditorOpen()"
-  (visibleChange)="onOptionDialogVisible($event)"
-  [header]="optionDialogHeader()"
-  width="860px">
-  @if (optionTarget(); as target) {
-    <div class="option-dialog">
-      <div class="option-dialog__meta">
-        <span>{{ target.groupName }}</span>
-        <app-rms-badge
-          [label]="target.costed ? 'Con costo' : 'Sin costo'"
-          [tone]="target.costed ? 'success' : 'warning'" />
-        <span>Costo actual: {{ target.cost | money }}</span>
-      </div>
-
-      <div class="recipe-notice recipe-notice--warning" role="note">
-        <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
-        <div>
-          <p class="recipe-notice__title">Guardar reemplaza la receta completa de la opción</p>
-          <p>
-            El API no devuelve los ingredientes actuales de una opción. Define aquí la receta
-            completa que debe quedar; los insumos que no agregues se eliminan de la opción
-            (P3-BE-RL-12).
-          </p>
-        </div>
-      </div>
-
-      @if (target.costed) {
-        <app-rms-checkbox
-          label="Confirmo que quiero reemplazar la receta actual"
-          description="La opción ya tiene un costo registrado."
-          [ngModel]="optionReplacementAck()"
-          (ngModelChange)="updateOptionAck($event)" />
-      }
-
-      <app-recipe-ingredient-editor
-        [rows]="optionRows()"
-        [variants]="variants()"
-        [disabled]="optionSaving()"
-        emptyTitle="Sin insumos en la opción"
-        emptyMessage="Agrega los insumos que componen esta opción."
-        (rowsChange)="updateOptionRows($event)" />
-
-      @if (optionError(); as message) {
-        <div class="recipe-notice recipe-notice--danger" role="alert">
-          <i class="pi pi-times-circle" aria-hidden="true"></i>
-          <div>
-            <p class="recipe-notice__title">No se guardó la receta de la opción</p>
-            <p>{{ message }}</p>
-          </div>
-        </div>
-      }
-    </div>
-  }
-
-  <div rmsDialogFooter class="option-dialog__footer">
-    <app-rms-button variant="secondary" [disabled]="optionSaving()" (click)="closeOptionEditor()">
-      Cancelar
-    </app-rms-button>
-    <app-rms-button
-      iconStart="pi pi-check"
-      [disabled]="!canSaveOption()"
-      [loading]="optionSaving()"
-      (click)="saveOptionRecipe()">
-      Guardar receta de la opción
-    </app-rms-button>
-  </div>
-</app-rms-dialog>
 
 <app-rms-dialog
   [visible]="leaveDialogOpen()"

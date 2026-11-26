@@ -8,6 +8,8 @@ export interface ProductUpdateRequest {
   categoryId: number;
   areaId: number;
   estimatedPrepMinutes?: number;
+  requiredWorkers?: number;
+  prepTimeMode?: 'ESTIMATED' | 'REAL' | 'AUTO';
   recipe?: RecipeItemRequest[];
   optionIds?: number[];
   optionExtras?: OptionExtrasItem[];

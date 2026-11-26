@@ -28,6 +28,7 @@ export interface KitchenLineDetail {
   id: number;
   ready: boolean;
   readyAt: string | null;
+  preparationStartedAt: string | null;
 }
 
 export interface KitchenLine {
@@ -82,6 +83,8 @@ function readinessOf(detail: OrderDetailItem): KitchenLineDetail {
     id: detail.id,
     ready: detail.ready === true,
     readyAt: typeof detail.readyAt === 'string' ? detail.readyAt : null,
+    preparationStartedAt:
+      typeof detail.preparationStartedAt === 'string' ? detail.preparationStartedAt : null,
   };
 }
 
@@ -171,6 +174,27 @@ export function totalKitchenItems(lines: readonly KitchenLine[]): number {
 /** Detail row ids still pending on a grouped line. */
 export function pendingDetailIds(line: KitchenLine): number[] {
   return line.details.filter((detail) => !detail.ready).map((detail) => detail.id);
+}
+
+/** Detail row ids still waiting for their station to start them. */
+export function unstartedDetailIds(line: KitchenLine): number[] {
+  return line.details
+    .filter((detail) => !detail.preparationStartedAt && !detail.ready)
+    .map((detail) => detail.id);
+}
+
+/** `true` when at least one physical row has started. */
+export function isLineStarted(line: KitchenLine): boolean {
+  return line.details.some((detail) => detail.preparationStartedAt !== null || detail.ready);
+}
+
+/** Earliest start timestamp of the grouped line, or null. */
+export function lineStartedAt(line: KitchenLine): string | null {
+  const timestamps = line.details
+    .map((detail) => detail.preparationStartedAt)
+    .filter((value): value is string => value !== null)
+    .sort();
+  return timestamps.at(0) ?? null;
 }
 
 /** `true` when every physical row of the line is ready. */

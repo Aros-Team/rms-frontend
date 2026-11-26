@@ -261,6 +261,36 @@
             </div>
           </div>
 
+          <!-- Fuente del tiempo de preparación -->
+          <div class="md:col-span-2">
+            <p-iftalabel>
+              <p-select
+                [options]="[
+                  { label: 'Estimado (recomendado)', value: 'ESTIMATED' },
+                  { label: 'Real medido', value: 'REAL' },
+                  { label: 'Automático: real si hay datos', value: 'AUTO' }
+                ]"
+                inputId="prepTimeMode"
+                class="w-full"
+                optionValue="value"
+                optionLabel="label"
+                formControlName="prepTimeMode"
+                appendTo="body" />
+              <label for="prepTimeMode">Tiempo usado para costeo</label>
+            </p-iftalabel>
+          </div>
+
+          <!-- Personas requeridas -->
+          <div class="md:col-span-2">
+            <app-rms-input
+              id="requiredWorkers"
+              label="Personas requeridas para preparar"
+              type="number"
+              formControlName="requiredWorkers"
+              hint="Cuántas personas trabajan en paralelo durante el tiempo de preparación. Se usa para calcular la mano de obra."
+              [invalid]="isInvalid(baseForm, 'requiredWorkers')" />
+          </div>
+
           <!-- Descripción -->
           <app-rms-textarea
             id="description"
@@ -426,12 +456,7 @@
 
   <!-- ══ PASO 3: Opciones del producto ══ -->
   @if (currentStep() === 3) {
-    <app-step3-options
-      [productId]="createdProduct()?.id ?? 0"
-      [modalMode]="modalMode()"
-      [existingOptions]="existingOptions()"
-      [optionGroups]="optionGroups()"
-      (optionsChanged)="onOptionsChanged($event)" />
+    <app-step3-options [productId]="createdProduct()?.id ?? 0" />
 
     <div class="flex justify-between mt-6">
       <app-rms-button variant="secondary" iconStart="pi pi-arrow-left" (click)="goToStep2()">

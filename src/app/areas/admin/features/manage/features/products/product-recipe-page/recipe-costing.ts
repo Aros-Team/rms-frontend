@@ -185,16 +185,54 @@ export function laborForPrepMinutes(
 }
 
 /**
- * Derives the hourly rate the API applied: labor cost ÷ (prep minutes / 60).
+ * Prorates the server labor cost when the draft changes the preparation time
+ * or the number of people required.
+ *
+ * The API computes labor as:
+ *   (prep minutes / 60) × area hourly rate × required workers.
+ *
+ * This helper derives the implied person-hour rate from the server response and
+ * applies it to the draft values. It is an estimate for unsaved edits, not a new
+ * server cost.
+ */
+export function laborForPreparation(
+  laborMicro: bigint | null,
+  serverMinutes: number | null,
+  serverWorkers: number | null,
+  draftMinutes: number | null,
+  draftWorkers: number | null,
+): bigint | null {
+  if (laborMicro === null || laborMicro < 0n) return null;
+  const safeServerWorkers =
+    serverWorkers !== null && serverWorkers > 0 ? serverWorkers : 1;
+  const safeDraftWorkers = draftWorkers !== null && draftWorkers > 0 ? draftWorkers : 1;
+  if (serverMinutes === null || serverMinutes <= 0) {
+    return divideRounded(laborMicro * BigInt(safeDraftWorkers), BigInt(safeServerWorkers));
+  }
+  if (draftMinutes === null || draftMinutes < 0) return null;
+  return divideRounded(
+    laborMicro * BigInt(draftMinutes) * BigInt(safeDraftWorkers),
+    BigInt(serverMinutes) * BigInt(safeServerWorkers),
+  );
+}
+
+/**
+ * Derives the per-person hourly rate the API applied:
+ * labor cost ÷ (prep minutes / 60) ÷ required workers.
  * Used to explain the labor line, not to replace the API number.
  */
 export function hourlyRateMicro(
   laborMicro: bigint | null,
   prepMinutes: number | null,
+  workers: number | null = 1,
 ): bigint | null {
   if (laborMicro === null || laborMicro <= 0n) return null;
   if (prepMinutes === null || prepMinutes <= 0) return null;
-  return divideRounded(laborMicro * 60n, BigInt(prepMinutes));
+  const safeWorkers = workers !== null && workers > 0 ? workers : 1;
+  return divideRounded(
+    laborMicro * 60n,
+    BigInt(prepMinutes) * BigInt(safeWorkers),
+  );
 }
 
 /** Spanish percentage label (`"42,4 %"`); em dash when the value is unknown. */
