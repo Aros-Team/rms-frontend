@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 
 
@@ -45,11 +46,25 @@ const TABS: readonly TabDefinition[] = [
 export class SchedulesPage {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
   readonly tabs = TABS;
   readonly activeTab = signal<SchedulesTab>(this.initialTab());
   /** Bumped when a shift changes so the grid refetches on its next visit. */
   readonly shiftsVersion = signal(0);
+
+  constructor() {
+    // The assistant can navigate while this page is already mounted, so the
+    // tab must follow query-param changes instead of reading the snapshot once.
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        const tab = this.tabFrom(params.get('tab'));
+        if (tab !== this.activeTab()) {
+          this.activeTab.set(tab);
+        }
+      });
+  }
 
   selectTab(id: SchedulesTab): void {
     this.activeTab.set(id);
@@ -85,7 +100,10 @@ export class SchedulesPage {
   }
 
   private initialTab(): SchedulesTab {
-    const requested = this.route.snapshot.queryParamMap.get('tab');
+    return this.tabFrom(this.route.snapshot.queryParamMap.get('tab'));
+  }
+
+  private tabFrom(requested: string | null): SchedulesTab {
     // The old "plantillas" deep link now opens the individual shift planner.
     if (requested === 'plantillas') return 'turnos';
     return TABS.some((tab) => tab.id === requested)

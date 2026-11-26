@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { ChatRequest, ChatStreamCallbacks } from './chat.models';
+import { ChatNavigation, ChatRequest, ChatStreamCallbacks } from './chat.models';
 import { Logging } from '../logging/logging';
 import { environment } from '@environments/environment';
 
@@ -57,16 +57,44 @@ export class Chat {
         for (const event of events) {
           const lines = event.split('\n');
           for (const line of lines) {
-            // Check for [DONE] WITHOUT "data: " prefix first
             if (line.startsWith('[DONE]')) {
               const sessionId = line.slice(6).trim() || undefined;
               this.logger.info('Chat stream completed', { sessionId });
               callbacks.onDone(sessionId, sessionId);
               return;
             }
-            // Then handle data: lines
+            if (line.startsWith('[ERROR]')) {
+              const message = line.slice(7).trim() || 'Error al conectar con el asistente';
+              this.logger.error('Chat stream error event', new Error(message));
+              callbacks.onError(new Error(message));
+              return;
+            }
+            if (line.startsWith('[NAVIGATE]')) {
+              this.emitNavigation(line.slice(10), callbacks);
+              continue;
+            }
+            if (line.startsWith('[PROCESS]') || line.startsWith('[TOOL_CALL]')) {
+              callbacks.onChunk(line);
+              continue;
+            }
             if (line.startsWith('data: ')) {
               const data = line.slice(6);
+              if (data.startsWith('[DONE]')) {
+                const sessionId = data.slice(6).trim() || undefined;
+                this.logger.info('Chat stream completed', { sessionId });
+                callbacks.onDone(sessionId, sessionId);
+                return;
+              }
+              if (data.startsWith('[ERROR]')) {
+                const message = data.slice(7).trim() || 'Error al conectar con el asistente';
+                this.logger.error('Chat stream error event', new Error(message));
+                callbacks.onError(new Error(message));
+                return;
+              }
+              if (data.startsWith('[NAVIGATE]')) {
+                this.emitNavigation(data.slice(10), callbacks);
+                continue;
+              }
               callbacks.onChunk(data);
             }
           }
@@ -83,5 +111,28 @@ export class Chat {
       this.logger.error('Chat stream error', error as Error);
       callbacks.onError(error as Error);
     }
+  }
+
+  /** Parses a `[NAVIGATE] {json}` payload and forwards it to the caller. */
+  private emitNavigation(payload: string, callbacks: ChatStreamCallbacks): void {
+    let action: Partial<ChatNavigation> | null;
+    try {
+      action = JSON.parse(payload.trim()) as Partial<ChatNavigation> | null;
+    } catch {
+      this.logger.warn('Chat stream: malformed navigation payload', { payload });
+      return;
+    }
+    if (!action || typeof action.screen !== 'string' || !action.screen) {
+      this.logger.warn('Chat stream: navigation without screen', { action });
+      return;
+    }
+    const navigation: ChatNavigation = {
+      screen: action.screen,
+      query: action.query,
+      entity_id: action.entity_id,
+      tab: action.tab,
+    };
+    this.logger.info('Chat stream navigation', { screen: navigation.screen });
+    callbacks.onNavigate?.(navigation);
   }
 }

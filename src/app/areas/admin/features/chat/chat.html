@@ -1,4 +1,4 @@
-<section class="flex h-full min-h-0 w-full flex-col overflow-hidden bg-rms-page">
+<section class="relative flex h-full min-h-0 w-full flex-col overflow-hidden bg-rms-page">
   <div class="flex items-center justify-between gap-2 border-b border-rms-border px-4 py-3">
     <div class="flex min-w-0 items-center gap-3">
       <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rms-brand-soft">
@@ -27,7 +27,8 @@
     </div>
   </div>
 
-  <div class="messages-container flex-1 min-h-0 w-full space-y-3 overflow-y-auto p-3" role="log" aria-live="polite">
+  @if (contentReady()) {
+  <div #messagesContainer (scroll)="onMessagesScroll()" class="messages-container flex-1 min-h-0 w-full space-y-3 overflow-y-auto p-3" role="log" aria-live="polite">
     @if (messages().length === 0 && !loading()) {
       <div class="flex h-full flex-col items-center justify-center px-4 text-center">
         <div class="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-rms-brand-soft">
@@ -43,9 +44,30 @@
     }
 
     @for (message of messages(); track trackByMessageId($index, message)) {
+      @if (message.kind === 'navigation') {
+        <div class="flex w-full">
+          <div
+            class="flex max-w-[85%] items-center gap-2 rounded-xl border border-rms-border bg-rms-brand-soft px-3.5 py-2.5">
+            <i class="pi pi-compass text-sm text-rms-brand-text" aria-hidden="true"></i>
+            <p class="min-w-0 text-sm text-rms-ink">
+              <span class="text-rms-ink-muted">Abriendo</span>
+              <strong class="ml-1 font-semibold">{{ message.navigationLabel }}</strong>
+            </p>
+            @if (message.navigation) {
+              <button
+                type="button"
+                class="ml-auto shrink-0 text-xs font-medium text-rms-brand-text hover:underline"
+                (click)="navigateAgain(message.navigation)">
+                Ir de nuevo
+              </button>
+            }
+          </div>
+        </div>
+      } @else {
       <div class="flex w-full" [class.flex-row-reverse]="message.role === 'user'">
         <div
           class="max-w-[85%] overflow-hidden rounded-xl px-3.5 py-2.5 break-words"
+          [attr.data-message-id]="message.id"
           [class.bg-rms-brand]="message.role === 'user'"
           [class.text-rms-on-brand]="message.role === 'user'"
           [class.bg-rms-subtle]="message.role === 'assistant'"
@@ -54,11 +76,20 @@
             <span
               class="message-content text-sm leading-relaxed [&>*]:text-inherit"
               [innerHTML]="parseMarkdown(message.content)"></span>
+            @if (message.id === streamingMessageId()) {
+              <span class="streaming-caret" aria-hidden="true"></span>
+            }
           } @else {
             <p class="message-content text-sm leading-relaxed">{{ message.content }}</p>
           }
 
           <div class="mt-1 flex items-center justify-end gap-2">
+            @if (message.role === 'assistant' && message.id === lastCompletedId()) {
+              <span class="inline-flex items-center gap-1 text-xs text-rms-ink-muted">
+                <i class="pi pi-check text-xs text-rms-brand-text" aria-hidden="true"></i>
+                Completa
+              </span>
+            }
             <span
               class="text-xs"
               [class.text-rms-on-brand]="message.role === 'user'"
@@ -66,7 +97,16 @@
               [class.text-rms-ink-muted]="message.role === 'assistant'">
               {{ formatTime(message.timestamp) }}
             </span>
-            @if (message.role === 'assistant') {
+            @if (message.role === 'assistant' && message.content.trim()) {
+              @if (isExpandable(message)) {
+                <button
+                  class="text-rms-ink-muted transition-colors hover:text-rms-brand-text"
+                  (click)="expandMessage(message)"
+                  title="Ver en tamaño completo"
+                  aria-label="Ver respuesta en tamaño completo">
+                  <i class="pi pi-window-maximize text-xs" aria-hidden="true"></i>
+                </button>
+              }
               <button
                 class="text-rms-ink-muted transition-colors hover:text-rms-brand-text"
                 (click)="copyMessage(message.content)"
@@ -81,6 +121,7 @@
           </div>
         </div>
       </div>
+      }
     }
 
     @if (loading()) {
@@ -92,12 +133,14 @@
               <span class="h-2 w-2 rounded-full bg-rms-ink-muted"></span>
               <span class="h-2 w-2 rounded-full bg-rms-ink-muted"></span>
             </div>
-            @if (processMessage()) {
-              <span class="text-xs italic text-rms-ink-muted">{{ processMessage() }}</span>
-            } @else if (pendingMessage()) {
-              <span class="text-xs italic text-rms-ink-muted">{{ pendingMessage() }}</span>
-            } @else if (isToolCallActive()) {
-              <span class="text-xs italic text-rms-ink-muted">Consultando negocio...</span>
+            <span class="text-xs italic text-rms-ink-muted">{{ statusLabel() }}</span>
+            @if (hasStartedStreaming() && !revealAll()) {
+              <button
+                type="button"
+                class="text-xs font-medium text-rms-brand-text hover:underline"
+                (click)="showAll()">
+                Mostrar todo
+              </button>
             }
           </div>
         </div>
@@ -108,14 +151,59 @@
       <div class="flex w-full">
         <div class="rms-status-surface--danger max-w-[85%] rounded-xl px-3.5 py-2.5">
           <p class="text-sm">{{ error() }}</p>
+          @if (lastUserMessage()) {
+            <button
+              type="button"
+              class="mt-2 inline-flex items-center gap-1 text-xs font-semibold underline"
+              (click)="retryMessage()">
+              <i class="pi pi-refresh text-xs" aria-hidden="true"></i>
+              Reintentar
+            </button>
+          }
         </div>
       </div>
     }
   </div>
+  } @else {
+    <div class="flex flex-1 flex-col items-center justify-center gap-2" role="status" aria-live="polite">
+      <i class="pi pi-spinner pi-spin text-xl text-rms-brand-text" aria-hidden="true"></i>
+      <p class="rms-caption">Preparando asistente…</p>
+    </div>
+  }
 
+  @if (contentReady() && !autoScroll() && messages().length > 0) {
+    <button
+      type="button"
+      class="absolute bottom-20 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-rms-border bg-rms-surface px-3 py-1.5 text-xs font-medium text-rms-ink"
+      (click)="jumpToBottom()">
+      <i class="pi pi-arrow-down text-xs" aria-hidden="true"></i>
+      Ir al final
+    </button>
+  }
+
+  @if (expandedMessage(); as message) {
+    <p-dialog
+      header="Respuesta del asistente"
+      [visible]="true"
+      (visibleChange)="$event || closeExpandedMessage()"
+      [modal]="true"
+      [dismissableMask]="true"
+      [draggable]="false"
+      [resizable]="false"
+      [blockScroll]="true"
+      [baseZIndex]="9000"
+      appendTo="body"
+      maskStyleClass="chat-expanded-mask"
+      styleClass="chat-expanded-dialog">
+      <div class="message-content chat-expanded-content" [innerHTML]="parseMarkdown(message.content)"></div>
+    </p-dialog>
+  }
+
+  @if (contentReady()) {
   <div class="border-t border-rms-border p-3">
     <div class="flex items-center gap-2">
       <textarea
+        #messageInput
         [(ngModel)]="currentMessage"
         placeholder="Escribe tu mensaje..."
         aria-label="Mensaje para el asistente"
@@ -140,4 +228,5 @@
       }
     </div>
   </div>
+  }
 </section>

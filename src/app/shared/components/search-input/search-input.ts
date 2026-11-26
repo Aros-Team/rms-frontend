@@ -27,6 +27,14 @@ export class SearchInput implements OnInit {
   @Input() placeholder = 'Buscar...';
   @Input() debounceMs = 500;
 
+  /** Seeds the visible text (e.g. from a deep link) without emitting. */
+  @Input() set initialValue(value: string | null | undefined) {
+    if (value === null || value === undefined) {
+      return;
+    }
+    this.value.set(value);
+  }
+
   @Output() searchChange = new EventEmitter<string>();
 
   readonly value = signal<string>('');

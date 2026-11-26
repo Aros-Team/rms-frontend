@@ -19,6 +19,7 @@
  * of the panel in the DOM and the payroll requests it issues.
  */
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
+import { provideRouter } from '@angular/router';
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
@@ -173,6 +174,7 @@ describe('Workers — payroll tab', () => {
     TestBed.configureTestingModule({
       imports: [Workers],
       providers: [
+        provideRouter([]),
         { provide: Worker, useValue: workerApi },
         { provide: Area, useValue: { getAreas: vi.fn(() => of([])) } },
         { provide: Payroll, useValue: payrollApi },

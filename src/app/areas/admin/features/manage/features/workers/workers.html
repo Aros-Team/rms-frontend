@@ -66,6 +66,13 @@
     aria-labelledby="tab-empleados"
     class="flex-1 min-h-0 overflow-auto"
   >
+    <div class="mb-4">
+      <app-search-input
+        placeholder="Buscar por nombre, documento o correo..."
+        [initialValue]="workerSearch()"
+        (searchChange)="workerSearch.set($event)"
+      />
+    </div>
     @if (cache.workers.isLoading() && workers().length === 0) {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         @for (skeleton of [1,2,3,4,5,6,7,8]; track skeleton) {
@@ -88,13 +95,20 @@
         }
       </div>
     } @else if (workers().length === 0) {
-      <app-rms-empty-state
-        icon="pi pi-users"
-        title="No hay trabajadores registrados"
-        message="Crea el primer empleado para asignarle un área y horarios."
-        actionLabel="Nuevo empleado"
-        actionIcon="pi pi-user-plus"
-        (action)="showCreationModal()" />
+      @if (workerSearch()) {
+        <app-rms-empty-state
+          icon="pi pi-search"
+          title="Sin resultados"
+          message="Ningún trabajador coincide con la búsqueda." />
+      } @else {
+        <app-rms-empty-state
+          icon="pi pi-users"
+          title="No hay trabajadores registrados"
+          message="Crea el primer empleado para asignarle un área y horarios."
+          actionLabel="Nuevo empleado"
+          actionIcon="pi pi-user-plus"
+          (action)="showCreationModal()" />
+      }
     } @else {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         @for (worker of workers(); track worker.id) {

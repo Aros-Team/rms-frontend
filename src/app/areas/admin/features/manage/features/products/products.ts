@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal, computed, effect, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, FormArray, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { of, EMPTY, forkJoin, merge, Observable } from 'rxjs';
 import { catchError, switchMap, tap } from 'rxjs/operators';
 
@@ -143,6 +143,8 @@ export class Products implements OnInit {
   private confirmationService = inject(ConfirmationService);
   private logger = inject(Logging);
   private wsService = inject(WebSocket);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
   readonly cache = inject(ProductCache);
   readonly imageService = inject(ProductImage);
 
@@ -165,6 +167,10 @@ export class Products implements OnInit {
   currentPage = signal(0);
   pageSize = signal(6);
   includeInactive = signal(false);
+
+  /** Text pushed by the assistant deep link (`?search=`). */
+  readonly assistantSearch = signal('');
+  private appliedSearch = '';
 
   // Reference data - computed from cache with override support
   private _allProductOptionsOverride = signal<ProductOptionResponse[] | undefined>(undefined);
@@ -457,6 +463,19 @@ export class Products implements OnInit {
     if (this.cache.products.data() === null) {
       this.cache.products.refresh();
     }
+
+    // Deep link from the assistant: `?search=` pre-fills the product search.
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        const search = (params.get('search') ?? '').trim();
+        if (search === this.appliedSearch) {
+          return;
+        }
+        this.appliedSearch = search;
+        this.assistantSearch.set(search);
+        this.onSearch(search);
+      });
   }
 
   loadPage(page: number): void {

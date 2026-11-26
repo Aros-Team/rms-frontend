@@ -2,7 +2,7 @@ import { NgClass } from '@angular/common';
 import { Component, OnInit, inject, computed, DestroyRef, signal, ViewChild, ElementRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TableModule } from 'primeng/table';
@@ -41,6 +41,7 @@ import { RmsSelect, type RmsSelectOption } from '@app/shared/ui/select/select';
 import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
 import { WorkerCard } from './worker-card';
 import { PayrollPanel } from './payroll-panel/payroll-panel';
+import { SearchInput as SearchInputComponent } from '@app/shared/components/search-input/search-input';
 import { TimeLog, TimeLogFilterParams } from '@app/core/services/schedules/time-log';
 import { TimeLogEntry } from '@app/shared/models/dto/schedules/time-log-entry';
 import { Schedule } from '@app/core/services/schedules/schedule';
@@ -89,6 +90,7 @@ interface WorkerFormValue {
     RmsStatusPill,
     WorkerCard,
     PayrollPanel,
+    SearchInputComponent,
   ],
   templateUrl: './workers.html',
 })
@@ -103,6 +105,8 @@ export class Workers implements OnInit {
   private timeLogService = inject(TimeLog);
   private scheduleService = inject(Schedule);
   private scheduleAssignmentService = inject(ScheduleAssignment);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   // Template refs for focus management
   @ViewChild('tabEmpleados') tabEmpleados?: ElementRef<HTMLButtonElement>;
@@ -131,7 +135,22 @@ export class Workers implements OnInit {
   userAssignedSchedules = signal<Map<number, number[]>>(new Map());
 
   // Filter to show only WORKER role users (employees)
-  workers = computed(() => (this.cache.workers.data() ?? []));
+  workers = computed(() => {
+    const all = this.cache.workers.data() ?? [];
+    const term = this.workerSearch().toLowerCase().trim();
+    if (!term) {
+      return all;
+    }
+    return all.filter(
+      (worker) =>
+        worker.name.toLowerCase().includes(term) ||
+        worker.document.toLowerCase().includes(term) ||
+        worker.email.toLowerCase().includes(term),
+    );
+  });
+
+  /** Text pushed by the assistant deep link (`?search=`). */
+  readonly workerSearch = signal('');
   areas = signal<AreaResponse[]>([]);
   readonly areaOptions = computed<RmsSelectOption[]>(() =>
     this.areas().map((area) => ({ label: area.name.toLowerCase(), value: area.id })),
@@ -165,6 +184,18 @@ export class Workers implements OnInit {
     if (this.cache.workers.data() === null) {
       this.cache.workers.refresh();
     }
+
+    // Deep link from the assistant: `?search=` filters the list and `?tab=`
+    // opens employees, time logs or payroll directly.
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        this.workerSearch.set((params.get('search') ?? '').trim());
+        const tab = params.get('tab');
+        if (tab === 'list' || tab === 'time-logs' || tab === 'payroll') {
+          this.switchTab(tab);
+        }
+      });
 
     this.userForm.get('salary')?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -583,6 +614,12 @@ export class Workers implements OnInit {
   switchTab(tab: 'list' | 'time-logs' | 'payroll'): void {
     if (this.activeEmployeeTab() === tab) return;
     this.activeEmployeeTab.set(tab);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
     if (tab === 'time-logs') {
       this.loadTimeLogs();
     }

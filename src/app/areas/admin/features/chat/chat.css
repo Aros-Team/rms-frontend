@@ -5,105 +5,146 @@
   flex-direction: column;
 }
 
-.message-content {
-  white-space: pre-wrap;
+/* ==========================================================================
+   Markdown inside assistant messages
+   ---------------------------------------------------------------------------
+   The HTML comes from `[innerHTML]`, so it does not carry the component's
+   encapsulation attribute. Every rule below targets it through `::ng-deep`;
+   without this, headings/lists/tables silently lost their styles.
+   ========================================================================== */
+
+::ng-deep .message-content {
+  white-space: normal;
   word-break: normal;
   overflow-wrap: break-word;
   line-height: 1.6;
+  color: var(--rms-text);
 }
 
 /* Headings */
-.message-content h1,
-.message-content h2,
-.message-content h3 {
+::ng-deep .message-content h1,
+::ng-deep .message-content h2,
+::ng-deep .message-content h3,
+::ng-deep .message-content h4,
+::ng-deep .message-content h5,
+::ng-deep .message-content h6 {
   font-weight: 600;
-  margin: 0.75rem 0 0.5rem 0;
-  color: var(--surface-800);
+  line-height: 1.3;
+  margin: var(--rms-space-3) 0 var(--rms-space-2);
+  color: var(--rms-text);
 }
 
-.message-content h1 {
-  font-size: 1.15rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--surface-200);
+::ng-deep .message-content h1 {
+  font-size: 1.25rem;
+  padding-bottom: var(--rms-space-2);
+  border-bottom: 1px solid var(--rms-border);
 }
 
-.message-content h2 {
-  font-size: 1.05rem;
+::ng-deep .message-content h2 {
+  font-size: 1.125rem;
 }
 
-.message-content h3 {
-  font-size: 0.95rem;
+::ng-deep .message-content h3 {
+  font-size: 1rem;
 }
 
-.message-content p {
-  margin: 0.5rem 0;
+::ng-deep .message-content h4 {
+  font-size: 0.9375rem;
+}
+
+::ng-deep .message-content h5 {
+  font-size: 0.875rem;
+}
+
+::ng-deep .message-content h6 {
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--rms-text-muted);
+}
+
+::ng-deep .message-content p {
+  margin: var(--rms-space-2) 0;
+}
+
+::ng-deep .message-content > :first-child {
+  margin-top: 0;
+}
+
+::ng-deep .message-content > :last-child {
+  margin-bottom: 0;
 }
 
 /* Lists */
-.message-content ul,
-.message-content ol {
-  padding-left: 1.5rem;
-  margin: 0.5rem 0;
+::ng-deep .message-content ul,
+::ng-deep .message-content ol {
+  padding-left: 1.35rem;
+  margin: var(--rms-space-2) 0;
 }
 
-.message-content li {
-  margin: 0.25rem 0;
+::ng-deep .message-content ul {
+  list-style: disc;
+}
+
+::ng-deep .message-content ol {
+  list-style: decimal;
+}
+
+::ng-deep .message-content li {
+  margin: 0.2rem 0;
+}
+
+::ng-deep .message-content li::marker {
+  color: var(--rms-brand-text);
 }
 
 /* Inline code */
-.message-content code {
-  background: var(--surface-100);
-  padding: 0.15rem 0.4rem;
-  border-radius: 0.25rem;
+::ng-deep .message-content code {
+  background: var(--rms-bg-subtle);
+  color: var(--rms-text);
+  padding: 0.12rem 0.35rem;
+  border-radius: var(--rms-radius-sm);
   font-size: 0.85em;
   font-family: ui-monospace, monospace;
 }
 
-.dark .message-content code {
-  background: var(--surface-700);
-}
-
 /* Code blocks */
-.message-content pre {
-  background: var(--surface-100);
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
+::ng-deep .message-content pre {
+  background: var(--rms-bg-subtle);
+  padding: var(--rms-space-3) var(--rms-space-4);
+  border-radius: var(--rms-radius-md);
   overflow-x: auto;
-  margin: 0.75rem 0;
-  border: 1px solid var(--surface-200);
+  margin: var(--rms-space-3) 0;
+  border: 1px solid var(--rms-border);
 }
 
-.dark .message-content pre {
-  background: var(--surface-800);
-}
-
-.message-content pre code {
+::ng-deep .message-content pre code {
   background: none;
   padding: 0;
   font-size: 0.85em;
 }
 
-/* Bold and italic */
-.message-content strong {
+/* Emphasis and links */
+::ng-deep .message-content strong {
   font-weight: 600;
+  color: var(--rms-text);
 }
 
-.message-content em {
+::ng-deep .message-content em {
   font-style: italic;
 }
 
-/* Links */
-.message-content a {
+::ng-deep .message-content a {
   color: var(--rms-link);
   text-decoration: underline;
 }
 
-.message-content a:hover {
+::ng-deep .message-content a:hover {
   color: var(--rms-link-hover);
 }
 
 /* Blockquotes - callouts. A quiet inset surface, not a thick accent bar. */
-.message-content blockquote {
+::ng-deep .message-content blockquote {
   margin: var(--rms-space-3) 0;
   padding: var(--rms-space-3) var(--rms-space-4);
   border: var(--rms-border-width) solid var(--rms-border);
@@ -112,70 +153,132 @@
   color: var(--rms-text-secondary);
 }
 
-.message-content hr {
+::ng-deep .message-content hr {
   border: none;
   border-top: var(--rms-border-width) solid var(--rms-border);
   margin: var(--rms-space-4) 0;
 }
 
-::ng-deep .message-content table {
-  display: block;
+/* ==========================================================================
+   Tables
+   ---------------------------------------------------------------------------
+   `wrapTables()` puts every table inside `.chat-table`, which owns the
+   horizontal scroll. The table itself can therefore wrap its cells, and the
+   full-size reader shows it without any scroll.
+   ========================================================================== */
+
+::ng-deep .chat-table {
+  margin: var(--rms-space-3) 0;
+  border: 1px solid var(--rms-border);
+  border-radius: var(--rms-radius-md);
   overflow-x: auto;
-  white-space: nowrap;
-  margin: 1rem 0;
-  font-size: 0.85rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--surface-200);
+  background: var(--rms-bg-surface);
+}
+
+::ng-deep .chat-table table {
+  width: 100%;
   border-collapse: collapse;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
 }
 
-::ng-deep .message-content table th {
-  background: var(--surface-100);
-  color: var(--surface-700);
+::ng-deep .chat-table thead th {
+  background: var(--rms-bg-subtle);
+  color: var(--rms-text-secondary);
   font-weight: 600;
-  padding: 0.6rem 1rem;
   text-align: left;
-  white-space: nowrap;
-  border-bottom: 2px solid var(--surface-200);
-}
-
-::ng-deep .dark .message-content table th {
-  background: var(--surface-800);
-  color: var(--surface-100);
-  border-bottom-color: var(--surface-600);
-}
-
-::ng-deep .message-content table td {
-  padding: 0.5rem 1rem;
-  border-top: 1px solid var(--surface-200);
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--rms-border);
   white-space: nowrap;
 }
 
-::ng-deep .dark .message-content table td {
-  background: var(--surface-900);
-  border-color: var(--surface-700);
+::ng-deep .chat-table tbody td {
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid var(--rms-border);
+  color: var(--rms-text);
+  vertical-align: top;
 }
 
-::ng-deep .message-content table tr:hover td {
-  background: var(--primary-50);
+::ng-deep .chat-table tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--rms-bg-subtle) 55%, transparent);
 }
 
-::ng-deep .dark .message-content table tr:hover td {
-  background: var(--primary-900);
+::ng-deep .chat-table tbody tr:hover td {
+  background: var(--rms-brand-soft);
 }
 
-::ng-deep .message-content table td:first-child {
-  font-weight: 500;
-  color: var(--surface-700);
+::ng-deep .chat-table tbody tr:first-child td {
+  border-top: none;
 }
 
-::ng-deep .dark .message-content table td:first-child {
-  color: var(--surface-200);
+/* ==========================================================================
+   Full-size reader
+   ========================================================================== */
+
+::ng-deep .chat-expanded-dialog {
+  width: min(1100px, 95vw);
+  max-height: 90vh;
 }
+
+/* The mask stays clickable (dismiss on outside click) but has no dark scrim. */
+::ng-deep .chat-expanded-mask {
+  background: transparent !important;
+  backdrop-filter: none !important;
+}
+
+/*
+ * One scroll container only: the dialog content. The reader is appended to
+ * <body>, so it never participates in the chat panel's layout or height.
+ */
+::ng-deep .chat-expanded-dialog .p-dialog-content {
+  max-height: 76vh;
+  overflow: auto;
+}
+
+::ng-deep .chat-expanded-content {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+}
+
+::ng-deep .chat-expanded-content .chat-table {
+  overflow-x: visible;
+}
+
+::ng-deep .chat-expanded-content .chat-table table {
+  font-size: 0.875rem;
+}
+
+::ng-deep .chat-expanded-content .chat-table thead th {
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Interaction
+   ========================================================================== */
 
 .typing-indicator span {
   animation: typing 1.4s infinite;
   animation-fill-mode: both;
+}
+
+.streaming-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--rms-brand-text);
+  animation: caret-blink 1s steps(2, start) infinite;
+}
+
+@keyframes caret-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 .typing-indicator span:nth-child(2) {
@@ -199,8 +302,7 @@
 
 .messages-container {
   scrollbar-width: thin;
-  scrollbar-color: var(--primary-300) transparent;
-  scroll-behavior: smooth;
+  scrollbar-color: var(--rms-border-strong) transparent;
 }
 
 .messages-container::-webkit-scrollbar {
@@ -212,7 +314,7 @@
 }
 
 .messages-container::-webkit-scrollbar-thumb {
-  background-color: var(--primary-300);
+  background-color: var(--rms-border-strong);
   border-radius: 3px;
 }
 
@@ -223,15 +325,10 @@ textarea {
   resize: none;
 }
 
-.glow-effect {
-  animation: pulse-border 2s ease-in-out infinite alternate;
-}
-
-@keyframes pulse-border {
-  from {
-    border-color: var(--primary-300);
-  }
-  to {
-    border-color: var(--primary-500);
+/* Respect the OS setting: no blinking caret or bouncing dots. */
+@media (prefers-reduced-motion: reduce) {
+  .typing-indicator span,
+  .streaming-caret {
+    animation: none;
   }
 }
