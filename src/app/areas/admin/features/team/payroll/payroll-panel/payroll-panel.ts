@@ -344,6 +344,18 @@ export class PayrollPanel {
     this.loadPeriod();
   }
 
+  /**
+   * Fallback monogram for the worker select when there is no portrait. Uses the
+   * first letter of the first and last name, matching the employee card.
+   */
+  initials(name: string): string {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return '';
+    const first = parts[0]?.charAt(0) ?? '';
+    const last = parts.length > 1 ? (parts[parts.length - 1]?.charAt(0) ?? '') : '';
+    return `${first}${last}`.toUpperCase();
+  }
+
   applyPeriod(): void {
     this.periodMonth.set(this.selectedMonth());
     this.periodYear.set(this.selectedYear());

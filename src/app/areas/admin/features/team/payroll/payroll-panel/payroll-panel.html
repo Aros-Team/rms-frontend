@@ -18,7 +18,46 @@
           placeholder="Seleccione un trabajador"
           styleClass="w-full"
           appendTo="body"
-        />
+        >
+          <!-- The portrait is the fastest way for an admin to tell two workers
+               with similar names apart, so it rides in both the option row and
+               the closed control. -->
+          <ng-template pTemplate="item" let-worker>
+            <div class="flex min-w-0 items-center gap-2">
+              @if (worker.imageUrl) {
+                <img
+                  class="h-7 w-7 flex-shrink-0 rounded-full object-cover"
+                  [src]="worker.imageUrl"
+                  alt="" />
+              } @else {
+                <span
+                  class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-rms-brand-soft text-xs font-bold text-rms-brand-text"
+                  aria-hidden="true">
+                  {{ initials(worker.name) }}
+                </span>
+              }
+              <span class="truncate">{{ worker.name }}</span>
+            </div>
+          </ng-template>
+
+          <ng-template pTemplate="selectedItem" let-worker>
+            <div class="flex min-w-0 items-center gap-2">
+              @if (worker.imageUrl) {
+                <img
+                  class="h-6 w-6 flex-shrink-0 rounded-full object-cover"
+                  [src]="worker.imageUrl"
+                  alt="" />
+              } @else {
+                <span
+                  class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-rms-brand-soft text-[0.625rem] font-bold text-rms-brand-text"
+                  aria-hidden="true">
+                  {{ initials(worker.name) }}
+                </span>
+              }
+              <span class="truncate">{{ worker.name }}</span>
+            </div>
+          </ng-template>
+        </p-select>
       </div>
 
       <div class="flex flex-col gap-1 w-full sm:w-40">
