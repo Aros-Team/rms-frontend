@@ -116,11 +116,14 @@ deliberate and must never be inverted:
 | `--rms-text-inverse` | `#ffffff` | `#0f172a` | On inverse surfaces |
 | `--rms-text-on-brand` | `#1e1b19` | `#1e1b19` | On a gold fill |
 | `--rms-text-disabled` | `#94a3b8` | `#64748b` | Disabled text |
-| `--rms-link` | `#1d4ed8` | `#93c5fd` | Inline links |
-| `--rms-focus` | `#1d4ed8` | `#93c5fd` | Focus ring |
+| `--rms-link` | `#8a6508` | `#f2daa2` | Inline links — brand ink |
+| `--rms-focus` | `#0f172a` | `#f1f5f9` | Focus ring — neutral ink |
 
 Rules:
 
+- Interaction colors come from the brand and neutral ramps. **Blue and purple
+  are never link, button or focus colors**; they are reserved for the `info`
+  status role.
 - Dark is derived from the same slate ramp, never a second palette (no zinc).
 - Elevation never inverts: page < surface < raised. Inputs sit on `surface`
   with `border-strong`; they do not sink.

@@ -74,11 +74,14 @@
   --rms-text-inverse: #ffffff;
   --rms-text-on-brand: var(--rms-on-brand);
   --rms-text-disabled: var(--rms-neutral-400);
-  --rms-link: #1d4ed8; /* 6.70:1 on white */
-  --rms-link-hover: #1e40af;
+  /* Links are brand ink, never a second accent hue (5.32:1 on white). */
+  --rms-link: var(--rms-brand-text);
+  --rms-link-hover: #6f5306; /* 7.2:1 — darker gold on hover */
 
-  /* Focus. One ring for the whole product, distinct from brand gold. */
-  --rms-focus: #1d4ed8;
+  /* Focus. One ring for the whole product, distinct from brand gold.
+     Neutral ink keeps it inside the slate + gold palette and still clears
+     3:1 on the cream fill. */
+  --rms-focus: var(--rms-neutral-900);
   --rms-focus-ring-width: 2px;
   --rms-focus-ring-offset: 2px;
   --rms-focus-ring: var(--rms-focus-ring-width) solid var(--rms-focus);
@@ -263,13 +266,13 @@
   --rms-text-muted: var(--rms-neutral-400);
   --rms-text-inverse: var(--rms-neutral-900);
   --rms-text-disabled: var(--rms-neutral-500);
-  --rms-link: #93c5fd;
-  --rms-link-hover: #bfdbfe;
+  --rms-link: var(--rms-brand-text);
+  --rms-link-hover: #fdecc0;
 
   --rms-brand-text: #f2daa2;
   --rms-brand-soft: #2a230f;
 
-  --rms-focus: #93c5fd;
+  --rms-focus: var(--rms-neutral-100);
 
   --rms-success-fg: #6ee7b7;
   --rms-success-bg: #052e22;
@@ -335,7 +338,7 @@
     --rms-text-secondary: var(--rms-neutral-800);
     --rms-text-muted: var(--rms-neutral-700);
     --rms-text-disabled: var(--rms-neutral-600);
-    --rms-focus: #1d4ed8;
+    --rms-focus: var(--rms-neutral-950);
     --rms-focus-ring-width: 3px;
     --rms-brand-text: #6f5306;
     --rms-success-fg: #064e3b;
@@ -362,7 +365,7 @@
     --rms-text-secondary: var(--rms-neutral-200);
     --rms-text-muted: var(--rms-neutral-300);
     --rms-text-disabled: var(--rms-neutral-400);
-    --rms-focus: #bfdbfe;
+    --rms-focus: var(--rms-neutral-50);
     --rms-focus-ring-width: 3px;
     --rms-brand-text: #f2daa2;
     --rms-success-fg: #6ee7b7;
@@ -390,7 +393,7 @@ html[data-contrast='high'] {
   --rms-text-secondary: var(--rms-neutral-800);
   --rms-text-muted: var(--rms-neutral-700);
   --rms-text-disabled: var(--rms-neutral-600);
-  --rms-focus: #1d4ed8;
+  --rms-focus: var(--rms-neutral-950);
   --rms-focus-ring-width: 3px;
   --rms-brand-text: #6f5306;
   --rms-success-fg: #064e3b;
@@ -417,7 +420,7 @@ html.dark[data-contrast='high'] {
   --rms-text-secondary: var(--rms-neutral-200);
   --rms-text-muted: var(--rms-neutral-300);
   --rms-text-disabled: var(--rms-neutral-400);
-  --rms-focus: #bfdbfe;
+  --rms-focus: var(--rms-neutral-50);
   --rms-focus-ring-width: 3px;
   --rms-brand-text: #f2daa2;
   --rms-success-fg: #6ee7b7;
