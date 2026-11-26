@@ -62,6 +62,7 @@ interface WorkerRowView {
   readonly worker: WorkerResponse;
   readonly workerId: number;
   readonly areaLabels: readonly string[];
+  readonly role: string;
   readonly schedules: readonly ScheduleModel[];
   readonly week: WorkerWeek;
   readonly overlapKeys: ReadonlySet<string>;
@@ -114,6 +115,21 @@ const RANGE_FORMATTER = new Intl.DateTimeFormat('es-CO', {
 const ASSIGNMENT_ERRORS = new Map<string, string>([
   ['Shift overlap detected', 'El turno se solapa con un horario ya asignado al trabajador.'],
 ]);
+
+/** Fallback role derived from the area when the worker has no explicit job title. */
+function deriveRole(areaLabels: readonly string[]): string {
+  const areas = areaLabels.map((area) => area.toLowerCase());
+  if (areas.some((area) => area.includes('cocina'))) {
+    return 'Cocinero';
+  }
+  if (areas.some((area) => area.includes('caja'))) {
+    return 'Cajero';
+  }
+  if (areas.some((area) => area.includes('servicio'))) {
+    return 'Mesero';
+  }
+  return 'Sin rol';
+}
 
 /**
  * Admin weekly schedule grid.
@@ -265,16 +281,7 @@ export class WeekGrid implements OnInit, OnChanges {
           laneEnds[lane] = to;
         }
 
-        const areas = row.areaLabels.map((area) => area.toLowerCase());
-        const role = areas.some((area) => area.includes('cocina'))
-          ? row.worker.name.toLowerCase().includes('auxiliar')
-            ? 'Auxiliar de cocina'
-            : 'Cocinero'
-          : areas.some((area) => area.includes('caja'))
-            ? 'Cajero'
-            : areas.some((area) => area.includes('servicio'))
-              ? 'Mesero'
-              : 'Sin rol';
+        const role = row.role;
 
         bars.push({
           key: `${String(row.workerId)}-${shift.key}`,
@@ -285,7 +292,7 @@ export class WeekGrid implements OnInit, OnChanges {
           endTime: shift.endTime,
           left: ((visibleFrom - windowStart) / windowMinutes) * 100,
           width: ((visibleTo - visibleFrom) / windowMinutes) * 100,
-          top: lane * 28 + 4,
+          top: lane * 36 + 6,
         });
       }
 
@@ -296,7 +303,7 @@ export class WeekGrid implements OnInit, OnChanges {
         date: dates[index],
         closed,
         bars: closed ? [] : bars,
-        trackHeight: Math.max(1, laneEnds.length) * 28 + 8,
+        trackHeight: Math.max(1, laneEnds.length) * 36 + 12,
         workerCount: new Set(shifts.map((entry) => entry.row.workerId)).size,
         minutes,
       };
@@ -331,14 +338,17 @@ export class WeekGrid implements OnInit, OnChanges {
       });
       const week = buildWorkerWeek(assigned);
       const overlaps = findWeekOverlaps(week);
+      const areaLabels = (worker.assignedAreas ?? []).flatMap((id) => {
+        const area = areasById.get(id);
+        return area === undefined ? [] : [area.name];
+      });
+      const jobTitle = worker.jobTitle?.trim() ?? '';
       return [
         {
           worker,
           workerId: worker.id,
-          areaLabels: (worker.assignedAreas ?? []).flatMap((id) => {
-            const area = areasById.get(id);
-            return area === undefined ? [] : [area.name];
-          }),
+          areaLabels,
+          role: jobTitle !== '' ? jobTitle : deriveRole(areaLabels),
           schedules: assigned,
           week,
           overlapKeys: overlaps.keys,

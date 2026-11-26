@@ -80,6 +80,9 @@
         <li class="shift-row">
           <div class="shift-row__who">
             <span class="shift-row__name">{{ row.workerName }}</span>
+            @if (row.jobTitle) {
+              <span class="rms-caption">{{ row.jobTitle }}</span>
+            }
             <span class="rms-caption">{{ row.areaNames.join(', ') || 'Sin área' }}</span>
           </div>
 

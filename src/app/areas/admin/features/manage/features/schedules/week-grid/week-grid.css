@@ -737,7 +737,7 @@
 .week-grid__bar {
   position: absolute;
   display: flex;
-  height: 24px;
+  height: 28px;
   align-items: center;
   gap: var(--rms-space-2);
   overflow: hidden;

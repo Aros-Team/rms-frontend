@@ -47,6 +47,7 @@ interface IndividualShift {
   readonly schedule: ScheduleModel;
   readonly workerId: number;
   readonly workerName: string;
+  readonly jobTitle: string;
   readonly areaNames: readonly string[];
   readonly days: readonly DayOfWeek[];
   /** Distinct time ranges (seed shifts can contain two per day). */
@@ -362,6 +363,7 @@ export class ShiftPlanner implements OnInit {
               schedule,
               workerId,
               workerName: worker.name,
+              jobTitle: worker.jobTitle?.trim() ?? '',
               areaNames,
               days: DAY_ORDER.filter((day) =>
                 schedule.shifts.some((shift) => shift.dayOfWeek === day),

@@ -56,6 +56,7 @@ interface WorkerFormValue {
   email: string;
   phone: string;
   address: string | null,
+  jobTitle: string | null,
   areaId: number | null,
   salary: number | null,
   reason: string | null,
@@ -170,6 +171,7 @@ export class Workers implements OnInit {
     email: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.email(control), (control: AbstractControl) => Validators.maxLength(100)(control)]),
     phone: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.pattern(/^\d{10}$/)(control)]),
     address: new FormControl('', [(control: AbstractControl) => Validators.maxLength(200)(control)]),
+    jobTitle: new FormControl<string | null>('', [(control: AbstractControl) => Validators.maxLength(100)(control)]),
     salary: new FormControl<number | null>(null),
     reason: new FormControl<string | null>(null),
     observations: new FormControl<string | null>(null),
@@ -537,6 +539,7 @@ export class Workers implements OnInit {
       phone: formValue.phone,
       address: formValue.address ?? '',
       areas: formValue.areaId != null ? [formValue.areaId] : [],
+      jobTitle: formValue.jobTitle?.trim() ? formValue.jobTitle.trim() : null,
     };
 
     if (this.salaryChanged()) {
@@ -720,6 +723,7 @@ export class Workers implements OnInit {
       email: data.email,
       phone: data.phone ?? '',
       address: data.address ?? '',
+      jobTitle: data.jobTitle ?? '',
       areaId: data.assignedAreas?.[0] ?? null,
       salary: tryToAmount(data.salary),
     });
@@ -738,6 +742,7 @@ export class Workers implements OnInit {
       phone: formValue.phone,
       address: formValue.address ?? undefined,
       areas: formValue.areaId != null ? [formValue.areaId] : [],
+      jobTitle: formValue.jobTitle?.trim() ? formValue.jobTitle.trim() : null,
       salary: formValue.salary ?? undefined,
     };
   }

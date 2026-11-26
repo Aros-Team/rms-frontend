@@ -37,7 +37,7 @@ import badgeHtml from '@app/shared/ui/badge/badge.html?raw';
 
 const WORKER: WorkerResponse = {
   id: 1001,
-  document: 'SEED-1001',
+  document: '1000001001',
   name: 'Mesero 1',
   email: 'seed1001@rms.local',
   role: 'WORKER',

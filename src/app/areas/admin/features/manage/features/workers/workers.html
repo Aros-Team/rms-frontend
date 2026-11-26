@@ -299,6 +299,14 @@
         [error]="fieldError('areaId')"
       />
       <app-rms-input
+        id="create.jobTitle"
+        label="Rol"
+        autocomplete="off"
+        formControlName="jobTitle"
+        placeholder="Ej. Jefe de cocina, mesero, cajero"
+        [error]="fieldError('jobTitle')"
+      />
+      <app-rms-input
         #firstInputRef
         id="create.document"
         label="Documento"

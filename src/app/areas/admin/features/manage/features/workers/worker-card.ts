@@ -92,6 +92,11 @@ export class WorkerCard {
     return area?.name ?? 'Sin área';
   });
 
+  jobTitleLabel = computed(() => {
+    const jobTitle = this.worker().jobTitle?.trim();
+    return jobTitle !== undefined && jobTitle !== '' ? jobTitle : 'Sin rol';
+  });
+
   /** Day range and time window of the assigned schedule, e.g. "Lun–Vie 08:00–16:00". */
   scheduleSummary = computed(() => {
     const schedules = this.assignedSchedules();

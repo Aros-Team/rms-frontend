@@ -7,6 +7,8 @@ export interface WorkerResponse {
   email: string;
   phone?: string;
   address?: string;
+  /** Job title or role inside the assigned area, for example "Jefe de cocina". */
+  jobTitle?: string | null;
   role?: 'ADMIN' | 'WORKER';
   status?: 'PENDING' | 'ERROR' | 'ACTIVE' | 'INACTIVE';
   assignedAreas?: number[];
@@ -27,6 +29,7 @@ export interface UpdateWorkerRequest {
   phone: string;
   address: string;
   areas: number[];
+  jobTitle?: string | null;
   salary?: number | null;
   reason?: string | null;
   observations?: string | null;

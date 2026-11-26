@@ -5,5 +5,6 @@ export interface CreateWorkerRequest {
   phone?: string;
   address?: string;
   areas: number[];
+  jobTitle?: string | null;
   salary?: number | null;
 }
