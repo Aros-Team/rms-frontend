@@ -38,12 +38,12 @@ describe('resolveAgentNavigation', () => {
     });
   });
 
-  it('passes search and tab to the workers screen', () => {
+  it('passes search to the workers screen', () => {
     expect(
       resolveAgentNavigation({ screen: 'workers', query: 'Ana', tab: 'payroll' }),
     ).toEqual({
-      commands: ['/admin/manage/workers'],
-      queryParams: { search: 'Ana', tab: 'payroll' },
+      commands: ['/admin/team/workers'],
+      queryParams: { search: 'Ana' },
       label: 'Trabajadores',
     });
   });
@@ -52,16 +52,27 @@ describe('resolveAgentNavigation', () => {
     expect(
       resolveAgentNavigation({ screen: 'salary_history', entity_id: 7 }),
     ).toEqual({
-      commands: ['/admin/manage/workers', 7, 'salary-history'],
+      commands: ['/admin/team/workers', 7, 'salary-history'],
       label: 'Historial salarial',
     });
   });
 
   it('deep-links the schedules tab', () => {
-    expect(resolveAgentNavigation({ screen: 'schedules', tab: 'registros' })).toEqual({
-      commands: ['/admin/schedules'],
-      queryParams: { tab: 'registros' },
+    expect(resolveAgentNavigation({ screen: 'schedules', tab: 'turnos' })).toEqual({
+      commands: ['/admin/team/schedules'],
+      queryParams: { tab: 'turnos' },
       label: 'Horarios',
+    });
+  });
+
+  it('routes attendance and payroll as their own team screens', () => {
+    expect(resolveAgentNavigation({ screen: 'attendance' })).toEqual({
+      commands: ['/admin/team/attendance'],
+      label: 'Asistencia',
+    });
+    expect(resolveAgentNavigation({ screen: 'payroll' })).toEqual({
+      commands: ['/admin/team/payroll'],
+      label: 'Nómina',
     });
   });
 

@@ -1,12 +1,10 @@
-import { NgClass } from '@angular/common';
 import { Component, OnInit, inject, computed, effect, DestroyRef, signal, ViewChild, ElementRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { RouterModule, ActivatedRoute, Router } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { TableModule } from 'primeng/table';
 import { DialogModule } from 'primeng/dialog';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputIconModule } from 'primeng/inputicon';
@@ -17,7 +15,6 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { TooltipModule } from 'primeng/tooltip';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { DatePickerModule } from 'primeng/datepicker';
 import { WorkerResponse } from '@app/shared/models/dto/workers/worker-response';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Worker } from '@app/core/services/workers/worker';
@@ -33,19 +30,13 @@ import { WorkersCache } from './workers-cache';
 import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 import { AreaResponse } from '@app/shared/models/dto/areas/area';
 import { Area } from '@app/core/services/areas/area';
-import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
-import { RmsBadge } from '@app/shared/ui/badge/badge';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
 import { RmsField } from '@app/shared/ui/field/field';
 import { RmsInput } from '@app/shared/ui/input/input';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
-import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
 import { WorkerCard } from './worker-card';
-import { PayrollPanel } from './payroll-panel/payroll-panel';
 import { SearchInput as SearchInputComponent } from '@app/shared/components/search-input/search-input';
-import { TimeLog, TimeLogFilterParams } from '@app/core/services/schedules/time-log';
-import { TimeLogEntry } from '@app/shared/models/dto/schedules/time-log-entry';
 import { Schedule } from '@app/core/services/schedules/schedule';
 import { ScheduleAssignment } from '@app/core/services/schedules/schedule-assignment';
 import { Schedule as ScheduleModel } from '@app/shared/models/dto/schedules/schedule';
@@ -66,10 +57,8 @@ interface WorkerFormValue {
 @Component({
   selector: 'app-workers',
   imports: [
-    NgClass,
     RouterModule,
     FormsModule,
-    TableModule,
     DialogModule,
     IftaLabelModule,
     ReactiveFormsModule,
@@ -81,18 +70,13 @@ interface WorkerFormValue {
     TooltipModule,
     SkeletonModule,
     ConfirmDialogModule,
-    DatePickerModule,
     LazyLoad,
-    TableSkeleton,
-    RmsBadge,
     RmsButton,
     RmsEmptyState,
     RmsField,
     RmsInput,
     RmsPageHeader,
-    RmsStatusPill,
     WorkerCard,
-    PayrollPanel,
     SearchInputComponent,
   ],
   templateUrl: './workers.html',
@@ -106,28 +90,11 @@ export class Workers implements OnInit {
   private confirmationService = inject(ConfirmationService);
   private destroyRef = inject(DestroyRef);
   readonly cache = inject(WorkersCache);
-  private timeLogService = inject(TimeLog);
   private scheduleService = inject(Schedule);
   private scheduleAssignmentService = inject(ScheduleAssignment);
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
 
-  // Template refs for focus management
-  @ViewChild('tabEmpleados') tabEmpleados?: ElementRef<HTMLButtonElement>;
-  @ViewChild('tabTimeLogs') tabTimeLogs?: ElementRef<HTMLButtonElement>;
-  @ViewChild('tabPayroll') tabPayroll?: ElementRef<HTMLButtonElement>;
   @ViewChild('firstInputRef') firstInputRef?: ElementRef<HTMLElement>;
-
-  // Tab navigation
-  activeEmployeeTab = signal<'list' | 'time-logs' | 'payroll'>('list');
-
-  // Time-log state
-  timeLogs = signal<TimeLogEntry[]>([]);
-  timeLogLoading = signal(false);
-  timeLogError = signal<string | null>(null);
-  filterWorkerId = signal<number | undefined>(undefined);
-  filterFrom = signal<Date | undefined>(undefined);
-  filterTo = signal<Date | undefined>(undefined);
 
   // Schedule assignment state
   scheduleDialogVisible = signal(false);
@@ -211,16 +178,11 @@ export class Workers implements OnInit {
       this.cache.workers.refresh();
     }
 
-    // Deep link from the assistant: `?search=` filters the list and `?tab=`
-    // opens employees, time logs or payroll directly.
+    // Deep link from the assistant: `?search=` filters the employee list.
     this.route.queryParamMap
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((params) => {
         this.workerSearch.set((params.get('search') ?? '').trim());
-        const tab = params.get('tab');
-        if (tab === 'list' || tab === 'time-logs' || tab === 'payroll') {
-          this.switchTab(tab);
-        }
       });
 
     this.userForm.get('salary')?.valueChanges
@@ -865,85 +827,6 @@ export class Workers implements OnInit {
         }
       }
     }
-  }
-
-  // ── Time-log methods ──
-
-  switchTab(tab: 'list' | 'time-logs' | 'payroll'): void {
-    if (this.activeEmployeeTab() === tab) return;
-    this.activeEmployeeTab.set(tab);
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { tab },
-      queryParamsHandling: 'merge',
-      replaceUrl: true,
-    });
-    if (tab === 'time-logs') {
-      this.loadTimeLogs();
-    }
-    // `payroll` needs no call here: the panel is mounted by `@if` on first
-    // activation and loads its three caches in its own constructor.
-    // Focus the active tab for keyboard/AT users
-    setTimeout(() => {
-      if (tab === 'list') {
-        this.tabEmpleados?.nativeElement.focus();
-      } else if (tab === 'time-logs') {
-        this.tabTimeLogs?.nativeElement.focus();
-      } else {
-        this.tabPayroll?.nativeElement.focus();
-      }
-    });
-  }
-
-  loadTimeLogs(): void {
-    this.timeLogLoading.set(true);
-    this.timeLogError.set(null);
-
-    const params: TimeLogFilterParams = {};
-    if (this.filterWorkerId() !== undefined) {
-      params.workerId = this.filterWorkerId();
-    }
-    const fromDate = this.filterFrom();
-    if (fromDate) {
-      params.from = fromDate.toISOString();
-    }
-    const toDate = this.filterTo();
-    if (toDate) {
-      params.to = toDate.toISOString();
-    }
-
-    this.timeLogService.getTimeLogs(params).subscribe({
-      next: (data) => {
-        this.timeLogs.set(data);
-        this.timeLogLoading.set(false);
-      },
-      error: (err: HttpErrorResponse) => {
-        this.logger.error('Failed to load time logs', err);
-        if (err.status === 403) {
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Acción no disponible fuera de turno' });
-        } else if (err.status === 404) {
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se encontraron registros' });
-        } else {
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al cargar los registros de ingreso' });
-        }
-        this.timeLogError.set('Error al cargar los registros de ingreso');
-        this.timeLogLoading.set(false);
-      },
-    });
-  }
-
-  clearFilters(): void {
-    this.filterWorkerId.set(undefined);
-    this.filterFrom.set(undefined);
-    this.filterTo.set(undefined);
-    this.loadTimeLogs();
-  }
-
-  formatTimestamp(iso: string): string {
-    return new Date(iso).toLocaleString('es-CO', {
-      year: 'numeric', month: '2-digit', day: '2-digit',
-      hour: '2-digit', minute: '2-digit',
-    });
   }
 
   // ── Schedule assignment methods ──

@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 
 import { ChangePassword } from '@areas/auth/features/password-recovery/change-password';
-import { Schedules } from '@areas/admin/features/manage/features/schedules/schedules';
+import { Schedules } from '@areas/admin/features/team/schedules/schedules';
 import { Auth } from '@app/core/services/auth/auth';
 import { Worker } from '@app/core/services/workers/worker';
 import { Accessibility, FontSize, ContrastMode } from '@app/core/services/accessibility/accessibility';

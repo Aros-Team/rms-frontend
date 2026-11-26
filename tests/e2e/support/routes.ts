@@ -25,7 +25,7 @@ export type RoleKey = 'admin' | 'waiter' | 'kitchen' | 'cashier';
  *
  * Dynamic routes use ids from the deterministic dev seed:
  *  - product 1        `/admin/manage/products/1/recipe`
- *  - worker 1001      `/admin/manage/workers/1001/salary-history`
+ *  - worker 1001      `/admin/team/workers/1001/salary-history`
  *  - combo 1          `/admin/manage/combos/1/edit` and `/history`
  *
  * Redirect-only children keep their own row so a broken redirect is visible.
@@ -35,25 +35,53 @@ export const ROLE_ROUTES: Record<RoleKey, RouteCase[]> = {
     { path: '/admin', slug: 'admin', label: 'Dashboard', shell: 'admin', expectPath: '/admin' },
     { path: '/admin/orders', slug: 'orders', label: 'Orders', shell: 'admin', expectPath: '/admin/orders' },
     {
-      path: '/admin/schedules',
-      slug: 'schedules',
-      label: 'Schedules / Week',
+      path: '/admin/team',
+      slug: 'team',
+      label: 'Team (redirect to workers)',
       shell: 'admin',
-      expectPath: '/admin/schedules',
+      expectPath: '/admin/team/workers',
     },
     {
-      path: '/admin/schedules?tab=turnos',
-      slug: 'schedules-shifts',
-      label: 'Schedules / Individual shifts',
+      path: '/admin/team/workers',
+      slug: 'team-workers',
+      label: 'Team / Workers',
       shell: 'admin',
-      expectPath: '/admin/schedules?tab=turnos',
+      expectPath: '/admin/team/workers',
     },
     {
-      path: '/admin/schedules?tab=registros',
-      slug: 'schedules-attendance',
-      label: 'Schedules / Attendance',
+      path: '/admin/team/workers/1001/salary-history',
+      slug: 'salary-history',
+      label: 'Salary history (seed worker 1001)',
       shell: 'admin',
-      expectPath: '/admin/schedules?tab=registros',
+      expectPath: '/admin/team/workers/1001/salary-history',
+    },
+    {
+      path: '/admin/team/schedules',
+      slug: 'team-schedules',
+      label: 'Team / Schedules / Week',
+      shell: 'admin',
+      expectPath: '/admin/team/schedules',
+    },
+    {
+      path: '/admin/team/schedules?tab=turnos',
+      slug: 'team-schedules-shifts',
+      label: 'Team / Schedules / Individual shifts',
+      shell: 'admin',
+      expectPath: '/admin/team/schedules?tab=turnos',
+    },
+    {
+      path: '/admin/team/attendance',
+      slug: 'team-attendance',
+      label: 'Team / Attendance',
+      shell: 'admin',
+      expectPath: '/admin/team/attendance',
+    },
+    {
+      path: '/admin/team/payroll',
+      slug: 'team-payroll',
+      label: 'Team / Payroll',
+      shell: 'admin',
+      expectPath: '/admin/team/payroll',
     },
     {
       path: '/admin/manage',
@@ -131,20 +159,6 @@ export const ROLE_ROUTES: Record<RoleKey, RouteCase[]> = {
       label: 'Create order',
       shell: 'admin',
       expectPath: '/admin/manage/orders-create',
-    },
-    {
-      path: '/admin/manage/workers',
-      slug: 'manage-workers',
-      label: 'Manage / Workers',
-      shell: 'admin',
-      expectPath: '/admin/manage/workers',
-    },
-    {
-      path: '/admin/manage/workers/1001/salary-history',
-      slug: 'salary-history',
-      label: 'Salary history (seed worker 1001)',
-      shell: 'admin',
-      expectPath: '/admin/manage/workers/1001/salary-history',
     },
     {
       path: '/admin/manage/inventory',

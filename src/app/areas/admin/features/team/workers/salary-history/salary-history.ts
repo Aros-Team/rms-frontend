@@ -57,7 +57,7 @@ export class SalaryHistory implements OnInit {
   }
 
   goBack(): void {
-    void this.router.navigate(['/admin/manage/workers']);
+    void this.router.navigate(['/admin/team/workers']);
   }
 
   private loadHistory(): void {

@@ -42,7 +42,7 @@ import { Logging } from '@app/core/services/logging/logging';
 import { Payroll } from '@app/core/services/payroll/payroll';
 import { PayrollCache } from '@app/core/services/payroll/payroll-cache';
 import { Worker } from '@app/core/services/workers/worker';
-import { WorkersCache } from '@areas/admin/features/manage/features/workers/workers-cache';
+import { WorkersCache } from '@areas/admin/features/team/workers/workers-cache';
 import type { Money as MoneyValue } from '@models/dto/common/money';
 import type {
   PayrollCalculateResponse,

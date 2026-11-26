@@ -4,6 +4,10 @@
 
 ### Features
 
+- **team**: new `Equipo` admin module grouping the workforce screens under `/admin/team`
+  (Empleados, Horarios, Asistencia, Nómina). Attendance and payroll are now flat sibling
+  routes instead of tabs nested inside Horarios and Empleados; the old `/admin/schedules`
+  and `/admin/manage/workers` routes are gone.
 - **workers**: upload, replace and remove the worker portrait from the create/edit dialog, and
   show it on the employee card (falls back to the initials monogram).
 - **workers**: employee cards now load the assigned schedules up front and show the day range,

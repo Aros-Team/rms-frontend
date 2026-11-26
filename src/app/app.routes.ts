@@ -120,13 +120,58 @@ export const routes: Routes = [
         data: { preload: true },
       },
       {
-        path: 'schedules',
-        title: 'Horarios',
-        loadComponent: () =>
-          import('@areas/admin/features/manage/features/schedules/schedules-page').then(
-            (m) => m.SchedulesPage,
-          ),
-        data: { preload: false },
+        path: 'team',
+        title: 'Equipo',
+        loadComponent: () => import('@areas/admin/features/team/team').then((m) => m.Team),
+        children: [
+          {
+            path: '',
+            redirectTo: 'workers',
+            pathMatch: 'full',
+          },
+          {
+            path: 'workers',
+            title: 'Empleados',
+            loadComponent: () =>
+              import('@areas/admin/features/team/workers/workers').then((m) => m.Workers),
+            data: { preload: false },
+          },
+          {
+            path: 'workers/:id/salary-history',
+            title: 'Historial salarial',
+            loadComponent: () =>
+              import('@areas/admin/features/team/workers/salary-history/salary-history').then(
+                (m) => m.SalaryHistory,
+              ),
+          },
+          {
+            path: 'schedules',
+            title: 'Horarios',
+            loadComponent: () =>
+              import('@areas/admin/features/team/schedules/schedules-page').then(
+                (m) => m.SchedulesPage,
+              ),
+            data: { preload: false },
+          },
+          {
+            path: 'attendance',
+            title: 'Asistencia',
+            loadComponent: () =>
+              import('@areas/admin/features/team/attendance/attendance-page').then(
+                (m) => m.AttendancePage,
+              ),
+            data: { preload: false },
+          },
+          {
+            path: 'payroll',
+            title: 'Nómina',
+            loadComponent: () =>
+              import('@areas/admin/features/team/payroll/payroll-page').then(
+                (m) => m.PayrollPage,
+              ),
+            data: { preload: false },
+          },
+        ],
       },
       {
         path: 'manage',
@@ -216,23 +261,6 @@ export const routes: Routes = [
               import('@shared/features/orders/order-creation/order-creation-form').then(
                 (m) => m.OrderCreationForm,
               ),
-          },
-          {
-            path: 'workers',
-            title: 'Trabajadores',
-            loadComponent: () =>
-              import('@areas/admin/features/manage/features/workers/workers').then(
-                (m) => m.Workers,
-              ),
-            data: { preload: false },
-          },
-          {
-            path: 'workers/:id/salary-history',
-            title: 'Historial salarial',
-            loadComponent: () =>
-              import(
-                '@areas/admin/features/manage/features/workers/salary-history/salary-history'
-              ).then((m) => m.SalaryHistory),
           },
           {
             path: 'inventory',

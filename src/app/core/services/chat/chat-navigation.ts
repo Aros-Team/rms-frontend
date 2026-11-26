@@ -25,6 +25,8 @@ const SCREEN_LABELS: Readonly<Record<string, string>> = {
   workers: 'Trabajadores',
   salary_history: 'Historial salarial',
   schedules: 'Horarios',
+  attendance: 'Asistencia',
+  payroll: 'Nómina',
   analytics: 'Estadísticas',
   analytics_prime_cost: 'Costo primo',
   analytics_menu: 'Ingeniería de menú',
@@ -100,25 +102,29 @@ export function resolveAgentNavigation(action: ChatNavigation): ResolvedAgentNav
       return { commands: ['/admin/manage/inventory'], label };
     case 'workers':
       return {
-        commands: ['/admin/manage/workers'],
-        queryParams: withQuery({ search: query, tab }),
+        commands: ['/admin/team/workers'],
+        queryParams: withQuery({ search: query }),
         label,
       };
     case 'salary_history':
       if (hasEntity) {
-        return { commands: ['/admin/manage/workers', entityId, 'salary-history'], label };
+        return { commands: ['/admin/team/workers', entityId, 'salary-history'], label };
       }
       return {
-        commands: ['/admin/manage/workers'],
+        commands: ['/admin/team/workers'],
         queryParams: withQuery({ search: query }),
         label: SCREEN_LABELS['workers'],
       };
     case 'schedules':
       return {
-        commands: ['/admin/schedules'],
+        commands: ['/admin/team/schedules'],
         queryParams: withQuery({ tab }),
         label,
       };
+    case 'attendance':
+      return { commands: ['/admin/team/attendance'], label };
+    case 'payroll':
+      return { commands: ['/admin/team/payroll'], label };
     case 'analytics':
       return { commands: ['/admin/analytics'], label };
     case 'analytics_prime_cost':

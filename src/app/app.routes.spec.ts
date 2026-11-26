@@ -158,11 +158,20 @@ describe('app routes', () => {
     expect(anyWorkerRoutes).toEqual(['profile', 'my-schedule']);
   });
 
-  it('should expose schedules as a first-class admin route', () => {
-    const schedules = childrenOf('admin').find((route) => route.path === 'schedules');
+  it('should expose the team module with its four workforce routes', () => {
+    const team = childrenOf('admin').find((route) => route.path === 'team');
+    const teamChildren = (team?.children ?? []).map((child) => child.path);
 
-    expect(schedules?.title).toBe('Horarios');
-    expect(schedules?.loadComponent).toBeDefined();
+    expect(team?.title).toBe('Equipo');
+    expect(team?.loadComponent).toBeDefined();
+    expect(teamChildren).toEqual([
+      '',
+      'workers',
+      'workers/:id/salary-history',
+      'schedules',
+      'attendance',
+      'payroll',
+    ]);
   });
 
   it('should keep the three pending analytics routes for Phase 2', () => {

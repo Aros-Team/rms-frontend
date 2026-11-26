@@ -1,22 +1,13 @@
 /**
- * Tests for the workers management screen (`app-workers`) tab navigation.
+ * Tests for the workers management screen (`app-workers`).
  *
- * Feature: three-tab layout — "Empleados", "Registros de Ingreso" and the new
- * "Nómina" tab that hosts `app-payroll-panel`.
+ * Feature: under the flat "Equipo" module this screen is list-only. Attendance
+ * and payroll are their own routes, so the page must not render nested tabs nor
+ * mount payroll/time-log panels.
  * Contract:
- *  - the tablist exposes exactly three tabs, only one of them selected;
- *  - the payroll tab is NOT mounted — and therefore makes no payroll request —
- *    until the admin activates it (lazy load on first activation);
- *  - activating it mounts `app-payroll-panel`, which immediately loads the
- *    events and settlements of the first employee for the current period;
- *  - switching back to "Empleados" leaves the payroll tab unmounted;
- *  - the pre-existing "Registros de Ingreso" tab still requests the time logs
- *    when activated (the regression site of the rewritten `switchTab`).
- *
- * Approach: mount `Workers` with stubbed `Worker` / `Area` / `Payroll` services,
- * drive the tab through `switchTab()` (the same entry point the tab buttons and
- * their Enter/Space handlers use), and assert `aria-selected` plus the presence
- * of the panel in the DOM and the payroll requests it issues.
+ *  - the route renders the employee cards, with no `[role="tab"]` navigation;
+ *  - no payroll panel is mounted and no payroll request is issued;
+ *  - the pre-existing form, salary and portrait behaviour stays intact.
  */
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
 import { provideRouter } from '@angular/router';
@@ -29,13 +20,10 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 
 import { Area } from '@app/core/services/areas/area';
 import { Logging } from '@app/core/services/logging/logging';
-import { Payroll } from '@app/core/services/payroll/payroll';
-import { TimeLog } from '@app/core/services/schedules/time-log';
 import { Schedule } from '@app/core/services/schedules/schedule';
 import { ScheduleAssignment } from '@app/core/services/schedules/schedule-assignment';
 import { Worker } from '@app/core/services/workers/worker';
 import { WorkerImage } from '@app/core/services/worker-image/worker-image';
-import type { PayrollEventResponse, PayrollResponse } from '@models/dto/payroll';
 import type { WorkerResponse } from '@models/dto/workers/worker-response';
 
 import { Workers } from './workers';
@@ -52,60 +40,15 @@ function money(amount: string): { amount: string; currency: string } {
   return { amount, currency: 'COP' };
 }
 
-function makePayroll(year: number, month: number): PayrollResponse {
-  return {
-    id: 31,
-    userId: 7,
-    userName: 'Ana Pérez',
-    year,
-    month,
-    periodStart: `${String(year)}-${String(month).padStart(2, '0')}-01`,
-    periodEnd: `${String(year)}-${String(month).padStart(2, '0')}-30`,
-    baseSalary: money('1500000.00'),
-    bonuses: money('0.00'),
-    deductions: money('0.00'),
-    netAmount: money('1500000.00'),
-    paidAmount: money('0.00'),
-    pendingAmount: money('1500000.00'),
-    hoursWorked: 160,
-    status: 'ACCRUED',
-    notes: '',
-    registeredBy: 1,
-    createdAt: '2026-06-01T08:00:00',
-    updatedAt: '2026-06-02T08:00:00',
-  };
-}
-
-function makeEvent(): PayrollEventResponse {
-  return {
-    id: 55,
-    userId: 7,
-    eventDate: '2026-06-15',
-    eventType: 'OVERTIME',
-    quantity: 2,
-    unitRate: money('18750.00'),
-    amount: money('37500.00'),
-    notes: '',
-    createdAt: '2026-06-15T22:00:00',
-    createdBy: 'system',
-  };
-}
-
-describe('Workers — payroll tab', () => {
+describe('Workers — list-only screen', () => {
   let fixture: ComponentFixture<Workers>;
   let component: Workers;
-  let payrollApi: Record<string, ReturnType<typeof vi.fn>>;
-  let timeLogApi: { getTimeLogs: ReturnType<typeof vi.fn> };
   let workerApi: {
     getWorkers: ReturnType<typeof vi.fn>;
     createWorker: ReturnType<typeof vi.fn>;
   };
   let scheduleApi: { getAll: ReturnType<typeof vi.fn> };
   let assignmentApi: { getAssignments: ReturnType<typeof vi.fn> };
-
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
 
   beforeAll(async () => {
     // jsdom has no IntersectionObserver; the `appLazyLoad` directive needs one.
@@ -142,8 +85,6 @@ describe('Workers — payroll tab', () => {
   beforeEach(() => {
     TestBed.resetTestingModule();
 
-    timeLogApi = { getTimeLogs: vi.fn(() => of([])) };
-
     workerApi = {
       getWorkers: vi.fn(() => of([WORKER])),
       createWorker: vi.fn(() => of({ ...WORKER, password: null })),
@@ -151,31 +92,6 @@ describe('Workers — payroll tab', () => {
 
     scheduleApi = { getAll: vi.fn(() => of([])) };
     assignmentApi = { getAssignments: vi.fn(() => of([])) };
-
-    payrollApi = {
-      getAllPayrolls: vi.fn(() => of([])),
-      getPayrollsByPeriod: vi.fn(() => of([])),
-      getPayrollsByWorker: vi.fn(() => of([makePayroll(year, month)])),
-      getPayrollByWorkerPeriod: vi.fn(() => of(makePayroll(year, month))),
-      createPayroll: vi.fn(() => of(makePayroll(year, month))),
-      updatePayroll: vi.fn(() => of(makePayroll(year, month))),
-      deletePayroll: vi.fn(() => of(undefined)),
-      createEvent: vi.fn(() => of(makeEvent())),
-      getEvents: vi.fn(() => of([makeEvent()])),
-      deleteEvent: vi.fn(() => of(undefined)),
-      calculate: vi.fn(() =>
-        of({
-          userId: 7,
-          eventType: 'OVERTIME',
-          hourlyRate: money('12500.00'),
-          multiplier: 1.5,
-          suggestedUnitRate: money('18750.00'),
-          suggestedAmount: money('37500.00'),
-        }),
-      ),
-      settle: vi.fn(() => of(undefined)),
-      getSettlements: vi.fn(() => of([])),
-    };
 
     TestBed.configureTestingModule({
       imports: [Workers],
@@ -192,8 +108,6 @@ describe('Workers — payroll tab', () => {
           },
         },
         { provide: Area, useValue: { getAreas: vi.fn(() => of([])) } },
-        { provide: Payroll, useValue: payrollApi },
-        { provide: TimeLog, useValue: timeLogApi },
         { provide: Schedule, useValue: scheduleApi },
         {
           provide: ScheduleAssignment,
@@ -216,89 +130,14 @@ describe('Workers — payroll tab', () => {
     fixture.detectChanges();
   }
 
-  function tab(selector: string): HTMLButtonElement {
-    const node = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(selector);
-    if (node === null) throw new Error(`Tab ${selector} not found`);
-    return node;
-  }
-
-  function panel(): HTMLElement | null {
-    return (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('app-payroll-panel');
-  }
-
-  it('exposes three tabs and selects "Empleados" by default', async () => {
+  it('renders the employee list without nested tabs or payroll panel', async () => {
     await mount();
 
-    const tabs = (fixture.nativeElement as HTMLElement).querySelectorAll('[role="tab"]');
-    expect(tabs.length).toBe(3);
-    expect(tab('#tab-empleados').getAttribute('aria-selected')).toBe('true');
-    expect(tab('#tab-time-logs').getAttribute('aria-selected')).toBe('false');
-    expect(tab('#tab-payroll').getAttribute('aria-selected')).toBe('false');
-    expect(tab('#tab-payroll').textContent.trim()).toBe('Nómina');
-  });
-
-  it('does not mount the payroll panel nor request payroll data before activation', async () => {
-    await mount();
-
-    expect(panel()).toBeNull();
-    expect(payrollApi['getEvents']).not.toHaveBeenCalled();
-    expect(payrollApi['getSettlements']).not.toHaveBeenCalled();
-  });
-
-  it('mounts the panel and loads its data on first activation of the "Nómina" tab', async () => {
-    await mount();
-
-    component.switchTab('payroll');
-    fixture.detectChanges();
-    await Promise.resolve();
-    fixture.detectChanges();
-
-    expect(tab('#tab-payroll').getAttribute('aria-selected')).toBe('true');
-    expect(panel()).not.toBeNull();
-    expect(payrollApi['getEvents']).toHaveBeenCalledWith(7, year, month);
-    expect(payrollApi['getSettlements']).toHaveBeenCalledWith(7, year, month);
-  });
-
-  it('unmounts the panel when switching back to "Empleados"', async () => {
-    await mount();
-
-    component.switchTab('payroll');
-    fixture.detectChanges();
-    await Promise.resolve();
-    fixture.detectChanges();
-    expect(panel()).not.toBeNull();
-
-    component.switchTab('list');
-    fixture.detectChanges();
-
-    expect(panel()).toBeNull();
-    expect(tab('#tab-empleados').getAttribute('aria-selected')).toBe('true');
-    expect(tab('#tab-payroll').getAttribute('aria-selected')).toBe('false');
-  });
-
-  it('activates the payroll tab from its click handler', async () => {
-    await mount();
-
-    tab('#tab-payroll').dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    fixture.detectChanges();
-    await Promise.resolve();
-    fixture.detectChanges();
-
-    expect(component.activeEmployeeTab()).toBe('payroll');
-    expect(panel()).not.toBeNull();
-  });
-
-  it('still requests the time logs when the existing "Registros de Ingreso" tab is activated', async () => {
-    await mount();
-    expect(timeLogApi.getTimeLogs).not.toHaveBeenCalled();
-
-    component.switchTab('time-logs');
-    fixture.detectChanges();
-    await Promise.resolve();
-    fixture.detectChanges();
-
-    expect(timeLogApi.getTimeLogs).toHaveBeenCalledTimes(1);
-    expect(tab('#tab-time-logs').getAttribute('aria-selected')).toBe('true');
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelectorAll('[role="tab"]').length).toBe(0);
+    expect(root.querySelector('app-payroll-panel')).toBeNull();
+    expect(root.querySelector('p-table')).toBeNull();
+    expect(root.querySelector('app-rms-page-header')).not.toBeNull();
   });
   describe('RFC 7807 error mapping', () => {
     it('surfaces the problem `detail` on the matching form field', async () => {

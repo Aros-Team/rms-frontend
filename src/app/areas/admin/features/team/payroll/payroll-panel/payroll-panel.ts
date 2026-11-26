@@ -24,7 +24,7 @@ import { ResourceCache } from '@app/core/cache/resource-cache/resource-cache';
 import { Logging } from '@app/core/services/logging/logging';
 import { Payroll } from '@app/core/services/payroll/payroll';
 import { PayrollCache } from '@app/core/services/payroll/payroll-cache';
-import { WorkersCache } from '@areas/admin/features/manage/features/workers/workers-cache';
+import { WorkersCache } from '@areas/admin/features/team/workers/workers-cache';
 import {
   formatInstant,
   formatIsoDate,
