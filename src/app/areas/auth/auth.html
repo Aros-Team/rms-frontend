@@ -12,14 +12,11 @@
 >
   <div class="flex w-full max-w-[400px] flex-col gap-6">
     <header class="flex items-center gap-3">
-      <img
-        src="/logo.svg"
-        alt=""
-        width="48"
-        height="48"
-        decoding="async"
-        class="h-12 w-12 flex-shrink-0"
-      />
+      <span
+        class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-rms-brand-soft text-rms-brand-text"
+        aria-hidden="true">
+        <app-logo [size]="26"></app-logo>
+      </span>
       <div class="min-w-0">
         <span class="block text-2xl font-black text-rms-ink">RMS</span>
         <span class="block text-sm text-rms-ink-muted">Sistema de Gestión para restaurantes.</span>

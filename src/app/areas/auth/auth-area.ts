@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { Logo } from '../../shared/components/logo/logo';
 
 /**
  * Unified public/auth shell.
@@ -16,7 +17,7 @@ import { RouterOutlet } from '@angular/router';
 @Component({
   selector: 'app-auth',
   templateUrl: './auth.html',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, Logo],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Auth {

@@ -36,9 +36,15 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="RMS">
-  <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
-  <link rel="icon" type="image/webp" href="/favicon.webp">
+  <!-- Transparent mark, no background. The adaptive SVG flips its fill with the
+       OS theme; the two explicit variants cover browsers that honour `media` on
+       link icons. Order matters: the no-preference SVG stays first (Safari) and
+       the light variant last (safe default when `media` is ignored). -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/svg+xml" href="/favicon-dark.svg" media="(prefers-color-scheme: dark)">
+  <link rel="icon" type="image/svg+xml" href="/favicon-light.svg" media="(prefers-color-scheme: light)">
 
   <!-- Security Headers -->
   <meta name="referrer" content="strict-origin-when-cross-origin">
