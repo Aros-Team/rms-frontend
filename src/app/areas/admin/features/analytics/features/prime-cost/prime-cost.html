@@ -1,6 +1,14 @@
 <div class="analytics-page">
-  <app-rms-page-header
-    [compact]="true" title="Rentabilidad" [subtitle]="subtitle()">
+  <app-rms-page-header title="Rentabilidad" [subtitle]="subtitle()">
+    <div rmsPageHeaderActions class="page-actions">
+      <app-rms-button
+        variant="secondary"
+        iconStart="pi pi-download"
+        [disabled]="report() === null"
+        (click)="exportCsv()">
+        Exportar CSV
+      </app-rms-button>
+    </div>
   </app-rms-page-header>
 
   <app-analytics-notice
@@ -49,6 +57,7 @@
 
     <section class="chart-grid" aria-label="Tendencias del periodo">
       <app-rms-chart-frame
+        class="panel"
         title="Ventas en el tiempo"
         subtitle="Brutas vs netas: la diferencia son descuentos y consumo del personal."
         [height]="260"
@@ -89,6 +98,7 @@
       </app-rms-chart-frame>
 
       <app-rms-chart-frame
+        class="panel"
         title="Evolución de márgenes"
         subtitle="Costo primo, margen bruto y margen neto como porcentaje de las ventas."
         [height]="260"
@@ -132,6 +142,7 @@
     </section>
 
     <app-rms-chart-frame
+      class="panel"
       title="Costo de lo vendido por tipo"
       subtitle="Composición del COGS por categoría a lo largo del periodo."
       [height]="280"

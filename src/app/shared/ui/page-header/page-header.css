@@ -42,7 +42,7 @@
 .rms-page-header__subtitle {
   margin: var(--rms-space-1) 0 0;
   max-width: 70ch;
-  color: #475569;
+  color: var(--rms-text-secondary);
   font-size: var(--rms-type-caption-size);
   font-style: italic;
   font-weight: 400;

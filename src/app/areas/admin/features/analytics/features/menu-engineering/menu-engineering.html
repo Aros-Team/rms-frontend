@@ -1,7 +1,8 @@
 <div class="analytics-page">
   <app-rms-page-header
-    [compact]="true" title="Tu carta, clasificada" [subtitle]="subtitle()">
-    <span rmsPageHeaderMeta>
+    title="Tu carta, clasificada"
+    [subtitle]="subtitle()">
+    <span rmsPageHeaderMeta class="page-meta">
       @if (refreshedLabel(); as label) {
         Datos actualizados: {{ label }}
       }
@@ -13,6 +14,13 @@
         [loading]="refreshing()"
         (click)="refresh()">
         Actualizar
+      </app-rms-button>
+      <app-rms-button
+        variant="secondary"
+        iconStart="pi pi-download"
+        [disabled]="report() === null"
+        (click)="exportCsv()">
+        Exportar CSV
       </app-rms-button>
     </div>
   </app-rms-page-header>
@@ -109,6 +117,7 @@
       </div>
 
       <app-rms-chart-frame
+        class="panel"
         title="Mapa de productos"
         subtitle="Ganancia por unidad vs unidades vendidas. El tamaño refleja el volumen."
         [height]="320"

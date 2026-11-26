@@ -15,7 +15,7 @@
 }
 
 .analytics-nav-item {
-  @apply flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 border-transparent transition-colors;
+  @apply flex flex-none items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 border-transparent transition-colors whitespace-nowrap;
   min-height: var(--rms-control-md);
   text-decoration: none;
   color: var(--rms-text-secondary);

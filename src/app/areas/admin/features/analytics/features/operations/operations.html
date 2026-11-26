@@ -1,7 +1,17 @@
 <div class="analytics-page">
   <app-rms-page-header
-    [compact]="true" title="Eficiencia operativa" [subtitle]="subtitle()">
-    <span rmsPageHeaderMeta>Comparado con {{ previousLabel() }}</span>
+    title="Eficiencia operativa"
+    [subtitle]="subtitle()">
+    <span rmsPageHeaderMeta class="page-meta">Comparado con {{ previousLabel() }}</span>
+    <div rmsPageHeaderActions class="page-actions">
+      <app-rms-button
+        variant="secondary"
+        iconStart="pi pi-download"
+        [disabled]="report() === null"
+        (click)="exportCsv()">
+        Exportar CSV
+      </app-rms-button>
+    </div>
   </app-rms-page-header>
 
   <app-analytics-notice
@@ -74,6 +84,7 @@
 
     <section class="chart-grid" aria-label="Rotación por franja">
       <app-rms-chart-frame
+        class="panel"
         title="Rotación por franja horaria"
         subtitle="Turnos acumulados en el periodo según la franja configurada."
         [height]="280"

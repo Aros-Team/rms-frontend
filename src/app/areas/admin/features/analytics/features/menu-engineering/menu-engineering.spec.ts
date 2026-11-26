@@ -133,6 +133,18 @@ describe('MenuEngineering', () => {
     expect(lines).toHaveLength(5);
   });
 
+  it('shows the page title and exposes both header actions', async () => {
+    const fixture = await setup(
+      makeCacheStub({ menuEngineering: { data: makeMenuReport() } }),
+    );
+    const root = fixture.nativeElement as HTMLElement;
+    const heading = root.querySelector('h1');
+    expect(heading?.textContent.trim()).toBe('Tu carta, clasificada');
+    expect(heading?.classList.contains('sr-only')).toBe(false);
+    expect(root.textContent).toContain('Actualizar');
+    expect(root.textContent).toContain('Exportar CSV');
+  });
+
   it('is empty when there are no items', async () => {
     const report = makeMenuReport({ items: [], dataCompleteness: 'EMPTY' });
     const fixture = await setup(makeCacheStub({ menuEngineering: { data: report } }));

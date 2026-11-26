@@ -34,7 +34,7 @@
 
 .rms-chart-frame__subtitle {
   margin: var(--rms-space-1) 0 0;
-  color: #475569;
+  color: var(--rms-text-secondary);
   font-size: var(--rms-type-caption-size);
   font-style: italic;
   line-height: var(--rms-type-caption-line);

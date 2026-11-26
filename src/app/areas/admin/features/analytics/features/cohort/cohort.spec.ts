@@ -90,6 +90,16 @@ describe('Cohort', () => {
     expect(csv).toContain('TABLE_ONLY');
   });
 
+  it('shows the page title and exposes the CSV export', async () => {
+    const fixture = await setup(makeCacheStub({ cohort: { data: makeCohortReport() } }));
+    const root = fixture.nativeElement as HTMLElement;
+    const heading = root.querySelector('h1');
+    expect(heading?.textContent.trim()).toBe('Cohortes de clientes');
+    expect(heading?.classList.contains('sr-only')).toBe(false);
+    const actions = [...root.querySelectorAll('app-rms-page-header app-rms-button')];
+    expect(actions.some((button) => button.textContent.includes('Exportar CSV'))).toBe(true);
+  });
+
   it('is empty without a report', async () => {
     const fixture = await setup(makeCacheStub());
     expect(fixture.componentInstance.isEmpty()).toBe(true);

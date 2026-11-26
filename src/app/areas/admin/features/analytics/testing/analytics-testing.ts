@@ -1,6 +1,8 @@
 import { ɵresolveComponentResources as resolveComponentResources, signal, type Signal } from '@angular/core';
 import { of, type Observable } from 'rxjs';
 
+import buttonHtml from '@app/shared/ui/button/button.html?raw';
+import pageHeaderHtml from '@app/shared/ui/page-header/page-header.html?raw';
 import type { CohortReport } from '@app/shared/models/dto/analytics/cohort-report';
 import type { MenuEngineeringReport } from '@app/shared/models/dto/analytics/menu-engineering-report';
 import type { Money } from '@app/shared/models/dto/analytics/money';
@@ -8,10 +10,20 @@ import type { OperationsReport } from '@app/shared/models/dto/analytics/operatio
 import type { PrimeCostReport } from '@app/shared/models/dto/analytics/prime-cost-report';
 import type { AlertsPage, SystemAlert } from '@app/shared/models/dto/analytics/system-alert';
 
+/**
+ * Templates every analytics section renders through its page header: the
+ * header owns the route H1 and the action buttons own their labels.
+ */
+const SHARED_TEMPLATES: Record<string, string> = {
+  'page-header.html': pageHeaderHtml,
+  'button.html': buttonHtml,
+};
+
 /** Resolves the external templates a spec needs; unknown URLs become ''. */
 export async function resolveTemplates(resources: Record<string, string>): Promise<void> {
+  const templates = { ...SHARED_TEMPLATES, ...resources };
   await resolveComponentResources((url: string): Promise<string> => {
-    for (const [name, content] of Object.entries(resources)) {
+    for (const [name, content] of Object.entries(templates)) {
       if (url.endsWith(name)) return Promise.resolve(content);
     }
     return Promise.resolve('');

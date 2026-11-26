@@ -118,6 +118,17 @@ describe('Operations', () => {
     expect(csv).toContain('Rotacion LUNCH');
   });
 
+  it('shows the page title and exposes the CSV export', async () => {
+    const fixture = await setup(
+      makeCacheStub({ operations: { data: makeOperationsReport() } }),
+    );
+    const root = fixture.nativeElement as HTMLElement;
+    const heading = root.querySelector('h1');
+    expect(heading?.textContent.trim()).toBe('Eficiencia operativa');
+    expect(heading?.classList.contains('sr-only')).toBe(false);
+    expect(root.textContent).toContain('Exportar CSV');
+  });
+
   it('is empty without a report', async () => {
     const fixture = await setup(makeCacheStub());
     expect(fixture.componentInstance.isEmpty()).toBe(true);

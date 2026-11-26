@@ -150,3 +150,13 @@
   flex-wrap: wrap;
   gap: var(--rms-space-2);
 }
+
+/* Header meta line: context such as the comparison range or the data
+   freshness stamp. Caption-sized and muted so it never competes with the
+   page subtitle. */
+.page-meta {
+  color: var(--rms-text-muted);
+  font-size: var(--rms-type-caption-size);
+  line-height: var(--rms-type-caption-line);
+  font-variant-numeric: tabular-nums;
+}

@@ -1,7 +1,8 @@
 <div class="analytics-page">
   <app-rms-page-header
-    [compact]="true" title="Cohortes de clientes" [subtitle]="subtitle()">
-    <span rmsPageHeaderMeta>
+    title="Cohortes de clientes"
+    [subtitle]="subtitle()">
+    <span rmsPageHeaderMeta class="page-meta">
       @if (strategy(); as strategyLabel) {
         Huella: {{ strategyLabel }}
         @if (windowDays(); as days) {
@@ -9,6 +10,15 @@
         }
       }
     </span>
+    <div rmsPageHeaderActions class="page-actions">
+      <app-rms-button
+        variant="secondary"
+        iconStart="pi pi-download"
+        [disabled]="report() === null"
+        (click)="exportCsv()">
+        Exportar CSV
+      </app-rms-button>
+    </div>
   </app-rms-page-header>
 
   <app-analytics-notice
@@ -57,6 +67,7 @@
 
     <section class="chart-grid" aria-label="Retención por periodo">
       <app-rms-chart-frame
+        class="panel"
         title="Nuevos vs recurrentes"
         subtitle="Cada pedido es una visita; la huella decide si ya se había visto en la ventana."
         [height]="280"

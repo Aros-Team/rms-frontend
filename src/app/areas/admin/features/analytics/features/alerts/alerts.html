@@ -1,8 +1,7 @@
 <div class="analytics-page">
   <app-rms-page-header
-    [compact]="true"
     title="Alertas de variación">
-    <span rmsPageHeaderMeta>
+    <span rmsPageHeaderMeta class="page-meta">
       @if (total() > 0) {
         {{ pageLabel() }}
       }
@@ -10,6 +9,13 @@
     <div rmsPageHeaderActions class="page-actions">
       <app-rms-button variant="secondary" iconStart="pi pi-refresh" (click)="retry()">
         Actualizar
+      </app-rms-button>
+      <app-rms-button
+        variant="secondary"
+        iconStart="pi pi-download"
+        [disabled]="items().length === 0"
+        (click)="exportCsv()">
+        Exportar CSV
       </app-rms-button>
     </div>
   </app-rms-page-header>

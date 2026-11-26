@@ -8,6 +8,7 @@ import { moneyAmount, percentChange } from '@app/core/services/analytics/analyti
 import { AnalyticsPeriodState } from '@app/core/services/analytics/analytics-period-state';
 import { bucketLabel, previousRange, rangeLabel } from '@app/core/services/analytics/analytics-utils';
 import { Money as MoneyPipe } from '@app/shared/pipes/money/money';
+import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsChartFrame } from '@app/shared/ui/chart-frame/chart-frame';
 import { rmsChartPalette } from '@app/shared/ui/chart/chart-theme';
 import { RmsChart } from '@app/shared/ui/chart/rms-chart';
@@ -34,6 +35,7 @@ const DAY_PART_LABEL: Record<string, string> = {
   selector: 'app-analytics-operations',
   imports: [
     MoneyPipe,
+    RmsButton,
     RmsChart,
     RmsChartFrame,
     RmsEmptyState,

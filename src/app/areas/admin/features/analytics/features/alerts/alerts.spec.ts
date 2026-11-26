@@ -139,4 +139,17 @@ describe('Alerts', () => {
     expect(csv).toContain('FOOD_COST_DEVIATION');
     expect(csv.split('\r\n')).toHaveLength(3);
   });
+
+  it('shows the page title and exposes both header actions', async () => {
+    const fixture = await setup({
+      getAlerts: () => of(makeAlertsPage()),
+      markAlertRead: () => of(null),
+    });
+    const root = fixture.nativeElement as HTMLElement;
+    const heading = root.querySelector('h1');
+    expect(heading?.textContent.trim()).toBe('Alertas de variación');
+    expect(heading?.classList.contains('sr-only')).toBe(false);
+    expect(root.textContent).toContain('Actualizar');
+    expect(root.textContent).toContain('Exportar CSV');
+  });
 });

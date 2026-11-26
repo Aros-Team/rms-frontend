@@ -36,10 +36,7 @@ describe('PrimeCost', () => {
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [PrimeCost],
-      providers: [
-        { provide: AnalyticsCache, useValue: cache },
-        AnalyticsPeriodState,
-      ],
+      providers: [{ provide: AnalyticsCache, useValue: cache }, AnalyticsPeriodState],
     }).compileComponents();
     const fixture = TestBed.createComponent(PrimeCost);
     fixture.detectChanges();
@@ -55,9 +52,7 @@ describe('PrimeCost', () => {
   });
 
   it('aggregates the whole range into the KPI totals', async () => {
-    const fixture = await setup(
-      makeCacheStub({ primeCost: { data: makePrimeCostReport() } }),
-    );
+    const fixture = await setup(makeCacheStub({ primeCost: { data: makePrimeCostReport() } }));
     const component = fixture.componentInstance;
 
     expect(component.totals().netSales).toEqual({ amount: '462811600.00', currency: 'COP' });
@@ -73,9 +68,7 @@ describe('PrimeCost', () => {
   });
 
   it('aggregates COGS by category for the period', async () => {
-    const fixture = await setup(
-      makeCacheStub({ primeCost: { data: makePrimeCostReport() } }),
-    );
+    const fixture = await setup(makeCacheStub({ primeCost: { data: makePrimeCostReport() } }));
     const rows = fixture.componentInstance.cogsRows();
     expect(rows).toHaveLength(4);
     const food = rows.find((row) => row.key === 'FOOD');
@@ -84,9 +77,7 @@ describe('PrimeCost', () => {
   });
 
   it('builds the sales and margin datasets from the series', async () => {
-    const fixture = await setup(
-      makeCacheStub({ primeCost: { data: makePrimeCostReport() } }),
-    );
+    const fixture = await setup(makeCacheStub({ primeCost: { data: makePrimeCostReport() } }));
     const component = fixture.componentInstance;
     const sales = component.salesData();
     expect(sales.datasets[0]?.label).toBe('Ventas netas');
@@ -103,21 +94,26 @@ describe('PrimeCost', () => {
   });
 
   it('renders a data-table fallback in every chart frame', async () => {
-    const fixture = await setup(
-      makeCacheStub({ primeCost: { data: makePrimeCostReport() } }),
-    );
+    const fixture = await setup(makeCacheStub({ primeCost: { data: makePrimeCostReport() } }));
     const root = fixture.nativeElement as HTMLElement;
     expect(root.querySelectorAll('app-rms-chart-frame')).toHaveLength(3);
     expect(root.querySelectorAll('table caption').length).toBeGreaterThanOrEqual(3);
   });
 
   it('builds the CSV for the loaded report', async () => {
-    const fixture = await setup(
-      makeCacheStub({ primeCost: { data: makePrimeCostReport() } }),
-    );
+    const fixture = await setup(makeCacheStub({ primeCost: { data: makePrimeCostReport() } }));
     const csv = fixture.componentInstance.buildCsv();
     expect(csv.split('\r\n')[0]).toContain('Ventas netas');
     expect(csv).toContain('2026-06');
+  });
+
+  it('shows the page title and exposes the CSV export', async () => {
+    const fixture = await setup(makeCacheStub({ primeCost: { data: makePrimeCostReport() } }));
+    const root = fixture.nativeElement as HTMLElement;
+    const heading = root.querySelector('h1');
+    expect(heading?.textContent.trim()).toBe('Rentabilidad');
+    expect(heading?.classList.contains('sr-only')).toBe(false);
+    expect(root.textContent).toContain('Exportar CSV');
   });
 
   it('shows the ProblemDetail detail on failure', async () => {
@@ -125,14 +121,16 @@ describe('PrimeCost', () => {
       makeCacheStub({
         primeCost: {
           data: null,
-          error: new AnalyticsRequestError(422, { detail: 'to < from' }),
+          error: new AnalyticsRequestError(422, { detail: "'to' no puede ser anterior a 'from'" }),
         },
       }),
     );
     const root = fixture.nativeElement as HTMLElement;
     const notice = root.querySelector('app-analytics-notice');
     expect(notice).not.toBeNull();
-    expect(fixture.componentInstance.errorInfo()?.detail).toBe('to < from');
+    expect(fixture.componentInstance.errorInfo()?.detail).toBe(
+      "'to' no puede ser anterior a 'from'",
+    );
   });
 
   it('is empty when the report has no series', async () => {
