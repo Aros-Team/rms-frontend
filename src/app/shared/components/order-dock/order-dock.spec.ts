@@ -4,6 +4,7 @@
  * Feature: compose an order and send it to the kitchen.
  * Contract:
  *  - the cart total adds the base price, the per-unit surcharge and quantity;
+ *  - the dock is persistent (table tab + diner bar) and expands in place;
  *  - a send in flight cannot be submitted twice (double-submit guard);
  *  - a successful send clears the cart but keeps the table selected so another
  *    round can be added to the same table;
@@ -28,6 +29,7 @@ import { Logging } from '@app/core/services/logging/logging';
 import type { TableResponse } from '@app/shared/models/dto/tables/table-response';
 import type { OrderResponse } from '@app/shared/models/dto/orders/order-response';
 import { OrderDock } from './order-dock';
+import orderDockHtml from './order-dock.html?raw';
 
 const tables: TableResponse[] = [
   { id: 1, tableNumber: 1, capacity: 4, status: 'AVAILABLE' },
@@ -180,5 +182,46 @@ describe('OrderDock', () => {
 
     expect(component.cartAriaLabel()).toContain('Mesa 1');
     expect(component.cartAriaLabel()).toContain('2 productos');
+  });
+
+  it('starts collapsed and expands the dock in place', () => {
+    const { component } = mount();
+
+    expect(component.expanded()).toBe(false);
+    component.toggleExpanded();
+    expect(component.expanded()).toBe(true);
+    component.toggleExpanded();
+    expect(component.expanded()).toBe(false);
+  });
+
+  it('restores the composed cart and table after a reload', () => {
+    const first = mount();
+    first.cart.selectTable(1);
+    addSampleItem(first.cart);
+    TestBed.tick();
+
+    const reloaded = mount();
+
+    expect(reloaded.cart.totalItems()).toBe(2);
+    expect(reloaded.cart.selectedTableId()).toBe(1);
+    expect(reloaded.cart.diners()[0].items[0].product.name).toBe('Hamburguesa');
+  });
+
+  it('ignores a corrupted stored cart instead of breaking the dock', () => {
+    sessionStorage.setItem('rms.waiter.order-dock.v1', '{not-json');
+
+    const { cart } = mount();
+
+    expect(cart.totalItems()).toBe(0);
+    expect(cart.diners()).toHaveLength(1);
+  });
+
+  it('keeps the dock on screen instead of hiding the cart behind an opener', () => {
+    const html = orderDockHtml as unknown as string;
+
+    expect(html).toContain('class="dock__tab"');
+    expect(html).toContain('class="dock__diners"');
+    expect(html).not.toContain('cart-fab');
+    expect(html).not.toContain('app-rms-sheet');
   });
 });

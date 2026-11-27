@@ -1,5 +1,6 @@
 import { getTestBed } from '@angular/core/testing';
 import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
+import { beforeEach } from 'vitest';
 
 // Mock matchMedia for jsdom environment - required by Theme service
 Object.defineProperty(window, 'matchMedia', {
@@ -22,3 +23,8 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 getTestBed().initTestEnvironment(BrowserTestingModule, platformBrowserTesting());
+
+// The order dock persists its cart in sessionStorage; never leak it between tests.
+beforeEach(() => {
+  sessionStorage.clear();
+});

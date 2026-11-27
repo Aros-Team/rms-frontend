@@ -10,7 +10,3 @@
 :host(.has-order-dock) {
   padding-bottom: calc(100px + 4rem);
 }
-
-:host(.has-order-dock) app-order-dock {
-  bottom: 4rem;
-}

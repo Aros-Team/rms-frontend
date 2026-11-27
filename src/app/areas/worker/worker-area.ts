@@ -128,6 +128,11 @@ export class WorkerArea implements OnInit, OnDestroy {
         if (fromUrl) {
           this.workspace.set(fromUrl);
         }
+        // The order dock belongs to the service floor only; never over the
+        // kitchen or cashier workspace.
+        this.canOrder.set(
+          this.workspace() === 'waiter' && isServiceWorker(this.authService.getData()),
+        );
         this.cdr.markForCheck();
       });
     this.destroyRef.onDestroy(() => {
@@ -174,7 +179,7 @@ export class WorkerArea implements OnInit, OnDestroy {
     }
 
     this.workspace.set(workspace);
-    this.canOrder.set(isServiceWorker(userData));
+    this.canOrder.set(workspace === 'waiter' && isServiceWorker(userData));
     this.logger.debug(`WorkerArea: workspace=${workspace}, canOrder=${String(this.canOrder())}`);
   }
 }

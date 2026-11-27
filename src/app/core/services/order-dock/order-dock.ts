@@ -1,4 +1,4 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Order } from '@app/core/services/orders/order';
 import { Logging } from '@app/core/services/logging/logging';
@@ -45,6 +45,18 @@ export function tableStatusLabel(status: TableResponse['status']): string {
     RESERVED: 'Reservada',
   };
   return labels[status];
+}
+
+/**
+ * Temporary cart snapshot. `sessionStorage` (not `localStorage`) keeps the
+ * composed order across a reload without keeping it after the tab is closed.
+ */
+const STORAGE_KEY = 'rms.waiter.order-dock.v1';
+
+interface PersistedDock {
+  diners: DinerState[];
+  selectedDinerIndex: number;
+  selectedTableId: number | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -123,6 +135,26 @@ export class OrderDock {
     ),
   );
 
+  constructor() {
+    this.restore();
+    // Persist after every cart mutation so a reload never loses the composed
+    // order. `sessionStorage` keeps it for this tab only.
+    effect(() => {
+      persistSnapshot({
+        diners: this._diners(),
+        selectedDinerIndex: this._selectedDinerIndex(),
+        selectedTableId: this.selectedTableId(),
+      });
+    });
+  }
+
+  private restore(): void {
+    const snapshot = readSnapshot();
+    if (!snapshot) return;
+    this._diners.set(snapshot.diners);
+    this._selectedDinerIndex.set(snapshot.selectedDinerIndex);
+    this.selectedTableId.set(snapshot.selectedTableId);
+  }
 
   selectDiner(index: number): void {
     if (index >= 0 && index < this._diners().length) {
@@ -306,6 +338,73 @@ function extractError(err: unknown): string {
   }
   if (err instanceof Error) return err.message;
   return 'Error desconocido';
+}
+
+function cartStorage(): Storage | null {
+  try {
+    return typeof sessionStorage === 'undefined' ? null : sessionStorage;
+  } catch {
+    return null;
+  }
+}
+
+function persistSnapshot(snapshot: PersistedDock): void {
+  const store = cartStorage();
+  if (!store) return;
+  try {
+    store.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+  } catch {
+    // Private mode or quota: the in-memory cart keeps working.
+  }
+}
+
+function isDinerState(value: unknown): value is DinerState {
+  if (typeof value !== 'object' || value === null) return false;
+  const diner = value as Partial<DinerState>;
+  return typeof diner.id === 'number' && Array.isArray(diner.items);
+}
+
+function isDockItem(value: unknown): value is DockItem {
+  if (typeof value !== 'object' || value === null) return false;
+  const item = value as Partial<DockItem>;
+  const product = item.product as unknown;
+  return (
+    typeof item.quantity === 'number' &&
+    item.quantity > 0 &&
+    typeof product === 'object' &&
+    product !== null
+  );
+}
+
+function readSnapshot(): PersistedDock | null {
+  const store = cartStorage();
+  if (!store) return null;
+  try {
+    const raw = store.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<PersistedDock>;
+    if (!Array.isArray(parsed.diners)) return null;
+
+    const diners = (parsed.diners as unknown[])
+      .filter(isDinerState)
+      .map((diner) => ({
+        id: diner.id,
+        items: (diner.items as unknown[]).filter(isDockItem),
+      }));
+    if (diners.length === 0) return null;
+
+    const rawIndex = parsed.selectedDinerIndex;
+    const selectedDinerIndex = Math.min(
+      Math.max(0, typeof rawIndex === 'number' ? rawIndex : 0),
+      diners.length - 1,
+    );
+    const selectedTableId =
+      typeof parsed.selectedTableId === 'number' ? parsed.selectedTableId : null;
+
+    return { diners, selectedDinerIndex, selectedTableId };
+  } catch {
+    return null;
+  }
 }
 
 /** One cart line: unit base price + option surcharge, times quantity. */

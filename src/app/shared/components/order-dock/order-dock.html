@@ -1,257 +1,230 @@
-<button
-  type="button"
-  class="cart-fab"
-  [class.cart-fab--empty]="dock.totalItems() === 0"
-  [attr.aria-label]="cartAriaLabel()"
-  aria-haspopup="dialog"
-  [attr.aria-expanded]="sheetOpen()"
-  (click)="openCart()"
->
-  <span class="cart-fab__icon-wrap" aria-hidden="true">
-    <i class="pi pi-shopping-basket cart-fab__icon"></i>
-    @if (dock.totalItems() > 0) {
-      <span class="cart-fab__badge">{{ dock.totalItems() }}</span>
-    }
-  </span>
-  {{ ' ' }}
-  <span class="cart-fab__body" aria-hidden="true">
-    @if (dock.totalItems() === 0) {
-      <span class="cart-fab__title">Pedido vacío</span>
-      {{ ' ' }}
-      <span class="cart-fab__subtitle">{{ dock.selectedTableLabel() }}</span>
-    } @else {
-      <span class="cart-fab__title">{{ dock.selectedTableLabel() }}</span>
-      {{ ' ' }}
-      <span class="cart-fab__subtitle">{{ dock.totalAmount() | money }}</span>
-    }
-  </span>
-</button>
+<div class="dock" [class.dock--expanded]="expanded()" role="region" aria-label="Panel de pedido">
+  <div class="dock__tab">
+    <button
+      type="button"
+      class="dock__table"
+      aria-label="Seleccionar mesa"
+      (click)="openTablePicker()"
+    >
+      <i class="pi pi-table" aria-hidden="true"></i>
+      <span class="dock__table-name">{{ dock.selectedTableLabel() }}</span>
+    </button>
 
-<app-rms-sheet
-  [open]="sheetOpen()"
-  (openChange)="onSheetOpenChange($event)"
-  [title]="sheetTitle()"
-  side="bottom"
-  [dismissible]="!submitting()"
->
-  @if (confirmOpen()) {
-    <div class="confirm">
-      <p class="confirm__lead">Revisa el pedido antes de enviarlo a cocina.</p>
+    <button
+      type="button"
+      class="dock__toggle"
+      [attr.aria-expanded]="expanded()"
+      [attr.aria-label]="expanded() ? 'Cerrar panel' : 'Abrir panel'"
+      (click)="toggleExpanded()"
+    >
+      <i
+        class="pi text-xs"
+        [class.pi-chevron-up]="!expanded()"
+        [class.pi-chevron-down]="expanded()"
+        aria-hidden="true"
+      ></i>
+    </button>
+  </div>
 
-      <dl class="confirm__meta">
-        <div>
-          <dt>Mesa</dt>
-          <dd>{{ dock.selectedTableLabel() }}</dd>
-        </div>
-        <div>
-          <dt>Productos</dt>
-          <dd>{{ dock.totalItems() }}</dd>
-        </div>
-        <div>
-          <dt>Total estimado</dt>
-          <dd>{{ dock.totalAmount() | money }}</dd>
-        </div>
-      </dl>
-
-      <ul class="confirm__lines">
-        @for (line of summaryLines(); track $index) {
-          <li>{{ line.text }}</li>
-        }
-      </ul>
-    </div>
-  } @else {
-    <div class="cart">
-    <section class="cart__table" aria-labelledby="cart-table-heading">
-      <div class="cart__table-copy">
-        <p class="cart__eyebrow" id="cart-table-heading">Mesa</p>
-        <p class="cart__table-name">{{ dock.selectedTableLabel() }}</p>
-      </div>
-      @if (selectedTable(); as table) {
-        <app-rms-status-pill [label]="tableStatusText()" [status]="tableStatus() ?? 'neutral'" />
-      } @else {
-        <app-rms-status-pill label="Sin mesa" status="neutral" />
+  <div class="dock__diners" aria-label="Comensales">
+    <div class="diners__list">
+      @for (diner of dock.diners(); track trackDiner($index, diner); let i = $index) {
+        <button
+          type="button"
+          class="diner"
+          [class.diner--active]="i === dock.selectedDinerIndex()"
+          [attr.aria-pressed]="i === dock.selectedDinerIndex()"
+          [attr.aria-label]="'Comensal ' + diner.id + ', ' + diner.items.length + ' productos'"
+          (click)="selectDiner(i)"
+        >
+          <i class="pi pi-user" aria-hidden="true"></i>
+          <span class="diner__number">{{ diner.id }}</span>
+          @if (diner.items.length > 0) {
+            <span class="diner__count">{{ diner.items.length }}</span>
+          }
+        </button>
       }
-      <app-rms-button variant="secondary" size="lg" (click)="openTablePicker()">
-        {{ selectedTable() ? 'Cambiar' : 'Elegir mesa' }}
+    </div>
+    <div class="diners__actions">
+      <app-rms-icon-button
+        icon="pi pi-plus"
+        ariaLabel="Agregar comensal"
+        size="md"
+        (click)="addDiner()"
+      />
+      <app-rms-icon-button
+        icon="pi pi-trash"
+        ariaLabel="Eliminar comensal"
+        variant="danger"
+        size="md"
+        [disabled]="dock.diners().length <= 1"
+        (click)="requestRemoveDiner()"
+      />
+    </div>
+  </div>
+
+  @if (removeDinerData(); as diner) {
+    <div class="dock__warn" role="alert">
+      <p>¿Eliminar el comensal {{ diner.id }}? Tiene {{ diner.items.length }} producto(s).</p>
+      <div class="dock__warn-actions">
+        <app-rms-button variant="danger" size="lg" (click)="confirmRemoveDiner()">Sí</app-rms-button>
+        <app-rms-button variant="secondary" size="lg" (click)="cancelRemoveDiner()">No</app-rms-button>
+      </div>
+    </div>
+  }
+
+  @if (expanded()) {
+    <div class="dock__body">
+      @if (submitError(); as error) {
+        <div class="dock__error" role="alert">
+          <div class="dock__error-copy">
+            <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+            <p>{{ error }}</p>
+          </div>
+          <app-rms-button variant="secondary" size="lg" (click)="retrySend()">
+            Reintentar
+          </app-rms-button>
+        </div>
+      }
+
+      @if (dock.selectedDinerItems().length === 0) {
+        <div class="dock__empty">
+          <i class="pi pi-shopping-basket" aria-hidden="true"></i>
+          <p>Selecciona productos del menú o la carta</p>
+        </div>
+      } @else {
+        <ul class="cart-lines">
+          @for (item of dock.selectedDinerItems(); track $index; let i = $index) {
+            <li class="cart-line">
+              <div class="cart-line__top">
+                <button
+                  type="button"
+                  class="cart-line__name"
+                  [attr.aria-label]="'Editar ' + item.product.name"
+                  (click)="openEditModal(i)"
+                >
+                  {{ item.product.name }}
+                </button>
+                <span class="cart-line__total">{{ lineTotal(item) | money }}</span>
+                <app-rms-icon-button
+                  icon="pi pi-trash"
+                  [ariaLabel]="'Quitar ' + item.product.name"
+                  variant="danger"
+                  size="lg"
+                  (click)="removeItem(i)"
+                />
+              </div>
+
+              @if (groupSummary(item); as groups) {
+                <p class="cart-line__meta">{{ groups }}</p>
+              } @else if (optionSummary(item); as options) {
+                <p class="cart-line__meta">{{ options }}</p>
+              }
+
+              @if (item.instructions) {
+                <p class="cart-line__note">
+                  <i class="pi pi-pencil" aria-hidden="true"></i>
+                  {{ item.instructions }}
+                </p>
+              }
+
+              <div class="cart-line__qty">
+                <app-rms-icon-button
+                  icon="pi pi-minus"
+                  [ariaLabel]="'Reducir ' + item.product.name"
+                  size="lg"
+                  [disabled]="item.quantity <= 1"
+                  (click)="decrement(i)"
+                />
+                <span class="cart-line__qty-value">{{ item.quantity }}</span>
+                <app-rms-icon-button
+                  icon="pi pi-plus"
+                  [ariaLabel]="'Aumentar ' + item.product.name"
+                  size="lg"
+                  (click)="increment(i)"
+                />
+              </div>
+            </li>
+          }
+        </ul>
+      }
+
+      <div class="cart__totals">
+        <div class="cart__total-row">
+          <span>Artículos</span>
+          <span class="rms-tabular">{{ dock.totalItems() }}</span>
+        </div>
+        <div class="cart__total-row cart__total-row--strong">
+          <span>Total</span>
+          <span class="cart__total-value">{{ dock.totalAmount() | money }}</span>
+        </div>
+      </div>
+
+      <app-rms-button
+        size="lg"
+        [block]="true"
+        iconStart="pi pi-send"
+        [loading]="submitting()"
+        [disabled]="!canSend()"
+        [attr.title]="sendDisabledReason() || 'Colocar pedido'"
+        (click)="requestSend()"
+      >
+        Colocar pedido
       </app-rms-button>
-    </section>
 
-    @if (submitError(); as error) {
-      <div class="cart__error" role="alert">
-        <div class="cart__error-copy">
-          <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
-          <p>{{ error }}</p>
-        </div>
-        <app-rms-button variant="secondary" size="lg" (click)="retrySend()">
-          Reintentar
-        </app-rms-button>
-      </div>
-    }
-
-    <section class="diners" aria-label="Comensales">
-      <div class="diners__list">
-        @for (diner of dock.diners(); track trackDiner($index, diner); let i = $index) {
-          <button
-            type="button"
-            class="diner"
-            [class.diner--active]="i === dock.selectedDinerIndex()"
-            [attr.aria-pressed]="i === dock.selectedDinerIndex()"
-            [attr.aria-label]="
-              'Comensal ' + diner.id + ', ' + diner.items.length + ' productos'
-            "
-            (click)="selectDiner(i)"
-          >
-            <i class="pi pi-user" aria-hidden="true"></i>
-            <span class="diner__number">{{ diner.id }}</span>
-            @if (diner.items.length > 0) {
-              <span class="diner__count">{{ diner.items.length }}</span>
-            }
-          </button>
-        }
-      </div>
-      <div class="diners__actions">
-        <app-rms-icon-button
-          icon="pi pi-plus"
-          ariaLabel="Agregar comensal"
-          size="lg"
-          (click)="addDiner()"
-        />
-        <app-rms-icon-button
-          icon="pi pi-trash"
-          ariaLabel="Eliminar comensal"
-          variant="danger"
-          size="lg"
-          [disabled]="dock.diners().length <= 1"
-          (click)="requestRemoveDiner()"
-        />
-      </div>
-    </section>
-
-    @if (removeDinerData(); as diner) {
-      <div class="cart__warn" role="alert">
-        <p>¿Eliminar el comensal {{ diner.id }}? Tiene {{ diner.items.length }} producto(s).</p>
-        <div class="cart__warn-actions">
-          <app-rms-button variant="danger" size="lg" (click)="confirmRemoveDiner()">Sí</app-rms-button>
-          <app-rms-button variant="secondary" size="lg" (click)="cancelRemoveDiner()">No</app-rms-button>
-        </div>
-      </div>
-    }
-
-    @if (dock.selectedDinerItems().length === 0) {
-      <div class="cart__empty">
-        <i class="pi pi-shopping-basket" aria-hidden="true"></i>
-        <p>Todavía no hay productos para este comensal.</p>
-        <p class="cart__empty-hint">Elige productos de la carta y vuelve aquí para enviarlos.</p>
-      </div>
-    } @else {
-      <ul class="cart-lines">
-        @for (item of dock.selectedDinerItems(); track $index; let i = $index) {
-          <li class="cart-line">
-            <div class="cart-line__top">
-              <button
-                type="button"
-                class="cart-line__name"
-                [attr.aria-label]="'Editar ' + item.product.name"
-                (click)="openEditModal(i)"
-              >
-                {{ item.product.name }}
-              </button>
-              <span class="cart-line__total">{{ lineTotal(item) | money }}</span>
-              <app-rms-icon-button
-                icon="pi pi-trash"
-                [ariaLabel]="'Quitar ' + item.product.name"
-                variant="danger"
-                size="lg"
-                (click)="removeItem(i)"
-              />
-            </div>
-
-            @if (groupSummary(item); as groups) {
-              <p class="cart-line__meta">{{ groups }}</p>
-            } @else if (optionSummary(item); as options) {
-              <p class="cart-line__meta">{{ options }}</p>
-            }
-
-            @if (item.instructions) {
-              <p class="cart-line__note">
-                <i class="pi pi-pencil" aria-hidden="true"></i>
-                {{ item.instructions }}
-              </p>
-            }
-
-            <div class="cart-line__qty">
-              <app-rms-icon-button
-                icon="pi pi-minus"
-                [ariaLabel]="'Reducir ' + item.product.name"
-                size="lg"
-                [disabled]="item.quantity <= 1"
-                (click)="decrement(i)"
-              />
-              <span class="cart-line__qty-value">{{ item.quantity }}</span>
-              <app-rms-icon-button
-                icon="pi pi-plus"
-                [ariaLabel]="'Aumentar ' + item.product.name"
-                size="lg"
-                (click)="increment(i)"
-              />
-            </div>
-          </li>
-        }
-      </ul>
-    }
-
-    <div class="cart__totals">
-      <div class="cart__total-row">
-        <span>Artículos</span>
-        <span class="rms-tabular">{{ dock.totalItems() }}</span>
-      </div>
-      <div class="cart__total-row cart__total-row--strong">
-        <span>Total</span>
-        <span class="cart__total-value">{{ dock.totalAmount() | money }}</span>
-      </div>
-      <p class="cart__note">
-        Total estimado. El precio final lo confirma el servidor al enviar y el cobro se
-        registra en caja.
-      </p>
       @if (sendDisabledReason()) {
         <p class="cart__hint">{{ sendDisabledReason() }}</p>
       }
     </div>
-    </div>
   }
+</div>
 
-  <div rmsSheetFooter class="cart__footer">
-    @if (confirmOpen()) {
-      <app-rms-button variant="secondary" size="lg" [disabled]="submitting()" (click)="cancelSend()">
-        Revisar
-      </app-rms-button>
-      <app-rms-button
-        size="lg"
-        iconStart="pi pi-send"
-        [loading]="submitting()"
-        [disabled]="submitting()"
-        (click)="sendToKitchen()"
-      >
-        Enviar a cocina
-      </app-rms-button>
-    } @else {
-      <app-rms-button variant="secondary" size="lg" [disabled]="submitting()" (click)="closeCart()">
-        Seguir
-      </app-rms-button>
-      <app-rms-button
-        size="lg"
-        iconStart="pi pi-send"
-        [disabled]="!canSend()"
-        [loading]="submitting()"
-        (click)="requestSend()"
-      >
-        Enviar a cocina
-      </app-rms-button>
-    }
+<app-rms-dialog
+  [visible]="confirmOpen()"
+  (visibleChange)="onConfirmVisible($event)"
+  header="Confirmar envío"
+  width="420px"
+>
+  <div class="confirm">
+    <p class="confirm__lead">Revisa el pedido antes de enviarlo a cocina.</p>
+
+    <dl class="confirm__meta">
+      <div>
+        <dt>Mesa</dt>
+        <dd>{{ dock.selectedTableLabel() }}</dd>
+      </div>
+      <div>
+        <dt>Productos</dt>
+        <dd>{{ dock.totalItems() }}</dd>
+      </div>
+      <div>
+        <dt>Total estimado</dt>
+        <dd>{{ dock.totalAmount() | money }}</dd>
+      </div>
+    </dl>
+
+    <ul class="confirm__lines">
+      @for (line of summaryLines(); track $index) {
+        <li>{{ line.text }}</li>
+      }
+    </ul>
   </div>
-</app-rms-sheet>
 
-
+  <div rmsDialogFooter>
+    <app-rms-button variant="secondary" size="lg" [disabled]="submitting()" (click)="cancelSend()">
+      Revisar
+    </app-rms-button>
+    <app-rms-button
+      size="lg"
+      iconStart="pi pi-send"
+      [loading]="submitting()"
+      [disabled]="submitting()"
+      (click)="sendToKitchen()"
+    >
+      Enviar a cocina
+    </app-rms-button>
+  </div>
+</app-rms-dialog>
 
 <app-product-options-modal
   [product]="editProduct()"

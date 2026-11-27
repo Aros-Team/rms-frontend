@@ -16,21 +16,17 @@ import {
   DockOptionGroup,
   OrderDock as OrderDockSvc,
   itemTotal,
-  tableStatusLabel,
 } from '@app/core/services/order-dock/order-dock';
 import { Order } from '@app/core/services/orders/order';
 import { MasterData } from '@app/core/services/master-data/master-data';
-import type { RmsStatus } from '@app/shared/ui/types/ui-types';
 import type { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
 import type { ProductOption } from '@app/shared/models/dto/products/product-option';
-import type { TableResponse } from '@app/shared/models/dto/tables/table-response';
 import type { CreateOrderDetail } from '@app/shared/models/dto/orders/create-order-request';
 import { Money } from '@app/shared/pipes/money/money';
 
 import { RmsButton } from '@app/shared/ui/button/button';
+import { RmsDialog } from '@app/shared/ui/dialog/dialog';
 import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
-import { RmsSheet } from '@app/shared/ui/sheet/sheet';
-import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
 import {
   ProductOptionsModal,
   ProductOptionsConfirmEvent,
@@ -47,20 +43,15 @@ interface SubmitLine {
   details: CreateOrderDetail[];
 }
 
-const TABLE_TONE: Record<TableResponse['status'], RmsStatus> = {
-  AVAILABLE: 'success',
-  OCCUPIED: 'info',
-  RESERVED: 'warning',
-};
-
 /**
  * Waiter cart.
  *
  * Feature: compose and send an order from a phone, with a clear table context.
  *
  * Contract:
- *  - the trigger is one floating action, not a second bottom bar, so the shell
- *    navigation remains the only fixed bar;
+ *  - the dock is a persistent bottom panel, not a cart the waiter has to open:
+ *    the table bar and the diner bar are visible at all times;
+ *  - the tab expands the panel in place for line edits, totals and send;
  *  - the cart shows quantities, notes, option/combo groups and the running
  *    total (base + surcharges); the API remains authoritative on submit;
  *  - the table picker is reused from `app-waiter-table-picker`, so the same
@@ -78,9 +69,8 @@ const TABLE_TONE: Record<TableResponse['status'], RmsStatus> = {
     CommonModule,
     Money,
     RmsButton,
+    RmsDialog,
     RmsIconButton,
-    RmsSheet,
-    RmsStatusPill,
     ProductOptionsModal,
     WaiterTablePicker,
   ],
@@ -94,7 +84,7 @@ export class OrderDock {
   private readonly router = inject(Router);
   private readonly moneyPipe = new Money();
 
-  readonly sheetOpen = signal(false);
+  readonly expanded = signal(false);
   readonly tablePickerOpen = signal(false);
   readonly confirmOpen = signal(false);
   readonly submitting = signal(false);
@@ -114,16 +104,6 @@ export class OrderDock {
   readonly editInitialQuantity = signal(1);
   private optionsSeq = 0;
 
-  readonly selectedTable = computed(() => this.dock.selectedTable());
-  readonly tableStatus = computed<RmsStatus | null>(() => {
-    const table = this.dock.selectedTable();
-    return table ? TABLE_TONE[table.status] : null;
-  });
-  readonly tableStatusText = computed(() => {
-    const table = this.dock.selectedTable();
-    return table ? tableStatusLabel(table.status) : 'Sin mesa';
-  });
-
   readonly cartAriaLabel = computed(() => {
     const table = this.dock.selectedTableLabel();
     const count = this.dock.totalItems();
@@ -134,10 +114,8 @@ export class OrderDock {
     }
     // The accessible name must start with the visible badge, table and total so
     // `label-content-name-mismatch` holds; the summary follows the same order.
-    return `${String(count)} ${table}. ${total}. Abrir el pedido: ${String(count)} ${productWord}.`;
+    return `${String(count)} ${table}. ${total}. ${String(count)} ${productWord}.`;
   });
-
-  readonly sheetTitle = computed(() => (this.confirmOpen() ? 'Confirmar envío' : 'Tu pedido'));
 
   readonly removeDinerData = computed(() => {
     const index = this.removeDinerIndex();
@@ -178,27 +156,14 @@ export class OrderDock {
     }
   }
 
-  /* ── Sheet ── */
+  /* ── Expand / collapse ── */
 
-  openCart(): void {
-    this.sheetOpen.set(true);
+  toggleExpanded(): void {
+    this.expanded.update((open) => !open);
   }
 
-  closeCart(): void {
-    if (this.submitting()) return;
-    this.sheetOpen.set(false);
-    this.tablePickerOpen.set(false);
-    this.confirmOpen.set(false);
-    this.removeDinerIndex.set(null);
-  }
-
-  /** Keep the confirmation state in sync when the native sheet closes itself. */
-  onSheetOpenChange(open: boolean): void {
-    this.sheetOpen.set(open);
-    if (!open) {
-      this.confirmOpen.set(false);
-      this.removeDinerIndex.set(null);
-    }
+  onConfirmVisible(visible: boolean): void {
+    this.confirmOpen.set(visible);
   }
 
   openTablePicker(): void {
@@ -267,9 +232,6 @@ export class OrderDock {
     this.editInitialOptionIds.set(item.selectedOptionIds);
     this.editInitialInstructions.set(item.instructions);
     this.editInitialQuantity.set(item.quantity);
-    // The options modal is a PrimeNG dialog; a native sheet is in the top
-    // layer, so close it first or the dialog would render behind the scrim.
-    this.sheetOpen.set(false);
     this.editVisible.set(true);
     this.loadEditOptions(item.product);
   }
@@ -329,8 +291,6 @@ export class OrderDock {
     this.editOptions.set([]);
     this.editOptionsLoading.set(false);
     this.editOptionsError.set(null);
-    // Return to the cart once the PrimeNG dialog is dismissed.
-    this.sheetOpen.set(true);
   }
 
   /* ── Send ── */
@@ -376,7 +336,7 @@ export class OrderDock {
         next: (order) => {
           this.submitting.set(false);
           this.confirmOpen.set(false);
-          this.sheetOpen.set(false);
+          this.expanded.set(false);
           this.dock.clearAll();
           // Keep the table selected: the waiter may add another round to the
           // same table, and the requirement is that the table survives the
