@@ -71,7 +71,11 @@ function fullWeek(id: number, name: string, start: string, end: string): Schedul
 describe('WeekGrid', () => {
   let fixture: ComponentFixture<WeekGrid>;
   let component: WeekGrid;
-  let scheduleApi: { getAll: ReturnType<typeof vi.fn> };
+  let scheduleApi: {
+    getAll: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+  };
+  let settingsApi: { getOpeningHours: ReturnType<typeof vi.fn> };
   let assignmentApi: {
     getAssignments: ReturnType<typeof vi.fn>;
     assign: ReturnType<typeof vi.fn>;
@@ -91,7 +95,13 @@ describe('WeekGrid', () => {
   beforeEach(() => {
     TestBed.resetTestingModule();
 
-    scheduleApi = { getAll: vi.fn(() => of([fullWeek(1, 'Mañana', '11:00', '15:00')])) };
+    scheduleApi = {
+      getAll: vi.fn(() => of([fullWeek(1, 'Mañana', '11:00', '15:00')])),
+      update: vi.fn((id: number, data: { name: string; description?: string; shifts: Shift[] }) =>
+        of({ id, name: data.name, description: data.description, shifts: data.shifts }),
+      ),
+    };
+    settingsApi = { getOpeningHours: vi.fn(() => of({ days: [] })) };
     assignmentApi = {
       getAssignments: vi.fn(() => of([1])),
       assign: vi.fn(() =>
@@ -115,7 +125,7 @@ describe('WeekGrid', () => {
         { provide: ScheduleAssignment, useValue: assignmentApi },
         { provide: Worker, useValue: workerApi },
         { provide: Area, useValue: { getAreas: vi.fn(() => of([AREA])) } },
-        { provide: SettingsApi, useValue: { getOpeningHours: vi.fn(() => of({ days: [] })) } },
+        { provide: SettingsApi, useValue: settingsApi },
         { provide: Logging, useValue: { debug: vi.fn(), error: vi.fn() } },
       ],
     });
@@ -207,6 +217,51 @@ describe('WeekGrid', () => {
     expect(component.notice()).toContain('asignado a Ana Pérez');
   });
 
+  it('dismisses the success toast on its own', async () => {
+    await mount();
+    const worker = component.rows()[0].worker;
+    const candidate = fullWeek(2, 'Apoyo', '16:00', '17:00');
+
+    vi.useFakeTimers();
+    try {
+      component.attemptAssign(worker, candidate);
+      expect(component.notice()).toContain('asignado a Ana Pérez');
+
+      vi.advanceTimersByTime(4000);
+
+      expect(component.notice()).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('dismisses the error toast on its own', async () => {
+    const schedules: ScheduleModel[] = [
+      { id: 1, name: 'Mañana', shifts: [shift('MONDAY', '11:00', '15:00', 1)] },
+      { id: 2, name: 'Tarde', shifts: [shift('MONDAY', '14:00', '18:00', 2)] },
+    ];
+    scheduleApi.getAll.mockReturnValue(of(schedules));
+    await mount();
+
+    const worker = component.rows()[0].worker;
+    const tarde = schedules.find((schedule) => schedule.id === 2);
+    if (tarde === undefined) {
+      throw new Error('Missing Tarde template');
+    }
+
+    vi.useFakeTimers();
+    try {
+      component.attemptAssign(worker, tarde);
+      expect(component.actionError()).toContain('se cruza');
+
+      vi.advanceTimersByTime(8000);
+
+      expect(component.actionError()).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('surfaces the server weekly-hours warning without re-deriving the rule', async () => {
     assignmentApi.assign.mockReturnValue(
       of({
@@ -284,5 +339,207 @@ describe('WeekGrid', () => {
 
     expect(component.weekAnchor().getDate()).toBe(28);
     expect(component.weekRangeLabel()).toContain('2026');
+  });
+
+  // ---- Graphical shift editing ------------------------------------------
+
+  const OPEN_WINDOW_MINUTES = 14 * 60; // 08:00 → 22:00
+
+  function openAllWeek(): void {
+    settingsApi.getOpeningHours.mockReturnValue(
+      of({
+        days: DAYS.map((dayOfWeek) => ({
+          dayOfWeek,
+          closed: false,
+          openTime: '08:00',
+          closeTime: '22:00',
+        })),
+      }),
+    );
+  }
+
+  function pxForMinutes(minutes: number): number {
+    return (minutes / OPEN_WINDOW_MINUTES) * 800;
+  }
+
+  function pointerHarness(): { barElement: HTMLElement; startHandle: HTMLElement } {
+    const track = document.createElement('div');
+    track.className = 'week-grid__track';
+    track.getBoundingClientRect = () => ({ width: 800 }) as unknown as DOMRect;
+
+    const barElement = document.createElement('div');
+    const startHandle = document.createElement('span');
+    startHandle.setAttribute('data-shift-handle', 'start');
+    barElement.appendChild(startHandle);
+    track.appendChild(barElement);
+
+    barElement.setPointerCapture = vi.fn();
+    barElement.hasPointerCapture = vi.fn(() => true);
+    barElement.releasePointerCapture = vi.fn();
+    return { barElement, startHandle };
+  }
+
+  function pointerEvent(
+    barElement: HTMLElement,
+    clientX: number,
+    target: EventTarget = barElement,
+  ): PointerEvent {
+    return {
+      button: 0,
+      pointerId: 1,
+      clientX,
+      currentTarget: barElement,
+      target,
+      preventDefault: vi.fn(),
+    } as unknown as PointerEvent;
+  }
+
+  it('opens the template editor when a shift is clicked', async () => {
+    await mount();
+    const bar = component.timelineDays()[0].bars[0];
+
+    component.onBarClick(bar);
+
+    expect(component.editingShift()?.key).toBe(bar.key);
+    expect(component.editingAffectedWorkers()).toBe(1);
+    expect(component.editingStartTime()).toBe('11:00');
+    expect(component.editingEndTime()).toBe('15:00');
+  });
+
+  it('treats a movement below the threshold as a click', async () => {
+    openAllWeek();
+    await mount();
+    const bar = component.timelineDays()[0].bars[0];
+    const { barElement } = pointerHarness();
+
+    component.onBarPointerDown(pointerEvent(barElement, 100), bar);
+    component.onBarPointerMove(pointerEvent(barElement, 103));
+    component.onBarPointerUp(pointerEvent(barElement, 103));
+
+    expect(component.activePreview()).toBeNull();
+    expect(scheduleApi.update).not.toHaveBeenCalled();
+
+    component.onBarClick(bar);
+    expect(component.editingShift()?.key).toBe(bar.key);
+  });
+
+  it('moves a shift on the 15-minute grid and preserves its duration', async () => {
+    openAllWeek();
+    await mount();
+    const bar = component.timelineDays()[0].bars[0];
+    const { barElement } = pointerHarness();
+
+    component.onBarPointerDown(pointerEvent(barElement, 100), bar);
+    component.onBarPointerMove(pointerEvent(barElement, 100 + pxForMinutes(105)));
+
+    expect(component.activePreview()?.label).toBe('12:45–16:45');
+
+    component.onBarPointerUp(pointerEvent(barElement, 100 + pxForMinutes(105)));
+
+    expect(scheduleApi.update).toHaveBeenCalledTimes(1);
+    const updated = component.schedules()[0];
+    const monday = updated.shifts.find((shift) => shift.dayOfWeek === 'MONDAY');
+    const tuesday = updated.shifts.find((shift) => shift.dayOfWeek === 'TUESDAY');
+    expect(monday).toMatchObject({ startTime: '12:45', endTime: '16:45' });
+    expect(tuesday).toMatchObject({ startTime: '11:00', endTime: '15:00' });
+    expect(component.notice()).toContain('actualizado');
+  });
+
+  it('resizes the start edge without moving the end', async () => {
+    openAllWeek();
+    await mount();
+    const bar = component.timelineDays()[0].bars[0];
+    const { barElement, startHandle } = pointerHarness();
+
+    component.onBarPointerDown(pointerEvent(barElement, 300, startHandle), bar);
+    component.onBarPointerMove(pointerEvent(barElement, 300 - pxForMinutes(15)));
+    component.onBarPointerUp(pointerEvent(barElement, 300 - pxForMinutes(15)));
+
+    const monday = component.schedules()[0].shifts.find((shift) => shift.dayOfWeek === 'MONDAY');
+    expect(monday).toMatchObject({ startTime: '10:45', endTime: '15:00' });
+  });
+
+  it('marks an overlapping destination invalid and never persists it', async () => {
+    openAllWeek();
+    const secondWorker: WorkerResponse = {
+      ...WORKER,
+      id: 8,
+      document: '2094',
+      name: 'Luis Gómez',
+    };
+    workerApi.getWorkers.mockReturnValue(of([WORKER, secondWorker]));
+    assignmentApi.getAssignments.mockImplementation((workerId: number) =>
+      of(workerId === 8 ? [1, 2] : [1]),
+    );
+    scheduleApi.getAll.mockReturnValue(
+      of([
+        fullWeek(1, 'Mañana', '11:00', '15:00'),
+        { id: 2, name: 'Tarde', shifts: [shift('MONDAY', '14:00', '18:00', 2)] },
+      ]),
+    );
+    await mount();
+    const bar = component.timelineDays()[0].bars[0];
+    const { barElement } = pointerHarness();
+
+    component.onBarPointerDown(pointerEvent(barElement, 100), bar);
+    component.onBarPointerMove(pointerEvent(barElement, 100 + pxForMinutes(105)));
+
+    expect(component.activePreview()?.valid).toBe(false);
+    expect(component.activePreview()?.reason).toContain('se cruza');
+
+    component.onBarPointerUp(pointerEvent(barElement, 100 + pxForMinutes(105)));
+
+    expect(scheduleApi.update).not.toHaveBeenCalled();
+    expect(component.actionError()).toContain('se cruza');
+  });
+
+  it('cancels an active gesture with Escape and keeps the original times', async () => {
+    openAllWeek();
+    await mount();
+    const bar = component.timelineDays()[0].bars[0];
+    const { barElement } = pointerHarness();
+
+    component.onBarPointerDown(pointerEvent(barElement, 100), bar);
+    component.onBarPointerMove(pointerEvent(barElement, 200));
+    component.cancelInteraction();
+
+    expect(component.interaction()).toBeNull();
+    expect(component.activePreview()).toBeNull();
+    expect(scheduleApi.update).not.toHaveBeenCalled();
+
+    // The release after Escape must not open the editor as a click.
+    component.onBarClick(bar);
+    expect(component.editingShift()).toBeNull();
+  });
+
+  it('restores the previous shift when the update fails', async () => {
+    openAllWeek();
+    scheduleApi.update.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+    await mount();
+    const bar = component.timelineDays()[0].bars[0];
+    const { barElement } = pointerHarness();
+
+    component.onBarPointerDown(pointerEvent(barElement, 100), bar);
+    component.onBarPointerMove(pointerEvent(barElement, 200));
+    component.onBarPointerUp(pointerEvent(barElement, 200));
+
+    const monday = component.schedules()[0].shifts.find((shift) => shift.dayOfWeek === 'MONDAY');
+    expect(monday).toMatchObject({ startTime: '11:00', endTime: '15:00' });
+    expect(component.savingTemplateId()).toBeNull();
+    expect(component.actionError()).toContain('volvió al estado anterior');
+  });
+
+  it('rejects an invalid dialog range without calling the API', async () => {
+    await mount();
+    const bar = component.timelineDays()[0].bars[0];
+    component.openShiftEditor(bar);
+
+    component.editingStartTime.set('16:00');
+    component.editingEndTime.set('15:00');
+    component.saveShiftEditor();
+
+    expect(component.editingError()).toContain('posterior');
+    expect(component.editingShift()).not.toBeNull();
+    expect(scheduleApi.update).not.toHaveBeenCalled();
   });
 });

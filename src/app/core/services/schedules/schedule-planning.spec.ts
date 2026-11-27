@@ -32,6 +32,7 @@ import {
   isHourOpen,
   describeUpcomingShift,
   detectAssignmentConflicts,
+  detectScheduleUpdateConflicts,
   findUpcomingShift,
   findWeekOverlaps,
   formatMinutes,
@@ -437,5 +438,68 @@ describe('opening hours coverage', () => {
     expect(isHourOpen({ closed: false, openHour: 10, closeHour: 13 }, 9)).toBe(false);
     expect(isHourOpen({ closed: false, openHour: 10, closeHour: 13 }, 12)).toBe(true);
     expect(isHourOpen({ closed: true, openHour: 10, closeHour: 13 }, 12)).toBe(false);
+  });
+});
+
+describe('schedule update conflicts', () => {
+  it('reports the affected worker count when the update is valid', () => {
+    const updated = schedule(1, 'Mañana', [shift('MONDAY', '11:00', '15:00')]);
+    const report = detectScheduleUpdateConflicts({
+      updatedSchedule: updated,
+      assignedWorkers: [
+        { workerName: 'Ana', otherSchedules: [] },
+        { workerName: 'Luis', otherSchedules: [] },
+      ],
+    });
+
+    expect(report.blocking).toEqual([]);
+    expect(report.affectedWorkers).toBe(2);
+  });
+
+  it('blocks an update that overlaps another schedule of an assigned worker', () => {
+    const updated = schedule(1, 'Mañana', [shift('MONDAY', '11:00', '15:00')]);
+    const other = schedule(2, 'Tarde', [shift('MONDAY', '14:00', '18:00')]);
+
+    const report = detectScheduleUpdateConflicts({
+      updatedSchedule: updated,
+      assignedWorkers: [{ workerName: 'Ana', otherSchedules: [other] }],
+    });
+
+    expect(report.blocking).toHaveLength(1);
+    expect(report.blocking[0]).toContain('Ana');
+    expect(report.blocking[0]).toContain('se cruza con «Tarde»');
+  });
+
+  it('blocks an update that pushes an assigned worker over the weekly cap', () => {
+    const updated = schedule(1, 'Semana', [
+      shift('MONDAY', '08:00', '16:00'),
+      shift('TUESDAY', '08:00', '16:00'),
+      shift('WEDNESDAY', '08:00', '16:00'),
+      shift('THURSDAY', '08:00', '16:00'),
+      shift('FRIDAY', '08:00', '16:00'),
+    ]);
+    const other = schedule(2, 'Domingo', [shift('SUNDAY', '08:00', '16:00')]);
+
+    const report = detectScheduleUpdateConflicts({
+      updatedSchedule: updated,
+      assignedWorkers: [{ workerName: 'Ana', otherSchedules: [other] }],
+    });
+
+    expect(report.blocking.some((message) => message.includes('48 h'))).toBe(true);
+    expect(report.blocking.some((message) => message.includes('máximo operativo'))).toBe(true);
+  });
+
+  it('blocks overlapping shifts inside the updated template itself', () => {
+    const updated = schedule(1, 'Rota', [
+      shift('MONDAY', '08:00', '14:00'),
+      shift('MONDAY', '13:00', '18:00'),
+    ]);
+
+    const report = detectScheduleUpdateConflicts({
+      updatedSchedule: updated,
+      assignedWorkers: [],
+    });
+
+    expect(report.blocking[0]).toContain('turnos superpuestos');
   });
 });

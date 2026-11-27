@@ -371,6 +371,97 @@ export function detectAssignmentConflicts(
   return { blocking, warnings, weeklyMinutes };
 }
 
+export interface WorkerScheduleContext {
+  readonly workerName: string;
+  /** Schedules assigned to the worker other than the one being updated. */
+  readonly otherSchedules: readonly Schedule[];
+}
+
+export interface ScheduleUpdateConflictInput {
+  readonly updatedSchedule: Schedule;
+  /** Every worker that currently holds the schedule being updated. */
+  readonly assignedWorkers: readonly WorkerScheduleContext[];
+}
+
+export interface ScheduleUpdateConflictReport {
+  readonly blocking: readonly string[];
+  readonly warnings: readonly string[];
+  readonly affectedWorkers: number;
+}
+
+/**
+ * Client-side rules for editing a shift of an existing schedule template.
+ *
+ * Updating a template changes it for every assigned worker, so the same
+ * overlap and weekly-cap rules used when assigning must be checked again
+ * against each of those workers' other schedules. The backend repeats these
+ * checks before persisting; this copy exists to reject a gesture instantly.
+ */
+export function detectScheduleUpdateConflicts(
+  input: ScheduleUpdateConflictInput,
+): ScheduleUpdateConflictReport {
+  const blocking = new Set<string>();
+  const warnings = new Set<string>();
+  const updated = input.updatedSchedule;
+
+  for (let left = 0; left < updated.shifts.length; left += 1) {
+    for (let right = left + 1; right < updated.shifts.length; right += 1) {
+      const first = updated.shifts[left];
+      const second = updated.shifts[right];
+      if (first.dayOfWeek !== second.dayOfWeek || !overlaps(first, second)) {
+        continue;
+      }
+      blocking.add(
+        `La plantilla «${updated.name}» dejaría turnos superpuestos el ${DAY_LABELS[first.dayOfWeek].toLowerCase()} (${first.startTime}–${first.endTime} y ${second.startTime}–${second.endTime}).`,
+      );
+    }
+  }
+
+  for (const worker of input.assignedWorkers) {
+    for (const candidate of scheduleShifts(updated)) {
+      for (const other of worker.otherSchedules) {
+        for (const existing of scheduleShifts(other)) {
+          if (candidate.dayOfWeek !== existing.dayOfWeek || !overlaps(candidate, existing)) {
+            continue;
+          }
+          blocking.add(
+            `${worker.workerName}: «${updated.name}» ${candidate.startTime}–${candidate.endTime} se cruza con «${other.name}» ${existing.startTime}–${existing.endTime} el ${DAY_LABELS[candidate.dayOfWeek].toLowerCase()}.`,
+          );
+        }
+      }
+    }
+
+    const totalMinutes =
+      scheduleMinutes(updated) +
+      worker.otherSchedules.reduce((total, other) => total + scheduleMinutes(other), 0);
+    const weeklyHours = minutesToHours(totalMinutes);
+    if (totalMinutes > MAX_WEEKLY_HOURS * 60) {
+      blocking.add(
+        `${worker.workerName} quedaría con ${String(weeklyHours)} h semanales; el máximo operativo es ${String(MAX_WEEKLY_HOURS)} h.`,
+      );
+    } else if (totalMinutes > LEGAL_WEEKLY_HOURS * 60) {
+      warnings.add(
+        `${worker.workerName} quedaría con ${String(weeklyHours)} h semanales, por encima de las ${String(LEGAL_WEEKLY_HOURS)} h legales de referencia.`,
+      );
+    }
+
+    const week = buildWorkerWeek([updated, ...worker.otherSchedules]);
+    for (const day of week.days) {
+      if (day.minutes > MAX_DAILY_HOURS * 60) {
+        warnings.add(
+          `${worker.workerName} tendría ${formatMinutes(day.minutes)} el ${DAY_LABELS[day.dayOfWeek].toLowerCase()} (más de ${String(MAX_DAILY_HOURS)} h).`,
+        );
+      }
+    }
+  }
+
+  return {
+    blocking: Array.from(blocking),
+    warnings: Array.from(warnings),
+    affectedWorkers: input.assignedWorkers.length,
+  };
+}
+
 /** First day of the week (Monday) at local midnight. */
 export function startOfWeek(anchor: Date): Date {
   const date = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate());

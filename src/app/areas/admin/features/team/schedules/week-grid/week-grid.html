@@ -1,4 +1,9 @@
-<section class="week-grid" aria-labelledby="week-grid-heading">
+<section
+  class="week-grid"
+  aria-labelledby="week-grid-heading"
+  tabindex="-1"
+  (document:keydown.escape)="cancelInteraction()"
+>
   <header class="week-grid__header">
     <div class="week-grid__weeknav">
       <app-rms-icon-button
@@ -73,23 +78,24 @@
     </div>
   }
 
-  @if (notice(); as message) {
-    <div class="week-grid__feedback" role="status">
-      <i class="pi pi-check-circle" aria-hidden="true"></i>
-      <span>{{ message }}</span>
-      <app-rms-icon-button
-        icon="pi pi-times"
-        ariaLabel="Cerrar confirmación"
-        (click)="dismissNotice()"
-      />
-    </div>
-  }
+  @if (notice() !== null || actionError() !== null) {
+    <div class="week-grid__toasts">
+      @if (actionError(); as message) {
+        <div
+          class="week-grid__feedback week-grid__feedback--error week-grid__feedback--toast"
+          role="alert"
+        >
+          <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+          <span>{{ message }}</span>
+        </div>
+      }
 
-  @if (actionError(); as message) {
-    <div class="week-grid__feedback week-grid__feedback--error" role="alert">
-      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
-      <span>{{ message }}</span>
-      <app-rms-icon-button icon="pi pi-times" ariaLabel="Cerrar error" (click)="dismissError()" />
+      @if (notice(); as message) {
+        <div class="week-grid__feedback week-grid__feedback--toast" role="status">
+          <i class="pi pi-check-circle" aria-hidden="true"></i>
+          <span>{{ message }}</span>
+        </div>
+      }
     </div>
   }
 
@@ -164,6 +170,13 @@
       (action)="clearFilters()"
     />
   } @else {
+    @if (activePreview()?.reason; as reason) {
+      <div class="week-grid__feedback week-grid__feedback--error" role="alert">
+        <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+        <span>{{ reason }}</span>
+      </div>
+    }
+
     <div class="week-grid__calendar" role="region" aria-label="Calendario semanal de turnos">
       <div class="week-grid__calendar-scroll">
         <!-- Cell geometry (grid width, track height, bar offsets) is computed
@@ -206,7 +219,7 @@
               <div
                 class="week-grid__track"
                 [style.height.px]="day.trackHeight"
-                [attr.role]="day.bars.length > 0 ? 'list' : null"
+                [attr.role]="day.bars.length > 0 ? 'group' : null"
                 [attr.aria-label]="day.label + ' ' + dayNumber(day.date)"
               >
                 <div class="week-grid__cells" aria-hidden="true">
@@ -224,23 +237,56 @@
                     <!-- eslint-disable-next-line @angular-eslint/template/no-inline-styles -->
                     <div
                       class="week-grid__bar"
-                      role="listitem"
-                      [style.left.%]="bar.left"
-                      [style.width.%]="bar.width"
+                      [class.week-grid__bar--active]="isActiveBar(bar)"
+                      [class.week-grid__bar--invalid]="isActiveBar(bar) && activeBarInvalid()"
+                      role="button"
+                      tabindex="0"
+                      [style.left.%]="barLeft(bar)"
+                      [style.width.%]="barWidth(bar)"
                       [style.top.px]="bar.top"
                       [attr.title]="
-                        bar.workerName + ' · ' + bar.role + ' · ' + bar.startTime + '–' + bar.endTime
+                        bar.workerName +
+                        ' · ' +
+                        bar.role +
+                        ' · ' +
+                        bar.startTime +
+                        '–' +
+                        bar.endTime
                       "
                       [attr.aria-label]="
-                        bar.workerName + ', ' + bar.role + ', ' + bar.startTime + ' a ' + bar.endTime
+                        bar.workerName +
+                        ', ' +
+                        bar.role +
+                        ', ' +
+                        bar.startTime +
+                        ' a ' +
+                        bar.endTime +
+                        '. Arrastra para mover, usa los bordes para ajustar o pulsa Enter para editar.'
                       "
+                      (pointerdown)="onBarPointerDown($event, bar)"
+                      (pointermove)="onBarPointerMove($event)"
+                      (pointerup)="onBarPointerUp($event)"
+                      (pointercancel)="onBarPointerCancel($event)"
+                      (click)="onBarClick(bar)"
+                      (keydown.enter)="onBarKeydown($event, bar)"
+                      (keydown.space)="onBarKeydown($event, bar)"
                     >
+                      <span
+                        class="week-grid__bar-handle week-grid__bar-handle--start"
+                        data-shift-handle="start"
+                        aria-hidden="true"
+                      ></span>
                       @if (bar.imageUrl) {
                         <img class="week-grid__bar-avatar" [src]="bar.imageUrl" alt="" />
                       }
                       <span class="week-grid__bar-name">{{ bar.workerName }}</span>
                       <span class="week-grid__bar-area">{{ bar.role }}</span>
-                      <span class="week-grid__bar-time">{{ bar.startTime }}–{{ bar.endTime }}</span>
+                      <span class="week-grid__bar-time">{{ barTimeLabel(bar) }}</span>
+                      <span
+                        class="week-grid__bar-handle week-grid__bar-handle--end"
+                        data-shift-handle="end"
+                        aria-hidden="true"
+                      ></span>
                     </div>
                   }
                 }
@@ -256,7 +302,10 @@
         {{ filteredRows().length }} trabajadores · {{ formatMinutes(totalWeeklyMinutes()) }} asignadas
         en la vista.
       </span>
-
+      <span class="rms-caption week-grid__footer-hint">
+        Arrastra un turno para moverlo, usa sus bordes para ajustar el inicio o el fin, y pulsa
+        Enter para editarlo con precisión.
+      </span>
     </footer>
   }
 </section>
@@ -284,4 +333,82 @@
       Quitar turno
     </app-rms-button>
   </div>
+</app-rms-dialog>
+
+<!-- Calendar shift editor: edits the shared template, not one assignment. -->
+<app-rms-dialog
+  header="Editar turno"
+  width="520px"
+  [visible]="editingShift() !== null"
+  [closeOnEscape]="savingTemplateId() === null"
+  (visibleChange)="onEditorVisibleChange($event)"
+>
+  @if (editingShift(); as bar) {
+    <div class="week-grid__shift-form">
+      <p class="week-grid__shift-context">
+        <strong>{{ bar.scheduleName }}</strong>
+        <span class="rms-caption">{{ dayLabel(bar.dayOfWeek) }}</span>
+      </p>
+
+      @if (editingAffectedWorkers() > 1) {
+        <p class="week-grid__shift-shared" role="note">
+          <i class="pi pi-users" aria-hidden="true"></i>
+          <span>
+            Esta plantilla está asignada a {{ editingAffectedWorkers() }} trabajadores. El cambio se
+            aplica a todos; los demás días de la plantilla se mantienen.
+          </span>
+        </p>
+      }
+
+      <div class="week-grid__shift-times">
+        <app-rms-field label="Hora de inicio" controlId="week-shift-start" [required]="true">
+          <input
+            id="week-shift-start"
+            class="week-grid__time-input"
+            type="time"
+            step="900"
+            [ngModel]="editingStartTime()"
+            (ngModelChange)="editingStartTime.set($event)"
+            name="week-shift-start"
+          />
+        </app-rms-field>
+
+        <app-rms-field label="Hora de fin" controlId="week-shift-end" [required]="true">
+          <input
+            id="week-shift-end"
+            class="week-grid__time-input"
+            type="time"
+            step="900"
+            [ngModel]="editingEndTime()"
+            (ngModelChange)="editingEndTime.set($event)"
+            name="week-shift-end"
+          />
+        </app-rms-field>
+      </div>
+
+      <p class="rms-caption">
+        Arrastrar y redimensionar ajustan en intervalos de 15 minutos; aquí puedes escribir la hora
+        exacta. Siempre se respetan los turnos del resto del equipo.
+      </p>
+
+      @if (editingError(); as message) {
+        <p class="week-grid__shift-error" role="alert">{{ message }}</p>
+      }
+    </div>
+  }
+
+  @if (editingShift() !== null) {
+    <div rmsDialogFooter class="week-grid__dialog-footer">
+      <app-rms-button
+        variant="secondary"
+        [disabled]="savingTemplateId() !== null"
+        (click)="closeShiftEditor()"
+      >
+        Cancelar
+      </app-rms-button>
+      <app-rms-button [loading]="savingTemplateId() !== null" (click)="saveShiftEditor()">
+        Guardar turno
+      </app-rms-button>
+    </div>
+  }
 </app-rms-dialog>

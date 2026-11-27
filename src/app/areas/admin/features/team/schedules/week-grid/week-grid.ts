@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   EventEmitter,
   Input,
   OnChanges,
@@ -22,6 +23,7 @@ import { Schedule } from '@app/core/services/schedules/schedule';
 import { SettingsApi } from '@app/core/services/settings/settings-api';
 import { Worker } from '@app/core/services/workers/worker';
 import type { AreaResponse } from '@app/shared/models/dto/areas/area';
+import type { CreateScheduleRequest } from '@app/shared/models/dto/schedules/create-schedule-request';
 import type { Schedule as ScheduleModel } from '@app/shared/models/dto/schedules/schedule';
 import type { WorkerResponse } from '@app/shared/models/dto/workers/worker-response';
 import type { OpeningHoursDay } from '@app/shared/models/dto/settings/settings';
@@ -34,6 +36,7 @@ import {
   buildCoverage,
   buildWorkerWeek,
   detectAssignmentConflicts,
+  detectScheduleUpdateConflicts,
   findCoverageGaps,
   findWeekOverlaps,
   isHourOpen,
@@ -46,13 +49,29 @@ import {
   type AssignmentConflictReport,
   type OpeningDay,
   type PlannedShift,
+  type ScheduleUpdateConflictReport,
+  type WorkerScheduleContext,
   type WorkerWeek,
 } from '@app/core/services/schedules/schedule-planning';
+import {
+  LATEST_SHIFT_MINUTE,
+  MIN_SHIFT_MINUTES,
+  deltaPxToMinutes,
+  isRangeWithin,
+  minutesToTime,
+  moveShift,
+  rangeToPercent,
+  resizeEnd,
+  resizeStart,
+  type MinuteRange,
+  type MinutesBounds,
+} from '@app/core/services/schedules/shift-interaction';
 import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
 
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsDialog } from '@app/shared/ui/dialog/dialog';
 import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
+import { RmsField } from '@app/shared/ui/field/field';
 import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
 import { RmsInput } from '@app/shared/ui/input/input';
 import { RmsSelect } from '@app/shared/ui/select/select';
@@ -78,11 +97,19 @@ interface PendingRemoval {
 
 interface TimelineBar {
   readonly key: string;
+  readonly scheduleId: number;
+  readonly scheduleName: string;
+  readonly shiftId?: number;
+  readonly dayOfWeek: DayOfWeek;
+  readonly workerId: number;
   readonly workerName: string;
   readonly imageUrl?: string | null;
   readonly role: string;
   readonly startTime: string;
   readonly endTime: string;
+  readonly startMinutes: number;
+  readonly endMinutes: number;
+  readonly affectedWorkers: number;
   readonly left: number;
   readonly width: number;
   readonly top: number;
@@ -103,6 +130,59 @@ interface RemovalDrag {
   readonly worker: WorkerResponse;
   readonly schedule: ScheduleModel;
 }
+
+type ShiftInteractionMode = 'move' | 'resize-start' | 'resize-end';
+
+interface ShiftInteraction {
+  readonly mode: ShiftInteractionMode;
+  readonly bar: TimelineBar;
+  readonly pointerId: number;
+  readonly originClientX: number;
+  readonly trackWidth: number;
+  readonly windowStart: number;
+  readonly windowMinutes: number;
+  readonly bounds: MinutesBounds;
+  readonly original: MinuteRange;
+  readonly active: boolean;
+  readonly preview: MinuteRange | null;
+  readonly valid: boolean;
+  readonly reason: string | null;
+}
+
+interface ShiftPreview {
+  readonly key: string;
+  readonly left: number;
+  readonly width: number;
+  readonly label: string;
+  readonly valid: boolean;
+  readonly reason: string | null;
+}
+
+/** Pointer movement before a press becomes a drag instead of a click. */
+const DRAG_THRESHOLD_PX = 5;
+
+/** How long a success toast stays visible. */
+const NOTICE_TIMEOUT_MS = 4000;
+
+/** Errors need a little longer, but still disappear on their own. */
+const ERROR_TIMEOUT_MS = 8000;
+
+const SHIFT_UPDATE_ERRORS: readonly (readonly [string, string])[] = [
+  ['startTime debe ser anterior a endTime', 'La hora de fin debe ser posterior a la de inicio.'],
+  [
+    'Shift overlap detected',
+    'El turno se solapa con otro horario asignado a un trabajador de esta plantilla.',
+  ],
+  [
+    'los turnos no deben superponerse',
+    'La plantilla dejaría dos turnos superpuestos. Ajusta la hora de inicio o de fin.',
+  ],
+  [
+    'por encima del tope',
+    'El cambio supera el máximo de 42 h semanales de algún trabajador asignado.',
+  ],
+  ['superpone con el turno existente', 'El turno se solapa con otro horario del mismo trabajador.'],
+];
 
 const WEEKDAY_FORMATTER = new Intl.DateTimeFormat('es-CO', { weekday: 'short' });
 const DAY_NUMBER_FORMATTER = new Intl.DateTimeFormat('es-CO', { day: 'numeric' });
@@ -156,6 +236,7 @@ function deriveRole(areaLabels: readonly string[]): string {
     RmsButton,
     RmsDialog,
     RmsEmptyState,
+    RmsField,
     RmsIconButton,
     RmsInput,
     RmsSelect,
@@ -172,6 +253,17 @@ export class WeekGrid implements OnInit, OnChanges {
   private settingsApi = inject(SettingsApi);
   private areaService = inject(Area);
   private logger = inject(Logging);
+  private destroyRef = inject(DestroyRef);
+
+  private noticeTimer: ReturnType<typeof setTimeout> | null = null;
+  private errorTimer: ReturnType<typeof setTimeout> | null = null;
+
+  constructor() {
+    this.destroyRef.onDestroy(() => {
+      this.clearNoticeTimer();
+      this.clearErrorTimer();
+    });
+  }
 
   /** Bumped by the parent after a template is created or deleted. */
   @Input() refreshToken = 0;
@@ -205,12 +297,34 @@ export class WeekGrid implements OnInit, OnChanges {
   readonly savingWorkerId = signal<number | null>(null);
   readonly savingScheduleId = signal<number | null>(null);
 
+  /** Active drag/resize gesture. Null means no gesture is in progress. */
+  readonly interaction = signal<ShiftInteraction | null>(null);
+  /** Template being edited in the click dialog. */
+  readonly editingShift = signal<TimelineBar | null>(null);
+  readonly editingStartTime = signal('08:00');
+  readonly editingEndTime = signal('16:00');
+  readonly editingError = signal<string | null>(null);
+  readonly savingTemplateId = signal<number | null>(null);
+
+  private suppressClickKey: string | null = null;
+
   readonly legalWeeklyHours = LEGAL_WEEKLY_HOURS;
   readonly maxWeeklyHours = MAX_WEEKLY_HOURS;
   readonly formatMinutes = formatMinutes;
 
   readonly weekStart = computed(() => startOfWeek(this.weekAnchor()));
   readonly dates = computed(() => weekDates(this.weekAnchor()));
+
+  /** Workers assigned to each template, shown when a shared shift is edited. */
+  readonly affectedWorkersBySchedule = computed<ReadonlyMap<number, number>>(() => {
+    const counts = new Map<number, number>();
+    for (const ids of this.assignments().values()) {
+      for (const id of new Set(ids)) {
+        counts.set(id, (counts.get(id) ?? 0) + 1);
+      }
+    }
+    return counts;
+  });
 
   /** Hour window of the calendar: the weekly opening hours, or the shifts as fallback. */
   readonly timelineRange = computed(() => {
@@ -285,11 +399,19 @@ export class WeekGrid implements OnInit, OnChanges {
 
         bars.push({
           key: `${String(row.workerId)}-${shift.key}`,
+          scheduleId: shift.scheduleId,
+          scheduleName: shift.scheduleName,
+          ...(shift.shiftId !== undefined ? { shiftId: shift.shiftId } : {}),
+          dayOfWeek: shift.dayOfWeek,
+          workerId: row.workerId,
           workerName: row.worker.name,
           imageUrl: row.worker.imageUrl,
           role,
           startTime: shift.startTime,
           endTime: shift.endTime,
+          startMinutes: from,
+          endMinutes: to,
+          affectedWorkers: this.affectedWorkersBySchedule().get(shift.scheduleId) ?? 1,
           left: ((visibleFrom - windowStart) / windowMinutes) * 100,
           width: ((visibleTo - visibleFrom) / windowMinutes) * 100,
           top: lane * 36 + 6,
@@ -308,6 +430,29 @@ export class WeekGrid implements OnInit, OnChanges {
         minutes,
       };
     });
+  });
+
+  /** Preview geometry of the shift under the pointer, or null. */
+  readonly activePreview = computed<ShiftPreview | null>(() => {
+    const interaction = this.interaction();
+    if (interaction === null || !interaction.active || interaction.preview === null) {
+      return null;
+    }
+    const range = interaction.preview;
+    const geometry = rangeToPercent(range, interaction.windowStart, interaction.windowMinutes);
+    return {
+      key: interaction.bar.key,
+      left: geometry.left,
+      width: geometry.width,
+      label: `${minutesToTime(range.start)}–${minutesToTime(range.end)}`,
+      valid: interaction.valid,
+      reason: interaction.reason,
+    };
+  });
+
+  readonly editingAffectedWorkers = computed(() => {
+    const bar = this.editingShift();
+    return bar === null ? 0 : (this.affectedWorkersBySchedule().get(bar.scheduleId) ?? 1);
   });
 
   readonly isCurrentWeek = computed(() =>
@@ -559,6 +704,397 @@ export class WeekGrid implements OnInit, OnChanges {
     this.search.set('');
   }
 
+  // ---- Graphical shift editing --------------------------------------------
+
+  /** Left percentage of a bar, using the live preview while it is dragged. */
+  barLeft(bar: TimelineBar): number {
+    const preview = this.activePreview();
+    return preview !== null && preview.key === bar.key ? preview.left : bar.left;
+  }
+
+  /** Width percentage of a bar, using the live preview while it is dragged. */
+  barWidth(bar: TimelineBar): number {
+    const preview = this.activePreview();
+    return preview !== null && preview.key === bar.key ? preview.width : bar.width;
+  }
+
+  isActiveBar(bar: TimelineBar): boolean {
+    return this.activePreview()?.key === bar.key;
+  }
+
+  /** Live times while the bar is being dragged, otherwise the saved range. */
+  barTimeLabel(bar: TimelineBar): string {
+    const preview = this.activePreview();
+    return preview !== null && preview.key === bar.key
+      ? preview.label
+      : `${bar.startTime}–${bar.endTime}`;
+  }
+
+  activeBarInvalid(): boolean {
+    return this.activePreview()?.valid === false;
+  }
+
+  onBarPointerDown(event: PointerEvent, bar: TimelineBar): void {
+    if (event.button !== 0 || this.interaction() !== null || this.savingTemplateId() !== null) {
+      return;
+    }
+    const barElement = event.currentTarget;
+    if (!(barElement instanceof HTMLElement)) {
+      return;
+    }
+    const track = barElement.closest('.week-grid__track');
+    if (!(track instanceof HTMLElement)) {
+      return;
+    }
+    const trackWidth = track.getBoundingClientRect().width;
+    if (trackWidth <= 0) {
+      return;
+    }
+
+    const handle =
+      event.target instanceof Element
+        ? event.target.closest('[data-shift-handle]')
+        : null;
+    const handleKind = handle?.getAttribute('data-shift-handle');
+    const mode: ShiftInteractionMode =
+      handleKind === 'start' ? 'resize-start' : handleKind === 'end' ? 'resize-end' : 'move';
+
+    const timeline = this.timelineRange();
+    const windowStart = timeline.start * 60;
+    const windowMinutes = Math.max(1, (timeline.end - timeline.start) * 60);
+    const bounds: MinutesBounds = {
+      min: windowStart,
+      max: Math.min(windowStart + windowMinutes, LATEST_SHIFT_MINUTE),
+    };
+
+    event.preventDefault();
+    barElement.setPointerCapture(event.pointerId);
+    this.suppressClickKey = null;
+    this.actionError.set(null);
+    this.interaction.set({
+      mode,
+      bar,
+      pointerId: event.pointerId,
+      originClientX: event.clientX,
+      trackWidth,
+      windowStart,
+      windowMinutes,
+      bounds,
+      original: { start: bar.startMinutes, end: bar.endMinutes },
+      active: false,
+      preview: null,
+      valid: true,
+      reason: null,
+    });
+  }
+
+  onBarPointerMove(event: PointerEvent): void {
+    const interaction = this.interaction();
+    if (interaction === null || interaction.pointerId !== event.pointerId) {
+      return;
+    }
+    const deltaPx = event.clientX - interaction.originClientX;
+    if (!interaction.active && Math.abs(deltaPx) < DRAG_THRESHOLD_PX) {
+      return;
+    }
+
+    event.preventDefault();
+    const deltaMinutes = deltaPxToMinutes(
+      deltaPx,
+      interaction.trackWidth,
+      interaction.windowMinutes,
+    );
+    const preview = this.proposedRange(interaction, deltaMinutes);
+
+    if (preview === null) {
+      this.interaction.set({
+        ...interaction,
+        active: true,
+        preview: null,
+        valid: false,
+        reason: 'El turno no cabe dentro del horario visible.',
+      });
+      return;
+    }
+
+    const reason = this.proposalError(interaction.bar, preview);
+    this.interaction.set({
+      ...interaction,
+      active: true,
+      preview,
+      valid: reason === null,
+      reason,
+    });
+  }
+
+  onBarPointerUp(event: PointerEvent): void {
+    const interaction = this.interaction();
+    if (interaction === null || interaction.pointerId !== event.pointerId) {
+      return;
+    }
+    this.releaseCapture(event.currentTarget, event.pointerId);
+
+    if (!interaction.active) {
+      this.interaction.set(null);
+      return;
+    }
+
+    // A completed gesture must not also open the edit dialog.
+    this.suppressClickKey = interaction.bar.key;
+
+    if (interaction.valid && interaction.preview !== null) {
+      this.commitRange(interaction.bar, interaction.preview);
+    } else {
+      this.interaction.set(null);
+      this.showError(interaction.reason ?? 'No se pudo mover el turno.');
+    }
+  }
+
+  onBarPointerCancel(event: PointerEvent): void {
+    const interaction = this.interaction();
+    if (interaction === null || interaction.pointerId !== event.pointerId) {
+      return;
+    }
+    this.releaseCapture(event.currentTarget, event.pointerId);
+    this.interaction.set(null);
+  }
+
+  /** Escape during a gesture restores the original times without feedback noise. */
+  cancelInteraction(): void {
+    const interaction = this.interaction();
+    if (interaction === null) {
+      return;
+    }
+    if (interaction.active) {
+      // The pointer release after Escape must not be read as a click.
+      this.suppressClickKey = interaction.bar.key;
+    }
+    this.interaction.set(null);
+  }
+
+  onBarClick(bar: TimelineBar): void {
+    if (this.suppressClickKey === bar.key) {
+      this.suppressClickKey = null;
+      return;
+    }
+    this.openShiftEditor(bar);
+  }
+
+  onBarKeydown(event: Event, bar: TimelineBar): void {
+    event.preventDefault();
+    this.openShiftEditor(bar);
+  }
+
+  openShiftEditor(bar: TimelineBar): void {
+    const schedule = this.schedules().find((candidate) => candidate.id === bar.scheduleId);
+    if (schedule === undefined || this.savingTemplateId() !== null) {
+      return;
+    }
+    this.editingShift.set(bar);
+    this.editingStartTime.set(bar.startTime.slice(0, 5));
+    this.editingEndTime.set(bar.endTime.slice(0, 5));
+    this.editingError.set(null);
+    this.actionError.set(null);
+  }
+
+  closeShiftEditor(): void {
+    if (this.savingTemplateId() !== null) {
+      return;
+    }
+    this.editingShift.set(null);
+    this.editingError.set(null);
+  }
+
+  onEditorVisibleChange(visible: boolean): void {
+    if (!visible) {
+      this.closeShiftEditor();
+    }
+  }
+
+  saveShiftEditor(): void {
+    const bar = this.editingShift();
+    if (bar === null || this.savingTemplateId() !== null) {
+      return;
+    }
+    const start = timeToMinutes(this.editingStartTime());
+    const end = timeToMinutes(this.editingEndTime());
+    if (start === null || end === null) {
+      this.editingError.set('Indica una hora de inicio y de fin válidas.');
+      return;
+    }
+    const range: MinuteRange = { start, end };
+    const reason = this.proposalError(bar, range);
+    if (reason !== null) {
+      this.editingError.set(reason);
+      return;
+    }
+    this.editingError.set(null);
+    this.commitRange(bar, range, () => {
+      this.editingShift.set(null);
+    });
+  }
+
+  private proposedRange(interaction: ShiftInteraction, deltaMinutes: number): MinuteRange | null {
+    if (interaction.mode === 'resize-start') {
+      return resizeStart(interaction.original, deltaMinutes, interaction.bounds, MIN_SHIFT_MINUTES);
+    }
+    if (interaction.mode === 'resize-end') {
+      return resizeEnd(interaction.original, deltaMinutes, interaction.bounds, MIN_SHIFT_MINUTES);
+    }
+    return moveShift(interaction.original, deltaMinutes, interaction.bounds);
+  }
+
+  private proposalError(bar: TimelineBar, range: MinuteRange): string | null {
+    const bounds = this.shiftBounds();
+    if (range.end <= range.start) {
+      return 'La hora de fin debe ser posterior a la de inicio.';
+    }
+    if (!isRangeWithin(range, bounds, MIN_SHIFT_MINUTES)) {
+      return `El turno debe durar al menos ${String(MIN_SHIFT_MINUTES)} min y quedar dentro del horario visible.`;
+    }
+
+    const schedule = this.schedules().find((candidate) => candidate.id === bar.scheduleId);
+    if (schedule === undefined) {
+      return 'El turno ya no está disponible.';
+    }
+
+    const report: ScheduleUpdateConflictReport = detectScheduleUpdateConflicts({
+      updatedSchedule: this.templateWithRange(schedule, bar, range),
+      assignedWorkers: this.assignedWorkerContexts(schedule.id),
+    });
+    return report.blocking[0] ?? null;
+  }
+
+  private shiftBounds(): MinutesBounds {
+    const timeline = this.timelineRange();
+    const min = timeline.start * 60;
+    return { min, max: Math.min(timeline.end * 60, LATEST_SHIFT_MINUTE) };
+  }
+
+  private assignedWorkerContexts(scheduleId: number): readonly WorkerScheduleContext[] {
+    const workersById = new Map(this.workers().map((worker) => [worker.id, worker]));
+    const schedulesById = new Map(this.schedules().map((schedule) => [schedule.id, schedule]));
+    const contexts: WorkerScheduleContext[] = [];
+
+    for (const [workerId, scheduleIds] of this.assignments()) {
+      if (!scheduleIds.includes(scheduleId)) {
+        continue;
+      }
+      const otherSchedules = scheduleIds.flatMap((id) => {
+        if (id === scheduleId) {
+          return [];
+        }
+        const schedule = schedulesById.get(id);
+        return schedule === undefined ? [] : [schedule];
+      });
+      contexts.push({
+        workerName: workersById.get(workerId)?.name ?? `Trabajador ${String(workerId)}`,
+        otherSchedules,
+      });
+    }
+    return contexts;
+  }
+
+  private templateWithRange(
+    schedule: ScheduleModel,
+    bar: TimelineBar,
+    range: MinuteRange,
+  ): ScheduleModel {
+    return {
+      ...schedule,
+      shifts: schedule.shifts.map((shift) =>
+        this.matchesBarShift(shift, bar)
+          ? {
+              ...shift,
+              startTime: minutesToTime(range.start),
+              endTime: minutesToTime(range.end),
+            }
+          : shift,
+      ),
+    };
+  }
+
+  private matchesBarShift(shift: ScheduleModel['shifts'][number], bar: TimelineBar): boolean {
+    if (bar.shiftId !== undefined) {
+      return shift.id === bar.shiftId;
+    }
+    return (
+      shift.dayOfWeek === bar.dayOfWeek &&
+      shift.startTime === bar.startTime &&
+      shift.endTime === bar.endTime
+    );
+  }
+
+  /**
+   * Applies the change optimistically, sends the complete template through the
+   * existing PUT, then replaces it with the server copy. Any failure restores
+   * the exact previous list, so no half-edited week survives an error.
+   */
+  private commitRange(bar: TimelineBar, range: MinuteRange, onSuccess?: () => void): void {
+    const schedule = this.schedules().find((candidate) => candidate.id === bar.scheduleId);
+    if (schedule === undefined) {
+      return;
+    }
+    const previous = this.schedules();
+    const optimistic = this.templateWithRange(schedule, bar, range);
+    const payload: CreateScheduleRequest = {
+      name: optimistic.name,
+      description: optimistic.description,
+      shifts: optimistic.shifts.map((shift) => ({
+        dayOfWeek: shift.dayOfWeek,
+        startTime: shift.startTime,
+        endTime: shift.endTime,
+      })),
+    };
+    const affectedWorkers = this.affectedWorkersBySchedule().get(schedule.id) ?? 1;
+
+    this.interaction.set(null);
+    this.schedules.set(
+      previous.map((candidate) => (candidate.id === schedule.id ? optimistic : candidate)),
+    );
+    this.savingTemplateId.set(schedule.id);
+    this.actionError.set(null);
+
+    this.scheduleService.update(schedule.id, payload).subscribe({
+      next: (updated) => {
+        this.schedules.set(
+          this.schedules().map((candidate) =>
+            candidate.id === updated.id ? updated : candidate,
+          ),
+        );
+        this.savingTemplateId.set(null);
+        const shared =
+          affectedWorkers > 1 ? ` Se aplicó a ${String(affectedWorkers)} trabajadores.` : '';
+        this.showNotice(`Horario «${updated.name}» actualizado.${shared}`);
+        onSuccess?.();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.schedules.set(previous);
+        this.savingTemplateId.set(null);
+        const message = this.translateError(
+          err,
+          `No se pudo actualizar «${schedule.name}». La semana volvió al estado anterior.`,
+        );
+        this.showError(message);
+        if (this.editingShift() !== null) {
+          this.editingError.set(message);
+        }
+      },
+    });
+  }
+
+  private releaseCapture(target: EventTarget | null, pointerId: number): void {
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
+    const guard = target as unknown as {
+      hasPointerCapture?: (id: number) => boolean;
+    };
+    if (guard.hasPointerCapture?.call(target, pointerId)) {
+      target.releasePointerCapture(pointerId);
+    }
+  }
+
   // ---- Assignment --------------------------------------------------------
 
   assignedSchedules(worker: WorkerResponse): readonly ScheduleModel[] {
@@ -637,17 +1173,17 @@ export class WeekGrid implements OnInit, OnChanges {
       return false;
     }
     if (this.savingWorkerId() !== null) {
-      this.actionError.set('Espera a que termine la operación anterior.');
+      this.showError('Espera a que termine la operación anterior.');
       return false;
     }
     const report = this.conflictFor(worker, schedule);
     if (report.blocking.length > 0) {
       this.notice.set(null);
-      this.actionError.set(report.blocking.join(' '));
+      this.showError(report.blocking.join(' '));
       return false;
     }
     if (this.isAssigned(worker, schedule)) {
-      this.notice.set(`«${schedule.name}» ya está asignado a ${worker.name}.`);
+      this.showNotice(`«${schedule.name}» ya está asignado a ${worker.name}.`);
       return false;
     }
 
@@ -669,7 +1205,7 @@ export class WeekGrid implements OnInit, OnChanges {
         );
         const warning = [serverWarning, ...localWarnings].filter(Boolean).join(' ');
         const suffix = warning.length > 0 ? ` ${warning}` : '';
-        this.notice.set(`«${schedule.name}» asignado a ${worker.name}.${suffix}`);
+        this.showNotice(`«${schedule.name}» asignado a ${worker.name}.${suffix}`);
       },
       error: (err: HttpErrorResponse) => {
         this.savingWorkerId.set(null);
@@ -679,7 +1215,7 @@ export class WeekGrid implements OnInit, OnChanges {
           workerId,
           current.filter((id) => id !== schedule.id),
         );
-        this.actionError.set(
+        this.showError(
           this.translateError(
             err,
             `No se pudo asignar «${schedule.name}» a ${worker.name}. La semana volvió al estado anterior.`,
@@ -736,7 +1272,7 @@ export class WeekGrid implements OnInit, OnChanges {
       next: () => {
         this.savingWorkerId.set(null);
         this.savingScheduleId.set(null);
-        this.notice.set(`«${pending.schedule.name}» quitado de ${pending.worker.name}.`);
+        this.showNotice(`«${pending.schedule.name}» quitado de ${pending.worker.name}.`);
       },
       error: (err: HttpErrorResponse) => {
         this.savingWorkerId.set(null);
@@ -745,7 +1281,7 @@ export class WeekGrid implements OnInit, OnChanges {
         if (!current.includes(pending.schedule.id)) {
           this.setWorkerAssignments(workerId, [...current, pending.schedule.id]);
         }
-        this.actionError.set(
+        this.showError(
           this.translateError(
             err,
             `No se pudo quitar «${pending.schedule.name}». La semana volvió al estado anterior.`,
@@ -763,12 +1299,36 @@ export class WeekGrid implements OnInit, OnChanges {
     return schedule === null || schedule === undefined ? '0 h' : formatMinutes(scheduleMinutes(schedule));
   }
 
-  dismissNotice(): void {
-    this.notice.set(null);
+  private showNotice(message: string): void {
+    this.clearNoticeTimer();
+    this.notice.set(message);
+    this.noticeTimer = setTimeout(() => {
+      this.notice.set(null);
+      this.noticeTimer = null;
+    }, NOTICE_TIMEOUT_MS);
   }
 
-  dismissError(): void {
-    this.actionError.set(null);
+  private clearNoticeTimer(): void {
+    if (this.noticeTimer !== null) {
+      clearTimeout(this.noticeTimer);
+      this.noticeTimer = null;
+    }
+  }
+
+  private showError(message: string): void {
+    this.clearErrorTimer();
+    this.actionError.set(message);
+    this.errorTimer = setTimeout(() => {
+      this.actionError.set(null);
+      this.errorTimer = null;
+    }, ERROR_TIMEOUT_MS);
+  }
+
+  private clearErrorTimer(): void {
+    if (this.errorTimer !== null) {
+      clearTimeout(this.errorTimer);
+      this.errorTimer = null;
+    }
   }
 
   // ---- Drag and drop -----------------------------------------------------
@@ -882,7 +1442,16 @@ export class WeekGrid implements OnInit, OnChanges {
     }
     const detail = extractProblemDetail(err);
     if (detail !== null) {
-      return ASSIGNMENT_ERRORS.get(detail) ?? detail;
+      const exact = ASSIGNMENT_ERRORS.get(detail);
+      if (exact !== undefined) {
+        return exact;
+      }
+      for (const [needle, message] of SHIFT_UPDATE_ERRORS) {
+        if (detail.toLowerCase().includes(needle.toLowerCase())) {
+          return message;
+        }
+      }
+      return detail;
     }
     if (err.status === 0) {
       return 'No se pudo contactar al servidor. Revisa la conexión e inténtalo de nuevo.';
