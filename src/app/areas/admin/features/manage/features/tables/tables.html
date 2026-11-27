@@ -5,12 +5,11 @@
 >
   <app-rms-page-header [compact]="true" [title]="title" />
 
-  <div class="grid grid-cols-1 lg:grid-cols-[22rem_minmax(0,1fr)] gap-4 flex-1 min-h-0">
+  <div class="grid grid-cols-1 lg:grid-cols-[30rem_minmax(0,1fr)] gap-4 flex-1 min-h-0">
     <section class="flex flex-col min-h-[22rem] lg:min-h-0 min-w-0">
       <div class="flex items-center justify-between gap-2 mb-2">
         <div>
           <h2 class="rms-h3">Mesas</h2>
-          <p class="text-xs text-rms-ink-secondary">Arrastra una mesa al plano para ubicarla.</p>
         </div>
         <app-rms-button iconStart="pi pi-plus" size="sm" (click)="showCreationModal()">
           Nueva mesa
@@ -31,49 +30,48 @@
             No hay mesas registradas.
           </p>
         } @else {
-          <ul class="divide-y divide-rms-border" aria-label="Lista de mesas">
+          <ul class="table-grid" aria-label="Lista de mesas">
             @for (table of tables(); track table.id) {
               <li
-                class="table-row"
-                [class.table-row--selected]="selectedFloorTableId() === table.id"
+                class="table-tile"
+                [class.table-tile--selected]="selectedFloorTableId() === table.id"
+                [class.table-tile--dragging]="draggingTableId() === table.id"
                 [attr.draggable]="!savingPlacements()"
+                tabindex="0"
+                [attr.aria-label]="'Mesa ' + table.tableNumber + ': editar'"
                 (dragstart)="onTableDragStart($event, table)"
+                (dragend)="onTableDragEnd()"
+                (click)="showEditModal(table)"
+                (keydown.enter)="showEditModal(table)"
               >
-                <span class="table-row__handle" aria-hidden="true">
-                  <i class="pi pi-bars"></i>
-                </span>
-                <div class="table-row__main">
-                  <div class="flex items-center gap-2">
-                    <span class="table-row__number">#{{ table.tableNumber }}</span>
-                    <span class="table-row__capacity">
-                      <i class="pi pi-users" aria-hidden="true"></i>
-                      {{ table.capacity }}
-                    </span>
-                  </div>
-                  <span class="table-row__area">
-                    {{ placedAreaName(table.id) ?? 'Sin ubicar en el plano' }}
+                <div class="table-tile__head">
+                  <span class="table-tile__number">#{{ table.tableNumber }}</span>
+                  <span class="table-tile__capacity">
+                    <i class="pi pi-users" aria-hidden="true"></i>
+                    {{ table.capacity }}
                   </span>
                 </div>
-                <app-rms-status-pill
-                  [label]="getStatusLabel(table.status)"
-                  [status]="getStatusTone(table.status)"
-                />
-                <div class="table-row__actions">
-                  <app-rms-icon-button
-                    icon="pi pi-pencil"
-                    [ariaLabel]="'Editar mesa ' + table.tableNumber"
-                    size="sm"
-                    (click)="showEditModal(table)"
-                  />
+                <span class="table-tile__area">
+                  {{ placedAreaName(table.id) ?? 'Sin ubicar' }}
+                </span>
+                <div class="table-tile__foot">
+                  <span
+                    class="table-tile__status"
+                    [class]="'table-tile__status table-tile__status--' + getStatusTone(table.status)"
+                  >
+                    <span class="table-tile__dot" aria-hidden="true"></span>
+                    {{ getStatusLabel(table.status) }}
+                  </span>
                   @if (placementByTable().has(table.id)) {
-                    <app-rms-icon-button
-                      icon="pi pi-times"
-                      [ariaLabel]="'Quitar la mesa ' + table.tableNumber + ' del plano'"
-                      variant="danger"
-                      size="sm"
+                    <button
+                      class="table-tile__remove"
+                      type="button"
+                      [attr.aria-label]="'Quitar la mesa ' + table.tableNumber + ' del plano'"
                       [disabled]="savingPlacements()"
-                      (click)="removeTablePlacement(table.id)"
-                    />
+                      (click)="onTileRemove($event, table.id)"
+                    >
+                      <i class="pi pi-times" aria-hidden="true"></i>
+                    </button>
                   }
                 </div>
               </li>
@@ -83,22 +81,37 @@
       </div>
     </section>
 
-    <section class="flex flex-col min-h-[22rem] lg:min-h-0 min-w-0">
+    <section
+      class="flex flex-col min-h-[22rem] lg:min-h-0 min-w-0 lg:border-l lg:border-rms-border lg:pl-6"
+    >
       <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
         <div>
           <h2 class="rms-h3">Distribución</h2>
           <p class="text-xs text-rms-ink-secondary">
-            Solo las áreas con «Atención al cliente» aceptan mesas.
+            Arrastra una mesa al plano para ubicarla.
           </p>
         </div>
-        @if (savingPlacements()) {
-          <app-rms-status-pill label="Guardando…" status="info" />
-        }
+        <div class="flex flex-wrap items-center gap-2">
+          @if (savingPlacements()) {
+            <app-rms-status-pill label="Guardando…" status="info" />
+          }
+          @if (placements().length > 0) {
+            <app-rms-button
+              variant="secondary"
+              size="sm"
+              iconStart="pi pi-undo"
+              [disabled]="savingPlacements()"
+              (click)="requestClearAllPlacements()"
+            >
+              Levantar todas
+            </app-rms-button>
+          }
+        </div>
       </div>
 
-      <div class="flex-1 min-h-0 rounded-xl border border-rms-border bg-rms-surface p-2">
+      <div class="w-full max-w-[36rem] self-center rounded-xl border border-rms-border bg-rms-surface p-2">
         @if (floorLoading()) {
-          <app-rms-skeleton height="20rem" ariaLabel="Cargando distribución" />
+          <app-rms-skeleton height="16rem" ariaLabel="Cargando distribución" />
         } @else if (floorError(); as message) {
           <div class="flex h-full min-h-[16rem] flex-col items-center justify-center gap-2 p-4 text-center">
             <p class="text-sm text-rms-danger">{{ message }}</p>
@@ -153,5 +166,26 @@
   <div rmsDialogFooter>
     <app-rms-button variant="secondary" (click)="closeModal()">Cancelar</app-rms-button>
     <app-rms-button [disabled]="tableForm.invalid" (click)="saveTable()">Guardar</app-rms-button>
+  </div>
+</app-rms-dialog>
+
+
+<app-rms-dialog
+  header="Levantar todas las mesas"
+  width="460px"
+  [visible]="clearAllVisible()"
+  (visibleChange)="onClearAllVisible($event)"
+>
+  <p class="text-sm text-rms-ink">
+    Se quitarán las {{ placements().length }} mesas del plano para que puedas ubicarlas de nuevo.
+    Las mesas seguirán existiendo en la lista.
+  </p>
+  <div rmsDialogFooter>
+    <app-rms-button variant="secondary" (click)="cancelClearAllPlacements()">
+      Cancelar
+    </app-rms-button>
+    <app-rms-button (click)="confirmClearAllPlacements()">
+      Levantar todas
+    </app-rms-button>
   </div>
 </app-rms-dialog>

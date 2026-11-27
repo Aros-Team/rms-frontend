@@ -4,15 +4,22 @@
 
 ### Features
 
-- **tables**: split the Mesas screen into a draggable table list and a read-only floor map.
-  Tables can be dropped or dragged onto enabled areas with the "Atención al cliente" activity,
-  moved between cells, removed from the map, and persist through the floor-layout API. Serve
-  areas are highlighted as valid drop zones.
+- **order dock**: replace the waiter table grid with the restaurant distribution map. Available
+  tables are selected directly on their floor position, occupied/reserved tables keep their status,
+  and free tables without a map position remain available in a compact fallback list.
+- **tables**: split the Mesas screen into a compact grid of square table tiles and a read-only
+  floor map. Tiles can be dropped or dragged onto enabled areas with the "Atención al cliente"
+  activity, move between cells, are removed from the map, and persist through the floor-layout
+  API. Dragging shows a small square preview the size of a map marker instead of the whole tile.
+  Serve areas stay prominent while the rest of the map is dimmed, and the grid is only drawn
+  inside the painted areas. The board sizes itself to the drawn distribution with a small margin,
+  separated from the tiles by a vertical divider. A confirmed **Levantar todas** action clears every
+  placement so the whole room can be arranged again without deleting the tables.
 - **areas**: add a monochrome live distribution preview beside the Areas table (cropped and centered on the
   painted content) and a large editor modal opened from it. The editor opens at 100% zoom with the
   painted areas centered in the visible canvas. The grid is relative to the modal
-  viewport and the camera pans over an unbounded sheet in every direction; drawing above/left normalizes the
-  document coordinates so the stored extent only grows as you paint. Areas are selected from the palette and removed with Quitar del mapa; the Mover tool,
+  viewport and the camera pans over an unbounded sheet in every direction; drawing above/left stores negative coordinates directly, so table placements keep a stable
+  position when the area layout changes. Areas are selected from the palette and removed with Quitar del mapa; the Mover tool,
   middle mouse and the edge pan the camera. Each area renders with a light fill and one outer boundary, never a
   border per cell. The editor supports draw, erase, undo/redo and an unsaved-changes close flow.
   Geometry and editor transitions are framework-agnostic utilities with their own tests.

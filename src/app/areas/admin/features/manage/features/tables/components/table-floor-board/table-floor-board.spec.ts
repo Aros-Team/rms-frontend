@@ -65,6 +65,20 @@ describe('TableFloorBoard', () => {
     expect((fixture.nativeElement as HTMLElement).querySelector('.table-floor__table--invalid')).not.toBeNull();
   });
 
+  it('should emit a selection instead of dragging in read-only mode', () => {
+    const selected: (number | null)[] = [];
+    fixture.componentInstance.tableSelected.subscribe((id) => selected.push(id));
+    fixture.componentRef.setInput('placements', [{ tableId: 7, row: 2, column: 2 }]);
+    fixture.componentRef.setInput('disabled', true);
+    fixture.detectChanges();
+
+    const marker = queryElement(fixture.nativeElement as HTMLElement, '.table-floor__table');
+    marker.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, cancelable: true }));
+
+    expect(selected).toEqual([7]);
+    expect((fixture.nativeElement as HTMLElement).querySelector('.table-floor--readonly')).not.toBeNull();
+  });
+
   it('should show an empty state when the area map is empty', () => {
     const empty: FloorLayout = { columns: 12, rows: 10, regions: [], updatedAt: null };
     fixture.componentRef.setInput('layout', empty);

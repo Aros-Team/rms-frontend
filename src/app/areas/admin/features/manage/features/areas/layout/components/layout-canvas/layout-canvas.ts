@@ -22,7 +22,6 @@ import {
   cellsBetween,
   contentBounds,
   mergeCellsByArea,
-  parseCellKey,
   shapeForCells,
   type CellKey,
   type EditorLayout,
@@ -141,7 +140,6 @@ export class LayoutCanvas implements AfterViewInit, OnDestroy {
   @Output() readonly strokeStart = new EventEmitter<void>();
   @Output() readonly strokeEnd = new EventEmitter<void>();
   @Output() readonly missingArea = new EventEmitter<void>();
-  @Output() readonly modelShift = new EventEmitter<{ rows: number; columns: number }>();
 
   @ViewChild('canvas', { static: true })
   private svgRef?: ElementRef<SVGSVGElement>;
@@ -268,7 +266,6 @@ export class LayoutCanvas implements AfterViewInit, OnDestroy {
       event.preventDefault();
       this.svgRef?.nativeElement.setPointerCapture(event.pointerId);
       this.strokeStart.emit();
-      this.normalizeCamera();
       const cell = this.cellFromEvent(event);
       if (cell === null) {
         this.strokeEnd.emit();
@@ -299,23 +296,9 @@ export class LayoutCanvas implements AfterViewInit, OnDestroy {
       return;
     }
 
-    let stroke = this.stroke();
+    const stroke = this.stroke();
     if (stroke === null || stroke.pointerId !== event.pointerId) {
       return;
-    }
-
-    if (stroke.mode === 'draw' && (this.origin().column < 0 || this.origin().row < 0)) {
-      const shift = this.normalizeCamera();
-      if (stroke.lastCell !== null) {
-        const parsed = parseCellKey(stroke.lastCell);
-        if (parsed !== null) {
-          stroke = {
-            ...stroke,
-            lastCell: cellKey(parsed.row + shift.rows, parsed.column + shift.columns),
-          };
-          this.stroke.set(stroke);
-        }
-      }
     }
 
     const cell = this.cellFromEvent(event);
@@ -386,20 +369,6 @@ export class LayoutCanvas implements AfterViewInit, OnDestroy {
 
   onContextMenu(event: MouseEvent): void {
     event.preventDefault();
-  }
-
-  /**
-   * Moves the document so the current camera origin becomes non-negative.
-   * Returns the applied shift; the page shifts the engine by the same amount.
-   */
-  normalizeCamera(): { rows: number; columns: number } {
-    const origin = this.origin();
-    const rows = Math.max(0, -origin.row);
-    const columns = Math.max(0, -origin.column);
-    if (rows === 0 && columns === 0) return { rows, columns };
-    this.origin.set({ row: origin.row + rows, column: origin.column + columns });
-    this.modelShift.emit({ rows, columns });
-    return { rows, columns };
   }
 
   private beginPan(event: PointerEvent): void {
@@ -482,7 +451,6 @@ export class LayoutCanvas implements AfterViewInit, OnDestroy {
     const column =
       frame.x + Math.floor(((event.clientX - rect.left) / rect.width) * frame.width);
     const row = frame.y + Math.floor(((event.clientY - rect.top) / rect.height) * frame.height);
-    if (column < 0 || row < 0) return null;
     return cellKey(row, column);
   }
 }

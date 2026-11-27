@@ -1786,5 +1786,47 @@
       }
     ],
     "status": "done"
+  },
+  {
+    "id": 58,
+    "type": "feat",
+    "name": "waiter-table-map",
+    "title": "Seleccionar mesa desde el mapa en el lado del mesero",
+    "description": "Reemplazar la cuadrícula de selección de mesas del mesero por el mapa de distribución con las mesas ubicadas y su estado.",
+    "acceptance": [
+      "Mapa de distribución en el selector de mesa",
+      "Solo mesas libres seleccionables desde el mapa",
+      "Mesas ocupadas/reservadas visibles pero no seleccionables",
+      "Mesas libres sin ubicación siguen accesibles",
+      "Endpoint de solo lectura para WORKER/ADMIN",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Endpoint GET /floor-layout/map y DTO",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Selector de mesa con mapa y fallback",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Tests de API y frontend",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "reviewer"
+      }
+    ],
+    "status": "done"
   }
 ]

@@ -14,7 +14,6 @@
         (strokeStart)="onStrokeStart()"
         (strokeEnd)="onStrokeEnd()"
         (missingArea)="onMissingArea()"
-        (modelShift)="onModelShift($event)"
       />
     }
   </div>
@@ -57,7 +56,8 @@
               [areas]="areas()"
               [selectedAreaId]="selectedAreaId()"
               [regionCounts]="regionCounts()"
-                  />
+              (areaSelect)="selectArea($event)"
+            />
 
             @if (selectedArea(); as area) {
               <section class="region-panel" aria-labelledby="region-panel-title">

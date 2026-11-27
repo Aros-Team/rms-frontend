@@ -38,3 +38,9 @@ export interface FloorTablePlacement {
   readonly row: number;
   readonly column: number;
 }
+
+/** Read-only distribution used by operational staff. */
+export interface FloorLayoutMap {
+  readonly layout: FloorLayout;
+  readonly tables: readonly FloorTablePlacement[];
+}

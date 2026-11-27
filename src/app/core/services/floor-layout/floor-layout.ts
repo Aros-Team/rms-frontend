@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import type {
   FloorLayout,
+  FloorLayoutMap,
   FloorLayoutRequest,
   FloorTablePlacement,
 } from '@app/shared/models/dto/floor-layout/floor-layout';
@@ -15,6 +16,11 @@ export class FloorLayoutApi {
 
   getLayout(): Observable<FloorLayout> {
     return this.http.get<FloorLayout>('v1/floor-layout');
+  }
+
+  /** Read-only map for operational staff, including placed tables. */
+  getMap(): Observable<FloorLayoutMap> {
+    return this.http.get<FloorLayoutMap>('v1/floor-layout/map');
   }
 
   updateLayout(layout: FloorLayoutRequest): Observable<FloorLayout> {

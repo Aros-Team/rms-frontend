@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { beforeEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { of } from 'rxjs';
@@ -54,6 +54,7 @@ describe('FloorLayout', () => {
   };
   let areaService: { getAreas: ReturnType<typeof vi.fn> };
   let component: FloorLayout;
+  let fixture: ComponentFixture<FloorLayout>;
 
   beforeAll(async () => {
     await resolveUiResources({
@@ -92,7 +93,7 @@ describe('FloorLayout', () => {
       ],
     });
 
-    const fixture = TestBed.createComponent(FloorLayout);
+    fixture = TestBed.createComponent(FloorLayout);
     component = fixture.componentInstance;
     fixture.detectChanges();
     fixture.detectChanges();
@@ -104,6 +105,29 @@ describe('FloorLayout', () => {
     expect(component.layout().regions).toHaveLength(1);
     expect(component.selectedAreaId()).toBe(1);
     expect(component.dirty()).toBe(false);
+  });
+
+  it('should change the selected area from the palette', () => {
+    component.areas.set([
+      { ...AREA, activities: ['PREPARATION'] },
+      {
+        id: 2,
+        name: 'Salón',
+        activities: ['SERVE'],
+        enabled: true,
+        exclusive: false,
+      },
+    ]);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const buttons = host.querySelectorAll<HTMLButtonElement>('.area-item');
+    expect(buttons).toHaveLength(2);
+
+    buttons[1].click();
+    fixture.detectChanges();
+
+    expect(component.selectedAreaId()).toBe(2);
   });
 
   it('should paint, mark dirty and save the normalized document', () => {

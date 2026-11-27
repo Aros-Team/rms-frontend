@@ -1,6 +1,7 @@
 <div
   class="table-floor"
   [class.table-floor--dragging]="dragActiveState()"
+  [class.table-floor--readonly]="readonlyMode()"
   (dragover)="onDragOver($event)"
   (dragleave)="onDragLeave($event)"
   (drop)="onDrop($event)"
@@ -33,14 +34,6 @@
         </pattern>
       </defs>
 
-      <rect
-        [attr.x]="frame().x"
-        [attr.y]="frame().y"
-        [attr.width]="frame().width"
-        [attr.height]="frame().height"
-        [attr.fill]="'url(#' + gridId + ')'"
-      />
-
       @for (area of areaShapes(); track area.areaId) {
         <g
           class="table-floor__area"
@@ -49,6 +42,11 @@
         >
           <title>{{ area.name }}</title>
           <path class="table-floor__area-fill" [attr.d]="area.shape.fillPath" />
+          <path
+            class="table-floor__area-grid"
+            [attr.d]="area.shape.fillPath"
+            [attr.fill]="'url(#' + gridId + ')'"
+          />
           <path class="table-floor__area-outline" [attr.d]="area.shape.outlinePath" fill="none" />
           @if (area.shape.showLabel) {
             <text
@@ -71,6 +69,7 @@
           [attr.data-status]="item.table.status"
           [class.table-floor__table--selected]="item.selected"
           [class.table-floor__table--invalid]="!item.valid"
+          [class.table-floor__table--dragging]="item.dragging"
           [attr.transform]="'translate(' + markerX(item) + ' ' + markerY(item) + ')'"
           (pointerdown)="onMarkerPointerDown($event, item)"
           (keydown.enter)="tableSelected.emit(item.table.id)"
@@ -80,24 +79,33 @@
           [attr.aria-label]="markerLabel(item)"
         >
           <title>{{ markerLabel(item) }}</title>
-          <rect
-            class="table-floor__table-body"
-            x="-0.38"
-            y="-0.38"
-            width="0.76"
-            height="0.76"
-            rx="0.12"
-          />
-          <text
-            class="table-floor__table-label"
-            x="0"
-            y="0"
-            text-anchor="middle"
-            dominant-baseline="middle"
-            font-size="0.34"
-          >
-            {{ item.table.tableNumber }}
-          </text>
+          <g class="table-floor__table-content">
+            <rect
+              class="table-floor__table-hit"
+              x="-0.5"
+              y="-0.5"
+              width="1"
+              height="1"
+            />
+            <rect
+              class="table-floor__table-body"
+              x="-0.38"
+              y="-0.38"
+              width="0.76"
+              height="0.76"
+              rx="0.12"
+            />
+            <text
+              class="table-floor__table-label"
+              x="0"
+              y="0"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-size="0.34"
+            >
+              {{ item.table.tableNumber }}
+            </text>
+          </g>
         </g>
       }
     </svg>

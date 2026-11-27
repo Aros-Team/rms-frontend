@@ -204,9 +204,7 @@ export class FloorLayoutEditorEngine {
       const parsed = parseCellKey(key);
       if (
         parsed === null ||
-        parsed.row < 0 ||
         parsed.row >= this.current.rows ||
-        parsed.column < 0 ||
         parsed.column >= this.current.columns
       ) {
         blocked += 1;
@@ -382,16 +380,6 @@ export class FloorLayoutEditorEngine {
     );
     if (!check.ok) {
       return { ok: false, changed: false, reason: check.reason };
-    }
-
-    const previewCells = this.current.regions
-      .filter((region) => region.areaId === areaId)
-      .flatMap((region) => [...translateCells(region.cells, deltaRow, deltaColumn)]);
-    if (previewCells.some((cell) => {
-      const parsed = parseCellKey(cell);
-      return parsed === null || parsed.row < 0 || parsed.column < 0;
-    })) {
-      return { ok: false, changed: false, reason: 'bounds' };
     }
 
     const before = this.current;

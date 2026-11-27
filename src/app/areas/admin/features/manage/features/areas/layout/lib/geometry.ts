@@ -512,8 +512,7 @@ export function validateLayout(layout: EditorLayout): string | null {
       if (parsed === null) {
         return 'La geometría contiene una celda inválida.';
       }
-      if (parsed.row < 0 || parsed.row >= layout.rows
-        || parsed.column < 0 || parsed.column >= layout.columns) {
+      if (parsed.row >= layout.rows || parsed.column >= layout.columns) {
         return 'Una región queda fuera del lienzo.';
       }
       const owner = occupied.get(key);

@@ -18,7 +18,6 @@ import { environment } from '@environments/environment';
 import { forkJoin } from 'rxjs';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsDialog } from '@app/shared/ui/dialog/dialog';
-import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
 import { RmsInput } from '@app/shared/ui/input/input';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
@@ -36,7 +35,6 @@ const WS_TOPICS = {
     LazyLoad,
     RmsButton,
     RmsDialog,
-    RmsIconButton,
     RmsInput,
     RmsPageHeader,
     RmsStatusPill,
@@ -67,6 +65,9 @@ export class Tables implements OnInit {
   readonly floorError = signal<string | null>(null);
   readonly savingPlacements = signal(false);
   readonly selectedFloorTableId = signal<number | null>(null);
+  readonly draggingTableId = signal<number | null>(null);
+  readonly clearAllVisible = signal(false);
+  private dragGhost: HTMLElement | null = null;
   readonly dragType = TABLE_DRAG_TYPE;
 
   readonly layoutModel = computed(() => {
@@ -288,19 +289,90 @@ export class Tables implements OnInit {
     this.persistPlacements(this.placements().filter((item) => item.tableId !== tableId));
   }
 
+  requestClearAllPlacements(): void {
+    if (this.placements().length === 0 || this.savingPlacements()) return;
+    this.clearAllVisible.set(true);
+  }
+
+  confirmClearAllPlacements(): void {
+    this.clearAllVisible.set(false);
+    this.selectedFloorTableId.set(null);
+    this.persistPlacements([]);
+  }
+
+  cancelClearAllPlacements(): void {
+    this.clearAllVisible.set(false);
+  }
+
+  onClearAllVisible(visible: boolean): void {
+    if (!visible) this.cancelClearAllPlacements();
+  }
+
   placedAreaName(tableId: number): string | null {
     return this.placementAreas().get(tableId) ?? null;
   }
 
   onTableDragStart(event: DragEvent, table: TableResponse): void {
+    const target = event.target as HTMLElement | null;
+    if (target !== null && target.closest('button, a') !== null) {
+      event.preventDefault();
+      return;
+    }
     if (this.savingPlacements()) {
       event.preventDefault();
       return;
     }
     event.dataTransfer?.setData(TABLE_DRAG_TYPE, String(table.id));
     event.dataTransfer?.setData('text/plain', String(table.id));
-    if (event.dataTransfer !== null) event.dataTransfer.effectAllowed = 'move';
+    if (event.dataTransfer !== null) {
+      event.dataTransfer.effectAllowed = 'move';
+      this.setDragGhost(event.dataTransfer, table);
+    }
+    this.draggingTableId.set(table.id);
     this.selectedFloorTableId.set(table.id);
+  }
+
+  onTableDragEnd(): void {
+    this.draggingTableId.set(null);
+    this.clearDragGhost();
+  }
+
+  onTileRemove(event: Event, tableId: number): void {
+    event.stopPropagation();
+    this.removeTablePlacement(tableId);
+  }
+
+  private setDragGhost(dataTransfer: DataTransfer, table: TableResponse): void {
+    this.clearDragGhost();
+    const ghost = document.createElement('div');
+    ghost.textContent = String(table.tableNumber);
+    ghost.setAttribute('aria-hidden', 'true');
+    Object.assign(ghost.style, {
+      position: 'fixed',
+      top: '-1000px',
+      left: '-1000px',
+      width: '1.6rem',
+      height: '1.6rem',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      boxSizing: 'border-box',
+      borderRadius: '0.5rem',
+      border: '2px solid var(--rms-border-strong)',
+      background: 'var(--rms-bg-surface)',
+      color: 'var(--rms-text)',
+      fontFamily: 'var(--rms-font-sans)',
+      fontSize: '0.8rem',
+      fontWeight: '600',
+    });
+    document.body.appendChild(ghost);
+    dataTransfer.setDragImage(ghost, 13, 13);
+    this.dragGhost = ghost;
+  }
+
+  private clearDragGhost(): void {
+    this.dragGhost?.remove();
+    this.dragGhost = null;
   }
 
   private mergePlacement(

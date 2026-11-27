@@ -1,12 +1,15 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   EventEmitter,
   Input,
   Output,
   ViewChild,
+  afterNextRender,
   computed,
+  inject,
   signal,
 } from '@angular/core';
 
@@ -43,6 +46,7 @@ interface MarkerItem {
   readonly column: number;
   readonly valid: boolean;
   readonly selected: boolean;
+  readonly dragging: boolean;
 }
 
 export const TABLE_DRAG_TYPE = 'application/x-rms-table';
@@ -53,6 +57,10 @@ export const TABLE_DRAG_TYPE = 'application/x-rms-table';
   templateUrl: './table-floor-board.html',
   styleUrl: './table-floor-board.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[style.--board-ratio]': 'aspectRatio()',
+    '[style.--marker-scale]': 'markerScale()',
+  },
 })
 export class TableFloorBoard {
   private static nextId = 0;
@@ -63,7 +71,9 @@ export class TableFloorBoard {
   private readonly placementsState = signal<readonly FloorTablePlacement[]>([]);
   private readonly selectedState = signal<number | null>(null);
   private readonly disabledState = signal(false);
+  private readonly hostWidth = signal(0);
   readonly dragActiveState = signal(false);
+  readonly readonlyMode = computed(() => this.disabledState());
   private readonly dragPreview = signal<TableDrag | null>(null);
 
   @Input({ required: true })
@@ -130,9 +140,19 @@ export class TableFloorBoard {
   readonly gridId = `table-floor-grid-${String(TableFloorBoard.nextId++)}`;
   readonly Math = Math;
   readonly dragType = TABLE_DRAG_TYPE;
+  private readonly hostRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly destroyRef = inject(DestroyRef);
+  private resizeObserver: ResizeObserver | null = null;
   private dragPointerId: number | null = null;
   private dragOffsetColumn = 0;
   private dragOffsetRow = 0;
+
+  constructor() {
+    afterNextRender(() => {
+      this.observeWidth();
+    });
+    this.destroyRef.onDestroy(() => this.resizeObserver?.disconnect());
+  }
 
   readonly layoutModel = computed<EditorLayout | null>(() => {
     const layout = this.layoutState();
@@ -190,6 +210,7 @@ export class TableFloorBoard {
           column,
           valid: this.isValidCell(placement.tableId, row, column),
           selected: this.selectedState() === placement.tableId,
+          dragging: preview?.tableId === placement.tableId,
         }];
       });
   });
@@ -235,6 +256,24 @@ export class TableFloorBoard {
 
   readonly isEmpty = computed(() => (this.layoutModel()?.regions.length ?? 0) === 0);
 
+  readonly aspectRatio = computed(() => {
+    const frame = this.frame();
+    return `${String(frame.width)} / ${String(frame.height)}`;
+  });
+
+  /**
+   * Keeps table markers finger-sized on small screens without zooming the map.
+   * The SVG scales with the layout, so the marker is enlarged in model units.
+   */
+  readonly markerScale = computed(() => {
+    if (!this.readonlyMode()) return 1;
+    const width = this.hostWidth();
+    const frame = this.frame();
+    if (width <= 0 || frame.width <= 0) return 1;
+    const cellPx = width / frame.width;
+    return Math.max(1, 34 / (cellPx * 0.76));
+  });
+
   onDragOver(event: DragEvent): void {
     if (this.disabledState() || this.layoutModel() === null) return;
     event.preventDefault();
@@ -270,15 +309,15 @@ export class TableFloorBoard {
   }
 
   onMarkerPointerDown(event: PointerEvent, item: MarkerItem): void {
-    if (this.disabledState()) return;
     event.preventDefault();
     event.stopPropagation();
+    this.tableSelected.emit(item.table.id);
+    if (this.disabledState()) return;
     this.svgRef?.nativeElement.setPointerCapture(event.pointerId);
     this.dragPointerId = event.pointerId;
     const local = this.localPoint(event.clientX, event.clientY);
     this.dragOffsetColumn = local === null ? 0 : local.x - (item.column + 0.5);
     this.dragOffsetRow = local === null ? 0 : local.y - (item.row + 0.5);
-    this.tableSelected.emit(item.table.id);
     this.dragPreview.set({
       tableId: item.table.id,
       row: item.row,
@@ -341,7 +380,6 @@ export class TableFloorBoard {
   private isValidCell(tableId: number, row: number, column: number): boolean {
     const layout = this.layoutModel();
     if (layout === null) return false;
-    if (row < 0 || column < 0) return false;
     const cell = cellKey(row, column);
     const region = regionAtCell(layout, this.cellIndex(), cell);
     if (region === undefined) return false;
@@ -367,6 +405,16 @@ export class TableFloorBoard {
     this.dragActiveState.set(active);
   }
 
+  private observeWidth(): void {
+    if (typeof ResizeObserver === 'undefined') return;
+    const element = this.hostRef.nativeElement;
+    this.resizeObserver = new ResizeObserver((entries) => {
+      this.hostWidth.set(entries[0]?.contentRect.width ?? 0);
+    });
+    this.resizeObserver.observe(element);
+    this.hostWidth.set(element.getBoundingClientRect().width);
+  }
+
   private cellFromClient(
     clientX: number,
     clientY: number,
@@ -375,7 +423,6 @@ export class TableFloorBoard {
     if (local === null) return null;
     const row = Math.floor(local.y);
     const column = Math.floor(local.x);
-    if (row < 0 || column < 0) return null;
     return { row, column };
   }
 

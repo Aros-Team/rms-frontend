@@ -299,11 +299,6 @@ export class FloorLayout implements OnInit {
     this.announce('Selecciona un área antes de dibujar.');
   }
 
-  onModelShift(shift: { rows: number; columns: number }): void {
-    this.engine?.shift(shift.rows, shift.columns);
-    this.syncFromEngine();
-  }
-
   onPanelToggle(event: Event): void {
     const details = event.target as HTMLDetailsElement | null;
     if (details !== null) this.panelOpen.set(details.open);

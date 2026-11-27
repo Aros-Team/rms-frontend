@@ -8,16 +8,6 @@
     @if (dock.tablesLoading() && dock.allTables().length === 0) {
       <p class="picker__hint" role="status">Cargando mesas…</p>
     } @else {
-      @if (dock.tablesError(); as error) {
-        <div class="picker__error" role="alert">
-          <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
-          <p>{{ error }}</p>
-          <app-rms-button variant="secondary" size="lg" (click)="refresh()">
-            Reintentar
-          </app-rms-button>
-        </div>
-      }
-
       @if (selectedTable(); as table) {
         <div class="picker__current">
           <div class="picker__current-copy">
@@ -31,54 +21,66 @@
         </div>
       }
 
-      <section aria-labelledby="tables-free-heading">
-        <div class="picker__heading">
-          <h3 id="tables-free-heading" class="picker__title">Disponibles</h3>
-          <app-rms-badge [label]="freeTables().length + ' libres'" tone="success" />
+      @if (selectionError(); as error) {
+        <p class="picker__selection-error" role="alert">{{ error }}</p>
+      }
+
+      @if (mapLoading() && layout() === null) {
+        <p class="picker__hint" role="status">Cargando distribución…</p>
+      } @else if (mapError(); as error) {
+        <div class="picker__error" role="alert">
+          <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+          <p>{{ error }}</p>
+          <app-rms-button variant="secondary" size="lg" (click)="refresh()">
+            Reintentar
+          </app-rms-button>
         </div>
-
-        @if (freeTables().length === 0) {
-          <p class="picker__hint">
-            No hay mesas libres en este momento. Actualiza cuando se libere una.
-          </p>
-        } @else {
-          <div class="table-grid" role="group" aria-labelledby="tables-free-heading">
-            @for (table of freeTables(); track table.id) {
-              <button
-                type="button"
-                class="table-tile"
-                [class.table-tile--active]="dock.selectedTableId() === table.id"
-                [attr.aria-pressed]="dock.selectedTableId() === table.id"
-                [attr.aria-label]="tableLabel(table)"
-                (click)="choose(table)"
-              >
-                <span class="table-tile__number">{{ table.tableNumber }}</span>
-                <span class="table-tile__capacity">{{ table.capacity }} p.</span>
-              </button>
-            }
-          </div>
-        }
-      </section>
-
-      @if (busyTables().length > 0) {
-        <section aria-labelledby="tables-busy-heading">
+      } @else if (layout(); as floorLayout) {
+        <section aria-labelledby="tables-map-heading">
           <div class="picker__heading">
-            <h3 id="tables-busy-heading" class="picker__title">No disponibles</h3>
-            <app-rms-badge [label]="busyTables().length + ' mesas'" tone="neutral" />
+            <h3 id="tables-map-heading" class="picker__title">Distribución</h3>
+            <app-rms-badge [label]="freeTables().length + ' libres'" tone="success" />
           </div>
-          <ul class="busy-list">
-            @for (table of busyTables(); track table.id) {
-              <li class="busy-list__item">
-                <span class="busy-list__number">Mesa {{ table.tableNumber }}</span>
-                <span class="busy-list__capacity">{{ table.capacity }} p.</span>
-                <app-rms-status-pill
-                  [label]="statusLabel(table.status)"
-                  [status]="tone(table.status)"
-                />
-              </li>
-            }
-          </ul>
+          <div class="picker__map">
+            <app-table-floor-board
+              [layout]="floorLayout"
+              [areas]="areas()"
+              [tables]="dock.allTables()"
+              [placements]="placements()"
+              [selectedTableId]="dock.selectedTableId()"
+              [disabled]="true"
+              (tableSelected)="chooseById($event)"
+            />
+          </div>
+          <p class="picker__hint">
+            Toca una mesa libre del plano para seleccionarla.
+          </p>
         </section>
+
+        @if (unplacedFreeTables().length > 0) {
+          <section aria-labelledby="tables-unplaced-heading">
+            <div class="picker__heading">
+              <h3 id="tables-unplaced-heading" class="picker__title">Sin ubicar en el plano</h3>
+              <app-rms-badge
+                [label]="unplacedFreeTables().length + ' libres'"
+                tone="neutral"
+              />
+            </div>
+            <div class="table-grid" role="group" aria-labelledby="tables-unplaced-heading">
+              @for (table of unplacedFreeTables(); track table.id) {
+                <button
+                  type="button"
+                  class="table-tile"
+                  [attr.aria-label]="tableLabel(table)"
+                  (click)="choose(table)"
+                >
+                  <span class="table-tile__number">{{ table.tableNumber }}</span>
+                  <span class="table-tile__capacity">{{ table.capacity }} p.</span>
+                </button>
+              }
+            </div>
+          </section>
+        }
       }
 
       @if (selectedTable()) {
@@ -95,7 +97,7 @@
       variant="secondary"
       size="lg"
       iconStart="pi pi-refresh"
-      [loading]="dock.tablesLoading()"
+      [loading]="dock.tablesLoading() || mapLoading()"
       (click)="refresh()"
     >
       Actualizar

@@ -6,8 +6,9 @@
 
 .table-floor {
   position: relative;
-  height: 100%;
-  min-height: 16rem;
+  height: auto;
+  min-height: 12rem;
+  aspect-ratio: var(--board-ratio, 1.2);
   overflow: hidden;
   border-radius: var(--rms-radius-sm);
   background: var(--rms-bg-surface);
@@ -49,6 +50,10 @@
   fill-opacity: 0.5;
 }
 
+.table-floor__area-grid {
+  pointer-events: none;
+}
+
 .table-floor__area-outline {
   stroke: var(--rms-border-strong);
   stroke-width: 1.25;
@@ -56,13 +61,8 @@
   vector-effect: non-scaling-stroke;
 }
 
-.table-floor__area--serve .table-floor__area-fill {
-  fill: var(--rms-success-bg);
-  fill-opacity: 0.55;
-}
-
-.table-floor__area--serve .table-floor__area-outline {
-  stroke: var(--rms-success-border);
+.table-floor__area:not(.table-floor__area--serve) {
+  opacity: 0.35;
 }
 
 .table-floor__area--active .table-floor__area-fill {
@@ -70,7 +70,7 @@
 }
 
 .table-floor__area--active .table-floor__area-outline {
-  stroke: var(--rms-success-solid);
+  stroke: var(--rms-focus);
   stroke-width: 2.5;
 }
 
@@ -88,8 +88,34 @@
   cursor: grab;
 }
 
-.table-floor__table:active {
+.table-floor__table-content {
+  transform-origin: 0 0;
+  transition: transform 120ms ease;
+}
+
+.table-floor__table--dragging {
   cursor: grabbing;
+}
+
+.table-floor--readonly .table-floor__table {
+  cursor: pointer;
+}
+
+.table-floor--readonly .table-floor__table:hover .table-floor__table-body {
+  stroke-width: 2.5;
+}
+
+.table-floor__table--dragging .table-floor__table-content {
+  transform: scale(0.62);
+  transition-duration: 0s;
+}
+
+.table-floor--readonly .table-floor__table-content {
+  transform: scale(var(--marker-scale, 1));
+}
+
+.table-floor__table-hit {
+  fill: transparent;
 }
 
 .table-floor__table-body {
