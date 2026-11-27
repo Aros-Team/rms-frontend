@@ -4,7 +4,6 @@ import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
-import { DialogModule } from 'primeng/dialog';
 import { Subscription } from 'rxjs';
 import { Order, OrderStatus } from '@app/core/services/orders/order';
 import {
@@ -22,7 +21,6 @@ import { Money } from '@shared/pipes/money/money';
 import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
 import { RmsButton } from '@shared/ui/button/button';
 import { RmsEmptyState } from '@shared/ui/empty-state/empty-state';
-import { RmsIconButton } from '@shared/ui/icon-button/icon-button';
 import { RmsStatusPill } from '@shared/ui/status-pill/status-pill';
 import type { RmsStatus } from '@shared/ui/types/ui-types';
 
@@ -43,12 +41,10 @@ const WS_TOPICS = {
     SharedDatepicker,
     SelectModule,
     FormsModule,
-    DialogModule,
     TableSkeleton,
     Money,
     RmsButton,
     RmsEmptyState,
-    RmsIconButton,
     RmsStatusPill,
   ],
   templateUrl: './orders-table.html',
@@ -81,8 +77,6 @@ export class OrdersTable implements OnInit, OnDestroy {
    * in the filter bar; it is part of the request key, so a change reloads page 0.
    */
   search = '';
-  selectedOrder: OrderResponse | null = null;
-  detailsDialogVisible = false;
 
   comboStatusOptions = [
     { label: 'Todos', value: 'ALL' },
@@ -107,7 +101,11 @@ export class OrdersTable implements OnInit, OnDestroy {
   ];
 
   selectedStatus = 'ALL';
-  selectedDate: Date | null = new Date();
+  /**
+   * Optional date filter. `null` means "all orders": the list is not scoped to
+   * today, so the table always shows something (newest first).
+   */
+  selectedDate: Date | null = null;
 
   private modifiedOrders = new Map<number, Partial<OrderResponse>>();
   private originalOrders = new Map<number, OrderResponse>();
@@ -122,7 +120,6 @@ export class OrdersTable implements OnInit, OnDestroy {
   private wsSubs: Subscription[] = [];
 
   ngOnInit(): void {
-    this.selectedDate = new Date();
     this.fetchOrders();
     this.connectWebSocket();
   }
@@ -137,15 +134,10 @@ export class OrdersTable implements OnInit, OnDestroy {
     return calculateTotalPrice(order);
   }
 
-  showOrderDetails(order: OrderResponse): void {
-    this.selectedOrder = order;
-    this.detailsDialogVisible = true;
-  }
-
   clearFilters(): void {
     this.search = '';
     this.selectedStatus = 'ALL';
-    this.selectedDate = new Date();
+    this.selectedDate = null;
     this.first = 0;
     this.sortField = 'date';
     this.sortOrder = -1;
@@ -255,15 +247,23 @@ export class OrdersTable implements OnInit, OnDestroy {
       status = this.selectedStatus as OrderStatus;
     }
 
-    // Date/status/search filtering and paging all happen server-side.
-    const date = this.selectedDate ?? new Date();
+    // Status/search/paging/sort happen server-side. The date is optional: with
+    // no date picked the request is unscoped, so the table shows every order,
+    // newest first, instead of only today's.
     const page = this.rows > 0 ? Math.floor(this.first / this.rows) : 0;
     const sort = `${this.sortField},${this.sortOrder === 1 ? 'asc' : 'desc'}`;
+    const filters = {
+      status,
+      search: this.search || undefined,
+      page,
+      size: this.rows,
+      sort,
+    };
     const requestKey = [
       page,
       this.rows,
       status ?? 'ALL',
-      date.toDateString(),
+      this.selectedDate?.toDateString() ?? 'ALL',
       this.search,
       sort,
     ].join('|');
@@ -276,14 +276,12 @@ export class OrdersTable implements OnInit, OnDestroy {
     this.loading = true;
     this.error = null;
 
-    this.orderService
-      .getOrdersByDateRangePage(date, date, {
-        status,
-        search: this.search || undefined,
-        page,
-        size: this.rows,
-        sort,
-      })
+    const date = this.selectedDate;
+    const request = date
+      ? this.orderService.getOrdersByDateRangePage(date, date, filters)
+      : this.orderService.getOrdersPage(filters);
+
+    request
       .subscribe({
         next: (res) => {
           this.orders = res.items;
@@ -318,6 +316,20 @@ export class OrdersTable implements OnInit, OnDestroy {
   formatDate(date: string | Date): string {
     if (!date) return '-';
     const dateObj = typeof date === 'string' ? new Date(date) : date;
+    const time = new Intl.DateTimeFormat('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    }).format(dateObj);
+
+    // Recent orders read better relative to today: "Hoy" / "Ayer" instead of
+    // the redundant full date, while keeping the time in the same column.
+    const now = new Date();
+    if (this.isSameDay(dateObj, now)) return `Hoy, ${time}`;
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    if (this.isSameDay(dateObj, yesterday)) return `Ayer, ${time}`;
+
     return new Intl.DateTimeFormat('es-ES', {
       year: 'numeric',
       month: '2-digit',
@@ -326,6 +338,14 @@ export class OrdersTable implements OnInit, OnDestroy {
       minute: '2-digit',
       hour12: true
     }).format(dateObj);
+  }
+
+  private isSameDay(a: Date, b: Date): boolean {
+    return (
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate()
+    );
   }
 
   getStatusLabel(status: string): string {

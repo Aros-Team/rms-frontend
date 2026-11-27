@@ -2,10 +2,12 @@
  * Tests for the admin orders table (server-side paging).
  *
  * Feature: The orders table is a PrimeNG *lazy* table; every page change is
- * answered by `Order.getOrdersByDateRangePage()`, so only one page of orders is
- * ever in memory.
+ * answered by `Order.getOrdersPage()`, so only one page of orders is ever in
+ * memory. The list is not scoped to today: newest first, all orders, unless the
+ * optional date filter is set (then `Order.getOrdersByDateRangePage()`).
  * Contract:
- *  - the initial load requests `page=0` with the table's `rows` as `size`;
+ *  - the initial load requests `page=0` with the table's `rows` as `size`,
+ *    `sort=date,desc` and no date range;
  *  - a lazy-load event at `first=20, rows=10` requests `page=2`;
  *  - the duplicate lazy-load emission that PrimeNG fires right after `ngOnInit`
  *    does not trigger a second HTTP round-trip;
@@ -52,6 +54,7 @@ function makePage(items: OrderResponse[], total: number, page = 0, size = 10): P
 
 describe('OrdersTable (server-side paging)', () => {
   let getPage: ReturnType<typeof vi.fn>;
+  let getRange: ReturnType<typeof vi.fn>;
   let fixture: ComponentFixture<OrdersTable>;
 
   beforeAll(async () => {
@@ -64,12 +67,19 @@ describe('OrdersTable (server-side paging)', () => {
 
   beforeEach(async () => {
     getPage = vi.fn().mockReturnValue(of(makePage([makeOrder(1), makeOrder(2)], 42)));
+    getRange = vi.fn().mockReturnValue(of(makePage([makeOrder(1), makeOrder(2)], 42)));
 
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [OrdersTable],
       providers: [
-        { provide: Order, useValue: { getOrdersByDateRangePage: getPage } },
+        {
+          provide: Order,
+          useValue: {
+            getOrdersPage: getPage,
+            getOrdersByDateRangePage: getRange,
+          },
+        },
         { provide: MessageService, useValue: { add: vi.fn() } },
         { provide: WebSocket, useValue: { connect: vi.fn(), subscribeToTopic: vi.fn() } },
         { provide: Auth, useValue: { getToken: () => null } },
@@ -84,10 +94,10 @@ describe('OrdersTable (server-side paging)', () => {
     fixture.destroy();
   });
 
-  it('requests the first page on init and adopts the server total', () => {
+  it('requests the first page on init — all orders, newest first — and adopts the server total', () => {
     expect(getPage).toHaveBeenCalledTimes(1);
-    const [start, end, query] = getPage.mock.calls[0] as [Date, Date, Record<string, unknown>];
-    expect(start.toDateString()).toBe(end.toDateString());
+    expect(getRange).not.toHaveBeenCalled();
+    const query = getPage.mock.calls[0][0] as Record<string, unknown>;
     expect(query).toMatchObject({
       page: 0,
       size: 10,
@@ -95,10 +105,21 @@ describe('OrdersTable (server-side paging)', () => {
       status: undefined,
       search: undefined,
     });
+    expect(query).not.toHaveProperty('startDate');
+    expect(query).not.toHaveProperty('endDate');
 
     expect(fixture.componentInstance.orders.map((o) => o.id)).toEqual([1, 2]);
     expect(fixture.componentInstance.totalRecords).toBe(42);
     expect(fixture.componentInstance.loading).toBe(false);
+  });
+
+  it('scopes the request to a single day only when a date is picked', () => {
+    fixture.componentInstance.onDateChange(new Date(2026, 6, 15));
+
+    expect(getRange).toHaveBeenCalledTimes(1);
+    const [start, end, query] = getRange.mock.calls[0] as [Date, Date, Record<string, unknown>];
+    expect(start.toDateString()).toBe(end.toDateString());
+    expect(query).toMatchObject({ page: 0, size: 10, sort: 'date,desc' });
   });
 
   it('reflects the active sort on the header with aria-sort', () => {
@@ -113,14 +134,14 @@ describe('OrdersTable (server-side paging)', () => {
     fixture.componentInstance.onLazyLoad({ first: 20, rows: 10 });
 
     expect(getPage).toHaveBeenCalledTimes(2);
-    const query = getPage.mock.calls[1][2] as Record<string, unknown>;
+    const query = getPage.mock.calls[1][0] as Record<string, unknown>;
     expect(query).toMatchObject({ page: 2, size: 10 });
   });
 
   it('sends the column sort chosen in the header and reflects it on the table', () => {
     fixture.componentInstance.onLazyLoad({ first: 0, rows: 10, sortField: 'id', sortOrder: 1 });
 
-    const query = getPage.mock.calls[1][2] as Record<string, unknown>;
+    const query = getPage.mock.calls[1][0] as Record<string, unknown>;
     expect(query).toMatchObject({ page: 0, size: 10, sort: 'id,asc' });
     expect(fixture.componentInstance.sortField).toBe('id');
     expect(fixture.componentInstance.sortOrder).toBe(1);
@@ -129,7 +150,7 @@ describe('OrdersTable (server-side paging)', () => {
   it('sends a descending sort when the header toggles', () => {
     fixture.componentInstance.onLazyLoad({ first: 0, rows: 10, sortField: 'tableId', sortOrder: -1 });
 
-    const query = getPage.mock.calls[1][2] as Record<string, unknown>;
+    const query = getPage.mock.calls[1][0] as Record<string, unknown>;
     expect(query).toMatchObject({ page: 0, sort: 'tableId,desc' });
   });
 
@@ -137,7 +158,7 @@ describe('OrdersTable (server-side paging)', () => {
     fixture.componentInstance.onLazyLoad({ first: 20, rows: 10 });
     fixture.componentInstance.onLazyLoad({ first: 20, rows: 10, sortField: 'date', sortOrder: 1 });
 
-    const query = getPage.mock.calls[2][2] as Record<string, unknown>;
+    const query = getPage.mock.calls[2][0] as Record<string, unknown>;
     expect(query).toMatchObject({ page: 0, sort: 'date,asc' });
     expect(fixture.componentInstance.first).toBe(0);
   });
@@ -146,7 +167,7 @@ describe('OrdersTable (server-side paging)', () => {
     fixture.componentInstance.onLazyLoad({ first: 0, rows: 10, sortField: 'id', sortOrder: 1 });
     fixture.componentInstance.onLazyLoad({ first: 0, rows: 10, sortField: 'id', sortOrder: 0 });
 
-    const query = getPage.mock.calls[2][2] as Record<string, unknown>;
+    const query = getPage.mock.calls[2][0] as Record<string, unknown>;
     expect(query).toMatchObject({ page: 0, sort: 'date,desc' });
     expect(fixture.componentInstance.sortField).toBe('date');
     expect(fixture.componentInstance.sortOrder).toBe(-1);
@@ -166,7 +187,7 @@ describe('OrdersTable (server-side paging)', () => {
     fixture.componentInstance.onSearchChange();
 
     expect(getPage).toHaveBeenCalledTimes(3);
-    const query = getPage.mock.calls[2][2] as Record<string, unknown>;
+    const query = getPage.mock.calls[2][0] as Record<string, unknown>;
     expect(query).toMatchObject({ page: 0, size: 10, search: 'mesa 4' });
   });
 
@@ -174,9 +195,22 @@ describe('OrdersTable (server-side paging)', () => {
     fixture.componentInstance.onLazyLoad({ first: 30, rows: 10 });
     fixture.componentInstance.onStatusChange('READY');
 
-    const query = getPage.mock.calls[2][2] as Record<string, unknown>;
+    const query = getPage.mock.calls[2][0] as Record<string, unknown>;
     expect(query).toMatchObject({ page: 0, status: 'READY' });
     expect(fixture.componentInstance.first).toBe(0);
+  });
+
+  it('labels today and yesterday, and keeps the full date for older orders', () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date(2026, 10, 27, 18, 0, 0));
+
+      expect(fixture.componentInstance.formatDate(new Date(2026, 10, 27, 9, 5))).toBe('Hoy, 09:05 a. m.');
+      expect(fixture.componentInstance.formatDate(new Date(2026, 10, 26, 21, 30))).toBe('Ayer, 09:30 p. m.');
+      expect(fixture.componentInstance.formatDate(new Date(2026, 10, 25, 12, 0))).toBe('25/11/2026, 12:00 p. m.');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('totals MoneyDto line prices without producing NaN', () => {

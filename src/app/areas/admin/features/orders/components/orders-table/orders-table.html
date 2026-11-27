@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-4">
+<div class="flex h-full min-h-0 flex-col gap-4">
   <div class="rounded-xl">
     <div class="flex flex-col lg:flex-row justify-between gap-4">
       <div class="flex flex-col sm:flex-row gap-3 flex-wrap items-start sm:items-center flex-1">
@@ -86,7 +86,6 @@
           <th class="text-xs md:text-sm w-24" pSortableColumn="tableId">Mesa <p-sortIcon field="tableId" /></th>
           <th class="text-xs md:text-sm w-28">Total</th>
           <th class="text-xs md:text-sm">Productos</th>
-          <th class="text-xs md:text-sm w-24 text-center">Acciones</th>
         </tr>
       </ng-template>
       
@@ -135,23 +134,14 @@
               <span class="text-rms-ink-muted text-sm">Sin productos</span>
             }
           </td>
-          
-          <td class="text-center">
-            <app-rms-icon-button
-              icon="pi pi-eye"
-              ariaLabel="Ver detalles completos"
-              tooltip="Ver detalles completos"
-              (click)="showOrderDetails(order)"
-            />
-          </td>
         </tr>
       </ng-template>
 
       <ng-template #loadingbody>
         <tr>
-          <td colspan="7">
+          <td colspan="6">
             <div class="min-h-[400px] w-full">
-              <app-table-skeleton [rowCount]="6" [colCount]="7" />
+              <app-table-skeleton [rowCount]="6" [colCount]="6" />
             </div>
           </td>
         </tr>
@@ -159,7 +149,7 @@
 
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="7">
+          <td colspan="6">
             <app-rms-empty-state
               icon="pi pi-inbox"
               title="No hay pedidos para mostrar"
@@ -169,63 +159,14 @@
       </ng-template>
     </p-table>
   </div>
-</div>
 
-@if (error) {
-  <div class="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-rms-danger bg-rms-subtle p-4 text-rms-danger" role="alert">
-    <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
-    <span class="min-w-0 flex-1">{{ error }}</span>
-    <app-rms-button size="sm" variant="secondary" iconStart="pi pi-refresh" (click)="retry()">
-      Reintentar
-    </app-rms-button>
-  </div>
-}
-
-<p-dialog 
-  [(visible)]="detailsDialogVisible" 
-  [modal]="true" 
-  styleClass="w-[90vw] max-w-[700px]"
-  [header]="selectedOrder ? 'Pedido #' + selectedOrder.id : 'Detalles del Pedido'"
-  [draggable]="false"
->
-  @if (selectedOrder) {
-    <div class="flex flex-col gap-4">
-      <div class="grid grid-cols-2 gap-4 p-4 bg-rms-subtle rounded-xl">
-        <div>
-          <span class="text-rms-ink-muted text-sm">Estado:</span>
-          <app-rms-status-pill [label]="getStatusLabel(selectedOrder.status)" [status]="getStatusRole(selectedOrder.status)" />
-        </div>
-        <div>
-          <span class="text-rms-ink-muted text-sm">Mesa:</span>
-          <div class="font-medium">Mesa {{ selectedOrder.tableId }}</div>
-        </div>
-        <div>
-          <span class="text-rms-ink-muted text-sm">Fecha:</span>
-          <div class="font-medium">{{ formatDate(selectedOrder.date) }}</div>
-        </div>
-        <div>
-          <span class="text-rms-ink-muted text-sm">Total:</span>
-          <div class="font-medium text-lg">{{ (selectedOrder.total ?? getOrderTotal(selectedOrder)) | money }}</div>
-        </div>
-      </div>
-
-      <div>
-        <h3 class="font-medium mb-3 text-rms-ink">Productos</h3>
-        <div class="flex flex-col gap-2">
-          @for (detail of selectedOrder.details; track detail.id) {
-            <div class="flex items-center justify-between p-3 bg-rms-surface border border-rms-border rounded-xl">
-              <div class="flex flex-col">
-                <span class="font-medium">{{ detail.productName }}</span>
-              </div>
-              <span class="font-medium">
-                {{ detail.unitPrice | money }}
-              </span>
-            </div>
-          }
-        </div>
-      </div>
-
-
+  @if (error) {
+    <div class="flex flex-wrap items-center gap-3 rounded-xl border border-rms-danger bg-rms-subtle p-4 text-rms-danger" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span class="min-w-0 flex-1">{{ error }}</span>
+      <app-rms-button size="sm" variant="secondary" iconStart="pi pi-refresh" (click)="retry()">
+        Reintentar
+      </app-rms-button>
     </div>
   }
-</p-dialog>
+</div>
