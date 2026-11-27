@@ -4,7 +4,7 @@
 
 <br>
 <div align="center">
-  <img src="public/icons/Icon.png" width="96" alt="RMS logo">
+  <img src="docs/baner.png" width="900" alt="RMS — Sistema de Gestión para restaurantes">
 </div>
 <br><br>
 
