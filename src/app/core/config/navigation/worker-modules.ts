@@ -61,13 +61,8 @@ export const WORKER_MODULES = [
         routerLink: '/worker/cashier',
         exact: true,
       },
-      {
-        id: 'cuenta',
-        label: 'Cuenta',
-        description: 'Ajustes de cuenta',
-        icon: 'pi pi-user',
-        routerLink: '/worker/profile',
-      },
+      // Account settings live in the header profile menu ("Mi cuenta"), not in
+      // the service navigation.
     ],
     loadComponent: () =>
       import('@areas/cashier/cashier-area').then((m) => m.CashierArea),
@@ -111,13 +106,7 @@ export const WORKER_MODULES = [
         exact: true,
         queryParams: { tab: 'pedidos' },
       },
-      {
-        id: 'cuenta',
-        label: 'Cuenta',
-        description: 'Ajustes de cuenta y horario',
-        icon: 'pi pi-user',
-        routerLink: '/worker/profile',
-      },
+      // Account settings live in the header profile menu ("Mi cuenta").
     ],
     loadComponent: () =>
       import('@areas/worker/features/waiter/waiter-dashboard/waiter-dashboard').then(

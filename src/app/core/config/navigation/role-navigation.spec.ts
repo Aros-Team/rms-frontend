@@ -131,9 +131,16 @@ describe('role navigation config', () => {
         'menu',
         'carta',
         'pedidos',
-        undefined,
       ]);
       expect(WORKER_NAV.waiter.every((item) => item.routerLink.startsWith('/worker/'))).toBe(true);
+    });
+
+    it('keeps the worker account out of the service navigation', () => {
+      // Account settings live in the header profile menu ("Mi cuenta"), so the
+      // kitchen (which has no navigation) can reach them too.
+      for (const items of Object.values(WORKER_NAV)) {
+        expect(items.some((item) => item.routerLink === '/worker/profile')).toBe(false);
+      }
     });
 
     it('gives the cashier a real cashier destination', () => {

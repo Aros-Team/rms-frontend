@@ -24,9 +24,14 @@ import type { RmsStatus } from '@app/shared/ui/types/ui-types';
 import { Money } from '@app/shared/pipes/money/money';
 
 import { RmsButton } from '@app/shared/ui/button/button';
-import { RmsDialog } from '@app/shared/ui/dialog/dialog';
 import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
 import { TodayOrdersSkeleton } from './skeletons/today-orders-skeleton';
+
+/**
+ * Statuses a waiter still has to act on. Anything else (queue, delivered,
+ * cancelled) is kitchen or cashier bookkeeping and never reaches this board.
+ */
+const ACTIVE_STATUSES = new Set<string>(['PREPARING', 'READY']);
 
 const STATUS_LABEL: Record<string, string> = {
   QUEUE: 'En cola',
@@ -94,20 +99,20 @@ function groupLines(details: readonly OrderDetailItem[]): OrderLineView[] {
 /**
  * Waiter "Pedidos" — today's live order board.
  *
- * Feature: follow what was sent to the kitchen and hand the bill to the cashier.
+ * Feature: follow what was sent to the kitchen and deliver it to the table.
  *
  * Contract:
  *  - polls the current day every 30 seconds;
+ *  - only orders the waiter can still act on are listed (`PREPARING`, `READY`);
+ *    queued, delivered and cancelled orders belong to the kitchen/cashier;
  *  - status is text plus semantic colour, never a bare dot;
- *  - the empty state offers the next action instead of a dead end;
- *  - the bill preview is a read-only total: payments are registered by the
- *    cashier, so this screen never invents payment UI.
+ *  - the empty state offers the next action instead of a dead end.
  */
 @Component({
   selector: 'app-today-orders',
   templateUrl: './today-orders.html',
   styleUrl: './today-orders.css',
-  imports: [Money, RmsButton, RmsDialog, RmsStatusPill, TodayOrdersSkeleton],
+  imports: [Money, RmsButton, RmsStatusPill, TodayOrdersSkeleton],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TodayOrders implements OnInit {
@@ -119,29 +124,12 @@ export class TodayOrders implements OnInit {
 
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
-  readonly orders = signal<OrderResponse[]>([]);
+  private readonly allOrders = signal<OrderResponse[]>([]);
+  /** Only the orders the waiter still has to act on. */
+  readonly orders = computed(() =>
+    this.allOrders().filter((order) => ACTIVE_STATUSES.has(order.status)),
+  );
   private readonly processingIds = signal(new Set<number>());
-
-  readonly billOrder = signal<OrderResponse | null>(null);
-  readonly billLines = computed(() => {
-    const order = this.billOrder();
-    return order ? groupLines(order.details) : [];
-  });
-
-  readonly billTitle = computed(() => {
-    const order = this.billOrder();
-    return order ? `Cuenta · Pedido #${String(order.id)}` : 'Cuenta';
-  });
-
-  readonly billTable = computed(() => {
-    const order = this.billOrder();
-    return order ? this.tableLabel(order) : '';
-  });
-
-  readonly billTotal = computed(() => {
-    const order = this.billOrder();
-    return order ? calculateTotalPrice(order) : 0;
-  });
 
   private subscription?: Subscription;
   private loadSeq = 0;
@@ -177,7 +165,7 @@ export class TodayOrders implements OnInit {
       .subscribe({
         next: (result) => {
           if (seq !== this.loadSeq) return;
-          this.orders.set(result.items);
+          this.allOrders.set(result.items);
           this.loading.set(false);
         },
         error: (err: unknown) => {
@@ -200,7 +188,9 @@ export class TodayOrders implements OnInit {
       }
       this.orderService.deliverDetail(order.id, line.detailIds[index]).subscribe({
         next: (updated) => {
-          this.orders.update((list) => list.map((item) => (item.id === updated.id ? updated : item)));
+          this.allOrders.update((list) =>
+            list.map((item) => (item.id === updated.id ? updated : item)),
+          );
           index += 1;
           step();
         },
@@ -225,7 +215,9 @@ export class TodayOrders implements OnInit {
 
     this.orderService.deliverOrder(order.id).subscribe({
       next: (updated) => {
-        this.orders.update((list) => list.map((item) => (item.id === updated.id ? updated : item)));
+        this.allOrders.update((list) =>
+          list.map((item) => (item.id === updated.id ? updated : item)),
+        );
         this.clearProcessing(order.id);
       },
       error: (err: unknown) => {
@@ -283,18 +275,6 @@ export class TodayOrders implements OnInit {
 
   orderTotal(order: OrderResponse): number {
     return calculateTotalPrice(order);
-  }
-
-  showBill(order: OrderResponse): void {
-    this.billOrder.set(order);
-  }
-
-  closeBill(): void {
-    this.billOrder.set(null);
-  }
-
-  onBillVisible(visible: boolean): void {
-    if (!visible) this.closeBill();
   }
 
   goToCarta(): void {

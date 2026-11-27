@@ -9,7 +9,9 @@
  *  - the profile control renders the initials, the full name, the role label
  *    and the angle-down chevron;
  *  - the bell badge renders the unread count from NotificationCenter;
- *  - a WORKER identity has no admin subtitle.
+ *  - a WORKER identity has no admin subtitle;
+ *  - workers get "Mi cuenta" (`/worker/profile`) in the profile menu, above
+ *    "Cerrar sesión"; admins do not.
  *
  * Approach: standalone component through TestBed with boundary stubs for Auth
  * and NotificationCenter; resolve the external templates from `?raw` imports
@@ -118,5 +120,31 @@ describe('Header', () => {
     const element = create('WORKER');
 
     expect(element.querySelector('[data-testid="restaurant-subtitle"]')).toBeNull();
+  });
+
+  it('offers the account settings to workers inside the profile menu', () => {
+    const fixture = TestBed.createComponent(Header);
+    fixture.componentRef.setInput('role', 'WORKER');
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+
+    element.querySelector<HTMLButtonElement>('[data-testid="user-menu-button"]')?.click();
+    fixture.detectChanges();
+
+    const account = element.querySelector('[data-testid="user-menu-account"]');
+    expect(account?.getAttribute('href')).toBe('/worker/profile');
+    expect(account?.textContent).toContain('Mi cuenta');
+  });
+
+  it('does not offer the worker account to an admin', () => {
+    const fixture = TestBed.createComponent(Header);
+    fixture.componentRef.setInput('role', 'ADMIN');
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+
+    element.querySelector<HTMLButtonElement>('[data-testid="user-menu-button"]')?.click();
+    fixture.detectChanges();
+
+    expect(element.querySelector('[data-testid="user-menu-account"]')).toBeNull();
   });
 });

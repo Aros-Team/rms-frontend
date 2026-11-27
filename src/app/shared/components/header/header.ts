@@ -47,8 +47,16 @@ export class Header implements OnInit, OnDestroy {
   readonly userEmail = computed(() => this.currentUser()?.email ?? '');
 
   readonly userRoleLabel = computed(() =>
-    (this.currentUser()?.role ?? this.role) === 'ADMIN' ? 'Administrador' : 'Trabajador',
+    (this.role ?? this.currentUser()?.role) === 'ADMIN' ? 'Administrador' : 'Trabajador',
   );
+
+  /**
+   * Workers reach their account, password and accessibility settings at
+   * `/worker/profile`; from the profile menu, next to "Cerrar sesión", so the
+   * menu is the only account entry point in every workspace (kitchen has no
+   * navigation at all).
+   */
+  readonly isWorker = computed(() => (this.role ?? this.currentUser()?.role) === 'WORKER');
 
   readonly userInitials = computed(() => {
     const name = this.currentUser()?.name.trim();

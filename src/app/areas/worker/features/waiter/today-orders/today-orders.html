@@ -12,9 +12,9 @@
   } @else if (orders().length === 0) {
     <div class="orders__empty">
       <span class="orders__empty-icon" aria-hidden="true"><i class="pi pi-inbox"></i></span>
-      <h2 class="orders__empty-title">No hay pedidos para hoy</h2>
+      <h2 class="orders__empty-title">No hay pedidos activos</h2>
       <p class="orders__empty-copy">
-        Cuando envíes un pedido desde la carta aparecerá aquí con su estado en tiempo real.
+        Cuando cocina tome un pedido aparecerá aquí, y podrás entregarlo en cuanto esté listo.
       </p>
       <app-rms-button size="lg" iconStart="pi pi-book" (click)="goToCarta()">Ver la carta</app-rms-button>
     </div>
@@ -76,11 +76,8 @@
               </ul>
             }
 
-            <footer class="order-card__actions">
-              <app-rms-button variant="secondary" size="lg" (click)="showBill(order)">
-                Ver cuenta
-              </app-rms-button>
-              @if (order.status === 'READY') {
+            @if (order.status === 'READY') {
+              <footer class="order-card__actions">
                 <app-rms-button
                   size="lg"
                   iconStart="pi pi-check"
@@ -90,59 +87,11 @@
                 >
                   Entregar
                 </app-rms-button>
-              }
-            </footer>
+              </footer>
+            }
           </article>
         </li>
       }
     </ul>
   }
 </div>
-
-<app-rms-dialog
-  [visible]="billOrder() !== null"
-  (visibleChange)="onBillVisible($event)"
-  [header]="billTitle()"
-  width="420px"
->
-  @if (billOrder(); as order) {
-    <div class="bill">
-      <p class="bill__meta">
-        {{ billTable() }} · {{ orderTime(order.date) }} ·
-        <app-rms-status-pill [label]="statusLabel(order.status)" [status]="statusTone(order.status)" />
-      </p>
-
-      <ul class="bill__lines">
-        @for (line of billLines(); track line.key) {
-          <li class="bill__line">
-            <span class="bill__qty">{{ line.quantity }}×</span>
-            <span class="bill__body">
-              <span class="bill__name">{{ line.name }}</span>
-              @if (line.options) {
-                <span class="bill__options">{{ line.options }}</span>
-              }
-              @if (line.instructions) {
-                <span class="bill__note">“{{ line.instructions }}”</span>
-              }
-            </span>
-            <span class="bill__total">{{ line.total | money }}</span>
-          </li>
-        }
-      </ul>
-
-      <div class="bill__grand-total">
-        <span>Total a cobrar</span>
-        <span class="bill__amount">{{ billTotal() | money }}</span>
-      </div>
-
-      <p class="bill__handoff" role="note">
-        <i class="pi pi-info-circle" aria-hidden="true"></i>
-        El cajero cobrará este total en caja. Aquí no se registran pagos ni propinas.
-      </p>
-    </div>
-  }
-
-  <div rmsDialogFooter>
-    <app-rms-button variant="secondary" size="lg" (click)="closeBill()">Cerrar</app-rms-button>
-  </div>
-</app-rms-dialog>
