@@ -1,0 +1,95 @@
+<div class="floor-canvas" [class.floor-canvas--disabled]="disabled" [class.floor-canvas--fullbleed]="fullBleed">
+  <div class="floor-canvas__scroll">
+    <svg
+      #canvas
+      class="floor-canvas__svg"
+      [class.floor-canvas__svg--draw]="tool === 'draw'"
+      [class.floor-canvas__svg--erase]="tool === 'erase'"
+      [class.floor-canvas__svg--pan]="tool === 'pan'"
+      [attr.viewBox]="frame().viewBox"
+      preserveAspectRatio="none"
+      role="group"
+      tabindex="0"
+      [attr.aria-label]="'Lienzo de distribución del restaurante. ' + layout.columns + ' por ' + layout.rows + ' celdas.'"
+      [attr.aria-describedby]="instructionsId"
+      (pointerdown)="onPointerDown($event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUp($event)"
+      (pointercancel)="onPointerCancel($event)"
+      (pointerleave)="onPointerLeave()"
+      (contextmenu)="onContextMenu($event)"
+    >
+      <defs>
+        <pattern
+          [attr.id]="gridId"
+          width="1"
+          height="1"
+          patternUnits="userSpaceOnUse"
+        >
+          <path
+            d="M 1 0 L 0 0 L 0 1"
+            fill="none"
+            stroke="var(--rms-border)"
+            stroke-width="0.035"
+          />
+        </pattern>
+      </defs>
+
+      <rect
+        [attr.x]="frame().x"
+        [attr.y]="frame().y"
+        [attr.width]="frame().width"
+        [attr.height]="frame().height"
+        [attr.fill]="'url(#' + gridId + ')'"
+        pointer-events="all"
+      />
+
+      @for (item of areaShapes(); track item.areaId) {
+        <g
+          class="area-shape"
+          [attr.data-color]="item.colorIndex"
+        >
+          <title>{{ item.name }} · {{ item.cellCount }} celdas</title>
+          <path
+            class="area-shape__fill"
+            [attr.d]="item.shape.fillPath"
+            pointer-events="none"
+          />
+          <path
+            class="area-shape__outline"
+            [attr.d]="item.shape.outlinePath"
+            fill="none"
+            pointer-events="none"
+          />
+          @if (item.shape.showLabel) {
+            <text
+              class="area-shape__label"
+              [attr.x]="item.shape.labelX"
+              [attr.y]="item.shape.labelY"
+              [attr.font-size]="Math.min(0.42, item.shape.bounds.height * 0.22)"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              pointer-events="none"
+            >
+              {{ regionLabel(item.name) }}
+            </text>
+          }
+        </g>
+      }
+
+      @if (selectedShape(); as shape) {
+        <path
+          class="region-selection"
+          [attr.d]="shape.outlinePath"
+          fill="none"
+          pointer-events="none"
+        />
+      }
+    </svg>
+  </div>
+
+  <p [id]="instructionsId" class="sr-only">
+    Mantén pulsado y arrastra para dibujar. Usa las herramientas para seleccionar, borrar o mover
+    regiones. Con una región seleccionada, las flechas la desplazan y Suprimir la elimina.
+  </p>
+</div>

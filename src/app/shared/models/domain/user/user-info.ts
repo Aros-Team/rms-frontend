@@ -9,4 +9,6 @@ export interface UserInfo {
   address?: string;
   role: 'ADMIN' | 'WORKER';
   areas: Area[];
+  /** Explicit activities assigned per area (worker assignments). */
+  areaActivities?: { areaId: number; activities: string[] }[];
 }

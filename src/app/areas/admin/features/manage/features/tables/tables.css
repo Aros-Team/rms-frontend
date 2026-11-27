@@ -1,0 +1,71 @@
+:host {
+  display: block;
+  min-height: 0;
+  height: 100%;
+}
+
+.table-row {
+  display: flex;
+  align-items: center;
+  gap: var(--rms-space-2);
+  padding: var(--rms-space-2) var(--rms-space-3);
+  cursor: grab;
+}
+
+.table-row:active {
+  cursor: grabbing;
+}
+
+.table-row:hover {
+  background: var(--rms-bg-subtle);
+}
+
+.table-row--selected {
+  background: var(--rms-bg-selected);
+}
+
+.table-row__handle {
+  color: var(--rms-text-muted);
+  font-size: 0.8rem;
+  cursor: grab;
+}
+
+.table-row__main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.table-row__number {
+  color: var(--rms-text);
+  font-size: var(--rms-type-body-size);
+  font-weight: var(--rms-weight-semibold);
+}
+
+.table-row__capacity {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rms-space-1);
+  color: var(--rms-text-muted);
+  font-size: var(--rms-type-caption-size);
+}
+
+.table-row__area {
+  overflow: hidden;
+  color: var(--rms-text-muted);
+  font-size: var(--rms-type-caption-size);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table-row__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--rms-space-1);
+}
+
+.table-row app-rms-status-pill {
+  flex: none;
+}

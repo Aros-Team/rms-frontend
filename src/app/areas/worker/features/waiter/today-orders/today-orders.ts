@@ -34,7 +34,7 @@ import { TodayOrdersSkeleton } from './skeletons/today-orders-skeleton';
 const STATUS_LABEL: Record<string, string> = {
   QUEUE: 'En cola',
   PREPARING: 'Preparando',
-  READY: 'Preparado',
+  READY: 'Listo',
   DELIVERED: 'Entregada',
   CANCELLED: 'Cancelada',
 };
@@ -138,7 +138,7 @@ export class TodayOrders implements OnInit {
     { label: 'Todos', value: '' },
     { label: 'En cola', value: 'QUEUE' },
     { label: 'Preparando', value: 'PREPARING' },
-    { label: 'Preparado', value: 'READY' },
+    { label: 'Listo', value: 'READY' },
     { label: 'Entregada', value: 'DELIVERED' },
     { label: 'Cancelada', value: 'CANCELLED' },
   ] as const;

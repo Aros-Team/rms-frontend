@@ -1,0 +1,120 @@
+:host {
+  display: block;
+  min-height: 0;
+  height: 100%;
+}
+
+.floor-canvas {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.floor-canvas--disabled {
+  opacity: 0.6;
+}
+
+.floor-canvas__scroll {
+  display: block;
+  flex: 1;
+  min-height: 20rem;
+  overflow: hidden;
+  padding: var(--rms-space-4);
+  border: var(--rms-border-width) solid var(--rms-border);
+  border-radius: var(--rms-radius-lg);
+  background: var(--rms-bg-sunken);
+}
+
+.floor-canvas__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--rms-radius-sm);
+  background: var(--rms-bg-surface);
+  outline: var(--rms-border-width) solid var(--rms-border);
+  cursor: default;
+  touch-action: none;
+  user-select: none;
+}
+
+.floor-canvas__svg--draw {
+  cursor: crosshair;
+}
+
+.floor-canvas__svg--erase {
+  cursor: cell;
+}
+
+.floor-canvas__svg--pan {
+  cursor: grab;
+}
+
+.floor-canvas__svg--pan:active {
+  cursor: grabbing;
+}
+
+.floor-canvas--fullbleed .floor-canvas__scroll {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--rms-bg-surface);
+}
+
+.floor-canvas--fullbleed .floor-canvas__svg {
+  border-radius: 0;
+  outline: 0;
+}
+
+.area-shape__fill {
+  fill-opacity: 0.08;
+}
+
+[data-color='1'] .area-shape__fill { fill: var(--rms-chart-1); }
+[data-color='2'] .area-shape__fill { fill: var(--rms-chart-2); }
+[data-color='3'] .area-shape__fill { fill: var(--rms-chart-3); }
+[data-color='4'] .area-shape__fill { fill: var(--rms-chart-4); }
+[data-color='5'] .area-shape__fill { fill: var(--rms-chart-5); }
+[data-color='6'] .area-shape__fill { fill: var(--rms-chart-6); }
+[data-color='7'] .area-shape__fill { fill: var(--rms-chart-7); }
+[data-color='8'] .area-shape__fill { fill: var(--rms-chart-8); }
+
+[data-color='1'] .area-shape__outline { stroke: var(--rms-chart-1); }
+[data-color='2'] .area-shape__outline { stroke: var(--rms-chart-2); }
+[data-color='3'] .area-shape__outline { stroke: var(--rms-chart-3); }
+[data-color='4'] .area-shape__outline { stroke: var(--rms-chart-4); }
+[data-color='5'] .area-shape__outline { stroke: var(--rms-chart-5); }
+[data-color='6'] .area-shape__outline { stroke: var(--rms-chart-6); }
+[data-color='7'] .area-shape__outline { stroke: var(--rms-chart-7); }
+[data-color='8'] .area-shape__outline { stroke: var(--rms-chart-8); }
+
+.area-shape__outline {
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: square;
+  vector-effect: non-scaling-stroke;
+}
+
+.region-selection {
+  stroke: var(--rms-focus);
+  stroke-width: 2;
+  stroke-dasharray: 7 5;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.area-shape__label {
+  fill: var(--rms-text);
+  font-family: var(--rms-font-sans);
+  font-weight: var(--rms-weight-semibold);
+  paint-order: stroke;
+  stroke: var(--rms-bg-surface);
+  stroke-width: 0.07;
+  stroke-linejoin: round;
+}
+
+@media (max-width: 640px) {
+  .floor-canvas__scroll {
+    padding: var(--rms-space-2);
+  }
+}

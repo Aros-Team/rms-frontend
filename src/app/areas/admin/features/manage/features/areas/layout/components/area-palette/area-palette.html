@@ -1,0 +1,43 @@
+<section class="area-palette" aria-labelledby="area-palette-title">
+  <div class="area-palette__heading">
+    <h2 id="area-palette-title" class="rms-label">Áreas</h2>
+    <span class="area-palette__count">{{ areas.length }}</span>
+  </div>
+
+  <p class="area-palette__hint">Selecciona un área y dibuja su zona en el lienzo.</p>
+
+  <div class="area-palette__list">
+    @for (item of items(); track item.area.id) {
+      <button
+        type="button"
+        class="area-item"
+        [class.area-item--active]="isSelected(item.area.id)"
+        [attr.aria-pressed]="isSelected(item.area.id)"
+        [disabled]="disabled"
+        (click)="select(item.area.id)"
+      >
+        <span
+          class="area-item__swatch"
+          [attr.data-color]="item.colorIndex"
+          aria-hidden="true"
+        ></span>
+        <span class="area-item__body">
+          <span class="area-item__name">{{ item.area.name }}</span>
+          <span class="area-item__meta">{{ item.activities }}</span>
+        </span>
+        <span class="area-item__badges">
+          @if (!item.area.enabled) {
+            <span class="area-item__inactive">Inactiva</span>
+          }
+          @if (item.regionCount > 0) {
+            <span class="area-item__count" aria-label="Ya está en el mapa">
+              <i class="pi pi-check" aria-hidden="true"></i>
+            </span>
+          }
+        </span>
+      </button>
+    } @empty {
+      <p class="area-palette__empty">No hay áreas registradas.</p>
+    }
+  </div>
+</section>

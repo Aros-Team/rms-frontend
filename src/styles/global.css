@@ -343,7 +343,7 @@ main[tabindex='-1']:focus-visible {
      .rms-nav-item            base: inline-flex, centred, 8 px radius, motion
                               on colour/background, secondary text colour
      .rms-nav-item--inline    header: row, 0.5rem 0.75rem padding, body size
-     .rms-nav-item--tile      sidebar rail: column, 9 px uppercase label block
+     .rms-nav-item--tile      sidebar rail: column, 10 px uppercase label block
      .rms-nav-item--bottom    worker: column + 4rem tall, full width; row from
                               1024 px, matching the old `lg:` rules
      .rms-nav-item--active    text + weight only, never a filled background
@@ -389,7 +389,7 @@ main[tabindex='-1']:focus-visible {
   .rms-nav-item--tile .rms-nav-item__label {
     display: block;
     width: 100%;
-    font-size: 0.5625rem;
+    font-size: 0.625rem;
     line-height: 1.25;
     font-weight: var(--rms-weight-medium);
     text-align: center;

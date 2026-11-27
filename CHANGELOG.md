@@ -4,6 +4,19 @@
 
 ### Features
 
+- **tables**: split the Mesas screen into a draggable table list and a read-only floor map.
+  Tables can be dropped or dragged onto enabled areas with the "Atención al cliente" activity,
+  moved between cells, removed from the map, and persist through the floor-layout API. Serve
+  areas are highlighted as valid drop zones.
+- **areas**: add a monochrome live distribution preview beside the Areas table (cropped and centered on the
+  painted content) and a large editor modal opened from it. The editor opens at 100% zoom with the
+  painted areas centered in the visible canvas. The grid is relative to the modal
+  viewport and the camera pans over an unbounded sheet in every direction; drawing above/left normalizes the
+  document coordinates so the stored extent only grows as you paint. Areas are selected from the palette and removed with Quitar del mapa; the Mover tool,
+  middle mouse and the edge pan the camera. Each area renders with a light fill and one outer boundary, never a
+  border per cell. The editor supports draw, erase, undo/redo and an unsaved-changes close flow.
+  Geometry and editor transitions are framework-agnostic utilities with their own tests.
+
 - **team**: new `Equipo` admin module grouping the workforce screens under `/admin/team`
   (Empleados, Horarios, Asistencia, Nómina). Attendance and payroll are now flat sibling
   routes instead of tabs nested inside Horarios and Empleados; the old `/admin/schedules`

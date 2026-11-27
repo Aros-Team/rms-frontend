@@ -7,7 +7,7 @@
  *  - the three columns render oldest first with real counts;
  *  - station comes from the product catalogue and the filter narrows the board;
  *  - the timer derives from the order date and crosses the overdue threshold;
- *  - "Tomar siguiente", "Marcar lista" and "Entregar" never submit twice;
+ *  - "Tomar siguiente" and "Marcar lista" never submit twice;
  *  - WebSocket events are idempotent and a dropped socket starts polling; a
  *    reconnect refetches every column;
  *  - a failed column shows an error and a capped walk is declared.
@@ -119,8 +119,9 @@ describe('Kitchen', () => {
     prepareNext: ReturnType<typeof vi.fn>;
     prepareOrder: ReturnType<typeof vi.fn>;
     markAsReady: ReturnType<typeof vi.fn>;
+    markAreaReady: ReturnType<typeof vi.fn>;
+    startArea: ReturnType<typeof vi.fn>;
     markDetailReady: ReturnType<typeof vi.fn>;
-    deliverOrder: ReturnType<typeof vi.fn>;
   };
   let productStub: { getAllProducts: ReturnType<typeof vi.fn> };
   let wsEvents: Record<string, Subject<OrderResponse>>;
@@ -188,8 +189,9 @@ describe('Kitchen', () => {
       prepareNext: vi.fn(),
       prepareOrder: vi.fn(),
       markAsReady: vi.fn(),
+      markAreaReady: vi.fn(),
+      startArea: vi.fn(),
       markDetailReady: vi.fn(),
-      deliverOrder: vi.fn(),
     };
     productStub = { getAllProducts: vi.fn(() => of(PRODUCTS)) };
 
@@ -224,7 +226,23 @@ describe('Kitchen', () => {
     vi.useRealTimers();
   });
 
-  async function configure(): Promise<void> {
+  const DEFAULT_WORKER = {
+    id: 1,
+    name: 'Cook',
+    document: '1',
+    email: 'cook@rms.test',
+    role: 'WORKER' as const,
+    areas: [
+      { id: 1, name: 'Cocina', activities: ['PREPARATION' as const] },
+      { id: 3, name: 'Bar', activities: ['PREPARATION' as const, 'SERVE' as const] },
+    ],
+    areaActivities: [
+      { areaId: 1, activities: ['PREPARATION'] },
+      { areaId: 3, activities: ['PREPARATION'] },
+    ],
+  };
+
+  async function configure(worker: unknown = undefined): Promise<void> {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       imports: [Kitchen],
@@ -232,7 +250,13 @@ describe('Kitchen', () => {
         { provide: Order, useValue: orderStub },
         { provide: Product, useValue: productStub },
         { provide: WebSocket, useValue: wsStub },
-        { provide: Auth, useValue: { getToken: () => 'jwt-token' } },
+        {
+          provide: Auth,
+          useValue: {
+            getToken: () => 'jwt-token',
+            getData: () => worker,
+          },
+        },
         {
           provide: Logging,
           useValue: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
@@ -271,6 +295,50 @@ describe('Kitchen', () => {
     return button as HTMLButtonElement;
   }
 
+  describe('assigned preparation areas', () => {
+    const BAR_ONLY = {
+      ...DEFAULT_WORKER,
+      areas: [
+        { id: 2, name: 'Salón Principal', activities: ['SERVE' as const] },
+        { id: 3, name: 'Bar', activities: ['PREPARATION' as const, 'SERVE' as const] },
+      ],
+      areaActivities: [
+        { areaId: 2, activities: ['SERVE'] },
+        { areaId: 3, activities: ['PREPARATION', 'SERVE'] },
+      ],
+    };
+
+    it('starts on the only assigned preparation area and hides the kitchen station', async () => {
+      await configure(BAR_ONLY);
+
+      expect(component.selectedStation()).toBe('area:3');
+      expect(component.stationFilterVisible()).toBe(false);
+      expect(getAllByStatus).toHaveBeenCalledWith('QUEUE', { sort: 'date,asc', areaId: 3 });
+
+      // Order #101 is kitchen-only, so the API area filter drops it.
+      expect(columnIds('queue')).toEqual(['#102']);
+      expect(columnIds('preparing')).toEqual([]);
+      expect(columnIds('ready')).toEqual(['#104']);
+
+      // Order #102 has kitchen and bar lines; only the bar group is rendered.
+      expect(
+        component.groupsFor(component.queueOrders()[0]).map((group) => group.station.name),
+      ).toEqual(['Bar']);
+      expect(text(host().querySelector('.kitchen__subtitle'))).toContain('Bar');
+    });
+
+    it('marks ready only the assigned preparation area', async () => {
+      await configure(BAR_ONLY);
+      const order = component.queueOrders()[0];
+      orderStub.markAreaReady.mockReturnValue(of(order));
+
+      component.markReady(order);
+
+      expect(orderStub.markAreaReady).toHaveBeenCalledWith(order.id, 3);
+      expect(orderStub.markAsReady).not.toHaveBeenCalled();
+    });
+  });
+
   describe('board layout', () => {
     beforeEach(async () => {
       await configure();
@@ -285,7 +353,7 @@ describe('Kitchen', () => {
       expect(text(host().querySelector('[data-testid="preparing-count"]'))).toBe('1');
       expect(text(host().querySelector('[data-testid="ready-count"]'))).toBe('1');
       expect(host().querySelectorAll('h1')).toHaveLength(1);
-      expect(text(host().querySelector('h1'))).toBe('Cocina');
+      expect(text(host().querySelector('h1'))).toBe('Preparación');
       expect(getAllByStatus).toHaveBeenCalledWith('QUEUE', { sort: 'date,asc' });
       expect(productStub.getAllProducts).toHaveBeenCalledWith(true);
     });
@@ -502,44 +570,6 @@ describe('Kitchen', () => {
       expect(component.isProcessing(103)).toBe(false);
       expect(columnIds('preparing')).toEqual([]);
       expect(columnIds('ready')).toEqual(['#104', '#103']);
-    });
-
-    it('asks for confirmation before delivering and never double-submits', () => {
-      const order = component.readyOrders()[0];
-      const pending = new Subject<OrderResponse>();
-      orderStub.deliverOrder.mockReturnValue(pending.asObservable());
-
-      component.askDeliver(order);
-      fixture.detectChanges();
-      expect(component.deliverTarget()?.id).toBe(104);
-      expect(component.deliverHeader()).toBe('Entregar pedido #104');
-
-      component.confirmDeliver();
-      component.confirmDeliver();
-
-      expect(orderStub.deliverOrder).toHaveBeenCalledTimes(1);
-      expect(component.deliverBusy()).toBe(true);
-
-      pending.next(order);
-      pending.complete();
-      fixture.detectChanges();
-
-      expect(component.deliverBusy()).toBe(false);
-      expect(component.deliverTarget()).toBeNull();
-      expect(columnIds('ready')).toEqual([]);
-    });
-
-    it('keeps the board painted and disables the action while delivering', () => {
-      const order = component.readyOrders()[0];
-      orderStub.deliverOrder.mockReturnValue(new Subject<OrderResponse>().asObservable());
-
-      component.askDeliver(order);
-      component.confirmDeliver();
-      fixture.detectChanges();
-
-      expect(component.deliverBusy()).toBe(true);
-      component.onDeliverVisible(false);
-      expect(component.deliverTarget()?.id).toBe(104);
     });
 
     it('takes the next order from the T shortcut', () => {

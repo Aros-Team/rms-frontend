@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, catchError, of } from 'rxjs';
 import { DialogModule } from 'primeng/dialog';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputIconModule } from 'primeng/inputicon';
@@ -32,6 +32,7 @@ import { AreaResponse } from '@app/shared/models/dto/areas/area';
 import { Area } from '@app/core/services/areas/area';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
+import { RmsCheckbox } from '@app/shared/ui/checkbox/checkbox';
 import { RmsField } from '@app/shared/ui/field/field';
 import { RmsInput } from '@app/shared/ui/input/input';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
@@ -72,6 +73,7 @@ interface WorkerFormValue {
     ConfirmDialogModule,
     LazyLoad,
     RmsButton,
+    RmsCheckbox,
     RmsEmptyState,
     RmsField,
     RmsInput,
@@ -140,6 +142,7 @@ export class Workers implements OnInit {
     reason: new FormControl<string | null>(null),
     observations: new FormControl<string | null>(null),
     areaIds: new FormControl<number[]>([], [(control: AbstractControl) => Validators.required(control)]),
+    areaActivities: new FormControl<Record<string, string[]>>({}),
   });
 
   creationModalVisible = false;
@@ -191,7 +194,63 @@ export class Workers implements OnInit {
 
     this.userForm.get('areaIds')?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((ids) => { this.enforceExclusiveAreas((ids as number[] | null) ?? []); });
+      .subscribe((ids) => {
+        const selected = (ids as number[] | null) ?? [];
+        this.enforceExclusiveAreas(selected);
+        this.syncAreaActivities(selected);
+      });
+  }
+
+  private syncAreaActivities(areaIds: readonly number[]): void {
+    const current =
+      (this.userForm.get('areaActivities')?.value as Record<string, string[]> | null) ?? {};
+    const next: Record<string, string[]> = {};
+    for (const areaId of areaIds) {
+      const key = String(areaId);
+      const existing = current[key] ?? [];
+      const area = this.areas().find((candidate) => candidate.id === areaId);
+      next[key] = existing.length > 0 ? existing : [...(area?.activities ?? [])];
+    }
+    this.userForm.patchValue({ areaActivities: next }, { emitEvent: false });
+  }
+
+  readonly activityOptions = [
+    { label: 'Preparación', value: 'PREPARATION' },
+    { label: 'Atención al cliente', value: 'SERVE' },
+    { label: 'Caja', value: 'CASH' },
+  ] as const;
+
+  activityLabel(activity: string): string {
+    return this.activityOptions.find((item) => item.value === activity)?.label ?? activity;
+  }
+
+  selectedAreasForActivities(): AreaResponse[] {
+    const ids = (this.userForm.get('areaIds')?.value as number[] | null) ?? [];
+    return this.areas().filter((area) => ids.includes(area.id));
+  }
+
+  workerActivitySelected(areaId: number, activity: string): boolean {
+    const map =
+      (this.userForm.get('areaActivities')?.value as Record<string, string[]> | null) ?? {};
+    return (map[String(areaId)] ?? []).includes(activity);
+  }
+
+  toggleWorkerActivity(areaId: number, activity: string, checked: boolean): void {
+    const map = {
+      ...((this.userForm.get('areaActivities')?.value as Record<string, string[]> | null) ?? {}),
+    };
+    const key = String(areaId);
+    const current = map[key] ?? [];
+    map[key] = checked
+      ? [...new Set([...current, activity])]
+      : current.filter((value) => value !== activity);
+    this.userForm.patchValue({ areaActivities: map }, { emitEvent: false });
+  }
+
+  private areaActivitiesPayload(): Record<string, string[]> {
+    return (
+      (this.userForm.get('areaActivities')?.value as Record<string, string[]> | null) ?? {}
+    );
   }
 
   /** Keeps an exclusive area alone as soon as the admin selects it. */
@@ -414,14 +473,22 @@ export class Workers implements OnInit {
 
     this.workerService.createWorker(this.formToRequest()).subscribe({
       next: (created) => {
-        this.saveWorkerImage(created.id, false, () => {
-          this.closeModals();
-          this.searchForWorkers();
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Operación exitosa',
-            detail: 'El trabajador ha sido creado. Se enviará una contraseña al correo.',
-            life: 5000,
+        const activities$ =
+          typeof this.workerService.updateAreaActivities === 'function'
+            ? this.workerService
+                .updateAreaActivities(created.id, this.areaActivitiesPayload())
+                .pipe(catchError(() => of(null)))
+            : of(null);
+        activities$.subscribe(() => {
+          this.saveWorkerImage(created.id, false, () => {
+            this.closeModals();
+            this.searchForWorkers();
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Operación exitosa',
+              detail: 'El trabajador ha sido creado. Se enviará una contraseña al correo.',
+              life: 5000,
+            });
           });
         });
       },
@@ -521,16 +588,24 @@ export class Workers implements OnInit {
 
     this.workerService.updateWorker(this.selectedWorker.id, updateData).subscribe({
       next: () => {
-        this.saveWorkerImage(workerId, true, () => {
-          this.closeModals();
-          this.searchForWorkers();
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Operación exitosa',
-            detail: 'El trabajador ha sido actualizado correctamente.',
-            life: 5000,
+        const activities$ =
+          typeof this.workerService.updateAreaActivities === 'function'
+            ? this.workerService
+                .updateAreaActivities(workerId, this.areaActivitiesPayload())
+                .pipe(catchError(() => of(null)))
+            : of(null);
+        activities$.subscribe(() => {
+            this.saveWorkerImage(workerId, true, () => {
+              this.closeModals();
+              this.searchForWorkers();
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Operación exitosa',
+                detail: 'El trabajador ha sido actualizado correctamente.',
+                life: 5000,
+              });
+            });
           });
-        });
       },
       error: (err: HttpErrorResponse) => {
         this.logger.error('Error updating worker:', err);
@@ -557,11 +632,11 @@ export class Workers implements OnInit {
         } else if (err.status === 404) {
           this.messageService.add({
             severity: 'error',
-              summary: 'Error',
-              detail: 'Trabajador no encontrado.',
-              life: 5000,
-            });
-          } else if (err.status === 409) {
+            summary: 'Error',
+            detail: 'Trabajador no encontrado.',
+            life: 5000,
+          });
+        } else if (err.status === 409) {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -696,6 +771,12 @@ export class Workers implements OnInit {
       address: data.address ?? '',
       jobTitle: data.jobTitle ?? '',
       areaIds: [...(data.assignedAreas ?? [])],
+      areaActivities: Object.fromEntries(
+        (data.areaActivities ?? []).map((assignment) => [
+          String(assignment.areaId),
+          assignment.activities,
+        ]),
+      ),
       salary: tryToAmount(data.salary),
     });
   }

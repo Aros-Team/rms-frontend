@@ -213,3 +213,98 @@ describe('Auth.login with the real {"data": …} envelope', () => {
     expect(emitted).toEqual(USER_INFO);
   });
 });
+
+/**
+ * Feature: when an admin changes a worker's areas, the access token still
+ * carries the old `areaTypes` claim while `/auth` already returns the new
+ * activities. The service refreshes once so area actions do not 403.
+ */
+describe('Auth stale area claims', () => {
+  const STALE_TOKEN = fakeJwt({ role: 'WORKER', areaTypes: ['SERVE'] });
+  const FRESH_TOKEN = fakeJwt({ role: 'WORKER', areaTypes: ['PREPARATION', 'SERVE'] });
+  const WORKER = {
+    id: 1013,
+    name: 'Renata',
+    document: '1',
+    email: 'renata@rms.test',
+    role: 'WORKER',
+    areas: [
+      { id: 2, name: 'Salón', activities: ['SERVE'] },
+      { id: 3, name: 'Bar', activities: ['PREPARATION', 'SERVE'] },
+    ],
+    areaActivities: [
+      { areaId: 2, activities: ['SERVE'] },
+      { areaId: 3, activities: ['PREPARATION', 'SERVE'] },
+    ],
+  };
+
+  let auth: Auth;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    clearCookies();
+    document.cookie = `rms_access=${STALE_TOKEN}; path=/; max-age=600`;
+    document.cookie = `rms_token_expiry=${String(Date.now() + 3_600_000)}; path=/; max-age=600`;
+    setRefreshCookie('refresh-stale');
+
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(withInterceptors([jwtInterceptor, errorInterceptor, envelopeInterceptor])),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        Auth,
+      ],
+    });
+
+    auth = TestBed.inject(Auth);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+    clearCookies();
+    TestBed.resetTestingModule();
+  });
+
+  it('refreshes once when the token activities differ from /auth', () => {
+    let emitted: unknown;
+    auth.loadUserInfo().subscribe((value) => (emitted = value));
+
+    const userRequest = httpMock.expectOne('auth');
+    expect(userRequest.request.headers.get('Authorization')).toBe(`Bearer ${STALE_TOKEN}`);
+    userRequest.flush({ data: WORKER });
+
+    const refreshRequest = httpMock.expectOne('auth/refresh');
+    refreshRequest.flush({ data: authResponse(FRESH_TOKEN, 'refresh-fresh') });
+
+    expect(auth.getToken()).toBe(FRESH_TOKEN);
+    expect(emitted).toEqual(WORKER);
+  });
+
+  it('does not refresh when the token already matches /auth', () => {
+    document.cookie = `rms_access=${FRESH_TOKEN}; path=/; max-age=600`;
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(withInterceptors([jwtInterceptor, errorInterceptor, envelopeInterceptor])),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        Auth,
+      ],
+    });
+    auth = TestBed.inject(Auth);
+    httpMock = TestBed.inject(HttpTestingController);
+
+    auth.loadUserInfo().subscribe();
+    httpMock.expectOne('auth').flush({ data: WORKER });
+    httpMock.expectNone('auth/refresh');
+
+    expect(auth.getToken()).toBe(FRESH_TOKEN);
+  });
+});
+
+function fakeJwt(payload: Record<string, unknown>): string {
+  const encode = (value: object): string =>
+    btoa(JSON.stringify(value)).replace(/=+$/u, '').replace(/\+/gu, '-').replace(/\//gu, '_');
+  return `${encode({ alg: 'none', typ: 'JWT' })}.${encode(payload)}.signature`;
+}

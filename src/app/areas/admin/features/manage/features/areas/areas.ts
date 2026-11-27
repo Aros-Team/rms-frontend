@@ -1,9 +1,11 @@
-import { Component, OnInit, OnDestroy, inject, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, computed, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Area } from '@app/core/services/areas/area';
-import { AreaRequest, AreaTypeValue } from '@app/shared/models/dto/areas/area';
+import { FloorLayoutApi } from '@app/core/services/floor-layout/floor-layout';
+import { AreaRequest, AreaActivityValue } from '@app/shared/models/dto/areas/area';
 import { AreaSimpleResponse } from '@app/shared/models/dto/areas/area-simple-response';
+import type { FloorLayout } from '@app/shared/models/dto/floor-layout/floor-layout';
 import { Auth } from '@app/core/services/auth/auth';
 import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
@@ -11,20 +13,26 @@ import { TableModule } from 'primeng/table';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { fieldError as resolveFieldError } from '@app/shared/lib/form-error';
+import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
 import { TablesCache } from '../tables/tables-cache';
 import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsCheckbox } from '@app/shared/ui/checkbox/checkbox';
+import { RmsDialog } from '@app/shared/ui/dialog/dialog';
 import { RmsInput } from '@app/shared/ui/input/input';
-import { RmsSelect } from '@app/shared/ui/select/select';
 import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
+import { RmsSkeleton } from '@app/shared/ui/skeleton/skeleton';
 import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
+
+import { FloorLayout as FloorLayoutEditor } from './layout/floor-layout';
+import { LayoutPreview } from './layout/components/layout-preview/layout-preview';
 
 @Component({
   selector: 'app-areas',
   imports: [
+    FormsModule,
     ReactiveFormsModule,
     TableModule,
     DialogModule,
@@ -34,16 +42,20 @@ import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
     TableSkeleton,
     RmsButton,
     RmsCheckbox,
+    RmsDialog,
     RmsIconButton,
     RmsPageHeader,
+    RmsSkeleton,
     RmsStatusPill,
     RmsInput,
-    RmsSelect,
+    FloorLayoutEditor,
+    LayoutPreview,
   ],
   templateUrl: './areas.html'
 })
 export class Areas implements OnInit, OnDestroy {
   private areaService = inject(Area);
+  private readonly layoutApi = inject(FloorLayoutApi);
   private fb = inject(FormBuilder);
   private authService = inject(Auth);
   private messages = inject(MessageService);
@@ -55,23 +67,41 @@ export class Areas implements OnInit, OnDestroy {
   editMode = false;
   selectedArea?: AreaSimpleResponse;
 
+  readonly editorOpen = signal(false);
+  readonly layoutPreview = signal<FloorLayout | null>(null);
+  readonly layoutPreviewLoading = signal(true);
+  readonly layoutPreviewError = signal<string | null>(null);
+
   form: FormGroup = this.fb.group({
     name: ['', (control: AbstractControl) => Validators.required(control)],
-    type: ['', (control: AbstractControl) => Validators.required(control)],
+    activities: [[] as AreaActivityValue[], (control: AbstractControl) => Validators.required(control)],
     exclusive: [false],
   });
 
-  /** Area types accepted by the API (`AreaType` enum). */
-  readonly areaTypes: { label: string; value: AreaTypeValue }[] = [
-    { label: 'Cocina', value: 'KITCHEN' },
-    { label: 'Servicio', value: 'SERVICE' },
-    { label: 'Bar', value: 'BAR' },
-    { label: 'Parrilla', value: 'GRILL' },
+  /** Activities that can be performed in an area. */
+  readonly activityOptions: { label: string; value: AreaActivityValue }[] = [
+    { label: 'Preparación de productos', value: 'PREPARATION' },
+    { label: 'Atención al cliente', value: 'SERVE' },
     { label: 'Caja', value: 'CASH' },
   ];
 
-  areaTypeLabel(type: AreaTypeValue): string {
-    return this.areaTypes.find((t) => t.value === type)?.label ?? type;
+  activityLabels(activities: AreaActivityValue[] | undefined): string {
+    if (!activities || activities.length === 0) return 'Sin actividades';
+    return activities
+      .map((activity) => this.activityOptions.find((item) => item.value === activity)?.label ?? activity)
+      .join(', ');
+  }
+
+  isActivitySelected(activity: AreaActivityValue): boolean {
+    return (this.form.get('activities')?.value as AreaActivityValue[] | null)?.includes(activity) ?? false;
+  }
+
+  toggleActivity(activity: AreaActivityValue, checked: boolean): void {
+    const current = (this.form.get('activities')?.value as AreaActivityValue[] | null) ?? [];
+    const next = checked
+      ? [...new Set([...current, activity])]
+      : current.filter((value) => value !== activity);
+    this.form.patchValue({ activities: next });
   }
 
   /** Validation copy for a control, rendered by the primitive's `[error]`. */
@@ -81,14 +111,47 @@ export class Areas implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.cache.areas.loadIfStale();
+    this.loadLayoutPreview();
   }
 
   onVisible(): void {
     this.cache.areas.loadIfStale();
+    this.loadLayoutPreview();
   }
 
   loadAreas(): void {
     this.cache.areas.refresh();
+  }
+
+  loadLayoutPreview(): void {
+    this.layoutPreviewLoading.set(true);
+    this.layoutPreviewError.set(null);
+    this.layoutApi.getLayout().subscribe({
+      next: (layout) => {
+        this.layoutPreview.set(layout);
+        this.layoutPreviewLoading.set(false);
+      },
+      error: (error: unknown) => {
+        this.layoutPreview.set(null);
+        this.layoutPreviewError.set(
+          extractProblemDetail(error) ?? 'No se pudo cargar la distribución.',
+        );
+        this.layoutPreviewLoading.set(false);
+      },
+    });
+  }
+
+  openEditor = (): void => {
+    this.editorOpen.set(true);
+  };
+
+  onEditorClosed(): void {
+    this.editorOpen.set(false);
+    this.loadLayoutPreview();
+  }
+
+  onEditorVisible(visible: boolean): void {
+    this.editorOpen.set(visible);
   }
 
   ngOnDestroy(): void {
@@ -108,7 +171,7 @@ export class Areas implements OnInit, OnDestroy {
     this.selectedArea = area;
     this.form.patchValue({
       name: area.name,
-      type: area.type,
+      activities: [...area.activities],
       exclusive: area.exclusive === true,
     });
     this.modalVisible = true;

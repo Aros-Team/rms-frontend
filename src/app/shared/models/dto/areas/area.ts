@@ -1,12 +1,12 @@
 /**
- * Values accepted by the API's `AreaType` enum (`AreaController`).
- * Keep in sync with `core/area/domain/AreaType.java`.
+ * Activities that can be performed in a physical area.
+ * Keep in sync with `core/area/domain/AreaActivity.java`.
  */
-export type AreaTypeValue = 'KITCHEN' | 'SERVICE' | 'BAR' | 'GRILL' | 'CASH';
+export type AreaActivityValue = 'PREPARATION' | 'SERVE' | 'CASH';
 
 export interface AreaRequest {
   name: string;
-  type: AreaTypeValue;
+  activities: AreaActivityValue[];
   /** An exclusive area cannot be combined with other areas. */
   exclusive: boolean;
 }
@@ -14,8 +14,10 @@ export interface AreaRequest {
 export interface AreaResponse {
   id: number;
   name: string;
-  type: AreaTypeValue;
+  activities: AreaActivityValue[];
   enabled: boolean;
   /** An exclusive area cannot be combined with other areas. */
   exclusive: boolean;
 }
+
+export type AreaTypeValue = AreaActivityValue;

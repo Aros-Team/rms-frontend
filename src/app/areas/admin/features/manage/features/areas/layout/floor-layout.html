@@ -1,0 +1,177 @@
+<div class="floor-editor">
+  <div class="floor-editor__stage">
+    @if (!loading() && loadError() === null && areas().length > 0) {
+      <app-layout-canvas
+        #editorCanvas
+        [layout]="layout()"
+        [tool]="tool()"
+        [zoom]="zoom()"
+        [areas]="areas()"
+        [selectedAreaId]="selectedAreaId()"
+        [fullBleed]="true"
+        (paintCells)="onPaintCells($event)"
+        (eraseCells)="onEraseCells($event)"
+        (strokeStart)="onStrokeStart()"
+        (strokeEnd)="onStrokeEnd()"
+        (missingArea)="onMissingArea()"
+        (modelShift)="onModelShift($event)"
+      />
+    }
+  </div>
+
+  <div class="floor-editor__dock">
+    <aside class="floor-editor__panel" aria-label="Áreas y ajustes del lienzo">
+      <details
+        class="floor-editor__details"
+        [open]="panelOpen()"
+        (toggle)="onPanelToggle($event)"
+      >
+        <summary class="floor-editor__details-summary">Áreas y ajustes</summary>
+
+        @if (loading()) {
+          <div class="floor-editor__panel-loading" role="status" aria-label="Cargando distribución">
+            <app-rms-skeleton height="2.5rem" />
+            <app-rms-skeleton height="8rem" />
+          </div>
+        } @else if (loadError(); as message) {
+          <app-rms-empty-state
+            icon="pi pi-exclamation-triangle"
+            [title]="forbidden() ? 'Sin permiso para editar la distribución' : 'No se pudo cargar la distribución'"
+            [message]="message"
+            [actionLabel]="forbidden() ? '' : 'Reintentar'"
+            actionIcon="pi pi-refresh"
+            (action)="load()"
+          />
+        } @else if (areas().length === 0) {
+          <app-rms-empty-state
+            icon="pi pi-th-large"
+            title="Primero crea un área de trabajo"
+            message="La distribución se dibuja a partir de las áreas existentes del restaurante."
+            actionLabel="Cerrar"
+            actionIcon="pi pi-arrow-left"
+            (action)="requestClose()"
+          />
+        } @else {
+          <div class="floor-editor__panel-body">
+            <app-area-palette
+              [areas]="areas()"
+              [selectedAreaId]="selectedAreaId()"
+              [regionCounts]="regionCounts()"
+                  />
+
+            @if (selectedArea(); as area) {
+              <section class="region-panel" aria-labelledby="region-panel-title">
+                <div class="region-panel__heading">
+                  <h2 id="region-panel-title" class="rms-label">Área seleccionada</h2>
+                  <span class="region-panel__count">
+                    {{ (regionCounts().get(area.id) ?? 0) > 0 ? 'En el mapa' : 'Sin zona' }}
+                  </span>
+                </div>
+                <p class="region-panel__selected-name">{{ area.name }}</p>
+                @if ((regionCounts().get(area.id) ?? 0) > 0) {
+                  <app-rms-button
+                    variant="danger"
+                    size="sm"
+                    iconStart="pi pi-trash"
+                    (click)="removeSelectedArea()"
+                  >
+                    Quitar del mapa
+                  </app-rms-button>
+                } @else {
+                  <p class="region-panel__empty">
+                    Dibuja la primera zona de esta área en el lienzo.
+                  </p>
+                }
+              </section>
+            }
+
+            <p class="floor-editor__grow-hint">
+              Usa Mover, el botón central del mouse o mantén el puntero en un borde mientras
+              dibujas para desplazarte en cualquier dirección.
+            </p>
+          </div>
+        }
+      </details>
+    </aside>
+
+    <div class="floor-editor__center">
+      @if (!loading() && loadError() === null && areas().length > 0) {
+        <app-layout-toolbar
+          [tool]="tool()"
+          [zoom]="zoom()"
+          [canUndo]="canUndo()"
+          [canRedo]="canRedo()"
+          (toolChange)="setTool($event)"
+          (undo)="undo()"
+          (redo)="redo()"
+          (zoomIn)="zoomIn()"
+          (zoomOut)="zoomOut()"
+        />
+      }
+      <p class="floor-editor__status" role="status" aria-live="polite">
+        {{ statusMessage() }}
+      </p>
+    </div>
+
+    <div class="floor-editor__actions">
+      <app-rms-status-pill [label]="statusLabel()" [status]="statusTone()" />
+      <div class="floor-editor__action-buttons">
+        <app-rms-button
+          variant="secondary"
+          size="sm"
+          [disabled]="!dirty() || saving()"
+          (click)="requestDiscard()"
+        >
+          Descartar
+        </app-rms-button>
+        <app-rms-button
+          size="sm"
+          iconStart="pi pi-save"
+          [loading]="saving()"
+          [disabled]="!canSave()"
+          (click)="save()"
+        >
+          Guardar
+        </app-rms-button>
+        <app-rms-button
+          variant="secondary"
+          size="sm"
+          iconStart="pi pi-times"
+          [disabled]="saving()"
+          (click)="requestClose()"
+        >
+          Cerrar
+        </app-rms-button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@if (discardVisible()) {
+  <div class="floor-editor__confirm-layer">
+    <div
+      #confirmCard
+      class="floor-editor__confirm"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="floor-confirm-title"
+      aria-describedby="floor-confirm-text"
+      tabindex="-1"
+      (keydown.escape)="cancelDiscard()"
+    >
+      <h2 id="floor-confirm-title" class="rms-h3">Cambios sin guardar</h2>
+      <p id="floor-confirm-text" class="floor-editor__confirm-text">
+        Si cierras ahora, los cambios de la distribución se descartarán.
+      </p>
+      <div class="floor-editor__confirm-actions">
+        <app-rms-button variant="secondary" (click)="cancelDiscard()">
+          Seguir editando
+        </app-rms-button>
+        <app-rms-button variant="danger" (click)="acceptDiscard()">
+          Descartar cambios
+        </app-rms-button>
+      </div>
+    </div>
+  </div>
+}
+

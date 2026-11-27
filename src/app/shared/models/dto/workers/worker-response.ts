@@ -12,6 +12,8 @@ export interface WorkerResponse {
   role?: 'ADMIN' | 'WORKER';
   status?: 'PENDING' | 'ERROR' | 'ACTIVE' | 'INACTIVE';
   assignedAreas?: number[];
+  /** Activities the worker performs in each assigned area. */
+  areaActivities?: { areaId: number; activities: string[] }[];
   /**
    * Current salary as a `Money` DTO (`{ amount: "1200000.00", currency: "COP" }`).
    * `null`/absent when the worker has no salary registered. Normalize with

@@ -1691,5 +1691,100 @@
       }
     ],
     "status": "done"
+  },
+  {
+    "id": 56,
+    "type": "feat",
+    "name": "floor-layout-editor",
+    "title": "Editor de distribución física del restaurante",
+    "description": "Dibujar la distribución por área sobre un lienzo relativo al modal, con cámara desplazable con Mover, borrado, zoom, deshacer/rehacer y guardado explícito.",
+    "acceptance": [
+      "Previsualización monocroma y centrada junto a la tabla de áreas",
+      "El editor abre en un modal grande al 100% de zoom con las áreas centradas",
+      "El editor carga las áreas existentes y la distribución persistida",
+      "Dibujo y borrado funcionan y rechazan solapamientos",
+      "Las áreas se seleccionan desde el panel lateral",
+      "La herramienta Mover desplaza la cámara en todas las direcciones",
+      "No existen botones Seleccionar, Cámara ni Ajustar",
+      "Cada área usa relleno suave y un único contorno exterior, no un borde por celda",
+      "Guardado explícito, cierre con cambios sin guardar y aviso beforeunload",
+      "Cobertura de geometría, motor, historial, preview, canvas y página",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Contratos DTO y servicio HTTP",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Geometría y motor puros con tests",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Canvas, palette, toolbar y página",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Ruta, acceso desde Áreas, guard y e2e manifest",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "reviewer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 57,
+    "type": "feat",
+    "name": "table-floor-placement",
+    "title": "Ubicar mesas en la distribución del restaurante",
+    "description": "Dividir Mesas en lista y plano, arrastrar mesas a áreas habilitadas con Atención al cliente y persistir su posición.",
+    "acceptance": [
+      "Mesas en dos columnas responsive",
+      "Lista arrastrable y marcadores movibles",
+      "Solo áreas habilitadas con SERVE aceptan mesas",
+      "Sin solapamiento de mesas",
+      "Persistencia y recarga correctas",
+      "Harness verde"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "API de ubicaciones y validación",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Board de distribución y drag/drop",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Integración de la pantalla Mesas",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Verify: harness verde",
+        "status": "done",
+        "agent": "reviewer"
+      }
+    ],
+    "status": "done"
   }
 ]

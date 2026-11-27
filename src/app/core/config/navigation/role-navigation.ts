@@ -14,7 +14,7 @@
  * Pure functions only: guards, the login redirect and the error pages share
  * the exact same matrix, so it can be unit tested without TestBed.
  */
-import type { AreaTypeValue } from '@models/dto/areas/area';
+import type { AreaActivityValue } from '@models/dto/areas/area';
 import type { UserInfo } from '@models/domain/user/user-info';
 
 import type { NavItem, WorkerWorkspace } from './worker-modules';
@@ -48,10 +48,10 @@ export const WORKSPACE_LABEL = Object.fromEntries(
   WORKER_MODULES.map((module) => [module.id, module.label]),
 ) as unknown as Record<WorkerWorkspace, string>;
 
-const WORKSPACE_AREAS: Readonly<Record<WorkerWorkspace, readonly AreaTypeValue[]>> =
+const WORKSPACE_ACTIVITIES: Readonly<Record<WorkerWorkspace, readonly AreaActivityValue[]>> =
   Object.fromEntries(
-    WORKER_MODULES.map((module) => [module.id, module.areaTypes]),
-  ) as unknown as Record<WorkerWorkspace, readonly AreaTypeValue[]>;
+    WORKER_MODULES.map((module) => [module.id, module.activities]),
+  ) as unknown as Record<WorkerWorkspace, readonly AreaActivityValue[]>;
 
 /** Multi-area landing priority, declared by each module. */
 const WORKSPACE_PRIORITY: readonly WorkerWorkspace[] = [...WORKER_MODULES]
@@ -104,42 +104,80 @@ export const ADMIN_NAV: readonly NavItem[] = [
   },
 ];
 
-/** Area types assigned to the user (empty when unauthenticated). */
-export function userAreaTypes(user: Pick<UserInfo, 'areas'> | undefined): AreaTypeValue[] {
-  return (user?.areas ?? []).flatMap((area) => (area.type ? [area.type] : []));
+/** Activities assigned to the user (empty when unauthenticated). */
+export function userActivities(user: Pick<UserInfo, 'areas' | 'areaActivities'> | undefined): AreaActivityValue[] {
+  const explicit = (user?.areaActivities ?? []).flatMap((assignment) =>
+    assignment.activities.filter(
+      (activity): activity is AreaActivityValue =>
+        activity === 'PREPARATION' || activity === 'SERVE' || activity === 'CASH',
+    ),
+  );
+  if (explicit.length > 0) return [...new Set(explicit)];
+  const fromAreas = (user?.areas ?? []).flatMap((area) => area.activities ?? []);
+  if (fromAreas.length > 0) return [...new Set(fromAreas)];
+  return [
+    ...new Set(
+      (user?.areas ?? [])
+        .map((area) => (area as { type?: string }).type)
+        .map(legacyActivity)
+        .filter((activity): activity is AreaActivityValue => activity !== null),
+    ),
+  ];
+}
+
+function legacyActivity(type: string | undefined): AreaActivityValue | null {
+  switch (type) {
+    case 'KITCHEN':
+    case 'GRILL':
+    case 'PREPARATION':
+      return 'PREPARATION';
+    case 'SERVICE':
+    case 'BAR':
+    case 'SERVE':
+      return 'SERVE';
+    case 'CASH':
+      return 'CASH';
+    default:
+      return null;
+  }
+}
+
+/** Legacy alias kept for the old area-type tests. */
+export function userAreaTypes(user: Pick<UserInfo, 'areas' | 'areaActivities'> | undefined): string[] {
+  return (user?.areas ?? []).map((area) => (area as { type?: string }).type).filter((value): value is string => !!value);
 }
 
 export function canAccessWorkspace(
-  user: Pick<UserInfo, 'areas'> | undefined,
+  user: Pick<UserInfo, 'areas' | 'areaActivities'> | undefined,
   workspace: string,
 ): boolean {
   if (!user) {
     return false;
   }
-  const required = WORKSPACE_AREAS[workspace as WorkerWorkspace];
-  return userAreaTypes(user).some((type) => required.includes(type));
+  const required = WORKSPACE_ACTIVITIES[workspace as WorkerWorkspace];
+  return userActivities(user).some((activity) => required.includes(activity));
 }
 
 /** Every workspace the user may enter, ordered by landing priority. */
-export function workerWorkspaces(user: Pick<UserInfo, 'areas'> | undefined): WorkerWorkspace[] {
+export function workerWorkspaces(user: Pick<UserInfo, 'areas' | 'areaActivities'> | undefined): WorkerWorkspace[] {
   return WORKSPACE_PRIORITY.filter((workspace) => canAccessWorkspace(user, workspace));
 }
 
 /** Workspace the user lands on, or `null` when they have no known area. */
 export function primaryWorkerWorkspace(
-  user: Pick<UserInfo, 'areas'> | undefined,
+  user: Pick<UserInfo, 'areas' | 'areaActivities'> | undefined,
 ): WorkerWorkspace | null {
   return workerWorkspaces(user)[0] ?? null;
 }
 
 /** Landing route for a worker, or `null` when they have no known area. */
-export function workerHome(user: Pick<UserInfo, 'areas'> | undefined): string | null {
+export function workerHome(user: Pick<UserInfo, 'areas' | 'areaActivities'> | undefined): string | null {
   const workspace = primaryWorkerWorkspace(user);
   return workspace ? WORKSPACE_HOME[workspace] : null;
 }
 
 /** Whether the user works the service floor (waiter / bar). */
-export function isServiceWorker(user: Pick<UserInfo, 'areas'> | undefined): boolean {
+export function isServiceWorker(user: Pick<UserInfo, 'areas' | 'areaActivities'> | undefined): boolean {
   return canAccessWorkspace(user, 'waiter');
 }
 

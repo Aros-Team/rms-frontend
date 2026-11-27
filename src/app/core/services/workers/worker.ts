@@ -29,6 +29,10 @@ export class Worker {
     return this.http.post<UserRegisterResponse>('v1/workers', data);
   }
 
+  public updateAreaActivities(id: number, areaActivities: Record<string, string[]>): Observable<unknown> {
+    return this.http.put<unknown>(`v1/workers/${String(id)}/area-activities`, { areaActivities });
+  }
+
   public updateWorker(id: number, data: UpdateWorkerRequest): Observable<WorkerResponse> {
     this.logger.debug('Worker: Calling PUT workers with id:', id, 'data:', data);
     return this.http.put<WorkerResponse>(`v1/workers/${String(id)}`, data);

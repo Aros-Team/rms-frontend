@@ -1,9 +1,9 @@
-import type { AreaTypeValue } from '@app/shared/models/dto/areas/area';
+import type { AreaActivityValue } from '@app/shared/models/dto/areas/area';
 
 export interface AreaSimpleResponse {
   id: number;
   name: string;
-  type: AreaTypeValue;
+  activities: AreaActivityValue[];
   enabled: boolean;
   exclusive?: boolean;
 }

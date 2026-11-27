@@ -49,10 +49,11 @@
   min-width: 0;
 }
 
+/* Size lives in `.rms-nav-item--tile .rms-nav-item__label` (global.css) so the
+   rail has a single source of truth; this only handles the box. */
 .nav-tile__label {
   display: block;
   width: 100%;
-  font-size: 0.5625rem;
   text-align: center;
 }
 

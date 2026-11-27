@@ -1,0 +1,59 @@
+@if (layout; as dto) {
+  @if (!hasRegions()) {
+    <div class="layout-preview__empty">
+      <i class="pi pi-map" aria-hidden="true"></i>
+      <p>Aún no hay una distribución del restaurante.</p>
+    </div>
+  } @else {
+    <svg
+      class="layout-preview__svg"
+      [attr.viewBox]="frame().viewBox"
+      preserveAspectRatio="xMidYMid meet"
+      role="img"
+      [attr.aria-label]="'Distribución del restaurante, ' + dto.columns + ' por ' + dto.rows + ' celdas'"
+    >
+      <defs>
+        <pattern [attr.id]="gridId" width="1" height="1" patternUnits="userSpaceOnUse">
+          <path
+            d="M 1 0 L 0 0 L 0 1"
+            fill="none"
+            stroke="var(--rms-border)"
+            stroke-width="0.04"
+          />
+        </pattern>
+      </defs>
+
+      <rect
+        [attr.x]="frame().x"
+        [attr.y]="frame().y"
+        [attr.width]="frame().width"
+        [attr.height]="frame().height"
+        [attr.fill]="'url(#' + gridId + ')'"
+      />
+
+      @for (item of items(); track item.areaId) {
+        <g class="layout-preview__region">
+          <title>{{ item.name }}</title>
+          <path [attr.d]="item.shape.fillPath" class="layout-preview__fill" />
+          <path
+            [attr.d]="item.shape.outlinePath"
+            class="layout-preview__outline"
+            fill="none"
+          />
+          @if (item.shape.showLabel) {
+            <text
+              class="layout-preview__label"
+              [attr.x]="item.shape.labelX"
+              [attr.y]="item.shape.labelY"
+              [attr.font-size]="Math.min(0.45, item.shape.bounds.height * 0.22)"
+              text-anchor="middle"
+              dominant-baseline="middle"
+            >
+              {{ regionLabel(item.name) }}
+            </text>
+          }
+        </g>
+      }
+    </svg>
+  }
+}

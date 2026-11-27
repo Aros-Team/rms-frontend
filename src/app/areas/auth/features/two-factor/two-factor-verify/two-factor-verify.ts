@@ -6,6 +6,7 @@ import { MessageService } from 'primeng/api';
 import { Auth } from '@services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
 import { UserInfo } from '@models/domain/user/user-info';
+import { userActivities } from '@app/core/config/navigation/role-navigation';
 import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
 import { RmsButton } from '@shared/ui/button/button';
 import { RmsInput } from '@shared/ui/input/input';
@@ -89,12 +90,12 @@ export class TwoFactorVerify {
       this.logger.routing('Redirecting admin user to /admin');
       void this.router.navigate(['/admin']);
     } else {
-      const firstArea = userData.areas[0];
-      if (firstArea.type === 'KITCHEN') {
-        this.logger.routing('Redirecting kitchen worker to /worker/kitchen');
+      const activities = userActivities(userData);
+      if (activities.includes('PREPARATION')) {
         void this.router.navigate(['/worker/kitchen']);
+      } else if (activities.includes('CASH')) {
+        void this.router.navigate(['/worker/cashier']);
       } else {
-        this.logger.routing('Redirecting waiter worker to /worker/waiter');
         void this.router.navigate(['/worker/waiter']);
       }
     }

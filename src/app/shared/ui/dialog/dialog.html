@@ -1,5 +1,5 @@
 <p-dialog
-  styleClass="rms-dialog"
+  [styleClass]="styleClass"
   [header]="header"
   [visible]="visible"
   (visibleChange)="visibleChange.emit($event)"
@@ -9,6 +9,8 @@
   [blockScroll]="true"
   [closeOnEscape]="closeOnEscape"
   [dismissableMask]="dismissableMask"
+  [closable]="closable"
+  [showHeader]="showHeader"
   [focusOnShow]="true"
   [style]="dialogStyle"
 >

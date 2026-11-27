@@ -1,0 +1,105 @@
+<div
+  class="table-floor"
+  [class.table-floor--dragging]="dragActiveState()"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (drop)="onDrop($event)"
+>
+  @if (isEmpty()) {
+    <div class="table-floor__empty">
+      <i class="pi pi-map" aria-hidden="true"></i>
+      <p>Aún no hay una distribución de áreas para ubicar mesas.</p>
+    </div>
+  } @else {
+    <svg
+      #canvas
+      class="table-floor__svg"
+      [attr.viewBox]="frame().viewBox"
+      preserveAspectRatio="xMidYMid meet"
+      role="img"
+      aria-label="Distribución del restaurante con mesas ubicadas"
+      (pointermove)="onMarkerPointerMove($event)"
+      (pointerup)="onMarkerPointerUp($event)"
+      (pointercancel)="onMarkerPointerCancel($event)"
+    >
+      <defs>
+        <pattern [attr.id]="gridId" width="1" height="1" patternUnits="userSpaceOnUse">
+          <path
+            d="M 1 0 L 0 0 L 0 1"
+            fill="none"
+            stroke="var(--rms-border)"
+            stroke-width="0.04"
+          />
+        </pattern>
+      </defs>
+
+      <rect
+        [attr.x]="frame().x"
+        [attr.y]="frame().y"
+        [attr.width]="frame().width"
+        [attr.height]="frame().height"
+        [attr.fill]="'url(#' + gridId + ')'"
+      />
+
+      @for (area of areaShapes(); track area.areaId) {
+        <g
+          class="table-floor__area"
+          [class.table-floor__area--serve]="area.servable"
+          [class.table-floor__area--active]="area.servable && dragActiveState()"
+        >
+          <title>{{ area.name }}</title>
+          <path class="table-floor__area-fill" [attr.d]="area.shape.fillPath" />
+          <path class="table-floor__area-outline" [attr.d]="area.shape.outlinePath" fill="none" />
+          @if (area.shape.showLabel) {
+            <text
+              class="table-floor__area-label"
+              [attr.x]="area.shape.labelX"
+              [attr.y]="area.shape.labelY"
+              [attr.font-size]="Math.min(0.42, area.shape.bounds.height * 0.22)"
+              text-anchor="middle"
+              dominant-baseline="middle"
+            >
+              {{ area.name }}
+            </text>
+          }
+        </g>
+      }
+
+      @for (item of markers(); track item.table.id) {
+        <g
+          class="table-floor__table"
+          [attr.data-status]="item.table.status"
+          [class.table-floor__table--selected]="item.selected"
+          [class.table-floor__table--invalid]="!item.valid"
+          [attr.transform]="'translate(' + markerX(item) + ' ' + markerY(item) + ')'"
+          (pointerdown)="onMarkerPointerDown($event, item)"
+          (keydown.enter)="tableSelected.emit(item.table.id)"
+          (keydown.space)="tableSelected.emit(item.table.id)"
+          role="button"
+          tabindex="0"
+          [attr.aria-label]="markerLabel(item)"
+        >
+          <title>{{ markerLabel(item) }}</title>
+          <rect
+            class="table-floor__table-body"
+            x="-0.38"
+            y="-0.38"
+            width="0.76"
+            height="0.76"
+            rx="0.12"
+          />
+          <text
+            class="table-floor__table-label"
+            x="0"
+            y="0"
+            text-anchor="middle"
+            dominant-baseline="middle"
+            font-size="0.34"
+          >
+            {{ item.table.tableNumber }}
+          </text>
+        </g>
+      }
+    </svg>
+  }
+</div>

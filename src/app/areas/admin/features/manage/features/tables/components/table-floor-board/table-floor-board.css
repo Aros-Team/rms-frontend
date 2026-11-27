@@ -1,0 +1,129 @@
+:host {
+  display: block;
+  min-height: 0;
+  height: 100%;
+}
+
+.table-floor {
+  position: relative;
+  height: 100%;
+  min-height: 16rem;
+  overflow: hidden;
+  border-radius: var(--rms-radius-sm);
+  background: var(--rms-bg-surface);
+}
+
+.table-floor__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.table-floor__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--rms-space-2);
+  height: 100%;
+  min-height: 16rem;
+  padding: var(--rms-space-6);
+  color: var(--rms-text-muted);
+  text-align: center;
+}
+
+.table-floor__empty i {
+  font-size: 2rem;
+  opacity: 0.7;
+}
+
+.table-floor__empty p {
+  max-width: 20rem;
+  margin: 0;
+  font-size: var(--rms-type-body-size);
+  line-height: var(--rms-type-body-line);
+}
+
+.table-floor__area-fill {
+  fill: var(--rms-bg-subtle);
+  fill-opacity: 0.5;
+}
+
+.table-floor__area-outline {
+  stroke: var(--rms-border-strong);
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.table-floor__area--serve .table-floor__area-fill {
+  fill: var(--rms-success-bg);
+  fill-opacity: 0.55;
+}
+
+.table-floor__area--serve .table-floor__area-outline {
+  stroke: var(--rms-success-border);
+}
+
+.table-floor__area--active .table-floor__area-fill {
+  fill-opacity: 0.9;
+}
+
+.table-floor__area--active .table-floor__area-outline {
+  stroke: var(--rms-success-solid);
+  stroke-width: 2.5;
+}
+
+.table-floor__area-label {
+  fill: var(--rms-text-secondary);
+  font-family: var(--rms-font-sans);
+  font-weight: var(--rms-weight-medium);
+  paint-order: stroke;
+  stroke: var(--rms-bg-surface);
+  stroke-width: 0.07;
+  stroke-linejoin: round;
+}
+
+.table-floor__table {
+  cursor: grab;
+}
+
+.table-floor__table:active {
+  cursor: grabbing;
+}
+
+.table-floor__table-body {
+  fill: var(--rms-bg-surface);
+  stroke: var(--rms-border-strong);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.table-floor__table[data-status='AVAILABLE'] .table-floor__table-body {
+  stroke: var(--rms-success-solid);
+}
+
+.table-floor__table[data-status='OCCUPIED'] .table-floor__table-body {
+  stroke: var(--rms-info-solid);
+}
+
+.table-floor__table[data-status='RESERVED'] .table-floor__table-body {
+  stroke: var(--rms-warning-solid);
+}
+
+.table-floor__table--selected .table-floor__table-body {
+  stroke: var(--rms-focus);
+  stroke-width: 2.5;
+}
+
+.table-floor__table--invalid .table-floor__table-body {
+  stroke: var(--rms-danger-solid);
+  stroke-width: 2.5;
+}
+
+.table-floor__table-label {
+  fill: var(--rms-text);
+  font-family: var(--rms-font-sans);
+  font-weight: var(--rms-weight-semibold);
+  pointer-events: none;
+}

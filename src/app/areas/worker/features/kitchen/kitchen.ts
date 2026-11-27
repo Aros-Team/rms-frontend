@@ -9,7 +9,7 @@ import {
   signal,
   type WritableSignal,
 } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Subscription, type Observable } from 'rxjs';
 
 import { Auth } from '@app/core/services/auth/auth';
 import { Logging } from '@app/core/services/logging/logging';
@@ -46,6 +46,7 @@ import {
   buildStationMap,
   groupLinesByStation,
   orderHasStation,
+  orderStations,
   stationAreaId,
   stationCounts,
   type KitchenStationMap,
@@ -110,7 +111,7 @@ interface KitchenColumnView {
 const STATUS_LABEL: Record<string, string> = {
   QUEUE: 'En cola',
   PREPARING: 'Preparando',
-  READY: 'Preparado',
+  READY: 'Listo',
   DELIVERED: 'Entregada',
   CANCELLED: 'Cancelada',
 };
@@ -233,6 +234,15 @@ export class Kitchen implements OnInit, OnDestroy {
   readonly newOrderIds = signal<ReadonlySet<number>>(new Set());
   readonly announcement = signal('');
 
+  /**
+   * Preparation areas assigned to this worker. `null` means the user data is
+   * not available yet, so the board keeps the legacy "all stations" behaviour.
+   * An empty set means the worker has no preparation area (the guard should
+   * have blocked the route).
+   */
+  private readonly assignedPrepAreaIds = signal<ReadonlySet<number> | null>(null);
+  private readonly areaNames = new Map<number, string>();
+
   readonly muted = this.alerts.muted;
   readonly audioBlocked = this.alerts.blocked;
 
@@ -248,9 +258,6 @@ export class Kitchen implements OnInit, OnDestroy {
 
   private readonly stationMap = signal<KitchenStationMap>(new Map());
   private readonly detailId = signal<number | null>(null);
-  private readonly deliverId = signal<number | null>(null);
-  readonly deliverBusy = signal(false);
-  readonly deliverError = signal<string | null>(null);
 
   private wsSubs: Subscription[] = [];
   private pollingInterval?: ReturnType<typeof setInterval>;
@@ -277,21 +284,34 @@ export class Kitchen implements OnInit, OnDestroy {
     return ids;
   });
 
-  readonly stationOptions = computed<readonly StationCount[]>(() =>
-    stationCounts(
+  readonly stationOptions = computed<readonly StationCount[]>(() => {
+    const counts = stationCounts(
       this.selectedStation() === 'all' ? this.currentColumns() : this.boardSnapshot(),
       this.stationMap(),
-    ),
-  );
+    );
+    if (this.assignedPrepAreaIds() === null) return counts;
+    return counts.filter((station) => this.stationInScope(station.key));
+  });
 
-  readonly activeTotal = computed(
-    () => this.queueOrders().length + this.preparingOrders().length + this.readyOrders().length,
-  );
+  readonly stationFilterVisible = computed(() => this.stationOptions().length > 1);
+
+  readonly activeTotal = computed(() => {
+    const orders = [...this.queueOrders(), ...this.preparingOrders(), ...this.readyOrders()];
+    if (this.assignedPrepAreaIds() === null) return orders.length;
+    const ids = new Set<number>();
+    for (const order of orders) {
+      if (this.orderInScope(order)) ids.add(order.id);
+    }
+    return ids.size;
+  });
 
   readonly selectedStationName = computed(() => {
     const key = this.selectedStation();
     if (key === 'all') return 'Todas las estaciones';
-    return this.stationOptions().find((station) => station.key === key)?.name ?? 'Estación';
+    const known = this.stationOptions().find((station) => station.key === key)?.name;
+    if (known) return known;
+    const areaId = stationAreaId(key);
+    return areaId !== null ? (this.areaNames.get(areaId) ?? 'Estación') : 'Estación';
   });
 
   readonly queueView = computed(() => this.filterColumn(this.queueOrders()));
@@ -336,9 +356,10 @@ export class Kitchen implements OnInit, OnDestroy {
     const order = this.detailOrder();
     return order ? groupKitchenLines(order.details, this.stationMap()) : [];
   });
-  readonly detailGroups = computed<readonly StationGroup<KitchenLine>[]>(() =>
-    groupLinesByStation(this.detailLines()),
-  );
+  readonly detailGroups = computed<readonly StationGroup<KitchenLine>[]>(() => {
+    const order = this.detailOrder();
+    return order ? this.groupsFor(order) : [];
+  });
   readonly detailHeader = computed(() => {
     const order = this.detailOrder();
     return order ? `Pedido #${String(order.id)}` : 'Pedido';
@@ -346,15 +367,6 @@ export class Kitchen implements OnInit, OnDestroy {
   readonly detailTotal = computed(() => {
     const order = this.detailOrder();
     return order ? calculateTotalPrice(order) : 0;
-  });
-
-  readonly deliverTarget = computed<OrderResponse | null>(() => {
-    const id = this.deliverId();
-    return id === null ? null : this.findOrder(id);
-  });
-  readonly deliverHeader = computed(() => {
-    const order = this.deliverTarget();
-    return order ? `Entregar pedido #${String(order.id)}` : 'Entregar pedido';
   });
 
   readonly connectionLabel = computed(() => {
@@ -373,6 +385,7 @@ export class Kitchen implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
+    this.applyAssignedPrepAreas();
     this.loadCatalog();
     this.fetchAll();
     this.connectWebSocket();
@@ -398,7 +411,7 @@ export class Kitchen implements OnInit, OnDestroy {
   @HostListener('window:keydown', ['$event'])
   onKeydown(event: KeyboardEvent): void {
     if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
-    if (this.detailOrder() !== null || this.deliverTarget() !== null) return;
+    if (this.detailOrder() !== null) return;
 
     const target = event.target;
     if (
@@ -789,22 +802,40 @@ export class Kitchen implements OnInit, OnDestroy {
     this.preparingNext.set(true);
     this.error.set(null);
 
-    const areaId = this.selectedAreaId();
-    const request =
-      areaId === null
-        ? this.orderService.prepareNext()
-        : this.orderService.startArea(next.id, areaId);
-    request.subscribe({
-      next: (order) => {
-        this.preparingNext.set(false);
-        this.applyOrderUpdate(order);
-        this.announce(`Pedido #${String(order.id)} en preparación.`);
-      },
-      error: (error: unknown) => {
-        this.preparingNext.set(false);
-        this.error.set(problemDetail(error) ?? 'No se pudo tomar el siguiente pedido.');
-      },
-    });
+    const selectedArea = this.selectedAreaId();
+    const scoped = this.assignedPrepAreaIds();
+    const areaIds =
+      selectedArea !== null
+        ? [selectedArea]
+        : scoped !== null
+          ? this.assignedAreaIdsInOrder(next)
+          : [];
+
+    const onDone = (order: OrderResponse): void => {
+      this.preparingNext.set(false);
+      this.applyOrderUpdate(order);
+      this.announce(`Pedido #${String(order.id)} en preparación.`);
+    };
+    const onError = (error: unknown): void => {
+      this.preparingNext.set(false);
+      this.error.set(problemDetail(error) ?? 'No se pudo tomar el siguiente pedido.');
+    };
+
+    if (selectedArea === null && scoped === null) {
+      this.orderService.prepareNext().subscribe({ next: onDone, error: onError });
+      return;
+    }
+    if (areaIds.length === 0) {
+      this.preparingNext.set(false);
+      return;
+    }
+    this.runAreaSequence(
+      next,
+      areaIds,
+      (areaId) => this.orderService.startArea(next.id, areaId),
+      onDone,
+      onError,
+    );
   }
 
   /** Starts one specific QUEUE ticket (`PUT /v1/orders/{id}/prepare`). */
@@ -814,22 +845,40 @@ export class Kitchen implements OnInit, OnDestroy {
     this.setProcessing(order.id, true);
     this.error.set(null);
 
-    const areaId = this.selectedAreaId();
-    const request =
-      areaId === null
-        ? this.orderService.prepareOrder(order.id)
-        : this.orderService.startArea(order.id, areaId);
-    request.subscribe({
-      next: (updated) => {
-        this.setProcessing(order.id, false);
-        this.applyOrderUpdate(updated);
-        this.announce(`Pedido #${String(updated.id)} preparándose en la estación.`);
-      },
-      error: (error: unknown) => {
-        this.setProcessing(order.id, false);
-        this.error.set(problemDetail(error) ?? 'No se pudo tomar este pedido.');
-      },
-    });
+    const selectedArea = this.selectedAreaId();
+    const scoped = this.assignedPrepAreaIds();
+    const areaIds =
+      selectedArea !== null
+        ? [selectedArea]
+        : scoped !== null
+          ? this.assignedAreaIdsInOrder(order)
+          : [];
+
+    const onDone = (updated: OrderResponse): void => {
+      this.setProcessing(order.id, false);
+      this.applyOrderUpdate(updated);
+      this.announce(`Pedido #${String(updated.id)} preparándose en la estación.`);
+    };
+    const onError = (error: unknown): void => {
+      this.setProcessing(order.id, false);
+      this.error.set(problemDetail(error) ?? 'No se pudo tomar este pedido.');
+    };
+
+    if (selectedArea === null && scoped === null) {
+      this.orderService.prepareOrder(order.id).subscribe({ next: onDone, error: onError });
+      return;
+    }
+    if (areaIds.length === 0) {
+      this.setProcessing(order.id, false);
+      return;
+    }
+    this.runAreaSequence(
+      order,
+      areaIds,
+      (areaId) => this.orderService.startArea(order.id, areaId),
+      onDone,
+      onError,
+    );
   }
 
   markReady(order: OrderResponse): void {
@@ -838,17 +887,67 @@ export class Kitchen implements OnInit, OnDestroy {
     this.setProcessing(order.id, true);
     this.error.set(null);
 
-    this.orderService.markAsReady(order.id).subscribe({
-      next: (updated) => {
-        this.setProcessing(order.id, false);
-        this.moveOrder('ready', updated);
-        this.announce(`Pedido #${String(order.id)} listo para entregar.`);
-      },
-      error: (error: unknown) => {
-        this.setProcessing(order.id, false);
-        this.error.set(problemDetail(error) ?? 'No se pudo marcar el pedido como listo.');
-      },
-    });
+    const selectedArea = this.selectedAreaId();
+    const scoped = this.assignedPrepAreaIds();
+    const areaIds =
+      selectedArea !== null
+        ? [selectedArea]
+        : scoped !== null
+          ? this.assignedAreaIdsInOrder(order)
+          : [];
+
+    const onDone = (updated: OrderResponse): void => {
+      this.setProcessing(order.id, false);
+      this.moveOrder('ready', updated);
+      this.announce(`Pedido #${String(order.id)} listo para entregar.`);
+    };
+    const onError = (error: unknown): void => {
+      this.setProcessing(order.id, false);
+      this.error.set(problemDetail(error) ?? 'No se pudo marcar el pedido como listo.');
+    };
+
+    if (selectedArea === null && scoped === null) {
+      this.orderService.markAsReady(order.id).subscribe({ next: onDone, error: onError });
+      return;
+    }
+    if (areaIds.length === 0) {
+      this.setProcessing(order.id, false);
+      return;
+    }
+    this.runAreaSequence(
+      order,
+      areaIds,
+      (areaId) => this.orderService.markAreaReady(order.id, areaId),
+      onDone,
+      onError,
+    );
+  }
+
+  /** Runs one area-scoped request per assigned area, sequentially. */
+  private runAreaSequence(
+    order: OrderResponse,
+    areaIds: readonly number[],
+    call: (areaId: number) => Observable<OrderResponse>,
+    onDone: (order: OrderResponse) => void,
+    onError: (error: unknown) => void,
+  ): void {
+    let index = 0;
+    let latest = order;
+    const step = (): void => {
+      if (index >= areaIds.length) {
+        onDone(latest);
+        return;
+      }
+      call(areaIds[index]).subscribe({
+        next: (updated) => {
+          latest = updated;
+          index += 1;
+          step();
+        },
+        error: onError,
+      });
+    };
+    step();
   }
 
   /**
@@ -960,7 +1059,7 @@ export class Kitchen implements OnInit, OnDestroy {
         this.setProcessing(order.id, false);
         this.applyOrderUpdate(updated);
         if (updated.status === 'READY') {
-          this.announce(`Pedido #${String(updated.id)} preparado.`);
+          this.announce(`Pedido #${String(updated.id)} listo.`);
         }
       },
       error: (error: unknown) => {
@@ -989,45 +1088,6 @@ export class Kitchen implements OnInit, OnDestroy {
 
   lineUnstarted(line: KitchenLine): boolean {
     return unstartedDetailIds(line).length > 0;
-  }
-
-  askDeliver(order: OrderResponse): void {
-    this.deliverError.set(null);
-    this.deliverId.set(order.id);
-  }
-
-  /** Detail and confirm dialogs never stack: close the detail first. */
-  openDeliverFromDetail(order: OrderResponse): void {
-    this.detailId.set(null);
-    this.askDeliver(order);
-  }
-
-  onDeliverVisible(visible: boolean): void {
-    if (visible) return;
-    if (this.deliverBusy()) return;
-    this.deliverId.set(null);
-    this.deliverError.set(null);
-  }
-
-  confirmDeliver(): void {
-    const target = this.deliverTarget();
-    if (!target || this.deliverBusy()) return;
-
-    this.deliverBusy.set(true);
-    this.deliverError.set(null);
-
-    this.orderService.deliverOrder(target.id).subscribe({
-      next: () => {
-        this.deliverBusy.set(false);
-        this.deliverId.set(null);
-        this.removeEverywhere(target.id);
-        this.announce(`Pedido #${String(target.id)} entregado.`);
-      },
-      error: (error: unknown) => {
-        this.deliverBusy.set(false);
-        this.deliverError.set(problemDetail(error) ?? 'No se pudo entregar el pedido.');
-      },
-    });
   }
 
   isProcessing(id: number): boolean {
@@ -1103,8 +1163,72 @@ export class Kitchen implements OnInit, OnDestroy {
 
   // ── Station filter ────────────────────────────────────────────────────────
 
+  /**
+   * Restricts the board to the preparation areas assigned to this worker.
+   *
+   * A bar worker must not see kitchen tickets (and vice versa). With a single
+   * assigned area the board starts already filtered on it, so the initial fetch
+   * is a server-side `areaId` query. With several areas the board keeps "Todas"
+   * but every count, ticket and station group is scoped to those areas.
+   */
+  private applyAssignedPrepAreas(): void {
+    const user = this.authService.getData();
+    if (!user) return;
+
+    for (const area of user.areas) {
+      this.areaNames.set(area.id, area.name);
+    }
+
+    const ids = new Set<number>();
+    const assignments = user.areaActivities ?? [];
+    if (assignments.length > 0) {
+      for (const assignment of assignments) {
+        if (assignment.activities.includes('PREPARATION')) ids.add(assignment.areaId);
+      }
+    } else {
+      for (const area of user.areas) {
+        if (area.activities?.includes('PREPARATION')) ids.add(area.id);
+      }
+    }
+
+    this.assignedPrepAreaIds.set(ids);
+    if (ids.size === 1) {
+      const [areaId] = [...ids];
+      this.selectedStation.set(`area:${String(areaId)}`);
+    }
+  }
+
+  private stationInScope(stationKey: string): boolean {
+    const allowed = this.assignedPrepAreaIds();
+    if (allowed === null) return true;
+    const areaId = stationAreaId(stationKey);
+    return areaId !== null && allowed.has(areaId);
+  }
+
+  private orderInScope(order: OrderResponse): boolean {
+    if (this.assignedPrepAreaIds() === null) return true;
+    return orderStations(order, this.stationMap()).some((station) =>
+      this.stationInScope(station.key),
+    );
+  }
+
+  /** Assigned preparation areas present in an order, in station order. */
+  private assignedAreaIdsInOrder(order: OrderResponse): number[] {
+    const allowed = this.assignedPrepAreaIds();
+    if (allowed === null) return [];
+    const ids: number[] = [];
+    for (const station of orderStations(order, this.stationMap())) {
+      const areaId = stationAreaId(station.key);
+      if (areaId !== null && allowed.has(areaId) && !ids.includes(areaId)) {
+        ids.push(areaId);
+      }
+    }
+    return ids;
+  }
+
   selectStation(key: string): void {
     if (this.selectedStation() === key) return;
+    if (!this.stationInScope(key)) return;
     this.selectedStation.set(key);
     // Invalidate a walk that belongs to the previous station, then refetch.
     this.fetchToken += 1;
@@ -1137,21 +1261,29 @@ export class Kitchen implements OnInit, OnDestroy {
    */
   private filterColumn(orders: readonly OrderResponse[]): readonly OrderResponse[] {
     const key = this.selectedStation();
-    if (key === 'all' || stationAreaId(key) !== null) return orders;
+    if (key === 'all') {
+      return this.assignedPrepAreaIds() === null
+        ? orders
+        : orders.filter((order) => this.orderInScope(order));
+    }
+    if (stationAreaId(key) !== null) return orders;
     return orders.filter((order) => orderHasStation(order, key, this.stationMap()));
   }
 
   /** `true` when the ticket belongs to the active station (server semantics). */
   private matchesSelectedStation(order: OrderResponse): boolean {
     const key = this.selectedStation();
-    return key === 'all' || orderHasStation(order, key, this.stationMap());
+    if (key === 'all') return this.orderInScope(order);
+    return orderHasStation(order, key, this.stationMap());
   }
 
   /** Lines of an order grouped by station, honouring the active station filter. */
   groupsFor(order: OrderResponse): readonly StationGroup<KitchenLine>[] {
     const groups = groupLinesByStation(groupKitchenLines(order.details, this.stationMap()));
     const key = this.selectedStation();
-    return key === 'all' ? groups : groups.filter((group) => group.station.key === key);
+    if (key !== 'all') return groups.filter((group) => group.station.key === key);
+    if (this.assignedPrepAreaIds() === null) return groups;
+    return groups.filter((group) => this.stationInScope(group.station.key));
   }
 
   visibleItemCount(order: OrderResponse): number {

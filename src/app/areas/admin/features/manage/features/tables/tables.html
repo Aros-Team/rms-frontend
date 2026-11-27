@@ -1,70 +1,153 @@
-<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.tables" (appLazyLoadVisible)="onVisible()">
-  <app-rms-page-header
-    [compact]="true" [title]="title">
-  </app-rms-page-header>
+<div
+  class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full overflow-y-auto lg:overflow-hidden"
+  [appLazyLoad]="cache.tables"
+  (appLazyLoadVisible)="onVisible()"
+>
+  <app-rms-page-header [compact]="true" [title]="title" />
 
-  <!-- Creation Form -->
-  <div class="mb-4 p-4 bg-rms-surface border border-rms-border rounded-xl w-fit max-w-full">
-    <h3 class="rms-h3 mb-4">Crear Mesa</h3>
-    <form [formGroup]="tableForm" (ngSubmit)="saveTable()" class="flex flex-wrap gap-4 items-end">
-      <app-rms-input id="newTableNumber" label="Número" type="number" formControlName="tableNumber" class="w-24" />
-      <app-rms-input id="newCapacity" label="Capacidad" type="number" formControlName="capacity" class="w-24" />
-      <div class="flex gap-2">
-        <app-rms-button type="submit" [disabled]="tableForm.invalid" iconStart="pi pi-check">Crear</app-rms-button>
-        <app-rms-button variant="secondary" (click)="showCreationModal()">Cancelar</app-rms-button>
-      </div>
-    </form>
-  </div>
-
-  <!-- Tables Grid -->
-  <div class="flex-1 grid grid-cols-[repeat(auto-fill,7rem)] gap-3 content-start">
-    @if (loading()) {
-      @for (i of [1,2,3,4,5,6]; track i) {
-        <div class="h-32 bg-rms-subtle rounded-xl animate-pulse"></div>
-      }
-    } @else {
-      @for (table of tables(); track table.id) {
-        <div 
-          class="relative bg-rms-surface border border-rms-border rounded-xl p-2 flex flex-col items-center justify-center gap-1 hover:border-rms-border-strong transition-colors cursor-pointer aspect-square"
-          (click)="showEditModal(table)"
-          (keydown.enter)="showEditModal(table)"
-          tabindex="0"
-          role="button"
-        >
-          <div class="flex items-center justify-center gap-3">
-            <span class="text-xl font-semibold text-rms-ink-secondary">#{{ table.tableNumber }}</span>
-            <span class="flex items-center gap-1 text-muted text-xs">
-              <i class="pi pi-users text-xs" aria-hidden="true"></i>
-              {{ table.capacity }}
-            </span>
-          </div>
-          
-          <div class="flex w-full justify-center px-0.5">
-            <app-rms-status-pill
-              [label]="getStatusLabel(table.status)"
-              [status]="getStatusTone(table.status)" />
-          </div>
-
-          <div class="absolute top-1.5 right-1.5 opacity-0 hover:opacity-100 transition-opacity">
-            <i class="pi pi-pencil text-xs text-muted" aria-hidden="true"></i>
-          </div>
+  <div class="grid grid-cols-1 lg:grid-cols-[22rem_minmax(0,1fr)] gap-4 flex-1 min-h-0">
+    <section class="flex flex-col min-h-[22rem] lg:min-h-0 min-w-0">
+      <div class="flex items-center justify-between gap-2 mb-2">
+        <div>
+          <h2 class="rms-h3">Mesas</h2>
+          <p class="text-xs text-rms-ink-secondary">Arrastra una mesa al plano para ubicarla.</p>
         </div>
-      }
+        <app-rms-button iconStart="pi pi-plus" size="sm" (click)="showCreationModal()">
+          Nueva mesa
+        </app-rms-button>
+      </div>
 
+      <div
+        class="flex-1 min-h-0 overflow-y-auto rounded-xl border border-rms-border bg-rms-surface"
+      >
+        @if (loading()) {
+          <div class="flex flex-col gap-2 p-3" role="status" aria-label="Cargando mesas">
+            @for (i of [1, 2, 3, 4]; track i) {
+              <app-rms-skeleton height="3.75rem" />
+            }
+          </div>
+        } @else if (tables().length === 0) {
+          <p class="p-6 text-center text-sm text-rms-ink-secondary">
+            No hay mesas registradas.
+          </p>
+        } @else {
+          <ul class="divide-y divide-rms-border" aria-label="Lista de mesas">
+            @for (table of tables(); track table.id) {
+              <li
+                class="table-row"
+                [class.table-row--selected]="selectedFloorTableId() === table.id"
+                [attr.draggable]="!savingPlacements()"
+                (dragstart)="onTableDragStart($event, table)"
+              >
+                <span class="table-row__handle" aria-hidden="true">
+                  <i class="pi pi-bars"></i>
+                </span>
+                <div class="table-row__main">
+                  <div class="flex items-center gap-2">
+                    <span class="table-row__number">#{{ table.tableNumber }}</span>
+                    <span class="table-row__capacity">
+                      <i class="pi pi-users" aria-hidden="true"></i>
+                      {{ table.capacity }}
+                    </span>
+                  </div>
+                  <span class="table-row__area">
+                    {{ placedAreaName(table.id) ?? 'Sin ubicar en el plano' }}
+                  </span>
+                </div>
+                <app-rms-status-pill
+                  [label]="getStatusLabel(table.status)"
+                  [status]="getStatusTone(table.status)"
+                />
+                <div class="table-row__actions">
+                  <app-rms-icon-button
+                    icon="pi pi-pencil"
+                    [ariaLabel]="'Editar mesa ' + table.tableNumber"
+                    size="sm"
+                    (click)="showEditModal(table)"
+                  />
+                  @if (placementByTable().has(table.id)) {
+                    <app-rms-icon-button
+                      icon="pi pi-times"
+                      [ariaLabel]="'Quitar la mesa ' + table.tableNumber + ' del plano'"
+                      variant="danger"
+                      size="sm"
+                      [disabled]="savingPlacements()"
+                      (click)="removeTablePlacement(table.id)"
+                    />
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </section>
 
-    }
+    <section class="flex flex-col min-h-[22rem] lg:min-h-0 min-w-0">
+      <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
+        <div>
+          <h2 class="rms-h3">Distribución</h2>
+          <p class="text-xs text-rms-ink-secondary">
+            Solo las áreas con «Atención al cliente» aceptan mesas.
+          </p>
+        </div>
+        @if (savingPlacements()) {
+          <app-rms-status-pill label="Guardando…" status="info" />
+        }
+      </div>
+
+      <div class="flex-1 min-h-0 rounded-xl border border-rms-border bg-rms-surface p-2">
+        @if (floorLoading()) {
+          <app-rms-skeleton height="20rem" ariaLabel="Cargando distribución" />
+        } @else if (floorError(); as message) {
+          <div class="flex h-full min-h-[16rem] flex-col items-center justify-center gap-2 p-4 text-center">
+            <p class="text-sm text-rms-danger">{{ message }}</p>
+            <app-rms-button variant="secondary" size="sm" (click)="loadFloor()">
+              Reintentar
+            </app-rms-button>
+          </div>
+        } @else {
+          <app-table-floor-board
+            [layout]="floorLayout()"
+            [areas]="areas()"
+            [tables]="tables()"
+            [placements]="placements()"
+            [selectedTableId]="selectedFloorTableId()"
+            [disabled]="savingPlacements()"
+            (tablePlaced)="onFloorTablePlaced($event)"
+            (tableSelected)="onFloorTableSelected($event)"
+            (placementError)="onFloorPlacementError($event)"
+          />
+        }
+      </div>
+    </section>
   </div>
 </div>
 
-<!-- Edit Modal -->
 <app-rms-dialog
-  [visible]="modalMode() === 'edit' && modalIsOpen()"
+  [visible]="modalIsOpen()"
   (visibleChange)="onEditDialogVisible($event)"
-  header="Editar Mesa"
-  width="400px">
-  <form [formGroup]="tableForm" (ngSubmit)="saveTable()" (keydown.enter)="saveTable()" class="flex flex-col gap-4">
-    <app-rms-input id="editTableNumber" label="Número" type="number" formControlName="tableNumber" />
-    <app-rms-input id="editCapacity" label="Capacidad" type="number" formControlName="capacity" />
+  [header]="modalMode() === 'edit' ? 'Editar Mesa' : 'Nueva Mesa'"
+  width="400px"
+>
+  <form
+    [formGroup]="tableForm"
+    (ngSubmit)="saveTable()"
+    (keydown.enter)="saveTable()"
+    class="flex flex-col gap-4"
+  >
+    <app-rms-input
+      id="editTableNumber"
+      label="Número"
+      type="number"
+      formControlName="tableNumber"
+    />
+    <app-rms-input
+      id="editCapacity"
+      label="Capacidad"
+      type="number"
+      formControlName="capacity"
+    />
   </form>
 
   <div rmsDialogFooter>

@@ -1,6 +1,6 @@
 import type { Type } from '@angular/core';
 
-import type { AreaTypeValue } from '@models/dto/areas/area';
+import type { AreaActivityValue } from '@models/dto/areas/area';
 
 /** One destination inside a worker module's navigation. */
 export interface NavItem {
@@ -27,8 +27,8 @@ export interface WorkerModuleDefinition {
   readonly icon: string;
   /** Browser tab title for the module route. */
   readonly title: string;
-  /** Area types that grant access to this module. */
-  readonly areaTypes: readonly AreaTypeValue[];
+  /** Activities that grant access to this module. */
+  readonly activities: readonly AreaActivityValue[];
   /** Landing route of the module, e.g. `/worker/kitchen`. */
   readonly home: string;
   /** Additional route prefixes owned by the module (detail screens). */
@@ -48,7 +48,7 @@ export const WORKER_MODULES = [
     description: 'Cobros y turno de caja',
     icon: 'pi pi-wallet',
     title: 'Caja',
-    areaTypes: ['CASH'],
+    activities: ['CASH'],
     home: '/worker/cashier',
     priority: 0,
     preload: false,
@@ -78,7 +78,7 @@ export const WORKER_MODULES = [
     description: 'Menú, carta y pedidos',
     icon: 'pi pi-bell',
     title: 'Tomar pedidos',
-    areaTypes: ['SERVICE', 'BAR'],
+    activities: ['SERVE'],
     home: '/worker/waiter',
     extraPaths: ['/worker/combos'],
     priority: 1,
@@ -126,11 +126,11 @@ export const WORKER_MODULES = [
   },
   {
     id: 'kitchen',
-    label: 'Cocina',
+    label: 'Preparación',
     description: 'Estación de preparación',
     icon: 'pi pi-th-large',
-    title: 'Cocina',
-    areaTypes: ['KITCHEN', 'GRILL'],
+    title: 'Preparación',
+    activities: ['PREPARATION'],
     home: '/worker/kitchen',
     priority: 2,
     preload: true,

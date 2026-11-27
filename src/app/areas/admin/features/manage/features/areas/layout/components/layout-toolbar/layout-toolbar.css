@@ -1,0 +1,102 @@
+.layout-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rms-space-2);
+  padding: var(--rms-space-2);
+  border: var(--rms-border-width) solid var(--rms-border);
+  border-radius: var(--rms-radius-md);
+  background: var(--rms-bg-surface);
+}
+
+.layout-toolbar__group {
+  display: flex;
+  align-items: center;
+  gap: var(--rms-space-1);
+  flex-wrap: wrap;
+}
+
+.layout-toolbar__group--zoom {
+  margin-left: auto;
+}
+
+.layout-toolbar__zoom {
+  min-width: 3.25rem;
+  color: var(--rms-text-secondary);
+  font-size: var(--rms-type-caption-size);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.tool-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rms-space-2);
+  min-height: var(--rms-touch-min);
+  padding: 0 var(--rms-space-3);
+  border: var(--rms-border-width) solid transparent;
+  border-radius: var(--rms-radius-sm);
+  background: transparent;
+  color: var(--rms-text);
+  font-family: var(--rms-font-sans);
+  font-size: var(--rms-type-body-size);
+  font-weight: var(--rms-weight-medium);
+  cursor: pointer;
+}
+
+.tool-button:hover {
+  background: var(--rms-bg-subtle);
+}
+
+.tool-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.tool-button--active {
+  border-color: var(--rms-brand-500);
+  background: var(--rms-bg-selected);
+  color: var(--rms-brand-text);
+}
+
+.tool-button--icon {
+  justify-content: center;
+  width: var(--rms-touch-min);
+  padding: 0;
+}
+
+.tool-button__label {
+  white-space: nowrap;
+}
+
+.tool-button__hand {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+}
+
+.tool-button__shortcut {
+  color: var(--rms-text-muted);
+  font-size: 0.65rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+
+.tool-button--active .tool-button__shortcut {
+  color: var(--rms-brand-text);
+}
+
+@media (max-width: 640px) {
+  .tool-button__shortcut {
+    display: none;
+  }
+
+  .tool-button {
+    padding: 0 var(--rms-space-2);
+  }
+
+  .layout-toolbar__group--zoom {
+    margin-left: 0;
+  }
+}

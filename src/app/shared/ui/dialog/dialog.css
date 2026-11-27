@@ -20,6 +20,7 @@
 :host ::ng-deep .rms-dialog {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   border: var(--rms-border-width) solid var(--rms-border);
   border-radius: var(--rms-radius-md);
   background: var(--rms-bg-surface);
@@ -54,4 +55,36 @@
 :host ::ng-deep .rms-dialog .p-dialog-header-close:hover {
   background: var(--rms-bg-subtle);
   color: var(--rms-text);
+}
+
+:host ::ng-deep .rms-dialog--fullscreen {
+  border: 0;
+  border-radius: 0;
+}
+
+:host ::ng-deep .rms-dialog--fill:not(.rms-dialog--fullscreen) {
+  border-radius: var(--rms-radius-lg);
+}
+
+:host ::ng-deep .rms-dialog--fullscreen .p-dialog-header {
+  padding: var(--rms-space-2) var(--rms-space-4);
+}
+
+:host ::ng-deep .rms-dialog--fullscreen .p-dialog-content,
+:host ::ng-deep .rms-dialog--fill .p-dialog-content {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+:host ::ng-deep .rms-dialog--fullscreen .rms-dialog__body,
+:host ::ng-deep .rms-dialog--fill .rms-dialog__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
 }

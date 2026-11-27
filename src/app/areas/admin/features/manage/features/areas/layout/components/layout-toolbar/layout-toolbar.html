@@ -1,0 +1,81 @@
+<div class="layout-toolbar" role="toolbar" aria-label="Herramientas de distribución">
+  <div class="layout-toolbar__group" role="group" aria-label="Herramientas de dibujo">
+    @for (option of tools; track option.value) {
+      <button
+        type="button"
+        class="tool-button"
+        [class.tool-button--active]="tool === option.value"
+        [attr.aria-pressed]="tool === option.value"
+        [attr.title]="option.label + ' (' + option.shortcut + ')'"
+        (click)="selectTool(option.value)"
+      >
+        @if (option.value === 'pan') {
+          <svg
+            class="tool-button__hand"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M18 11V6a2 2 0 0 0-4 0v5" />
+            <path d="M14 10V4a2 2 0 0 0-4 0v6" />
+            <path d="M10 10.5V6a2 2 0 0 0-4 0v8" />
+            <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
+          </svg>
+        } @else {
+          <i class="pi" [class]="option.icon" aria-hidden="true"></i>
+        }
+        <span class="tool-button__label">{{ option.label }}</span>
+        <span class="tool-button__shortcut" aria-hidden="true">{{ option.shortcut }}</span>
+      </button>
+    }
+  </div>
+
+  <div class="layout-toolbar__group" role="group" aria-label="Historial">
+    <button
+      type="button"
+      class="tool-button tool-button--icon"
+      aria-label="Deshacer"
+      title="Deshacer (Ctrl+Z)"
+      [disabled]="!canUndo"
+      (click)="undo.emit()"
+    >
+      <i class="pi pi-undo" aria-hidden="true"></i>
+    </button>
+    <button
+      type="button"
+      class="tool-button tool-button--icon"
+      aria-label="Rehacer"
+      title="Rehacer (Ctrl+Shift+Z)"
+      [disabled]="!canRedo"
+      (click)="redo.emit()"
+    >
+      <i class="pi pi-refresh" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <div class="layout-toolbar__group layout-toolbar__group--zoom" role="group" aria-label="Zoom">
+    <button
+      type="button"
+      class="tool-button tool-button--icon"
+      aria-label="Alejar"
+      title="Alejar"
+      (click)="zoomOut.emit()"
+    >
+      <i class="pi pi-search-minus" aria-hidden="true"></i>
+    </button>
+    <span class="layout-toolbar__zoom">{{ zoomLabel() }}</span>
+    <button
+      type="button"
+      class="tool-button tool-button--icon"
+      aria-label="Acercar"
+      title="Acercar"
+      (click)="zoomIn.emit()"
+    >
+      <i class="pi pi-search-plus" aria-hidden="true"></i>
+    </button>
+  </div>
+</div>

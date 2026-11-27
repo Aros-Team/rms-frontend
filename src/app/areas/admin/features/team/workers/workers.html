@@ -148,6 +148,7 @@
           Un área exclusiva no se puede combinar con otras.
         </p>
       </div>
+
       <app-rms-input
         id="create.jobTitle"
         label="Rol"
@@ -240,6 +241,26 @@
         />
       }
     </form>
+
+      @if (selectedAreasForActivities().length > 0) {
+        <div class="flex flex-col gap-3">
+          <span class="rms-label">Actividades por área</span>
+          @for (area of selectedAreasForActivities(); track area.id) {
+            <div class="rounded-lg border border-rms-border bg-rms-subtle px-3 py-2">
+              <p class="text-sm font-medium text-rms-ink">{{ area.name }}</p>
+              <div class="mt-1 flex flex-col gap-1">
+                @for (activity of area.activities; track activity) {
+                  <app-rms-checkbox
+                    [id]="'worker-activity-' + area.id + '-' + activity"
+                    [label]="activityLabel(activity)"
+                    [ngModel]="workerActivitySelected(area.id, activity)"
+                    (ngModelChange)="toggleWorkerActivity(area.id, activity, $any($event))" />
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
 
     <div class="flex justify-start gap-2 mt-8">
       @if (editing) {

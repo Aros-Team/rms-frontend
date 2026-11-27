@@ -9,6 +9,7 @@ import {
   catchError,
   switchMap,
   of,
+  map,
   finalize,
   shareReplay,
 } from 'rxjs';
@@ -284,6 +285,22 @@ export class Auth {
         this._userData.set(userInfo);
         this.logger.info('User info loaded successfully');
       }),
+      switchMap((userInfo: UserInfo) => {
+        if (this.getRefreshToken() === null || !this.areaClaimsAreStale(userInfo)) {
+          return of(userInfo);
+        }
+        this.logger.info('Auth: area claims changed, refreshing the access token');
+        return this.refreshOnce().pipe(
+          map(() => userInfo),
+          catchError((error: unknown) => {
+            this.logger.error('Auth: stale area claim refresh failed', error);
+            if (!this.isAuthenticated()) {
+              return throwError(() => error);
+            }
+            return of(userInfo);
+          }),
+        );
+      }),
       catchError((err: unknown) => {
         this.logger.error('Failed to load user info', err);
         const httpErr = err as { status?: number };
@@ -294,5 +311,36 @@ export class Auth {
         return throwError(() => err);
       }),
     );
+  }
+
+  /**
+   * The access token is a snapshot of the worker's activities at login time.
+   * When an admin changes the assignment, `/auth` already reports the new
+   * activities but the token still carries the old claim, so area actions are
+   * denied with a 403. Refreshing once realigns the token with the database.
+   */
+  private areaClaimsAreStale(user: UserInfo): boolean {
+    const current = this.tokenAreaTypes();
+    if (current === null) return false;
+    const expected = this.userActivityNames(user);
+    return [...new Set(current)].sort().join('|') !== [...new Set(expected)].sort().join('|');
+  }
+
+  private tokenAreaTypes(): string[] | null {
+    const token = this._token;
+    if (!token) return null;
+    try {
+      const decoded = jwtDecode<{ areaTypes?: unknown }>(token);
+      if (!Array.isArray(decoded.areaTypes)) return null;
+      return decoded.areaTypes.filter((value): value is string => typeof value === 'string');
+    } catch {
+      return null;
+    }
+  }
+
+  private userActivityNames(user: UserInfo): string[] {
+    const explicit = (user.areaActivities ?? []).flatMap((assignment) => assignment.activities);
+    if (explicit.length > 0) return explicit;
+    return user.areas.flatMap((area) => area.activities ?? []);
   }
 }

@@ -31,11 +31,37 @@ export class RmsDialog {
   @Input() width = '560px';
   @Input() closeOnEscape = true;
   @Input() dismissableMask = false;
+  /** Edge-to-edge surface for immersive editors. */
+  @Input() fullscreen = false;
+  /** Optional explicit dialog height, useful for canvas/editor content. */
+  @Input() height = '';
+  /** Makes the content body fill the dialog instead of sizing to its content. */
+  @Input() fill = false;
+  /** Shows the dialog header (title + close button). */
+  @Input() showHeader = true;
+  /** Shows the PrimeNG close button. Disable when the content owns the close flow. */
+  @Input() closable = true;
 
-  get dialogStyle(): { width: string; maxHeight: string } {
+  get dialogStyle(): { width: string; maxHeight: string; height?: string; margin?: string } {
+    if (this.fullscreen) {
+      return {
+        width: '100vw',
+        height: '100dvh',
+        maxHeight: '100dvh',
+        margin: '0',
+      };
+    }
     return {
       width: `min(${this.width}, 92vw)`,
-      maxHeight: '92dvh',
+      height: this.height || undefined,
+      maxHeight: this.height || '92dvh',
     };
+  }
+
+  get styleClass(): string {
+    const classes = ['rms-dialog'];
+    if (this.fullscreen) classes.push('rms-dialog--fullscreen');
+    if (this.fill) classes.push('rms-dialog--fill');
+    return classes.join(' ');
   }
 }

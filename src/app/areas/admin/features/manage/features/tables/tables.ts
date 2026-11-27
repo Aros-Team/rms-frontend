@@ -1,27 +1,28 @@
 import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { RouterModule } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { TableModule } from 'primeng/table';
-import { IftaLabelModule } from 'primeng/iftalabel';
-import { SkeletonModule } from 'primeng/skeleton';
-import { IconFieldModule } from 'primeng/iconfield';
-import { InputIconModule } from 'primeng/inputicon';
 import { Table } from '@app/core/services/tables/table';
 import { MessageService } from 'primeng/api';
 import { TableResponse } from '@app/shared/models/dto/tables/table-response';
+import { FloorLayoutApi } from '@app/core/services/floor-layout/floor-layout';
+import type { FloorLayout, FloorTablePlacement } from '@app/shared/models/dto/floor-layout/floor-layout';
+import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
+import { buildCellIndex, cellKey, layoutFromDto, regionAtCell } from '../areas/layout/lib/geometry';
+import { TableFloorBoard, TABLE_DRAG_TYPE } from './components/table-floor-board/table-floor-board';
 import { TablesCache } from './tables-cache';
 import { LazyLoad } from '@app/core/directives/lazy-load/lazy-load.directive';
 import { WebSocket } from '@app/core/services/websocket/websocket';
 import { Auth } from '@app/core/services/auth/auth';
 import { environment } from '@environments/environment';
+import { forkJoin } from 'rxjs';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsDialog } from '@app/shared/ui/dialog/dialog';
+import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
 import { RmsInput } from '@app/shared/ui/input/input';
 import { RmsPageHeader } from '@app/shared/ui/page-header/page-header';
 import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
+import { RmsSkeleton } from '@app/shared/ui/skeleton/skeleton';
 
 const WS_TOPICS = {
   tableStatus: '/topic/tables/status',
@@ -31,25 +32,23 @@ const WS_TOPICS = {
   selector: 'app-tables',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    RouterModule,
     ReactiveFormsModule,
-    InputNumberModule,
-    TableModule,
-    IftaLabelModule,
-    SkeletonModule,
-    IconFieldModule,
-    InputIconModule,
     LazyLoad,
     RmsButton,
     RmsDialog,
+    RmsIconButton,
     RmsInput,
     RmsPageHeader,
     RmsStatusPill,
+    RmsSkeleton,
+    TableFloorBoard,
   ],
   templateUrl: './tables.html',
+  styleUrl: './tables.css',
 })
 export class Tables implements OnInit {
   private tableService = inject(Table);
+  private readonly floorLayoutApi = inject(FloorLayoutApi);
   private messageService = inject(MessageService);
   private wsService = inject(WebSocket);
   private authService = inject(Auth);
@@ -59,7 +58,47 @@ export class Tables implements OnInit {
   title = 'Gestión de Mesas';
 
   tables = computed(() => this.cache.tables.data() ?? []);
+  areas = computed(() => this.cache.areas.data() ?? []);
   loading = computed(() => this.cache.tables.isLoading());
+
+  readonly floorLayout = signal<FloorLayout | null>(null);
+  readonly placements = signal<readonly FloorTablePlacement[]>([]);
+  readonly floorLoading = signal(true);
+  readonly floorError = signal<string | null>(null);
+  readonly savingPlacements = signal(false);
+  readonly selectedFloorTableId = signal<number | null>(null);
+  readonly dragType = TABLE_DRAG_TYPE;
+
+  readonly layoutModel = computed(() => {
+    const layout = this.floorLayout();
+    return layout === null ? null : layoutFromDto(layout);
+  });
+
+  readonly placementByTable = computed(() => {
+    const map = new Map<number, FloorTablePlacement>();
+    for (const placement of this.placements()) map.set(placement.tableId, placement);
+    return map;
+  });
+
+  readonly placementAreas = computed(() => {
+    const layout = this.layoutModel();
+    const map = new Map<number, string>();
+    if (layout === null) return map;
+    const index = buildCellIndex(layout);
+    const areas = new Map(this.areas().map((area) => [area.id, area.name]));
+    for (const placement of this.placements()) {
+      const region = regionAtCell(
+        layout,
+        index,
+        cellKey(placement.row, placement.column),
+      );
+      if (region !== undefined) {
+        const name = areas.get(region.areaId);
+        if (name !== undefined) map.set(placement.tableId, name);
+      }
+    }
+    return map;
+  });
 
   modalIsOpen = signal(false);
   modalMode = signal<'edit' | 'create'>('create');
@@ -79,16 +118,18 @@ export class Tables implements OnInit {
   });
 
   ngOnInit(): void {
-    // Force load on first visit if no data
     if (this.cache.tables.data() === null) {
       this.cache.tables.refresh();
     }
+    this.cache.areas.loadIfStale();
     this.connectWebSocket();
-    this.showCreationModal();
+    this.loadFloor();
   }
 
   onVisible(): void {
     this.cache.tables.loadIfStale();
+    this.cache.areas.loadIfStale();
+    this.loadFloor();
   }
 
   loadTables(): void {
@@ -147,7 +188,7 @@ export class Tables implements OnInit {
             life: 3000,
           });
           this.loadTables();
-          this.showCreationModal();
+          this.closeModal();
         },
         error: () => {
           this.messageService.add({
@@ -200,6 +241,98 @@ export class Tables implements OnInit {
           summary: 'Error',
           detail: 'No se pudo cambiar el estado',
           life: 3000,
+        });
+      },
+    });
+  }
+
+  loadFloor(): void {
+    this.floorLoading.set(true);
+    this.floorError.set(null);
+    forkJoin({
+      layout: this.floorLayoutApi.getLayout(),
+      placements: this.floorLayoutApi.getTablePlacements(),
+    }).subscribe({
+      next: ({ layout, placements }) => {
+        this.floorLayout.set(layout);
+        this.placements.set(placements);
+        this.floorLoading.set(false);
+      },
+      error: (error: unknown) => {
+        this.floorError.set(
+          extractProblemDetail(error) ?? 'No se pudo cargar la distribución.',
+        );
+        this.floorLoading.set(false);
+      },
+    });
+  }
+
+  onFloorTablePlaced(placement: FloorTablePlacement): void {
+    this.persistPlacements(this.mergePlacement(this.placements(), placement));
+  }
+
+  onFloorTableSelected(tableId: number | null): void {
+    this.selectedFloorTableId.set(tableId);
+  }
+
+  onFloorPlacementError(message: string): void {
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Ubicación no válida',
+      detail: message,
+      life: 4000,
+    });
+  }
+
+  removeTablePlacement(tableId: number): void {
+    this.persistPlacements(this.placements().filter((item) => item.tableId !== tableId));
+  }
+
+  placedAreaName(tableId: number): string | null {
+    return this.placementAreas().get(tableId) ?? null;
+  }
+
+  onTableDragStart(event: DragEvent, table: TableResponse): void {
+    if (this.savingPlacements()) {
+      event.preventDefault();
+      return;
+    }
+    event.dataTransfer?.setData(TABLE_DRAG_TYPE, String(table.id));
+    event.dataTransfer?.setData('text/plain', String(table.id));
+    if (event.dataTransfer !== null) event.dataTransfer.effectAllowed = 'move';
+    this.selectedFloorTableId.set(table.id);
+  }
+
+  private mergePlacement(
+    current: readonly FloorTablePlacement[],
+    placement: FloorTablePlacement,
+  ): FloorTablePlacement[] {
+    return [
+      ...current.filter((item) => item.tableId !== placement.tableId),
+      placement,
+    ].sort((left, right) => left.tableId - right.tableId);
+  }
+
+  private persistPlacements(next: readonly FloorTablePlacement[]): void {
+    if (this.savingPlacements()) return;
+    const previous = this.placements();
+    this.placements.set(next);
+    this.savingPlacements.set(true);
+    this.floorLayoutApi.updateTablePlacements(next).subscribe({
+      next: (saved) => {
+        this.placements.set(saved);
+        this.savingPlacements.set(false);
+      },
+      error: (error: unknown) => {
+        this.placements.set(previous);
+        this.savingPlacements.set(false);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'No se pudo guardar la ubicación',
+          detail:
+            extractProblemDetail(error)
+            ?? 'Revisa que la mesa esté dentro de un área de atención al cliente.',
+          life: 6000,
         });
       },
     });

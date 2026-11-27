@@ -4,7 +4,7 @@
 
   <header class="kitchen__header">
     <div class="kitchen__heading">
-      <h1 class="rms-h1 kitchen__title">Cocina</h1>
+      <h1 class="rms-h1 kitchen__title">Preparación</h1>
       <p class="kitchen__subtitle">Tablero de estación · {{ selectedStationName() }}</p>
     </div>
 
@@ -37,30 +37,37 @@
     </div>
   </header>
 
-  <div class="kitchen__stations" role="group" aria-label="Filtrar por estación" data-testid="station-filter">
-    <button
-      type="button"
-      class="station-chip"
-      [class.station-chip--active]="isStationSelected('all')"
-      [attr.aria-pressed]="isStationSelected('all')"
-      (click)="selectStation('all')"
+  @if (stationFilterVisible()) {
+    <div
+      class="kitchen__stations"
+      role="group"
+      aria-label="Filtrar por estación"
+      data-testid="station-filter"
     >
-      Todas
-      <span class="station-chip__count">{{ activeTotal() }}</span>
-    </button>
-    @for (station of stationOptions(); track station.key) {
       <button
         type="button"
         class="station-chip"
-        [class.station-chip--active]="isStationSelected(station.key)"
-        [attr.aria-pressed]="isStationSelected(station.key)"
-        (click)="selectStation(station.key)"
+        [class.station-chip--active]="isStationSelected('all')"
+        [attr.aria-pressed]="isStationSelected('all')"
+        (click)="selectStation('all')"
       >
-        {{ station.name }}
-        <span class="station-chip__count">{{ station.total }}</span>
+        Todas
+        <span class="station-chip__count">{{ activeTotal() }}</span>
       </button>
-    }
-  </div>
+      @for (station of stationOptions(); track station.key) {
+        <button
+          type="button"
+          class="station-chip"
+          [class.station-chip--active]="isStationSelected(station.key)"
+          [attr.aria-pressed]="isStationSelected(station.key)"
+          (click)="selectStation(station.key)"
+        >
+          {{ station.name }}
+          <span class="station-chip__count">{{ station.total }}</span>
+        </button>
+      }
+    </div>
+  }
 
   @if (error(); as message) {
     <div class="kitchen__banner kitchen__banner--danger" role="alert">
@@ -314,18 +321,6 @@
                         Marcar lista
                       </app-rms-button>
                     }
-                    @if (column.key === 'ready') {
-                      <app-rms-button
-                        size="xl"
-                        iconStart="pi pi-send"
-                        [loading]="isProcessing(order.id)"
-                        [disabled]="isProcessing(order.id)"
-                        data-testid="deliver"
-                        (click)="askDeliver(order)"
-                      >
-                        Entregar
-                      </app-rms-button>
-                    }
                   </div>
                 </footer>
               </article>
@@ -469,53 +464,7 @@
           Marcar lista
         </app-rms-button>
       }
-      @if (order.status === 'READY') {
-        <app-rms-button size="xl" iconStart="pi pi-send" (click)="openDeliverFromDetail(order)">
-          Entregar
-        </app-rms-button>
-      }
     }
   </div>
 </app-rms-dialog>
 
-<app-rms-dialog
-  [visible]="deliverTarget() !== null"
-  (visibleChange)="onDeliverVisible($event)"
-  [header]="deliverHeader()"
-  width="560px"
-  [closeOnEscape]="!deliverBusy()"
-  [dismissableMask]="false"
->
-  @if (deliverTarget(); as order) {
-    <div class="confirm">
-      <p class="confirm__lead">
-        El pedido #{{ order.id }} de {{ tableLabel(order) }} saldrá del tablero de cocina.
-      </p>
-      <p>El mesero lo verá como <strong>entregado</strong>. Esta acción no se puede deshacer desde cocina.</p>
-      @if (deliverError(); as message) {
-        <p class="confirm__error" role="alert">{{ message }}</p>
-      }
-    </div>
-  }
-
-  <div rmsDialogFooter>
-    <app-rms-button
-      variant="secondary"
-      size="lg"
-      [disabled]="deliverBusy()"
-      (click)="onDeliverVisible(false)"
-    >
-      Cancelar
-    </app-rms-button>
-    <app-rms-button
-      size="xl"
-      iconStart="pi pi-send"
-      [loading]="deliverBusy()"
-      [disabled]="deliverBusy()"
-      (click)="confirmDeliver()"
-      data-testid="confirm-deliver"
-    >
-      Sí, entregar
-    </app-rms-button>
-  </div>
-</app-rms-dialog>

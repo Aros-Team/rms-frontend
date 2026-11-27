@@ -46,6 +46,35 @@ describe('RmsDialog', () => {
     expect(dialog.dialogStyle.maxHeight).toBe('92dvh');
   });
 
+  it('uses an edge-to-edge surface in fullscreen mode', () => {
+    dialog.fullscreen = true;
+    fixture.detectChanges();
+
+    expect(dialog.dialogStyle).toMatchObject({
+      width: '100vw',
+      height: '100dvh',
+      maxHeight: '100dvh',
+      margin: '0',
+    });
+    expect(dialog.styleClass).toContain('rms-dialog--fullscreen');
+  });
+
+  it('sizes an immersive pane that still looks like a modal', () => {
+    dialog.width = '1180px';
+    dialog.height = 'min(820px, 90dvh)';
+    dialog.fill = true;
+    dialog.showHeader = false;
+    fixture.detectChanges();
+
+    expect(dialog.dialogStyle).toMatchObject({
+      width: 'min(1180px, 92vw)',
+      height: 'min(820px, 90dvh)',
+      maxHeight: 'min(820px, 90dvh)',
+    });
+    expect(dialog.styleClass).toContain('rms-dialog--fill');
+    expect(dialog.styleClass).not.toContain('rms-dialog--fullscreen');
+  });
+
   it('emits visibleChange when the dialog requests a close', () => {
     const spy = vi.fn();
     dialog.visibleChange.subscribe(spy);
