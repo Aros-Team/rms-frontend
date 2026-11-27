@@ -1,20 +1,16 @@
 /**
  * Tests for the waiter "today's orders" screen.
  *
- * Feature: Renders every order of the selected day (status filter optional) and
- * derives the "activas / entregadas" counters from that list.
+ * Feature: renders every order of the current day.
  * Contract:
  *  - the service call page-walks the whole day (`getAllOrdersByDateRange`), so
  *    rows beyond the first page are present;
- *  - the server-reported total is kept even when the walk was capped, and the
- *    header then says how many rows are actually shown (never silent truncation);
- *  - the day boundaries (00:00:00 → current day end, capped to "now") and the
- *    status filter are passed to the service;
+ *  - the day boundaries (00:00:00 → current day end) are passed to the service;
  *  - a failed load shows the error banner and stops the spinner.
  *
  * Approach: mount the component, provide a stub `Order` service returning a
- * controlled `OrderCollection`, then assert the rendered header text (counters +
- * truncation notice) and the exact arguments handed to the service.
+ * controlled `OrderCollection`, then assert the rendered rows and the exact
+ * arguments handed to the service.
  */
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { ɵresolveComponentResources as resolveComponentResources } from '@angular/core';
@@ -86,47 +82,19 @@ describe('TodayOrders', () => {
     fixture.destroy();
   });
 
-  function headerText(): string {
-    const header = (fixture.nativeElement as HTMLElement).querySelector('header p');
-    const text = header?.textContent ?? '';
-    return text.replace(/\s+/g, ' ').trim();
-  }
-
-  it('keeps every row of the day and renders the counters from all of them', () => {
+  it('renders every row of the day', () => {
     expect(fixture.componentInstance.orders().map((o) => o.id)).toEqual([1, 2, 3]);
-    expect(headerText()).toBe('2 activas · 1 entregadas');
+    const rows = (fixture.nativeElement as HTMLElement).querySelectorAll('.order-card');
+    expect(rows.length).toBe(3);
   });
 
   it('page-walks the whole day instead of taking a single page', () => {
     expect(getAll).toHaveBeenCalledTimes(1);
-    const [start, end, query] = getAll.mock.calls[0] as [Date, Date, { status?: string }];
+    const [start, end] = getAll.mock.calls[0] as [Date, Date];
     expect(start.getHours()).toBe(0);
     expect(start.getMinutes()).toBe(0);
     expect(start.toDateString()).toBe(new Date().toDateString());
     expect(end.getTime()).toBeGreaterThan(start.getTime());
-    expect(query).toEqual({ status: undefined });
-  });
-
-  it('declares the truncation in the header when the walk was capped', () => {
-    getAll.mockReturnValueOnce(
-      of(collection([makeOrder(1, 'QUEUE'), makeOrder(2, 'DELIVERED')], 5000, true)),
-    );
-
-    fixture.componentInstance.fetchOrders();
-    fixture.detectChanges();
-
-    expect(fixture.componentInstance.truncated()).toBe(true);
-    expect(headerText()).toBe(
-      '1 activas · 1 entregadas · vista limitada: mostrando 2 de 5000 pedidos',
-    );
-  });
-
-  it('forwards the selected status filter to the service', () => {
-    fixture.componentInstance.selectedStatus.set('READY');
-    fixture.componentInstance.fetchOrders();
-
-    const query = getAll.mock.calls[1][2] as { status?: string };
-    expect(query).toEqual({ status: 'READY' });
   });
 
   it('shows the error message and stops the spinner when the load fails', () => {

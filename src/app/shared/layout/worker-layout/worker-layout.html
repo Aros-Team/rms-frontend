@@ -45,7 +45,7 @@
     [ngClass]="isKitchen() ? 'pb-4 kitchen-main' : 'pb-28 lg:pb-4'"
   >
     <div class="mx-auto flex w-full min-h-0 flex-1 flex-col" [ngClass]="isKitchen() ? '' : 'max-w-7xl'">
-      @if (!isKitchen()) {
+      @if (!isKitchen() && !hideBreadcrumbs()) {
         <app-breadcrumbs class="mb-2 block px-1" />
       }
       <ng-content />

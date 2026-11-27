@@ -1,55 +1,4 @@
 <div class="orders">
-  <header class="orders__header">
-    <p class="orders__counts">
-      {{ activeCount() }} activas · {{ deliveredCount() }} entregadas
-      @if (truncated()) {
-        <span class="orders__truncated">
-          · vista limitada: mostrando {{ orders().length }} de {{ totalCount() }} pedidos
-        </span>
-      }
-    </p>
-    @if (updatedLabel()) {
-      <p class="orders__updated" role="status">
-        <i class="pi pi-refresh" aria-hidden="true"></i>
-        Actualizado a las {{ updatedLabel() }} · se actualiza cada 30 s
-      </p>
-    }
-  </header>
-
-  <section class="orders__filters" aria-label="Filtros de pedidos">
-    <div class="orders__date">
-      <label class="orders__date-label" for="orders-date">Fecha</label>
-      <input
-        id="orders-date"
-        type="date"
-        class="orders__date-input"
-        [ngModel]="dateValue"
-        (ngModelChange)="onDateChange($event)"
-      />
-    </div>
-    <app-rms-icon-button
-      icon="pi pi-refresh"
-      ariaLabel="Actualizar pedidos"
-      size="lg"
-      [disabled]="loading() || refreshing()"
-      (click)="refresh()"
-    />
-  </section>
-
-  <div class="orders__status" role="group" aria-label="Filtrar por estado">
-    @for (option of statusOptions; track option.value) {
-      <button
-        type="button"
-        class="status-chip"
-        [class.status-chip--active]="selectedStatus() === option.value"
-        [attr.aria-pressed]="selectedStatus() === option.value"
-        (click)="selectStatus(option.value)"
-      >
-        {{ option.label }}
-      </button>
-    }
-  </div>
-
   @if (error(); as message) {
     <div class="orders__error" role="alert">
       <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
@@ -63,7 +12,7 @@
   } @else if (orders().length === 0) {
     <div class="orders__empty">
       <span class="orders__empty-icon" aria-hidden="true"><i class="pi pi-inbox"></i></span>
-      <h2 class="orders__empty-title">No hay pedidos para esta fecha</h2>
+      <h2 class="orders__empty-title">No hay pedidos para hoy</h2>
       <p class="orders__empty-copy">
         Cuando envíes un pedido desde la carta aparecerá aquí con su estado en tiempo real.
       </p>

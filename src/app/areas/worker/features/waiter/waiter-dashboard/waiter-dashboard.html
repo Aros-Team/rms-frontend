@@ -1,26 +1,5 @@
 <div class="waiter">
-  <app-rms-page-header [title]="pageTitle()" [subtitle]="pageSubtitle()">
-    <div rmsPageHeaderMeta class="table-bar">
-      <div class="table-bar__main">
-        <span class="table-bar__icon" aria-hidden="true">
-          <i class="pi pi-table"></i>
-        </span>
-        <div class="table-bar__copy">
-          <p class="table-bar__label">Mesa del pedido</p>
-          <p class="table-bar__value">{{ tableLabel() }}</p>
-        </div>
-        <app-rms-status-pill [label]="tableStatusText()" [status]="tableTone()" />
-      </div>
-      <app-rms-button
-        variant="secondary"
-        size="lg"
-        [iconStart]="selectedTable() ? 'pi pi-refresh' : 'pi pi-search'"
-        (click)="openTablePicker()"
-      >
-        {{ selectedTable() ? 'Cambiar' : 'Elegir mesa' }}
-      </app-rms-button>
-    </div>
-  </app-rms-page-header>
+  <h1 class="sr-only">{{ pageTitle() }}</h1>
 
   <div class="waiter__content">
     @switch (activeTab()) {
@@ -36,8 +15,3 @@
     }
   </div>
 </div>
-
-<app-waiter-table-picker
-  [open]="tablePickerOpen()"
-  (openChange)="tablePickerOpen.set($event)"
-/>

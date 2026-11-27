@@ -59,6 +59,12 @@ export class WorkerLayout {
 
   readonly currentUrl = signal('');
 
+  /** The waiter workspace is a focused live screen: no breadcrumb chrome. */
+  readonly hideBreadcrumbs = computed(() => {
+    const [path = ''] = this.currentUrl().split('?');
+    return path === '/worker/waiter';
+  });
+
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
