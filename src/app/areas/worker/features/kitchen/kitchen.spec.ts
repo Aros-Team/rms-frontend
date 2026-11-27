@@ -2,12 +2,13 @@
  * Tests for the kitchen TV board.
  *
  * Feature: a line cook reads QUEUE / PREPARING / READY on a TV, grouped by
- * preparation station, with a live timer and one guarded action per step.
+ * preparation station, with a live timer and one guarded action per ticket.
  * Contract:
  *  - the three columns render oldest first with real counts;
+ *  - the whole ticket is readable without opening a dialog or a detail screen;
  *  - station comes from the product catalogue and the filter narrows the board;
  *  - the timer derives from the order date and crosses the overdue threshold;
- *  - "Tomar siguiente" and "Marcar lista" never submit twice;
+ *  - "Tomar" and "Listo" never submit twice;
  *  - WebSocket events are idempotent and a dropped socket starts polling; a
  *    reconnect refetches every column;
  *  - a failed column shows an error and a capped walk is declared.
@@ -33,12 +34,9 @@ import { resolveUiResources } from '@app/shared/ui/testing/ui-test-resources';
 
 import { Kitchen } from './kitchen';
 import { KitchenAlerts } from './kitchen-alerts';
-import type { KitchenLine } from './kitchen-lines';
 import kitchenHtml from './kitchen.html?raw';
-import badgeHtml from '@app/shared/ui/badge/badge.html?raw';
 import buttonHtml from '@app/shared/ui/button/button.html?raw';
-import dialogHtml from '@app/shared/ui/dialog/dialog.html?raw';
-import emptyStateHtml from '@app/shared/ui/empty-state/empty-state.html?raw';
+import iconButtonHtml from '@app/shared/ui/icon-button/icon-button.html?raw';
 import statusPillHtml from '@app/shared/ui/status-pill/status-pill.html?raw';
 
 const PRICE = { amount: '10000.00', currency: 'COP' };
@@ -144,10 +142,8 @@ describe('Kitchen', () => {
   beforeAll(async () => {
     await resolveUiResources({
       'kitchen.html': kitchenHtml as unknown as string,
-      'badge.html': badgeHtml as unknown as string,
       'button.html': buttonHtml as unknown as string,
-      'dialog.html': dialogHtml as unknown as string,
-      'empty-state.html': emptyStateHtml as unknown as string,
+      'icon-button.html': iconButtonHtml as unknown as string,
       'status-pill.html': statusPillHtml as unknown as string,
     });
   });
@@ -324,7 +320,7 @@ describe('Kitchen', () => {
       expect(
         component.groupsFor(component.queueOrders()[0]).map((group) => group.station.name),
       ).toEqual(['Bar']);
-      expect(text(host().querySelector('.kitchen__subtitle'))).toContain('Bar');
+      expect(text(host().querySelector('h1'))).toContain('Bar');
     });
 
     it('marks ready only the assigned preparation area', async () => {
@@ -353,7 +349,7 @@ describe('Kitchen', () => {
       expect(text(host().querySelector('[data-testid="preparing-count"]'))).toBe('1');
       expect(text(host().querySelector('[data-testid="ready-count"]'))).toBe('1');
       expect(host().querySelectorAll('h1')).toHaveLength(1);
-      expect(text(host().querySelector('h1'))).toBe('Preparación');
+      expect(text(host().querySelector('h1'))).toBe('Todas las estaciones');
       expect(getAllByStatus).toHaveBeenCalledWith('QUEUE', { sort: 'date,asc' });
       expect(productStub.getAllProducts).toHaveBeenCalledWith(true);
     });
@@ -424,36 +420,29 @@ describe('Kitchen', () => {
       expect(text(warning)).toContain('Atención');
     });
 
-    it('toggles sound and reflects the persisted state', () => {
-      const soundButton = Array.from(host().querySelectorAll('button')).find((button) =>
-        text(button).startsWith('Sonido'),
-      );
-      expect(text(soundButton ?? null)).toContain('Sonido activado');
+    it('mutes and unmutes the new-order sound from one icon control', () => {
+      const soundButton = host().querySelector<HTMLButtonElement>('[data-testid="sound-toggle"] button');
+      expect(soundButton?.getAttribute('aria-label')).toBe('Silenciar avisos');
 
       soundButton?.click();
       fixture.detectChanges();
 
       expect(alertsStub.toggle).toHaveBeenCalledTimes(1);
-      const mutedButton = Array.from(host().querySelectorAll('button')).find((button) =>
-        text(button).startsWith('Sonido'),
+      const mutedButton = host().querySelector<HTMLButtonElement>(
+        '[data-testid="sound-toggle"] button',
       );
-      expect(text(mutedButton ?? null)).toContain('Sonido desactivado');
+      expect(mutedButton?.getAttribute('aria-label')).toBe('Activar sonido de avisos');
     });
 
-    it('opens the detail with quantities, combos and the order total', () => {
+    it('renders the order lines on the ticket without a detail dialog', () => {
       const order = component.queueOrders().find((candidate) => candidate.id === 102);
       if (!order) throw new Error('Expected order 102');
 
-      component.openDetail(order);
-      fixture.detectChanges();
-
-      expect(component.detailHeader()).toBe('Pedido #102');
-      expect(component.detailLines().map((line) => [line.name, line.quantity])).toEqual([
-        ['Hamburguesa', 2],
-        ['Limonada', 1],
+      expect(host().querySelector('app-rms-dialog')).toBeNull();
+      expect(component.groupsFor(order).map((group) => group.station.name)).toEqual([
+        'Cocina',
+        'Bar',
       ]);
-      expect(component.detailGroups().map((group) => group.station.name)).toEqual(['Cocina', 'Bar']);
-      expect(component.detailTotal()).toBe(30_000);
     });
   });
 
@@ -462,17 +451,16 @@ describe('Kitchen', () => {
       await configure();
     });
 
-    it('locks "Tomar siguiente" while the request is in flight', () => {
+    it('locks the FIFO take-next action while the request is in flight', () => {
       const pending = new Subject<OrderResponse>();
       orderStub.prepareNext.mockReturnValue(pending.asObservable());
 
-      innerButton('prepare-next').click();
-      fixture.detectChanges();
-      innerButton('prepare-next').click();
+      component.prepareNext();
+      component.prepareNext();
 
       expect(orderStub.prepareNext).toHaveBeenCalledTimes(1);
       expect(component.preparingNext()).toBe(true);
-      expect(innerButton('prepare-next').disabled).toBe(true);
+      expect(host().querySelector('[data-testid="prepare-next"]')).toBeNull();
 
       pending.next(makeOrder(101, 'PREPARING', '2026-01-01T12:00:00', []));
       pending.complete();
@@ -506,57 +494,12 @@ describe('Kitchen', () => {
       expect(columnIds('preparing')).toEqual(['#103', '#101']);
     });
 
-    it('marks one line ready, shows the timestamp and completes the ticket', () => {
-      const updated = makeOrder(103, 'PREPARING', '2026-01-01T11:50:00', [
-        detail(1031, 1, 'Hamburguesa', { ready: true, readyAt: '2026-01-01T12:00:30' }),
-      ]);
-      orderStub.markDetailReady.mockReturnValue(of(updated));
-
-      const wrapper = host().querySelector<HTMLElement>('[data-testid="line-ready-1031"]');
-      wrapper?.querySelector('button')?.click();
-      fixture.detectChanges();
-
-      expect(orderStub.markDetailReady).toHaveBeenCalledWith(103, 1031);
-      expect(component.preparingOrders()[0].details[0]).toMatchObject({ ready: true });
-      expect(text(host().querySelector('[data-order-id="103"]'))).toContain('Listo');
-      expect(text(host().querySelector('[data-order-id="103"]'))).toContain('12:00');
-    });
-
-    it('moves the ticket to READY when the last line becomes ready', () => {
-      const order = component.preparingOrders()[0];
-      const line: KitchenLine = {
-        key: 'last-line',
-        productId: 1,
-        name: 'Hamburguesa',
-        quantity: 1,
-        station: { key: 'area:1', name: 'Cocina', rank: 1 },
-        options: [],
-        combos: [],
-        additions: [],
-        clarifications: [],
-        note: '',
-        details: [{ id: 1031, ready: false, readyAt: null }],
-      };
-      orderStub.markDetailReady.mockReturnValue(
-        of(makeOrder(103, 'READY', '2026-01-01T11:50:00', [
-          detail(1031, 1, 'Hamburguesa', { ready: true, readyAt: '2026-01-01T12:00:30' }),
-        ])),
-      );
-
-      component.markLineReady(order, line);
-      fixture.detectChanges();
-
-      expect(columnIds('preparing')).toEqual([]);
-      expect(columnIds('ready')).toEqual(['#104', '#103']);
-      expect(component.announcement()).toContain('Pedido #103 listo para entregar');
-    });
-
     it('marks an order ready once and moves it to the READY column', () => {
       const pending = new Subject<OrderResponse>();
       orderStub.markAsReady.mockReturnValue(pending.asObservable());
 
-      innerButton('mark-ready').click();
-      innerButton('mark-ready').click();
+      innerButton('mark-ready-103').click();
+      innerButton('mark-ready-103').click();
 
       expect(orderStub.markAsReady).toHaveBeenCalledTimes(1);
       expect(component.isProcessing(103)).toBe(true);
@@ -672,9 +615,7 @@ describe('Kitchen', () => {
       component.fetchAll(true);
       fixture.detectChanges();
 
-      expect(text(host().querySelector('[data-testid="queue-limit"]'))).toBe(
-        '· vista limitada: 2 de 5000',
-      );
+      expect(text(host().querySelector('[data-testid="queue-limit"]'))).toBe('2 de 5000');
     });
 
     it('surfaces a station-catalogue failure without dropping the order', async () => {

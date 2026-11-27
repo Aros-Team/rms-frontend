@@ -15,7 +15,7 @@
 
   <app-server-down-banner />
 
-  @if (accessibleModules().length > 1) {
+  @if (!isKitchen() && accessibleModules().length > 1) {
     <nav
       class="mx-auto flex w-full max-w-7xl flex-wrap gap-2 px-3 pt-3"
       aria-label="Módulos de trabajo"

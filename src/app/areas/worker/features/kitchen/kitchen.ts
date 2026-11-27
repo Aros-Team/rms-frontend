@@ -16,16 +16,10 @@ import { Logging } from '@app/core/services/logging/logging';
 import { Order, type OrderQuery, type OrderStatus } from '@app/core/services/orders/order';
 import { Product } from '@app/core/services/products/product';
 import { WebSocket } from '@app/core/services/websocket/websocket';
-import {
-  calculateTotalPrice,
-  type OrderResponse,
-} from '@app/shared/models/dto/orders/order-response';
+import type { OrderResponse } from '@app/shared/models/dto/orders/order-response';
 import type { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
-import { Money } from '@app/shared/pipes/money/money';
-import { RmsBadge } from '@app/shared/ui/badge/badge';
 import { RmsButton } from '@app/shared/ui/button/button';
-import { RmsDialog } from '@app/shared/ui/dialog/dialog';
-import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
+import { RmsIconButton } from '@app/shared/ui/icon-button/icon-button';
 import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
 import type { RmsStatus } from '@app/shared/ui/types/ui-types';
 import { environment } from '@environments/environment';
@@ -34,11 +28,6 @@ import { KitchenAlerts } from './kitchen-alerts';
 import {
   groupKitchenLines,
   isLineReady,
-  isLineStarted,
-  lineReadyAt,
-  lineStartedAt,
-  pendingDetailIds,
-  unstartedDetailIds,
   totalKitchenItems,
   type KitchenLine,
 } from './kitchen-lines';
@@ -56,12 +45,10 @@ import {
 } from './kitchen-stations';
 import {
   formatAge,
-  formatClock,
   formatOrderTime,
   orderAgeMs,
   urgencyFor as urgencyForAge,
   urgencyLabel,
-  urgencyTone,
   type KitchenUrgency,
 } from './kitchen-time';
 
@@ -104,25 +91,8 @@ interface KitchenColumnView {
   key: KitchenColumn;
   label: string;
   orders: readonly OrderResponse[];
-  total: number;
   limit: ColumnLimit | null;
 }
-
-const STATUS_LABEL: Record<string, string> = {
-  QUEUE: 'En cola',
-  PREPARING: 'Preparando',
-  READY: 'Listo',
-  DELIVERED: 'Entregada',
-  CANCELLED: 'Cancelada',
-};
-
-const STATUS_TONE: Record<string, RmsStatus> = {
-  QUEUE: 'warning',
-  PREPARING: 'info',
-  READY: 'success',
-  DELIVERED: 'neutral',
-  CANCELLED: 'danger',
-};
 
 /** RFC 7807 problem responses expose the human-readable text in `detail`. */
 function problemDetail(error: unknown): string | null {
@@ -167,9 +137,9 @@ function replaceById(orders: readonly OrderResponse[], order: OrderResponse): Or
  *  - As a line cook, I see QUEUE / PREPARING / READY with counts and a timer per
  *    order, so I know what to cook next and what is running late.
  *  - As a line cook, I can read quantities, options, combos, additions and notes
- *    without opening a second screen, so I do not misread a ticket.
- *  - As a line cook, I take the next order once and mark it ready once; the
- *    board never submits twice and tells me when the action failed.
+ *    on the ticket itself, so I do not misread it and never open a second screen.
+ *  - As a line cook, a ticket carries exactly ONE action: take it or mark it
+ *    ready. The board never submits twice and tells me when the action failed.
  *  - As a line cook on a 1920x1080 TV (1024x768 fallback), I read the pass from
  *    ~3 m; at 1024 the same three columns fit without horizontal scroll.
  *
@@ -179,9 +149,10 @@ function replaceById(orders: readonly OrderResponse[], order: OrderResponse): Or
  * **server-side** `areaId` filter; category/unknown stations are filtered
  * client-side because the API has no equivalent parameter.
  *
- * Item readiness is persisted (`ready`/`readyAt` per detail row): ticking a line
- * calls the per-detail endpoint, and the server moves the order to READY when
- * the last line completes. The board never invents local readiness.
+ * Per-line readiness is still persisted and rendered (a completed line shows a
+ * check and success ink), but the board no longer exposes a control per line:
+ * the cook advances the whole ticket and the area-scoped endpoints decide which
+ * lines complete.
  *
  * Realtime: STOMP topics patch the columns locally; when the socket drops the
  * board polls every 10 s and labels itself "Reconectando". A reconnect refetches
@@ -190,7 +161,7 @@ function replaceById(orders: readonly OrderResponse[], order: OrderResponse): Or
  */
 @Component({
   selector: 'app-kitchen',
-  imports: [Money, RmsBadge, RmsButton, RmsDialog, RmsEmptyState, RmsStatusPill],
+  imports: [RmsButton, RmsIconButton, RmsStatusPill],
   templateUrl: './kitchen.html',
   styleUrl: './kitchen.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -210,7 +181,6 @@ export class Kitchen implements OnInit, OnDestroy {
   readonly stationReady = signal(false);
   readonly wsConnected = signal(false);
   readonly polling = signal(false);
-  readonly lastSync = signal<Date | null>(null);
 
   /** Wall clock for every timer. One signal, one text change per second. */
   readonly now = signal(Date.now());
@@ -227,8 +197,6 @@ export class Kitchen implements OnInit, OnDestroy {
 
   readonly processingIds = signal<ReadonlySet<number>>(new Set());
   readonly preparingNext = signal(false);
-  /** `orderId:lineKey` of the grouped line whose readiness call is in flight. */
-  readonly lineProcessing = signal<ReadonlySet<string>>(new Set());
 
   readonly selectedStation = signal('all');
   readonly newOrderIds = signal<ReadonlySet<number>>(new Set());
@@ -257,7 +225,6 @@ export class Kitchen implements OnInit, OnDestroy {
   });
 
   private readonly stationMap = signal<KitchenStationMap>(new Map());
-  private readonly detailId = signal<number | null>(null);
 
   private wsSubs: Subscription[] = [];
   private pollingInterval?: ReturnType<typeof setInterval>;
@@ -323,51 +290,23 @@ export class Kitchen implements OnInit, OnDestroy {
       key: 'queue',
       label: this.columnLabel('queue'),
       orders: this.queueView(),
-      total: this.queueOrders().length,
       limit: this.limitFor('queue'),
     },
     {
       key: 'preparing',
       label: this.columnLabel('preparing'),
       orders: this.preparingView(),
-      total: this.preparingOrders().length,
       limit: this.limitFor('preparing'),
     },
     {
       key: 'ready',
       label: this.columnLabel('ready'),
       orders: this.readyView(),
-      total: this.readyOrders().length,
       limit: this.limitFor('ready'),
     },
   ]);
 
   readonly nextOrder = computed<OrderResponse | null>(() => this.queueView()[0] ?? null);
-  readonly nextAgeLabel = computed(() => {
-    const order = this.nextOrder();
-    return order ? formatAge(orderAgeMs(order.date, this.now())) : '';
-  });
-
-  readonly detailOrder = computed<OrderResponse | null>(() => {
-    const id = this.detailId();
-    return id === null ? null : this.findOrder(id);
-  });
-  readonly detailLines = computed<readonly KitchenLine[]>(() => {
-    const order = this.detailOrder();
-    return order ? groupKitchenLines(order.details, this.stationMap()) : [];
-  });
-  readonly detailGroups = computed<readonly StationGroup<KitchenLine>[]>(() => {
-    const order = this.detailOrder();
-    return order ? this.groupsFor(order) : [];
-  });
-  readonly detailHeader = computed(() => {
-    const order = this.detailOrder();
-    return order ? `Pedido #${String(order.id)}` : 'Pedido';
-  });
-  readonly detailTotal = computed(() => {
-    const order = this.detailOrder();
-    return order ? calculateTotalPrice(order) : 0;
-  });
 
   readonly connectionLabel = computed(() => {
     if (this.wsConnected()) return 'En vivo';
@@ -378,10 +317,6 @@ export class Kitchen implements OnInit, OnDestroy {
     if (this.wsConnected()) return 'success';
     if (this.polling()) return 'warning';
     return 'danger';
-  });
-  readonly syncLabel = computed(() => {
-    const date = this.lastSync();
-    return date ? formatClock(date) : '—';
   });
 
   ngOnInit(): void {
@@ -411,7 +346,6 @@ export class Kitchen implements OnInit, OnDestroy {
   @HostListener('window:keydown', ['$event'])
   onKeydown(event: KeyboardEvent): void {
     if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
-    if (this.detailOrder() !== null) return;
 
     const target = event.target;
     if (
@@ -503,9 +437,8 @@ export class Kitchen implements OnInit, OnDestroy {
       this.loading.set(false);
       this.refreshing.set(false);
       const current = token === this.fetchToken;
-      if (current && !failed) {
-        this.lastSync.set(new Date());
-        if (areaId === null) this.boardSnapshot.set(this.currentColumns());
+      if (current && !failed && areaId === null) {
+        this.boardSnapshot.set(this.currentColumns());
       }
       if (this.refetchRequested) {
         this.refetchRequested = false;
@@ -732,7 +665,6 @@ export class Kitchen implements OnInit, OnDestroy {
   private upsert(column: KitchenColumn, order: OrderResponse): void {
     const normalized: OrderResponse = { ...order, status: STATUS_BY_COLUMN[column] };
     this.signalFor(column).update((current) => sortOldestFirst(replaceById(current, normalized)));
-    this.lastSync.set(new Date());
   }
 
   private moveOrder(column: KitchenColumn, order: OrderResponse): void {
@@ -748,7 +680,6 @@ export class Kitchen implements OnInit, OnDestroy {
     this.preparingOrders.update((list) => list.filter((order) => order.id !== id));
     this.readyOrders.update((list) => list.filter((order) => order.id !== id));
     this.clearNew(id);
-    this.lastSync.set(new Date());
   }
 
   private clearNew(id: number): void {
@@ -758,15 +689,6 @@ export class Kitchen implements OnInit, OnDestroy {
       next.delete(id);
       return next;
     });
-  }
-
-  private findOrder(id: number): OrderResponse | null {
-    return (
-      this.queueOrders().find((order) => order.id === id) ??
-      this.preparingOrders().find((order) => order.id === id) ??
-      this.readyOrders().find((order) => order.id === id) ??
-      null
-    );
   }
 
   private markNew(id: number): void {
@@ -950,146 +872,6 @@ export class Kitchen implements OnInit, OnDestroy {
     step();
   }
 
-  /**
-   * Marks every pending physical row of a grouped line ready, one request per
-   * detail id (the endpoint is per line). The server returns the whole order
-   * after each call; the last response is applied to the board, and a READY
-   * response ends the sequence because any further call would be a 409.
-   */
-  markLineReady(order: OrderResponse, line: KitchenLine): void {
-    const pending = pendingDetailIds(line);
-    if (pending.length === 0) return;
-
-    const token = this.lineToken(order.id, line.key);
-    if (this.lineProcessing().has(token)) return;
-
-    this.setLineProcessing(token, true);
-    this.error.set(null);
-
-    const step = (index: number): void => {
-      if (index >= pending.length) {
-        this.setLineProcessing(token, false);
-        return;
-      }
-      const detailId = pending[index];
-
-      this.orderService.markDetailReady(order.id, detailId).subscribe({
-        next: (updated) => {
-          this.applyOrderUpdate(updated);
-          if (updated.status === 'READY') {
-            this.setLineProcessing(token, false);
-            this.announce(`Pedido #${String(updated.id)} listo para entregar.`);
-            return;
-          }
-          step(index + 1);
-        },
-        error: (error: unknown) => {
-          this.setLineProcessing(token, false);
-          this.error.set(problemDetail(error) ?? 'No se pudo marcar el ítem como listo.');
-        },
-      });
-    };
-
-    step(0);
-  }
-
-  /** Starts one grouped line's pending physical rows. */
-  startLine(order: OrderResponse, line: KitchenLine): void {
-    const pending = unstartedDetailIds(line);
-    if (pending.length === 0) return;
-    const token = this.lineToken(order.id, line.key);
-    if (this.lineProcessing().has(token)) return;
-    this.setLineProcessing(token, true);
-    this.error.set(null);
-    let index = 0;
-    const step = (): void => {
-      if (index >= pending.length) {
-        this.setLineProcessing(token, false);
-        return;
-      }
-      this.orderService.startDetail(order.id, pending[index]).subscribe({
-        next: (updated) => {
-          this.applyOrderUpdate(updated);
-          index += 1;
-          step();
-        },
-        error: (error: unknown) => {
-          this.setLineProcessing(token, false);
-          this.error.set(problemDetail(error) ?? 'No se pudo iniciar el ítem.');
-        },
-      });
-    };
-    step();
-  }
-
-  /** Starts every pending line of a station group. */
-  startStation(order: OrderResponse, group: StationGroup<KitchenLine>): void {
-    const areaId = stationAreaId(group.station.key);
-    if (areaId === null) {
-      for (const line of group.items) this.startLine(order, line);
-      return;
-    }
-    if (this.isProcessing(order.id)) return;
-    this.setProcessing(order.id, true);
-    this.error.set(null);
-    this.orderService.startArea(order.id, areaId).subscribe({
-      next: (updated) => {
-        this.setProcessing(order.id, false);
-        this.applyOrderUpdate(updated);
-      },
-      error: (error: unknown) => {
-        this.setProcessing(order.id, false);
-        this.error.set(problemDetail(error) ?? 'No se pudo iniciar la estación.');
-      },
-    });
-  }
-
-  /** Marks every pending line of a station group ready. */
-  markStationReady(order: OrderResponse, group: StationGroup<KitchenLine>): void {
-    const areaId = stationAreaId(group.station.key);
-    if (areaId === null) {
-      for (const line of group.items) this.markLineReady(order, line);
-      return;
-    }
-    if (this.isProcessing(order.id)) return;
-    this.setProcessing(order.id, true);
-    this.error.set(null);
-    this.orderService.markAreaReady(order.id, areaId).subscribe({
-      next: (updated) => {
-        this.setProcessing(order.id, false);
-        this.applyOrderUpdate(updated);
-        if (updated.status === 'READY') {
-          this.announce(`Pedido #${String(updated.id)} listo.`);
-        }
-      },
-      error: (error: unknown) => {
-        this.setProcessing(order.id, false);
-        this.error.set(problemDetail(error) ?? 'No se pudo marcar la estación como lista.');
-      },
-    });
-  }
-
-  stationHasUnstarted(group: StationGroup<KitchenLine>): boolean {
-    return group.items.some((line) => !isLineReady(line) && unstartedDetailIds(line).length > 0);
-  }
-
-  stationHasPending(group: StationGroup<KitchenLine>): boolean {
-    return group.items.some((line) => !isLineReady(line));
-  }
-
-  lineStarted(line: KitchenLine): boolean {
-    return isLineStarted(line);
-  }
-
-  lineStartLabel(line: KitchenLine): string {
-    const raw = lineStartedAt(line);
-    return raw === null ? '' : formatClock(new Date(raw));
-  }
-
-  lineUnstarted(line: KitchenLine): boolean {
-    return unstartedDetailIds(line).length > 0;
-  }
-
   isProcessing(id: number): boolean {
     return this.processingIds().has(id);
   }
@@ -1109,56 +891,10 @@ export class Kitchen implements OnInit, OnDestroy {
     this.moveOrder(column, updated);
   }
 
-  private lineToken(orderId: number, lineKey: string): string {
-    return `${String(orderId)}:${lineKey}`;
-  }
-
-  isLineProcessing(orderId: number, lineKey: string): boolean {
-    return this.lineProcessing().has(this.lineToken(orderId, lineKey));
-  }
-
-  private setLineProcessing(token: string, value: boolean): void {
-    this.lineProcessing.update((current) => {
-      const next = new Set(current);
-      if (value) next.add(token);
-      else next.delete(token);
-      return next;
-    });
-  }
-
   // ── Item readiness helpers (template) ─────────────────────────────────────
 
   lineReady(line: KitchenLine): boolean {
     return isLineReady(line);
-  }
-
-  /** `1 de 2 listos` for a partially completed grouped line, else empty. */
-  lineProgress(line: KitchenLine): string {
-    if (isLineReady(line) || line.details.length < 2) return '';
-    const ready = line.details.filter((detail) => detail.ready).length;
-    return ready === 0 ? '' : `${String(ready)} de ${String(line.details.length)} listos`;
-  }
-
-  /** `HH:mm` of the latest ready mark, or empty while pending. */
-  lineReadyLabel(line: KitchenLine): string {
-    const raw = lineReadyAt(line);
-    if (raw === null) return '';
-    return formatClock(new Date(raw));
-  }
-
-  /** Test hook: first detail id of a grouped line. */
-  firstDetailId(line: KitchenLine): number {
-    return line.details.at(0)?.id ?? 0;
-  }
-
-  // ── Detail ────────────────────────────────────────────────────────────────
-
-  openDetail(order: OrderResponse): void {
-    this.detailId.set(order.id);
-  }
-
-  onDetailVisible(visible: boolean): void {
-    if (!visible) this.detailId.set(null);
   }
 
   // ── Station filter ────────────────────────────────────────────────────────
@@ -1286,16 +1022,13 @@ export class Kitchen implements OnInit, OnDestroy {
     return groups.filter((group) => this.stationInScope(group.station.key));
   }
 
-  visibleItemCount(order: OrderResponse): number {
-    return totalKitchenItems(this.groupsFor(order).flatMap((group) => group.items));
-  }
-
-  itemCount(order: OrderResponse): number {
-    return totalKitchenItems(groupKitchenLines(order.details, this.stationMap()));
-  }
-
   stationItemCount(group: StationGroup<KitchenLine>): number {
     return totalKitchenItems(group.items);
+  }
+
+  /** Station headings only earn their place when they disambiguate lines. */
+  showStationTitles(order: OrderResponse): boolean {
+    return this.selectedStation() === 'all' || this.groupsFor(order).length > 1;
   }
 
   // ── Labels and timers ─────────────────────────────────────────────────────
@@ -1316,20 +1049,8 @@ export class Kitchen implements OnInit, OnDestroy {
     return urgencyLabel(this.urgencyFor(order));
   }
 
-  urgencyToneFor(order: OrderResponse): RmsStatus {
-    return urgencyTone(this.urgencyFor(order));
-  }
-
   orderTime(order: OrderResponse): string {
     return formatOrderTime(order.date);
-  }
-
-  statusLabel(status: string): string {
-    return STATUS_LABEL[status] ?? status;
-  }
-
-  statusTone(status: string): RmsStatus {
-    return STATUS_TONE[status] ?? 'neutral';
   }
 
   tableLabel(order: OrderResponse): string {
@@ -1341,7 +1062,7 @@ export class Kitchen implements OnInit, OnDestroy {
       case 'preparing':
         return 'Preparando';
       case 'ready':
-        return 'Listos para entregar';
+        return 'Listos';
       default:
         return 'En cola';
     }

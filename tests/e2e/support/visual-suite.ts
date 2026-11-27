@@ -35,11 +35,10 @@ export function defineVisualSuite(
         await settle(page, 1_200);
         await page.evaluate(() => window.scrollTo(0, 0));
         if (role === 'kitchen') {
-          // The header flips between "En vivo" and "Reconectando" and may add
-          // the polling hint, which reflows the action buttons at 1024px.
+          // The connection pill flips between "En vivo" and "Reconectando".
           // Connection state is masked from the board baseline.
           await page.addStyleTag({
-            content: `.kitchen__connection, .kitchen__polling { display: none !important; }`,
+            content: `.kitchen__tools app-rms-status-pill { visibility: hidden !important; }`,
           });
           await settle(page, 300);
         }

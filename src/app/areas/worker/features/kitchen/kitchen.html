@@ -2,38 +2,20 @@
   <!-- Announcements for AT; timers are intentionally not live. -->
   <div class="sr-only" role="status" aria-live="polite">{{ announcement() }}</div>
 
-  <header class="kitchen__header">
-    <div class="kitchen__heading">
-      <h1 class="rms-h1 kitchen__title">Preparación</h1>
-      <p class="kitchen__subtitle">Tablero de estación · {{ selectedStationName() }}</p>
-    </div>
+  <header class="kitchen__bar">
+    <h1 class="kitchen__title">{{ selectedStationName() }}</h1>
 
-    <div class="kitchen__connection">
+    <div class="kitchen__tools">
       <app-rms-status-pill [label]="connectionLabel()" [status]="connectionTone()" />
-      <span class="kitchen__sync">Actualizado {{ syncLabel() }}</span>
-      @if (polling()) {
-        <span class="kitchen__polling">Actualizando cada 10 s</span>
-      }
-    </div>
-
-    <div class="kitchen__actions">
-      <app-rms-button
+      <app-rms-icon-button
+        data-testid="sound-toggle"
+        [icon]="muted() ? 'pi pi-volume-off' : 'pi pi-volume-up'"
+        [ariaLabel]="muted() ? 'Activar sonido de avisos' : 'Silenciar avisos'"
+        [tooltip]="muted() ? 'Activar sonido' : 'Silenciar'"
         variant="secondary"
         size="lg"
-        [iconStart]="muted() ? 'pi pi-volume-off' : 'pi pi-volume-up'"
         (click)="toggleSound()"
-      >
-        Sonido {{ muted() ? 'desactivado' : 'activado' }}
-      </app-rms-button>
-      <app-rms-button
-        variant="secondary"
-        size="lg"
-        iconStart="pi pi-refresh"
-        [loading]="refreshing()"
-        (click)="refresh()"
-      >
-        Actualizar
-      </app-rms-button>
+      />
     </div>
   </header>
 
@@ -107,70 +89,29 @@
           [attr.aria-labelledby]="'kitchen-' + column.key + '-title'"
         >
           <header class="kitchen-column__head">
-            <div class="kitchen-column__title-row">
-              <h2 class="rms-h2 kitchen-column__title" [id]="'kitchen-' + column.key + '-title'">
-                {{ column.label }}
-              </h2>
-              <span class="kitchen-column__count" [attr.data-testid]="column.key + '-count'">
-                {{ column.orders.length }}
+            <h2 class="kitchen-column__title" [id]="'kitchen-' + column.key + '-title'">
+              {{ column.label }}
+            </h2>
+            <span class="kitchen-column__count" [attr.data-testid]="column.key + '-count'">
+              {{ column.orders.length }}
+            </span>
+            @if (column.limit; as limit) {
+              <span
+                class="kitchen-column__limit"
+                role="status"
+                [attr.data-testid]="column.key + '-limit'"
+              >
+                {{ limit.shown }} de {{ limit.total }}
               </span>
-              @if (column.orders.length !== column.total) {
-                <span class="kitchen-column__of">de {{ column.total }}</span>
-              }
-            </div>
-            <p class="kitchen-column__hint">
-              Más antiguo primero
-              @if (column.limit; as limit) {
-                <span class="kitchen-column__limit" role="status" [attr.data-testid]="column.key + '-limit'">
-                  · vista limitada: {{ limit.shown }} de {{ limit.total }}
-                </span>
-              }
-            </p>
-
-            @if (column.key === 'queue') {
-              @if (nextOrder(); as next) {
-                <app-rms-button
-                  size="lg"
-                  [block]="true"
-                  iconStart="pi pi-play"
-                  [loading]="preparingNext()"
-                  [disabled]="preparingNext()"
-                  data-testid="prepare-next"
-                  (click)="prepareNext()"
-                >
-                  Tomar siguiente · #{{ next.id }} · {{ nextAgeLabel() }}
-                </app-rms-button>
-                <p class="kitchen-column__next">Se toma el más antiguo · {{ tableLabel(next) }}</p>
-              } @else {
-                <app-rms-button size="lg" [block]="true" iconStart="pi pi-play" [disabled]="true">
-                  Sin pedidos en cola
-                </app-rms-button>
-              }
             }
           </header>
 
           <div class="kitchen-column__body">
-            @if (column.orders.length === 0) {
-              <div class="kitchen-column__empty">
-                <app-rms-empty-state
-                  icon="pi pi-inbox"
-                  [title]="
-                    column.key === 'queue'
-                      ? 'Sin pedidos en cola'
-                      : column.key === 'preparing'
-                        ? 'Nada en preparación'
-                        : 'Nada listo para entregar'
-                  "
-                  message="Los pedidos nuevos aparecen aquí automáticamente."
-                />
-              </div>
-            }
-
             @for (order of column.orders; track order.id) {
               <article
                 class="ticket"
                 [class.ticket--new]="newOrderIds().has(order.id)"
-                [attr.data-urgency]="urgencyFor(order)"
+                [attr.data-urgency]="column.key === 'ready' ? 'ready' : urgencyFor(order)"
                 [attr.data-testid]="'order-' + order.id"
                 [attr.data-order-id]="order.id"
               >
@@ -179,39 +120,38 @@
                     <span class="ticket__number">#{{ order.id }}</span>
                     <span class="ticket__table">{{ tableLabel(order) }}</span>
                   </div>
-                  <div class="ticket__timer" [attr.data-urgency]="urgencyFor(order)">
-                    <span class="ticket__elapsed" data-testid="order-timer">{{ ageLabel(order) }}</span>
-                    <span class="ticket__urgency">{{ urgencyLabelFor(order) }}</span>
-                  </div>
+                  @if (column.key !== 'ready') {
+                    <div class="ticket__timer" [attr.data-urgency]="urgencyFor(order)">
+                      <span class="ticket__elapsed" data-testid="order-timer">{{ ageLabel(order) }}</span>
+                      <span class="ticket__urgency">{{ urgencyLabelFor(order) }}</span>
+                    </div>
+                  }
                 </header>
 
                 <div class="ticket__stations">
                   @for (group of groupsFor(order); track group.station.key) {
                     <section class="station" [attr.data-station]="group.station.key">
-                      <h3 class="station__title">
-                        {{ group.station.name }}
-                        <span class="station__count">{{ stationItemCount(group) }}</span>
-                        <span class="station__actions">
-                          @if (stationHasUnstarted(group)) {
-                            <app-rms-button variant="secondary" size="sm" iconStart="pi pi-play"
-                              [disabled]="isProcessing(order.id)" (click)="startStation(order, group)">
-                              Iniciar estación
-                            </app-rms-button>
-                          }
-                          @if (stationHasPending(group)) {
-                            <app-rms-button variant="secondary" size="sm" iconStart="pi pi-check"
-                              [disabled]="isProcessing(order.id)" (click)="markStationReady(order, group)">
-                              Todo listo
-                            </app-rms-button>
-                          }
-                        </span>
-                      </h3>
+                      @if (showStationTitles(order)) {
+                        <h3 class="station__title">
+                          {{ group.station.name }}
+                          <span class="station__count">{{ stationItemCount(group) }}</span>
+                        </h3>
+                      }
                       <ul class="station__lines">
                         @for (line of group.items; track line.key) {
                           <li class="line" [class.line--ready]="lineReady(line)">
+                            <span class="line__check" aria-hidden="true">
+                              @if (lineReady(line)) {
+                                <i class="pi pi-check"></i>
+                              }
+                            </span>
                             <span class="line__qty">{{ line.quantity }}×</span>
                             <div class="line__body">
-                              <span class="line__name">{{ line.name }}</span>
+                              <span class="line__name">
+                                {{ line.name }}@if (lineReady(line)) {
+                                  <span class="sr-only"> — listo</span>
+                                }
+                              </span>
                               @if (line.options.length > 0) {
                                 <span class="line__meta">{{ line.options.join(' · ') }}</span>
                               }
@@ -236,42 +176,6 @@
                                 <span class="line__note">“{{ line.note }}”</span>
                               }
                             </div>
-                            <div class="line__ready">
-                              @if (lineReady(line)) {
-                                <app-rms-badge label="Listo" tone="success" [dot]="true" />
-                                @if (lineReadyLabel(line); as readyAt) {
-                                  <span class="line__ready-at rms-tabular">{{ readyAt }}</span>
-                                }
-                              } @else {
-                                @if (lineProgress(line); as progress) {
-                                  <span class="line__ready-at rms-tabular">{{ progress }}</span>
-                                }
-                                @if (lineUnstarted(line)) {
-                                  <app-rms-button
-                                    variant="secondary"
-                                    size="lg"
-                                    iconStart="pi pi-play"
-                                    [loading]="isLineProcessing(order.id, line.key)"
-                                    [disabled]="isLineProcessing(order.id, line.key)"
-                                    (click)="startLine(order, line)"
-                                  >
-                                    Iniciar
-                                  </app-rms-button>
-                                } @else if (order.status === 'PREPARING') {
-                                  <app-rms-button
-                                    variant="secondary"
-                                    size="lg"
-                                    iconStart="pi pi-check"
-                                    [loading]="isLineProcessing(order.id, line.key)"
-                                    [disabled]="isLineProcessing(order.id, line.key)"
-                                    [attr.data-testid]="'line-ready-' + firstDetailId(line)"
-                                    (click)="markLineReady(order, line)"
-                                  >
-                                    Listo
-                                  </app-rms-button>
-                                }
-                              }
-                            </div>
                           </li>
                         }
                       </ul>
@@ -279,24 +183,9 @@
                   }
                 </div>
 
-                <footer class="ticket__footer">
-                  <span class="ticket__meta">
-                    @if (visibleItemCount(order) !== itemCount(order)) {
-                      {{ visibleItemCount(order) }} de {{ itemCount(order) }} ítems
-                    } @else {
-                      {{ itemCount(order) }} ítems
-                    }
-                    · Enviado {{ orderTime(order) }}
-                  </span>
-                  <div class="ticket__actions">
-                    <app-rms-button
-                      variant="secondary"
-                      size="lg"
-                      iconStart="pi pi-search"
-                      (click)="openDetail(order)"
-                    >
-                      Detalle
-                    </app-rms-button>
+                @if (column.key !== 'ready') {
+                  <footer class="ticket__footer">
+                    <span class="ticket__meta">Enviado {{ orderTime(order) }}</span>
                     @if (column.key === 'queue') {
                       <app-rms-button
                         size="xl"
@@ -306,23 +195,22 @@
                         [attr.data-testid]="'prepare-order-' + order.id"
                         (click)="prepareOrder(order)"
                       >
-                        Tomar este
+                        Tomar
                       </app-rms-button>
-                    }
-                    @if (column.key === 'preparing') {
+                    } @else {
                       <app-rms-button
                         size="xl"
                         iconStart="pi pi-check"
                         [loading]="isProcessing(order.id)"
                         [disabled]="isProcessing(order.id)"
-                        data-testid="mark-ready"
+                        [attr.data-testid]="'mark-ready-' + order.id"
                         (click)="markReady(order)"
                       >
-                        Marcar lista
+                        Listo
                       </app-rms-button>
                     }
-                  </div>
-                </footer>
+                  </footer>
+                }
               </article>
             }
           </div>
@@ -330,141 +218,4 @@
       }
     </div>
   }
-
-  <footer class="kitchen__footer">
-    <span>
-      Atajos: <kbd>T</kbd> tomar siguiente · <kbd>R</kbd> actualizar · <kbd>M</kbd> sonido
-    </span>
-    <span>{{ activeTotal() }} pedidos activos · {{ selectedStationName() }}</span>
-  </footer>
 </div>
-
-<app-rms-dialog
-  [visible]="detailOrder() !== null"
-  (visibleChange)="onDetailVisible($event)"
-  [header]="detailHeader()"
-  width="760px"
->
-  @if (detailOrder(); as order) {
-    <div class="detail">
-      <div class="detail__meta">
-        <span class="detail__table">{{ tableLabel(order) }}</span>
-        <app-rms-status-pill [label]="statusLabel(order.status)" [status]="statusTone(order.status)" />
-        <span>Enviado {{ orderTime(order) }}</span>
-        <span>{{ ageLabel(order) }} · {{ urgencyLabelFor(order) }}</span>
-      </div>
-
-      @for (group of detailGroups(); track group.station.key) {
-        <section class="detail__station">
-          <h3 class="detail__station-title">
-            {{ group.station.name }}
-            <span class="station__actions">
-              @if (stationHasUnstarted(group)) {
-                <app-rms-button variant="secondary" size="sm" iconStart="pi pi-play"
-                  [disabled]="isProcessing(order.id)" (click)="startStation(order, group)">
-                  Iniciar estación
-                </app-rms-button>
-              }
-              @if (stationHasPending(group)) {
-                <app-rms-button variant="secondary" size="sm" iconStart="pi pi-check"
-                  [disabled]="isProcessing(order.id)" (click)="markStationReady(order, group)">
-                  Todo listo
-                </app-rms-button>
-              }
-            </span>
-          </h3>
-          <ul class="detail__lines">
-            @for (line of group.items; track line.key) {
-              <li class="detail-line" [class.detail-line--ready]="lineReady(line)">
-                <span class="detail-line__qty">{{ line.quantity }}×</span>
-                <div class="detail-line__body">
-                  <span class="detail-line__name">{{ line.name }}</span>
-                  @if (line.options.length > 0) {
-                    <span class="detail-line__meta">{{ line.options.join(' · ') }}</span>
-                  }
-                  @if (line.combos.length > 0) {
-                    <span class="detail-line__meta">
-                      <span class="line__label">Incluye:</span> {{ line.combos.join(' · ') }}
-                    </span>
-                  }
-                  @if (line.additions.length > 0) {
-                    <span class="detail-line__meta">
-                      <span class="line__label">Adiciones:</span> {{ line.additions.join(' · ') }}
-                    </span>
-                  }
-                  @for (clarification of line.clarifications; track $index) {
-                    <span class="detail-line__meta">
-                      <span class="line__label">{{ clarification.question }}:</span>
-                      {{ clarification.answer }}
-                    </span>
-                  }
-                  @if (line.note.length > 0) {
-                    <span class="detail-line__note">“{{ line.note }}”</span>
-                  }
-                </div>
-                <div class="detail-line__ready">
-                  @if (lineReady(line)) {
-                    <app-rms-badge label="Listo" tone="success" [dot]="true" />
-                    @if (lineReadyLabel(line); as readyAt) {
-                      <span class="rms-caption rms-tabular">{{ readyAt }}</span>
-                    }
-                  } @else {
-                    @if (lineProgress(line); as progress) {
-                      <span class="rms-caption">{{ progress }}</span>
-                    }
-                    @if (lineUnstarted(line)) {
-                      <app-rms-button
-                        variant="secondary"
-                        size="lg"
-                        iconStart="pi pi-play"
-                        [loading]="isLineProcessing(order.id, line.key)"
-                        [disabled]="isLineProcessing(order.id, line.key)"
-                        (click)="startLine(order, line)"
-                      >
-                        Iniciar
-                      </app-rms-button>
-                    } @else if (order.status === 'PREPARING') {
-                      <app-rms-button
-                        variant="secondary"
-                        size="lg"
-                        iconStart="pi pi-check"
-                        [loading]="isLineProcessing(order.id, line.key)"
-                        [disabled]="isLineProcessing(order.id, line.key)"
-                        (click)="markLineReady(order, line)"
-                      >
-                        Listo
-                      </app-rms-button>
-                    }
-                  }
-                </div>
-              </li>
-            }
-          </ul>
-        </section>
-      }
-
-      <p class="detail__total">
-        Total del pedido
-        <strong>{{ detailTotal() | money }}</strong>
-      </p>
-    </div>
-  }
-
-  <div rmsDialogFooter class="detail__footer">
-    <app-rms-button variant="secondary" size="lg" (click)="onDetailVisible(false)">Cerrar</app-rms-button>
-    @if (detailOrder(); as order) {
-      @if (order.status === 'PREPARING') {
-        <app-rms-button
-          size="xl"
-          iconStart="pi pi-check"
-          [loading]="isProcessing(order.id)"
-          [disabled]="isProcessing(order.id)"
-          (click)="markReady(order)"
-        >
-          Marcar lista
-        </app-rms-button>
-      }
-    }
-  </div>
-</app-rms-dialog>
-
