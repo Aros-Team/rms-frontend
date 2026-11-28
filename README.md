@@ -11,12 +11,6 @@
 
 Robust, scalable frontend application that delivers an intuitive and accessible interface for restaurant operations management, enabling real-time data visualization and seamless user interactions.
 
-<br>
-<div align="center">
-  <img src="public/screenshots/dashboard.png" width="900" alt="RMS dashboard screenshot">
-</div>
-<br>
-
 
 ## Context
 

@@ -1,4 +1,5 @@
 progress/*
+!/progress/history.md
 activities.json
 ./impeccable
 # Compiled output
