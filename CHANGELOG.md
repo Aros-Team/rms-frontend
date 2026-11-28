@@ -1,5 +1,30 @@
 # Changelog
 
+## [v3.4.0](https://github.com/Aros-Team/rms-frontend/releases/tag/v3.4.0)
+
+### Features
+
+- **brand**: adaptive favicon and header logo in auth shell
+- **assistant**: navigate the UI, persist chat and polish streaming UX
+- **workers**: add worker portraits and schedule summaries
+- **workers**: manage job title and show it in schedules
+- add product option manager, per-line prep and prep-time cost source
+- **workers**: exclusive areas and plug-in module registry
+- **payroll**: show worker portraits in the Nómina selector
+- **schedules**: edit shifts directly in the weekly grid
+- **worker**: scope preparation by assigned area, refresh stale claims and hand delivery to waiters
+- **worker**: restore the persistent waiter order dock
+- **tables**: place tables on the floor map and select them as waiter
+- **orders**: streamline table, show all orders and pin filter toolbar
+- **kitchen**: reduce prepare board to one action per ticket
+- **worker**: list only active orders and move account into the profile menu
+
+### Bug Fixes
+
+- **tables**: remove unused RmsEmptyState import
+- **ui**: use brand/neutral interaction colors and compact payroll headings
+- **i18n**: make the interface consistently Spanish
+
 ## Unreleased
 
 ### Features
