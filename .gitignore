@@ -1,7 +1,7 @@
 progress/*
 !/progress/history.md
 activities.json
-./impeccable
+.impeccable/*
 # Compiled output
 **/dist
 /tmp
