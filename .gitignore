@@ -1,6 +1,6 @@
 progress/*
 activities.json
-
+./impeccable
 # Compiled output
 **/dist
 /tmp
