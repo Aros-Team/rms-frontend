@@ -132,7 +132,7 @@ export class CashierReceipt {
     frameDocument.open();
     // `document.write` is the only synchronous way to seed about:blank before
     // calling print(); the iframe is throw-away and never navigates.
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    // eslint-disable-next-line typescript/no-deprecated
     frameDocument.write(buildReceiptDocument(ticket.outerHTML));
     frameDocument.close();
 

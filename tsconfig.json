@@ -3,17 +3,16 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "src",
     "paths": {
-      "@app/*": ["app/*"],
-      "@core/*": ["app/core/*"],
-      "@features/*": ["app/features/*"],
-      "@shared/*": ["app/shared/*"],
-      "@models/*": ["app/shared/models/*"],
-      "@services/*": ["app/core/services/*"],
-      "@components/*": ["app/shared/components/*"],
-      "@areas/*": ["app/areas/*"],
-      "@environments/*": ["environments/*"]
+      "@app/*": ["./src/app/*"],
+      "@core/*": ["./src/app/core/*"],
+      "@features/*": ["./src/app/features/*"],
+      "@shared/*": ["./src/app/shared/*"],
+      "@models/*": ["./src/app/shared/models/*"],
+      "@services/*": ["./src/app/core/services/*"],
+      "@components/*": ["./src/app/shared/components/*"],
+      "@areas/*": ["./src/app/areas/*"],
+      "@environments/*": ["./src/environments/*"]
     },
     "strict": true,
     "noImplicitOverride": true,

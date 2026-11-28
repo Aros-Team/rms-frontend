@@ -1,8 +1,9 @@
 {
   "name": "Restaurant Management System (RMS)",
-  "type": "module",
-  "description": "Robust, scalable frontend application that delivers an intuitive and accessible interface for restaurant operations management, enabling real-time data visualization and seamless user interactions.",
   "version": "3.4.0",
+  "private": true,
+  "description": "Robust, scalable frontend application that delivers an intuitive and accessible interface for restaurant operations management, enabling real-time data visualization and seamless user interactions.",
+  "type": "module",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --configuration development",
@@ -10,27 +11,18 @@
     "build:dev": "ng build --configuration development",
     "watch": "ng build --watch --configuration development",
     "test": "vitest run",
-    "lint": "ng lint --fix",
-    "lint:check": "ng lint",
+    "lint": "oxlint src --fix && eslint \"src/**/*.html\" --fix",
+    "lint:check": "oxlint src && eslint \"src/**/*.html\"",
+    "lint:ts": "oxlint src",
+    "lint:templates": "eslint \"src/**/*.html\"",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
     "contract:shapes": "node scripts/check-request-shapes.mjs",
     "lighthouse": "lhci autorun",
     "lighthouse:admin": "lhci autorun --config=./.lighthouserc.admin.json",
     "design:check": "node scripts/check-design-tokens.mjs",
-    "verify:ui": "npm run lint:check && npm run design:check && npm run test"
+    "verify:ui": "npm run lint:check && npm run format:check && npm run design:check && npm run test"
   },
-  "prettier": {
-    "printWidth": 100,
-    "singleQuote": true,
-    "overrides": [
-      {
-        "files": "*.html",
-        "options": {
-          "parser": "angular"
-        }
-      }
-    ]
-  },
-  "private": true,
   "dependencies": {
     "@angular/animations": "^21.2.11",
     "@angular/cdk": "^21.2.9",
@@ -68,10 +60,24 @@
     "angular-eslint": "21.3.1",
     "eslint": "^9.38.0",
     "jsdom": "^29.1.1",
+    "oxfmt": "^0.80.0",
+    "oxlint": "^1.95.0",
+    "oxlint-tsgolint": "^7.0.2009",
     "postcss": "^8.5.3",
     "typescript": "~5.9.2",
-    "typescript-eslint": "8.46.1",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.5"
+  },
+  "prettier": {
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ],
+    "printWidth": 100,
+    "singleQuote": true
   }
 }

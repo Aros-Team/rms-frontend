@@ -1,4 +1,13 @@
-import { Component, inject, signal, Output, EventEmitter, Input, ChangeDetectionStrategy, effect } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  Output,
+  EventEmitter,
+  Input,
+  ChangeDetectionStrategy,
+  effect,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { AbstractControl, FormBuilder, FormArray, Validators } from '@angular/forms';
@@ -63,7 +72,10 @@ export class NewOptionDialog {
   newOptionSubmitting = signal(false);
 
   newOptionForm = this.fb.group({
-    optionCategoryId: [null as number | null, (control: AbstractControl) => Validators.required(control)],
+    optionCategoryId: [
+      null as number | null,
+      (control: AbstractControl) => Validators.required(control),
+    ],
     name: ['', (control: AbstractControl) => Validators.required(control)],
   });
 
@@ -84,11 +96,16 @@ export class NewOptionDialog {
     this.supplyVariantOptions.set(ref.variants);
     const seen = new Set<number>();
     this.supplyCategories.set(
-      ref.variants.filter((v: SupplyVariantResponse & { displayName: string }) => {
-        if (seen.has(v.categoryId)) return false;
-        seen.add(v.categoryId);
-        return true;
-      }).map((v: SupplyVariantResponse & { displayName: string }) => ({ id: v.categoryId, name: v.categoryName }))
+      ref.variants
+        .filter((v: SupplyVariantResponse & { displayName: string }) => {
+          if (seen.has(v.categoryId)) return false;
+          seen.add(v.categoryId);
+          return true;
+        })
+        .map((v: SupplyVariantResponse & { displayName: string }) => ({
+          id: v.categoryId,
+          name: v.categoryName,
+        })),
     );
   }
 
@@ -101,14 +118,20 @@ export class NewOptionDialog {
     this.newOptionRecipe.at(i).get('supplyVariantId')?.setValue(null);
   }
 
-  filteredVariantsForNewOptionRecipe(i: number): (SupplyVariantResponse & { displayName: string })[] {
+  filteredVariantsForNewOptionRecipe(
+    i: number,
+  ): (SupplyVariantResponse & { displayName: string })[] {
     const catId = this.newOptionRecipeCategoryMap.get(i) ?? null;
-    return catId ? this.supplyVariantOptions().filter(v => v.categoryId === catId) : this.supplyVariantOptions();
+    return catId
+      ? this.supplyVariantOptions().filter((v) => v.categoryId === catId)
+      : this.supplyVariantOptions();
   }
 
-  findVariantById(id: number | null): (SupplyVariantResponse & { displayName: string }) | undefined {
+  findVariantById(
+    id: number | null,
+  ): (SupplyVariantResponse & { displayName: string }) | undefined {
     if (id == null) return undefined;
-    return this.supplyVariantOptions().find(v => v.id === id);
+    return this.supplyVariantOptions().find((v) => v.id === id);
   }
 
   /**
@@ -120,10 +143,21 @@ export class NewOptionDialog {
   }
 
   addNewOptionRecipeItem(): void {
-    this.newOptionRecipe.push(this.fb.group({
-      supplyVariantId: [null as number | null, (control: AbstractControl) => Validators.required(control)],
-      requiredQuantity: [null as number | null, [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.min(0.001)(control)]],
-    }));
+    this.newOptionRecipe.push(
+      this.fb.group({
+        supplyVariantId: [
+          null as number | null,
+          (control: AbstractControl) => Validators.required(control),
+        ],
+        requiredQuantity: [
+          null as number | null,
+          [
+            (control: AbstractControl) => Validators.required(control),
+            (control: AbstractControl) => Validators.min(0.001)(control),
+          ],
+        ],
+      }),
+    );
   }
 
   removeNewOptionRecipeItem(i: number): void {
@@ -138,35 +172,48 @@ export class NewOptionDialog {
     const { optionCategoryId, name } = this.newOptionForm.value;
     if (!name) return;
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line typescript/no-unsafe-assignment
     const rawItems = this.newOptionRecipe.value;
     const toRecipeItem = (r: unknown): RecipeItemRequest => ({
       supplyVariantId: (r as RecipeItemRequest).supplyVariantId,
       requiredQuantity: (r as RecipeItemRequest).requiredQuantity,
     });
-    const recipeItems: RecipeItemRequest[] = Array.isArray(rawItems) ? rawItems.map(toRecipeItem) : [];
+    const recipeItems: RecipeItemRequest[] = Array.isArray(rawItems)
+      ? rawItems.map(toRecipeItem)
+      : [];
 
     this.newOptionSubmitting.set(true);
 
-    this.productService.createProductOption({
-      name,
-      optionGroupId: optionCategoryId ?? 0,
-      recipe: recipeItems,
-    }).pipe(
-      switchMap(() => this.productOptionService.getOptions()),
-      catchError(err => {
-        this.logger.error('Error creating product option', err);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo crear la opción' });
-        this.newOptionSubmitting.set(false);
-        return EMPTY;
+    this.productService
+      .createProductOption({
+        name,
+        optionGroupId: optionCategoryId ?? 0,
+        recipe: recipeItems,
       })
-    ).subscribe(() => {
-      this.cache.referenceData.refresh();
-      this.newOptionSubmitting.set(false);
-      this.close();
-      this.messageService.add({ severity: 'success', summary: 'Opción creada', detail: `"${name}" agregada correctamente` });
-      this.optionCreated.emit();
-    });
+      .pipe(
+        switchMap(() => this.productOptionService.getOptions()),
+        catchError((err) => {
+          this.logger.error('Error creating product option', err);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo crear la opción',
+          });
+          this.newOptionSubmitting.set(false);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => {
+        this.cache.referenceData.refresh();
+        this.newOptionSubmitting.set(false);
+        this.close();
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Opción creada',
+          detail: `"${name}" agregada correctamente`,
+        });
+        this.optionCreated.emit();
+      });
   }
 
   close(): void {

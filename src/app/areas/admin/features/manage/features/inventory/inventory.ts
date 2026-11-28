@@ -1,5 +1,23 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef, signal, computed, effect, DestroyRef, NgZone } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
+import {
+  Component,
+  OnInit,
+  inject,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  signal,
+  computed,
+  effect,
+  DestroyRef,
+  NgZone,
+} from '@angular/core';
+import {
+  FormArray,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+  FormsModule,
+} from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { Auth } from '@services/auth/auth';
@@ -147,13 +165,14 @@ export class Inventory implements OnInit {
   pageSupplies = computed(() => this.cache.suppliesPage.data()?.content ?? undefined);
   totalElements = computed(() => this.cache.suppliesPage.data()?.totalElements ?? 0);
 
-  hasZeroUnitCost = computed(() => (this.supplies() ?? []).some(v => toAmount(v.unitCost) === 0));
+  hasZeroUnitCost = computed(() => (this.supplies() ?? []).some((v) => toAmount(v.unitCost) === 0));
 
   /** True when the variant carries no usable unit cost (zero or missing). */
   hasNoCost = (variant: SupplyVariantResponse): boolean => toAmount(variant.unitCost) === 0;
 
-
-  loading = computed(() => this.cache.suppliesPage.isLoading() && !this.cache.suppliesPage.hasData());
+  loading = computed(
+    () => this.cache.suppliesPage.isLoading() && !this.cache.suppliesPage.hasData(),
+  );
 
   // --- new variant wizard ---
   variantModalIsOpen = false;
@@ -175,36 +194,36 @@ export class Inventory implements OnInit {
   submitting = false;
 
   purchaseForm: FormGroup = this.fb.group({
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+    // eslint-disable-next-line typescript/unbound-method
     supplierId: [null, Validators.required],
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+    // eslint-disable-next-line typescript/unbound-method
     purchasedAt: [null, Validators.required],
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+    // eslint-disable-next-line typescript/unbound-method
     totalAmount: [null, [Validators.required, Validators.min(0)]],
     notes: [''],
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+    // eslint-disable-next-line typescript/unbound-method
     items: this.fb.array([], Validators.required),
   });
 
   // Step 1 — category
   categoryForm: FormGroup = this.fb.group({
-    mode: ['existing'],          // 'existing' | 'new'
+    mode: ['existing'], // 'existing' | 'new'
     categoryId: [null],
     categoryName: [''],
   });
 
   // Step 2 — supply base
   supplyForm: FormGroup = this.fb.group({
-    mode: ['existing'],          // 'existing' | 'new'
+    mode: ['existing'], // 'existing' | 'new'
     supplyId: [null],
     supplyName: [''],
   });
 
   // Step 3 — variant
   variantForm: FormGroup = this.fb.group({
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+    // eslint-disable-next-line typescript/unbound-method
     unitId: [null, Validators.required],
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+    // eslint-disable-next-line typescript/unbound-method
     quantity: [null, [Validators.required, Validators.min(0)]],
     unitCost: [null],
   });
@@ -229,14 +248,14 @@ export class Inventory implements OnInit {
   filteredVariantsForItem = (index: number): SupplyVariantResponse[] => {
     const all = this.supplies() ?? [];
     const catId = this.itemCategoryMap.get(index) ?? null;
-    return catId ? all.filter(v => v.categoryId === catId) : all;
+    return catId ? all.filter((v) => v.categoryId === catId) : all;
   };
 
   // --- new supplier dialog ---
   newSupplierDialogOpen = false;
   newSupplierSubmitting = signal(false);
   newSupplierForm: FormGroup = this.fb.group({
-    /* eslint-disable-next-line @typescript-eslint/unbound-method */
+    /* eslint-disable-next-line typescript/unbound-method */
     name: ['', [Validators.required, Validators.maxLength(255)]],
     contact: ['', Validators.maxLength(255)],
   });
@@ -249,9 +268,7 @@ export class Inventory implements OnInit {
   transferSearch = signal('');
   transferCategoryId = signal<number | null>(null);
 
-  transferableSupplies = computed(() =>
-    (this.supplies() ?? []).filter((s) => s.stockBodega > 0),
-  );
+  transferableSupplies = computed(() => (this.supplies() ?? []).filter((s) => s.stockBodega > 0));
 
   filteredTransferSupplies = computed(() => {
     const search = this.transferSearch().toLowerCase().trim();
@@ -270,7 +287,9 @@ export class Inventory implements OnInit {
     }
     // With OnPush, form status changes don't trigger CD automatically.
     // Subscribe so the template re-evaluates [invalid] bindings when fields become valid.
-    this.purchaseForm.statusChanges.subscribe(() => { this.cdr.markForCheck(); });
+    this.purchaseForm.statusChanges.subscribe(() => {
+      this.cdr.markForCheck();
+    });
     // Real-time inventory updates via WebSocket
     this.connectWebSocket();
   }
@@ -343,9 +362,14 @@ export class Inventory implements OnInit {
     this.wsService.connect(environment.wsUrl, token);
 
     // Subscribe only to inventory updates — auto-cleaned up on component destroy
-    this.wsService.subscribeToTopic<InventoryStockUpdatedEvent>('/topic/inventory/updates')
+    this.wsService
+      .subscribeToTopic<InventoryStockUpdatedEvent>('/topic/inventory/updates')
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((event) => { this.ngZone.run(() => { this.applyInventoryUpdate(event); }); });
+      .subscribe((event) => {
+        this.ngZone.run(() => {
+          this.applyInventoryUpdate(event);
+        });
+      });
   }
 
   openPurchaseModal(): void {
@@ -374,12 +398,19 @@ export class Inventory implements OnInit {
     const mode = this.categoryForm.get('mode')?.value as string | null;
     if (mode === 'existing') {
       const id = this.categoryForm.get('categoryId')?.value as number | null;
-      if (!id) { this.categoryForm.get('categoryId')?.markAsTouched(); return; }
+      if (!id) {
+        this.categoryForm.get('categoryId')?.markAsTouched();
+        return;
+      }
       this.resolvedCategoryId.set(id);
       this.variantStep.set('supply');
     } else {
-      const name: string = (this.categoryForm.get('categoryName')?.value as string).trim();
-      if (!name) { this.categoryForm.get('categoryName')?.markAsTouched(); return; }
+      const rawCategoryName: unknown = this.categoryForm.get('categoryName')?.value;
+      const name = (typeof rawCategoryName === 'string' ? rawCategoryName : '').trim();
+      if (!name) {
+        this.categoryForm.get('categoryName')?.markAsTouched();
+        return;
+      }
       this.variantSubmitting = true;
       this.supplyService.createCategory({ name }).subscribe({
         next: (cat) => {
@@ -391,9 +422,10 @@ export class Inventory implements OnInit {
         error: (err: { status?: number; error?: { detail?: string; message?: string } }) => {
           this.variantSubmitting = false;
           const errorMessage = err.error?.detail ?? err.error?.message;
-          const detail = err.status === 409
-            ? errorMessage ?? 'Esa categoría ya existe.'
-            : errorMessage ?? 'No se pudo crear la categoría.';
+          const detail =
+            err.status === 409
+              ? (errorMessage ?? 'Esa categoría ya existe.')
+              : (errorMessage ?? 'No se pudo crear la categoría.');
           this.messageService.add({ severity: 'error', summary: 'Error', detail });
           this.logger.error('Error creating category', err);
         },
@@ -406,12 +438,19 @@ export class Inventory implements OnInit {
     const mode = this.supplyForm.get('mode')?.value as string | null;
     if (mode === 'existing') {
       const id = this.supplyForm.get('supplyId')?.value as number | null;
-      if (!id) { this.supplyForm.get('supplyId')?.markAsTouched(); return; }
+      if (!id) {
+        this.supplyForm.get('supplyId')?.markAsTouched();
+        return;
+      }
       this.resolvedSupplyId.set(id);
       this.variantStep.set('variant');
     } else {
-      const name: string = (this.supplyForm.get('supplyName')?.value as string).trim();
-      if (!name) { this.supplyForm.get('supplyName')?.markAsTouched(); return; }
+      const rawSupplyName: unknown = this.supplyForm.get('supplyName')?.value;
+      const name = (typeof rawSupplyName === 'string' ? rawSupplyName : '').trim();
+      if (!name) {
+        this.supplyForm.get('supplyName')?.markAsTouched();
+        return;
+      }
       const categoryId = this.resolvedCategoryId() ?? 0;
       this.variantSubmitting = true;
       this.supplyService.createSupply({ name, categoryId }).subscribe({
@@ -424,9 +463,10 @@ export class Inventory implements OnInit {
         error: (err: { status?: number; error?: { detail?: string; message?: string } }) => {
           this.variantSubmitting = false;
           const errorMessage = err.error?.detail ?? err.error?.message;
-          const detail = err.status === 409
-            ? errorMessage ?? 'Ese insumo ya existe.'
-            : errorMessage ?? 'No se pudo crear el insumo.';
+          const detail =
+            err.status === 409
+              ? (errorMessage ?? 'Ese insumo ya existe.')
+              : (errorMessage ?? 'No se pudo crear el insumo.');
           this.messageService.add({ severity: 'error', summary: 'Error', detail });
           this.logger.error('Error creating supply', err);
         },
@@ -478,8 +518,8 @@ export class Inventory implements OnInit {
           const errorMessage = err.error?.detail ?? err.error?.message;
           const detail =
             err.status === 409
-              ? errorMessage ?? 'Ya existe esa combinación de insumo y unidad.'
-              : errorMessage ?? 'No se pudo registrar la variante. Verifica los datos.';
+              ? (errorMessage ?? 'Ya existe esa combinación de insumo y unidad.')
+              : (errorMessage ?? 'No se pudo registrar la variante. Verifica los datos.');
           this.messageService.add({ severity: 'error', summary: 'Error', detail });
           this.logger.error('Error creating supply variant', err);
         },
@@ -502,24 +542,31 @@ export class Inventory implements OnInit {
     }
     this.newSupplierSubmitting.set(true);
     const { name, contact } = this.newSupplierForm.value as { name: string; contact: string };
-    this.supplierService.createSupplier({ name: name.trim(), contact: contact.trim() || undefined }).subscribe({
-      next: (created) => {
-        this.newSupplierSubmitting.set(false);
-        this.suppliers.update(list => [...list, created]);
-        this.purchaseForm.get('supplierId')?.setValue(created.id);
-        this.closeNewSupplierDialog();
-        this.messageService.add({ severity: 'success', summary: 'Distribuidor creado', detail: created.name });
-      },
-      error: (err: { status?: number; error?: { detail?: string; message?: string } }) => {
-        this.newSupplierSubmitting.set(false);
-        const errorMessage = err.error?.detail ?? err.error?.message;
-        const detail = err.status === 400
-          ? errorMessage ?? 'El nombre es requerido y no puede superar 255 caracteres.'
-          : errorMessage ?? 'No se pudo crear el distribuidor.';
-        this.messageService.add({ severity: 'error', summary: 'Error', detail });
-        this.logger.error('Error creating supplier', err);
-      },
-    });
+    this.supplierService
+      .createSupplier({ name: name.trim(), contact: contact.trim() || undefined })
+      .subscribe({
+        next: (created) => {
+          this.newSupplierSubmitting.set(false);
+          this.suppliers.update((list) => [...list, created]);
+          this.purchaseForm.get('supplierId')?.setValue(created.id);
+          this.closeNewSupplierDialog();
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Distribuidor creado',
+            detail: created.name,
+          });
+        },
+        error: (err: { status?: number; error?: { detail?: string; message?: string } }) => {
+          this.newSupplierSubmitting.set(false);
+          const errorMessage = err.error?.detail ?? err.error?.message;
+          const detail =
+            err.status === 400
+              ? (errorMessage ?? 'El nombre es requerido y no puede superar 255 caracteres.')
+              : (errorMessage ?? 'No se pudo crear el distribuidor.');
+          this.messageService.add({ severity: 'error', summary: 'Error', detail });
+          this.logger.error('Error creating supplier', err);
+        },
+      });
   }
 
   closeModal(): void {
@@ -535,13 +582,13 @@ export class Inventory implements OnInit {
   addItem(): void {
     this.items.push(
       this.fb.group({
-        /* eslint-disable-next-line @typescript-eslint/unbound-method */
+        /* eslint-disable-next-line typescript/unbound-method */
         supplyVariantId: [null, Validators.required],
-        /* eslint-disable-next-line @typescript-eslint/unbound-method */
+        /* eslint-disable-next-line typescript/unbound-method */
         quantityOrdered: [null, [Validators.required, Validators.min(0.001)]],
-        /* eslint-disable-next-line @typescript-eslint/unbound-method */
+        /* eslint-disable-next-line typescript/unbound-method */
         quantityReceived: [null, [Validators.required, Validators.min(0)]],
-        /* eslint-disable-next-line @typescript-eslint/unbound-method */
+        /* eslint-disable-next-line typescript/unbound-method */
         unitPrice: [null, [Validators.required, Validators.min(0)]],
       }),
     );
@@ -602,7 +649,7 @@ export class Inventory implements OnInit {
         registeredById: userId,
         purchasedAt,
         totalAmount,
-        notes: this.purchaseForm.get('notes')?.value as string | undefined ?? undefined,
+        notes: (this.purchaseForm.get('notes')?.value as string | undefined) ?? undefined,
         items: this.items.getRawValue() as {
           supplyVariantId: number;
           quantityOrdered: number;
@@ -744,7 +791,8 @@ export class Inventory implements OnInit {
       },
       error: (err: { status?: number; error?: { detail?: string; message?: string } }) => {
         this.transferSubmitting.set(false);
-        const detail = err.error?.detail ?? err.error?.message ?? 'No se pudo completar la transferencia.';
+        const detail =
+          err.error?.detail ?? err.error?.message ?? 'No se pudo completar la transferencia.';
         this.messageService.add({ severity: 'error', summary: 'Error', detail });
         this.logger.error('Error transferring to kitchen', err);
       },

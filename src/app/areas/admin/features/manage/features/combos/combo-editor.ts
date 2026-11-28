@@ -144,7 +144,7 @@ export class ComboEditor {
         if (data) {
           this.populateForm(data);
         }
-      }, { allowSignalWrites: true });
+      });
     }
   }
 

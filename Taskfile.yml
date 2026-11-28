@@ -3,10 +3,9 @@ version: '3'
 vars:
   DOCKER_IMAGE: spalaxdev/rms-frontend
   VERSION:
-    sh: "node -e \"console.log(require('./package.json').version)\""
+    sh: 'node -e "console.log(require(''./package.json'').version)"'
 
 tasks:
-
   run:
     desc: Run app
     cmds:
@@ -16,12 +15,14 @@ tasks:
     desc: Run tests
     cmds:
       - npm run lint:check
+      - npm run format:check
       - npm test --
 
   format:
-    desc: Fix code formatting
+    desc: Format the code with Oxfmt and apply safe lint fixes
     cmds:
-      - npm run lint --fix
+      - npm run format
+      - npm run lint
 
   build:
     desc: Build and create Docker image

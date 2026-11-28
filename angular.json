@@ -23,9 +23,7 @@
             "browser": "src/main.ts",
             "polyfills": [],
             "tsConfig": "tsconfig.app.json",
-            "allowedCommonJsDependencies": [
-              "@stomp/stompjs"
-            ],
+            "allowedCommonJsDependencies": ["@stomp/stompjs"],
             "serviceWorker": "ngsw-config.json",
             "assets": [
               {
@@ -33,9 +31,7 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.css"
-            ],
+            "styles": ["src/styles.css"],
             "scripts": []
           },
           "configurations": {
@@ -108,10 +104,7 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "src/**/*.ts",
-              "src/**/*.html"
-            ]
+            "lintFilePatterns": ["src/**/*.html"]
           }
         }
       }
@@ -119,9 +112,7 @@
   },
   "cli": {
     "analytics": false,
-    "schematicCollections": [
-      "angular-eslint"
-    ]
+    "schematicCollections": ["angular-eslint"]
   },
   "schematics": {
     "@schematics/angular:component": {

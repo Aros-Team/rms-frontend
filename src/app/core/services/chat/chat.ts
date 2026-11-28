@@ -43,7 +43,7 @@ export class Chat {
       const decoder = new TextDecoder();
       let buffer = '';
 
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      // eslint-disable-next-line typescript/no-unnecessary-condition
       while (true) {
         const { done, value } = await reader.read();
 

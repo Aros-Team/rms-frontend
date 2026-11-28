@@ -45,11 +45,11 @@ class FakeIntersectionObserver {
   readonly root = null;
   readonly rootMargin = '';
   readonly thresholds: number[] = [];
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  // eslint-disable-next-line typescript/no-empty-function
   observe(): void {}
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  // eslint-disable-next-line typescript/no-empty-function
   unobserve(): void {}
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  // eslint-disable-next-line typescript/no-empty-function
   disconnect(): void {}
   takeRecords(): IntersectionObserverEntry[] {
     return [];
@@ -220,7 +220,7 @@ describe('Inventory — unit cost rendering', () => {
     ]);
 
     const rows = Array.from(host().querySelectorAll('tbody tr'));
-    const tagsPerRow = rows.map(row => row.querySelector('app-rms-badge') !== null);
+    const tagsPerRow = rows.map((row) => row.querySelector('app-rms-badge') !== null);
 
     expect(tagsPerRow).toEqual([false, true]);
   });

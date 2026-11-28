@@ -8,9 +8,10 @@
 
 1. Run `node scripts/harness.js` — all blocks must pass
 2. Verify lint: `npm run lint:check` — no errors
-3. Verify build: `npm run build` — compiles without errors
-4. Verify tests: `npm test -- --watch=false` — all tests green
-5. Review `docs/CHECKPOINTS.md` — all applicable checkboxes marked
+3. Verify formatting: `npm run format:check` — no files to rewrite
+4. Verify build: `npm run build` — compiles without errors
+5. Verify tests: `npm test -- --watch=false` — all tests green
+6. Review `docs/CHECKPOINTS.md` — all applicable checkboxes marked
 
 ---
 

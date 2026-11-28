@@ -15,19 +15,15 @@ import { Validators } from '@angular/forms';
  * Angular exposes its validators as unbound methods; passing `Validators.required`
  * directly loses `this` and trips `@typescript-eslint/unbound-method`.
  */
-export const requiredValidator = (
-  control: AbstractControl,
-): ValidationErrors | null => Validators.required(control);
+export const requiredValidator = (control: AbstractControl): ValidationErrors | null =>
+  Validators.required(control);
 
 /** `Validators.email` wrapped for the same reason as {@link requiredValidator}. */
-export const emailValidator = (
-  control: AbstractControl,
-): ValidationErrors | null => Validators.email(control);
+export const emailValidator = (control: AbstractControl): ValidationErrors | null =>
+  Validators.email(control);
 
 /** Accepts an IANA zone id (`America/Bogota`). Empty stays valid for `required`. */
-export function ianaTimezoneValidator(
-  control: AbstractControl<string>,
-): ValidationErrors | null {
+export function ianaTimezoneValidator(control: AbstractControl<string>): ValidationErrors | null {
   const value = control.value.trim();
   if (value.length === 0) return null;
   try {
@@ -39,9 +35,7 @@ export function ianaTimezoneValidator(
 }
 
 /** Accepts a canonical BCP 47 tag (`es-CO`, `en-US`). */
-export function bcp47LocaleValidator(
-  control: AbstractControl<string>,
-): ValidationErrors | null {
+export function bcp47LocaleValidator(control: AbstractControl<string>): ValidationErrors | null {
   const value = control.value.trim();
   if (value.length === 0) return null;
   try {

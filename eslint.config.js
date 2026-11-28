@@ -1,83 +1,25 @@
 // @ts-check
-import eslint from "@eslint/js";
-import tseslint from "typescript-eslint";
-import angular from "angular-eslint";
-import { defineConfig } from "eslint/config";
+import angular from 'angular-eslint';
+import { defineConfig } from 'eslint/config';
 
+// TypeScript is linted by Oxlint (`.oxlintrc.json`, with the type-aware
+// `tsgolint` backend). ESLint is kept *only* for Angular templates, because
+// Oxlint has no template linting yet (oxc-project/oxc#15761). Do not add
+// `**/*.ts` here: that path is the slow (30 s) one we moved to Oxlint (2-6 s).
 export default defineConfig([
   {
-    files: ["**/*.ts"],
-    extends: [
-      eslint.configs.recommended,
-      ...tseslint.configs.recommendedTypeChecked,
-      ...tseslint.configs.strictTypeChecked,
-      ...tseslint.configs.stylisticTypeChecked,
-      ...angular.configs.tsRecommended,
-    ],
-    processor: angular.processInlineTemplates,
-    languageOptions: {
-      parserOptions: {
-        projectService: true,
-      },
-    },
-    rules: {
-      "@angular-eslint/directive-selector": [
-        "error",
-        {
-          type: "attribute",
-          prefix: "app",
-          style: "camelCase",
-        },
-      ],
-      "@angular-eslint/component-selector": [
-        "error",
-        {
-          type: "element",
-          prefix: "app",
-          style: "kebab-case",
-        },
-      ],
-
-      // Design-system guardrails (docs/DESIGN.md section 11.1).
-      // `registerables` registers every Chart.js controller and element, which
-      // is how the chart chunk reached 214 kB for four chart types.
-      "no-restricted-imports": [
-        "error",
-        {
-          paths: [
-            {
-              name: "chart.js",
-              importNames: ["registerables"],
-              message:
-                "Register only the controllers/elements/scales you use (docs/DESIGN.md 11.1).",
-            },
-          ],
-          patterns: [
-            {
-              group: ["chart.js/auto"],
-              message: "Import from 'chart.js' and register explicitly.",
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ["**/*.html"],
-    extends: [
-      ...angular.configs.templateRecommended,
-      ...angular.configs.templateAccessibility,
-    ],
+    files: ['**/*.html'],
+    extends: [...angular.configs.templateRecommended, ...angular.configs.templateAccessibility],
     rules: {},
   },
   {
     // Feature code only: primitives legitimately use inline styles for
     // dynamic geometry (skeleton width, treemap areas, dialog width).
-    files: ["src/app/areas/**/*.html", "src/app/shared/features/**/*.html"],
+    files: ['src/app/areas/**/*.html', 'src/app/shared/features/**/*.html'],
     rules: {
       // Inline styles cannot follow light/dark/high-contrast tokens.
       // Data-driven geometry documents its exception inline.
-      "@angular-eslint/template/no-inline-styles": "error",
+      '@angular-eslint/template/no-inline-styles': 'error',
     },
   },
 ]);

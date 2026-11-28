@@ -50,7 +50,9 @@ export class Notification implements OnDestroy {
           }
           this.processNewOrders(result.items);
         },
-        error: (err) => { this.logger.error('Error polling READY orders', err); }
+        error: (err) => {
+          this.logger.error('Error polling READY orders', err);
+        },
       });
   }
 
@@ -61,7 +63,7 @@ export class Notification implements OnDestroy {
 
   private processNewOrders(orders: OrderResponse[]): void {
     const seen = this.seenOrderIds();
-    const newOrders = orders.filter(o => !seen.has(o.id));
+    const newOrders = orders.filter((o) => !seen.has(o.id));
 
     newOrders.forEach((order, index) => {
       setTimeout(() => {
@@ -70,11 +72,11 @@ export class Notification implements OnDestroy {
     });
 
     if (newOrders.length > 0) {
-      this.unseenReadyOrders.update(current => [...current, ...newOrders]);
+      this.unseenReadyOrders.update((current) => [...current, ...newOrders]);
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line typescript/no-unused-vars
   private playNotification(_order: OrderResponse): void {
     this.playSound();
     if ('vibrate' in navigator) {
@@ -84,8 +86,10 @@ export class Notification implements OnDestroy {
 
   private playSound(): void {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      const AudioContextClass = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      // eslint-disable-next-line typescript/no-unnecessary-condition
+      const AudioContextClass =
+        window.AudioContext ??
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       this.audioContext ??= new AudioContextClass();
 
       const ctx = this.audioContext;
@@ -113,21 +117,19 @@ export class Notification implements OnDestroy {
   }
 
   markAsSeen(orderId: number): void {
-    this.seenOrderIds.update(ids => {
+    this.seenOrderIds.update((ids) => {
       const newIds = new Set(ids);
       newIds.add(orderId);
       return newIds;
     });
 
-    this.unseenReadyOrders.update(orders =>
-      orders.filter(o => o.id !== orderId)
-    );
+    this.unseenReadyOrders.update((orders) => orders.filter((o) => o.id !== orderId));
   }
 
   markAllAsSeen(): void {
     const orders = this.unseenReadyOrders();
-    orders.forEach(order => {
-      this.seenOrderIds.update(ids => {
+    orders.forEach((order) => {
+      this.seenOrderIds.update((ids) => {
         const newIds = new Set(ids);
         newIds.add(order.id);
         return newIds;

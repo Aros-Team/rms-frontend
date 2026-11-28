@@ -23,7 +23,10 @@ export class ForgotPassword {
   success = signal(false);
 
   form: FormGroup = new FormGroup({
-    email: new FormControl('', [Validators.required.bind(Validators), Validators.email.bind(Validators)])
+    email: new FormControl('', [
+      Validators.required.bind(Validators),
+      Validators.email.bind(Validators),
+    ]),
   });
 
   isInvalid(field: string): boolean {
@@ -64,7 +67,7 @@ export class ForgotPassword {
     this.passwordService.forgotPassword(email).subscribe({
       next: () => {
         this.loading.set(false);
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        // eslint-disable-next-line typescript/no-floating-promises
         this.router.navigate(['/login'], { queryParams: { passwordResetSent: true } });
       },
       error: (err: { status?: number }) => {
@@ -75,7 +78,7 @@ export class ForgotPassword {
         } else {
           this.error.set('Ocurrió un error. Por favor, intenta más tarde.');
         }
-      }
+      },
     });
   }
 }

@@ -568,10 +568,12 @@ Layer scale (never a numeric `z-[…]` in feature code):
 | `--rms-z-dialog` | 1100 | dialogs, sheets |
 | `--rms-z-toast` | 1200 | toasts, skip link |
 
-Automated gates: `npm run lint:check` (ESLint, including no-inline-styles and
-the Chart.js import guard) and `npm run design:check` (scans templates for
-legacy PrimeNG controls, surface/palette classes, `dark:` pairs, raw hex and
-numeric `z-[…]`). `npm run verify:ui` runs lint, the design gate and the unit
+Automated gates: `npm run lint:check` (Oxlint with the type-aware `tsgolint`
+backend for TypeScript, ESLint for Angular templates including no-inline-styles
+and the Chart.js import guard), `npm run format:check` (Oxfmt) and
+`npm run design:check` (scans templates for legacy PrimeNG controls,
+surface/palette classes, `dark:` pairs, raw hex and numeric `z-[…]`).
+`npm run verify:ui` runs lint, the format gate, the design gate and the unit
 suite. The dev gallery is exempt from the design gate on purpose.
 
 Deferred rendering: `content-visibility: auto` is allowed only through the

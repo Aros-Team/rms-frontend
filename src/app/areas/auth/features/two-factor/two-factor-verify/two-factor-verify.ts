@@ -23,9 +23,15 @@ export class TwoFactorVerify {
   private messageService = inject(MessageService);
   private logger = inject(Logging);
 
+  /* eslint-disable typescript/unbound-method -- Validators.x are static, there is no `this` to bind */
   form: FormGroup = new FormGroup({
-    code: new FormControl('', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]), // eslint-disable-line @typescript-eslint/unbound-method
+    code: new FormControl('', [
+      Validators.required,
+      Validators.minLength(6),
+      Validators.maxLength(6),
+    ]),
   });
+  /* eslint-enable typescript/unbound-method */
 
   formStatus = signal<'Free' | 'Occuped'>('Free');
   errorMessage: string | null = null;
@@ -49,12 +55,15 @@ export class TwoFactorVerify {
         this.formStatus.set('Free');
         // The API reports the reason in the RFC-7807 `detail`.
         const backendMessage = extractProblemDetail(err);
-        this.errorMessage = backendMessage ?? 'Código inválido o expirado. Por favor, intenta nuevamente.';
+        this.errorMessage =
+          backendMessage ?? 'Código inválido o expirado. Por favor, intenta nuevamente.';
 
         if (err.status === 400) {
-          this.errorMessage = backendMessage ?? 'Código inválido. Verifica el código enviado a tu correo.';
+          this.errorMessage =
+            backendMessage ?? 'Código inválido. Verifica el código enviado a tu correo.';
         } else if (err.status === 401) {
-          this.errorMessage = backendMessage ?? 'Código expirado. Por favor, inicia sesión nuevamente.';
+          this.errorMessage =
+            backendMessage ?? 'Código expirado. Por favor, inicia sesión nuevamente.';
         }
       },
     });

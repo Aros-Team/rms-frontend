@@ -9,15 +9,15 @@ Object.defineProperty(window, 'matchMedia', {
     matches: false,
     media: query,
     onchange: null,
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // eslint-disable-next-line typescript/no-empty-function
     addListener: () => {},
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // eslint-disable-next-line typescript/no-empty-function
     removeListener: () => {},
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // eslint-disable-next-line typescript/no-empty-function
     addEventListener: () => {},
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // eslint-disable-next-line typescript/no-empty-function
     removeEventListener: () => {},
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // eslint-disable-next-line typescript/no-empty-function
     dispatchEvent: () => {},
   }),
 });
