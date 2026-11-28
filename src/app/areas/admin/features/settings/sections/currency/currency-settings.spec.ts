@@ -107,9 +107,7 @@ describe('CurrencySettingsSection', () => {
     expect(api.updateCurrency).toHaveBeenCalledWith('USD');
     expect(component.current()?.code).toBe('USD');
     expect(component.dirty()).toBe(false);
-    expect(messages.add).toHaveBeenCalledWith(
-      expect.objectContaining({ severity: 'success' }),
-    );
+    expect(messages.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
   });
 
   it('does not submit a malformed code', () => {
@@ -136,8 +134,6 @@ describe('CurrencySettingsSection', () => {
     component.save();
     fixture.detectChanges();
 
-    expect(component.saveError()).toBe(
-      'Currency code must be a three-letter ISO 4217 code',
-    );
+    expect(component.saveError()).toBe('Currency code must be a three-letter ISO 4217 code');
   });
 });

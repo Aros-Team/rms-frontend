@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  OnInit,
+  Output,
+  inject,
+  signal,
+} from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -385,9 +393,7 @@ export class Schedules implements OnInit {
       error: (err: HttpErrorResponse) => {
         this.deleting.set(false);
         this.pendingDelete.set(null);
-        this.actionError.set(
-          this.translateError(err, 'No se pudo eliminar la plantilla.'),
-        );
+        this.actionError.set(this.translateError(err, 'No se pudo eliminar la plantilla.'));
       },
     });
   }

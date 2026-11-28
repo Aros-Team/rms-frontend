@@ -61,9 +61,8 @@ export function extractProblemDetail(err: unknown): string | null {
 function readErrorBody(err: unknown): Record<string, unknown> | null {
   if (err === null || typeof err !== 'object') return null;
 
-  const rawBody: unknown = err instanceof HttpErrorResponse
-    ? (err.error as unknown)
-    : (err as { error?: unknown }).error;
+  const rawBody: unknown =
+    err instanceof HttpErrorResponse ? (err.error as unknown) : (err as { error?: unknown }).error;
 
   if (rawBody === null || typeof rawBody !== 'object' || Array.isArray(rawBody)) {
     return null;

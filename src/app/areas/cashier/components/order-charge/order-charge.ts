@@ -25,10 +25,7 @@ import type {
   TenderDraft,
 } from '@app/shared/models/dto/payments/charge-draft';
 import { toAmount } from '@app/shared/models/dto/common/money';
-import {
-  formatMoneyInput,
-  parseMoneyInput,
-} from '@app/shared/models/dto/payments/money-amount';
+import { formatMoneyInput, parseMoneyInput } from '@app/shared/models/dto/payments/money-amount';
 import {
   PAYMENT_METHOD_LABEL,
   type PaymentDiscountType,
@@ -175,11 +172,7 @@ export class CashierOrderCharge implements OnChanges {
   readonly discountReasonError = computed(() => this.fieldError('discount-reason'));
 
   readonly canSubmit = computed(
-    () =>
-      this.order !== null &&
-      this.shiftOpen &&
-      !this.submitting &&
-      this.computation().valid,
+    () => this.order !== null && this.shiftOpen && !this.submitting && this.computation().valid,
   );
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -233,13 +226,10 @@ export class CashierOrderCharge implements OnChanges {
   }
 
   onTenderMethodChange(index: number, value: string | number | null): void {
-    const method: PaymentTenderMethod =
-      value === 'CARD' || value === 'TRANSFER' ? value : 'CASH';
+    const method: PaymentTenderMethod = value === 'CARD' || value === 'TRANSFER' ? value : 'CASH';
     this.tenders.update((rows) =>
       rows.map((row, i) =>
-        i === index
-          ? { ...row, method, reference: method === 'CASH' ? '' : row.reference }
-          : row,
+        i === index ? { ...row, method, reference: method === 'CASH' ? '' : row.reference } : row,
       ),
     );
   }
@@ -285,9 +275,7 @@ export class CashierOrderCharge implements OnChanges {
   }
 
   tenderAmountError(index: number): string {
-    return this.hasIssue('TENDER_AMOUNT_REQUIRED', index)
-      ? 'Ingresa un monto mayor que cero.'
-      : '';
+    return this.hasIssue('TENDER_AMOUNT_REQUIRED', index) ? 'Ingresa un monto mayor que cero.' : '';
   }
 
   tenderOverError(index: number): string {
@@ -314,16 +302,15 @@ export class CashierOrderCharge implements OnChanges {
   // ---- internals ---------------------------------------------------------
 
   private hasIssue(code: ChargeIssueCode, index: number): boolean {
-    return this.computation().issues.some(
-      (issue) => issue.code === code && issue.index === index,
-    );
+    return this.computation().issues.some((issue) => issue.code === code && issue.index === index);
   }
 
   private fieldError(kind: 'discount-value' | 'discount-reason'): string {
     const codes = this.computation().issues.map((issue) => issue.code);
     if (kind === 'discount-value') {
       if (codes.includes('DISCOUNT_VALUE_REQUIRED')) return 'Ingresa el valor del descuento.';
-      if (codes.includes('DISCOUNT_PERCENT_RANGE')) return 'El porcentaje debe estar entre 0 y 100.';
+      if (codes.includes('DISCOUNT_PERCENT_RANGE'))
+        return 'El porcentaje debe estar entre 0 y 100.';
       if (codes.includes('DISCOUNT_TOO_LARGE')) {
         return 'El descuento debe ser menor que el subtotal.';
       }

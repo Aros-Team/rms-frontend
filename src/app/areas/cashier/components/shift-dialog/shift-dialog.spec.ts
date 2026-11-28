@@ -201,7 +201,10 @@ describe('CashierShiftDialog', () => {
   });
 
   it('shows matched cash as Cuadra', async () => {
-    await setup({ shift, summary: makeSummary({ expectedCash: { amount: '226000.00', currency: 'COP' } }) });
+    await setup({
+      shift,
+      summary: makeSummary({ expectedCash: { amount: '226000.00', currency: 'COP' } }),
+    });
 
     setInputValue(input('#shift-counted'), '226000');
     fixture.detectChanges();
@@ -236,13 +239,12 @@ describe('CashierShiftDialog', () => {
     await setup({
       shift,
       summary: makeSummary(),
-      payments: [
-        makeSummaryRow(1, 'COMPLETED', 'R-1'),
-        makeSummaryRow(2, 'VOIDED', 'R-2'),
-      ],
+      payments: [makeSummaryRow(1, 'COMPLETED', 'R-1'), makeSummaryRow(2, 'VOIDED', 'R-2')],
     });
 
-    const voidButton = document.body.querySelector<HTMLButtonElement>('[aria-label="Anular cobro R-1"]');
+    const voidButton = document.body.querySelector<HTMLButtonElement>(
+      '[aria-label="Anular cobro R-1"]',
+    );
     expect(voidButton).not.toBeNull();
     expect(document.body.querySelector('[aria-label="Anular cobro R-2"]')).toBeNull();
 

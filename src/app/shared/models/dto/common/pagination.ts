@@ -96,8 +96,7 @@ export function unwrapPage<T>(res: PageEnvelope<T> | T[] | null | undefined): Pa
     : Array.isArray(res.content)
       ? res.content
       : [];
-  const meta: PageMeta | null =
-    typeof res.page === 'object' && res.page !== null ? res.page : null;
+  const meta: PageMeta | null = typeof res.page === 'object' && res.page !== null ? res.page : null;
 
   const total = firstNumber([res.total, res.totalElements, meta?.totalElements]) ?? rawItems.length;
   const page =

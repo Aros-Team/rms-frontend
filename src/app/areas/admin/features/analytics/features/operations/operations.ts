@@ -6,7 +6,11 @@ import { downloadCsv, operationsCsv } from '@app/core/services/analytics/analyti
 import { describeAnalyticsError } from '@app/core/services/analytics/analytics-error';
 import { moneyAmount, percentChange } from '@app/core/services/analytics/analytics-money';
 import { AnalyticsPeriodState } from '@app/core/services/analytics/analytics-period-state';
-import { bucketLabel, previousRange, rangeLabel } from '@app/core/services/analytics/analytics-utils';
+import {
+  bucketLabel,
+  previousRange,
+  rangeLabel,
+} from '@app/core/services/analytics/analytics-utils';
 import { Money as MoneyPipe } from '@app/shared/pipes/money/money';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsChartFrame } from '@app/shared/ui/chart-frame/chart-frame';
@@ -68,7 +72,8 @@ export class Operations {
     return rangeLabel(selection.bucket, range.from, range.to);
   });
   readonly subtitle = computed(
-    () => `RevPASH, cubiertos y rotación · agrupado por ${bucketLabel(this.period.bucket()).toLowerCase()}`,
+    () =>
+      `RevPASH, cubiertos y rotación · agrupado por ${bucketLabel(this.period.bucket()).toLowerCase()}`,
   );
 
   readonly busy = computed(() => this.isLoading() && this.report() === null);
@@ -131,11 +136,7 @@ export class Operations {
     this.deltaPp(this.report()?.labor.sharePct, this.previous()?.labor.sharePct, true),
   );
   readonly occupancyDelta = computed(() =>
-    this.deltaPct(
-      this.report()?.avgOccupancyMinutes,
-      this.previous()?.avgOccupancyMinutes,
-      false,
-    ),
+    this.deltaPct(this.report()?.avgOccupancyMinutes, this.previous()?.avgOccupancyMinutes, false),
   );
 
   constructor() {

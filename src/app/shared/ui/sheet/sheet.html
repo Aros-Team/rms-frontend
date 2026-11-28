@@ -10,12 +10,7 @@
     <header class="rms-sheet__header">
       <h2 class="rms-sheet__title" [id]="titleId">{{ title }}</h2>
       @if (dismissible) {
-        <app-rms-icon-button
-          icon="pi pi-times"
-          ariaLabel="Cerrar"
-          size="lg"
-          (click)="close()"
-        />
+        <app-rms-icon-button icon="pi pi-times" ariaLabel="Cerrar" size="lg" (click)="close()" />
       }
     </header>
 

@@ -1,38 +1,76 @@
-<p-dialog [modal]="true" [(visible)]="visible"
+<p-dialog
+  [modal]="true"
+  [(visible)]="visible"
   header="Estimar tiempo de preparación"
-  draggable="false" styleClass="w-[32rem]" appendTo="body">
-
+  draggable="false"
+  styleClass="w-[32rem]"
+  appendTo="body"
+>
   <p class="text-sm text-muted mb-4">
-    Indica cuánto tarda este producto en prepararse en tres escenarios. El sistema calcula el tiempo estimado como el promedio redondeado hacia arriba.
+    Indica cuánto tarda este producto en prepararse en tres escenarios. El sistema calcula el tiempo
+    estimado como el promedio redondeado hacia arriba.
   </p>
 
   <form [formGroup]="prepTimeForm" class="flex flex-col gap-4">
     <p-iftalabel>
-      <p-inputnumber formControlName="calmMinutes" inputId="calmMinutes"
-        mode="decimal" [min]="0" suffix=" min" class="w-full"
-        [invalid]="prepTimeForm.get('calmMinutes')?.invalid && !!prepTimeForm.get('calmMinutes')?.touched" />
+      <p-inputnumber
+        formControlName="calmMinutes"
+        inputId="calmMinutes"
+        mode="decimal"
+        [min]="0"
+        suffix=" min"
+        class="w-full"
+        [invalid]="
+          prepTimeForm.get('calmMinutes')?.invalid && !!prepTimeForm.get('calmMinutes')?.touched
+        "
+      />
       <label for="calmMinutes">Tiempo en calma</label>
     </p-iftalabel>
-    <p class="text-xs text-muted -mt-2">Cuando no hay clientes y puedes dedicarte 100% a este producto.</p>
+    <p class="text-xs text-muted -mt-2">
+      Cuando no hay clientes y puedes dedicarte 100% a este producto.
+    </p>
 
     <p-iftalabel>
-      <p-inputnumber formControlName="peakMinutes" inputId="peakMinutes"
-        mode="decimal" [min]="0" suffix=" min" class="w-full"
-        [invalid]="prepTimeForm.get('peakMinutes')?.invalid && !!prepTimeForm.get('peakMinutes')?.touched" />
+      <p-inputnumber
+        formControlName="peakMinutes"
+        inputId="peakMinutes"
+        mode="decimal"
+        [min]="0"
+        suffix=" min"
+        class="w-full"
+        [invalid]="
+          prepTimeForm.get('peakMinutes')?.invalid && !!prepTimeForm.get('peakMinutes')?.touched
+        "
+      />
       <label for="peakMinutes">Tiempo en hora pico</label>
     </p-iftalabel>
-    <p class="text-xs text-muted -mt-2">Cuando hay varios pedidos a la vez y te toca alternar entre todos.</p>
+    <p class="text-xs text-muted -mt-2">
+      Cuando hay varios pedidos a la vez y te toca alternar entre todos.
+    </p>
 
     <p-iftalabel>
-      <p-inputnumber formControlName="interruptionMinutes" inputId="interruptionMinutes"
-        mode="decimal" [min]="0" suffix=" min" class="w-full"
-        [invalid]="prepTimeForm.get('interruptionMinutes')?.invalid && !!prepTimeForm.get('interruptionMinutes')?.touched" />
+      <p-inputnumber
+        formControlName="interruptionMinutes"
+        inputId="interruptionMinutes"
+        mode="decimal"
+        [min]="0"
+        suffix=" min"
+        class="w-full"
+        [invalid]="
+          prepTimeForm.get('interruptionMinutes')?.invalid &&
+          !!prepTimeForm.get('interruptionMinutes')?.touched
+        "
+      />
       <label for="interruptionMinutes">Tiempo con interrupciones</label>
     </p-iftalabel>
-    <p class="text-xs text-muted -mt-2">Cuando debes atender proveedores, limpiar o cambiar de actividad.</p>
+    <p class="text-xs text-muted -mt-2">
+      Cuando debes atender proveedores, limpiar o cambiar de actividad.
+    </p>
   </form>
 
-  <div class="mt-4 flex items-center justify-between border border-rms-border rounded-lg px-4 py-3 bg-rms-subtle">
+  <div
+    class="mt-4 flex items-center justify-between border border-rms-border rounded-lg px-4 py-3 bg-rms-subtle"
+  >
     <span class="text-sm text-muted">Tiempo estimado resultante</span>
     <span class="font-semibold text-accent">
       @if (estimatedPrepMinutes() !== null) {
@@ -44,7 +82,9 @@
   </div>
 
   <ng-template #footer>
-    <app-rms-button variant="secondary" iconStart="pi pi-times" (click)="close()">Cancelar</app-rms-button>
+    <app-rms-button variant="secondary" iconStart="pi pi-times" (click)="close()"
+      >Cancelar</app-rms-button
+    >
     <app-rms-button iconStart="pi pi-check" (click)="apply()">Aplicar</app-rms-button>
   </ng-template>
 </p-dialog>

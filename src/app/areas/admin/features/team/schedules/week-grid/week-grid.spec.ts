@@ -285,9 +285,7 @@ describe('WeekGrid', () => {
   });
 
   it('rolls back the exact assignment when the POST fails', async () => {
-    assignmentApi.assign.mockReturnValue(
-      throwError(() => new HttpErrorResponse({ status: 500 })),
-    );
+    assignmentApi.assign.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
     await mount();
 
     const worker = component.rows()[0].worker;

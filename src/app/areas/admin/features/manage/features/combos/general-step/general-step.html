@@ -44,9 +44,7 @@
 
     <!-- Categorías del combo -->
     <div class="flex flex-col gap-1">
-      <span class="rms-label">
-        Categorías del combo
-      </span>
+      <span class="rms-label"> Categorías del combo </span>
       <div class="flex flex-wrap gap-2" data-testid="category-chips">
         @for (cat of ref.categories(); track cat.id) {
           <p-chip
@@ -63,20 +61,26 @@
 
     <!-- Schedule editor -->
     @if (wizardData().schedulingRequired) {
-      <div class="flex flex-col gap-4 border-t border-rms-border pt-4" data-testid="schedule-editor">
+      <div
+        class="flex flex-col gap-4 border-t border-rms-border pt-4"
+        data-testid="schedule-editor"
+      >
         <div class="flex items-center justify-between">
-          <span class="rms-label">
-            Horario
-          </span>
+          <span class="rms-label"> Horario </span>
           <app-rms-button
             size="sm"
             iconStart="pi pi-plus"
             (click)="addScheduleBlock()"
-            data-testid="schedule-add-btn">Agregar horario</app-rms-button>
+            data-testid="schedule-add-btn"
+            >Agregar horario</app-rms-button
+          >
         </div>
 
         @for (block of scheduleBlocksForDisplay(); track block.id) {
-          <div class="flex flex-col gap-2 p-3 border border-rms-border rounded-xl" data-testid="schedule-block">
+          <div
+            class="flex flex-col gap-2 p-3 border border-rms-border rounded-xl"
+            data-testid="schedule-block"
+          >
             <div class="flex flex-wrap gap-2">
               @for (day of allDays; track day.value) {
                 <p-chip
@@ -111,7 +115,8 @@
                 variant="danger"
                 size="sm"
                 (click)="removeScheduleBlock(block.id)"
-                data-testid="schedule-remove-btn" />
+                data-testid="schedule-remove-btn"
+              />
             </div>
           </div>
         }

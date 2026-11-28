@@ -209,9 +209,9 @@ export class PayrollPanel {
       : this.payrollCache.events(workerId, this.periodYear(), this.periodMonth());
   });
 
-  private readonly settlementsResource = computed<
-    ResourceCache<PayrollSettlementResponse[]> | null
-  >(() => {
+  private readonly settlementsResource = computed<ResourceCache<
+    PayrollSettlementResponse[]
+  > | null>(() => {
     const workerId = this.workerId();
     return workerId === null
       ? null

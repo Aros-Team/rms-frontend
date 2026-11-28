@@ -98,9 +98,7 @@ describe('validateRecipeRows', () => {
 
   it('rejects a variant that is not in the catalogue', () => {
     const result = validateRecipeRows([row(999, '1')], KNOWN);
-    expect([...result.issues.values()][0]?.variant).toBe(
-      'Insumo no disponible en el catálogo',
-    );
+    expect([...result.issues.values()][0]?.variant).toBe('Insumo no disponible en el catálogo');
   });
 
   it('summarizes the number of invalid rows', () => {

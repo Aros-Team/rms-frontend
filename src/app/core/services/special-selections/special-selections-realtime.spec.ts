@@ -90,8 +90,12 @@ describe('SpecialSelectionsRealtime', () => {
       selection: null,
     };
 
-    const first = service.updates$.subscribe((value) => { firstEvents.push(value); });
-    const second = service.updates$.subscribe((value) => { secondEvents.push(value); });
+    const first = service.updates$.subscribe((value) => {
+      firstEvents.push(value);
+    });
+    const second = service.updates$.subscribe((value) => {
+      secondEvents.push(value);
+    });
 
     source.next(event);
 
@@ -104,7 +108,9 @@ describe('SpecialSelectionsRealtime', () => {
 
     expect(sourceUnsubscriptions).toBe(0);
 
-    const later = service.updates$.subscribe((value) => { laterEvents.push(value); });
+    const later = service.updates$.subscribe((value) => {
+      laterEvents.push(value);
+    });
     source.next(event);
 
     expect(sourceSubscriptions).toBe(1);

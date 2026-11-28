@@ -3,7 +3,11 @@ import { MetricValue as MetricValueModel } from '@app/shared/models/dto/analytic
 
 @Pipe({ name: 'metricValue', standalone: true })
 export class MetricValue implements PipeTransform {
-  transform(value: MetricValueModel | null | undefined, fractionDigits = 2, locale = 'es-CO'): string {
+  transform(
+    value: MetricValueModel | null | undefined,
+    fractionDigits = 2,
+    locale = 'es-CO',
+  ): string {
     if (!value) return '—';
     const n = Number.parseFloat(value.amount);
     if (Number.isNaN(n)) return '—';

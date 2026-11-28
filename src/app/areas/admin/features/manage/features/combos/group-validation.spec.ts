@@ -7,7 +7,10 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import type { WizardFormData, WizardGroupDraft } from '@app/core/services/combos/combo-wizard-state';
+import type {
+  WizardFormData,
+  WizardGroupDraft,
+} from '@app/core/services/combos/combo-wizard-state';
 import type { ProductResponse } from '@app/shared/models/dto/products/product-response';
 import { SELECTION_TYPE } from '@app/shared/models/dto/special-selections/selection-type';
 
@@ -35,28 +38,63 @@ function mockGroup(overrides?: Partial<WizardGroupDraft>): WizardGroupDraft {
 function mockProducts(): ProductResponse[] {
   return [
     {
-      id: 10, name: 'Producto A', basePrice: 100, active: true,
-      categoryId: 1, categoryName: 'Cat 1', areaId: 1, areaName: 'Area 1', recipe: [],
+      id: 10,
+      name: 'Producto A',
+      basePrice: 100,
+      active: true,
+      categoryId: 1,
+      categoryName: 'Cat 1',
+      areaId: 1,
+      areaName: 'Area 1',
+      recipe: [],
       selectionType: SELECTION_TYPE.SPECIAL_SELECTION,
     },
     {
-      id: 11, name: 'Producto B', basePrice: 200, active: true,
-      categoryId: 1, categoryName: 'Cat 1', areaId: 1, areaName: 'Area 1', recipe: [],
+      id: 11,
+      name: 'Producto B',
+      basePrice: 200,
+      active: true,
+      categoryId: 1,
+      categoryName: 'Cat 1',
+      areaId: 1,
+      areaName: 'Area 1',
+      recipe: [],
       selectionType: SELECTION_TYPE.SPECIAL_SELECTION,
     },
     {
-      id: 12, name: 'Producto C', basePrice: 300, active: false,
-      categoryId: 1, categoryName: 'Cat 1', areaId: 1, areaName: 'Area 1', recipe: [],
+      id: 12,
+      name: 'Producto C',
+      basePrice: 300,
+      active: false,
+      categoryId: 1,
+      categoryName: 'Cat 1',
+      areaId: 1,
+      areaName: 'Area 1',
+      recipe: [],
       selectionType: SELECTION_TYPE.SPECIAL_SELECTION,
     },
     {
-      id: 13, name: 'Producto D', basePrice: 400, active: true,
-      categoryId: 1, categoryName: 'Cat 1', areaId: 1, areaName: 'Area 1', recipe: [],
+      id: 13,
+      name: 'Producto D',
+      basePrice: 400,
+      active: true,
+      categoryId: 1,
+      categoryName: 'Cat 1',
+      areaId: 1,
+      areaName: 'Area 1',
+      recipe: [],
       selectionType: SELECTION_TYPE.STANDARD,
     },
     {
-      id: 20, name: 'Producto E', basePrice: 500, active: true,
-      categoryId: 2, categoryName: 'Cat 2', areaId: 1, areaName: 'Area 1', recipe: [],
+      id: 20,
+      name: 'Producto E',
+      basePrice: 500,
+      active: true,
+      categoryId: 2,
+      categoryName: 'Cat 2',
+      areaId: 1,
+      areaName: 'Area 1',
+      recipe: [],
       selectionType: SELECTION_TYPE.SPECIAL_SELECTION,
     },
   ];
@@ -91,7 +129,12 @@ function mockFormData(overrides?: Partial<WizardFormData>): WizardFormData {
 
 describe('validateGroup', () => {
   it('returns null for a valid group', () => {
-    const group = mockGroup({ categoryId: 1, minSelections: 1, maxSelections: 3, productIds: [10, 11] });
+    const group = mockGroup({
+      categoryId: 1,
+      minSelections: 1,
+      maxSelections: 3,
+      productIds: [10, 11],
+    });
     const result = validateGroup(group, 2);
     expect(result).toBeNull();
   });
@@ -147,7 +190,12 @@ describe('validateGroup', () => {
   });
 
   it('returns MIN_NOT_MET when required and productIds < minSelections', () => {
-    const group = mockGroup({ required: true, minSelections: 3, maxSelections: 5, productIds: [10] });
+    const group = mockGroup({
+      required: true,
+      minSelections: 3,
+      maxSelections: 5,
+      productIds: [10],
+    });
     const result = validateGroup(group, 4);
     expect(result).toEqual<GroupValidationError>({
       categoryId: 1,
@@ -157,7 +205,12 @@ describe('validateGroup', () => {
   });
 
   it('does NOT return MIN_NOT_MET when not required even if under minSelections', () => {
-    const group = mockGroup({ required: false, minSelections: 3, maxSelections: 5, productIds: [10] });
+    const group = mockGroup({
+      required: false,
+      minSelections: 3,
+      maxSelections: 5,
+      productIds: [10],
+    });
     const result = validateGroup(group, 4);
     expect(result).toBeNull();
   });
@@ -173,7 +226,12 @@ describe('validateGroup', () => {
   });
 
   it('validates a non-required empty group as valid', () => {
-    const group = mockGroup({ required: false, minSelections: 1, maxSelections: 3, productIds: [] });
+    const group = mockGroup({
+      required: false,
+      minSelections: 1,
+      maxSelections: 3,
+      productIds: [],
+    });
     const result = validateGroup(group, 3);
     expect(result).toBeNull();
   });
@@ -213,8 +271,20 @@ describe('validateAllGroups', () => {
   it('collects all validation errors across multiple groups', () => {
     const products = mockProducts();
     const ref = mockReference(products);
-    const group1 = mockGroup({ categoryId: 1, required: true, minSelections: 1, maxSelections: 3, productIds: [] });
-    const group2 = mockGroup({ categoryId: 2, required: true, minSelections: 1, maxSelections: 2, productIds: [10, 20, 30] });
+    const group1 = mockGroup({
+      categoryId: 1,
+      required: true,
+      minSelections: 1,
+      maxSelections: 3,
+      productIds: [],
+    });
+    const group2 = mockGroup({
+      categoryId: 2,
+      required: true,
+      minSelections: 1,
+      maxSelections: 2,
+      productIds: [10, 20, 30],
+    });
     const formData = mockFormData({ groups: [group1, group2] });
     const errors = validateAllGroups(formData, ref);
 
@@ -300,8 +370,15 @@ describe('computeEligibleProducts', () => {
 
   it('returns empty array when no active products in category', () => {
     const inactiveProduct: ProductResponse = {
-      id: 99, name: 'Inactive', basePrice: 100, active: false,
-      categoryId: 1, categoryName: 'Cat 1', areaId: 1, areaName: 'Area 1', recipe: [],
+      id: 99,
+      name: 'Inactive',
+      basePrice: 100,
+      active: false,
+      categoryId: 1,
+      categoryName: 'Cat 1',
+      areaId: 1,
+      areaName: 'Area 1',
+      recipe: [],
       selectionType: SELECTION_TYPE.SPECIAL_SELECTION,
     };
     const group = mockGroup({ categoryId: 1 });

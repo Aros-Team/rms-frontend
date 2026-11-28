@@ -36,11 +36,7 @@ describe('Supply service', () => {
   beforeEach(() => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        Supply,
-      ],
+      providers: [provideHttpClient(), provideHttpClientTesting(), Supply],
     });
 
     service = TestBed.inject(Supply);
@@ -54,13 +50,12 @@ describe('Supply service', () => {
   describe('getSupplyVariants', () => {
     it('requests max size and unwraps content from paged response', () => {
       let emitted: SupplyVariantResponse[] | undefined;
-      service.getSupplyVariants().subscribe(value => {
+      service.getSupplyVariants().subscribe((value) => {
         emitted = value;
       });
 
-      const req = httpMock.expectOne(r =>
-        r.url === 'v1/supplies/variants' &&
-        r.params.get('size') === '100'
+      const req = httpMock.expectOne(
+        (r) => r.url === 'v1/supplies/variants' && r.params.get('size') === '100',
       );
       expect(req.request.method).toBe('GET');
 
@@ -74,13 +69,12 @@ describe('Supply service', () => {
 
     it('falls back to empty array when content is missing', () => {
       let emitted: SupplyVariantResponse[] | undefined;
-      service.getSupplyVariants().subscribe(value => {
+      service.getSupplyVariants().subscribe((value) => {
         emitted = value;
       });
 
-      const req = httpMock.expectOne(r =>
-        r.url === 'v1/supplies/variants' &&
-        r.params.get('size') === '100'
+      const req = httpMock.expectOne(
+        (r) => r.url === 'v1/supplies/variants' && r.params.get('size') === '100',
       );
       req.flush({});
 
@@ -91,14 +85,15 @@ describe('Supply service', () => {
   describe('getSupplyVariantsPaginated', () => {
     it('flattens nested page metadata into flat paginated response', () => {
       let emitted: PaginatedSuppliesResponse | undefined;
-      service.getSupplyVariantsPaginated(1, 6).subscribe(value => {
+      service.getSupplyVariantsPaginated(1, 6).subscribe((value) => {
         emitted = value;
       });
 
-      const req = httpMock.expectOne(r =>
-        r.url === 'v1/supplies/variants' &&
-        r.params.get('page') === '1' &&
-        r.params.get('size') === '6'
+      const req = httpMock.expectOne(
+        (r) =>
+          r.url === 'v1/supplies/variants' &&
+          r.params.get('page') === '1' &&
+          r.params.get('size') === '6',
       );
       expect(req.request.method).toBe('GET');
 
@@ -118,14 +113,15 @@ describe('Supply service', () => {
 
     it('falls back to empty defaults when page metadata is missing', () => {
       let emitted: PaginatedSuppliesResponse | undefined;
-      service.getSupplyVariantsPaginated(1, 6).subscribe(value => {
+      service.getSupplyVariantsPaginated(1, 6).subscribe((value) => {
         emitted = value;
       });
 
-      const req = httpMock.expectOne(r =>
-        r.url === 'v1/supplies/variants' &&
-        r.params.get('page') === '1' &&
-        r.params.get('size') === '6'
+      const req = httpMock.expectOne(
+        (r) =>
+          r.url === 'v1/supplies/variants' &&
+          r.params.get('page') === '1' &&
+          r.params.get('size') === '6',
       );
       req.flush({});
 
@@ -141,10 +137,11 @@ describe('Supply service', () => {
     it('omits params when not passed', () => {
       service.getSupplyVariantsPaginated().subscribe();
 
-      const req = httpMock.expectOne(r =>
-        r.url === 'v1/supplies/variants' &&
-        r.params.get('page') === '0' &&
-        r.params.get('size') === '20'
+      const req = httpMock.expectOne(
+        (r) =>
+          r.url === 'v1/supplies/variants' &&
+          r.params.get('page') === '0' &&
+          r.params.get('size') === '20',
       );
       expect(req.request.method).toBe('GET');
       req.flush({});
@@ -160,9 +157,7 @@ describe('Supply service', () => {
 
       const req = httpMock.expectOne(
         (r) =>
-          r.url === 'v1/supplies' &&
-          r.params.get('page') === '0' &&
-          r.params.get('size') === '100',
+          r.url === 'v1/supplies' && r.params.get('page') === '0' && r.params.get('size') === '100',
       );
       expect(req.request.method).toBe('GET');
 
@@ -188,7 +183,10 @@ describe('Supply service', () => {
       }));
       httpMock
         .expectOne((r) => r.url === 'v1/supplies/variants' && r.params.get('page') === '0')
-        .flush({ content: firstPage, page: { size: 100, number: 0, totalElements: 101, totalPages: 2 } });
+        .flush({
+          content: firstPage,
+          page: { size: 100, number: 0, totalElements: 101, totalPages: 2 },
+        });
 
       httpMock
         .expectOne((r) => r.url === 'v1/supplies/variants' && r.params.get('page') === '1')
@@ -205,7 +203,7 @@ describe('Supply service', () => {
   describe('getCategories', () => {
     it('requests supply categories and emits the response', () => {
       let emitted: SupplyCategoryResponse[] | undefined;
-      service.getCategories().subscribe(value => {
+      service.getCategories().subscribe((value) => {
         emitted = value;
       });
 
@@ -221,7 +219,7 @@ describe('Supply service', () => {
   describe('createCategory', () => {
     it('posts the new category and emits the created response', () => {
       let emitted: SupplyCategoryResponse | undefined;
-      service.createCategory({ name: 'Lácteos' }).subscribe(value => {
+      service.createCategory({ name: 'Lácteos' }).subscribe((value) => {
         emitted = value;
       });
 

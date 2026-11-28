@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Subscription, finalize } from 'rxjs';
@@ -136,8 +144,12 @@ export class Alerts {
   readonly canPrevious = computed(() => this.offset() > 0);
   readonly canNext = computed(() => this.offset() + this.limit < this.total());
 
-  readonly openOnPage = computed(() => this.items().filter((item) => item.status === 'OPEN').length);
-  readonly redOnPage = computed(() => this.items().filter((item) => item.severity === 'RED').length);
+  readonly openOnPage = computed(
+    () => this.items().filter((item) => item.status === 'OPEN').length,
+  );
+  readonly redOnPage = computed(
+    () => this.items().filter((item) => item.severity === 'RED').length,
+  );
   readonly yellowOnPage = computed(
     () => this.items().filter((item) => item.severity === 'YELLOW').length,
   );
@@ -242,7 +254,9 @@ export class Alerts {
   }
 
   describe(alert: SystemAlert): string {
-    const deviation = Math.abs(alert.deviationPct ?? 0).toFixed(1).replace('.', ',');
+    const deviation = Math.abs(alert.deviationPct ?? 0)
+      .toFixed(1)
+      .replace('.', ',');
     switch (alert.type) {
       case 'FOOD_COST_DEVIATION':
         return `El costo de alimentos está ${deviation}% por encima del promedio de 12 meses.`;
@@ -276,9 +290,7 @@ export class Alerts {
   }
 
   periodLabel(alert: SystemAlert): string {
-    return isTimeBucket(alert.bucket)
-      ? titleForKey(alert.bucket, alert.period)
-      : alert.period;
+    return isTimeBucket(alert.bucket) ? titleForKey(alert.bucket, alert.period) : alert.period;
   }
 
   private load(): void {

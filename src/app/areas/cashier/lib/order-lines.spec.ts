@@ -62,7 +62,9 @@ describe('groupOrderLines', () => {
   it('resolves combo products, additions and clarifications', () => {
     const lines = groupOrderLines([
       detail({
-        selectedProducts: [{ id: 7, name: 'Ensalada', basePrice: { amount: '3000.00', currency: 'COP' } }],
+        selectedProducts: [
+          { id: 7, name: 'Ensalada', basePrice: { amount: '3000.00', currency: 'COP' } },
+        ],
         additionsResolved: [
           {
             id: 9,
@@ -83,7 +85,9 @@ describe('groupOrderLines', () => {
   it('falls back to the selected addition name when it is not resolved', () => {
     const lines = groupOrderLines([
       detail({
-        selectedAdditions: [{ id: 5, name: 'Tocineta', extraPrice: { amount: '1500.00', currency: 'COP' } }],
+        selectedAdditions: [
+          { id: 5, name: 'Tocineta', extraPrice: { amount: '1500.00', currency: 'COP' } },
+        ],
       }),
     ]);
 

@@ -2,14 +2,16 @@
   <div class="relative flex-1">
     <i
       class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-rms-ink-muted"
-      aria-hidden="true"></i>
+      aria-hidden="true"
+    ></i>
     <input
       type="text"
       class="rms-input rms-input--md w-full pl-10"
       [ngModel]="value()"
       (ngModelChange)="onInput($event)"
       [placeholder]="placeholder"
-      [attr.aria-label]="placeholder" />
+      [attr.aria-label]="placeholder"
+    />
   </div>
   @if (value()) {
     <app-rms-icon-button
@@ -17,6 +19,7 @@
       ariaLabel="Limpiar búsqueda"
       variant="secondary"
       size="sm"
-      (click)="clear()" />
+      (click)="clear()"
+    />
   }
 </div>

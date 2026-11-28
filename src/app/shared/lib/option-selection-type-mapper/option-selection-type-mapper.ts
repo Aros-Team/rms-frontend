@@ -1,4 +1,8 @@
-import { OptionSelectionType, ApiSelectionType, isApiSelectionType } from '@app/shared/models/dto/option-groups/option-selection-type';
+import {
+  OptionSelectionType,
+  ApiSelectionType,
+  isApiSelectionType,
+} from '@app/shared/models/dto/option-groups/option-selection-type';
 
 /**
  * Bidirectional mapper between frontend internal enum names

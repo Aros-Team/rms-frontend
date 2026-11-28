@@ -3,8 +3,8 @@
   (onShow)="onPopoverShow()"
   (onHide)="onPopoverHide()"
   [dismissable]="true"
-  [style]="{ minWidth: '320px', maxWidth: '400px' }">
-
+  [style]="{ minWidth: '320px', maxWidth: '400px' }"
+>
   <ng-template pTemplate="content">
     <div class="flex flex-col gap-3 p-2">
       <div class="flex items-center justify-between pb-2 border-b border-rms-border">
@@ -13,7 +13,8 @@
           type="button"
           class="p-1 rounded-lg text-rms-ink-secondary hover:bg-rms-subtle"
           (click)="close()"
-          aria-label="Cerrar">
+          aria-label="Cerrar"
+        >
           <i class="pi pi-times" aria-hidden="true"></i>
         </button>
       </div>
@@ -27,13 +28,15 @@
                 [label]="field.label"
                 [placeholder]="field.placeholder ?? ''"
                 [required]="!!field.required"
-                [(ngModel)]="formValues[field.name]" />
+                [(ngModel)]="formValues[field.name]"
+              />
             }
             @case ('number') {
               <app-rms-field
                 [label]="field.label"
                 [controlId]="'inline-create-' + field.name"
-                [required]="!!field.required">
+                [required]="!!field.required"
+              >
                 <p-inputNumber
                   [inputId]="'inline-create-' + field.name"
                   [ngModel]="formValues[field.name]"
@@ -42,14 +45,16 @@
                   [showButtons]="true"
                   [required]="!!field.required"
                   mode="decimal"
-                  class="w-full" />
+                  class="w-full"
+                />
               </app-rms-field>
             }
             @case ('select') {
               <app-rms-field
                 [label]="field.label"
                 [controlId]="'inline-create-' + field.name"
-                [required]="!!field.required">
+                [required]="!!field.required"
+              >
                 <p-select
                   [options]="field.options"
                   [(ngModel)]="formValues[field.name]"
@@ -58,7 +63,8 @@
                   [required]="!!field.required"
                   class="w-full"
                   optionLabel="label"
-                  optionValue="value" />
+                  optionValue="value"
+                />
               </app-rms-field>
             }
           }
@@ -66,13 +72,12 @@
       </div>
 
       <div class="flex justify-end gap-2 pt-2 border-t border-rms-border">
-        <app-rms-button
-          variant="secondary"
-          (click)="close()"
-          [disabled]="submitting()">{{ cancelLabel }}</app-rms-button>
-        <app-rms-button
-          (click)="onSubmit()"
-          [disabled]="submitting()">{{ submitLabel }}</app-rms-button>
+        <app-rms-button variant="secondary" (click)="close()" [disabled]="submitting()">{{
+          cancelLabel
+        }}</app-rms-button>
+        <app-rms-button (click)="onSubmit()" [disabled]="submitting()">{{
+          submitLabel
+        }}</app-rms-button>
       </div>
     </div>
   </ng-template>

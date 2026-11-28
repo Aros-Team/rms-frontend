@@ -44,8 +44,8 @@
       }
 
       <p class="text-rms-caption text-rms-ink-muted">
-        {{ groups().length }} grupos · {{ entryCount() }} entradas. Las entradas nuevas se crean
-        con un upsert por clave: si la clave ya existe, se actualiza.
+        {{ groups().length }} grupos · {{ entryCount() }} entradas. Las entradas nuevas se crean con
+        un upsert por clave: si la clave ya existe, se actualiza.
       </p>
 
       @if (groups().length === 0) {
@@ -89,7 +89,9 @@
             </div>
 
             @if (group.entries.length === 0) {
-              <p class="rounded-lg border border-dashed border-rms-border px-4 py-4 text-rms-body text-rms-ink-muted">
+              <p
+                class="rounded-lg border border-dashed border-rms-border px-4 py-4 text-rms-body text-rms-ink-muted"
+              >
                 Este grupo no tiene entradas. Puedes eliminarlo o añadir la primera.
               </p>
             } @else {
@@ -102,22 +104,40 @@
                 <table class="w-full text-rms-body" [attr.aria-label]="'Entradas de ' + group.name">
                   <thead class="bg-rms-subtle">
                     <tr>
-                      <th scope="col" class="px-3 py-2 text-left text-rms-label text-rms-ink-secondary">
+                      <th
+                        scope="col"
+                        class="px-3 py-2 text-left text-rms-label text-rms-ink-secondary"
+                      >
                         Clave
                       </th>
-                      <th scope="col" class="px-3 py-2 text-left text-rms-label text-rms-ink-secondary">
+                      <th
+                        scope="col"
+                        class="px-3 py-2 text-left text-rms-label text-rms-ink-secondary"
+                      >
                         Valor
                       </th>
-                      <th scope="col" class="px-3 py-2 text-left text-rms-label text-rms-ink-secondary">
+                      <th
+                        scope="col"
+                        class="px-3 py-2 text-left text-rms-label text-rms-ink-secondary"
+                      >
                         Descripción
                       </th>
-                      <th scope="col" class="px-3 py-2 text-left text-rms-label text-rms-ink-secondary">
+                      <th
+                        scope="col"
+                        class="px-3 py-2 text-left text-rms-label text-rms-ink-secondary"
+                      >
                         Orden
                       </th>
-                      <th scope="col" class="px-3 py-2 text-left text-rms-label text-rms-ink-secondary">
+                      <th
+                        scope="col"
+                        class="px-3 py-2 text-left text-rms-label text-rms-ink-secondary"
+                      >
                         Actualizado
                       </th>
-                      <th scope="col" class="px-3 py-2 text-right text-rms-label text-rms-ink-secondary">
+                      <th
+                        scope="col"
+                        class="px-3 py-2 text-right text-rms-label text-rms-ink-secondary"
+                      >
                         Acciones
                       </th>
                     </tr>
@@ -326,8 +346,7 @@
 >
   @if (confirmDeleteGroup(); as group) {
     <p class="text-rms-body text-rms-ink">
-      Se eliminará el grupo <strong>{{ group.name }}</strong>. Solo es posible si no tiene
-      entradas.
+      Se eliminará el grupo <strong>{{ group.name }}</strong>. Solo es posible si no tiene entradas.
     </p>
   }
 

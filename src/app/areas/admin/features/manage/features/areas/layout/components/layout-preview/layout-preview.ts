@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  Input,
-  computed,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, computed, signal } from '@angular/core';
 
 import type { AreaResponse } from '@app/shared/models/dto/areas/area';
 import type { FloorLayout as FloorLayoutDto } from '@app/shared/models/dto/floor-layout/floor-layout';

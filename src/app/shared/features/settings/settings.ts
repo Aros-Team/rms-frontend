@@ -5,7 +5,11 @@ import { ChangePassword } from '@areas/auth/features/password-recovery/change-pa
 import { Schedules } from '@areas/admin/features/team/schedules/schedules';
 import { Auth } from '@app/core/services/auth/auth';
 import { Worker } from '@app/core/services/workers/worker';
-import { Accessibility, FontSize, ContrastMode } from '@app/core/services/accessibility/accessibility';
+import {
+  Accessibility,
+  FontSize,
+  ContrastMode,
+} from '@app/core/services/accessibility/accessibility';
 import { Theme, ThemeName } from '@app/core/services/theme/theme';
 import { SalaryHistoryEntry } from '@app/shared/models/dto/workers/salary-history-entry';
 import { tryToAmount, type MoneyLike } from '@app/shared/models/dto/common/money';
@@ -116,8 +120,12 @@ export class Settings implements OnInit {
 
   loadSalaryHistory(userId: number): void {
     this.workerService.getSalaryHistory(userId).subscribe({
-      next: (data) => { this.salaryHistory.set(data); },
-      error: () => { this.salaryHistory.set([]); },
+      next: (data) => {
+        this.salaryHistory.set(data);
+      },
+      error: () => {
+        this.salaryHistory.set([]);
+      },
     });
   }
 

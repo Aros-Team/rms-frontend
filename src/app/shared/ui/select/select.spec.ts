@@ -141,6 +141,8 @@ describe('RmsSelect', () => {
     hostFixture.detectChanges();
 
     expect(hostFixture.componentInstance.form.controls.area.value).toBeNull();
-    expect((hostFixture.nativeElement as HTMLElement).querySelector('app-rms-select')).not.toBeNull();
+    expect(
+      (hostFixture.nativeElement as HTMLElement).querySelector('app-rms-select'),
+    ).not.toBeNull();
   });
 });

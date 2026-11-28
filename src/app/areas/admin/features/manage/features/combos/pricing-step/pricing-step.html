@@ -1,30 +1,21 @@
 <div class="flex flex-col gap-5 max-w-lg">
   <!-- Section 1: Cost Breakdown -->
   <div class="flex flex-col gap-3">
-    <h2 class="rms-h2">
-      Desglose de costos
-    </h2>
+    <h2 class="rms-h2">Desglose de costos</h2>
 
     @if (groupCosts().length === 0) {
-      <p class="text-sm text-muted">
-        No hay grupos seleccionados para calcular costos.
-      </p>
+      <p class="text-sm text-muted">No hay grupos seleccionados para calcular costos.</p>
     }
 
     @for (group of groupCosts(); track group.categoryId) {
       <p-card [header]="group.categoryName">
         <div class="flex flex-col gap-2">
           @if (group.products.length === 0) {
-            <p class="text-sm text-muted italic">
-              Sin productos seleccionados
-            </p>
+            <p class="text-sm text-muted italic">Sin productos seleccionados</p>
           }
 
           @for (product of group.products; track product.id) {
-            <div
-              class="flex items-center justify-between text-sm"
-              data-testid="cost-product-row"
-            >
+            <div class="flex items-center justify-between text-sm" data-testid="cost-product-row">
               <span class="text-rms-ink-secondary">
                 {{ product.name }}
               </span>
@@ -38,16 +29,14 @@
 
           <div class="flex flex-col gap-1 text-sm">
             <span class="text-muted">
-              Promedio: {{ group.avgPrice | money }}
-              &times; {{ group.maxSelections }} {{ group.maxSelections === 1 ? 'selección' : 'selecciones' }}
+              Promedio: {{ group.avgPrice | money }} &times; {{ group.maxSelections }}
+              {{ group.maxSelections === 1 ? 'selección' : 'selecciones' }}
             </span>
             <div
               class="flex items-center justify-between font-semibold"
               data-testid="group-subtotal"
             >
-              <span class="text-muted">
-                Subtotal
-              </span>
+              <span class="text-muted"> Subtotal </span>
               <span class="text-rms-ink">
                 {{ group.subtotal | money }}
               </span>
@@ -66,7 +55,8 @@
           Costo total: {{ totalCost() | money }}
         </span>
         <span class="text-sm text-muted">
-          ({{ customerSelectionCount() }} {{ customerSelectionCount() === 1 ? 'selección' : 'selecciones' }})
+          ({{ customerSelectionCount() }}
+          {{ customerSelectionCount() === 1 ? 'selección' : 'selecciones' }})
         </span>
       </div>
     }
@@ -75,29 +65,19 @@
   <!-- Section 2: Suggested Retail Price (10% off total cost) -->
   @if (groupCosts().length > 0) {
     <div class="flex flex-col gap-3" data-testid="suggested-price-section">
-      <h2 class="rms-h2">
-        Precio de venta sugerido
-      </h2>
+      <h2 class="rms-h2">Precio de venta sugerido</h2>
 
-      <div
-        class="flex flex-col gap-2 border border-rms-border rounded-xl p-3 bg-rms-subtle"
-      >
+      <div class="flex flex-col gap-2 border border-rms-border rounded-xl p-3 bg-rms-subtle">
         <div class="flex items-center justify-between text-sm">
-          <span class="text-muted">
-            Costo total
-          </span>
+          <span class="text-muted"> Costo total </span>
           <span class="font-medium text-rms-ink">
             {{ totalCost() | money }}
           </span>
         </div>
 
         <div class="flex items-center justify-between text-sm">
-          <span class="text-muted">
-            Descuento promocional (10%)
-          </span>
-          <span class="font-medium text-rms-success">
-            -{{ totalCost() * 0.1 | money }}
-          </span>
+          <span class="text-muted"> Descuento promocional (10%) </span>
+          <span class="font-medium text-rms-success"> -{{ totalCost() * 0.1 | money }} </span>
         </div>
 
         <p-divider />
@@ -106,10 +86,7 @@
           <span class="text-sm font-semibold text-rms-ink-secondary">
             Precio de venta sugerido
           </span>
-          <span
-            class="text-lg font-bold text-accent"
-            data-testid="suggested-price-value"
-          >
+          <span class="text-lg font-bold text-accent" data-testid="suggested-price-value">
             {{ suggestedRetailPrice() | money }}
           </span>
         </div>
@@ -117,22 +94,19 @@
         <app-rms-button
           iconStart="pi pi-check"
           (click)="applySuggestedPrice()"
-          data-testid="apply-suggested-price-btn">Usar como precio final</app-rms-button>
+          data-testid="apply-suggested-price-btn"
+          >Usar como precio final</app-rms-button
+        >
       </div>
     </div>
   }
 
   <!-- Section 3: Final Price -->
   <div class="flex flex-col gap-3">
-    <h2 class="rms-h2">
-      Precio final
-    </h2>
+    <h2 class="rms-h2">Precio final</h2>
 
     <div class="flex flex-col gap-1">
-      <label
-        for="finalPrice"
-        class="text-sm font-medium text-rms-ink-secondary"
-      >
+      <label for="finalPrice" class="text-sm font-medium text-rms-ink-secondary">
         Precio final
       </label>
       <p-inputNumber
@@ -150,12 +124,7 @@
 
   <!-- Active toggle -->
   <div class="flex flex-col gap-1">
-    <span
-      class="text-sm font-medium text-rms-ink-secondary"
-      id="active-label"
-    >
-      Activo
-    </span>
+    <span class="text-sm font-medium text-rms-ink-secondary" id="active-label"> Activo </span>
     <p-selectbutton
       [ngModel]="wizardData().active"
       (ngModelChange)="onActiveChange($event)"

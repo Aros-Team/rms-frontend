@@ -36,29 +36,37 @@ export class ProductCache implements OnDestroy {
   private productListParams: { page: number; size: number; search?: string } = { page: 0, size: 6 };
 
   readonly products = new ResourceCache<PaginatedProductsResponse>(
-    () => this.productService.getProductsPaginated(this.productListParams.page, this.productListParams.size, true, undefined, this.productListParams.search),
-    { ttlMs: 10 * 60 * 1000, staleWhileRevalidate: true }
+    () =>
+      this.productService.getProductsPaginated(
+        this.productListParams.page,
+        this.productListParams.size,
+        true,
+        undefined,
+        this.productListParams.search,
+      ),
+    { ttlMs: 10 * 60 * 1000, staleWhileRevalidate: true },
   );
 
   // Datos de referencia - solo carga bajo demanda, TTL largo (30 min)
   readonly referenceData = new ResourceCache<ProductReferenceData>(
-    () => forkJoin({
-      areas: this.areaService.getAreas(),
-      categories: this.categoryService.getCategories(),
-      variants: this.supplyService.getSupplyVariants(),
-      productOptions: this.productOptionService.getOptions()
-    }).pipe(
-      map(({ areas, categories, variants, productOptions }) => ({
-        areas,
-        categories: categories.filter(c => c.enabled),
-        variants: variants.map(v => ({
-          ...v,
-          displayName: `${v.supplyName} — ${String(v.quantity)} ${v.unitAbbreviation}`
+    () =>
+      forkJoin({
+        areas: this.areaService.getAreas(),
+        categories: this.categoryService.getCategories(),
+        variants: this.supplyService.getSupplyVariants(),
+        productOptions: this.productOptionService.getOptions(),
+      }).pipe(
+        map(({ areas, categories, variants, productOptions }) => ({
+          areas,
+          categories: categories.filter((c) => c.enabled),
+          variants: variants.map((v) => ({
+            ...v,
+            displayName: `${v.supplyName} — ${String(v.quantity)} ${v.unitAbbreviation}`,
+          })),
+          productOptions,
         })),
-        productOptions
-      }))
-    ),
-    { ttlMs: 30 * 60 * 1000, staleWhileRevalidate: true }
+      ),
+    { ttlMs: 30 * 60 * 1000, staleWhileRevalidate: true },
   );
 
   // Detalle de producto - caché por ID, TTL medio (5 min)
@@ -75,10 +83,10 @@ export class ProductCache implements OnDestroy {
   getProductDetail(id: number): ResourceCache<ProductResponse> {
     let cache = this.detailCaches.get(id);
     if (!cache) {
-      cache = new ResourceCache<ProductResponse>(
-        () => this.productService.findProduct(id),
-        { ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true }
-      );
+      cache = new ResourceCache<ProductResponse>(() => this.productService.findProduct(id), {
+        ttlMs: 5 * 60 * 1000,
+        staleWhileRevalidate: true,
+      });
       this.detailCaches.set(id, cache);
     }
     return cache;

@@ -29,7 +29,9 @@ import {
 
 const PRICE = { amount: '10000.00', currency: 'COP' };
 
-function product(overrides: Partial<ProductListResponse> & Pick<ProductListResponse, 'id' | 'name'>): ProductListResponse {
+function product(
+  overrides: Partial<ProductListResponse> & Pick<ProductListResponse, 'id' | 'name'>,
+): ProductListResponse {
   return {
     basePrice: PRICE,
     active: true,
@@ -57,8 +59,22 @@ function order(id: number, details: OrderDetailItem[]): OrderResponse {
 }
 
 const PRODUCTS: ProductListResponse[] = [
-  product({ id: 1, name: 'Hamburguesa', areaId: 1, areaName: 'Cocina', categoryId: 1, categoryName: 'Hamburguesas' }),
-  product({ id: 2, name: 'Limonada', areaId: 3, areaName: 'Bar', categoryId: 6, categoryName: 'Bebidas' }),
+  product({
+    id: 1,
+    name: 'Hamburguesa',
+    areaId: 1,
+    areaName: 'Cocina',
+    categoryId: 1,
+    categoryName: 'Hamburguesas',
+  }),
+  product({
+    id: 2,
+    name: 'Limonada',
+    areaId: 3,
+    areaName: 'Bar',
+    categoryId: 6,
+    categoryName: 'Bebidas',
+  }),
   product({ id: 3, name: 'Suelto', areaId: 0, categoryId: 2, categoryName: 'Platos' }),
   product({ id: 4, name: 'Sin datos', areaId: 0, categoryId: 0, categoryName: '' }),
 ];
@@ -72,7 +88,11 @@ describe('kitchen stations', () => {
   });
 
   it('falls back to the category and finally to "Sin estación"', () => {
-    expect(stationFromProduct(PRODUCTS[2])).toEqual({ key: 'category:2', name: 'Platos', rank: 1002 });
+    expect(stationFromProduct(PRODUCTS[2])).toEqual({
+      key: 'category:2',
+      name: 'Platos',
+      rank: 1002,
+    });
     expect(stationFromProduct(PRODUCTS[3])).toBe(UNKNOWN_STATION);
     expect(
       stationFromProduct({
@@ -128,7 +148,9 @@ describe('kitchen stations', () => {
       { station: { key: 'area:3', name: 'Bar', rank: 3 } },
     ];
 
-    expect(groupLinesByStation(lines).map((group) => [group.station.name, group.items.length])).toEqual([
+    expect(
+      groupLinesByStation(lines).map((group) => [group.station.name, group.items.length]),
+    ).toEqual([
       ['Cocina', 1],
       ['Bar', 2],
     ]);
@@ -153,7 +175,15 @@ describe('kitchen stations', () => {
       map,
     );
 
-    expect(counts.map((station) => [station.name, station.queue, station.preparing, station.ready, station.total])).toEqual([
+    expect(
+      counts.map((station) => [
+        station.name,
+        station.queue,
+        station.preparing,
+        station.ready,
+        station.total,
+      ]),
+    ).toEqual([
       ['Cocina', 1, 1, 0, 2],
       ['Bar', 1, 0, 0, 1],
       ['Platos', 0, 0, 0, 0],

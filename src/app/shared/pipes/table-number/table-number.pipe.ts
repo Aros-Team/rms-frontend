@@ -5,7 +5,7 @@ import { TableResponse } from '@app/shared/models/dto/tables/table-response';
 export class TableNumber implements PipeTransform {
   transform(tables: TableResponse[], tableId: number | null): string {
     if (!tableId) return '';
-    const t = tables.find(t => t.id === tableId);
+    const t = tables.find((t) => t.id === tableId);
     return t ? String(t.tableNumber) : '';
   }
 }

@@ -36,23 +36,23 @@ export class MasterData {
         .get<PageEnvelope<TableResponse>>('v1/tables')
         .pipe(map((res) => unwrapPage<TableResponse>(res).items)),
     }).pipe(
-      tap(data => {
+      tap((data) => {
         this._data$.next({
           products: Array.isArray(data.products) ? data.products : [],
           productOptions: Array.isArray(data.productOptions) ? data.productOptions : [],
           tables: Array.isArray(data.tables) ? data.tables : [],
         });
-      })
+      }),
     );
   }
 
   reloadTables(): Observable<TableResponse[]> {
     return this.http.get<PageEnvelope<TableResponse>>('v1/tables').pipe(
       map((res) => unwrapPage<TableResponse>(res).items),
-      tap(tables => {
+      tap((tables) => {
         const current = this._data$.value;
         if (current) this._data$.next({ ...current, tables });
-      })
+      }),
     );
   }
 
@@ -63,7 +63,7 @@ export class MasterData {
   applyTableUpdate(updated: TableResponse): void {
     const current = this._data$.value;
     if (!current) return;
-    const tables = current.tables.map(t => t.id === updated.id ? { ...t, ...updated } : t);
+    const tables = current.tables.map((t) => (t.id === updated.id ? { ...t, ...updated } : t));
     this._data$.next({ ...current, tables });
   }
 
@@ -86,7 +86,7 @@ export class MasterData {
 
   getAvailableTables(): TableResponse[] {
     const tables = this._data$.value?.tables;
-    return Array.isArray(tables) ? tables.filter(t => t.status === 'AVAILABLE') : [];
+    return Array.isArray(tables) ? tables.filter((t) => t.status === 'AVAILABLE') : [];
   }
 
   getAllTables(): TableResponse[] {
@@ -96,7 +96,7 @@ export class MasterData {
 
   getActiveProducts(): ProductListResponse[] {
     const products = this._data$.value?.products;
-    return Array.isArray(products) ? products.filter(p => p.active) : [];
+    return Array.isArray(products) ? products.filter((p) => p.active) : [];
   }
 
   getProductsByCategory(): Record<string, ProductListResponse[]> {

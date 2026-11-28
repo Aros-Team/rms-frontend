@@ -3,8 +3,8 @@ import { ApiSelectionType } from '@app/shared/models/dto/option-groups/option-se
 export interface OptionGroupRequest {
   name: string;
   description?: string;
-  productIds: number[];   // required by API (minItems: 1)
-  required?: boolean;     // optional — whether selection from the group is mandatory
+  productIds: number[]; // required by API (minItems: 1)
+  required?: boolean; // optional — whether selection from the group is mandatory
   selectionType?: ApiSelectionType | null;
 }
 

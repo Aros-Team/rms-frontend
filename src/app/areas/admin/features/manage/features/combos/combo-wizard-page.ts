@@ -52,8 +52,12 @@ export class ComboWizardPage {
   save(): void {
     this.saving.set(true);
     this.submission.submit().subscribe({
-      next: () => { this.saving.set(false); },
-      error: () => { this.saving.set(false); },
+      next: () => {
+        this.saving.set(false);
+      },
+      error: () => {
+        this.saving.set(false);
+      },
     });
   }
 }

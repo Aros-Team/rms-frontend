@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  forwardRef,
-  Input,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, Input, signal } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { SelectModule } from 'primeng/select';
 import type { SelectPassThrough } from 'primeng/types/select';

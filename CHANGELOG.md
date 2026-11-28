@@ -247,7 +247,6 @@ initial graph of 801.44 kB raw / 190.21 kB transfer, still under the 810 kB gate
 - waiter dock UX, tab bar, header cleanup, and product list rename
 - multiple UI/UX bugs across auth, inventory, and user management
 
-
 ## [v2.0.0](https://github.com/Aros-Team/rms-frontend/releases/tag/v2.0.0)
 
 ### Features
@@ -284,7 +283,7 @@ initial graph of 801.44 kB raw / 190.21 kB transfer, still under the 810 kB gate
 
 ### Features
 
-- implement PWA support and  cookies for sensitive tokens
+- implement PWA support and cookies for sensitive tokens
 
 ## [v1.0.0](https://github.com/Aros-Team/rms-frontend/releases/tag/v1.0.0)
 
@@ -327,11 +326,15 @@ initial graph of 801.44 kB raw / 190.21 kB transfer, still under the 810 kB gate
 - add p-confirmDialog for delete user confirmation
 
 ## [v0.3.3]
+
 ### Features
+
 - **client**: initial release
 
 ### Bug Fixes
+
 - (none)
 
 ### Miscellaneous
+
 - (none)

@@ -39,7 +39,10 @@ function makeDetail(overrides: Partial<OrderDetailItem> = {}): OrderDetailItem {
   };
 }
 
-function makeOrder(details: OrderDetailItem[], total?: OrderDetailItem['unitPrice']): OrderResponse {
+function makeOrder(
+  details: OrderDetailItem[],
+  total?: OrderDetailItem['unitPrice'],
+): OrderResponse {
   return {
     id: 1,
     date: '2026-07-15T12:00:00',
@@ -52,10 +55,10 @@ function makeOrder(details: OrderDetailItem[], total?: OrderDetailItem['unitPric
 
 describe('calculateTotalPrice', () => {
   it('prefers the server-computed total', () => {
-    const order = makeOrder(
-      [makeDetail({ unitPrice: { amount: '15000.00', currency: 'COP' } })],
-      { amount: '17500.00', currency: 'COP' },
-    );
+    const order = makeOrder([makeDetail({ unitPrice: { amount: '15000.00', currency: 'COP' } })], {
+      amount: '17500.00',
+      currency: 'COP',
+    });
 
     expect(calculateTotalPrice(order)).toBe(17500);
   });
@@ -109,9 +112,9 @@ describe('calculateTotalPrice', () => {
 
 describe('calculateLineTotal', () => {
   it('normalizes a MoneyDto unit price', () => {
-    expect(calculateLineTotal(makeDetail({ unitPrice: { amount: '15000.00', currency: 'COP' } }))).toBe(
-      15000,
-    );
+    expect(
+      calculateLineTotal(makeDetail({ unitPrice: { amount: '15000.00', currency: 'COP' } })),
+    ).toBe(15000);
   });
 
   it('ignores extraCharge so the surcharge is not counted twice', () => {

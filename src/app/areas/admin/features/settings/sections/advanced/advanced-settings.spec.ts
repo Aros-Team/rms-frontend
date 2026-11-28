@@ -95,9 +95,13 @@ describe('AdvancedSettingsSection', () => {
     api = {
       getConfigGroups: vi.fn(() => of(GROUPS.map((group) => ({ ...group })))),
       createGroup: vi.fn((body: unknown) => of({ id: 3, entries: [], ...(body as object) })),
-      updateGroup: vi.fn((id: number, body: unknown) => of({ id, entries: [], ...(body as object) })),
+      updateGroup: vi.fn((id: number, body: unknown) =>
+        of({ id, entries: [], ...(body as object) }),
+      ),
       deleteGroup: vi.fn(() => of(null)),
-      updateEntry: vi.fn((key: string, patch: unknown) => of({ ...ENTRY, key, ...(patch as object) })),
+      updateEntry: vi.fn((key: string, patch: unknown) =>
+        of({ ...ENTRY, key, ...(patch as object) }),
+      ),
       deleteEntry: vi.fn(() => of(null)),
       upsertEntries: vi.fn((entries: unknown[]) => of(entries)),
     };
@@ -143,9 +147,7 @@ describe('AdvancedSettingsSection', () => {
       sortOrder: 4,
     });
     expect(api.getConfigGroups).toHaveBeenCalledTimes(2);
-    expect(messages.add).toHaveBeenCalledWith(
-      expect.objectContaining({ summary: 'Grupo creado' }),
-    );
+    expect(messages.add).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Grupo creado' }));
   });
 
   it('renames an existing group', () => {

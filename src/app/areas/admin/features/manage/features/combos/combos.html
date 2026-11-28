@@ -1,7 +1,5 @@
 <div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0">
-  <app-rms-page-header
-    [compact]="true" title="Combinaciones especiales">
-  </app-rms-page-header>
+  <app-rms-page-header [compact]="true" title="Combinaciones especiales"> </app-rms-page-header>
 
   <!-- Content container -->
   <div class="flex-1 min-h-0 border border-rms-border rounded-2xl bg-rms-surface overflow-hidden">
@@ -11,7 +9,9 @@
       <p-table [value]="combos()">
         <ng-template pTemplate="caption">
           <div class="flex justify-end">
-            <app-rms-button iconStart="pi pi-plus" (click)="navigateToNew()">Nuevo combo</app-rms-button>
+            <app-rms-button iconStart="pi pi-plus" (click)="navigateToNew()"
+              >Nuevo combo</app-rms-button
+            >
           </div>
         </ng-template>
         <ng-template pTemplate="header">
@@ -31,7 +31,8 @@
             <td>
               <app-rms-status-pill
                 [label]="combo.active ? 'Activo' : 'Inactivo'"
-                [status]="combo.active ? 'success' : 'neutral'" />
+                [status]="combo.active ? 'success' : 'neutral'"
+              />
             </td>
             <td>
               <div class="flex gap-1">
@@ -39,17 +40,20 @@
                   icon="pi pi-pencil"
                   [ariaLabel]="'Editar combo ' + combo.name"
                   tooltip="Editar"
-                  (click)="navigateToEdit(combo.productId)" />
+                  (click)="navigateToEdit(combo.productId)"
+                />
                 <app-rms-icon-button
                   icon="pi pi-history"
                   [ariaLabel]="'Ver historial de ' + combo.name"
                   tooltip="Historial"
-                  (click)="navigateToHistory(combo.productId)" />
+                  (click)="navigateToHistory(combo.productId)"
+                />
                 <app-rms-icon-button
                   icon="pi pi-calculator"
                   [ariaLabel]="'Sugerir precio para ' + combo.name"
                   tooltip="Precio sugerido"
-                  (click)="suggestPrice()" />
+                  (click)="suggestPrice()"
+                />
               </div>
             </td>
           </tr>
@@ -63,7 +67,8 @@
                 message="Crea un combo para agrupar productos con un precio especial."
                 actionLabel="Nuevo combo"
                 actionIcon="pi pi-plus"
-                (action)="navigateToNew()" />
+                (action)="navigateToNew()"
+              />
             </td>
           </tr>
         </ng-template>

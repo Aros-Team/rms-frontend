@@ -19,11 +19,17 @@ import { OptionGroup as OptionGroupService } from '@app/core/services/option-gro
 import { ProductCache } from '../product-cache';
 
 import type { ProductOption } from '@app/shared/models/dto/products/product-option';
-import type { OptionGroupRequest, OptionGroupResponse } from '@app/shared/models/dto/option-groups/option-group';
+import type {
+  OptionGroupRequest,
+  OptionGroupResponse,
+} from '@app/shared/models/dto/option-groups/option-group';
 import type { ApiSelectionType } from '@app/shared/models/dto/option-groups/option-selection-type';
 import { OptionSelectionType } from '@app/shared/models/dto/option-groups/option-selection-type';
 import { toAmount } from '@app/shared/models/dto/common/money';
-import { fromApi, toApi } from '@app/shared/lib/option-selection-type-mapper/option-selection-type-mapper';
+import {
+  fromApi,
+  toApi,
+} from '@app/shared/lib/option-selection-type-mapper/option-selection-type-mapper';
 import { getSelectionTypeConfig } from '@app/shared/lib/option-selection-type-helper/option-selection-type-helper';
 import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
 
@@ -138,9 +144,7 @@ export class OptionGroupsManager implements OnInit {
     () => this.cache.referenceData.data()?.variants ?? [],
   );
   readonly variantsLoading = computed(() => this.cache.referenceData.isLoading());
-  readonly knownVariantIds = computed(
-    () => new Set(this.variants().map((variant) => variant.id)),
-  );
+  readonly knownVariantIds = computed(() => new Set(this.variants().map((variant) => variant.id)));
 
   // ── Group dialog ─────────────────────────────────────────────────
   readonly groupDialogOpen = signal(false);
@@ -207,7 +211,11 @@ export class OptionGroupsManager implements OnInit {
       .pipe(
         switchMap((groups) => {
           if (groups.length === 0) {
-            return of({ groups, details: [] as ProductOption[][], productOptions: [] as ProductOption[] });
+            return of({
+              groups,
+              details: [] as ProductOption[][],
+              productOptions: [] as ProductOption[],
+            });
           }
           return forkJoin({
             groups: of(groups),
@@ -423,7 +431,11 @@ export class OptionGroupsManager implements OnInit {
       editingId === null
         ? this.productOptionService
             .createOption(request)
-            .pipe(switchMap((created) => this.productService.associateOption(this.productId, created.id, extraPrice)))
+            .pipe(
+              switchMap((created) =>
+                this.productService.associateOption(this.productId, created.id, extraPrice),
+              ),
+            )
         : this.productOptionService
             .updateOption(editingId, request)
             .pipe(
@@ -449,17 +461,15 @@ export class OptionGroupsManager implements OnInit {
 
   associateExisting(group: ManagerGroup, option: ManagerOption): void {
     if (option.associated) return;
-    this.productService
-      .associateOption(this.productId, option.id, option.extraPrice)
-      .subscribe({
-        next: () => {
-          this.reload();
-          this.changed.emit();
-        },
-        error: (err: unknown) => {
-          this.error.set(this.message(err, 'No se pudo asociar la opción al producto'));
-        },
-      });
+    this.productService.associateOption(this.productId, option.id, option.extraPrice).subscribe({
+      next: () => {
+        this.reload();
+        this.changed.emit();
+      },
+      error: (err: unknown) => {
+        this.error.set(this.message(err, 'No se pudo asociar la opción al producto'));
+      },
+    });
   }
 
   detachOption(option: ManagerOption): void {

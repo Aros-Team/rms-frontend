@@ -19,10 +19,7 @@ import { routes } from './app.routes';
 import { AreaGuard } from '@core/guards/area/area';
 import type { WorkerRouteData } from '@app/core/config/navigation/role-navigation';
 
-function flatten(
-  routeList: Route[],
-  parents: string[] = [],
-): { path: string; route: Route }[] {
+function flatten(routeList: Route[], parents: string[] = []): { path: string; route: Route }[] {
   return routeList.flatMap((route) => {
     const path = [...parents, route.path ?? ''].filter(Boolean).join('/');
 
@@ -178,7 +175,14 @@ describe('app routes', () => {
     const analyticsRoute = all.find(({ path }) => path === 'admin/analytics')?.route;
     const analytics = (analyticsRoute?.children ?? []).map((child) => child.path);
 
-    expect(analytics).toEqual(['', 'prime-cost', 'menu-engineering', 'operations', 'cohort', 'alerts']);
+    expect(analytics).toEqual([
+      '',
+      'prime-cost',
+      'menu-engineering',
+      'operations',
+      'cohort',
+      'alerts',
+    ]);
   });
 
   it('should not keep the legacy worker redirects that pointed nowhere', () => {

@@ -9,11 +9,11 @@ export interface AccessibilitySettings {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class Accessibility {
   private readonly STORAGE_KEY = 'accessibility_settings';
-  
+
   readonly fontSize = signal<FontSize>('normal');
   readonly contrastMode = signal<ContrastMode>('normal');
 
@@ -26,19 +26,19 @@ export class Accessibility {
    * `normal` (1) leaves the root font size untouched.
    */
   private readonly fontSizeMap: Record<FontSize, number> = {
-    'small': 0.875,
-    'normal': 1,
-    'large': 1.125,
-    'extra-large': 1.25
+    small: 0.875,
+    normal: 1,
+    large: 1.125,
+    'extra-large': 1.25,
   };
 
   constructor() {
     this.loadSettings();
-    
+
     effect(() => {
       this.applyFontSize(this.fontSize());
     });
-    
+
     effect(() => {
       this.applyContrast(this.contrastMode());
     });
@@ -85,7 +85,12 @@ export class Accessibility {
           const settings = parsed as Record<string, unknown>;
           const fontSize = settings['fontSize'];
           const contrastMode = settings['contrastMode'];
-          if (fontSize === 'small' || fontSize === 'normal' || fontSize === 'large' || fontSize === 'extra-large') {
+          if (
+            fontSize === 'small' ||
+            fontSize === 'normal' ||
+            fontSize === 'large' ||
+            fontSize === 'extra-large'
+          ) {
             this.fontSize.set(fontSize);
           }
           if (contrastMode === 'normal' || contrastMode === 'high') {
@@ -105,13 +110,11 @@ export class Accessibility {
     this.contrastMode.set(this.prefersMoreContrast() ? 'high' : 'normal');
 
     if (typeof window.matchMedia === 'function') {
-      window
-        .matchMedia('(prefers-contrast: more)')
-        .addEventListener('change', (event) => {
-          if (!localStorage.getItem(this.STORAGE_KEY)) {
-            this.contrastMode.set(event.matches ? 'high' : 'normal');
-          }
-        });
+      window.matchMedia('(prefers-contrast: more)').addEventListener('change', (event) => {
+        if (!localStorage.getItem(this.STORAGE_KEY)) {
+          this.contrastMode.set(event.matches ? 'high' : 'normal');
+        }
+      });
     }
   }
 
@@ -125,7 +128,7 @@ export class Accessibility {
   private saveSettings(): void {
     const settings: AccessibilitySettings = {
       fontSize: this.fontSize(),
-      contrastMode: this.contrastMode()
+      contrastMode: this.contrastMode(),
     };
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(settings));
   }
@@ -133,7 +136,7 @@ export class Accessibility {
   getSettings(): AccessibilitySettings {
     return {
       fontSize: this.fontSize(),
-      contrastMode: this.contrastMode()
+      contrastMode: this.contrastMode(),
     };
   }
 }

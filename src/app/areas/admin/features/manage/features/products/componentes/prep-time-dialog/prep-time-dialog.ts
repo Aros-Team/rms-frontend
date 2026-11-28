@@ -1,4 +1,15 @@
-import { Component, inject, signal, computed, effect, Output, EventEmitter, Input, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  computed,
+  effect,
+  Output,
+  EventEmitter,
+  Input,
+  ChangeDetectionStrategy,
+  DestroyRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { AbstractControl, FormBuilder, FormControl, Validators } from '@angular/forms';
@@ -28,7 +39,11 @@ export interface PrepTimeEstimate {
   estimatedPrepMinutes: number;
 }
 
-export function estimatePrepMinutes(calmMinutes: number, peakMinutes: number, interruptionMinutes: number): number {
+export function estimatePrepMinutes(
+  calmMinutes: number,
+  peakMinutes: number,
+  interruptionMinutes: number,
+): number {
   return Math.ceil((calmMinutes + peakMinutes + interruptionMinutes) / 3);
 }
 
@@ -58,14 +73,27 @@ export class PrepTimeDialog {
   private destroyRef = inject(DestroyRef);
 
   prepTimeForm = this.fb.group<PrepTimeFormControls>({
-    calmMinutes: this.fb.control<number | null>(null, [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.min(0)(control)]),
-    peakMinutes: this.fb.control<number | null>(null, [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.min(0)(control)]),
-    interruptionMinutes: this.fb.control<number | null>(null, [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.min(0)(control)]),
+    calmMinutes: this.fb.control<number | null>(null, [
+      (control: AbstractControl) => Validators.required(control),
+      (control: AbstractControl) => Validators.min(0)(control),
+    ]),
+    peakMinutes: this.fb.control<number | null>(null, [
+      (control: AbstractControl) => Validators.required(control),
+      (control: AbstractControl) => Validators.min(0)(control),
+    ]),
+    interruptionMinutes: this.fb.control<number | null>(null, [
+      (control: AbstractControl) => Validators.required(control),
+      (control: AbstractControl) => Validators.min(0)(control),
+    ]),
   });
 
   // ReactiveForms emits through valueChanges; mirror it into a signal so the
   // computed re-runs as the admin types instead of caching the first value.
-  private readonly formValue = signal<PrepTimeFormValue>({ calmMinutes: null, peakMinutes: null, interruptionMinutes: null });
+  private readonly formValue = signal<PrepTimeFormValue>({
+    calmMinutes: null,
+    peakMinutes: null,
+    interruptionMinutes: null,
+  });
 
   readonly estimatedPrepMinutes = computed(() => {
     const { calmMinutes, peakMinutes, interruptionMinutes } = this.formValue();

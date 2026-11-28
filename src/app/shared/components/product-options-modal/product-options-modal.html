@@ -44,7 +44,8 @@
         class="shrink-0 w-11 h-11 flex items-center justify-center rounded-full transition-colors bg-rms-subtle text-rms-ink-secondary hover:bg-rms-sunken"
         (click)="onDismiss()"
         aria-label="Cerrar"
-        type="button">
+        type="button"
+      >
         <i class="pi pi-times text-xs" aria-hidden="true"></i>
       </button>
     </div>
@@ -52,7 +53,6 @@
 
   <!-- ── Body ── -->
   <div class="flex flex-col gap-5">
-
     <!-- Loading state -->
     @if (loading) {
       <div class="flex flex-col items-center justify-center py-12 gap-3">
@@ -106,9 +106,13 @@
 
     <!-- Extra charge summary -->
     @if (!loading && extraCharge() > 0) {
-      <div class="flex items-center justify-between px-4 py-2 rounded-xl bg-rms-subtle border border-rms-border">
+      <div
+        class="flex items-center justify-between px-4 py-2 rounded-xl bg-rms-subtle border border-rms-border"
+      >
         <span class="text-sm text-rms-ink-secondary">Recargo por opciones</span>
-        <span class="text-sm font-bold text-rms-ink tabular-nums">+{{ extraCharge() | money }}</span>
+        <span class="text-sm font-bold text-rms-ink tabular-nums"
+          >+{{ extraCharge() | money }}</span
+        >
       </div>
     }
 
@@ -129,7 +133,8 @@
             (click)="changeQuantity(-1)"
             [disabled]="quantity() <= 1"
             aria-label="Reducir cantidad"
-            type="button">
+            type="button"
+          >
             <i class="pi pi-minus text-sm" aria-hidden="true"></i>
           </button>
           <span class="text-xl font-semibold text-rms-ink min-w-[2ch] text-center tabular-nums">
@@ -140,7 +145,8 @@
             (click)="changeQuantity(1)"
             [disabled]="quantity() >= 99"
             aria-label="Aumentar cantidad"
-            type="button">
+            type="button"
+          >
             <i class="pi pi-plus text-sm" aria-hidden="true"></i>
           </button>
         </div>
@@ -150,7 +156,10 @@
     <!-- Special instructions -->
     @if (!loading) {
       <div class="flex flex-col gap-2">
-        <label for="modal-instructions" class="text-xs font-semibold uppercase tracking-[0.12em] text-rms-ink-muted">
+        <label
+          for="modal-instructions"
+          class="text-xs font-semibold uppercase tracking-[0.12em] text-rms-ink-muted"
+        >
           Instrucciones especiales
           <span class="normal-case font-normal text-rms-ink-muted ml-1">(opcional)</span>
         </label>
@@ -169,9 +178,7 @@
     @if (!loading && missingRequiredGroups().length > 0) {
       <div class="modal-error flex items-center gap-2 px-4 py-3 rounded-2xl" role="alert">
         <i class="pi pi-exclamation-circle text-sm shrink-0" aria-hidden="true"></i>
-        <p class="text-sm flex-1">
-          Falta elegir en: {{ missingRequiredLabel() }}
-        </p>
+        <p class="text-sm flex-1">Falta elegir en: {{ missingRequiredLabel() }}</p>
       </div>
     }
 
@@ -191,7 +198,8 @@
           class="shrink-0 w-11 h-11 flex items-center justify-center"
           (click)="onErrorClear()"
           aria-label="Cerrar error"
-          type="button">
+          type="button"
+        >
           <i class="pi pi-times text-xs" aria-hidden="true"></i>
         </button>
       </div>
@@ -205,7 +213,8 @@
         class="w-full min-h-12 py-3 rounded-xl text-base font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-rms-brand text-rms-on-brand hover:opacity-90"
         [disabled]="loading || !!error || !canConfirm()"
         (click)="onConfirm()"
-        type="button">
+        type="button"
+      >
         @if (loading) {
           <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
           Cargando...
@@ -217,7 +226,8 @@
       <button
         class="w-full min-h-11 py-2 rounded-xl text-base font-medium transition-all text-rms-ink-secondary hover:text-rms-ink"
         (click)="onDismiss()"
-        type="button">
+        type="button"
+      >
         Cancelar
       </button>
     </div>

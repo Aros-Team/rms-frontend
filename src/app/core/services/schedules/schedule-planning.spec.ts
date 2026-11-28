@@ -44,12 +44,7 @@ import {
   weekDates,
 } from './schedule-planning';
 
-function shift(
-  dayOfWeek: DayOfWeek,
-  startTime: string,
-  endTime: string,
-  id?: number,
-): Shift {
+function shift(dayOfWeek: DayOfWeek, startTime: string, endTime: string, id?: number): Shift {
   return { dayOfWeek, startTime, endTime, ...(id !== undefined ? { id } : {}) };
 }
 
@@ -248,8 +243,14 @@ describe('week navigation', () => {
 describe('upcoming shift', () => {
   const response: WorkerScheduleResponse = {
     days: [
-      { dayOfWeek: 'MONDAY', shifts: [{ scheduleName: 'Mañana', startTime: '11:00', endTime: '15:00' }] },
-      { dayOfWeek: 'TUESDAY', shifts: [{ scheduleName: 'Mañana', startTime: '11:00', endTime: '15:00' }] },
+      {
+        dayOfWeek: 'MONDAY',
+        shifts: [{ scheduleName: 'Mañana', startTime: '11:00', endTime: '15:00' }],
+      },
+      {
+        dayOfWeek: 'TUESDAY',
+        shifts: [{ scheduleName: 'Mañana', startTime: '11:00', endTime: '15:00' }],
+      },
     ],
   };
 
@@ -312,9 +313,7 @@ describe('time-log summary', () => {
   });
 
   it('marks an open session instead of inventing a clock-out', () => {
-    const summaries = summarizeTimeLogs([
-      log(1, 1001, instant(2026, 11, 20, 11, 0), 'IN'),
-    ]);
+    const summaries = summarizeTimeLogs([log(1, 1001, instant(2026, 11, 20, 11, 0), 'IN')]);
 
     expect(summaries[0].minutes).toBe(0);
     expect(summaries[0].openSessions).toBe(1);
@@ -360,14 +359,10 @@ describe('time-log summary', () => {
 
     it('counts every worker scheduled in each hour bucket', () => {
       const ana = buildWorkerWeek([
-        schedule(1, [
-          { dayOfWeek: 'MONDAY', startTime: '10:00', endTime: '14:00' },
-        ]),
+        schedule(1, [{ dayOfWeek: 'MONDAY', startTime: '10:00', endTime: '14:00' }]),
       ]);
       const luis = buildWorkerWeek([
-        schedule(2, [
-          { dayOfWeek: 'MONDAY', startTime: '12:00', endTime: '16:00' },
-        ]),
+        schedule(2, [{ dayOfWeek: 'MONDAY', startTime: '12:00', endTime: '16:00' }]),
       ]);
 
       const coverage = buildCoverage([ana, luis], 8, 18);
@@ -383,9 +378,7 @@ describe('time-log summary', () => {
 
     it('expands the window when a shift starts earlier than the default', () => {
       const early = buildWorkerWeek([
-        schedule(3, [
-          { dayOfWeek: 'TUESDAY', startTime: '04:30', endTime: '09:00' },
-        ]),
+        schedule(3, [{ dayOfWeek: 'TUESDAY', startTime: '04:30', endTime: '09:00' }]),
       ]);
 
       const coverage = buildCoverage([early], 8, 18);

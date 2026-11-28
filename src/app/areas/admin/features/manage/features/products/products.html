@@ -1,7 +1,9 @@
-<div class="flex flex-col  md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.products" (appLazyLoadVisible)="onVisible()">
-  <app-rms-page-header
-    [compact]="true" [title]="title">
-  </app-rms-page-header>
+<div
+  class="flex flex-col md:p-6 min-w-0 min-h-0 h-full"
+  [appLazyLoad]="cache.products"
+  (appLazyLoadVisible)="onVisible()"
+>
+  <app-rms-page-header [compact]="true" [title]="title"> </app-rms-page-header>
 
   <!-- Table -->
   <div class="flex-1 min-h-0 border border-rms-border rounded-xl bg-rms-surface overflow-hidden">
@@ -18,7 +20,7 @@
       scrollHeight="600px"
       responsiveLayout="scroll"
       styleClass="h-full"
-      [tableStyle]="{'min-width': '800px'}"
+      [tableStyle]="{ 'min-width': '800px' }"
       [loading]="productsLoading() && !cache.products.hasData()"
       [showLoader]="false"
     >
@@ -29,13 +31,24 @@
             [initialValue]="assistantSearch()"
             (searchChange)="onSearch($event)"
           />
-          <app-rms-button variant="secondary" size="sm" iconStart="pi pi-filter-slash" (click)="dt1.clear()">
+          <app-rms-button
+            variant="secondary"
+            size="sm"
+            iconStart="pi pi-filter-slash"
+            (click)="dt1.clear()"
+          >
             Limpiar
           </app-rms-button>
           <div class="flex items-center gap-4 ml-auto">
             <div class="flex items-center gap-2">
-              <label for="includeInactive" class="text-sm text-muted cursor-pointer select-none">Mostrar inactivos</label>
-              <p-toggleswitch [ngModel]="includeInactive()" (ngModelChange)="setIncludeInactive($event)" inputId="includeInactive" />
+              <label for="includeInactive" class="text-sm text-muted cursor-pointer select-none"
+                >Mostrar inactivos</label
+              >
+              <p-toggleswitch
+                [ngModel]="includeInactive()"
+                (ngModelChange)="setIncludeInactive($event)"
+                inputId="includeInactive"
+              />
             </div>
             <app-rms-button iconStart="pi pi-plus" (click)="showCreationModal()">
               Nuevo producto
@@ -69,7 +82,9 @@
                   decoding="async"
                 />
               } @else {
-                <div class="w-12 h-12 bg-rms-subtle rounded flex items-center justify-center shrink-0">
+                <div
+                  class="w-12 h-12 bg-rms-subtle rounded flex items-center justify-center shrink-0"
+                >
                   <i class="pi pi-image text-muted text-sm" aria-hidden="true"></i>
                 </div>
               }
@@ -94,7 +109,8 @@
                   [ariaLabel]="'Activar ' + product.name"
                   tooltip="Activar"
                   size="sm"
-                  (click)="confirmEnableProduct($event, product)" />
+                  (click)="confirmEnableProduct($event, product)"
+                />
               } @else {
                 <app-rms-icon-button
                   icon="pi pi-ban"
@@ -102,7 +118,8 @@
                   tooltip="Desactivar"
                   variant="danger"
                   size="sm"
-                  (click)="confirmDeleteProduct($event, product)" />
+                  (click)="confirmDeleteProduct($event, product)"
+                />
               }
             </div>
           </td>
@@ -118,7 +135,11 @@
         </tr>
       </ng-template>
       <ng-template pTemplate="emptymessage">
-        <tr><td colspan="5" class="text-center text-muted py-4">{{ includeInactive() ? 'No hay productos inactivos' : 'No hay productos registrados' }}</td></tr>
+        <tr>
+          <td colspan="5" class="text-center text-muted py-4">
+            {{ includeInactive() ? 'No hay productos inactivos' : 'No hay productos registrados' }}
+          </td>
+        </tr>
       </ng-template>
     </p-table>
   </div>
@@ -127,33 +148,59 @@
 <!-- ════════════════════════════════════════════════
      MODAL WIZARD
 ════════════════════════════════════════════════ -->
-<p-dialog [modal]="true" [(visible)]="modalIsOpen"
+<p-dialog
+  [modal]="true"
+  [(visible)]="modalIsOpen"
   header="Crear producto"
-  draggable="false" closable="false" styleClass="w-[90vw] max-w-[700px]" appendTo="body">
-
+  draggable="false"
+  closable="false"
+  styleClass="w-[90vw] max-w-[700px]"
+  appendTo="body"
+>
   <!-- Indicador de pasos -->
   <div class="flex items-center mb-6">
-    @for (step of [1,2,3,4,5]; track step; let i = $index; let last = $last) {
+    @for (step of [1, 2, 3, 4, 5]; track step; let i = $index; let last = $last) {
       <div class="flex items-center flex-1">
         <div class="flex flex-col items-center gap-1">
-          <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors"
-            [class]="currentStep() >= step ? 'bg-rms-brand text-rms-on-brand' : 'bg-rms-subtle text-rms-ink-muted'">
-            @if (currentStep() > step) { <i class="pi pi-check text-xs" aria-hidden="true"></i> }
-            @else { {{ i + 1 }} }
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors"
+            [class]="
+              currentStep() >= step
+                ? 'bg-rms-brand text-rms-on-brand'
+                : 'bg-rms-subtle text-rms-ink-muted'
+            "
+          >
+            @if (currentStep() > step) {
+              <i class="pi pi-check text-xs" aria-hidden="true"></i>
+            } @else {
+              {{ i + 1 }}
+            }
           </div>
           <span class="text-xs text-muted whitespace-nowrap">
             @switch (step) {
-              @case (1) { Datos básicos }
-              @case (2) { Insumos }
-              @case (3) { Opciones }
-              @case (4) { Precio }
-              @case (5) { Confirmar }
+              @case (1) {
+                Datos básicos
+              }
+              @case (2) {
+                Insumos
+              }
+              @case (3) {
+                Opciones
+              }
+              @case (4) {
+                Precio
+              }
+              @case (5) {
+                Confirmar
+              }
             }
           </span>
         </div>
         @if (!last) {
-          <div class="flex-1 h-px mx-2 mt-[-1rem]"
-            [class]="currentStep() > step ? 'bg-rms-brand' : 'bg-rms-border'"></div>
+          <div
+            class="flex-1 h-px mx-2 mt-[-1rem]"
+            [class]="currentStep() > step ? 'bg-rms-brand' : 'bg-rms-border'"
+          ></div>
         }
       </div>
     }
@@ -162,21 +209,25 @@
   <!-- ══ PASO 1: Datos básicos + imagen ══ -->
   @if (currentStep() === 1) {
     <div class="grid grid-cols-1 md:grid-cols-[35%_1fr] gap-6">
-
       <!-- LEFT: Image upload area (35%) -->
       <div class="flex flex-col">
         <span class="text-sm font-medium text-rms-ink-secondary mb-2">Imagen del producto</span>
-        <div class="border-2 border-dashed border-rms-border-strong rounded-xl p-4 flex flex-col items-center justify-center text-center min-h-[260px] relative"
+        <div
+          class="border-2 border-dashed border-rms-border-strong rounded-xl p-4 flex flex-col items-center justify-center text-center min-h-[260px] relative"
           [class.cursor-pointer]="canUploadImage() && !isProcessingImage()"
           [class.opacity-60]="!canUploadImage() || isProcessingImage()"
           [class.border-rms-border]="!canUploadImage()"
           [attr.aria-disabled]="!canUploadImage()"
-          tabindex="0" role="button"
+          tabindex="0"
+          role="button"
           [attr.aria-label]="'Subir imagen del producto'"
           (click)="canUploadImage() && !isProcessingImage() && triggerFileInput(fu)"
           (keydown.enter)="canUploadImage() && !isProcessingImage() && triggerFileInput(fu)"
-          (keydown.space)="$event.preventDefault(); canUploadImage() && !isProcessingImage() && triggerFileInput(fu)">
-
+          (keydown.space)="
+            $event.preventDefault();
+            canUploadImage() && !isProcessingImage() && triggerFileInput(fu)
+          "
+        >
           <p-fileupload
             #fu
             mode="basic"
@@ -192,21 +243,34 @@
 
           @if (isProcessingImage()) {
             <p-progressBar mode="indeterminate" styleClass="h-2 w-full mb-3" />
-            <span class="text-sm text-muted">{{ createdProduct() ? 'Guardando imagen...' : 'Creando producto...' }}</span>
+            <span class="text-sm text-muted">{{
+              createdProduct() ? 'Guardando imagen...' : 'Creando producto...'
+            }}</span>
           } @else if (previewImage().length > 0) {
             <div class="relative w-full h-[220px] flex items-center justify-center">
-              <img [src]="previewImage()[0].desktopUrl" alt="Imagen del producto"
-                width="220" height="220"
-                class="max-w-full max-h-full object-contain rounded-lg" />
-              <app-rms-icon-button icon="pi pi-times" variant="danger" size="sm"
+              <img
+                [src]="previewImage()[0].desktopUrl"
+                alt="Imagen del producto"
+                width="220"
+                height="220"
+                class="max-w-full max-h-full object-contain rounded-lg"
+              />
+              <app-rms-icon-button
+                icon="pi pi-times"
+                variant="danger"
+                size="sm"
                 class="!absolute !top-2 !right-2"
-                ariaLabel="Eliminar imagen" tooltip="Eliminar imagen"
-                (click)="removeImage(previewImage()[0]); $event.stopPropagation()" />
+                ariaLabel="Eliminar imagen"
+                tooltip="Eliminar imagen"
+                (click)="removeImage(previewImage()[0]); $event.stopPropagation()"
+              />
             </div>
           } @else if (!canUploadImage()) {
             <i class="pi pi-image text-4xl text-rms-ink-muted mb-3" aria-hidden="true"></i>
             <span class="text-sm font-medium text-muted">Imagen del producto</span>
-            <span class="text-xs text-muted mt-2 text-center max-w-[200px]">Completa nombre, categoría y área para habilitar la carga de imagen</span>
+            <span class="text-xs text-muted mt-2 text-center max-w-[200px]"
+              >Completa nombre, categoría y área para habilitar la carga de imagen</span
+            >
           } @else {
             <i class="pi pi-cloud-upload text-4xl text-muted mb-3" aria-hidden="true"></i>
             <span class="text-sm font-medium text-rms-ink-secondary">Sube una imagen</span>
@@ -219,7 +283,6 @@
       <!-- RIGHT: Form fields (65%) -->
       <form [formGroup]="baseForm" class="flex flex-col gap-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
           <!-- Nombre -->
           <app-rms-input
             id="name"
@@ -227,22 +290,38 @@
             label="Nombre del producto"
             formControlName="name"
             [required]="true"
-            [invalid]="isInvalid(baseForm, 'name')" />
+            [invalid]="isInvalid(baseForm, 'name')"
+          />
 
           <!-- Categoría + Área (same row) -->
           <p-iftalabel>
-            <p-select [options]="categories()" [loading]="referenceDataLoading()" inputId="categoryId" class="w-full"
-              optionValue="id" optionLabel="name" formControlName="categoryId"
+            <p-select
+              [options]="categories()"
+              [loading]="referenceDataLoading()"
+              inputId="categoryId"
+              class="w-full"
+              optionValue="id"
+              optionLabel="name"
+              formControlName="categoryId"
               appendTo="body"
-              [invalid]="isInvalid(baseForm, 'categoryId')" />
+              [invalid]="isInvalid(baseForm, 'categoryId')"
+            />
             <label for="categoryId">Categoría *</label>
           </p-iftalabel>
 
           <p-iftalabel>
-            <p-select [options]="areas()" [loading]="referenceDataLoading()" inputId="areaId" class="w-full"
-              optionValue="id" optionLabel="name" formControlName="areaId"
-              appendTo="body" placeholder="Selecciona un área"
-              [invalid]="isInvalid(baseForm, 'areaId')" />
+            <p-select
+              [options]="areas()"
+              [loading]="referenceDataLoading()"
+              inputId="areaId"
+              class="w-full"
+              optionValue="id"
+              optionLabel="name"
+              formControlName="areaId"
+              appendTo="body"
+              placeholder="Selecciona un área"
+              [invalid]="isInvalid(baseForm, 'areaId')"
+            />
             <label for="areaId">Área de preparación *</label>
           </p-iftalabel>
 
@@ -250,11 +329,18 @@
           <div class="md:col-span-2">
             <span class="text-xs text-muted block mb-1">Tiempo estimado de preparación</span>
             <div class="flex items-center gap-3">
-              <app-rms-icon-button icon="pi pi-stopwatch" ariaLabel="Estimar tiempo de preparación"
-                tooltip="Estimar tiempo" variant="secondary"
-                (click)="openPrepTimeDialog()" />
+              <app-rms-icon-button
+                icon="pi pi-stopwatch"
+                ariaLabel="Estimar tiempo de preparación"
+                tooltip="Estimar tiempo"
+                variant="secondary"
+                (click)="openPrepTimeDialog()"
+              />
               @if (baseForm.get('estimatedPrepMinutes')?.value !== null) {
-                <app-rms-badge [label]="(baseForm.get('estimatedPrepMinutes')?.value ?? 0) + ' min'" tone="info" />
+                <app-rms-badge
+                  [label]="(baseForm.get('estimatedPrepMinutes')?.value ?? 0) + ' min'"
+                  tone="info"
+                />
               } @else {
                 <app-rms-badge label="Sin estimar" tone="neutral" />
               }
@@ -268,14 +354,15 @@
                 [options]="[
                   { label: 'Estimado (recomendado)', value: 'ESTIMATED' },
                   { label: 'Real medido', value: 'REAL' },
-                  { label: 'Automático: real si hay datos', value: 'AUTO' }
+                  { label: 'Automático: real si hay datos', value: 'AUTO' },
                 ]"
                 inputId="prepTimeMode"
                 class="w-full"
                 optionValue="value"
                 optionLabel="label"
                 formControlName="prepTimeMode"
-                appendTo="body" />
+                appendTo="body"
+              />
               <label for="prepTimeMode">Tiempo usado para costeo</label>
             </p-iftalabel>
           </div>
@@ -288,7 +375,8 @@
               type="number"
               formControlName="requiredWorkers"
               hint="Cuántas personas trabajan en paralelo durante el tiempo de preparación. Se usa para calcular la mano de obra."
-              [invalid]="isInvalid(baseForm, 'requiredWorkers')" />
+              [invalid]="isInvalid(baseForm, 'requiredWorkers')"
+            />
           </div>
 
           <!-- Descripción -->
@@ -308,7 +396,11 @@
       <app-rms-button variant="secondary" iconStart="pi pi-times" (click)="confirmCancel()">
         Cancelar
       </app-rms-button>
-      <app-rms-button iconEnd="pi pi-arrow-right" [loading]="isSubmitting()" (click)="submitStep1()">
+      <app-rms-button
+        iconEnd="pi pi-arrow-right"
+        [loading]="isSubmitting()"
+        (click)="submitStep1()"
+      >
         Siguiente
       </app-rms-button>
     </div>
@@ -321,8 +413,13 @@
       <div class="flex items-center justify-between px-3">
         <div class="flex items-center gap-2 min-w-0">
           @if (previewImage().length > 0) {
-            <img [src]="previewImage()[0].desktopUrl" alt="" width="40" height="40"
-              class="w-10 h-10 bg-rms-subtle object-contain rounded-lg shrink-0" />
+            <img
+              [src]="previewImage()[0].desktopUrl"
+              alt=""
+              width="40"
+              height="40"
+              class="w-10 h-10 bg-rms-subtle object-contain rounded-lg shrink-0"
+            />
           }
           <span class="text-sm font-semibold text-rms-ink truncate">
             {{ baseForm.get('name')?.value || 'Producto sin nombre' }}
@@ -335,13 +432,20 @@
             (searchChange)="onSupplySearch($event)"
           />
           @if (filteredSuggestions().length > 0) {
-            <div class="absolute z-50 left-0 right-0 mt-1 bg-rms-surface border border-rms-border rounded-lg max-h-60 overflow-y-auto">
+            <div
+              class="absolute z-50 left-0 right-0 mt-1 bg-rms-surface border border-rms-border rounded-lg max-h-60 overflow-y-auto"
+            >
               @for (s of filteredSuggestions(); track s.id) {
-                <button type="button"
+                <button
+                  type="button"
                   class="w-full px-3 py-2 text-left text-sm hover:bg-rms-subtle flex items-center justify-between gap-2 cursor-pointer border-none bg-transparent"
-                  (click)="addSupplyVariant(s)" (keydown.enter)="addSupplyVariant(s)">
+                  (click)="addSupplyVariant(s)"
+                  (keydown.enter)="addSupplyVariant(s)"
+                >
                   <span class="font-medium text-rms-ink">{{ s.supplyName }}</span>
-                  <span class="text-xs text-muted shrink-0">{{ s.quantity }} {{ s.unitAbbreviation }} · {{ s.unitCost | money }}/u</span>
+                  <span class="text-xs text-muted shrink-0"
+                    >{{ s.quantity }} {{ s.unitAbbreviation }} · {{ s.unitCost | money }}/u</span
+                  >
                 </button>
               }
             </div>
@@ -355,7 +459,9 @@
       } @else {
         <div class="flex flex-col">
           <!-- Header -->
-          <div class="grid grid-cols-[1fr_120px_90px_36px] gap-2 px-3 py-1.5 text-xs font-semibold text-muted uppercase tracking-wide border-b border-rms-border">
+          <div
+            class="grid grid-cols-[1fr_120px_90px_36px] gap-2 px-3 py-1.5 text-xs font-semibold text-muted uppercase tracking-wide border-b border-rms-border"
+          >
             <span>Insumo</span>
             <span class="text-center">Cantidad</span>
             <span class="text-right">Costo</span>
@@ -364,11 +470,16 @@
 
           <!-- Existing recipe rows (edit mode) -->
           @for (item of existingRecipe.controls; track $index; let i = $index) {
-            <div [formGroup]="$any(item)"
-              class="grid grid-cols-[1fr_120px_90px_36px] gap-2 items-center px-3 py-2 border-b border-rms-border hover:bg-rms-subtle">
+            <div
+              [formGroup]="$any(item)"
+              class="grid grid-cols-[1fr_120px_90px_36px] gap-2 items-center px-3 py-2 border-b border-rms-border hover:bg-rms-subtle"
+            >
               <div class="min-w-0">
                 <span class="text-sm font-medium text-rms-ink truncate block">
-                  {{ findVariantById($any(item).get('supplyVariantId')?.value)?.supplyName ?? 'Insumo' }}
+                  {{
+                    findVariantById($any(item).get('supplyVariantId')?.value)?.supplyName ??
+                      'Insumo'
+                  }}
                 </span>
                 <span class="text-xs text-muted">
                   {{ findVariantById($any(item).get('supplyVariantId')?.value)?.quantity }}
@@ -376,31 +487,63 @@
                 </span>
               </div>
               <div class="flex items-center justify-center gap-1">
-                <app-rms-icon-button icon="pi pi-minus" ariaLabel="Disminuir cantidad" size="sm"
-                  (click)="decrementQty(existingRecipe, i); $event.stopPropagation()" />
-                <input class="rms-input rms-input--sm w-14 text-center" type="number" formControlName="requiredQuantity"
-                  [min]="0.001" step="1"
-                  [attr.aria-label]="'Cantidad requerida de ' + (findVariantById($any(item).get('supplyVariantId')?.value)?.supplyName ?? 'insumo')" />
-                <app-rms-icon-button icon="pi pi-plus" ariaLabel="Aumentar cantidad" size="sm"
-                  (click)="incrementQty(existingRecipe, i); $event.stopPropagation()" />
+                <app-rms-icon-button
+                  icon="pi pi-minus"
+                  ariaLabel="Disminuir cantidad"
+                  size="sm"
+                  (click)="decrementQty(existingRecipe, i); $event.stopPropagation()"
+                />
+                <input
+                  class="rms-input rms-input--sm w-14 text-center"
+                  type="number"
+                  formControlName="requiredQuantity"
+                  [min]="0.001"
+                  step="1"
+                  [attr.aria-label]="
+                    'Cantidad requerida de ' +
+                    (findVariantById($any(item).get('supplyVariantId')?.value)?.supplyName ??
+                      'insumo')
+                  "
+                />
+                <app-rms-icon-button
+                  icon="pi pi-plus"
+                  ariaLabel="Aumentar cantidad"
+                  size="sm"
+                  (click)="incrementQty(existingRecipe, i); $event.stopPropagation()"
+                />
               </div>
               <div class="text-right text-sm text-muted">
-                {{ getRowPartial($any(item).get('supplyVariantId')?.value, $any(item).get('requiredQuantity')?.value) | money }}
+                {{
+                  getRowPartial(
+                    $any(item).get('supplyVariantId')?.value,
+                    $any(item).get('requiredQuantity')?.value
+                  ) | money
+                }}
               </div>
               <div class="flex justify-center">
-                <app-rms-icon-button icon="pi pi-trash" ariaLabel="Eliminar insumo" variant="danger" size="sm"
-                  (click)="removeExistingRecipeItem(i)" />
+                <app-rms-icon-button
+                  icon="pi pi-trash"
+                  ariaLabel="Eliminar insumo"
+                  variant="danger"
+                  size="sm"
+                  (click)="removeExistingRecipeItem(i)"
+                />
               </div>
             </div>
           }
 
           <!-- Base recipe rows (new) -->
           @for (item of baseRecipe.controls; track $index; let i = $index) {
-            <div [formGroup]="$any(item)"
-              class="grid grid-cols-[1fr_120px_90px_36px] gap-2 items-center px-3 py-2 border-b border-rms-border hover:bg-rms-subtle">
+            <div
+              [formGroup]="$any(item)"
+              class="grid grid-cols-[1fr_120px_90px_36px] gap-2 items-center px-3 py-2 border-b border-rms-border hover:bg-rms-subtle"
+            >
               <div class="min-w-0">
                 <span class="text-sm font-medium text-rms-ink truncate block">
-                  {{ findVariantById($any(item).get('supplyVariantId')?.value)?.supplyName ?? 'Insumo' }}
+                  {{
+                    findVariantById($any(item).get('supplyVariantId')?.value)?.supplyName ??
+                      'Insumo'
+                  }}
                 </span>
                 <span class="text-xs text-muted">
                   {{ findVariantById($any(item).get('supplyVariantId')?.value)?.quantity }}
@@ -408,20 +551,47 @@
                 </span>
               </div>
               <div class="flex items-center justify-center gap-1">
-                <app-rms-icon-button icon="pi pi-minus" ariaLabel="Disminuir cantidad" size="sm"
-                  (click)="decrementQty(baseRecipe, i); $event.stopPropagation()" />
-                <input class="rms-input rms-input--sm w-14 text-center" type="number" formControlName="requiredQuantity"
-                  [min]="0.001" step="1"
-                  [attr.aria-label]="'Cantidad requerida de ' + (findVariantById($any(item).get('supplyVariantId')?.value)?.supplyName ?? 'insumo')" />
-                <app-rms-icon-button icon="pi pi-plus" ariaLabel="Aumentar cantidad" size="sm"
-                  (click)="incrementQty(baseRecipe, i); $event.stopPropagation()" />
+                <app-rms-icon-button
+                  icon="pi pi-minus"
+                  ariaLabel="Disminuir cantidad"
+                  size="sm"
+                  (click)="decrementQty(baseRecipe, i); $event.stopPropagation()"
+                />
+                <input
+                  class="rms-input rms-input--sm w-14 text-center"
+                  type="number"
+                  formControlName="requiredQuantity"
+                  [min]="0.001"
+                  step="1"
+                  [attr.aria-label]="
+                    'Cantidad requerida de ' +
+                    (findVariantById($any(item).get('supplyVariantId')?.value)?.supplyName ??
+                      'insumo')
+                  "
+                />
+                <app-rms-icon-button
+                  icon="pi pi-plus"
+                  ariaLabel="Aumentar cantidad"
+                  size="sm"
+                  (click)="incrementQty(baseRecipe, i); $event.stopPropagation()"
+                />
               </div>
               <div class="text-right text-sm text-muted">
-                {{ getRowPartial($any(item).get('supplyVariantId')?.value, $any(item).get('requiredQuantity')?.value) | money }}
+                {{
+                  getRowPartial(
+                    $any(item).get('supplyVariantId')?.value,
+                    $any(item).get('requiredQuantity')?.value
+                  ) | money
+                }}
               </div>
               <div class="flex justify-center">
-                <app-rms-icon-button icon="pi pi-trash" ariaLabel="Eliminar insumo" variant="danger" size="sm"
-                  (click)="removeBaseRecipeItem(i)" />
+                <app-rms-icon-button
+                  icon="pi pi-trash"
+                  ariaLabel="Eliminar insumo"
+                  variant="danger"
+                  size="sm"
+                  (click)="removeBaseRecipeItem(i)"
+                />
               </div>
             </div>
           }
@@ -430,7 +600,11 @@
 
       <!-- Cost summary footer -->
       <div class="border border-rms-border rounded-lg p-4 text-sm">
-        <div class="flex items-center gap-2 mb-3" pTooltip="Costo calculado en vivo según los insumos de la receta" tooltipPosition="top">
+        <div
+          class="flex items-center gap-2 mb-3"
+          pTooltip="Costo calculado en vivo según los insumos de la receta"
+          tooltipPosition="top"
+        >
           <i class="pi pi-calculator text-accent" aria-hidden="true"></i>
           <span class="font-medium">Costo de materiales</span>
         </div>
@@ -464,10 +638,7 @@
       </app-rms-button>
       <div class="flex gap-2">
         <app-rms-button variant="secondary" (click)="confirmCancel()">Cancelar</app-rms-button>
-        <app-rms-button
-          iconStart="pi pi-check"
-          [loading]="isSubmitting()"
-          (click)="submitStep3()">
+        <app-rms-button iconStart="pi pi-check" [loading]="isSubmitting()" (click)="submitStep3()">
           {{ modalMode() === 'create' ? 'Crear producto' : 'Guardar cambios' }}
         </app-rms-button>
       </div>
@@ -477,9 +648,13 @@
   <!-- ══ PASO 4: Precio de venta ══ -->
   @if (currentStep() === 4) {
     <div class="flex flex-col gap-4">
-      <div class="flex items-center gap-2 px-4 py-3 bg-rms-subtle rounded-lg border border-rms-border">
+      <div
+        class="flex items-center gap-2 px-4 py-3 bg-rms-subtle rounded-lg border border-rms-border"
+      >
         <i class="pi pi-calculator text-rms-info text-lg" aria-hidden="true"></i>
-        <span class="text-sm text-rms-ink-secondary">Define el precio de venta basado en el costo de producción</span>
+        <span class="text-sm text-rms-ink-secondary"
+          >Define el precio de venta basado en el costo de producción</span
+        >
       </div>
 
       @if (cost(); as c) {
@@ -496,7 +671,9 @@
             <span class="text-muted">Mano de obra</span>
             <span class="font-medium">{{ c.laborCost | money }}</span>
           </div>
-          <div class="flex justify-between bg-rms-brand-soft -mx-4 -mb-4 px-4 py-3 mt-2 rounded-b-lg">
+          <div
+            class="flex justify-between bg-rms-brand-soft -mx-4 -mb-4 px-4 py-3 mt-2 rounded-b-lg"
+          >
             <span class="font-semibold">Costo total</span>
             <span class="font-semibold text-base">{{ c.totalCost | money }}</span>
           </div>
@@ -508,7 +685,9 @@
       }
 
       @if (recipeCost() > 0) {
-        <div class="border border-dashed border-rms-border-strong rounded-lg p-3 flex items-center justify-between text-sm bg-rms-subtle">
+        <div
+          class="border border-dashed border-rms-border-strong rounded-lg p-3 flex items-center justify-between text-sm bg-rms-subtle"
+        >
           <span class="flex items-center gap-2 text-muted">
             <i class="pi pi-bolt text-xs" aria-hidden="true"></i>
             Materiales estimado (receta actual)
@@ -524,22 +703,37 @@
         </h4>
 
         @if (cost(); as c) {
-          <div class="bg-rms-subtle rounded-lg px-4 py-3 flex items-center justify-between border border-rms-border">
+          <div
+            class="bg-rms-subtle rounded-lg px-4 py-3 flex items-center justify-between border border-rms-border"
+          >
             <div class="flex flex-col gap-1">
               <span class="text-xs text-rms-ink-muted font-medium">Precio sugerido</span>
-              <span class="text-lg font-bold text-rms-success">{{ suggestedSalePrice() | money }}</span>
+              <span class="text-lg font-bold text-rms-success">{{
+                suggestedSalePrice() | money
+              }}</span>
               <span class="text-xs text-rms-ink-muted">Costo oficial + 30% de margen</span>
             </div>
-            <app-rms-button variant="secondary" size="sm"
-              (click)="salePrice.set(suggestedSalePrice())" [disabled]="salePrice() === suggestedSalePrice()">
+            <app-rms-button
+              variant="secondary"
+              size="sm"
+              (click)="salePrice.set(suggestedSalePrice())"
+              [disabled]="salePrice() === suggestedSalePrice()"
+            >
               Usar este precio
             </app-rms-button>
           </div>
         }
 
         <p-iftalabel class="mt-1">
-          <p-inputnumber [ngModel]="salePrice()" (ngModelChange)="salePrice.set($event)"
-            inputId="salePrice" mode="currency" currency="COP" locale="es-CO" class="w-full" />
+          <p-inputnumber
+            [ngModel]="salePrice()"
+            (ngModelChange)="salePrice.set($event)"
+            inputId="salePrice"
+            mode="currency"
+            currency="COP"
+            locale="es-CO"
+            class="w-full"
+          />
           <label for="salePrice">Precio de venta *</label>
         </p-iftalabel>
       </div>
@@ -551,10 +745,7 @@
       </app-rms-button>
       <div class="flex gap-2">
         <app-rms-button variant="secondary" (click)="confirmCancel()">Cancelar</app-rms-button>
-        <app-rms-button
-          iconStart="pi pi-check"
-          [loading]="isSubmitting()"
-          (click)="confirmPrice()">
+        <app-rms-button iconStart="pi pi-check" [loading]="isSubmitting()" (click)="confirmPrice()">
           Confirmar precio
         </app-rms-button>
       </div>
@@ -580,11 +771,17 @@
           </div>
           <div class="flex justify-between">
             <span class="text-muted">Descripción</span>
-            <span class="text-right max-w-[60%]">{{ createdProduct()!.description || 'Sin descripción' }}</span>
+            <span class="text-right max-w-[60%]">{{
+              createdProduct()!.description || 'Sin descripción'
+            }}</span>
           </div>
           @if (cost() !== null) {
             <div class="flex flex-col gap-2">
-              <div class="flex items-center gap-2" pTooltip="Calculado por el servidor con base en la receta e insumos" tooltipPosition="top">
+              <div
+                class="flex items-center gap-2"
+                pTooltip="Calculado por el servidor con base en la receta e insumos"
+                tooltipPosition="top"
+              >
                 <i class="pi pi-calculator text-accent" aria-hidden="true"></i>
                 <span class="font-medium">Costo de producción</span>
               </div>
@@ -601,17 +798,25 @@
                   <span class="text-muted">Mano de obra</span>
                   <span class="font-medium">{{ c.laborCost | money }}</span>
                 </div>
-                <div class="flex justify-between items-center bg-rms-brand-soft -mx-4 -mb-4 px-4 py-3 mt-2 rounded-lg">
+                <div
+                  class="flex justify-between items-center bg-rms-brand-soft -mx-4 -mb-4 px-4 py-3 mt-2 rounded-lg"
+                >
                   <span class="font-semibold">Total</span>
                   <span class="font-semibold text-base">{{ c.totalCost | money }}</span>
                 </div>
                 @if (c.breakdown.length > 0) {
                   <div class="flex flex-col gap-2 mt-3 pt-3 border-t border-rms-border">
-                    <span class="text-xs font-semibold text-muted uppercase tracking-wide">Desglose</span>
+                    <span class="text-xs font-semibold text-muted uppercase tracking-wide"
+                      >Desglose</span
+                    >
                     @for (item of c.breakdown; track $index) {
                       <div class="flex items-center justify-between">
                         <span class="flex items-center gap-2">
-                          <i [class]="item.type === 'MATERIAL' ? 'pi pi-box' : 'pi pi-clock'" class="text-muted" aria-hidden="true"></i>
+                          <i
+                            [class]="item.type === 'MATERIAL' ? 'pi pi-box' : 'pi pi-clock'"
+                            class="text-muted"
+                            aria-hidden="true"
+                          ></i>
                           <span>{{ item.description }}</span>
                         </span>
                         <span class="font-medium">{{ item.amount | money }}</span>
@@ -628,8 +833,10 @@
           </div>
           <div class="flex justify-between">
             <span class="text-muted">Tipo</span>
-            <app-rms-badge [label]="existingOptions().length > 0 ? 'Personalizable' : 'Simple'"
-              [tone]="existingOptions().length > 0 ? 'info' : 'neutral'" />
+            <app-rms-badge
+              [label]="existingOptions().length > 0 ? 'Personalizable' : 'Simple'"
+              [tone]="existingOptions().length > 0 ? 'info' : 'neutral'"
+            />
           </div>
           <div class="flex justify-between">
             <span class="text-muted">Categoría</span>
@@ -650,11 +857,17 @@
         <!-- Opciones guardadas (confirmadas desde la API) -->
         @if (existingOptions().length > 0) {
           <div class="flex flex-col gap-2">
-            <span class="text-xs font-semibold text-muted uppercase tracking-wide">Opciones registradas</span>
+            <span class="text-xs font-semibold text-muted uppercase tracking-wide"
+              >Opciones registradas</span
+            >
             @for (opt of existingOptions(); track opt.id) {
-              <div class="flex items-center justify-between px-3 py-2 bg-rms-subtle rounded-lg text-sm border border-rms-border">
+              <div
+                class="flex items-center justify-between px-3 py-2 bg-rms-subtle rounded-lg text-sm border border-rms-border"
+              >
                 <span class="font-medium">{{ opt.name }}</span>
-                <span class="text-muted text-xs px-2 py-0.5 bg-rms-subtle rounded">{{ opt.optionGroupName }}</span>
+                <span class="text-muted text-xs px-2 py-0.5 bg-rms-subtle rounded">{{
+                  opt.optionGroupName
+                }}</span>
               </div>
             }
           </div>
@@ -669,7 +882,6 @@
       <app-rms-button iconStart="pi pi-check" (click)="finish()">Finalizar</app-rms-button>
     </div>
   }
-
 </p-dialog>
 
 <app-prep-time-dialog

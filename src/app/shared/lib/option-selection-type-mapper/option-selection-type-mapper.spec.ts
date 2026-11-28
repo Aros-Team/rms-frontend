@@ -11,7 +11,10 @@
  * Approach: Import mapper functions directly (no TestBed needed), assert exact enum/string values
  * for all valid mappings, null/undefined, unknown values and invalid inputs.
  */
-import { OptionSelectionType, ApiSelectionType } from '@app/shared/models/dto/option-groups/option-selection-type';
+import {
+  OptionSelectionType,
+  ApiSelectionType,
+} from '@app/shared/models/dto/option-groups/option-selection-type';
 import { toApi, fromApi, fromApiString } from './option-selection-type-mapper';
 
 describe('option-selection-type-mapper', () => {
@@ -80,13 +83,13 @@ describe('option-selection-type-mapper', () => {
   describe('round-trip', () => {
     it('toApi(fromApi(x)) === x for all API values', () => {
       const api: ApiSelectionType[] = ['SINGLE_CHOICE', 'MULTI_CHOICE', 'ADD_ON', 'REMOVAL'];
-      api.forEach(a => {
+      api.forEach((a) => {
         expect(toApi(fromApi(a))).toBe(a);
       });
     });
 
     it('fromApi(toApi(x)) === x for all internal values', () => {
-      Object.values(OptionSelectionType).forEach(internal => {
+      Object.values(OptionSelectionType).forEach((internal) => {
         expect(fromApi(toApi(internal))).toBe(internal);
       });
     });

@@ -63,7 +63,9 @@
     <div class="kitchen__banner" role="status">
       <i class="pi pi-map-marker" aria-hidden="true"></i>
       <span class="kitchen__banner-text">{{ message }}</span>
-      <app-rms-button variant="secondary" size="lg" (click)="loadCatalog(true)">Reintentar</app-rms-button>
+      <app-rms-button variant="secondary" size="lg" (click)="loadCatalog(true)"
+        >Reintentar</app-rms-button
+      >
     </div>
   }
 
@@ -122,7 +124,9 @@
                   </div>
                   @if (column.key !== 'ready') {
                     <div class="ticket__timer" [attr.data-urgency]="urgencyFor(order)">
-                      <span class="ticket__elapsed" data-testid="order-timer">{{ ageLabel(order) }}</span>
+                      <span class="ticket__elapsed" data-testid="order-timer">{{
+                        ageLabel(order)
+                      }}</span>
                       <span class="ticket__urgency">{{ urgencyLabelFor(order) }}</span>
                     </div>
                   }
@@ -148,7 +152,8 @@
                             <span class="line__qty">{{ line.quantity }}×</span>
                             <div class="line__body">
                               <span class="line__name">
-                                {{ line.name }}@if (lineReady(line)) {
+                                {{ line.name }}
+                                @if (lineReady(line)) {
                                   <span class="sr-only"> — listo</span>
                                 }
                               </span>
@@ -157,7 +162,8 @@
                               }
                               @if (line.combos.length > 0) {
                                 <span class="line__meta">
-                                  <span class="line__label">Incluye:</span> {{ line.combos.join(' · ') }}
+                                  <span class="line__label">Incluye:</span>
+                                  {{ line.combos.join(' · ') }}
                                 </span>
                               }
                               @if (line.additions.length > 0) {

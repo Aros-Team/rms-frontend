@@ -6,12 +6,8 @@
  * Approach: Create objects matching DTO interfaces, assert they compile and have correct properties.
  */
 import type { DockItem } from '@app/core/services/order-dock/order-dock';
-import type {
-  ClientOrderDetail,
-} from '@app/shared/models/dto/orders/order-details-response';
-import type {
-  OrderDetailItem,
-} from '@app/shared/models/dto/orders/order-response';
+import type { ClientOrderDetail } from '@app/shared/models/dto/orders/order-details-response';
+import type { OrderDetailItem } from '@app/shared/models/dto/orders/order-response';
 import type {
   CreateOrderDetail,
   CreateOrderRequest,
@@ -50,9 +46,7 @@ describe('Combo foundation DTO contracts', () => {
       maxSelections: 2,
       productIds: [101, 102],
     });
-    expectTypeOf<SpecialSelectionGroupRequest['id']>().toEqualTypeOf<
-      number | null | undefined
-    >();
+    expectTypeOf<SpecialSelectionGroupRequest['id']>().toEqualTypeOf<number | null | undefined>();
     expectTypeOf<SpecialSelectionGroupRequest['categoryId']>().toEqualTypeOf<number | null>();
     expectTypeOf<SpecialSelectionGroupRequest['productIds']>().toEqualTypeOf<number[]>();
   });
@@ -77,9 +71,7 @@ describe('Combo foundation DTO contracts', () => {
     expect(withoutCategoryName.categoryName).toBeUndefined();
     expect(withCategoryName.categoryName).toBe('Bebidas');
     expect(withCategoryName.productIds).toEqual([301]);
-    expectTypeOf<SpecialSelectionGroupResponse['categoryId']>().toEqualTypeOf<
-      number | null
-    >();
+    expectTypeOf<SpecialSelectionGroupResponse['categoryId']>().toEqualTypeOf<number | null>();
     expectTypeOf<SpecialSelectionGroupResponse['categoryName']>().toEqualTypeOf<
       string | undefined
     >();
@@ -118,16 +110,10 @@ describe('Combo foundation DTO contracts', () => {
 
     expect(request.details[0].selectedProductIds).toEqual([201, 202]);
     expect(dockItem.selectedProductIds).toEqual([201, 202]);
-    expectTypeOf<CreateOrderDetail['selectedProductIds']>().toEqualTypeOf<
-      number[] | undefined
-    >();
+    expectTypeOf<CreateOrderDetail['selectedProductIds']>().toEqualTypeOf<number[] | undefined>();
     expectTypeOf<DockItem['selectedProductIds']>().toEqualTypeOf<number[] | undefined>();
-    expectTypeOf<OrderDetailItem['selectedProductIds']>().toEqualTypeOf<
-      number[] | undefined
-    >();
-    expectTypeOf<ClientOrderDetail['selectedProductIds']>().toEqualTypeOf<
-      number[] | undefined
-    >();
+    expectTypeOf<OrderDetailItem['selectedProductIds']>().toEqualTypeOf<number[] | undefined>();
+    expectTypeOf<ClientOrderDetail['selectedProductIds']>().toEqualTypeOf<number[] | undefined>();
   });
 
   it('references suggested-price breakdown entries by product id', () => {
@@ -142,25 +128,14 @@ describe('Combo foundation DTO contracts', () => {
   });
 
   it('normalizes selection type across product, combo, and order DTOs', () => {
-    const values: SelectionType[] = [
-      SELECTION_TYPE.STANDARD,
-      SELECTION_TYPE.SPECIAL_SELECTION,
-    ];
+    const values: SelectionType[] = [SELECTION_TYPE.STANDARD, SELECTION_TYPE.SPECIAL_SELECTION];
 
     expect(values).toEqual(['STANDARD', 'SPECIAL_SELECTION']);
     expectTypeOf<SelectionType>().toEqualTypeOf<'STANDARD' | 'SPECIAL_SELECTION'>();
-    expectTypeOf<ProductResponse['selectionType']>().toEqualTypeOf<
-      SelectionType | undefined
-    >();
-    expectTypeOf<ProductListResponse['selectionType']>().toEqualTypeOf<
-      SelectionType | undefined
-    >();
+    expectTypeOf<ProductResponse['selectionType']>().toEqualTypeOf<SelectionType | undefined>();
+    expectTypeOf<ProductListResponse['selectionType']>().toEqualTypeOf<SelectionType | undefined>();
     expectTypeOf<SpecialSelectionResponse['selectionType']>().toEqualTypeOf<SelectionType>();
-    expectTypeOf<OrderDetailItem['selectionType']>().toEqualTypeOf<
-      SelectionType | undefined
-    >();
-    expectTypeOf<ClientOrderDetail['selectionType']>().toEqualTypeOf<
-      SelectionType | undefined
-    >();
+    expectTypeOf<OrderDetailItem['selectionType']>().toEqualTypeOf<SelectionType | undefined>();
+    expectTypeOf<ClientOrderDetail['selectionType']>().toEqualTypeOf<SelectionType | undefined>();
   });
 });

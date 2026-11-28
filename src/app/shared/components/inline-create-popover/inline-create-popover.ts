@@ -1,4 +1,12 @@
-import { Component, Input, Output, EventEmitter, signal, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  signal,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Popover, PopoverModule } from 'primeng/popover';
@@ -76,7 +84,9 @@ export class InlineCreatePopover {
 
   onSubmit(): void {
     // Check required fields
-    const missing = this.fields.filter(f => f.required && (!this.formValues[f.name] || this.formValues[f.name] === ''));
+    const missing = this.fields.filter(
+      (f) => f.required && (!this.formValues[f.name] || this.formValues[f.name] === ''),
+    );
     if (missing.length > 0) return;
 
     this.submitting.set(true);
@@ -85,6 +95,8 @@ export class InlineCreatePopover {
 
   reset(): void {
     this.formValues = {};
-    this.fields.forEach(f => { this.formValues[f.name] = f.type === 'number' ? null : ''; });
+    this.fields.forEach((f) => {
+      this.formValues[f.name] = f.type === 'number' ? null : '';
+    });
   }
 }

@@ -11,7 +11,7 @@ export class WorkersCache {
 
   readonly workers = new ResourceCache<WorkerResponse[]>(
     () => this.workerService.getWorkers(this.workersListParams.search),
-    { ttlMs: 2 * 60 * 1000, staleWhileRevalidate: true }
+    { ttlMs: 2 * 60 * 1000, staleWhileRevalidate: true },
   );
 
   invalidateWorkers(): void {

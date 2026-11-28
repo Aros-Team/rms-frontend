@@ -6,23 +6,22 @@
       <app-rms-button
         variant="secondary"
         iconStart="pi pi-calendar-plus"
-        (click)="selectTab('turnos')">
+        (click)="selectTab('turnos')"
+      >
         Gestionar turnos
       </app-rms-button>
     </div>
 
     <section class="schedules-page__panel">
-      <app-week-grid
-        [refreshToken]="shiftsVersion()"
-        (createSchedule)="selectTab('turnos')"
-      />
+      <app-week-grid [refreshToken]="shiftsVersion()" (createSchedule)="selectTab('turnos')" />
     </section>
   } @else {
     <div class="schedules-toolbar">
       <app-rms-button
         variant="secondary"
         iconStart="pi pi-arrow-left"
-        (click)="selectTab('semana')">
+        (click)="selectTab('semana')"
+      >
         Volver a la semana
       </app-rms-button>
     </div>

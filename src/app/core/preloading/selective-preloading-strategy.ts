@@ -43,9 +43,7 @@ export class SelectivePreloadingStrategy implements PreloadingStrategy {
 
   /** Exposed for tests and for callers that want to log the decision. */
   shouldPreload(): boolean {
-    const connection = (
-      navigator as Navigator & { connection?: NetworkInformation }
-    ).connection;
+    const connection = (navigator as Navigator & { connection?: NetworkInformation }).connection;
 
     if (connection?.saveData === true) {
       return false;

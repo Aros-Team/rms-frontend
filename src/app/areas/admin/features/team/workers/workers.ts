@@ -1,4 +1,14 @@
-import { Component, OnInit, inject, computed, effect, DestroyRef, signal, ViewChild, ElementRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  computed,
+  effect,
+  DestroyRef,
+  signal,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { RouterModule, ActivatedRoute } from '@angular/router';
@@ -16,7 +26,13 @@ import { TooltipModule } from 'primeng/tooltip';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { WorkerResponse } from '@app/shared/models/dto/workers/worker-response';
-import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { Worker } from '@app/core/services/workers/worker';
 import { WorkerImage } from '@app/core/services/worker-image/worker-image';
 import { CreateWorkerRequest } from '@app/shared/models/dto/workers/create-worker-request';
@@ -47,12 +63,12 @@ interface WorkerFormValue {
   name: string;
   email: string;
   phone: string;
-  address: string | null,
-  jobTitle: string | null,
-  areaIds: number[],
-  salary: number | null,
-  reason: string | null,
-  observations: string | null,
+  address: string | null;
+  jobTitle: string | null;
+  areaIds: number[];
+  salary: number | null;
+  reason: string | null;
+  observations: string | null;
 }
 
 @Component({
@@ -132,16 +148,38 @@ export class Workers implements OnInit {
   salaryChanged = computed(() => this.salaryValue() !== this.originalSalary());
 
   userForm: FormGroup = new FormGroup({
-    document: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.pattern(/^\d+$/)(control), (control: AbstractControl) => Validators.maxLength(20)(control)]),
-    name: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)(control), (control: AbstractControl) => Validators.maxLength(100)(control)]),
-    email: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.email(control), (control: AbstractControl) => Validators.maxLength(100)(control)]),
-    phone: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.pattern(/^\d{10}$/)(control)]),
-    address: new FormControl('', [(control: AbstractControl) => Validators.maxLength(200)(control)]),
-    jobTitle: new FormControl<string | null>('', [(control: AbstractControl) => Validators.maxLength(100)(control)]),
+    document: new FormControl('', [
+      (control: AbstractControl) => Validators.required(control),
+      (control: AbstractControl) => Validators.pattern(/^\d+$/)(control),
+      (control: AbstractControl) => Validators.maxLength(20)(control),
+    ]),
+    name: new FormControl('', [
+      (control: AbstractControl) => Validators.required(control),
+      (control: AbstractControl) => Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)(control),
+      (control: AbstractControl) => Validators.maxLength(100)(control),
+    ]),
+    email: new FormControl('', [
+      (control: AbstractControl) => Validators.required(control),
+      (control: AbstractControl) => Validators.email(control),
+      (control: AbstractControl) => Validators.maxLength(100)(control),
+    ]),
+    phone: new FormControl('', [
+      (control: AbstractControl) => Validators.required(control),
+      (control: AbstractControl) => Validators.pattern(/^\d{10}$/)(control),
+    ]),
+    address: new FormControl('', [
+      (control: AbstractControl) => Validators.maxLength(200)(control),
+    ]),
+    jobTitle: new FormControl<string | null>('', [
+      (control: AbstractControl) => Validators.maxLength(100)(control),
+    ]),
     salary: new FormControl<number | null>(null),
     reason: new FormControl<string | null>(null),
     observations: new FormControl<string | null>(null),
-    areaIds: new FormControl<number[]>([], [(control: AbstractControl) => Validators.required(control)]),
+    areaIds: new FormControl<number[]>(
+      [],
+      [(control: AbstractControl) => Validators.required(control)],
+    ),
     areaActivities: new FormControl<Record<string, string[]>>({}),
   });
 
@@ -182,18 +220,20 @@ export class Workers implements OnInit {
     }
 
     // Deep link from the assistant: `?search=` filters the employee list.
-    this.route.queryParamMap
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((params) => {
-        this.workerSearch.set((params.get('search') ?? '').trim());
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      this.workerSearch.set((params.get('search') ?? '').trim());
+    });
+
+    this.userForm
+      .get('salary')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((val) => {
+        this.salaryValue.set(val as number | null);
       });
 
-    this.userForm.get('salary')?.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((val) => { this.salaryValue.set(val as number | null); });
-
-    this.userForm.get('areaIds')?.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    this.userForm
+      .get('areaIds')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((ids) => {
         const selected = (ids as number[] | null) ?? [];
         this.enforceExclusiveAreas(selected);
@@ -248,9 +288,7 @@ export class Workers implements OnInit {
   }
 
   private areaActivitiesPayload(): Record<string, string[]> {
-    return (
-      (this.userForm.get('areaActivities')?.value as Record<string, string[]> | null) ?? {}
-    );
+    return (this.userForm.get('areaActivities')?.value as Record<string, string[]> | null) ?? {};
   }
 
   /** Keeps an exclusive area alone as soon as the admin selects it. */
@@ -308,7 +346,10 @@ export class Workers implements OnInit {
   /** Two-letter monogram shown while the worker has no portrait. */
   imageInitials(): string {
     const name = (this.userForm.get('name')?.value as string | undefined) ?? '';
-    const parts = name.trim().split(/\s+/).filter((part) => part.length > 0);
+    const parts = name
+      .trim()
+      .split(/\s+/)
+      .filter((part) => part.length > 0);
     if (parts.length === 0) {
       return '?';
     }
@@ -595,17 +636,17 @@ export class Workers implements OnInit {
                 .pipe(catchError(() => of(null)))
             : of(null);
         activities$.subscribe(() => {
-            this.saveWorkerImage(workerId, true, () => {
-              this.closeModals();
-              this.searchForWorkers();
-              this.messageService.add({
-                severity: 'success',
-                summary: 'Operación exitosa',
-                detail: 'El trabajador ha sido actualizado correctamente.',
-                life: 5000,
-              });
+          this.saveWorkerImage(workerId, true, () => {
+            this.closeModals();
+            this.searchForWorkers();
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Operación exitosa',
+              detail: 'El trabajador ha sido actualizado correctamente.',
+              life: 5000,
             });
           });
+        });
       },
       error: (err: HttpErrorResponse) => {
         this.logger.error('Error updating worker:', err);
@@ -876,7 +917,15 @@ export class Workers implements OnInit {
 
   private parseBackendValidationErrors(backendMessage: string): void {
     this.backendFieldErrors = {};
-    const fieldMarkers = ['document:', 'email:', 'phone:', 'name:', 'address:', 'salary:', 'reason:'];
+    const fieldMarkers = [
+      'document:',
+      'email:',
+      'phone:',
+      'name:',
+      'address:',
+      'salary:',
+      'reason:',
+    ];
 
     const errorTranslations: Record<string, string> = {
       'Phone must be between 10 and 20 characters': 'El teléfono debe tener 10 dígitos',
@@ -890,11 +939,14 @@ export class Workers implements OnInit {
       'Email is required': 'Campo requerido',
       'El nombre solo permite letras y espacios': 'El nombre solo permite letras y espacios',
       'El nombre debe tener máximo 100 caracteres': 'El nombre debe tener máximo 100 caracteres',
-      'El documento debe tener máximo 20 caracteres': 'El documento debe tener máximo 20 caracteres',
+      'El documento debe tener máximo 20 caracteres':
+        'El documento debe tener máximo 20 caracteres',
       'El correo debe tener máximo 100 caracteres': 'El correo debe tener máximo 100 caracteres',
-      'La dirección debe tener máximo 200 caracteres': 'La dirección debe tener máximo 200 caracteres',
+      'La dirección debe tener máximo 200 caracteres':
+        'La dirección debe tener máximo 200 caracteres',
       'Salary must be a positive value': 'El salario debe ser un valor positivo',
-      'Reason is required when salary changes': 'La razón es obligatoria cuando se cambia el salario',
+      'Reason is required when salary changes':
+        'La razón es obligatoria cuando se cambia el salario',
     };
 
     for (const marker of fieldMarkers) {
@@ -924,7 +976,7 @@ export class Workers implements OnInit {
     this.scheduleAssignmentService.getAssignments(workerId).subscribe({
       next: (scheduleIds) => {
         this.workerAssignedScheduleIds.set(scheduleIds);
-        this.userAssignedSchedules.update(map => {
+        this.userAssignedSchedules.update((map) => {
           const newMap = new Map(map);
           newMap.set(workerId, scheduleIds);
           return newMap;
@@ -932,7 +984,11 @@ export class Workers implements OnInit {
       },
       error: (err: HttpErrorResponse) => {
         this.logger.error('Failed to load assignments', err);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al cargar asignaciones' });
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error al cargar asignaciones',
+        });
       },
       complete: () => {
         this.scheduleDialogLoading.set(false);
@@ -949,33 +1005,48 @@ export class Workers implements OnInit {
     if (!worker?.id) return;
     const workerId = worker.id;
 
-    this.assigningScheduleIds.update(s => new Set(s).add(scheduleId));
+    this.assigningScheduleIds.update((s) => new Set(s).add(scheduleId));
 
     this.scheduleAssignmentService.assign(workerId, scheduleId).subscribe({
       next: (result) => {
-        this.workerAssignedScheduleIds.update(ids => [...ids, scheduleId]);
-        this.userAssignedSchedules.update(map => {
+        this.workerAssignedScheduleIds.update((ids) => [...ids, scheduleId]);
+        this.userAssignedSchedules.update((map) => {
           const newMap = new Map(map);
           const current = newMap.get(workerId) ?? [];
           newMap.set(workerId, [...current, scheduleId]);
           return newMap;
         });
-        const detail =
-          result.warning ?? 'Horario asignado correctamente';
+        const detail = result.warning ?? 'Horario asignado correctamente';
         this.messageService.add({
           severity: result.warning === null ? 'success' : 'warn',
           summary: result.warning === null ? 'Asignado' : 'Asignado con aviso',
           detail,
         });
-        this.assigningScheduleIds.update(s => { const n = new Set(s); n.delete(scheduleId); return n; });
+        this.assigningScheduleIds.update((s) => {
+          const n = new Set(s);
+          n.delete(scheduleId);
+          return n;
+        });
       },
       error: (err: HttpErrorResponse) => {
         if (err.status === 409) {
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'El horario se solapa con turnos existentes del trabajador' });
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'El horario se solapa con turnos existentes del trabajador',
+          });
         } else {
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al asignar horario' });
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Error al asignar horario',
+          });
         }
-        this.assigningScheduleIds.update(s => { const n = new Set(s); n.delete(scheduleId); return n; });
+        this.assigningScheduleIds.update((s) => {
+          const n = new Set(s);
+          n.delete(scheduleId);
+          return n;
+        });
       },
     });
   }
@@ -985,24 +1056,43 @@ export class Workers implements OnInit {
     if (!worker?.id) return;
     const workerId = worker.id;
 
-    this.assigningScheduleIds.update(s => new Set(s).add(scheduleId));
+    this.assigningScheduleIds.update((s) => new Set(s).add(scheduleId));
 
     this.scheduleAssignmentService.removeAssignment(workerId, scheduleId).subscribe({
       next: () => {
-        this.workerAssignedScheduleIds.update(ids => ids.filter(id => id !== scheduleId));
-        this.userAssignedSchedules.update(map => {
+        this.workerAssignedScheduleIds.update((ids) => ids.filter((id) => id !== scheduleId));
+        this.userAssignedSchedules.update((map) => {
           const newMap = new Map(map);
           const current = newMap.get(workerId) ?? [];
-          newMap.set(workerId, current.filter(id => id !== scheduleId));
+          newMap.set(
+            workerId,
+            current.filter((id) => id !== scheduleId),
+          );
           return newMap;
         });
-        this.messageService.add({ severity: 'success', summary: 'Desasignado', detail: 'Horario desasignado correctamente' });
-        this.assigningScheduleIds.update(s => { const n = new Set(s); n.delete(scheduleId); return n; });
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Desasignado',
+          detail: 'Horario desasignado correctamente',
+        });
+        this.assigningScheduleIds.update((s) => {
+          const n = new Set(s);
+          n.delete(scheduleId);
+          return n;
+        });
       },
       error: (err: HttpErrorResponse) => {
         this.logger.error('Failed to remove assignment', err);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al desasignar horario' });
-        this.assigningScheduleIds.update(s => { const n = new Set(s); n.delete(scheduleId); return n; });
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error al desasignar horario',
+        });
+        this.assigningScheduleIds.update((s) => {
+          const n = new Set(s);
+          n.delete(scheduleId);
+          return n;
+        });
       },
     });
   }

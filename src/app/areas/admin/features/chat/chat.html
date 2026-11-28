@@ -16,156 +16,177 @@
           ariaLabel="Limpiar chat"
           tooltip="Limpiar chat"
           size="sm"
-          (click)="clearChat()" />
+          (click)="clearChat()"
+        />
       }
       <app-rms-icon-button
         icon="pi pi-times"
         ariaLabel="Cerrar panel del asistente"
         tooltip="Cerrar panel"
         size="sm"
-        (click)="closeChat()" />
+        (click)="closeChat()"
+      />
     </div>
   </div>
 
   @if (contentReady()) {
-  <div #messagesContainer (scroll)="onMessagesScroll()" class="messages-container flex-1 min-h-0 w-full space-y-3 overflow-y-auto p-3" role="log" aria-live="polite">
-    @if (messages().length === 0 && !loading()) {
-      <div class="flex h-full flex-col items-center justify-center px-4 text-center">
-        <div class="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-rms-brand-soft">
-          <i class="pi pi-sparkles text-rms-brand-text text-2xl" aria-hidden="true"></i>
-        </div>
-        <h3 class="rms-h4 mb-2 text-rms-ink">
-          ¡Hola! Soy tu asistente de negocio
-        </h3>
-        <p class="max-w-[260px] text-sm text-rms-ink-muted">
-          Consultas sobre ventas, inventario, pedidos o lo que necesites para tu restaurante.
-        </p>
-      </div>
-    }
-
-    @for (message of messages(); track trackByMessageId($index, message)) {
-      @if (message.kind === 'navigation') {
-        <div class="flex w-full">
+    <div
+      #messagesContainer
+      (scroll)="onMessagesScroll()"
+      class="messages-container flex-1 min-h-0 w-full space-y-3 overflow-y-auto p-3"
+      role="log"
+      aria-live="polite"
+    >
+      @if (messages().length === 0 && !loading()) {
+        <div class="flex h-full flex-col items-center justify-center px-4 text-center">
           <div
-            class="flex max-w-[85%] items-center gap-2 rounded-xl border border-rms-border bg-rms-brand-soft px-3.5 py-2.5">
-            <i class="pi pi-compass text-sm text-rms-brand-text" aria-hidden="true"></i>
-            <p class="min-w-0 text-sm text-rms-ink">
-              <span class="text-rms-ink-muted">Abriendo</span>
-              <strong class="ml-1 font-semibold">{{ message.navigationLabel }}</strong>
-            </p>
-            @if (message.navigation) {
-              <button
-                type="button"
-                class="ml-auto shrink-0 text-xs font-medium text-rms-brand-text hover:underline"
-                (click)="navigateAgain(message.navigation)">
-                Ir de nuevo
-              </button>
-            }
+            class="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-rms-brand-soft"
+          >
+            <i class="pi pi-sparkles text-rms-brand-text text-2xl" aria-hidden="true"></i>
           </div>
+          <h3 class="rms-h4 mb-2 text-rms-ink">¡Hola! Soy tu asistente de negocio</h3>
+          <p class="max-w-[260px] text-sm text-rms-ink-muted">
+            Consultas sobre ventas, inventario, pedidos o lo que necesites para tu restaurante.
+          </p>
         </div>
-      } @else {
-      <div class="flex w-full" [class.flex-row-reverse]="message.role === 'user'">
-        <div
-          class="max-w-[85%] overflow-hidden rounded-xl px-3.5 py-2.5 break-words"
-          [attr.data-message-id]="message.id"
-          [class.bg-rms-brand]="message.role === 'user'"
-          [class.text-rms-on-brand]="message.role === 'user'"
-          [class.bg-rms-subtle]="message.role === 'assistant'"
-          [class.text-rms-ink]="message.role === 'assistant'">
-          @if (message.role === 'assistant') {
-            <span
-              class="message-content text-sm leading-relaxed [&>*]:text-inherit"
-              [innerHTML]="parseMarkdown(message.content)"></span>
-            @if (message.id === streamingMessageId()) {
-              <span class="streaming-caret" aria-hidden="true"></span>
-            }
-          } @else {
-            <p class="message-content text-sm leading-relaxed">{{ message.content }}</p>
-          }
+      }
 
-          <div class="mt-1 flex items-center justify-end gap-2">
-            @if (message.role === 'assistant' && message.id === lastCompletedId()) {
-              <span class="inline-flex items-center gap-1 text-xs text-rms-ink-muted">
-                <i class="pi pi-check text-xs text-rms-brand-text" aria-hidden="true"></i>
-                Completa
-              </span>
-            }
-            <span
-              class="text-xs"
-              [class.text-rms-on-brand]="message.role === 'user'"
-              [class.opacity-80]="message.role === 'user'"
-              [class.text-rms-ink-muted]="message.role === 'assistant'">
-              {{ formatTime(message.timestamp) }}
-            </span>
-            @if (message.role === 'assistant' && message.content.trim()) {
-              @if (isExpandable(message)) {
+      @for (message of messages(); track trackByMessageId($index, message)) {
+        @if (message.kind === 'navigation') {
+          <div class="flex w-full">
+            <div
+              class="flex max-w-[85%] items-center gap-2 rounded-xl border border-rms-border bg-rms-brand-soft px-3.5 py-2.5"
+            >
+              <i class="pi pi-compass text-sm text-rms-brand-text" aria-hidden="true"></i>
+              <p class="min-w-0 text-sm text-rms-ink">
+                <span class="text-rms-ink-muted">Abriendo</span>
+                <strong class="ml-1 font-semibold">{{ message.navigationLabel }}</strong>
+              </p>
+              @if (message.navigation) {
                 <button
-                  class="text-rms-ink-muted transition-colors hover:text-rms-brand-text"
-                  (click)="expandMessage(message)"
-                  title="Ver en tamaño completo"
-                  aria-label="Ver respuesta en tamaño completo">
-                  <i class="pi pi-window-maximize text-xs" aria-hidden="true"></i>
+                  type="button"
+                  class="ml-auto shrink-0 text-xs font-medium text-rms-brand-text hover:underline"
+                  (click)="navigateAgain(message.navigation)"
+                >
+                  Ir de nuevo
                 </button>
               }
-              <button
-                class="text-rms-ink-muted transition-colors hover:text-rms-brand-text"
-                (click)="copyMessage(message.content)"
-                [title]="copySuccess() ? '¡Copiado!' : 'Copiar'">
-                @if (copySuccess()) {
-                  <i class="pi pi-check text-xs text-rms-brand-text" aria-hidden="true"></i>
-                } @else {
-                  <i class="pi pi-copy text-xs" aria-hidden="true"></i>
+            </div>
+          </div>
+        } @else {
+          <div class="flex w-full" [class.flex-row-reverse]="message.role === 'user'">
+            <div
+              class="max-w-[85%] overflow-hidden rounded-xl px-3.5 py-2.5 break-words"
+              [attr.data-message-id]="message.id"
+              [class.bg-rms-brand]="message.role === 'user'"
+              [class.text-rms-on-brand]="message.role === 'user'"
+              [class.bg-rms-subtle]="message.role === 'assistant'"
+              [class.text-rms-ink]="message.role === 'assistant'"
+            >
+              @if (message.role === 'assistant') {
+                <span
+                  class="message-content text-sm leading-relaxed [&>*]:text-inherit"
+                  [innerHTML]="parseMarkdown(message.content)"
+                ></span>
+                @if (message.id === streamingMessageId()) {
+                  <span class="streaming-caret" aria-hidden="true"></span>
                 }
-              </button>
-            }
+              } @else {
+                <p class="message-content text-sm leading-relaxed">{{ message.content }}</p>
+              }
+
+              <div class="mt-1 flex items-center justify-end gap-2">
+                @if (message.role === 'assistant' && message.id === lastCompletedId()) {
+                  <span class="inline-flex items-center gap-1 text-xs text-rms-ink-muted">
+                    <i class="pi pi-check text-xs text-rms-brand-text" aria-hidden="true"></i>
+                    Completa
+                  </span>
+                }
+                <span
+                  class="text-xs"
+                  [class.text-rms-on-brand]="message.role === 'user'"
+                  [class.opacity-80]="message.role === 'user'"
+                  [class.text-rms-ink-muted]="message.role === 'assistant'"
+                >
+                  {{ formatTime(message.timestamp) }}
+                </span>
+                @if (message.role === 'assistant' && message.content.trim()) {
+                  @if (isExpandable(message)) {
+                    <button
+                      class="text-rms-ink-muted transition-colors hover:text-rms-brand-text"
+                      (click)="expandMessage(message)"
+                      title="Ver en tamaño completo"
+                      aria-label="Ver respuesta en tamaño completo"
+                    >
+                      <i class="pi pi-window-maximize text-xs" aria-hidden="true"></i>
+                    </button>
+                  }
+                  <button
+                    class="text-rms-ink-muted transition-colors hover:text-rms-brand-text"
+                    (click)="copyMessage(message.content)"
+                    [title]="copySuccess() ? '¡Copiado!' : 'Copiar'"
+                  >
+                    @if (copySuccess()) {
+                      <i class="pi pi-check text-xs text-rms-brand-text" aria-hidden="true"></i>
+                    } @else {
+                      <i class="pi pi-copy text-xs" aria-hidden="true"></i>
+                    }
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      }
+
+      @if (loading()) {
+        <div class="flex w-full">
+          <div class="rounded-xl bg-rms-subtle px-3.5 py-2.5">
+            <div class="flex items-center gap-2">
+              <div class="typing-indicator flex gap-1">
+                <span class="h-2 w-2 rounded-full bg-rms-ink-muted"></span>
+                <span class="h-2 w-2 rounded-full bg-rms-ink-muted"></span>
+                <span class="h-2 w-2 rounded-full bg-rms-ink-muted"></span>
+              </div>
+              <span class="text-xs italic text-rms-ink-muted">{{ statusLabel() }}</span>
+              @if (hasStartedStreaming() && !revealAll()) {
+                <button
+                  type="button"
+                  class="text-xs font-medium text-rms-brand-text hover:underline"
+                  (click)="showAll()"
+                >
+                  Mostrar todo
+                </button>
+              }
+            </div>
           </div>
         </div>
-      </div>
       }
-    }
 
-    @if (loading()) {
-      <div class="flex w-full">
-        <div class="rounded-xl bg-rms-subtle px-3.5 py-2.5">
-          <div class="flex items-center gap-2">
-            <div class="typing-indicator flex gap-1">
-              <span class="h-2 w-2 rounded-full bg-rms-ink-muted"></span>
-              <span class="h-2 w-2 rounded-full bg-rms-ink-muted"></span>
-              <span class="h-2 w-2 rounded-full bg-rms-ink-muted"></span>
-            </div>
-            <span class="text-xs italic text-rms-ink-muted">{{ statusLabel() }}</span>
-            @if (hasStartedStreaming() && !revealAll()) {
+      @if (error()) {
+        <div class="flex w-full">
+          <div class="rms-status-surface--danger max-w-[85%] rounded-xl px-3.5 py-2.5">
+            <p class="text-sm">{{ error() }}</p>
+            @if (lastUserMessage()) {
               <button
                 type="button"
-                class="text-xs font-medium text-rms-brand-text hover:underline"
-                (click)="showAll()">
-                Mostrar todo
+                class="mt-2 inline-flex items-center gap-1 text-xs font-semibold underline"
+                (click)="retryMessage()"
+              >
+                <i class="pi pi-refresh text-xs" aria-hidden="true"></i>
+                Reintentar
               </button>
             }
           </div>
         </div>
-      </div>
-    }
-
-    @if (error()) {
-      <div class="flex w-full">
-        <div class="rms-status-surface--danger max-w-[85%] rounded-xl px-3.5 py-2.5">
-          <p class="text-sm">{{ error() }}</p>
-          @if (lastUserMessage()) {
-            <button
-              type="button"
-              class="mt-2 inline-flex items-center gap-1 text-xs font-semibold underline"
-              (click)="retryMessage()">
-              <i class="pi pi-refresh text-xs" aria-hidden="true"></i>
-              Reintentar
-            </button>
-          }
-        </div>
-      </div>
-    }
-  </div>
+      }
+    </div>
   } @else {
-    <div class="flex flex-1 flex-col items-center justify-center gap-2" role="status" aria-live="polite">
+    <div
+      class="flex flex-1 flex-col items-center justify-center gap-2"
+      role="status"
+      aria-live="polite"
+    >
       <i class="pi pi-spinner pi-spin text-xl text-rms-brand-text" aria-hidden="true"></i>
       <p class="rms-caption">Preparando asistente…</p>
     </div>
@@ -175,7 +196,8 @@
     <button
       type="button"
       class="absolute bottom-20 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-rms-border bg-rms-surface px-3 py-1.5 text-xs font-medium text-rms-ink"
-      (click)="jumpToBottom()">
+      (click)="jumpToBottom()"
+    >
       <i class="pi pi-arrow-down text-xs" aria-hidden="true"></i>
       Ir al final
     </button>
@@ -194,39 +216,46 @@
       [baseZIndex]="9000"
       appendTo="body"
       maskStyleClass="chat-expanded-mask"
-      styleClass="chat-expanded-dialog">
-      <div class="message-content chat-expanded-content" [innerHTML]="parseMarkdown(message.content)"></div>
+      styleClass="chat-expanded-dialog"
+    >
+      <div
+        class="message-content chat-expanded-content"
+        [innerHTML]="parseMarkdown(message.content)"
+      ></div>
     </p-dialog>
   }
 
   @if (contentReady()) {
-  <div class="border-t border-rms-border p-3">
-    <div class="flex items-center gap-2">
-      <textarea
-        #messageInput
-        [(ngModel)]="currentMessage"
-        placeholder="Escribe tu mensaje..."
-        aria-label="Mensaje para el asistente"
-        class="w-full rounded-lg border border-rms-border bg-rms-surface px-3.5 py-2.5 text-sm text-rms-ink placeholder:text-rms-ink-muted"
-        [rows]="1"
-        (keydown.enter)="handleKeydown($event)"
-        [disabled]="loading()"></textarea>
-      @if (loading()) {
-        <app-rms-icon-button
-          class="shrink-0"
-          icon="pi pi-stop"
-          ariaLabel="Detener respuesta"
-          variant="danger"
-          (click)="cancelStream()" />
-      } @else {
-        <app-rms-button
-          class="shrink-0"
-          iconStart="pi pi-send"
-          ariaLabel="Enviar mensaje"
-          [disabled]="!currentMessage().trim()"
-          (click)="sendMessage()" />
-      }
+    <div class="border-t border-rms-border p-3">
+      <div class="flex items-center gap-2">
+        <textarea
+          #messageInput
+          [(ngModel)]="currentMessage"
+          placeholder="Escribe tu mensaje..."
+          aria-label="Mensaje para el asistente"
+          class="w-full rounded-lg border border-rms-border bg-rms-surface px-3.5 py-2.5 text-sm text-rms-ink placeholder:text-rms-ink-muted"
+          [rows]="1"
+          (keydown.enter)="handleKeydown($event)"
+          [disabled]="loading()"
+        ></textarea>
+        @if (loading()) {
+          <app-rms-icon-button
+            class="shrink-0"
+            icon="pi pi-stop"
+            ariaLabel="Detener respuesta"
+            variant="danger"
+            (click)="cancelStream()"
+          />
+        } @else {
+          <app-rms-button
+            class="shrink-0"
+            iconStart="pi pi-send"
+            ariaLabel="Enviar mensaje"
+            [disabled]="!currentMessage().trim()"
+            (click)="sendMessage()"
+          />
+        }
+      </div>
     </div>
-  </div>
   }
 </section>

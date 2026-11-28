@@ -1,4 +1,11 @@
-import { Component, ChangeDetectionStrategy, DestroyRef, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { interval } from 'rxjs';
@@ -9,9 +16,7 @@ import { Money } from '@app/shared/pipes/money/money';
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsSkeleton } from '@app/shared/ui/skeleton/skeleton';
 import { RmsStatusPill } from '@app/shared/ui/status-pill/status-pill';
-import type {
-  SpecialSelectionGroupResponse,
-} from '@app/shared/models/dto/special-selections/special-selection-group';
+import type { SpecialSelectionGroupResponse } from '@app/shared/models/dto/special-selections/special-selection-group';
 import type { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';
 
 /**

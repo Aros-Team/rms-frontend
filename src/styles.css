@@ -1,14 +1,14 @@
 /* @import rules must precede every other rule in the stylesheet. */
-@import "tailwindcss";
-@import "./styles/primeicons.css";
-@import "tailwindcss-primeui";
+@import 'tailwindcss';
+@import './styles/primeicons.css';
+@import 'tailwindcss-primeui';
 
 /* Design-system tokens and global primitives. Both are plain CSS custom
    properties/classes, loaded before the legacy rules below so the existing
    screens keep their current appearance while new code reads the tokens. */
-@import "./styles/tokens.css";
-@import "./styles/global.css";
-@import "./styles/controls.css";
+@import './styles/tokens.css';
+@import './styles/global.css';
+@import './styles/controls.css';
 
 /* Archivo — variable font (weights 400-900).
    Self-hosted subsets so `font-medium` (500), `font-semibold` (600) and
@@ -20,7 +20,10 @@
   font-weight: 400 900;
   font-style: normal;
   font-display: swap;
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
 }
 
 @font-face {
@@ -29,7 +32,9 @@
   font-weight: 400 900;
   font-style: normal;
   font-display: swap;
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 /* `:is()` (not `:where()`) so a `dark:` utility outranks its base utility by
@@ -47,26 +52,25 @@
      ======================================== */
 
   /* Slate neutral family — enterprise (cool, sober) */
-  --color-slate-50:  #f8fafc;   /* page bg */
+  --color-slate-50: #f8fafc; /* page bg */
   --color-slate-100: #f1f5f9;
-  --color-slate-200: #e2e8f0;   /* border */
+  --color-slate-200: #e2e8f0; /* border */
   --color-slate-300: #cbd5e1;
-  --color-slate-400: #94a3b8;   /* muted text */
+  --color-slate-400: #94a3b8; /* muted text */
   --color-slate-500: #64748b;
-  --color-slate-600: #475569;   /* secondary text */
+  --color-slate-600: #475569; /* secondary text */
   --color-slate-700: #334155;
   --color-slate-800: #1e293b;
-  --color-slate-900: #0f172a;   /* primary text */
+  --color-slate-900: #0f172a; /* primary text */
   --color-slate-950: #020617;
 
   /* Outline family (mapped to slate for enterprise sober tone) */
-  --color-outline-warm: #475569;            /* slate-600 — readable on white */
-  --color-outline-variant-warm: #cbd5e1;    /* slate-300 — hairline divider */
-
+  --color-outline-warm: #475569; /* slate-600 — readable on white */
+  --color-outline-variant-warm: #cbd5e1; /* slate-300 — hairline divider */
 
   /* Extended radius (App-in-Card) */
-  --radius-card: 1rem;         /* 16 px */
-  --radius-container: 1.5rem;  /* 24 px */
+  --radius-card: 1rem; /* 16 px */
+  --radius-container: 1.5rem; /* 24 px */
   --radius-sheet-top: 1.75rem; /* 28 px */
 
   /* ========================================
@@ -150,11 +154,11 @@
 
   color-scheme: light dark;
 
-  &:has(> head > meta[name="color-scheme"][content="dark"]) {
+  &:has(> head > meta[name='color-scheme'][content='dark']) {
     color-scheme: dark;
   }
 
-  &:has(> head > meta[name="color-scheme"][content="light"]) {
+  &:has(> head > meta[name='color-scheme'][content='light']) {
     color-scheme: light;
   }
 }
@@ -218,7 +222,7 @@ html.dark {
    ======================================== */
 
 /* === Light mode: surfaces + PrimeNG text tokens === */
-html[data-contrast="high"]:not(.dark) {
+html[data-contrast='high']:not(.dark) {
   --p-surface-0: #ffffff;
   --p-surface-50: #ffffff;
   --p-surface-100: #ffffff;
@@ -247,7 +251,7 @@ html[data-contrast="high"]:not(.dark) {
 }
 
 /* === Dark mode: surfaces + PrimeNG text tokens === */
-html.dark[data-contrast="high"] {
+html.dark[data-contrast='high'] {
   --p-surface-0: #000000;
   --p-surface-50: #000000;
   --p-surface-100: #0a0a0a;
@@ -268,65 +272,65 @@ html.dark[data-contrast="high"] {
 }
 
 /* === Focus — 3px solid brand primary outline with offset === */
-html[data-contrast="high"] *:focus-visible {
+html[data-contrast='high'] *:focus-visible {
   outline: 3px solid var(--p-primary-color) !important;
   outline-offset: 2px;
   box-shadow: none !important;
 }
 
 /* === Remove shadows — high contrast means flat === */
-html[data-contrast="high"] .p-card,
-html[data-contrast="high"] .p-dialog,
-html[data-contrast="high"] .p-datatable,
-html[data-contrast="high"] .p-panel,
-html[data-contrast="high"] .p-overlaypanel,
-html[data-contrast="high"] .p-sidebar,
-html[data-contrast="high"] .p-toolbar {
+html[data-contrast='high'] .p-card,
+html[data-contrast='high'] .p-dialog,
+html[data-contrast='high'] .p-datatable,
+html[data-contrast='high'] .p-panel,
+html[data-contrast='high'] .p-overlaypanel,
+html[data-contrast='high'] .p-sidebar,
+html[data-contrast='high'] .p-toolbar {
   box-shadow: none !important;
 }
 
 /* === Structural containers: 2px brand-gold border === */
-html[data-contrast="high"] .p-card,
-html[data-contrast="high"] .p-dialog,
-html[data-contrast="high"] .p-datatable,
-html[data-contrast="high"] .p-panel,
-html[data-contrast="high"] .p-fieldset,
-html[data-contrast="high"] .p-overlaypanel,
-html[data-contrast="high"] .p-sidebar,
-html[data-contrast="high"] .p-toolbar {
+html[data-contrast='high'] .p-card,
+html[data-contrast='high'] .p-dialog,
+html[data-contrast='high'] .p-datatable,
+html[data-contrast='high'] .p-panel,
+html[data-contrast='high'] .p-fieldset,
+html[data-contrast='high'] .p-overlaypanel,
+html[data-contrast='high'] .p-sidebar,
+html[data-contrast='high'] .p-toolbar {
   border: 2px solid var(--p-primary-color) !important;
 }
 
 /* === Inputs, selects, textareas: 2px border for clear boundaries === */
-html[data-contrast="high"] .p-inputtext,
-html[data-contrast="high"] .p-select,
-html[data-contrast="high"] .p-multiselect,
-html[data-contrast="high"] .p-selectbutton {
+html[data-contrast='high'] .p-inputtext,
+html[data-contrast='high'] .p-select,
+html[data-contrast='high'] .p-multiselect,
+html[data-contrast='high'] .p-selectbutton {
   border-width: 2px !important;
 }
 
 /* === Buttons: outlined variant gets 2px === */
-html[data-contrast="high"] .p-button.p-button-outlined {
+html[data-contrast='high'] .p-button.p-button-outlined {
   border-width: 2px !important;
 }
 
 /* === SelectButton: active state has thick border === */
-html[data-contrast="high"] .p-selectbutton .p-button.p-highlight {
+html[data-contrast='high'] .p-selectbutton .p-button.p-highlight {
   border-width: 2px !important;
 }
 
 /* === Table body rows: 2px brand-gold bottom border === */
-html[data-contrast="high"] .p-datatable .p-datatable-tbody > tr {
+html[data-contrast='high'] .p-datatable .p-datatable-tbody > tr {
   border-bottom: 2px solid var(--p-primary-color) !important;
 }
 
 /* === Table headers: bold for clear legibility === */
-html[data-contrast="high"] .p-datatable-thead > tr > th {
+html[data-contrast='high'] .p-datatable-thead > tr > th {
   font-weight: 700 !important;
 }
 
 /* === Links: underlined for distinct recognition === */
-html[data-contrast="high"] a:not(.p-button) {
+html[data-contrast='high'] a:not(.p-button) {
   text-decoration: underline !important;
   text-underline-offset: 2px;
 }

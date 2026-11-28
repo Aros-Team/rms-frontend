@@ -28,11 +28,7 @@ describe('OptionGroup service', () => {
   beforeEach(() => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        OptionGroup,
-      ],
+      providers: [provideHttpClient(), provideHttpClientTesting(), OptionGroup],
     });
 
     service = TestBed.inject(OptionGroup);
@@ -55,8 +51,8 @@ describe('OptionGroup service', () => {
   it('getOptionGroups(search) adds search param', () => {
     service.getOptionGroups('pizza').subscribe();
 
-    const req = httpMock.expectOne(r =>
-      r.url === 'v1/option-groups' && r.params.get('search') === 'pizza'
+    const req = httpMock.expectOne(
+      (r) => r.url === 'v1/option-groups' && r.params.get('search') === 'pizza',
     );
     expect(req.request.method).toBe('GET');
     req.flush([]);
@@ -65,8 +61,8 @@ describe('OptionGroup service', () => {
   it('getProductOptionGroups(productId) hits GET v1/option-groups?productId={id}', () => {
     service.getProductOptionGroups(5).subscribe();
 
-    const req = httpMock.expectOne(r =>
-      r.url === 'v1/option-groups' && r.params.get('productId') === '5'
+    const req = httpMock.expectOne(
+      (r) => r.url === 'v1/option-groups' && r.params.get('productId') === '5',
     );
     expect(req.request.method).toBe('GET');
     req.flush([mockGroup]);

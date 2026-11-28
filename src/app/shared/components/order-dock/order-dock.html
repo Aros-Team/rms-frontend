@@ -67,8 +67,12 @@
     <div class="dock__warn" role="alert">
       <p>¿Eliminar el comensal {{ diner.id }}? Tiene {{ diner.items.length }} producto(s).</p>
       <div class="dock__warn-actions">
-        <app-rms-button variant="danger" size="lg" (click)="confirmRemoveDiner()">Sí</app-rms-button>
-        <app-rms-button variant="secondary" size="lg" (click)="cancelRemoveDiner()">No</app-rms-button>
+        <app-rms-button variant="danger" size="lg" (click)="confirmRemoveDiner()"
+          >Sí</app-rms-button
+        >
+        <app-rms-button variant="secondary" size="lg" (click)="cancelRemoveDiner()"
+          >No</app-rms-button
+        >
       </div>
     </div>
   }
@@ -240,7 +244,4 @@
   (errorClear)="editOptionsError.set(null)"
 />
 
-<app-waiter-table-picker
-  [open]="tablePickerOpen()"
-  (openChange)="tablePickerOpen.set($event)"
-/>
+<app-waiter-table-picker [open]="tablePickerOpen()" (openChange)="tablePickerOpen.set($event)" />

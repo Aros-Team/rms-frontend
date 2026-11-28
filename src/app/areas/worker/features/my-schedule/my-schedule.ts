@@ -84,15 +84,7 @@ type ClockAction = 'in' | 'out';
  */
 @Component({
   selector: 'app-my-schedule',
-  imports: [
-    RmsBadge,
-    RmsButton,
-    RmsCard,
-    RmsEmptyState,
-    RmsIconButton,
-    RmsSection,
-    RmsSkeleton,
-  ],
+  imports: [RmsBadge, RmsButton, RmsCard, RmsEmptyState, RmsIconButton, RmsSection, RmsSkeleton],
   templateUrl: './my-schedule.html',
   styleUrl: './my-schedule.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -220,14 +212,13 @@ export class MySchedule implements OnInit {
     this.clockError.set(null);
     this.clockFeedback.set(null);
 
-    const request = action === 'in' ? this.workerClockService.clockIn() : this.workerClockService.clockOut();
+    const request =
+      action === 'in' ? this.workerClockService.clockIn() : this.workerClockService.clockOut();
     request.subscribe({
       next: (entry) => {
         this.clockBusy.set(null);
         this.lastClock.set(entry);
-        this.clockFeedback.set(
-          action === 'in' ? 'Entrada registrada.' : 'Salida registrada.',
-        );
+        this.clockFeedback.set(action === 'in' ? 'Entrada registrada.' : 'Salida registrada.');
       },
       error: (err: HttpErrorResponse) => {
         this.clockBusy.set(null);
@@ -256,9 +247,7 @@ export class MySchedule implements OnInit {
     }
     return (
       extractProblemDetail(err) ??
-      (action === 'in'
-        ? 'No se pudo registrar la entrada.'
-        : 'No se pudo registrar la salida.')
+      (action === 'in' ? 'No se pudo registrar la entrada.' : 'No se pudo registrar la salida.')
     );
   }
 
@@ -286,9 +275,7 @@ export class MySchedule implements OnInit {
 
   private shiftWeek(days: number): void {
     const anchor = this.weekAnchor();
-    this.weekAnchor.set(
-      new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() + days),
-    );
+    this.weekAnchor.set(new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() + days));
   }
 
   dayNumber(date: Date): string {

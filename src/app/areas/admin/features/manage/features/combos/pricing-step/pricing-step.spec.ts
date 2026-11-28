@@ -44,14 +44,9 @@ interface WizardMock {
   markStepIncomplete: ReturnType<typeof vi.fn>;
 }
 
-function buildWizardMock(
-  initial?: Partial<WizardFormData>,
-): WizardMock {
+function buildWizardMock(initial?: Partial<WizardFormData>): WizardMock {
   const data = signal<WizardFormData>({ ...emptyFormData(), ...initial });
-  const stepsSig = signal<readonly { id: WizardStepId }[]>([
-    { id: 'general' },
-    { id: 'pricing' },
-  ]);
+  const stepsSig = signal<readonly { id: WizardStepId }[]>([{ id: 'general' }, { id: 'pricing' }]);
   return {
     data,
     steps: stepsSig,
@@ -70,9 +65,39 @@ interface ReferenceMock {
 }
 
 const mockProducts: ProductResponse[] = [
-  { id: 100, name: 'Producto A', basePrice: 10.5, active: true, categoryId: 1, categoryName: 'Bebidas', areaId: 1, areaName: 'Cocina', recipe: [] },
-  { id: 101, name: 'Producto B', basePrice: 15.0, active: true, categoryId: 1, categoryName: 'Bebidas', areaId: 1, areaName: 'Cocina', recipe: [] },
-  { id: 102, name: 'Producto C', basePrice: 20.0, active: true, categoryId: 2, categoryName: 'Entradas', areaId: 1, areaName: 'Cocina', recipe: [] },
+  {
+    id: 100,
+    name: 'Producto A',
+    basePrice: 10.5,
+    active: true,
+    categoryId: 1,
+    categoryName: 'Bebidas',
+    areaId: 1,
+    areaName: 'Cocina',
+    recipe: [],
+  },
+  {
+    id: 101,
+    name: 'Producto B',
+    basePrice: 15.0,
+    active: true,
+    categoryId: 1,
+    categoryName: 'Bebidas',
+    areaId: 1,
+    areaName: 'Cocina',
+    recipe: [],
+  },
+  {
+    id: 102,
+    name: 'Producto C',
+    basePrice: 20.0,
+    active: true,
+    categoryId: 2,
+    categoryName: 'Entradas',
+    areaId: 1,
+    areaName: 'Cocina',
+    recipe: [],
+  },
 ];
 
 function buildReferenceMock(): ReferenceMock {
@@ -92,8 +117,24 @@ function formDataWithGroups(): WizardFormData {
     name: 'Combo Test',
     selectedCategoryIds: [1, 2],
     groups: [
-      { id: 1, categoryId: 1, displayOrder: 0, required: true, minSelections: 1, maxSelections: 2, productIds: [100, 101] },
-      { id: 2, categoryId: 2, displayOrder: 1, required: false, minSelections: 0, maxSelections: 3, productIds: [102] },
+      {
+        id: 1,
+        categoryId: 1,
+        displayOrder: 0,
+        required: true,
+        minSelections: 1,
+        maxSelections: 2,
+        productIds: [100, 101],
+      },
+      {
+        id: 2,
+        categoryId: 2,
+        displayOrder: 1,
+        required: false,
+        minSelections: 0,
+        maxSelections: 3,
+        productIds: [102],
+      },
     ],
   };
 }
@@ -111,9 +152,7 @@ describe('PricingStep', () => {
     });
   });
 
-  function createComponent(
-    initialData?: Partial<WizardFormData>,
-  ): void {
+  function createComponent(initialData?: Partial<WizardFormData>): void {
     wizardMock = buildWizardMock(initialData);
     referenceMock = buildReferenceMock();
     TestBed.resetTestingModule();
@@ -138,13 +177,41 @@ describe('PricingStep', () => {
       // Wire shape: `basePrice` is `{ amount: "15000.00", currency: "COP" }`.
       // Reducing the raw objects used to produce NaN.
       mockProducts.push(
-        { id: 200, name: 'Costo A', basePrice: { amount: '15000.00', currency: 'COP' }, active: true, categoryId: 1, categoryName: 'Bebidas', areaId: 1, areaName: 'Cocina', recipe: [] },
-        { id: 201, name: 'Costo B', basePrice: { amount: '10000.00', currency: 'COP' }, active: true, categoryId: 1, categoryName: 'Bebidas', areaId: 1, areaName: 'Cocina', recipe: [] },
+        {
+          id: 200,
+          name: 'Costo A',
+          basePrice: { amount: '15000.00', currency: 'COP' },
+          active: true,
+          categoryId: 1,
+          categoryName: 'Bebidas',
+          areaId: 1,
+          areaName: 'Cocina',
+          recipe: [],
+        },
+        {
+          id: 201,
+          name: 'Costo B',
+          basePrice: { amount: '10000.00', currency: 'COP' },
+          active: true,
+          categoryId: 1,
+          categoryName: 'Bebidas',
+          areaId: 1,
+          areaName: 'Cocina',
+          recipe: [],
+        },
       );
       createComponent({
         ...emptyFormData(),
         groups: [
-          { id: 9, categoryId: 1, displayOrder: 0, required: true, minSelections: 1, maxSelections: 1, productIds: [200, 201] },
+          {
+            id: 9,
+            categoryId: 1,
+            displayOrder: 0,
+            required: true,
+            minSelections: 1,
+            maxSelections: 1,
+            productIds: [200, 201],
+          },
         ],
       });
       fixture.detectChanges();
@@ -194,8 +261,8 @@ describe('PricingStep', () => {
       createComponent(formDataWithGroups());
       fixture.detectChanges();
 
-      expect(component.groupCosts()[0]?.subtotal).toBeCloseTo(25.5);   // (10.5+15)/2 × 2
-      expect(component.groupCosts()[1]?.subtotal).toBeCloseTo(60);     // 20 × 3
+      expect(component.groupCosts()[0]?.subtotal).toBeCloseTo(25.5); // (10.5+15)/2 × 2
+      expect(component.groupCosts()[1]?.subtotal).toBeCloseTo(60); // 20 × 3
       expect(component.totalCost()).toBeCloseTo(85.5);
 
       const subtotals = Array.from(
@@ -212,17 +279,16 @@ describe('PricingStep', () => {
       const firstGroup = formData.groups[0];
       const updatedData: WizardFormData = {
         ...formData,
-        groups: [
-          { ...firstGroup, productIds: [100] },
-        ],
+        groups: [{ ...firstGroup, productIds: [100] }],
       };
       wizardMock.data.set(updatedData);
       fixture.detectChanges();
 
       const native = getNative();
       // avg = 10.5 / 1 = 10.5, × maxSelections=2 = 21 → COP renders 0 decimals
-      expect(native.querySelector('[data-testid="total-cost"] span.text-base')?.textContent.trim())
-        .toBe('Costo total: $\u00A021');
+      expect(
+        native.querySelector('[data-testid="total-cost"] span.text-base')?.textContent.trim(),
+      ).toBe('Costo total: $\u00A021');
     });
 
     it('shows empty message when no groups', () => {
@@ -277,10 +343,12 @@ describe('PricingStep', () => {
       fixture.detectChanges();
 
       const section = getNative().querySelector('[data-testid="suggested-price-section"]');
-      expect(section?.querySelector('[data-testid="suggested-price-value"]')?.textContent.trim())
-        .toBe('$\u00A077');
-      expect(section?.querySelector('[data-testid="apply-suggested-price-btn"]')?.textContent.trim())
-        .toBe('Usar como precio final');
+      expect(
+        section?.querySelector('[data-testid="suggested-price-value"]')?.textContent.trim(),
+      ).toBe('$\u00A077');
+      expect(
+        section?.querySelector('[data-testid="apply-suggested-price-btn"]')?.textContent.trim(),
+      ).toBe('Usar como precio final');
     });
 
     it('hides suggested price section when no groups', () => {
@@ -325,8 +393,9 @@ describe('PricingStep', () => {
       expect(el?.getAttribute('role')).toBe('group');
       const toggles = Array.from(el?.querySelectorAll('p-togglebutton') ?? []);
       expect(toggles.length).toBe(2);
-      expect(toggles.map((t) => t.querySelector('.p-togglebutton-label')?.textContent.trim()))
-        .toEqual(['Sí', 'No']);
+      expect(
+        toggles.map((t) => t.querySelector('.p-togglebutton-label')?.textContent.trim()),
+      ).toEqual(['Sí', 'No']);
       expect(toggles.map((t) => t.getAttribute('aria-pressed'))).toEqual(['false', 'false']);
     });
 

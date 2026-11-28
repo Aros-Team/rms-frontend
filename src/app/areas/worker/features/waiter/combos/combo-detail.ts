@@ -1,4 +1,11 @@
-import { Component, inject, signal, computed, effect, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  computed,
+  effect,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -12,12 +19,8 @@ import { MasterData } from '@app/core/services/master-data/master-data';
 import { toAmount } from '@app/shared/models/dto/common/money';
 import { Money } from '@app/shared/pipes/money/money';
 import type { SpecialSelectionAdditionResponse } from '@app/shared/models/dto/special-selections/special-selection-addition';
-import type {
-  SpecialSelectionGroupResponse,
-} from '@app/shared/models/dto/special-selections/special-selection-group';
-import type {
-  SpecialSelectionQuestionResponse,
-} from '@app/shared/models/dto/special-selections/special-selection-question';
+import type { SpecialSelectionGroupResponse } from '@app/shared/models/dto/special-selections/special-selection-group';
+import type { SpecialSelectionQuestionResponse } from '@app/shared/models/dto/special-selections/special-selection-question';
 
 import { RmsButton } from '@app/shared/ui/button/button';
 import { RmsEmptyState } from '@app/shared/ui/empty-state/empty-state';
@@ -88,7 +91,10 @@ export class ComboDetail {
   readonly additionLabels = computed(() => {
     const labels = new Map<number, string>();
     for (const addition of this.detail()?.additions ?? []) {
-      labels.set(addition.id, `${addition.name} (+${this.moneyPipe.transform(toAmount(addition.extraPrice))})`);
+      labels.set(
+        addition.id,
+        `${addition.name} (+${this.moneyPipe.transform(toAmount(addition.extraPrice))})`,
+      );
     }
     return labels;
   });

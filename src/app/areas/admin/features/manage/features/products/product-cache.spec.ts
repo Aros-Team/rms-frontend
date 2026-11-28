@@ -26,13 +26,15 @@ describe('ProductCache', () => {
 
   beforeEach(() => {
     productStub = {
-      getProductsPaginated: vi.fn().mockReturnValue(of({
-        content: [],
-        totalElements: 0,
-        totalPages: 0,
-        page: 0,
-        size: 6,
-      })),
+      getProductsPaginated: vi.fn().mockReturnValue(
+        of({
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          page: 0,
+          size: 6,
+        }),
+      ),
     };
     const areaStub = { getAreas: vi.fn().mockReturnValue(of([])) };
     const categoryStub = { getCategories: vi.fn().mockReturnValue(of([])) };
@@ -75,7 +77,13 @@ describe('ProductCache', () => {
   it('setProductListParams({ size: 10 }) calls Product.getProductsPaginated with size=10', () => {
     cache.setProductListParams({ size: 10 });
 
-    expect(productStub.getProductsPaginated).toHaveBeenCalledWith(0, 10, true, undefined, undefined);
+    expect(productStub.getProductsPaginated).toHaveBeenCalledWith(
+      0,
+      10,
+      true,
+      undefined,
+      undefined,
+    );
     expect(cache.products.hasData()).toBe(true);
     httpMock.expectNone('v1/products');
   });
@@ -83,7 +91,13 @@ describe('ProductCache', () => {
   it('setProductListParams({ page: 2, size: 10 }) propagates both args', () => {
     cache.setProductListParams({ page: 2, size: 10 });
 
-    expect(productStub.getProductsPaginated).toHaveBeenCalledWith(2, 10, true, undefined, undefined);
+    expect(productStub.getProductsPaginated).toHaveBeenCalledWith(
+      2,
+      10,
+      true,
+      undefined,
+      undefined,
+    );
     expect(cache.products.hasData()).toBe(true);
     httpMock.expectNone('v1/products');
   });

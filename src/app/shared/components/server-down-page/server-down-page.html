@@ -4,18 +4,18 @@
   </div>
 
   <div class="text-center max-w-md">
-    <h2 class="rms-h2 text-rms-ink mb-3">
-      Servicio temporalmente no disponible
-    </h2>
+    <h2 class="rms-h2 text-rms-ink mb-3">Servicio temporalmente no disponible</h2>
     <p class="text-rms-ink-secondary leading-relaxed">
-      El servidor está presentando inconvenientes. Por favor, ten paciencia, estamos trabajando para solucionarlo.
+      El servidor está presentando inconvenientes. Por favor, ten paciencia, estamos trabajando para
+      solucionarlo.
     </p>
   </div>
 
   <app-rms-button
     iconStart="pi pi-refresh"
     [loading]="serverStatus.isChecking()"
-    (click)="serverStatus.check()">
+    (click)="serverStatus.check()"
+  >
     Reintentar conexión
   </app-rms-button>
 </div>

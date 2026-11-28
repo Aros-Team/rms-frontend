@@ -79,11 +79,17 @@ export function primeCostCsv(report: PrimeCostReport): string {
   return toCsv(columns, report.series);
 }
 
-function cogsAmount(row: { cogs: { byCategory: PrimeCostCogsBreakdownRow[] } }, category: string): string {
+function cogsAmount(
+  row: { cogs: { byCategory: PrimeCostCogsBreakdownRow[] } },
+  category: string,
+): string {
   return money(row.cogs.byCategory.find((line) => line.category === category)?.amount);
 }
 
-function laborAmount(row: { labor: { byArea: PrimeCostLaborBreakdownRow[] } }, area: string): string {
+function laborAmount(
+  row: { labor: { byArea: PrimeCostLaborBreakdownRow[] } },
+  area: string,
+): string {
   return money(row.labor.byArea.find((line) => line.area === area)?.amount);
 }
 

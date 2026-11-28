@@ -1,5 +1,12 @@
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormArray,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -32,11 +39,15 @@ export class OrderCreationForm implements OnInit {
   private logger = inject(Logging);
 
   title = 'Crear pedido';
-  description = 'Registra un nuevo pedido indicando la mesa y los productos para cada orden de cliente.';
+  description =
+    'Registra un nuevo pedido indicando la mesa y los productos para cada orden de cliente.';
 
   form: FormGroup = this.fb.group({
-    table: new FormControl<number | null>(null, { nonNullable: false, validators: [Validators.required.bind(Validators), Validators.min(1).bind(Validators)] }),
-    clientOrders: this.fb.array([this.createClientOrderGroup()])
+    table: new FormControl<number | null>(null, {
+      nonNullable: false,
+      validators: [Validators.required.bind(Validators), Validators.min(1).bind(Validators)],
+    }),
+    clientOrders: this.fb.array([this.createClientOrderGroup()]),
   });
 
   products: ProductListResponse[] = [];
@@ -55,21 +66,27 @@ export class OrderCreationForm implements OnInit {
 
   createClientOrderGroup(): FormGroup {
     return this.fb.group({
-      details: this.fb.array([this.createDetailGroup()])
+      details: this.fb.array([this.createDetailGroup()]),
     });
   }
 
   createDetailGroup(): FormGroup {
     return this.fb.group({
-      product: new FormControl<number | null>(null, [Validators.required.bind(Validators), Validators.min(1).bind(Validators)]),
-      quantity: new FormControl<number>(1, [Validators.required.bind(Validators), Validators.min(1).bind(Validators)]),
+      product: new FormControl<number | null>(null, [
+        Validators.required.bind(Validators),
+        Validators.min(1).bind(Validators),
+      ]),
+      quantity: new FormControl<number>(1, [
+        Validators.required.bind(Validators),
+        Validators.min(1).bind(Validators),
+      ]),
       observations: new FormControl<string>('', []),
-      subProducts: new FormControl<string>('', []) // comma-separated ids
+      subProducts: new FormControl<string>('', []), // comma-separated ids
     });
   }
 
   detailsAt(index: number): FormArray<FormGroup> {
-    return (this.clientOrders.at(index).get('details') as FormArray<FormGroup>);
+    return this.clientOrders.at(index).get('details') as FormArray<FormGroup>;
   }
 
   addClientOrder(): void {
@@ -103,20 +120,31 @@ export class OrderCreationForm implements OnInit {
       return;
     }
 
-    interface DetailFormValue { product: number | null; quantity: number; observations: string; subProducts: string }
-    interface ClientOrderFormValue { details: DetailFormValue[] }
+    interface DetailFormValue {
+      product: number | null;
+      quantity: number;
+      observations: string;
+      subProducts: string;
+    }
+    interface ClientOrderFormValue {
+      details: DetailFormValue[];
+    }
 
-    const raw = this.form.getRawValue() as { table: number | null; clientOrders: ClientOrderFormValue[] };
+    const raw = this.form.getRawValue() as {
+      table: number | null;
+      clientOrders: ClientOrderFormValue[];
+    };
 
     const request: CreateOrderRequest = {
       tableId: Number(raw.table),
       details: raw.clientOrders.flatMap((co) =>
         co.details.map((d) => {
-          const parsedSubProducts = (d.subProducts)
-            ? d.subProducts.split(',')
-                .map(s => s.trim())
-                .filter(s => s.length > 0 && !isNaN(Number(s)))
-                .map(n => Number(n))
+          const parsedSubProducts = d.subProducts
+            ? d.subProducts
+                .split(',')
+                .map((s) => s.trim())
+                .filter((s) => s.length > 0 && !isNaN(Number(s)))
+                .map((n) => Number(n))
             : [];
 
           return {
@@ -124,24 +152,30 @@ export class OrderCreationForm implements OnInit {
             instructions: d.observations ? d.observations.trim() : '',
             selectedOptionIds: parsedSubProducts,
           };
-        })
-      )
+        }),
+      ),
     };
     this.logger.debug('CreateOrder request payload', request);
 
     this.orderService.createOrder(request).subscribe({
       next: () => {
         this.logger.info('CreateOrder success');
-        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Pedido creado correctamente.' });
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Pedido creado correctamente.',
+        });
       },
       error: (err) => {
         this.logger.error('CreateOrder failed', err);
         const httpErr = err instanceof HttpErrorResponse ? err : null;
         const errorDetail = httpErr
           ? mapHttpError(httpErr, 'product-options')
-          : (typeof err === 'object' && err !== null ? this.resolveCreateOrderError(err) : 'Error desconocido');
+          : typeof err === 'object' && err !== null
+            ? this.resolveCreateOrderError(err)
+            : 'Error desconocido';
         this.messageService.add({ severity: 'error', summary: 'Error', detail: errorDetail });
-      }
+      },
     });
   }
 
@@ -152,7 +186,8 @@ export class OrderCreationForm implements OnInit {
 
     if (status === 409) {
       if (message.startsWith('Table not available')) return 'La mesa no está disponible.';
-      if (message.startsWith('Insufficient stock')) return 'Stock insuficiente para completar la orden.';
+      if (message.startsWith('Insufficient stock'))
+        return 'Stock insuficiente para completar la orden.';
       return message || 'Conflicto al procesar la orden.';
     }
 
@@ -163,7 +198,8 @@ export class OrderCreationForm implements OnInit {
     }
 
     if (status === 400) {
-      if (message.startsWith('Option') && message.includes('is not valid for product')) return 'Opción no válida para este producto.';
+      if (message.startsWith('Option') && message.includes('is not valid for product'))
+        return 'Opción no válida para este producto.';
       if (message) return `Datos inválidos: ${message}`;
       return 'Datos inválidos, revisa el formulario.';
     }
@@ -173,7 +209,8 @@ export class OrderCreationForm implements OnInit {
 
   private loadProducts(): void {
     this.productsLoading = true;
-    this.productService.getAllProducts()
+    this.productService
+      .getAllProducts()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (products) => {
@@ -182,10 +219,14 @@ export class OrderCreationForm implements OnInit {
         },
         error: (err) => {
           console.error('Error loading products', err);
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los productos.' });
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudieron cargar los productos.',
+          });
           this.products = [];
           this.productsLoading = false;
-        }
+        },
       });
   }
 }

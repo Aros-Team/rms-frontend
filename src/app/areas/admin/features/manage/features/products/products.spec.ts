@@ -93,7 +93,9 @@ function setupComponent(variants: SupplyVariantResponse[] = []) {
       loadIfStale: vi.fn(),
     },
     products: {
-      data: vi.fn().mockReturnValue({ content: [], totalPages: 0, totalElements: 0, page: 0, size: 0 }),
+      data: vi
+        .fn()
+        .mockReturnValue({ content: [], totalPages: 0, totalElements: 0, page: 0, size: 0 }),
       refresh: vi.fn(),
       loadIfStale: vi.fn(),
       invalidate: vi.fn(),
@@ -224,9 +226,39 @@ describe('Products page', () => {
     it('with includeInactive=true, products() shows only inactive products from cache', () => {
       const env = setupComponent();
       const fixture: ProductResponse[] = [
-        { id: 1, name: 'Activo', basePrice: money('5.00'), active: true, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
-        { id: 2, name: 'Inactivo', basePrice: money('5.00'), active: false, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
-        { id: 3, name: 'Otro inactivo', basePrice: money('5.00'), active: false, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
+        {
+          id: 1,
+          name: 'Activo',
+          basePrice: money('5.00'),
+          active: true,
+          categoryId: 1,
+          categoryName: 'C',
+          areaId: 1,
+          areaName: 'A',
+          recipe: [],
+        },
+        {
+          id: 2,
+          name: 'Inactivo',
+          basePrice: money('5.00'),
+          active: false,
+          categoryId: 1,
+          categoryName: 'C',
+          areaId: 1,
+          areaName: 'A',
+          recipe: [],
+        },
+        {
+          id: 3,
+          name: 'Otro inactivo',
+          basePrice: money('5.00'),
+          active: false,
+          categoryId: 1,
+          categoryName: 'C',
+          areaId: 1,
+          areaName: 'A',
+          recipe: [],
+        },
       ];
       env.cacheStub.products.data = vi.fn().mockReturnValue({
         content: fixture,
@@ -246,9 +278,39 @@ describe('Products page', () => {
     it('with includeInactive=false, products() shows only active products from cache', () => {
       const env = setupComponent();
       const fixture: ProductResponse[] = [
-        { id: 1, name: 'Activo', basePrice: money('5.00'), active: true, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
-        { id: 2, name: 'Inactivo', basePrice: money('5.00'), active: false, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
-        { id: 3, name: 'Otro activo', basePrice: money('5.00'), active: true, categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [] },
+        {
+          id: 1,
+          name: 'Activo',
+          basePrice: money('5.00'),
+          active: true,
+          categoryId: 1,
+          categoryName: 'C',
+          areaId: 1,
+          areaName: 'A',
+          recipe: [],
+        },
+        {
+          id: 2,
+          name: 'Inactivo',
+          basePrice: money('5.00'),
+          active: false,
+          categoryId: 1,
+          categoryName: 'C',
+          areaId: 1,
+          areaName: 'A',
+          recipe: [],
+        },
+        {
+          id: 3,
+          name: 'Otro activo',
+          basePrice: money('5.00'),
+          active: true,
+          categoryId: 1,
+          categoryName: 'C',
+          areaId: 1,
+          areaName: 'A',
+          recipe: [],
+        },
       ];
       env.cacheStub.products.data = vi.fn().mockReturnValue({
         content: fixture,
@@ -285,7 +347,9 @@ describe('Products page', () => {
       const env = setupComponent();
       const product = buildProductFixture();
 
-      (env.component as unknown as { enableProduct: (id: number) => void }).enableProduct(product.id);
+      (env.component as unknown as { enableProduct: (id: number) => void }).enableProduct(
+        product.id,
+      );
 
       expect(env.wsStub.emitCacheInvalidation).toHaveBeenCalledWith('products', 'update');
       expect(env.cacheStub.products.refresh).toHaveBeenCalled();
@@ -298,11 +362,13 @@ describe('Products page', () => {
       const messageService = TestBed.inject(MessageService);
       const addSpy = vi.spyOn(messageService, 'add');
 
-      (env.component as unknown as { enableProduct: (id: number) => void }).enableProduct(product.id);
+      (env.component as unknown as { enableProduct: (id: number) => void }).enableProduct(
+        product.id,
+      );
 
       const errorCalls = addSpy.mock.calls.filter(
         ([msg]: [{ severity: string; detail: string }]) =>
-          msg.severity === 'error' && msg.detail === 'No se pudo activar el producto'
+          msg.severity === 'error' && msg.detail === 'No se pudo activar el producto',
       );
       expect(errorCalls.length).toBeGreaterThanOrEqual(1);
     });
@@ -460,7 +526,7 @@ describe('Products page', () => {
       expect(env.imageStub.uploadImage).not.toHaveBeenCalled();
       const warnCalls = addSpy.mock.calls.filter(
         ([msg]: [{ severity: string; summary: string }]) =>
-          msg.severity === 'warn' && msg.summary === 'Datos incompletos'
+          msg.severity === 'warn' && msg.summary === 'Datos incompletos',
       );
       expect(warnCalls.length).toBeGreaterThanOrEqual(1);
       expect(env.component.createdProduct()).toBeNull();
@@ -470,8 +536,15 @@ describe('Products page', () => {
       const env = setupComponent();
       env.component.modalMode.set('create');
       env.component.createdProduct.set({
-        id: 77, name: 'Hamburguesa', basePrice: money('0.00'), active: true,
-        categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [],
+        id: 77,
+        name: 'Hamburguesa',
+        basePrice: money('0.00'),
+        active: true,
+        categoryId: 1,
+        categoryName: 'C',
+        areaId: 1,
+        areaName: 'A',
+        recipe: [],
       });
       env.productStub.createProduct.mockClear();
       env.imageStub.uploadImage.mockClear();
@@ -503,7 +576,8 @@ describe('Products page', () => {
       expect(env.imageStub.uploadImage).not.toHaveBeenCalled();
       const errorCalls = addSpy.mock.calls.filter(
         ([msg]: [{ severity: string; detail: string }]) =>
-          msg.severity === 'error' && msg.detail === 'No se pudo crear el producto para subir la imagen'
+          msg.severity === 'error' &&
+          msg.detail === 'No se pudo crear el producto para subir la imagen',
       );
       expect(errorCalls.length).toBeGreaterThanOrEqual(1);
       expect(env.component.createdProduct()).toBeNull();
@@ -519,8 +593,15 @@ describe('Products page', () => {
       // Simulate state after auto-create completed.
       env.component.modalMode.set('create');
       env.component.createdProduct.set({
-        id: 33, name: 'Nuevo producto', basePrice: money('0.00'), active: true,
-        categoryId: 1, categoryName: 'C', areaId: 1, areaName: 'A', recipe: [],
+        id: 33,
+        name: 'Nuevo producto',
+        basePrice: money('0.00'),
+        active: true,
+        categoryId: 1,
+        categoryName: 'C',
+        areaId: 1,
+        areaName: 'A',
+        recipe: [],
       });
       env.component.baseForm.patchValue({
         name: 'Nuevo producto',

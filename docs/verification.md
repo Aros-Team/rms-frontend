@@ -18,6 +18,7 @@
 ## 2. Manual Verification Steps
 
 ### Code Quality
+
 - No `console.log()` or debug prints left behind
 - No TODOs without context
 - No inline styles (except token-based dynamic values)
@@ -25,6 +26,7 @@
 - All class/variable names in English
 
 ### Architecture Compliance
+
 - Components use `templateUrl` + `styleUrl` (no inline)
 - Files follow naming conventions (kebab-case, no suffix)
 - **Todo archivo `.ts` está dentro de una carpeta** (no hay archivos sueltos)
@@ -34,16 +36,19 @@
 - Feature components in `features/`
 
 ### Style Compliance
+
 - Only design tokens used (no hardcoded colors/sizes)
 - PrimeNG components preferred
 - No custom CSS outside design system
 
 ### Reutilización
+
 - Se verificó que no exista un componente similar en `shared/` antes de crear uno nuevo
 - Si el componente es reusable, se creó en `shared/`, no dentro de una feature
 - No hay duplicación de lógica o UI que pueda unificarse
 
 ### Data Loading
+
 - Toda consulta a lista incluye `size` (paginated query obligatorio)
 - Se usó `ResourceCache` para cachear datos (no llamadas HTTP directas sin cache)
 - TTL configurado según el tipo de dato (crítico: 1-2 min, referencia: 30 min)
@@ -52,6 +57,7 @@
 - Skeletons presentes en todos los estados de carga
 
 ### Tests
+
 - New functionality has tests
 - Tests are in `tests/` folder
 - Tests pass independently

@@ -22,10 +22,12 @@ import type { WizardFormData } from '@app/core/services/combos/combo-wizard-stat
 import type { ProductResponse } from '@app/shared/models/dto/products/product-response';
 import type { SpecialSelectionRequest } from '@app/shared/models/dto/special-selections/special-selection-request';
 
-function buildWizardStub(overrides?: Partial<{
-  sourceId: number | null;
-  data: WizardFormData;
-}>) {
+function buildWizardStub(
+  overrides?: Partial<{
+    sourceId: number | null;
+    data: WizardFormData;
+  }>,
+) {
   const sourceId = signal<number | null>(overrides?.sourceId ?? null);
   const data = signal<WizardFormData>(
     overrides?.data ?? {
@@ -74,7 +76,14 @@ function setupTestBed(wizardStub?: ReturnType<typeof buildWizardStub>) {
     ],
   });
 
-  return { service: TestBed.inject(ComboSubmission), ws, cacheStub, productStub, messageStub, routerStub };
+  return {
+    service: TestBed.inject(ComboSubmission),
+    ws,
+    cacheStub,
+    productStub,
+    messageStub,
+    routerStub,
+  };
 }
 
 const fullFormData: WizardFormData = {
@@ -87,8 +96,24 @@ const fullFormData: WizardFormData = {
   schedulingRequired: true,
   selectedCategoryIds: [1, 2],
   groups: [
-    { id: 10, categoryId: 1, displayOrder: 0, required: true, minSelections: 1, maxSelections: 1, productIds: [100] },
-    { id: null, categoryId: 2, displayOrder: 1, required: false, minSelections: 0, maxSelections: 2, productIds: [200, 201] },
+    {
+      id: 10,
+      categoryId: 1,
+      displayOrder: 0,
+      required: true,
+      minSelections: 1,
+      maxSelections: 1,
+      productIds: [100],
+    },
+    {
+      id: null,
+      categoryId: 2,
+      displayOrder: 1,
+      required: false,
+      minSelections: 0,
+      maxSelections: 2,
+      productIds: [200, 201],
+    },
   ],
   additions: [
     { id: 1, name: 'Queso', optionId: 5, extraPrice: 1.5, displayOrder: 0 },
@@ -111,11 +136,11 @@ describe('ComboSubmission', () => {
 
   describe('buildRequest', () => {
     it('maps WizardFormData to SpecialSelectionRequest correctly', () => {
-      const { service } = setupTestBed(
-        buildWizardStub({ sourceId: 42, data: fullFormData }),
-      );
+      const { service } = setupTestBed(buildWizardStub({ sourceId: 42, data: fullFormData }));
 
-      const serviceAny = service as unknown as { buildRequest: (d: WizardFormData) => SpecialSelectionRequest };
+      const serviceAny = service as unknown as {
+        buildRequest: (d: WizardFormData) => SpecialSelectionRequest;
+      };
       const req = serviceAny.buildRequest(fullFormData);
 
       expect(req.name).toBe('Combo Ejecutivo');
@@ -128,11 +153,11 @@ describe('ComboSubmission', () => {
     });
 
     it('renumbers displayOrder on groups', () => {
-      const { service } = setupTestBed(
-        buildWizardStub({ sourceId: null, data: fullFormData }),
-      );
+      const { service } = setupTestBed(buildWizardStub({ sourceId: null, data: fullFormData }));
 
-      const serviceAny = service as unknown as { buildRequest: (d: WizardFormData) => SpecialSelectionRequest };
+      const serviceAny = service as unknown as {
+        buildRequest: (d: WizardFormData) => SpecialSelectionRequest;
+      };
       const req = serviceAny.buildRequest(fullFormData);
 
       expect(req.groups.length).toBe(2);
@@ -141,11 +166,11 @@ describe('ComboSubmission', () => {
     });
 
     it('strips null id to undefined for groups (create)', () => {
-      const { service } = setupTestBed(
-        buildWizardStub({ sourceId: null, data: fullFormData }),
-      );
+      const { service } = setupTestBed(buildWizardStub({ sourceId: null, data: fullFormData }));
 
-      const serviceAny = service as unknown as { buildRequest: (d: WizardFormData) => SpecialSelectionRequest };
+      const serviceAny = service as unknown as {
+        buildRequest: (d: WizardFormData) => SpecialSelectionRequest;
+      };
       const req = serviceAny.buildRequest(fullFormData);
 
       expect(req.groups[0].id).toBe(10);
@@ -157,22 +182,22 @@ describe('ComboSubmission', () => {
         ...fullFormData,
         basePrice: null,
       };
-      const { service } = setupTestBed(
-        buildWizardStub({ sourceId: null, data: zeroPriceData }),
-      );
+      const { service } = setupTestBed(buildWizardStub({ sourceId: null, data: zeroPriceData }));
 
-      const serviceAny = service as unknown as { buildRequest: (d: WizardFormData) => SpecialSelectionRequest };
+      const serviceAny = service as unknown as {
+        buildRequest: (d: WizardFormData) => SpecialSelectionRequest;
+      };
       const req = serviceAny.buildRequest(zeroPriceData);
 
       expect(req.basePrice).toBe(0);
     });
 
     it('maps additions, questions, and schedule', () => {
-      const { service } = setupTestBed(
-        buildWizardStub({ sourceId: null, data: fullFormData }),
-      );
+      const { service } = setupTestBed(buildWizardStub({ sourceId: null, data: fullFormData }));
 
-      const serviceAny = service as unknown as { buildRequest: (d: WizardFormData) => SpecialSelectionRequest };
+      const serviceAny = service as unknown as {
+        buildRequest: (d: WizardFormData) => SpecialSelectionRequest;
+      };
       const req = serviceAny.buildRequest(fullFormData);
 
       expect(req.additions).toEqual([

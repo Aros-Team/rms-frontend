@@ -1,8 +1,5 @@
 <div class="cashier">
-  <app-rms-page-header
-    [compact]="true"
-    title="Caja"
-  >
+  <app-rms-page-header [compact]="true" title="Caja">
     <div rmsPageHeaderMeta class="cashier__meta">
       <app-rms-status-pill
         [label]="shiftOpen() ? 'Caja abierta' : 'Caja cerrada'"
@@ -17,11 +14,7 @@
     </div>
 
     <div rmsPageHeaderActions>
-      <app-rms-button
-        variant="secondary"
-        iconStart="pi pi-wallet"
-        (click)="openShiftDialog()"
-      >
+      <app-rms-button variant="secondary" iconStart="pi pi-wallet" (click)="openShiftDialog()">
         {{ shiftOpen() ? 'Ver turno' : 'Abrir caja' }}
       </app-rms-button>
     </div>

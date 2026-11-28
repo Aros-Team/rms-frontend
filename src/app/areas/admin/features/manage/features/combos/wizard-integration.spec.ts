@@ -18,7 +18,10 @@ import { MessageService } from 'primeng/api';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ComboReferenceCache } from '@app/core/services/combos/combo-reference-cache';
-import { ComboWizardState, type WizardFormData } from '@app/core/services/combos/combo-wizard-state';
+import {
+  ComboWizardState,
+  type WizardFormData,
+} from '@app/core/services/combos/combo-wizard-state';
 import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import type { ProductResponse } from '@app/shared/models/dto/products/product-response';
 import type { Money } from '@app/shared/models/dto/common/money';
@@ -53,7 +56,10 @@ function buildReferenceStub(
     categories,
     categoryName: (id: number) => categories().find((c) => c.id === id)?.name,
     specialSelectionProductsByCategory: (id: number) =>
-      products.filter((p) => p.categoryId === id && p.active && p.selectionType === SELECTION_TYPE.SPECIAL_SELECTION),
+      products.filter(
+        (p) =>
+          p.categoryId === id && p.active && p.selectionType === SELECTION_TYPE.SPECIAL_SELECTION,
+      ),
     productById: (id: number) => products.find((p) => p.id === id),
   };
 }
@@ -69,7 +75,12 @@ function specialSelectionsCacheStub() {
 
 // ─── Test data ───────────────────────────────────────────────────────────────
 
-function makeProduct(id: number, name: string, basePrice: Money | number, categoryId: number): ProductResponse {
+function makeProduct(
+  id: number,
+  name: string,
+  basePrice: Money | number,
+  categoryId: number,
+): ProductResponse {
   return {
     id,
     name,
@@ -158,7 +169,9 @@ async function setupWizardTestBed(
   };
 }
 
-async function setupHostTestBed<T extends object>(host: new () => T): Promise<{
+async function setupHostTestBed<T extends object>(
+  host: new () => T,
+): Promise<{
   fixture: import('@angular/core/testing').ComponentFixture<T>;
 }> {
   TestBed.resetTestingModule();
@@ -266,7 +279,13 @@ describe('Wizard integration', () => {
       expect(ids).toEqual(['general', 'category:1', 'category:2', 'questions', 'pricing']);
 
       const labels = env.wizard.stepView().map((s) => s.label);
-      expect(labels).toEqual(['Información general', 'Bebidas', 'Entradas', 'Preguntas', 'Precio final']);
+      expect(labels).toEqual([
+        'Información general',
+        'Bebidas',
+        'Entradas',
+        'Preguntas',
+        'Precio final',
+      ]);
     });
 
     it('removing categories removes their timeline steps', async () => {
@@ -375,36 +394,65 @@ describe('Wizard integration', () => {
   // ── 4+5. Group validation blocking ────────────────────────────────────
   describe('4. Group validation blocks wizard advancement', () => {
     it('canAdvanceFromGroups returns false on MIN_NOT_MET', () => {
-      expect(canAdvanceFromGroups([{ categoryId: 1, type: 'MIN_NOT_MET', message: 'x' }])).toBe(false);
+      expect(canAdvanceFromGroups([{ categoryId: 1, type: 'MIN_NOT_MET', message: 'x' }])).toBe(
+        false,
+      );
     });
 
     it('canAdvanceFromGroups returns false on MAX_EXCEEDED', () => {
-      expect(canAdvanceFromGroups([{ categoryId: 1, type: 'MAX_EXCEEDED', message: 'x' }])).toBe(false);
+      expect(canAdvanceFromGroups([{ categoryId: 1, type: 'MAX_EXCEEDED', message: 'x' }])).toBe(
+        false,
+      );
     });
 
     it('canAdvanceFromGroups returns false on EMPTY_GROUP', () => {
-      expect(canAdvanceFromGroups([{ categoryId: 1, type: 'EMPTY_GROUP', message: 'x' }])).toBe(false);
+      expect(canAdvanceFromGroups([{ categoryId: 1, type: 'EMPTY_GROUP', message: 'x' }])).toBe(
+        false,
+      );
     });
 
     it('canAdvanceFromGroups returns true on warnings-only', () => {
-      expect(canAdvanceFromGroups([{ categoryId: 1, type: 'NO_ELIGIBLE_PRODUCTS', message: 'x' }])).toBe(true);
-      expect(canAdvanceFromGroups([{ categoryId: 1, type: 'DUPLICATE_CATEGORY', message: 'x' }])).toBe(true);
-      expect(canAdvanceFromGroups([{ categoryId: 1, type: 'INVALID_BOUNDS', message: 'x' }])).toBe(true);
+      expect(
+        canAdvanceFromGroups([{ categoryId: 1, type: 'NO_ELIGIBLE_PRODUCTS', message: 'x' }]),
+      ).toBe(true);
+      expect(
+        canAdvanceFromGroups([{ categoryId: 1, type: 'DUPLICATE_CATEGORY', message: 'x' }]),
+      ).toBe(true);
+      expect(canAdvanceFromGroups([{ categoryId: 1, type: 'INVALID_BOUNDS', message: 'x' }])).toBe(
+        true,
+      );
     });
 
     it('validateAllGroups produces MIN_NOT_MET for required group with too few products', () => {
       const formData: WizardFormData = {
-        name: 'Test', description: '', basePrice: 100, areaId: 1,
-        active: true, baseRecipeEnabled: false, schedulingRequired: false,
+        name: 'Test',
+        description: '',
+        basePrice: 100,
+        areaId: 1,
+        active: true,
+        baseRecipeEnabled: false,
+        schedulingRequired: false,
         selectedCategoryIds: [1],
-        groups: [{ id: null, categoryId: 1, displayOrder: 0, required: true, minSelections: 3, maxSelections: 5, productIds: [10] }],
-        additions: [], questions: [], schedule: [],
+        groups: [
+          {
+            id: null,
+            categoryId: 1,
+            displayOrder: 0,
+            required: true,
+            minSelections: 3,
+            maxSelections: 5,
+            productIds: [10],
+          },
+        ],
+        additions: [],
+        questions: [],
+        schedule: [],
       };
-      const ref = { specialSelectionProductsByCategory: () => TEST_PRODUCTS.filter((p) => p.categoryId === 1) };
+      const ref = {
+        specialSelectionProductsByCategory: () => TEST_PRODUCTS.filter((p) => p.categoryId === 1),
+      };
       const errors = validateAllGroups(formData, ref);
-      expect(errors).toEqual([
-        expect.objectContaining({ categoryId: 1, type: 'MIN_NOT_MET' }),
-      ]);
+      expect(errors).toEqual([expect.objectContaining({ categoryId: 1, type: 'MIN_NOT_MET' })]);
     });
 
     it('wizard canAdvance is false when group step not completed', async () => {
@@ -482,8 +530,24 @@ describe('Wizard integration', () => {
       ];
       const cmp = await setupPricingStep(
         pricingFormData([
-          { id: null, categoryId: 1, displayOrder: 0, required: true, minSelections: 1, maxSelections: 1, productIds: [20, 21] },
-          { id: null, categoryId: 2, displayOrder: 1, required: false, minSelections: 0, maxSelections: 1, productIds: [22] },
+          {
+            id: null,
+            categoryId: 1,
+            displayOrder: 0,
+            required: true,
+            minSelections: 1,
+            maxSelections: 1,
+            productIds: [20, 21],
+          },
+          {
+            id: null,
+            categoryId: 2,
+            displayOrder: 1,
+            required: false,
+            minSelections: 0,
+            maxSelections: 1,
+            productIds: [22],
+          },
         ]),
         moneyProducts,
       );
@@ -506,8 +570,24 @@ describe('Wizard integration', () => {
     it('skips empty productIds within a group', async () => {
       const cmp = await setupPricingStep(
         pricingFormData([
-          { id: null, categoryId: 1, displayOrder: 0, required: false, minSelections: 0, maxSelections: 2, productIds: [] },
-          { id: null, categoryId: 2, displayOrder: 1, required: false, minSelections: 0, maxSelections: 1, productIds: [12] },
+          {
+            id: null,
+            categoryId: 1,
+            displayOrder: 0,
+            required: false,
+            minSelections: 0,
+            maxSelections: 2,
+            productIds: [],
+          },
+          {
+            id: null,
+            categoryId: 2,
+            displayOrder: 1,
+            required: false,
+            minSelections: 0,
+            maxSelections: 1,
+            productIds: [12],
+          },
         ]),
         TEST_PRODUCTS,
       );
@@ -524,7 +604,15 @@ describe('Wizard integration', () => {
       ];
       const cmp = await setupPricingStep(
         pricingFormData([
-          { id: null, categoryId: 1, displayOrder: 0, required: false, minSelections: 0, maxSelections: 1, productIds: [20] },
+          {
+            id: null,
+            categoryId: 1,
+            displayOrder: 0,
+            required: false,
+            minSelections: 0,
+            maxSelections: 1,
+            productIds: [20],
+          },
         ]),
         moneyProducts,
       );

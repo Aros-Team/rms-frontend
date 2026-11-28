@@ -12,11 +12,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import {
-  formatMoneyAmount,
-  formatMoneyInput,
-  parseMoneyInput,
-} from './money-amount';
+import { formatMoneyAmount, formatMoneyInput, parseMoneyInput } from './money-amount';
 
 describe('parseMoneyInput', () => {
   it('parses a plain integer amount', () => {

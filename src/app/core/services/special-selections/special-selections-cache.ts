@@ -10,7 +10,10 @@ import { SpecialSelectionRequest } from '@app/shared/models/dto/special-selectio
 import { ScheduleEntryRequest } from '@app/shared/models/dto/special-selections/schedule-entry';
 import { SpecialSelectionHistoryPage } from '@app/shared/models/dto/special-selections/special-selection-history';
 import { SuggestedPriceResponse } from '@app/shared/models/dto/special-selections/special-selection-suggested-price';
-import { CHANGE_TYPE, SpecialSelectionWsPayload } from '@app/shared/models/dto/special-selections/special-selection-ws-payload';
+import {
+  CHANGE_TYPE,
+  SpecialSelectionWsPayload,
+} from '@app/shared/models/dto/special-selections/special-selection-ws-payload';
 
 @Injectable({ providedIn: 'root' })
 export class SpecialSelectionsCache {
@@ -36,9 +39,7 @@ export class SpecialSelectionsCache {
   readonly modifiedCombo$: Observable<number | null> = this.modifiedComboSubject.asObservable();
 
   constructor() {
-    this.realtime.updates$.pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe((payload) => {
+    this.realtime.updates$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((payload) => {
       this.handleRealtimeUpdate(payload);
     });
   }
@@ -106,14 +107,14 @@ export class SpecialSelectionsCache {
     this.historyCaches.delete(id);
   }
 
-  readonly list = new ResourceCache<SpecialSelectionResponse[]>(
-    () => this.api.list(),
-    { ttlMs: 2 * 60 * 1000, staleWhileRevalidate: true }
-  );
+  readonly list = new ResourceCache<SpecialSelectionResponse[]>(() => this.api.list(), {
+    ttlMs: 2 * 60 * 1000,
+    staleWhileRevalidate: true,
+  });
 
   readonly availableNow = new ResourceCache<SpecialSelectionResponse[]>(
     () => this.api.availableNow(),
-    { ttlMs: 60 * 1000, staleWhileRevalidate: true }
+    { ttlMs: 60 * 1000, staleWhileRevalidate: true },
   );
 
   private readonly detailCaches = new Map<number, ResourceCache<SpecialSelectionResponse>>();
@@ -123,10 +124,10 @@ export class SpecialSelectionsCache {
   detail(id: number): ResourceCache<SpecialSelectionResponse> {
     let cache = this.detailCaches.get(id);
     if (!cache) {
-      cache = new ResourceCache<SpecialSelectionResponse>(
-        () => this.api.getById(id),
-        { ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true }
-      );
+      cache = new ResourceCache<SpecialSelectionResponse>(() => this.api.getById(id), {
+        ttlMs: 5 * 60 * 1000,
+        staleWhileRevalidate: true,
+      });
       this.detailCaches.set(id, cache);
     }
     return cache;
@@ -139,10 +140,10 @@ export class SpecialSelectionsCache {
   publicDetail(id: number): ResourceCache<SpecialSelectionResponse> {
     let cache = this.publicDetailCaches.get(id);
     if (!cache) {
-      cache = new ResourceCache<SpecialSelectionResponse>(
-        () => this.api.getPublicById(id),
-        { ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true }
-      );
+      cache = new ResourceCache<SpecialSelectionResponse>(() => this.api.getPublicById(id), {
+        ttlMs: 5 * 60 * 1000,
+        staleWhileRevalidate: true,
+      });
       this.publicDetailCaches.set(id, cache);
     }
     return cache;
@@ -151,10 +152,10 @@ export class SpecialSelectionsCache {
   history(id: number): ResourceCache<SpecialSelectionHistoryPage> {
     let cache = this.historyCaches.get(id);
     if (!cache) {
-      cache = new ResourceCache<SpecialSelectionHistoryPage>(
-        () => this.api.getHistory(id, 0, 10),
-        { ttlMs: 2 * 60 * 1000, staleWhileRevalidate: true }
-      );
+      cache = new ResourceCache<SpecialSelectionHistoryPage>(() => this.api.getHistory(id, 0, 10), {
+        ttlMs: 2 * 60 * 1000,
+        staleWhileRevalidate: true,
+      });
       this.historyCaches.set(id, cache);
     }
     return cache;
@@ -163,9 +164,15 @@ export class SpecialSelectionsCache {
   invalidateAll(): void {
     this.list.invalidate();
     this.availableNow.invalidate();
-    this.detailCaches.forEach((c) => { c.invalidate(); });
-    this.publicDetailCaches.forEach((c) => { c.invalidate(); });
-    this.historyCaches.forEach((c) => { c.invalidate(); });
+    this.detailCaches.forEach((c) => {
+      c.invalidate();
+    });
+    this.publicDetailCaches.forEach((c) => {
+      c.invalidate();
+    });
+    this.historyCaches.forEach((c) => {
+      c.invalidate();
+    });
   }
 
   invalidateDetail(id: number): void {
@@ -182,43 +189,57 @@ export class SpecialSelectionsCache {
   }
 
   create(req: SpecialSelectionRequest): Observable<SpecialSelectionResponse> {
-    return this.api.create(req).pipe(tap(() => { this.invalidateAll(); }));
+    return this.api.create(req).pipe(
+      tap(() => {
+        this.invalidateAll();
+      }),
+    );
   }
 
   update(id: number, req: SpecialSelectionRequest): Observable<SpecialSelectionResponse> {
-    return this.api.update(id, req).pipe(tap(() => {
-      this.invalidateAll();
-      this.invalidateHistory(id);
-    }));
+    return this.api.update(id, req).pipe(
+      tap(() => {
+        this.invalidateAll();
+        this.invalidateHistory(id);
+      }),
+    );
   }
 
   patchSchedule(id: number, entries: ScheduleEntryRequest[]): Observable<SpecialSelectionResponse> {
-    return this.api.patchSchedule(id, { schedule: entries }).pipe(tap(() => {
-      this.availableNow.invalidate();
-      this.invalidateDetail(id);
-    }));
+    return this.api.patchSchedule(id, { schedule: entries }).pipe(
+      tap(() => {
+        this.availableNow.invalidate();
+        this.invalidateDetail(id);
+      }),
+    );
   }
 
   patchPrice(id: number, basePrice: number): Observable<SpecialSelectionResponse> {
-    return this.api.patchPrice(id, { basePrice: basePrice }).pipe(tap(() => {
-      this.availableNow.invalidate();
-      this.invalidateDetail(id);
-    }));
+    return this.api.patchPrice(id, { basePrice: basePrice }).pipe(
+      tap(() => {
+        this.availableNow.invalidate();
+        this.invalidateDetail(id);
+      }),
+    );
   }
 
   delete(id: number): Observable<object> {
-    return this.api.delete(id).pipe(tap(() => {
-      this.removeCachedSelection(id);
-      this.list.invalidate();
-      this.availableNow.invalidate();
-    }));
+    return this.api.delete(id).pipe(
+      tap(() => {
+        this.removeCachedSelection(id);
+        this.list.invalidate();
+        this.availableNow.invalidate();
+      }),
+    );
   }
 
   revert(id: number, version: number): Observable<SpecialSelectionResponse> {
-    return this.api.revertHistory(id, version).pipe(tap(() => {
-      this.invalidateDetail(id);
-      this.invalidateHistory(id);
-      this.availableNow.invalidate();
-    }));
+    return this.api.revertHistory(id, version).pipe(
+      tap(() => {
+        this.invalidateDetail(id);
+        this.invalidateHistory(id);
+        this.availableNow.invalidate();
+      }),
+    );
   }
 }

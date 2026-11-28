@@ -21,8 +21,15 @@ import { RmsInput } from '@shared/ui/input/input';
   selector: 'app-time-logs',
   imports: [
     FormsModule,
-    ButtonModule, TableModule, SkeletonModule, DatePickerModule, ToastModule,
-    TableSkeleton, RmsButton, RmsBadge, RmsInput,
+    ButtonModule,
+    TableModule,
+    SkeletonModule,
+    DatePickerModule,
+    ToastModule,
+    TableSkeleton,
+    RmsButton,
+    RmsBadge,
+    RmsInput,
   ],
   templateUrl: './time-logs.html',
   styleUrl: './time-logs.css',
@@ -70,11 +77,23 @@ export class TimeLogs implements OnInit {
       error: (err: HttpErrorResponse) => {
         this.logger.error('Failed to load time logs', err);
         if (err.status === 403) {
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Acción no disponible fuera de turno' });
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Acción no disponible fuera de turno',
+          });
         } else if (err.status === 404) {
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se encontraron registros' });
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se encontraron registros',
+          });
         } else {
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al cargar los registros de ingreso' });
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Error al cargar los registros de ingreso',
+          });
         }
         this.error.set('Error al cargar los registros de ingreso');
         this.loading.set(false);
@@ -91,8 +110,11 @@ export class TimeLogs implements OnInit {
 
   formatTimestamp(iso: string): string {
     return new Date(iso).toLocaleString('es-CO', {
-      year: 'numeric', month: '2-digit', day: '2-digit',
-      hour: '2-digit', minute: '2-digit',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   }
 }

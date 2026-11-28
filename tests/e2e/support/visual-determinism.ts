@@ -49,7 +49,15 @@ export async function visualMasks(page: Page): Promise<Locator[]> {
     const DYNAMIC = 'pw-visual-dynamic';
     document.querySelectorAll(`.${DYNAMIC}`).forEach((el) => el.classList.remove(DYNAMIC));
 
-    const skip = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'CANVAS', 'SVG', 'PATH', 'MAT-DIALOG-CONTAINER']);
+    const skip = new Set([
+      'SCRIPT',
+      'STYLE',
+      'NOSCRIPT',
+      'CANVAS',
+      'SVG',
+      'PATH',
+      'MAT-DIALOG-CONTAINER',
+    ]);
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT);
     let node = walker.nextNode();
     while (node) {

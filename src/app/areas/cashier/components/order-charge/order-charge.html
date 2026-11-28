@@ -1,4 +1,7 @@
-<app-rms-section title="Cuenta" description="Revisa el pedido, aplica descuento y propina, y registra el cobro.">
+<app-rms-section
+  title="Cuenta"
+  description="Revisa el pedido, aplica descuento y propina, y registra el cobro."
+>
   @if (loading) {
     <div class="charge__loading" role="status" aria-label="Cargando el detalle de la cuenta">
       <app-rms-skeleton height="1.5rem" width="45%" ariaLabel="Cargando la cuenta" />
@@ -34,7 +37,9 @@
 
     <div class="charge__lines-wrap">
       <table class="charge__lines">
-        <caption class="sr-only">Detalle de productos del pedido</caption>
+        <caption class="sr-only">
+          Detalle de productos del pedido
+        </caption>
         <thead>
           <tr>
             <th scope="col">Producto</th>
@@ -132,12 +137,7 @@
     <div class="charge__block charge__block--wide">
       <div class="charge__block-header">
         <h3 class="charge__block-title">Medios de pago</h3>
-        <app-rms-button
-          size="sm"
-          variant="secondary"
-          iconStart="pi pi-plus"
-          (click)="addTender()"
-        >
+        <app-rms-button size="sm" variant="secondary" iconStart="pi pi-plus" (click)="addTender()">
           Agregar medio
         </app-rms-button>
       </div>

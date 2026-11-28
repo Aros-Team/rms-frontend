@@ -68,8 +68,16 @@ describe('kitchen lines', () => {
     );
 
     expect(lines).toHaveLength(2);
-    expect(lines[0]).toMatchObject({ name: 'Hamburguesa', quantity: 2, station: { name: 'Cocina' } });
-    expect(lines[1]).toMatchObject({ quantity: 1, note: 'Sin cebolla', station: { name: 'Cocina' } });
+    expect(lines[0]).toMatchObject({
+      name: 'Hamburguesa',
+      quantity: 2,
+      station: { name: 'Cocina' },
+    });
+    expect(lines[1]).toMatchObject({
+      quantity: 1,
+      note: 'Sin cebolla',
+      station: { name: 'Cocina' },
+    });
     expect(totalKitchenItems(lines)).toBe(3);
   });
 
@@ -176,10 +184,7 @@ describe('kitchen lines', () => {
 
   it('keeps every physical row readiness on a grouped line', () => {
     const [grouped] = groupKitchenLines(
-      [
-        line({ id: 1, ready: true, readyAt: '2026-11-22T12:00:00' }),
-        line({ id: 2, ready: false }),
-      ],
+      [line({ id: 1, ready: true, readyAt: '2026-11-22T12:00:00' }), line({ id: 2, ready: false })],
       stations,
     );
 
@@ -192,7 +197,10 @@ describe('kitchen lines', () => {
     expect(pendingDetailIds(grouped)).toEqual([2]);
     expect(lineReadyAt(grouped)).toBeNull();
 
-    const bothReady = { ...grouped, details: grouped.details.map((detail) => ({ ...detail, ready: true })) };
+    const bothReady = {
+      ...grouped,
+      details: grouped.details.map((detail) => ({ ...detail, ready: true })),
+    };
     expect(isLineReady(bothReady)).toBe(true);
     expect(lineReadyAt(bothReady)).toBe('2026-11-22T12:00:00');
   });

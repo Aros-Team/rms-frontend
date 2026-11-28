@@ -64,8 +64,7 @@ export const WORKER_MODULES = [
       // Account settings live in the header profile menu ("Mi cuenta"), not in
       // the service navigation.
     ],
-    loadComponent: () =>
-      import('@areas/cashier/cashier-area').then((m) => m.CashierArea),
+    loadComponent: () => import('@areas/cashier/cashier-area').then((m) => m.CashierArea),
   },
   {
     id: 'waiter',
@@ -124,8 +123,7 @@ export const WORKER_MODULES = [
     priority: 2,
     preload: true,
     nav: [],
-    loadComponent: () =>
-      import('@areas/worker/features/kitchen/kitchen').then((m) => m.Kitchen),
+    loadComponent: () => import('@areas/worker/features/kitchen/kitchen').then((m) => m.Kitchen),
   },
 ] as const satisfies readonly WorkerModuleDefinition[];
 
@@ -141,8 +139,7 @@ export function moduleForUrl(url: string): WorkerModuleDefinition | null {
   const path = url.split('?')[0] ?? '';
   return (
     WORKER_MODULES.find((module) => {
-      const extraPaths =
-        (module as { extraPaths?: readonly string[] }).extraPaths ?? [];
+      const extraPaths = (module as { extraPaths?: readonly string[] }).extraPaths ?? [];
       return (
         path === module.home ||
         path.startsWith(`${module.home}/`) ||

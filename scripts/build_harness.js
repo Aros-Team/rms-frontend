@@ -8,11 +8,15 @@ const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.join(__dirname, '..');
 
 const TEMPLATES = {
-  'activities.json': JSON.stringify({
-    project: '{project_name}',
-    description: '{description}',
-    activities: []
-  }, null, 2),
+  'activities.json': JSON.stringify(
+    {
+      project: '{project_name}',
+      description: '{description}',
+      activities: [],
+    },
+    null,
+    2,
+  ),
   'progress/current.md': `# Current Session
 
 ## Activity
@@ -36,7 +40,7 @@ const TEMPLATES = {
   'progress/history.md': `# Session History
 
 ---
-`
+`,
 };
 
 function initProject(projectName, description) {
@@ -47,11 +51,15 @@ function initProject(projectName, description) {
 
   const activitiesPath = path.join(PROJECT_ROOT, 'activities.json');
   if (!fs.existsSync(activitiesPath)) {
-    const content = JSON.stringify({
-      project: projectName,
-      description: description,
-      activities: []
-    }, null, 2);
+    const content = JSON.stringify(
+      {
+        project: projectName,
+        description: description,
+        activities: [],
+      },
+      null,
+      2,
+    );
     fs.writeFileSync(activitiesPath, content);
     console.log('Created activities.json');
   } else {

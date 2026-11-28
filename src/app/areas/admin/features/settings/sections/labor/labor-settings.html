@@ -1,7 +1,4 @@
-<app-rms-section
-  title="Costo de nómina"
-  [hideHeader]="true"
->
+<app-rms-section title="Costo de nómina" [hideHeader]="true">
   @if (loading()) {
     <div class="flex flex-col gap-3">
       <app-rms-skeleton height="2.5rem" ariaLabel="Cargando la configuración de nómina" />
@@ -64,12 +61,10 @@
           />
 
           <div class="rounded-lg border border-rms-border bg-rms-subtle px-4 py-3">
-            <p class="text-rms-label uppercase tracking-wide text-rms-ink-muted">
-              Base de cálculo
-            </p>
+            <p class="text-rms-label uppercase tracking-wide text-rms-ink-muted">Base de cálculo</p>
             <p class="mt-1 text-rms-body text-rms-ink">
-              La tarifa estándar es el último respaldo de todos los modos. Si queda en cero y no
-              hay nómina, el costo de mano de obra será cero.
+              La tarifa estándar es el último respaldo de todos los modos. Si queda en cero y no hay
+              nómina, el costo de mano de obra será cero.
             </p>
           </div>
         </div>

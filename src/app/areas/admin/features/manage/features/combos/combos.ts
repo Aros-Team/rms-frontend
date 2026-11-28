@@ -48,8 +48,13 @@ export class Combos {
 
   scheduleSummary(schedule: SpecialSelectionResponse['schedule']): string {
     const dayNames: Record<string, string> = {
-      MONDAY: 'Lun', TUESDAY: 'Mar', WEDNESDAY: 'Mié', THURSDAY: 'Jue',
-      FRIDAY: 'Vie', SATURDAY: 'Sáb', SUNDAY: 'Dom',
+      MONDAY: 'Lun',
+      TUESDAY: 'Mar',
+      WEDNESDAY: 'Mié',
+      THURSDAY: 'Jue',
+      FRIDAY: 'Vie',
+      SATURDAY: 'Sáb',
+      SUNDAY: 'Dom',
     };
     const grouped = new Map<string, string[]>();
     for (const entry of schedule) {
@@ -63,11 +68,13 @@ export class Combos {
     }
     return Array.from(grouped.entries())
       .map(([time, days]) => {
-        const sortedDays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
-          .filter(d => days.includes(d));
-        const range = sortedDays.length > 1
-          ? `${sortedDays[0]}-${sortedDays[sortedDays.length - 1]}`
-          : (sortedDays[0] ?? days[0]);
+        const sortedDays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].filter((d) =>
+          days.includes(d),
+        );
+        const range =
+          sortedDays.length > 1
+            ? `${sortedDays[0]}-${sortedDays[sortedDays.length - 1]}`
+            : (sortedDays[0] ?? days[0]);
         return `${range} ${time}`;
       })
       .join(', ');

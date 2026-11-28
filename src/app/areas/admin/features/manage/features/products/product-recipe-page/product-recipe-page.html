@@ -3,12 +3,14 @@
     title="Receta y costeo"
     [subtitle]="product()?.name ?? 'Cargando producto…'"
     backLabel="Volver a productos"
-    (back)="goBack()">
+    (back)="goBack()"
+  >
     <span rmsPageHeaderMeta class="recipe-meta">
       @if (product(); as p) {
         <app-rms-badge
           [label]="p.active ? 'Activo' : 'Inactivo'"
-          [tone]="p.active ? 'success' : 'neutral'" />
+          [tone]="p.active ? 'success' : 'neutral'"
+        />
         <span>{{ p.categoryName }} · {{ p.areaName }}</span>
       }
       @if (state() === 'ready') {
@@ -23,14 +25,16 @@
       <app-rms-button
         variant="secondary"
         [disabled]="!dirty() || saving()"
-        (click)="discardChanges()">
+        (click)="discardChanges()"
+      >
         Descartar
       </app-rms-button>
       <app-rms-button
         iconStart="pi pi-check"
         [disabled]="!canSave()"
         [loading]="saving()"
-        (click)="save()">
+        (click)="save()"
+      >
         Guardar cambios
       </app-rms-button>
     </div>
@@ -111,7 +115,8 @@
                 [required]="true"
                 [ngModel]="draft().name"
                 (ngModelChange)="updateName($event)"
-                [error]="dirty() ? nameError() : ''" />
+                [error]="dirty() ? nameError() : ''"
+              />
 
               <div class="product-row">
                 <app-rms-select
@@ -121,7 +126,8 @@
                   [ngModel]="draft().categoryId"
                   (ngModelChange)="updateCategory($event)"
                   [error]="dirty() ? categoryError() : ''"
-                  placeholder="Selecciona una categoría" />
+                  placeholder="Selecciona una categoría"
+                />
                 <app-rms-select
                   label="Área de preparación"
                   [required]="true"
@@ -129,7 +135,8 @@
                   [ngModel]="draft().areaId"
                   (ngModelChange)="updateArea($event)"
                   [error]="dirty() ? areaError() : ''"
-                  placeholder="Selecciona un área" />
+                  placeholder="Selecciona un área"
+                />
               </div>
 
               <div class="product-readonly">
@@ -147,14 +154,19 @@
                   [src]="image.desktopUrl"
                   alt="Imagen actual del producto"
                   width="96"
-                  height="96" />
+                  height="96"
+                />
               } @else {
                 <div class="product-image__monogram" aria-hidden="true">{{ monogram }}</div>
               }
               <div class="product-image__meta">
                 <p class="product-image__title">Imagen del producto</p>
                 <p class="product-image__hint">
-                  {{ primaryImage ? 'Se muestra la primera imagen.' : 'Sin imagen: se muestra un monograma.' }}
+                  {{
+                    primaryImage
+                      ? 'Se muestra la primera imagen.'
+                      : 'Sin imagen: se muestra un monograma.'
+                  }}
                 </p>
                 <div class="product-image__actions">
                   <input
@@ -162,13 +174,15 @@
                     type="file"
                     accept="image/*"
                     hidden
-                    (change)="onImageSelect($event)" />
+                    (change)="onImageSelect($event)"
+                  />
                   <app-rms-button
                     variant="secondary"
                     size="sm"
                     iconStart="pi pi-upload"
                     [loading]="imageBusy()"
-                    (click)="imageInput.click()">
+                    (click)="imageInput.click()"
+                  >
                     Subir imagen
                   </app-rms-button>
                   @if (primaryImage; as image) {
@@ -177,7 +191,8 @@
                       size="sm"
                       iconStart="pi pi-trash"
                       [disabled]="imageBusy()"
-                      (click)="deleteImage(image.id)">
+                      (click)="deleteImage(image.id)"
+                    >
                       Eliminar
                     </app-rms-button>
                   }
@@ -192,7 +207,8 @@
 
         <app-rms-card
           title="Receta base"
-          subtitle="Insumos por porción, en la unidad del insumo seleccionado.">
+          subtitle="Insumos por porción, en la unidad del insumo seleccionado."
+        >
           <span rmsCardActions class="recipe-card-meta">
             <span>Material estimado</span>
             <strong class="rms-tabular">{{ materialMoney() | money }}</strong>
@@ -208,7 +224,8 @@
                   size="sm"
                   variant="secondary"
                   iconStart="pi pi-refresh"
-                  (click)="retryReferenceData()">
+                  (click)="retryReferenceData()"
+                >
                   Reintentar
                 </app-rms-button>
               </div>
@@ -220,18 +237,21 @@
               [rows]="recipeRows()"
               [variants]="variants()"
               [disabled]="saving()"
-              (rowsChange)="updateRecipeRows($event)" />
+              (rowsChange)="updateRecipeRows($event)"
+            />
           }
         </app-rms-card>
         <app-option-groups-manager
           [productId]="product()?.id ?? 0"
-          (changed)="onOptionsChanged()" />
+          (changed)="onOptionsChanged()"
+        />
       </div>
 
       <aside class="recipe-aside" aria-label="Costeo del producto">
         <app-rms-card
           title="Costeo en vivo"
-          subtitle="El material y el margen siguen tu borrador; la mano de obra usa la tarifa del área y las personas que definas.">
+          subtitle="El material y el margen siguen tu borrador; la mano de obra usa la tarifa del área y las personas que definas."
+        >
           <span rmsCardActions>
             <i
               class="pi pi-info-circle cursor-help"
@@ -239,7 +259,8 @@
               tooltipPosition="top"
               tabindex="0"
               role="img"
-              aria-label="Cómo se calcula la mano de obra"></i>
+              aria-label="Cómo se calcula la mano de obra"
+            ></i>
           </span>
           <div class="cost-grid">
             <app-rms-stat-tile
@@ -247,27 +268,31 @@
               [value]="materialMoney() | money"
               [period]="materialPeriod()"
               [loading]="costLoading()"
-              icon="pi pi-box" />
+              icon="pi pi-box"
+            />
             <app-rms-stat-tile
               label="Mano de obra"
               [value]="laborMoney() | money"
               [period]="laborPeriod()"
               [loading]="costLoading()"
-              icon="pi pi-clock" />
+              icon="pi pi-clock"
+            />
             <app-rms-stat-tile
               label="Costo total"
               [value]="totalMoney() | money"
               [period]="totalPeriod()"
               [loading]="costLoading()"
               icon="pi pi-calculator"
-              [emphasis]="true" />
+              [emphasis]="true"
+            />
             <app-rms-stat-tile
               label="Margen bruto"
               [value]="marginLabel()"
               [period]="marginPeriod()"
               [delta]="marginNegative() ? 'Precio bajo el costo' : ''"
               deltaTone="negative"
-              icon="pi pi-percentage" />
+              icon="pi pi-percentage"
+            />
           </div>
 
           <div class="prep-time-panel">
@@ -278,12 +303,14 @@
                 hint="Minutos. Se mantiene como referencia de hora pico / baja demanda."
                 [ngModel]="draft().estimatedPrepMinutes"
                 (ngModelChange)="updateEstimatedPrepMinutes($event)"
-                [error]="dirty() ? estimatedMinutesError() : ''" />
+                [error]="dirty() ? estimatedMinutesError() : ''"
+              />
               <app-rms-select
                 label="Usar para costeo"
                 [options]="prepTimeModeOptions"
                 [ngModel]="draft().prepTimeMode"
-                (ngModelChange)="updatePrepTimeMode($event)" />
+                (ngModelChange)="updatePrepTimeMode($event)"
+              />
             </div>
             <div class="prep-time-panel__real">
               <span class="prep-time-panel__label">Tiempo real medido</span>
@@ -306,20 +333,23 @@
               [hint]="'En ' + currency() + ', sin separador de miles.'"
               [ngModel]="draft().salePrice"
               (ngModelChange)="updatePrice($event)"
-              [error]="dirty() ? priceError() : ''" />
+              [error]="dirty() ? priceError() : ''"
+            />
             <app-rms-input
               label="Personas para preparar"
               inputMode="numeric"
               hint="Cuántas personas trabajan en paralelo durante el tiempo de preparación."
               [ngModel]="draft().requiredWorkers"
               (ngModelChange)="updateRequiredWorkers($event)"
-              [error]="dirty() ? workersError() : ''" />
+              [error]="dirty() ? workersError() : ''"
+            />
             <app-rms-button
               variant="secondary"
               size="sm"
               iconStart="pi pi-arrow-up-right"
               [disabled]="!canUseSuggested()"
-              (click)="useSuggestedPrice()">
+              (click)="useSuggestedPrice()"
+            >
               Usar sugerido {{ suggestedMoney() | money }}
             </app-rms-button>
           </div>
@@ -327,7 +357,10 @@
           @if (dirty()) {
             <div class="cost-stale" role="status">
               <app-rms-badge label="Costos sin guardar" tone="warning" [dot]="true" />
-              <span>Los datos guardados conservan la receta anterior. Guarda para fijar este costo.</span>
+              <span
+                >Los datos guardados conservan la receta anterior. Guarda para fijar este
+                costo.</span
+              >
             </div>
           }
 
@@ -354,7 +387,13 @@
             </div>
             <div>
               <dt>Tiempo usado</dt>
-              <dd>{{ prepTime()?.usedPrepMinutes ?? cost()?.prepTimeUsedMinutes ?? 0 }} min ({{ (prepTime()?.usedSource ?? cost()?.prepTimeUsedSource) === 'REAL' ? 'real' : 'estimado' }})</dd>
+              <dd>
+                {{ prepTime()?.usedPrepMinutes ?? cost()?.prepTimeUsedMinutes ?? 0 }} min ({{
+                  (prepTime()?.usedSource ?? cost()?.prepTimeUsedSource) === 'REAL'
+                    ? 'real'
+                    : 'estimado'
+                }})
+              </dd>
             </div>
             <div>
               <dt>Personas por preparación</dt>
@@ -378,7 +417,8 @@
                   size="sm"
                   variant="secondary"
                   iconStart="pi pi-refresh"
-                  (click)="retryCosts()">
+                  (click)="retryCosts()"
+                >
                   Reintentar
                 </app-rms-button>
               </div>
@@ -388,7 +428,8 @@
 
         <app-rms-card
           title="Desglose de datos guardados"
-          subtitle="Costos guardados, incluida la proyección de las opciones.">
+          subtitle="Costos guardados, incluida la proyección de las opciones."
+        >
           @if (breakdown() !== null) {
             <dl class="cost-server">
               <div>
@@ -405,8 +446,7 @@
               </div>
             </dl>
             <p class="cost-note">
-              La proyección usa el costo promedio de las opciones de cada grupo de selección
-              única.
+              La proyección usa el costo promedio de las opciones de cada grupo de selección única.
             </p>
           } @else {
             <p class="cost-note">Sin desglose disponible para este producto.</p>
@@ -417,15 +457,13 @@
   }
 </div>
 
-
 <app-rms-dialog
   [visible]="leaveDialogOpen()"
   (visibleChange)="onLeaveDialogVisible($event)"
   header="Cambios sin guardar"
-  width="480px">
-  <p>
-    La receta tiene cambios que no se han guardado. Si sales ahora, el borrador se pierde.
-  </p>
+  width="480px"
+>
+  <p>La receta tiene cambios que no se han guardado. Si sales ahora, el borrador se pierde.</p>
   <div rmsDialogFooter class="option-dialog__footer">
     <app-rms-button variant="secondary" (click)="cancelLeave()">Seguir editando</app-rms-button>
     <app-rms-button variant="danger" (click)="leaveWithoutSaving()">

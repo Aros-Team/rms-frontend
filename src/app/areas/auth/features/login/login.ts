@@ -1,5 +1,18 @@
-import { Component, inject, OnInit, ChangeDetectionStrategy, OnDestroy, signal } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  Component,
+  inject,
+  OnInit,
+  ChangeDetectionStrategy,
+  OnDestroy,
+  signal,
+} from '@angular/core';
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { PasswordModule } from 'primeng/password';
@@ -32,9 +45,14 @@ export class LoginForm implements OnInit, OnDestroy {
   private subs: Subscription[] = [];
 
   form: FormGroup = new FormGroup({
-    username: new FormControl('', [(control: AbstractControl) => Validators.required(control), (control: AbstractControl) => Validators.email(control)]),
+    username: new FormControl('', [
+      (control: AbstractControl) => Validators.required(control),
+      (control: AbstractControl) => Validators.email(control),
+    ]),
     password: new FormControl('', [(control: AbstractControl) => Validators.required(control)]),
-    termsAccepted: new FormControl(false, [(control: AbstractControl) => Validators.requiredTrue(control)]),
+    termsAccepted: new FormControl(false, [
+      (control: AbstractControl) => Validators.requiredTrue(control),
+    ]),
   });
 
   formStatus = signal<'Free' | 'Occuped'>('Free');
@@ -43,16 +61,19 @@ export class LoginForm implements OnInit, OnDestroy {
   private returnUrl: string | null = null;
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.subscribe((params) => {
       this.returnUrl = resolveReturnUrl(params['returnUrl'] as string | undefined);
       if (params['passwordResetSent']) {
         this.messageService.add({
           severity: 'success',
           summary: 'Correo enviado',
           detail: 'Se ha enviado un correo para restablecer tu contraseña.',
-          life: 5000
+          life: 5000,
         });
-        void this.router.navigate([], { queryParams: { passwordResetSent: null }, queryParamsHandling: 'merge' });
+        void this.router.navigate([], {
+          queryParams: { passwordResetSent: null },
+          queryParamsHandling: 'merge',
+        });
       }
     });
 
@@ -65,12 +86,14 @@ export class LoginForm implements OnInit, OnDestroy {
       }),
       this.habeasDataService.rejected.subscribe(() => {
         this.form.get('termsAccepted')?.setValue(false);
-      })
+      }),
     );
   }
 
   ngOnDestroy(): void {
-    this.subs.forEach(s => { s.unsubscribe(); });
+    this.subs.forEach((s) => {
+      s.unsubscribe();
+    });
   }
 
   showHabeasData(): void {
@@ -117,16 +140,16 @@ export class LoginForm implements OnInit, OnDestroy {
           // body carried one. A filter-level 401 is bodiless → `null` here.
           const problemDetail = extractProblemDetail(err);
           const isInvalidCredentials =
-            err.status === 401 ||
-            (problemDetail?.toLowerCase().includes('credenciales') ?? false);
+            err.status === 401 || (problemDetail?.toLowerCase().includes('credenciales') ?? false);
 
           if (isInvalidCredentials) {
             this.logger.auth('Login failed: Invalid credentials');
             this.messageService.add({
               severity: 'error',
               summary: 'Error de autenticación',
-              detail: problemDetail ?? 'Credenciales incorrectas. Verifique su correo y contraseña.',
-              life: 5000
+              detail:
+                problemDetail ?? 'Credenciales incorrectas. Verifique su correo y contraseña.',
+              life: 5000,
             });
           } else if (err.status === 0 || (err.status && err.status >= 500)) {
             this.logger.error('Login failed: Server error', err);
@@ -134,15 +157,16 @@ export class LoginForm implements OnInit, OnDestroy {
               severity: 'error',
               summary: 'Error del servidor',
               detail: 'Hay un problema con el servidor. Por favor, intente más tarde.',
-              life: 5000
+              life: 5000,
             });
           } else {
             this.logger.error('Login failed: Unexpected error', err);
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: problemDetail ?? 'Ha ocurrido un error inesperado. Por favor, intente nuevamente.',
-              life: 5000
+              detail:
+                problemDetail ?? 'Ha ocurrido un error inesperado. Por favor, intente nuevamente.',
+              life: 5000,
             });
           }
         },

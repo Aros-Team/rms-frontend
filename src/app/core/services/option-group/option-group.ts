@@ -1,7 +1,10 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { OptionGroupRequest, OptionGroupResponse } from '@app/shared/models/dto/option-groups/option-group';
+import {
+  OptionGroupRequest,
+  OptionGroupResponse,
+} from '@app/shared/models/dto/option-groups/option-group';
 
 @Injectable({
   providedIn: 'root',
@@ -18,7 +21,9 @@ export class OptionGroup {
   }
 
   public getProductOptionGroups(productId: number): Observable<OptionGroupResponse[]> {
-    return this.http.get<OptionGroupResponse[]>('v1/option-groups', { params: { productId: String(productId) } });
+    return this.http.get<OptionGroupResponse[]>('v1/option-groups', {
+      params: { productId: String(productId) },
+    });
   }
 
   public getOptionGroup(id: number): Observable<OptionGroupResponse> {

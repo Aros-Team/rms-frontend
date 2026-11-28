@@ -29,15 +29,16 @@ src/
 Areas are **layout shells** that define the chrome (header, sidebar, footer) for a group of related views.
 
 Each area:
+
 - Has a **shell component** with `<router-outlet>` for its child features
 - Is **lazy-loaded** via `loadComponent` from the root routes
 - Handles **role-based access** via guards
 
-| Area | Route Prefix(es) | Guards | Description |
-|------|-----------------|--------|-------------|
-| `auth` | `/login`, `/forgot-password`, `/reset-password`, `/login/verify`, `/setup-account` | `RedirectGuard` | Public pages: login, password recovery, 2FA, account setup |
-| `admin` | `/admin/*` | `AuthGuard` + `RoleGuard` (ADMIN) | Management dashboard, orders, restaurant config, analytics |
-| `worker` | `/worker/*` | `AuthGuard` + `RoleGuard` (WORKER) + `AreaGuard` per child | Waiter order-taking, kitchen view, personal schedule |
+| Area     | Route Prefix(es)                                                                   | Guards                                                     | Description                                                |
+| -------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------- |
+| `auth`   | `/login`, `/forgot-password`, `/reset-password`, `/login/verify`, `/setup-account` | `RedirectGuard`                                            | Public pages: login, password recovery, 2FA, account setup |
+| `admin`  | `/admin/*`                                                                         | `AuthGuard` + `RoleGuard` (ADMIN)                          | Management dashboard, orders, restaurant config, analytics |
+| `worker` | `/worker/*`                                                                        | `AuthGuard` + `RoleGuard` (WORKER) + `AreaGuard` per child | Waiter order-taking, kitchen view, personal schedule       |
 
 ---
 
@@ -49,13 +50,13 @@ Features are **lazy-loaded modules** that implement a single, specific responsib
 
 Every feature must do **one thing only**. Examples:
 
-| Feature | Responsibility |
-|---------|---------------|
-| `login` | Authenticate the user |
-| `dashboard` | Show restaurant overview KPIs |
-| `products` | CRUD the product catalogue |
-| `orders` | List and manage today's orders |
-| `kitchen` | Display the kitchen order queue |
+| Feature     | Responsibility                  |
+| ----------- | ------------------------------- |
+| `login`     | Authenticate the user           |
+| `dashboard` | Show restaurant overview KPIs   |
+| `products`  | CRUD the product catalogue      |
+| `orders`    | List and manage today's orders  |
+| `kitchen`   | Display the kitchen order queue |
 
 If a feature needs to do more than one thing, it becomes a **composite feature** (see §3.3).
 
@@ -102,14 +103,15 @@ Each sub-feature inside `features/` is also lazy-loaded and must follow the **si
 
 **Examples in the codebase:**
 
-| Composite feature | Sub-features |
-|------------------|--------------|
-| `admin/features/manage` | `products`, `categories`, `tables`, `areas`, `combos`, `workers`, `inventory`, `schedules`, `time-logs`, `supplies` |
-| `admin/features/analytics` | `prime-cost`, `menu-engineering`, `operations`, `cohort`, `alerts` |
+| Composite feature          | Sub-features                                                                                                        |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `admin/features/manage`    | `products`, `categories`, `tables`, `areas`, `combos`, `workers`, `inventory`, `schedules`, `time-logs`, `supplies` |
+| `admin/features/analytics` | `prime-cost`, `menu-engineering`, `operations`, `cohort`, `alerts`                                                  |
 
 Imports from other files use path aliases:
+
 ```typescript
-import('@areas/admin/features/manage/features/products/products')
+import('@areas/admin/features/manage/features/products/products');
 ```
 
 ---
@@ -185,12 +187,12 @@ Areas and features are lazy-loaded via `loadComponent` from `src/app/app.routes.
 
 **Guards:**
 
-| Guard | Role |
-|-------|------|
-| `RedirectGuard` | Redirects authenticated users away from public pages |
-| `AuthGuard` | Ensures user is authenticated |
-| `RoleGuard` | Ensures user has required role (`ADMIN` / `WORKER`) |
-| `AreaGuard` | Ensures worker has access to the specific area (waiter, kitchen, etc.) |
+| Guard           | Role                                                                   |
+| --------------- | ---------------------------------------------------------------------- |
+| `RedirectGuard` | Redirects authenticated users away from public pages                   |
+| `AuthGuard`     | Ensures user is authenticated                                          |
+| `RoleGuard`     | Ensures user has required role (`ADMIN` / `WORKER`)                    |
+| `AreaGuard`     | Ensures worker has access to the specific area (waiter, kitchen, etc.) |
 
 Backend returns `role: 'ADMIN' | 'WORKER'` and the user's `areas` array determines worker type (`service`, `waiter`, `kitchen`, etc.). Angular redirects to the appropriate area after login.
 
@@ -222,6 +224,7 @@ component-name/
 ### 10.1 Overview
 
 Use `ResourceCache<T>` for all data fetching to enable:
+
 - **Lazy loading**: Data loads only when needed
 - **Caching**: Avoid repeated API calls
 - **Stale-while-revalidate**: Fresh data without blocking UI
@@ -245,17 +248,17 @@ src/app/
 ```typescript
 class ResourceCache<T> {
   // Signals (read-only)
-  readonly data: Signal<T | null>
-  readonly isLoading: Signal<boolean>
-  readonly hasData: Signal<boolean>
-  readonly error: Signal<Error | undefined>
+  readonly data: Signal<T | null>;
+  readonly isLoading: Signal<boolean>;
+  readonly hasData: Signal<boolean>;
+  readonly error: Signal<Error | undefined>;
 
   // Methods
-  load(): void                    // Force fresh fetch
-  loadIfStale(): void             // Load only if expired/empty
-  refresh(): void                 // Reload with stale-while-revalidate
-  invalidate(): void              // Mark as stale
-  reset(): void                   // Clear all data
+  load(): void; // Force fresh fetch
+  loadIfStale(): void; // Load only if expired/empty
+  refresh(): void; // Reload with stale-while-revalidate
+  invalidate(): void; // Mark as stale
+  reset(): void; // Clear all data
 }
 ```
 
@@ -271,46 +274,50 @@ export class ProductCacheService {
   // Different TTLs for different data types
   readonly products = new ResourceCache<Product[]>(
     () => this.http.get<Product[]>('/api/products'),
-    { ttlMs: 2 * 60 * 1000 }  // 2 minutes
+    { ttlMs: 2 * 60 * 1000 }, // 2 minutes
   );
 
   readonly categories = new ResourceCache<Category[]>(
     () => this.http.get<Category[]>('/api/categories'),
-    { ttlMs: 30 * 60 * 1000 } // 30 minutes
+    { ttlMs: 30 * 60 * 1000 }, // 30 minutes
   );
 
   readonly productDetail = (id: number) => {
     // Per-ID cache using Map
     if (!this.detailCaches.has(id)) {
-      this.detailCaches.set(id, new ResourceCache(
-        () => this.http.get<Product>(`/api/products/${id}`),
-        { ttlMs: 5 * 60 * 1000 }
-      ));
+      this.detailCaches.set(
+        id,
+        new ResourceCache(() => this.http.get<Product>(`/api/products/${id}`), {
+          ttlMs: 5 * 60 * 1000,
+        }),
+      );
     }
     return this.detailCaches.get(id)!;
-  }
+  };
 }
 ```
 
 ### 10.5 Component Usage
 
 **Template:**
+
 ```html
 <!-- Lazy load when visible -->
 <div [appLazyLoad]="cache.products" class="h-full">
   @if (cache.products.data(); as products) {
-    <p-table [value]="products" />
+  <p-table [value]="products" />
   } @else {
-    <p-skeleton height="400px" />
+  <p-skeleton height="400px" />
   }
 </div>
 ```
 
 **Component:**
+
 ```typescript
 export class Products {
   readonly cache = inject(ProductCacheService);
-  
+
   // Access data via computed signals
   products = computed(() => this.cache.products.data());
   isLoading = computed(() => this.cache.products.isLoading());
@@ -357,14 +364,16 @@ constructor() {
    - Reference: Long TTL (30+ min), loads on demand
 
 2. **Use computed signals for derived state:**
+
    ```typescript
    filteredProducts = computed(() => {
      const all = this.cache.products.data() ?? [];
-     return all.filter(p => p.active);
+     return all.filter((p) => p.active);
    });
    ```
 
 3. **Never expose ResourceCache directly to templates:**
+
    ```typescript
    // Bad: template accesses cache directly
    <p-table [value]="cache.products.data()" />
@@ -375,6 +384,7 @@ constructor() {
    ```
 
 4. **Handle loading states:**
+
    ```typescript
    @if (cache.isLoading() && !cache.hasData()) {
      <p-skeleton />
@@ -384,6 +394,7 @@ constructor() {
    ```
 
 5. **Use computed signals for derived state from cache:**
+
    ```typescript
    // Component with cache pattern (like products.ts or menu.ts)
    export class Feature {
@@ -398,12 +409,13 @@ constructor() {
        const all = this.items();
        const search = this.searchText().toLowerCase();
        if (!search) return all;
-       return all.filter(item => item.name.toLowerCase().includes(search));
+       return all.filter((item) => item.name.toLowerCase().includes(search));
      });
    }
    ```
 
 6. **Initialize cache in constructor, not ngOnInit:**
+
    ```typescript
    constructor() {
      // Initialize cache immediately in constructor
@@ -419,7 +431,7 @@ constructor() {
    export class DayMenuCacheService {
      readonly currentMenu = new ResourceCache<DayMenuResponse | null>(
        () => this.dayMenuService.getCurrentDayMenu(),
-       { ttlMs: 2 * 60 * 1000, staleWhileRevalidate: true }
+       { ttlMs: 2 * 60 * 1000, staleWhileRevalidate: true },
      );
    }
 
@@ -471,24 +483,24 @@ getOrders(): Observable<OrderResponse[]> {
 
 #### Page size por tipo de dato
 
-| Tipo | Size máximo | TTL sugerido |
-|------|------------|--------------|
-| Listas maestras (productos, categorías, áreas) | 200 | 30 min |
-| Órdenes del día | 500 | 2 min |
-| Historial de órdenes | 50 por página | No cache (consulta directa) |
-| Empleados | 200 | 5 min |
-| Inventario | 200 | 5 min |
-| Analytics | Depende del periodo | 10 min |
+| Tipo                                           | Size máximo         | TTL sugerido                |
+| ---------------------------------------------- | ------------------- | --------------------------- |
+| Listas maestras (productos, categorías, áreas) | 200                 | 30 min                      |
+| Órdenes del día                                | 500                 | 2 min                       |
+| Historial de órdenes                           | 50 por página       | No cache (consulta directa) |
+| Empleados                                      | 200                 | 5 min                       |
+| Inventario                                     | 200                 | 5 min                       |
+| Analytics                                      | Depende del periodo | 10 min                      |
 
 ### 10.10 Cache Policies
 
-| Recurso | TTL | staleWhileRevalidate | Estrategia |
-|---------|-----|---------------------|------------|
-| Datos críticos (órdenes activas, mesas ocupadas) | 1-2 min | `true` | `load()` en constructor + `refresh()` post-mutación |
-| Datos de referencia (productos, categorías) | 30 min | `true` | `loadIfStale()` con `appLazyLoad` |
-| Datos analíticos | 10 min | `true` | `loadIfStale()` al entrar a la ruta |
-| Catálogos pequeños (< 50 items) | 30 min | `true` | `load()` una vez, invalidar solo tras mutación |
-| Sesión / usuario autenticado | Sesión | — | No cache (servicio singleton con señal) |
+| Recurso                                          | TTL     | staleWhileRevalidate | Estrategia                                          |
+| ------------------------------------------------ | ------- | -------------------- | --------------------------------------------------- |
+| Datos críticos (órdenes activas, mesas ocupadas) | 1-2 min | `true`               | `load()` en constructor + `refresh()` post-mutación |
+| Datos de referencia (productos, categorías)      | 30 min  | `true`               | `loadIfStale()` con `appLazyLoad`                   |
+| Datos analíticos                                 | 10 min  | `true`               | `loadIfStale()` al entrar a la ruta                 |
+| Catálogos pequeños (< 50 items)                  | 30 min  | `true`               | `load()` una vez, invalidar solo tras mutación      |
+| Sesión / usuario autenticado                     | Sesión  | —                    | No cache (servicio singleton con señal)             |
 
 #### Invalidación obligatoria
 
@@ -513,12 +525,12 @@ async onSave(): Promise<void> {
 
 #### Cuándo usar `appLazyLoad`
 
-| Situación | Usar |
-|-----------|------|
-| Tabla debajo del fold | ✅ `[appLazyLoad]="cache"` |
-| Stats panel visible al cargar | ✅ `loadIfStale()` en constructor (no necesita directiva) |
-| Pestaña no visible inicialmente | ✅ `[appLazyLoad]="cache"` en el contenido de la pestaña |
-| Diálogo modal | ✅ `loadIfStale()` al abrir el diálogo |
+| Situación                       | Usar                                                      |
+| ------------------------------- | --------------------------------------------------------- |
+| Tabla debajo del fold           | ✅ `[appLazyLoad]="cache"`                                |
+| Stats panel visible al cargar   | ✅ `loadIfStale()` en constructor (no necesita directiva) |
+| Pestaña no visible inicialmente | ✅ `[appLazyLoad]="cache"` en el contenido de la pestaña  |
+| Diálogo modal                   | ✅ `loadIfStale()` al abrir el diálogo                    |
 
 #### Patrón correcto
 
@@ -526,9 +538,9 @@ async onSave(): Promise<void> {
 <!-- Tabla lazy: carga solo cuando es visible -->
 <div [appLazyLoad]="productCache.products" class="h-full">
   @if (productCache.products.data(); as products) {
-    <p-table [value]="products" [loading]="productCache.products.isLoading()" />
+  <p-table [value]="products" [loading]="productCache.products.isLoading()" />
   } @else {
-    <p-skeleton height="400px" />
+  <p-skeleton height="400px" />
   }
 </div>
 ```
@@ -539,7 +551,7 @@ export class Dashboard {
   private cache = inject(DayMenuCacheService);
 
   constructor() {
-    this.cache.currentMenu.load();  // ✅ Datos visibles arriba del fold
+    this.cache.currentMenu.load(); // ✅ Datos visibles arriba del fold
   }
 
   dayMenu = computed(() => this.cache.currentMenu.data());
@@ -555,6 +567,7 @@ Every decision must contribute to building:
 > **"Robust, scalable frontend application that delivers an intuitive and accessible interface for restaurant operations management, enabling real-time data visualization and seamless user interactions."**
 
 This means:
+
 - **Robust**: Production-ready, error handling, edge cases covered
 - **Scalable**: Modular architecture, lazy loading, maintainable code
 - **Intuitive**: Clear UX, consistent patterns, PrimeNG components

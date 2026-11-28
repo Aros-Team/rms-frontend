@@ -59,8 +59,13 @@ describe('Accessibility', () => {
 
   it('should honour the OS "increase contrast" preference when nothing is stored', () => {
     const original = window.matchMedia;
-    window.matchMedia = ((query: string) =>
-      ({ matches: query.includes('prefers-contrast'), media: query, addEventListener: () => undefined, removeEventListener: () => undefined }) as unknown as MediaQueryList);
+    window.matchMedia = (query: string) =>
+      ({
+        matches: query.includes('prefers-contrast'),
+        media: query,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+      }) as unknown as MediaQueryList;
 
     try {
       TestBed.resetTestingModule();
@@ -81,8 +86,13 @@ describe('Accessibility', () => {
     );
 
     const original = window.matchMedia;
-    window.matchMedia = ((query: string) =>
-      ({ matches: query.includes('prefers-contrast'), media: query, addEventListener: () => undefined, removeEventListener: () => undefined }) as unknown as MediaQueryList);
+    window.matchMedia = (query: string) =>
+      ({
+        matches: query.includes('prefers-contrast'),
+        media: query,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+      }) as unknown as MediaQueryList;
 
     try {
       TestBed.resetTestingModule();

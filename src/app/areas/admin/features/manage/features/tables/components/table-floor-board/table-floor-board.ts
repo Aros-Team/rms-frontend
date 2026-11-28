@@ -196,14 +196,13 @@ export class TableFloorBoard {
   readonly markers = computed<MarkerItem[]>(() => {
     const tables = this.tableById();
     const preview = this.dragPreview();
-    return this.placementsState()
-      .flatMap((placement) => {
-        const table = tables.get(placement.tableId);
-        if (table === undefined) return [];
-        const row = preview?.tableId === placement.tableId ? preview.row : placement.row;
-        const column =
-          preview?.tableId === placement.tableId ? preview.column : placement.column;
-        return [{
+    return this.placementsState().flatMap((placement) => {
+      const table = tables.get(placement.tableId);
+      if (table === undefined) return [];
+      const row = preview?.tableId === placement.tableId ? preview.row : placement.row;
+      const column = preview?.tableId === placement.tableId ? preview.column : placement.column;
+      return [
+        {
           table,
           placement,
           row,
@@ -211,8 +210,9 @@ export class TableFloorBoard {
           valid: this.isValidCell(placement.tableId, row, column),
           selected: this.selectedState() === placement.tableId,
           dragging: preview?.tableId === placement.tableId,
-        }];
-      });
+        },
+      ];
+    });
   });
 
   readonly frame = computed(() => {
@@ -302,7 +302,9 @@ export class TableFloorBoard {
       return;
     }
     if (!this.isValidCell(tableId, cell.row, cell.column)) {
-      this.placementError.emit('La mesa solo puede ubicarse en un área habilitada de atención al cliente.');
+      this.placementError.emit(
+        'La mesa solo puede ubicarse en un área habilitada de atención al cliente.',
+      );
       return;
     }
     this.tablePlaced.emit({ tableId, row: cell.row, column: cell.column });
@@ -349,7 +351,9 @@ export class TableFloorBoard {
     this.dragPreview.set(null);
     if (preview === null) return;
     if (!preview.valid) {
-      this.placementError.emit('La mesa solo puede ubicarse en un área habilitada de atención al cliente.');
+      this.placementError.emit(
+        'La mesa solo puede ubicarse en un área habilitada de atención al cliente.',
+      );
       return;
     }
     this.tablePlaced.emit({
@@ -387,9 +391,7 @@ export class TableFloorBoard {
     if (!this.isServeArea(area)) return false;
     const occupied = this.placementsState().some(
       (placement) =>
-        placement.tableId !== tableId
-        && placement.row === row
-        && placement.column === column,
+        placement.tableId !== tableId && placement.row === row && placement.column === column,
     );
     return !occupied;
   }
@@ -415,10 +417,7 @@ export class TableFloorBoard {
     this.hostWidth.set(element.getBoundingClientRect().width);
   }
 
-  private cellFromClient(
-    clientX: number,
-    clientY: number,
-  ): { row: number; column: number } | null {
+  private cellFromClient(clientX: number, clientY: number): { row: number; column: number } | null {
     const local = this.localPoint(clientX, clientY);
     if (local === null) return null;
     const row = Math.floor(local.y);

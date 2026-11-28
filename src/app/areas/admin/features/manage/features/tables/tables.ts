@@ -1,4 +1,12 @@
-import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import {
+  Component,
+  inject,
+  OnInit,
+  signal,
+  computed,
+  ChangeDetectionStrategy,
+  DestroyRef,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -6,7 +14,10 @@ import { Table } from '@app/core/services/tables/table';
 import { MessageService } from 'primeng/api';
 import { TableResponse } from '@app/shared/models/dto/tables/table-response';
 import { FloorLayoutApi } from '@app/core/services/floor-layout/floor-layout';
-import type { FloorLayout, FloorTablePlacement } from '@app/shared/models/dto/floor-layout/floor-layout';
+import type {
+  FloorLayout,
+  FloorTablePlacement,
+} from '@app/shared/models/dto/floor-layout/floor-layout';
 import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-detail';
 import { buildCellIndex, cellKey, layoutFromDto, regionAtCell } from '../areas/layout/lib/geometry';
 import { TableFloorBoard, TABLE_DRAG_TYPE } from './components/table-floor-board/table-floor-board';
@@ -88,11 +99,7 @@ export class Tables implements OnInit {
     const index = buildCellIndex(layout);
     const areas = new Map(this.areas().map((area) => [area.id, area.name]));
     for (const placement of this.placements()) {
-      const region = regionAtCell(
-        layout,
-        index,
-        cellKey(placement.row, placement.column),
-      );
+      const region = regionAtCell(layout, index, cellKey(placement.row, placement.column));
       if (region !== undefined) {
         const name = areas.get(region.areaId);
         if (name !== undefined) map.set(placement.tableId, name);
@@ -140,7 +147,7 @@ export class Tables implements OnInit {
   showCreationModal(): void {
     this.tableForm.reset();
     // Auto-suggest next table number
-    const existingNumbers = this.tables().map(t => t.tableNumber);
+    const existingNumbers = this.tables().map((t) => t.tableNumber);
     const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
     this.tableForm.patchValue({ tableNumber: nextNumber, capacity: null });
     this.modalMode.set('create');
@@ -260,9 +267,7 @@ export class Tables implements OnInit {
         this.floorLoading.set(false);
       },
       error: (error: unknown) => {
-        this.floorError.set(
-          extractProblemDetail(error) ?? 'No se pudo cargar la distribución.',
-        );
+        this.floorError.set(extractProblemDetail(error) ?? 'No se pudo cargar la distribución.');
         this.floorLoading.set(false);
       },
     });
@@ -379,10 +384,9 @@ export class Tables implements OnInit {
     current: readonly FloorTablePlacement[],
     placement: FloorTablePlacement,
   ): FloorTablePlacement[] {
-    return [
-      ...current.filter((item) => item.tableId !== placement.tableId),
-      placement,
-    ].sort((left, right) => left.tableId - right.tableId);
+    return [...current.filter((item) => item.tableId !== placement.tableId), placement].sort(
+      (left, right) => left.tableId - right.tableId,
+    );
   }
 
   private persistPlacements(next: readonly FloorTablePlacement[]): void {
@@ -402,15 +406,17 @@ export class Tables implements OnInit {
           severity: 'error',
           summary: 'No se pudo guardar la ubicación',
           detail:
-            extractProblemDetail(error)
-            ?? 'Revisa que la mesa esté dentro de un área de atención al cliente.',
+            extractProblemDetail(error) ??
+            'Revisa que la mesa esté dentro de un área de atención al cliente.',
           life: 6000,
         });
       },
     });
   }
 
-  getStatusSeverity(status: string): 'success' | 'warn' | 'info' | 'secondary' | 'danger' | 'contrast' | undefined {
+  getStatusSeverity(
+    status: string,
+  ): 'success' | 'warn' | 'info' | 'secondary' | 'danger' | 'contrast' | undefined {
     switch (status) {
       case 'AVAILABLE':
         return 'success';

@@ -4,6 +4,6 @@ import { OrderSelectedOption } from '@app/shared/models/dto/orders/order-respons
 @Pipe({ name: 'optionNames' })
 export class OptionNames implements PipeTransform {
   transform(options: OrderSelectedOption[] | undefined | null): string {
-    return (options ?? []).map(o => o.name).join(', ');
+    return (options ?? []).map((o) => o.name).join(', ');
   }
 }

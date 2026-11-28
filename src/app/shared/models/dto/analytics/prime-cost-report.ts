@@ -4,7 +4,12 @@ import { Period } from './period';
 
 export type CogsCategory = 'FOOD' | 'BEVERAGE' | 'ALCOHOL' | 'OTHER';
 export type LaborArea = 'FOH' | 'BOH' | 'OTHER';
-export const COGS_CATEGORIES: readonly CogsCategory[] = ['FOOD', 'BEVERAGE', 'ALCOHOL', 'OTHER'] as const;
+export const COGS_CATEGORIES: readonly CogsCategory[] = [
+  'FOOD',
+  'BEVERAGE',
+  'ALCOHOL',
+  'OTHER',
+] as const;
 export const LABOR_AREAS: readonly LaborArea[] = ['FOH', 'BOH', 'OTHER'] as const;
 
 export interface PrimeCostCogsBreakdownRow {

@@ -1,4 +1,8 @@
-import { ɵresolveComponentResources as resolveComponentResources, signal, type Signal } from '@angular/core';
+import {
+  ɵresolveComponentResources as resolveComponentResources,
+  signal,
+  type Signal,
+} from '@angular/core';
 import { of, type Observable } from 'rxjs';
 
 import buttonHtml from '@app/shared/ui/button/button.html?raw';
@@ -41,9 +45,19 @@ export function installCanvasContextStub(): void {
     canvas: { width: 0, height: 0 },
     fillRect: () => undefined,
     clearRect: () => undefined,
-    getImageData: () => ({ data: new Uint8ClampedArray(4), width: 1, height: 1, colorSpace: 'srgb' }),
+    getImageData: () => ({
+      data: new Uint8ClampedArray(4),
+      width: 1,
+      height: 1,
+      colorSpace: 'srgb',
+    }),
     putImageData: () => undefined,
-    createImageData: () => ({ data: new Uint8ClampedArray(4), width: 1, height: 1, colorSpace: 'srgb' }),
+    createImageData: () => ({
+      data: new Uint8ClampedArray(4),
+      width: 1,
+      height: 1,
+      colorSpace: 'srgb',
+    }),
     setTransform: () => undefined,
     drawImage: () => undefined,
     save: () => undefined,
@@ -245,9 +259,7 @@ export function makeMenuReport(
   };
 }
 
-export function makeOperationsReport(
-  overrides: Partial<OperationsReport> = {},
-): OperationsReport {
+export function makeOperationsReport(overrides: Partial<OperationsReport> = {}): OperationsReport {
   return {
     period: { bucket: 'monthly', from: '2026-06', to: '2026-11', keys: ['2026-06'] },
     revPash: {
@@ -285,8 +297,20 @@ export function makeCohortReport(overrides: Partial<CohortReport> = {}): CohortR
     fingerprintStrategy: 'TABLE_ONLY',
     cohortWindowDays: 90,
     cohorts: [
-      { key: '2026-06', newClients: 0, recurringClients: 2892, totalOrders: 2892, recurringRatePct: 100 },
-      { key: '2026-07', newClients: 0, recurringClients: 2635, totalOrders: 2635, recurringRatePct: 100 },
+      {
+        key: '2026-06',
+        newClients: 0,
+        recurringClients: 2892,
+        totalOrders: 2892,
+        recurringRatePct: 100,
+      },
+      {
+        key: '2026-07',
+        newClients: 0,
+        recurringClients: 2635,
+        totalOrders: 2635,
+        recurringRatePct: 100,
+      },
     ],
     dataCompleteness: 'PARTIAL',
     notes: ['Phone number captured on 0.00% of orders in range.'],

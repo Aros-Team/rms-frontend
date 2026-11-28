@@ -22,7 +22,9 @@ export class ServerStatus {
   readonly isChecking = computed(() => this.statusSignal() === 'checking');
 
   constructor() {
-    this.destroyRef.onDestroy(() => { clearTimeout(this.timer); });
+    this.destroyRef.onDestroy(() => {
+      clearTimeout(this.timer);
+    });
     this.check();
   }
 
@@ -54,21 +56,25 @@ export class ServerStatus {
         this.statusSignal.set('offline');
         this.lastCheckSignal.set(new Date());
         this.scheduleNext();
-      }
+      },
     });
   }
 
   private ping() {
     const baseUrl = environment.apiUrl.replace('/api', '');
     return this.http.get<{ status: string }>(`${baseUrl}/health`).pipe(
-      map(response => response.status === 'UP'),
-      catchError(() => { return of(false); })
+      map((response) => response.status === 'UP'),
+      catchError(() => {
+        return of(false);
+      }),
     );
   }
 
   private scheduleNext(): void {
     clearTimeout(this.timer);
     const delay = this.statusSignal() === 'offline' ? 15000 : 30000;
-    this.timer = setTimeout(() => { this.check(); }, delay);
+    this.timer = setTimeout(() => {
+      this.check();
+    }, delay);
   }
 }

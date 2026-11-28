@@ -20,12 +20,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import {
-  formatInstant,
-  formatIsoDate,
-  parseIsoDate,
-  toIsoDate,
-} from './date-format';
+import { formatInstant, formatIsoDate, parseIsoDate, toIsoDate } from './date-format';
 
 describe('toIsoDate', () => {
   it('writes the local calendar day, zero padded', () => {
@@ -88,9 +83,7 @@ describe('formatInstant', () => {
   });
 
   it('treats Z and a numeric offset as the same instant', () => {
-    expect(formatInstant('2026-06-15T13:00:00-05:00')).toBe(
-      formatInstant('2026-06-15T18:00:00Z'),
-    );
+    expect(formatInstant('2026-06-15T13:00:00-05:00')).toBe(formatInstant('2026-06-15T18:00:00Z'));
   });
 
   it('renders an em dash for missing values', () => {

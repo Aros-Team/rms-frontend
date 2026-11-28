@@ -42,7 +42,7 @@ export class Auth {
 
   /** In-flight refresh shared by every concurrent 401 (single-flight). */
   private refreshInFlight$: Observable<AuthResponse> | undefined;
-  
+
   private pendingUsername: string | null = null;
 
   private static readonly ACCESS_KEY = 'rms_access';
@@ -81,14 +81,14 @@ export class Auth {
   private loadStoredToken(): void {
     const expiry = this.getCookie(Auth.EXPIRY_KEY);
     const storedToken = this.getCookie(Auth.ACCESS_KEY);
-    
+
     if (storedToken && expiry) {
       const expiryTime = parseInt(expiry, 10);
       if (Date.now() < expiryTime) {
         this._token = storedToken;
         this.extractRestrictedClaim(storedToken);
         this.logger.info('Session restored successfully');
-        
+
         if (this._userData() === undefined) {
           setTimeout(() => {
             this.loadUserInfo();
@@ -145,14 +145,18 @@ export class Auth {
     this.logger.info('Verifying 2FA code');
 
     return this.http
-      .post<AuthResponse>('auth/verify', {
-        code: code,
-        deviceHash: deviceHash,
-      } as TwoFactorVerifyRequest, {
-        headers: {
-          'Authorization': `Bearer ${tfaToken}`
-        }
-      })
+      .post<AuthResponse>(
+        'auth/verify',
+        {
+          code: code,
+          deviceHash: deviceHash,
+        } as TwoFactorVerifyRequest,
+        {
+          headers: {
+            Authorization: `Bearer ${tfaToken}`,
+          },
+        },
+      )
       .pipe(
         tap((response: AuthResponse) => {
           this.logger.info('2FA verification successful');
@@ -176,22 +180,28 @@ export class Auth {
       return throwError(() => new Error('No refresh token available'));
     }
 
-    return this.http.post<AuthResponse>('auth/refresh', {}, {
-      headers: {
-        'Authorization': `Bearer ${refreshToken}`
-      }
-    }).pipe(
-      tap((response: AuthResponse) => {
-        this.logger.info('Token refresh successful');
-        this.saveTokens(response.accessToken, response.refreshToken);
-        this.loadUserInfo();
-      }),
-      catchError((err: Error) => {
-        this.logger.error('Token refresh failed', err);
-        this.logout();
-        return throwError(() => err);
-      })
-    );
+    return this.http
+      .post<AuthResponse>(
+        'auth/refresh',
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${refreshToken}`,
+          },
+        },
+      )
+      .pipe(
+        tap((response: AuthResponse) => {
+          this.logger.info('Token refresh successful');
+          this.saveTokens(response.accessToken, response.refreshToken);
+          this.loadUserInfo();
+        }),
+        catchError((err: Error) => {
+          this.logger.error('Token refresh failed', err);
+          this.logout();
+          return throwError(() => err);
+        }),
+      );
   }
 
   /**
@@ -258,13 +268,17 @@ export class Auth {
   private saveTokens(accessToken: string, refreshToken: string | null): void {
     this._token = accessToken;
     this.extractRestrictedClaim(accessToken);
-    
+
     if (isPlatformBrowser(this.platformId)) {
       const sevenDaysSeconds = 7 * 24 * 60 * 60;
-      
+
       this.setCookie(Auth.ACCESS_KEY, accessToken, sevenDaysSeconds);
-      this.setCookie(Auth.EXPIRY_KEY, (Date.now() + sevenDaysSeconds * 1000).toString(), sevenDaysSeconds);
-      
+      this.setCookie(
+        Auth.EXPIRY_KEY,
+        (Date.now() + sevenDaysSeconds * 1000).toString(),
+        sevenDaysSeconds,
+      );
+
       if (refreshToken) {
         this.setCookie(Auth.REFRESH_KEY, refreshToken, sevenDaysSeconds);
       }

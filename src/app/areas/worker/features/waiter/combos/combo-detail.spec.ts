@@ -50,7 +50,10 @@ function makeCombo(
 
 /** `Intl` separates the COP symbol from the amount with U+00A0. */
 function normalize(text: string): string {
-  return text.replace(/\u00a0|\u202f/g, ' ').replace(/\s+/g, ' ').trim();
+  return text
+    .replace(/\u00a0|\u202f/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 describe('ComboDetail', () => {

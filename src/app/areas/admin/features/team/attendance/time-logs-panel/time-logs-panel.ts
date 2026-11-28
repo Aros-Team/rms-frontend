@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 
@@ -109,9 +116,7 @@ export class TimeLogsPanel implements OnInit {
   });
 
   readonly summaries = computed(() => summarizeTimeLogs(this.logs()));
-  readonly totalPages = computed(() =>
-    Math.max(1, Math.ceil(this.summaries().length / PAGE_SIZE)),
-  );
+  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.summaries().length / PAGE_SIZE)));
   readonly pagedSummaries = computed(() => {
     const start = this.page() * PAGE_SIZE;
     return this.summaries().slice(start, start + PAGE_SIZE);

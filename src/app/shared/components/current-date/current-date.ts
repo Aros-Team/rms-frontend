@@ -17,7 +17,7 @@ export class CurrentDate {
   formattedMonth = computed(() => {
     return this.currentDate().toLocaleDateString('es-ES', {
       month: 'long',
-      year: 'numeric'
+      year: 'numeric',
     });
   });
 }

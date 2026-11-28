@@ -1,5 +1,10 @@
 <div [class]="classes">
-  <label class="rms-field__label" [class.rms-field__label--hidden]="hideLabel" [id]="labelId" [for]="resolvedId">
+  <label
+    class="rms-field__label"
+    [class.rms-field__label--hidden]="hideLabel"
+    [id]="labelId"
+    [for]="resolvedId"
+  >
     {{ label }}
     @if (required) {
       <span class="rms-field__required" aria-hidden="true">*</span>

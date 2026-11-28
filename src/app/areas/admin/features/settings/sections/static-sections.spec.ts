@@ -45,7 +45,9 @@ describe('IntegrationsSettingsSection', () => {
     expect(component.rows.map((row) => row.value)).toContain(environment.apiUrl);
     expect(component.rows.map((row) => row.value)).toContain(environment.agentHost);
     expect(text).toContain(environment.apiUrl);
-    expect((fixture.nativeElement as HTMLElement).querySelectorAll('input, textarea').length).toBe(0);
+    expect((fixture.nativeElement as HTMLElement).querySelectorAll('input, textarea').length).toBe(
+      0,
+    );
   });
 });
 

@@ -15,13 +15,7 @@ import { Money } from '@app/shared/pipes/money/money';
 
 @Component({
   selector: 'app-salary-history',
-  imports: [
-    TableModule,
-    SkeletonModule,
-    Money,
-    RmsEmptyState,
-    RmsPageHeader,
-  ],
+  imports: [TableModule, SkeletonModule, Money, RmsEmptyState, RmsPageHeader],
   templateUrl: './salary-history.html',
 })
 export class SalaryHistory implements OnInit {

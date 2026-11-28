@@ -59,14 +59,14 @@
       <ul class="product-list">
         @for (product of filteredProducts(); track product.id) {
           <li>
-            <button
-              type="button"
-              class="product-row"
-              (click)="addProduct(product)"
-            >
+            <button type="button" class="product-row" (click)="addProduct(product)">
               <span class="sr-only">Agregar </span>
               <span class="product-row__media">
-                <span class="product-row__monogram" aria-hidden="true" [attr.data-monogram]="monogram(product.name)"></span>
+                <span
+                  class="product-row__monogram"
+                  aria-hidden="true"
+                  [attr.data-monogram]="monogram(product.name)"
+                ></span>
                 @if (product.imageUrl) {
                   <img
                     class="product-row__image"

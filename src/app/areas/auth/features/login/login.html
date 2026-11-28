@@ -36,10 +36,7 @@
   <!-- The terms trigger lives outside the checkbox label: interactive content
        inside a <label> is invalid and clicking it also toggled the checkbox. -->
   <div class="flex flex-col gap-1 border-t border-rms-border pt-4">
-    <app-rms-checkbox
-      formControlName="termsAccepted"
-      label="Acepto los términos y condiciones"
-    />
+    <app-rms-checkbox formControlName="termsAccepted" label="Acepto los términos y condiciones" />
     <button
       type="button"
       (click)="showHabeasData()"

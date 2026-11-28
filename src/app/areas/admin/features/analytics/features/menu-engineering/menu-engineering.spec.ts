@@ -36,10 +36,7 @@ describe('MenuEngineering', () => {
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [MenuEngineering],
-      providers: [
-        { provide: AnalyticsCache, useValue: cache },
-        AnalyticsPeriodState,
-      ],
+      providers: [{ provide: AnalyticsCache, useValue: cache }, AnalyticsPeriodState],
     }).compileComponents();
     const fixture = TestBed.createComponent(MenuEngineering);
     fixture.detectChanges();
@@ -55,9 +52,7 @@ describe('MenuEngineering', () => {
   });
 
   it('summarises each quadrant with count and contribution', async () => {
-    const fixture = await setup(
-      makeCacheStub({ menuEngineering: { data: makeMenuReport() } }),
-    );
+    const fixture = await setup(makeCacheStub({ menuEngineering: { data: makeMenuReport() } }));
     const summaries = fixture.componentInstance.summaries();
     expect(summaries.map((summary) => summary.quadrant)).toEqual([
       'STAR',
@@ -70,9 +65,7 @@ describe('MenuEngineering', () => {
   });
 
   it('filters the table by quadrant and category', async () => {
-    const fixture = await setup(
-      makeCacheStub({ menuEngineering: { data: makeMenuReport() } }),
-    );
+    const fixture = await setup(makeCacheStub({ menuEngineering: { data: makeMenuReport() } }));
     const component = fixture.componentInstance;
     component.toggleQuadrant('DOG');
     expect(component.filteredItems().map((item) => item.productId)).toEqual([8]);
@@ -84,9 +77,7 @@ describe('MenuEngineering', () => {
   });
 
   it('derives sell price and margin percent per item', async () => {
-    const fixture = await setup(
-      makeCacheStub({ menuEngineering: { data: makeMenuReport() } }),
-    );
+    const fixture = await setup(makeCacheStub({ menuEngineering: { data: makeMenuReport() } }));
     const burger = fixture.componentInstance
       .tableRows()
       .find((row) => row.item.productName.includes('Double'));
@@ -95,9 +86,7 @@ describe('MenuEngineering', () => {
   });
 
   it('builds the bubble chart from the filtered items', async () => {
-    const fixture = await setup(
-      makeCacheStub({ menuEngineering: { data: makeMenuReport() } }),
-    );
+    const fixture = await setup(makeCacheStub({ menuEngineering: { data: makeMenuReport() } }));
     const data = fixture.componentInstance.chartData();
     const star = data.datasets.find((dataset) => dataset.label === 'Estrella');
     expect(star?.data).toHaveLength(1);
@@ -125,18 +114,14 @@ describe('MenuEngineering', () => {
   });
 
   it('builds the CSV with one row per item', async () => {
-    const fixture = await setup(
-      makeCacheStub({ menuEngineering: { data: makeMenuReport() } }),
-    );
+    const fixture = await setup(makeCacheStub({ menuEngineering: { data: makeMenuReport() } }));
     const lines = fixture.componentInstance.buildCsv().split('\r\n');
     expect(lines[0]).toContain('Cuadrante');
     expect(lines).toHaveLength(5);
   });
 
   it('shows the page title and exposes both header actions', async () => {
-    const fixture = await setup(
-      makeCacheStub({ menuEngineering: { data: makeMenuReport() } }),
-    );
+    const fixture = await setup(makeCacheStub({ menuEngineering: { data: makeMenuReport() } }));
     const root = fixture.nativeElement as HTMLElement;
     const heading = root.querySelector('h1');
     expect(heading?.textContent.trim()).toBe('Tu carta, clasificada');

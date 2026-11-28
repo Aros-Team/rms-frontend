@@ -18,7 +18,7 @@ export interface WorkerType {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class WorkerConfig {
   private workerTypes = new Map<string, WorkerType>();
@@ -39,9 +39,9 @@ export class WorkerConfig {
           description: 'Ver pedidos en cola',
           icon: 'pi pi-list',
           isActive: false,
-          command: undefined
+          command: undefined,
         },
-      ]
+      ],
     });
 
     this.workerTypes.set('waiter', {
@@ -55,16 +55,16 @@ export class WorkerConfig {
           description: 'Crear nuevo pedido',
           icon: 'pi pi-pencil',
           isActive: false,
-          command: undefined
+          command: undefined,
         },
         {
           id: 'today-orders',
           label: 'Órdenes del Día',
           description: 'Ver órdenes del día (solo lectura)',
           icon: 'pi pi-list',
-          isActive: false
-        }
-      ]
+          isActive: false,
+        },
+      ],
     });
 
     this.workerTypes.set('bar', {
@@ -78,16 +78,16 @@ export class WorkerConfig {
           description: 'Crear nuevo pedido',
           icon: 'pi pi-pencil',
           isActive: false,
-          command: undefined
+          command: undefined,
         },
         {
           id: 'today-orders',
           label: 'Órdenes del Día',
           description: 'Ver órdenes del día (solo lectura)',
           icon: 'pi pi-list',
-          isActive: false
-        }
-      ]
+          isActive: false,
+        },
+      ],
     });
   }
 

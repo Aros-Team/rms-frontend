@@ -19,11 +19,7 @@ describe('Category service', () => {
   beforeEach(() => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        Category,
-      ],
+      providers: [provideHttpClient(), provideHttpClientTesting(), Category],
     });
 
     service = TestBed.inject(Category);
@@ -41,7 +37,9 @@ describe('Category service', () => {
     ];
 
     let received: CategorySimpleResponse[] | undefined;
-    service.getCategories().subscribe(res => { received = res; });
+    service.getCategories().subscribe((res) => {
+      received = res;
+    });
 
     const req = httpMock.expectOne('v1/categories');
     expect(req.request.method).toBe('GET');

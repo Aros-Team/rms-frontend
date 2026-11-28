@@ -67,14 +67,18 @@ describe('RmsEmptyState', () => {
   });
 
   it('emits the primary action when its button is clicked', () => {
-    const buttons = (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>('button');
+    const buttons = (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>(
+      'button',
+    );
     buttons[0].click();
 
     expect(host.primaryClicks).toBe(1);
   });
 
   it('emits the secondary action from the link-style button', () => {
-    const buttons = (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>('button');
+    const buttons = (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>(
+      'button',
+    );
     buttons[1].click();
 
     expect(host.secondaryClicks).toBe(1);

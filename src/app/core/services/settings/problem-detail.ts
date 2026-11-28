@@ -46,9 +46,7 @@ export function problemStatus(error: unknown): number | null {
  * whether the field is one of its controls; unknown fields fall back to the
  * banner so the message is never lost.
  */
-export function problemFieldError(
-  error: unknown,
-): { field: string; message: string } | null {
+export function problemFieldError(error: unknown): { field: string; message: string } | null {
   const detail = problemMessage(error, '');
   const match = /^([A-Za-z][A-Za-z0-9_]*)\s*:\s*(.+)$/.exec(detail);
   if (match === null) return null;

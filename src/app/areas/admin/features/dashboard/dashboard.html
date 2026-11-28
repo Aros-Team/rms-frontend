@@ -1,252 +1,334 @@
 @if (orders().length === 0 && isStatsLoaded() && serverStatus() !== 'online') {
   <app-server-down-page />
 } @else {
-<div class="p-4 lg:pr-4 lg:pt-4 min-w-0 overflow-hidden h-full">
-  <h1 class="sr-only">Panel principal</h1>
-  @if (ordersError()) {
-    <div
-      class="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-rms-danger bg-rms-subtle px-3 py-2 text-sm text-rms-danger"
-      role="alert">
-      <i class="pi pi-exclamation-triangle text-xs" aria-hidden="true"></i>
-      <span class="min-w-0 flex-1">{{ ordersError() }}</span>
-      <app-rms-button size="sm" variant="secondary" iconStart="pi pi-refresh" (click)="retryDashboard()">
-        Reintentar
-      </app-rms-button>
-    </div>
-  }
-  @if (ordersTruncated() && isStatsLoaded()) {
-    <div
-      class="mb-3 flex items-center gap-2 rounded-lg border border-rms-warning bg-rms-subtle px-3 py-2 text-sm text-rms-warning"
-      role="status">
-      <i class="pi pi-exclamation-triangle text-xs" aria-hidden="true"></i>
-      <span>
-        Día muy grande: los indicadores usan los primeros {{ orders().length }} pedidos.
-      </span>
-    </div>
-  }
-  <div class="md:hidden relative h-full overflow-hidden">
-    <div class="flex h-full">
-
-      <div class="w-full h-full flex-shrink-0">
-        <div class="flex flex-col gap-4 h-full overflow-y-auto p-4">
-          <header class="border border-rms-border rounded-xl bg-rms-subtle overflow-hidden flex-shrink-0 relative">
-
-            <div class="relative z-10 flex flex-col p-4 gap-2">
-              <div class="flex flex-wrap justify-between items-center gap-2">
-                <div>
-                  <h2 class="text-base font-bold text-rms-ink">{{ currentDate() }}</h2>
-                  <p class="text-muted text-sm">{{ currentTime() }}</p>
+  <div class="p-4 lg:pr-4 lg:pt-4 min-w-0 overflow-hidden h-full">
+    <h1 class="sr-only">Panel principal</h1>
+    @if (ordersError()) {
+      <div
+        class="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-rms-danger bg-rms-subtle px-3 py-2 text-sm text-rms-danger"
+        role="alert"
+      >
+        <i class="pi pi-exclamation-triangle text-xs" aria-hidden="true"></i>
+        <span class="min-w-0 flex-1">{{ ordersError() }}</span>
+        <app-rms-button
+          size="sm"
+          variant="secondary"
+          iconStart="pi pi-refresh"
+          (click)="retryDashboard()"
+        >
+          Reintentar
+        </app-rms-button>
+      </div>
+    }
+    @if (ordersTruncated() && isStatsLoaded()) {
+      <div
+        class="mb-3 flex items-center gap-2 rounded-lg border border-rms-warning bg-rms-subtle px-3 py-2 text-sm text-rms-warning"
+        role="status"
+      >
+        <i class="pi pi-exclamation-triangle text-xs" aria-hidden="true"></i>
+        <span>
+          Día muy grande: los indicadores usan los primeros {{ orders().length }} pedidos.
+        </span>
+      </div>
+    }
+    <div class="md:hidden relative h-full overflow-hidden">
+      <div class="flex h-full">
+        <div class="w-full h-full flex-shrink-0">
+          <div class="flex flex-col gap-4 h-full overflow-y-auto p-4">
+            <header
+              class="border border-rms-border rounded-xl bg-rms-subtle overflow-hidden flex-shrink-0 relative"
+            >
+              <div class="relative z-10 flex flex-col p-4 gap-2">
+                <div class="flex flex-wrap justify-between items-center gap-2">
+                  <div>
+                    <h2 class="text-base font-bold text-rms-ink">{{ currentDate() }}</h2>
+                    <p class="text-muted text-sm">{{ currentTime() }}</p>
+                  </div>
+                  <button
+                    type="button"
+                    class="inline-flex min-h-11 items-center rounded-full"
+                    (click)="checkServerStatus()"
+                    [attr.aria-label]="serverStatusLabel()"
+                  >
+                    <app-rms-status-pill
+                      [status]="serverStatusTone()"
+                      [label]="serverStatusLabel()"
+                    />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  class="inline-flex min-h-11 items-center rounded-full"
-                  (click)="checkServerStatus()"
-                  [attr.aria-label]="serverStatusLabel()">
-                  <app-rms-status-pill [status]="serverStatusTone()" [label]="serverStatusLabel()" />
-                </button>
-              </div>
 
-              @if (!isStatsLoaded()) {
-                <div class="flex justify-around pt-2 border-t border-rms-border">
-                  <div class="text-center">
-                    <p-skeleton width="40px" height="20px" />
-                    <div class="text-xs text-muted">Completados</div>
-                  </div>
-                  <div class="text-center">
-                    <p-skeleton width="40px" height="20px" />
-                    <div class="text-xs text-muted">Mesas</div>
-                  </div>
-                  <div class="text-center">
-                    <p-skeleton width="40px" height="20px" />
-                    <div class="text-xs text-muted">Preparando</div>
-                  </div>
-                </div>
-              } @else {
-                <div class="flex justify-around pt-2 border-t border-rms-border">
-                  <div class="text-center">
-                    <div class="text-lg font-bold text-rms-ink">
-                      {{ completedOrdersCount() }}
+                @if (!isStatsLoaded()) {
+                  <div class="flex justify-around pt-2 border-t border-rms-border">
+                    <div class="text-center">
+                      <p-skeleton width="40px" height="20px" />
+                      <div class="text-xs text-muted">Completados</div>
                     </div>
-                    <div class="text-xs text-muted">Completados</div>
-                  </div>
-                  <div class="text-center">
-                    <div class="text-lg font-bold text-rms-ink">{{ occupiedTablesCount() }}</div>
-                    <div class="text-xs text-muted">Mesas</div>
-                  </div>
-                  <div class="text-center">
-                    <div class="text-lg font-bold text-rms-ink">{{ preparingOrdersCount() }}</div>
-                    <div class="text-xs text-muted">Preparando</div>
-                  </div>
-                </div>
-              }
-            </div>
-          </header>
-
-          <section class="flex-shrink-0 rounded-xl border border-rms-border bg-rms-surface p-3">
-            <!-- Chart.js loads after first paint. Placeholder and loading keep
-                 the frame's box (2.875rem header + 0.75rem gap + 7.5rem plot). -->
-            @defer (on idle) {
-              <app-dashboard-hourly-chart
-                [bars]="hourlyRhythm()"
-                [loading]="isOrdersLoading() && orders().length === 0"
-                [error]="ordersError() ?? ''"
-                [closed]="todayClosed()"
-                (retry)="retryDashboard()" />
-            } @placeholder {
-              <div class="min-h-[11.125rem]" aria-hidden="true"></div>
-            } @loading {
-              <div class="min-h-[11.125rem]" role="status" aria-label="Cargando pedidos por hora"></div>
-            }
-          </section>
-
-          <!-- Contains a chart frame: created only when it approaches the
-               viewport, so Chart.js never measures a skipped container. -->
-          @defer (on viewport) {
-            <section
-              class="border border-rms-border rounded-xl bg-rms-surface flex flex-col overflow-hidden flex-shrink-0">
-              <header class="flex justify-between items-center p-3 border-b border-rms-border flex-shrink-0">
-                <div class="flex flex-col">
-                  <h2 class="text-base font-bold text-rms-ink">Composición de ventas</h2>
-                  <p class="text-xs text-muted">Productos más vendidos y distribución por categoría</p>
-                </div>
-                <span class="whitespace-nowrap text-xs text-muted">{{ topProductsTotal() | money }}</span>
-              </header>
-
-              <div class="flex-1 grid grid-cols-1 lg:grid-cols-5 gap-3 p-3 min-h-0">
-                <div class="lg:col-span-3 flex flex-col min-h-0">
-                  <h3 class="text-xs font-semibold text-muted uppercase tracking-wide mb-2">Los 6 más vendidos</h3>
-                  @if (topProductsLoading()) {
-                    <div class="flex-1 space-y-2" role="status" aria-label="Cargando productos más vendidos">
-                      @for (row of [1, 2, 3, 4]; track row) {
-                        <p-skeleton height="2rem" />
-                      }
+                    <div class="text-center">
+                      <p-skeleton width="40px" height="20px" />
+                      <div class="text-xs text-muted">Mesas</div>
                     </div>
-                  } @else if (topProducts().length === 0) {
-                    <app-rms-empty-state
-                      icon="pi pi-chart-bar"
-                      title="Aún no hay pedidos servidos hoy"
-                      message="Cuando se entregue el primer pedido, verás aquí el ranking." />
-                  } @else {
-                    @if (topSellingNotice()) {
-                      <div class="mb-2 flex items-center gap-1 text-xs text-rms-warning" role="status">
-                        <span class="min-w-0 flex-1">{{ topSellingNotice() }}</span>
-                        <app-rms-button size="sm" variant="link" (click)="retryTopSelling()">Reintentar</app-rms-button>
+                    <div class="text-center">
+                      <p-skeleton width="40px" height="20px" />
+                      <div class="text-xs text-muted">Preparando</div>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="flex justify-around pt-2 border-t border-rms-border">
+                    <div class="text-center">
+                      <div class="text-lg font-bold text-rms-ink">
+                        {{ completedOrdersCount() }}
                       </div>
-                    }
-                    <ol class="flex-1 space-y-1.5 overflow-auto pr-1">
-                      @for (item of topProducts(); track item.productId; let i = $index) {
-                        <li class="flex items-center gap-2 text-sm">
-                          <span class="w-5 h-5 flex-shrink-0 flex items-center justify-center rounded-full bg-rms-subtle text-xs font-semibold text-rms-ink">
-                            {{ i + 1 }}
-                          </span>
-                          <div class="flex-1 min-w-0">
-                            <p class="truncate font-medium text-rms-ink">{{ item.product }}</p>
-                            <p class="text-xs text-muted truncate">{{ item.category }} · {{ item.units }} {{ item.units === 1 ? 'unidad' : 'unidades' }}</p>
-                          </div>
-                          <span class="text-sm font-semibold text-rms-ink whitespace-nowrap">
-                            {{ item.total | money }}
-                          </span>
-                        </li>
-                      }
-                    </ol>
-                  }
-                </div>
-
-                <div class="lg:col-span-2 flex flex-col min-h-0 lg:border-l lg:border-rms-border lg:pl-3">
-                  <app-rms-chart-frame
-                    title="Ventas por categoría"
-                    [height]="150"
-                    [loading]="isOrdersLoading() && orders().length === 0"
-                    [empty]="!isOrdersLoading() && salesByCategory().length === 0"
-                    [error]="ordersError() ?? ''"
-                    [summary]="categoryChartSummary()"
-                    dataMode="hidden"
-                    dataLabel="Ver datos por categoría"
-                    (retry)="retryDashboard()">
-                    <app-rms-treemap [items]="categoryTreemapItems()" />
-                    <table rmsChartData>
-                      <caption class="sr-only">Ventas por categoría</caption>
-                      <thead><tr><th>Categoría</th><th>Ventas</th></tr></thead>
-                      <tbody>
-                        @for (row of salesByCategory(); track row.category) {
-                          <tr><td>{{ row.category }}</td><td>{{ row.total | money }}</td></tr>
-                        }
-                      </tbody>
-                    </table>
-                  </app-rms-chart-frame>
-                </div>
+                      <div class="text-xs text-muted">Completados</div>
+                    </div>
+                    <div class="text-center">
+                      <div class="text-lg font-bold text-rms-ink">{{ occupiedTablesCount() }}</div>
+                      <div class="text-xs text-muted">Mesas</div>
+                    </div>
+                    <div class="text-center">
+                      <div class="text-lg font-bold text-rms-ink">{{ preparingOrdersCount() }}</div>
+                      <div class="text-xs text-muted">Preparando</div>
+                    </div>
+                  </div>
+                }
               </div>
-            </section>
-          } @placeholder {
-            <div class="min-h-[24rem] rounded-xl border border-rms-border bg-rms-surface" aria-hidden="true"></div>
-          }
-
-          <!-- Below the fold on phones, after the sales composition block. -->
-          <section
-            class="rms-defer-view rms-defer-view--md flex-1 border border-rms-border rounded-xl bg-rms-surface flex flex-col min-h-0 overflow-hidden">
-            <header class="flex justify-between items-center p-3 border-b border-rms-border flex-shrink-0">
-              <h2 class="text-base font-bold text-rms-ink">Pedidos del Día</h2>
-              @if (isOrdersLoading()) {
-                <p-skeleton width="30px" height="18px" borderRadius="12px" />
-              } @else {
-                <app-rms-badge [label]="orders().length.toString()" tone="brand" variant="solid" />
-              }
             </header>
 
-            <div class="flex-1 overflow-auto p-2">
-              @if (isOrdersLoading()) {
-                <app-list-skeleton [itemCount]="3" firstColWidth="40px" secondColWidth="50px" badgeWidth="60px" badgeHeight="18px" badgeBorderRadius="12px" actionSize="1.5rem" />
-              } @else {
-                <div class="space-y-2">
-                  @for (order of orders(); track order.id) {
-                  <div class="bg-rms-subtle rounded-lg p-3 border border-rms-border">
-                    <div class="flex justify-between items-start mb-2">
-                      <div class="flex items-center gap-2">
-                        <span class="font-mono text-sm text-muted">#{{ order.id }}</span>
-                        <span class="font-medium">{{ tableLabel(order) }}</span>
-                      </div>
-                      <app-rms-status-pill [label]="getStatusText(order.status)" [status]="getStatusRole(order.status)" />
-                    </div>
-                    <div class="flex justify-between items-center">
-                      <span class="text-sm text-muted">{{ formatDate(order.date) }}</span>
-                      <div class="flex items-center gap-2">
-                        <span class="font-semibold">{{ calcTotal(order) | money }}</span>
-                        <app-rms-icon-button icon="pi pi-ellipsis-h" ariaLabel="Ver detalle del pedido" tooltip="Ver detalle del pedido" (click)="viewOrderDetails(order)" />
-                      </div>
-                    </div>
-                  </div>
-                  } @empty {
-                  <app-rms-empty-state
-                    icon="pi pi-inbox"
-                    title="No hay pedidos para mostrar"
-                    message="Aún no hay pedidos registrados hoy." />
-                  }
-                </div>
+            <section class="flex-shrink-0 rounded-xl border border-rms-border bg-rms-surface p-3">
+              <!-- Chart.js loads after first paint. Placeholder and loading keep
+                 the frame's box (2.875rem header + 0.75rem gap + 7.5rem plot). -->
+              @defer (on idle) {
+                <app-dashboard-hourly-chart
+                  [bars]="hourlyRhythm()"
+                  [loading]="isOrdersLoading() && orders().length === 0"
+                  [error]="ordersError() ?? ''"
+                  [closed]="todayClosed()"
+                  (retry)="retryDashboard()"
+                />
+              } @placeholder {
+                <div class="min-h-[11.125rem]" aria-hidden="true"></div>
+              } @loading {
+                <div
+                  class="min-h-[11.125rem]"
+                  role="status"
+                  aria-label="Cargando pedidos por hora"
+                ></div>
               }
-            </div>
-          </section>
+            </section>
+
+            <!-- Contains a chart frame: created only when it approaches the
+               viewport, so Chart.js never measures a skipped container. -->
+            @defer (on viewport) {
+              <section
+                class="border border-rms-border rounded-xl bg-rms-surface flex flex-col overflow-hidden flex-shrink-0"
+              >
+                <header
+                  class="flex justify-between items-center p-3 border-b border-rms-border flex-shrink-0"
+                >
+                  <div class="flex flex-col">
+                    <h2 class="text-base font-bold text-rms-ink">Composición de ventas</h2>
+                    <p class="text-xs text-muted">
+                      Productos más vendidos y distribución por categoría
+                    </p>
+                  </div>
+                  <span class="whitespace-nowrap text-xs text-muted">{{
+                    topProductsTotal() | money
+                  }}</span>
+                </header>
+
+                <div class="flex-1 grid grid-cols-1 lg:grid-cols-5 gap-3 p-3 min-h-0">
+                  <div class="lg:col-span-3 flex flex-col min-h-0">
+                    <h3 class="text-xs font-semibold text-muted uppercase tracking-wide mb-2">
+                      Los 6 más vendidos
+                    </h3>
+                    @if (topProductsLoading()) {
+                      <div
+                        class="flex-1 space-y-2"
+                        role="status"
+                        aria-label="Cargando productos más vendidos"
+                      >
+                        @for (row of [1, 2, 3, 4]; track row) {
+                          <p-skeleton height="2rem" />
+                        }
+                      </div>
+                    } @else if (topProducts().length === 0) {
+                      <app-rms-empty-state
+                        icon="pi pi-chart-bar"
+                        title="Aún no hay pedidos servidos hoy"
+                        message="Cuando se entregue el primer pedido, verás aquí el ranking."
+                      />
+                    } @else {
+                      @if (topSellingNotice()) {
+                        <div
+                          class="mb-2 flex items-center gap-1 text-xs text-rms-warning"
+                          role="status"
+                        >
+                          <span class="min-w-0 flex-1">{{ topSellingNotice() }}</span>
+                          <app-rms-button size="sm" variant="link" (click)="retryTopSelling()"
+                            >Reintentar</app-rms-button
+                          >
+                        </div>
+                      }
+                      <ol class="flex-1 space-y-1.5 overflow-auto pr-1">
+                        @for (item of topProducts(); track item.productId; let i = $index) {
+                          <li class="flex items-center gap-2 text-sm">
+                            <span
+                              class="w-5 h-5 flex-shrink-0 flex items-center justify-center rounded-full bg-rms-subtle text-xs font-semibold text-rms-ink"
+                            >
+                              {{ i + 1 }}
+                            </span>
+                            <div class="flex-1 min-w-0">
+                              <p class="truncate font-medium text-rms-ink">{{ item.product }}</p>
+                              <p class="text-xs text-muted truncate">
+                                {{ item.category }} · {{ item.units }}
+                                {{ item.units === 1 ? 'unidad' : 'unidades' }}
+                              </p>
+                            </div>
+                            <span class="text-sm font-semibold text-rms-ink whitespace-nowrap">
+                              {{ item.total | money }}
+                            </span>
+                          </li>
+                        }
+                      </ol>
+                    }
+                  </div>
+
+                  <div
+                    class="lg:col-span-2 flex flex-col min-h-0 lg:border-l lg:border-rms-border lg:pl-3"
+                  >
+                    <app-rms-chart-frame
+                      title="Ventas por categoría"
+                      [height]="150"
+                      [loading]="isOrdersLoading() && orders().length === 0"
+                      [empty]="!isOrdersLoading() && salesByCategory().length === 0"
+                      [error]="ordersError() ?? ''"
+                      [summary]="categoryChartSummary()"
+                      dataMode="hidden"
+                      dataLabel="Ver datos por categoría"
+                      (retry)="retryDashboard()"
+                    >
+                      <app-rms-treemap [items]="categoryTreemapItems()" />
+                      <table rmsChartData>
+                        <caption class="sr-only">
+                          Ventas por categoría
+                        </caption>
+                        <thead>
+                          <tr>
+                            <th>Categoría</th>
+                            <th>Ventas</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (row of salesByCategory(); track row.category) {
+                            <tr>
+                              <td>{{ row.category }}</td>
+                              <td>{{ row.total | money }}</td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </app-rms-chart-frame>
+                  </div>
+                </div>
+              </section>
+            } @placeholder {
+              <div
+                class="min-h-[24rem] rounded-xl border border-rms-border bg-rms-surface"
+                aria-hidden="true"
+              ></div>
+            }
+
+            <!-- Below the fold on phones, after the sales composition block. -->
+            <section
+              class="rms-defer-view rms-defer-view--md flex-1 border border-rms-border rounded-xl bg-rms-surface flex flex-col min-h-0 overflow-hidden"
+            >
+              <header
+                class="flex justify-between items-center p-3 border-b border-rms-border flex-shrink-0"
+              >
+                <h2 class="text-base font-bold text-rms-ink">Pedidos del Día</h2>
+                @if (isOrdersLoading()) {
+                  <p-skeleton width="30px" height="18px" borderRadius="12px" />
+                } @else {
+                  <app-rms-badge
+                    [label]="orders().length.toString()"
+                    tone="brand"
+                    variant="solid"
+                  />
+                }
+              </header>
+
+              <div class="flex-1 overflow-auto p-2">
+                @if (isOrdersLoading()) {
+                  <app-list-skeleton
+                    [itemCount]="3"
+                    firstColWidth="40px"
+                    secondColWidth="50px"
+                    badgeWidth="60px"
+                    badgeHeight="18px"
+                    badgeBorderRadius="12px"
+                    actionSize="1.5rem"
+                  />
+                } @else {
+                  <div class="space-y-2">
+                    @for (order of orders(); track order.id) {
+                      <div class="bg-rms-subtle rounded-lg p-3 border border-rms-border">
+                        <div class="flex justify-between items-start mb-2">
+                          <div class="flex items-center gap-2">
+                            <span class="font-mono text-sm text-muted">#{{ order.id }}</span>
+                            <span class="font-medium">{{ tableLabel(order) }}</span>
+                          </div>
+                          <app-rms-status-pill
+                            [label]="getStatusText(order.status)"
+                            [status]="getStatusRole(order.status)"
+                          />
+                        </div>
+                        <div class="flex justify-between items-center">
+                          <span class="text-sm text-muted">{{ formatDate(order.date) }}</span>
+                          <div class="flex items-center gap-2">
+                            <span class="font-semibold">{{ calcTotal(order) | money }}</span>
+                            <app-rms-icon-button
+                              icon="pi pi-ellipsis-h"
+                              ariaLabel="Ver detalle del pedido"
+                              tooltip="Ver detalle del pedido"
+                              (click)="viewOrderDetails(order)"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    } @empty {
+                      <app-rms-empty-state
+                        icon="pi pi-inbox"
+                        title="No hay pedidos para mostrar"
+                        message="Aún no hay pedidos registrados hoy."
+                      />
+                    }
+                  </div>
+                }
+              </div>
+            </section>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="hidden md:flex lg:hidden flex-col gap-4 h-full overflow-y-auto">
-    <header class="border border-rms-border rounded-xl bg-rms-subtle overflow-hidden flex-shrink-0 relative">
-
-      <div class="relative z-10 flex flex-col p-10 gap-6">
-        <div class="flex justify-between items-start">
-          <div>
-            <h2 class="text-xl font-bold text-rms-ink">{{ currentDate() }}</h2>
-            <p class="text-muted text-base">{{ currentTime() }}</p>
+    <div class="hidden md:flex lg:hidden flex-col gap-4 h-full overflow-y-auto">
+      <header
+        class="border border-rms-border rounded-xl bg-rms-subtle overflow-hidden flex-shrink-0 relative"
+      >
+        <div class="relative z-10 flex flex-col p-10 gap-6">
+          <div class="flex justify-between items-start">
+            <div>
+              <h2 class="text-xl font-bold text-rms-ink">{{ currentDate() }}</h2>
+              <p class="text-muted text-base">{{ currentTime() }}</p>
+            </div>
+            <button
+              type="button"
+              class="inline-flex min-h-11 items-center rounded-full"
+              (click)="checkServerStatus()"
+              [attr.aria-label]="serverStatusLabel()"
+            >
+              <app-rms-status-pill [status]="serverStatusTone()" [label]="serverStatusLabel()" />
+            </button>
           </div>
-          <button
-                  type="button"
-                  class="inline-flex min-h-11 items-center rounded-full"
-                  (click)="checkServerStatus()"
-                  [attr.aria-label]="serverStatusLabel()">
-                  <app-rms-status-pill [status]="serverStatusTone()" [label]="serverStatusLabel()" />
-                </button>
-        </div>
 
           <div class="flex justify-around pt-4 border-t border-rms-border">
             @if (!isStatsLoaded()) {
@@ -267,12 +349,17 @@
                 <div class="flex justify-center items-center gap-2">
                   <div class="text-2xl font-bold text-rms-ink">
                     @if (showSales()) {
-                    {{ totalSales() | money }}
+                      {{ totalSales() | money }}
                     } @else {
-                    •••
+                      •••
                     }
                   </div>
-                  <app-rms-icon-button [icon]="showSales() ? 'pi pi-eye' : 'pi pi-eye-slash'" [ariaLabel]="showSales() ? 'Ocultar ventas' : 'Mostrar ventas'" [tooltip]="showSales() ? 'Ocultar ventas' : 'Mostrar ventas'" (click)="toggleSalesVisibility()" />
+                  <app-rms-icon-button
+                    [icon]="showSales() ? 'pi pi-eye' : 'pi pi-eye-slash'"
+                    [ariaLabel]="showSales() ? 'Ocultar ventas' : 'Mostrar ventas'"
+                    [tooltip]="showSales() ? 'Ocultar ventas' : 'Mostrar ventas'"
+                    (click)="toggleSalesVisibility()"
+                  />
                 </div>
                 <div class="text-sm text-muted">Ventas</div>
               </div>
@@ -280,385 +367,16 @@
                 <div class="text-2xl font-bold text-rms-ink">{{ occupiedTablesCount() }}</div>
                 <div class="text-sm text-muted">Mesas Ocupadas</div>
               </div>
-            <div class="text-center">
-              <div class="text-2xl font-bold text-rms-ink">{{ preparingOrdersCount() }}</div>
-              <div class="text-sm text-muted">Preparando</div>
-            </div>
+              <div class="text-center">
+                <div class="text-2xl font-bold text-rms-ink">{{ preparingOrdersCount() }}</div>
+                <div class="text-sm text-muted">Preparando</div>
+              </div>
             }
           </div>
-      </div>
-    </header>
-
-    <section class="flex-shrink-0 rounded-xl border border-rms-border bg-rms-surface p-4">
-      <!-- Chart.js loads after first paint; the placeholder keeps the card height. -->
-      @defer (on idle) {
-        <app-dashboard-hourly-chart
-          [bars]="hourlyRhythm()"
-          [loading]="isOrdersLoading() && orders().length === 0"
-          [error]="ordersError() ?? ''"
-          [closed]="todayClosed()"
-          (retry)="retryDashboard()" />
-      } @placeholder {
-        <div class="min-h-[11.125rem]" aria-hidden="true"></div>
-      } @loading {
-        <div class="min-h-[11.125rem]" role="status" aria-label="Cargando pedidos por hora"></div>
-      }
-    </section>
-
-    <!-- Contains a chart frame: created only when it approaches the
-         viewport, so Chart.js never measures a skipped container. -->
-    @defer (on viewport) {
-      <section
-        class="flex-shrink-0 border border-rms-border rounded-xl bg-rms-surface flex flex-col overflow-hidden">
-        <header class="flex justify-between items-center p-3 border-b border-rms-border flex-shrink-0">
-          <div class="flex flex-col">
-            <h2 class="text-base font-bold text-rms-ink">Composición de ventas</h2>
-            <p class="text-xs text-muted">Productos más vendidos y distribución por categoría</p>
-          </div>
-          <span class="whitespace-nowrap text-xs text-muted">{{ topProductsTotal() | money }}</span>
-        </header>
-
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-3 p-3 min-h-0">
-          <div class="lg:col-span-3 flex flex-col min-h-0">
-            <h3 class="text-xs font-semibold text-muted uppercase tracking-wide mb-2">Los 6 más vendidos</h3>
-            @if (topProductsLoading()) {
-              <div class="flex-1 space-y-2" role="status" aria-label="Cargando productos más vendidos">
-                @for (row of [1, 2, 3, 4]; track row) {
-                  <p-skeleton height="2rem" />
-                }
-              </div>
-            } @else if (topProducts().length === 0) {
-              <app-rms-empty-state
-                icon="pi pi-chart-bar"
-                title="Aún no hay pedidos servidos hoy"
-                message="Cuando se entregue el primer pedido, verás aquí el ranking." />
-            } @else {
-              @if (topSellingNotice()) {
-                <div class="mb-2 flex items-center gap-1 text-xs text-rms-warning" role="status">
-                  <span class="min-w-0 flex-1">{{ topSellingNotice() }}</span>
-                  <app-rms-button size="sm" variant="link" (click)="retryTopSelling()">Reintentar</app-rms-button>
-                </div>
-              }
-              <ol class="flex-1 space-y-1.5 overflow-auto pr-1">
-                @for (item of topProducts(); track item.productId; let i = $index) {
-                  <li class="flex items-center gap-2 text-sm">
-                    <span class="w-5 h-5 flex-shrink-0 flex items-center justify-center rounded-full bg-rms-subtle text-xs font-semibold text-rms-ink">
-                      {{ i + 1 }}
-                    </span>
-                    <div class="flex-1 min-w-0">
-                      <p class="truncate font-medium text-rms-ink">{{ item.product }}</p>
-                      <p class="text-xs text-muted truncate">{{ item.category }} · {{ item.units }} {{ item.units === 1 ? 'unidad' : 'unidades' }}</p>
-                    </div>
-                    <span class="text-sm font-semibold text-rms-ink whitespace-nowrap">
-                      {{ item.total | money }}
-                    </span>
-                  </li>
-                }
-              </ol>
-            }
-          </div>
-
-          <div class="lg:col-span-2 flex flex-col min-h-0 lg:border-l lg:border-rms-border lg:pl-3">
-            <app-rms-chart-frame
-              title="Ventas por categoría"
-              [height]="150"
-              [loading]="isOrdersLoading() && orders().length === 0"
-              [empty]="!isOrdersLoading() && salesByCategory().length === 0"
-              [error]="ordersError() ?? ''"
-              [summary]="categoryChartSummary()"
-              dataMode="hidden"
-              dataLabel="Ver datos por categoría"
-              (retry)="retryDashboard()">
-              <app-rms-treemap [items]="categoryTreemapItems()" />
-              <table rmsChartData>
-                <caption class="sr-only">Ventas por categoría</caption>
-                <thead><tr><th>Categoría</th><th>Ventas</th></tr></thead>
-                <tbody>
-                  @for (row of salesByCategory(); track row.category) {
-                    <tr><td>{{ row.category }}</td><td>{{ row.total | money }}</td></tr>
-                  }
-                </tbody>
-              </table>
-            </app-rms-chart-frame>
-          </div>
         </div>
-      </section>
-    } @placeholder {
-      <div class="min-h-[24rem] rounded-xl border border-rms-border bg-rms-surface" aria-hidden="true"></div>
-    }
-
-    <div class="flex-1 flex gap-4 min-h-0">
-      <!-- Tablet branch: below the fold after the hero and hourly chart. -->
-      <section
-        class="rms-defer-view rms-defer-view--lg w-full border border-rms-border rounded-xl bg-rms-surface flex flex-col overflow-hidden">
-        <header class="flex justify-between items-center p-3 border-b border-rms-border flex-shrink-0">
-          <h2 class="text-base font-bold text-rms-ink">Pedidos del Día</h2>
-          @if (isOrdersLoading()) {
-            <p-skeleton width="30px" height="18px" borderRadius="12px" />
-          } @else {
-            <app-rms-badge [label]="orders().length.toString()" tone="brand" variant="solid" />
-          }
-        </header>
-
-        <div class="flex-1 overflow-auto p-2">
-          @if (isOrdersLoading()) {
-            <app-list-skeleton [itemCount]="3"
-            firstColWidth="40px"
-            secondColWidth="50px"
-            badgeWidth="60px"
-            badgeHeight="18px"
-            badgeBorderRadius="12px"
-            actionSize="1.5rem" />
-          } @else {
-            <div class="space-y-2">
-              @for (order of orders(); track order.id) {
-              <div class="bg-rms-subtle rounded-lg p-2 border border-rms-border">
-                <div class="flex justify-between items-start mb-1">
-                  <div class="flex items-center gap-2">
-                    <span class="font-medium text-sm">{{ tableLabel(order) }}</span>
-                  </div>
-                  <app-rms-status-pill [label]="getStatusText(order.status)" [status]="getStatusRole(order.status)" />
-                </div>
-                <div class="flex justify-between items-center text-sm">
-                  <span class="text-xs text-muted">{{ formatDate(order.date) }}</span>
-                  <div class="flex items-center gap-2">
-                    <span class="font-semibold">{{ calcTotal(order) | money }}</span>
-                    <app-rms-icon-button icon="pi pi-ellipsis-h" ariaLabel="Ver detalle del pedido" tooltip="Ver detalle del pedido" (click)="viewOrderDetails(order)" />
-                  </div>
-                </div>
-              </div>
-              } @empty {
-              <app-rms-empty-state
-                icon="pi pi-inbox"
-                title="No hay pedidos para mostrar"
-                message="Aún no hay pedidos registrados hoy." />
-              }
-            </div>
-          }
-        </div>
-      </section>
-    </div>
-  </div>
-
-  <div class="hidden lg:grid lg:grid-cols-5 gap-6 min-w-0 h-full">
-    <div class="col-span-3 flex min-h-0 flex-col gap-4">
-      <header class="flex-shrink-0 border border-rms-border rounded-2xl bg-rms-subtle overflow-hidden relative">
-
-        <div class="relative z-10 flex flex-row justify-between items-center px-4 py-1.5 border-b border-rms-border">
-          <div class="flex flex-col">
-            <h2 class="text-lg font-bold text-rms-ink">{{ currentDate() }}</h2>
-            <p class="text-sm text-muted">{{ currentTime() }}</p>
-          </div>
-          <button
-                  type="button"
-                  class="inline-flex min-h-11 items-center rounded-full"
-                  (click)="checkServerStatus()"
-                  [attr.aria-label]="serverStatusLabel()">
-                  <app-rms-status-pill [status]="serverStatusTone()" [label]="serverStatusLabel()" />
-                </button>
-        </div>
-
-        <section class="relative z-10 flex-1 flex flex-row px-4 py-1 gap-2 min-h-[5rem]">
-          @if (!isStatsLoaded()) {
-            <div class="flex-1 text-center border-r border-rms-border flex flex-col justify-center">
-              <p-skeleton width="100px" height="28px" styleClass="mx-auto" />
-            </div>
-            <div class="flex-1 text-center border-r border-rms-border flex flex-col justify-center">
-              <p-skeleton width="40px" height="28px" styleClass="mx-auto" />
-            </div>
-            <div class="flex-1 text-center flex flex-col justify-center">
-              <p-skeleton width="40px" height="28px" styleClass="mx-auto" />
-            </div>
-          } @else {
-            <div class="flex-1 text-center border-r border-rms-border flex flex-col justify-center">
-              <div class="flex justify-center items-center gap-2">
-                <div class="text-xl font-bold tabular-nums whitespace-nowrap text-rms-ink">
-                  @if (showSales()) {
-                  {{ totalSales() | money }}
-                  } @else {
-                  •••••
-                  }
-                </div>
-                <app-rms-icon-button [icon]="showSales() ? 'pi pi-eye' : 'pi pi-eye-slash'" [ariaLabel]="showSales() ? 'Ocultar ventas' : 'Mostrar ventas'" [tooltip]="showSales() ? 'Ocultar ventas' : 'Mostrar ventas'" (click)="toggleSalesVisibility()" />
-              </div>
-              <div class="text-sm text-muted mt-1">
-                Ventas del Día
-              </div>
-              <p class="text-xs text-muted">
-                {{ completedOrdersCount() }} {{ completedOrdersCount() === 1 ? 'pedido' : 'pedidos' }}
-              </p>
-            </div>
-
-            <div class="flex-1 text-center border-r border-rms-border flex flex-col justify-center">
-              <div class="text-2xl font-bold text-rms-ink">
-                {{ occupiedTablesCount() }}
-              </div>
-              <div class="text-sm text-muted mt-1">
-                Mesas Ocupadas
-              </div>
-              <p class="text-xs text-muted">
-                De {{totalTables()}} totales
-              </p>
-            </div>
-
-            <div class="flex-1 text-center flex flex-col justify-center">
-              <div class="text-2xl font-bold text-rms-ink">
-                {{ preparingOrdersCount() }}
-              </div>
-              <div class="text-sm text-muted mt-1">
-                En Preparación
-              </div>
-              <p class="text-xs text-muted">
-                Pedidos activos
-              </p>
-            </div>
-          }
-        </section>
       </header>
 
-      <section class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-rms-border bg-rms-surface">
-        <header class="flex flex-wrap justify-between items-center gap-2 px-4 py-2.5 border-b border-rms-border flex-shrink-0">
-          <div class="flex flex-col">
-            <h2 class="text-base font-bold text-rms-ink">Composición de ventas</h2>
-            <p class="text-xs text-muted">Productos más vendidos y distribución por categoría</p>
-          </div>
-          <span class="whitespace-nowrap text-sm text-muted">{{ topProductsTotal() | money }}</span>
-        </header>
-
-        <div class="grid min-h-0 flex-1 grid-cols-1 gap-4 p-4 lg:grid-cols-5">
-          <div class="lg:col-span-3 flex flex-col min-h-0">
-            <h3 class="text-xs font-semibold text-muted uppercase tracking-wide mb-3">Los 6 más vendidos</h3>
-            @if (topProductsLoading()) {
-              <div class="flex-1 space-y-2" role="status" aria-label="Cargando productos más vendidos">
-                @for (row of [1, 2, 3, 4, 5]; track row) {
-                  <p-skeleton height="2.25rem" />
-                }
-              </div>
-            } @else if (topProducts().length === 0) {
-              <app-rms-empty-state
-                icon="pi pi-chart-bar"
-                title="Aún no hay pedidos servidos hoy"
-                message="Cuando se entregue el primer pedido, verás aquí el ranking." />
-            } @else {
-              @if (topSellingNotice()) {
-                <div class="mb-2 flex items-center gap-1 text-xs text-rms-warning" role="status">
-                  <span class="min-w-0 flex-1">{{ topSellingNotice() }}</span>
-                  <app-rms-button size="sm" variant="link" (click)="retryTopSelling()">Reintentar</app-rms-button>
-                </div>
-              }
-              <ol class="flex-1 space-y-2 overflow-auto pr-1" tabindex="0" aria-label="Productos más vendidos">
-                @for (item of topProducts(); track item.productId; let i = $index) {
-                  <li class="flex items-center gap-3 text-sm">
-                    <span class="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-full bg-rms-subtle text-xs font-semibold text-rms-ink">
-                      {{ i + 1 }}
-                    </span>
-                    <div class="flex-1 min-w-0">
-                      <p class="truncate font-medium text-rms-ink">{{ item.product }}</p>
-                      <p class="text-xs text-muted truncate">{{ item.category }} · {{ item.units }} {{ item.units === 1 ? 'unidad' : 'unidades' }}</p>
-                    </div>
-                    <span class="text-sm font-semibold text-rms-ink whitespace-nowrap">
-                      {{ item.total | money }}
-                    </span>
-                  </li>
-                }
-              </ol>
-            }
-          </div>
-
-          <div class="flex min-h-0 flex-col lg:col-span-2 lg:border-l lg:border-rms-border lg:pl-4">
-            <app-rms-chart-frame
-              title="Ventas por categoría"
-              [fill]="true"
-              [loading]="isOrdersLoading() && orders().length === 0"
-              [empty]="!isOrdersLoading() && salesByCategory().length === 0"
-              [error]="ordersError() ?? ''"
-              [summary]="categoryChartSummary()"
-              dataMode="hidden"
-              dataLabel="Ver datos por categoría"
-              (retry)="retryDashboard()">
-              <app-rms-treemap [items]="categoryTreemapItems()" />
-              <table rmsChartData>
-                <caption class="sr-only">Ventas por categoría</caption>
-                <thead><tr><th>Categoría</th><th>Ventas</th></tr></thead>
-                <tbody>
-                  @for (row of salesByCategory(); track row.category) {
-                    <tr><td>{{ row.category }}</td><td>{{ row.total | money }}</td></tr>
-                  }
-                </tbody>
-              </table>
-            </app-rms-chart-frame>
-          </div>
-        </div>
-      </section>
-    </div>
-
-    <div class="col-span-2 flex min-h-0 flex-col gap-4">
-    <section class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-rms-border bg-rms-surface">
-      <header class="flex items-center justify-between p-4 flex-shrink-0">
-        <h2 class="text-lg font-bold text-rms-ink break-words">
-          Pedidos del Día
-        </h2>
-        <app-rms-badge [label]="orders().length.toString()" tone="brand" variant="solid" size="md" />
-      </header>
-
-      <div class="p-4 pt-0 flex-1 min-h-0 overflow-hidden">
-        <p-table [value]="orders()" size="small" selectionMode="single" [scrollable]="true" scrollHeight="flex"
-          styleClass="h-full"
-          [pt]="{ table: { 'aria-label': 'Pedidos del día' } }"
-          [stripedRows]="true" [loading]="isOrdersLoading()" [showLoader]="false">
-          <ng-template pTemplate="header">
-            <tr>
-              <th class="text-left">Mesa</th>
-              <th class="text-left">Fecha</th>
-              <th class="text-left">Estado</th>
-              <th class="text-right">Total</th>
-              <th class="w-10 text-center"><span class="sr-only">Detalles</span></th>
-            </tr>
-          </ng-template>
-
-          <ng-template pTemplate="body" let-order>
-            <tr>
-              <td class="font-medium"><span class="whitespace-nowrap">{{ tableLabel(order) }}</span></td>
-              <td class="text-sm text-muted whitespace-nowrap">
-                {{ formatDate(order.date) }}
-              </td>
-              <td>
-                <app-rms-status-pill [label]="getStatusText(order.status)" [status]="getStatusRole(order.status)" />
-              </td>
-              <td class="text-right font-semibold">
-                {{ calcTotal(order) | money }}
-              </td>
-              <td class="text-center">
-                <app-rms-icon-button icon="pi pi-ellipsis-h" ariaLabel="Ver detalle del pedido" tooltip="Ver detalle del pedido" (click)="viewOrderDetails(order)" />
-              </td>
-            </tr>
-          </ng-template>
-
-          <ng-template pTemplate="loadingbody">
-            <tr>
-              <td colspan="5" class="p-0">
-                <div class="min-h-[300px] w-full">
-                  <app-table-skeleton [colCount]="5" />
-                </div>
-              </td>
-            </tr>
-          </ng-template>
-
-          <ng-template pTemplate="emptymessage">
-            <tr>
-              <td colspan="5">
-                <app-rms-empty-state
-                  icon="pi pi-inbox"
-                  title="No hay pedidos para mostrar"
-                  message="Aún no hay pedidos registrados hoy." />
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-      </div>
-    </section>
-
-      <section class="flex-shrink-0 rounded-2xl border border-rms-border bg-rms-surface p-3">
+      <section class="flex-shrink-0 rounded-xl border border-rms-border bg-rms-surface p-4">
         <!-- Chart.js loads after first paint; the placeholder keeps the card height. -->
         @defer (on idle) {
           <app-dashboard-hourly-chart
@@ -666,18 +384,514 @@
             [loading]="isOrdersLoading() && orders().length === 0"
             [error]="ordersError() ?? ''"
             [closed]="todayClosed()"
-            (retry)="retryDashboard()" />
+            (retry)="retryDashboard()"
+          />
         } @placeholder {
           <div class="min-h-[11.125rem]" aria-hidden="true"></div>
         } @loading {
           <div class="min-h-[11.125rem]" role="status" aria-label="Cargando pedidos por hora"></div>
         }
       </section>
+
+      <!-- Contains a chart frame: created only when it approaches the
+         viewport, so Chart.js never measures a skipped container. -->
+      @defer (on viewport) {
+        <section
+          class="flex-shrink-0 border border-rms-border rounded-xl bg-rms-surface flex flex-col overflow-hidden"
+        >
+          <header
+            class="flex justify-between items-center p-3 border-b border-rms-border flex-shrink-0"
+          >
+            <div class="flex flex-col">
+              <h2 class="text-base font-bold text-rms-ink">Composición de ventas</h2>
+              <p class="text-xs text-muted">Productos más vendidos y distribución por categoría</p>
+            </div>
+            <span class="whitespace-nowrap text-xs text-muted">{{
+              topProductsTotal() | money
+            }}</span>
+          </header>
+
+          <div class="grid grid-cols-1 lg:grid-cols-5 gap-3 p-3 min-h-0">
+            <div class="lg:col-span-3 flex flex-col min-h-0">
+              <h3 class="text-xs font-semibold text-muted uppercase tracking-wide mb-2">
+                Los 6 más vendidos
+              </h3>
+              @if (topProductsLoading()) {
+                <div
+                  class="flex-1 space-y-2"
+                  role="status"
+                  aria-label="Cargando productos más vendidos"
+                >
+                  @for (row of [1, 2, 3, 4]; track row) {
+                    <p-skeleton height="2rem" />
+                  }
+                </div>
+              } @else if (topProducts().length === 0) {
+                <app-rms-empty-state
+                  icon="pi pi-chart-bar"
+                  title="Aún no hay pedidos servidos hoy"
+                  message="Cuando se entregue el primer pedido, verás aquí el ranking."
+                />
+              } @else {
+                @if (topSellingNotice()) {
+                  <div class="mb-2 flex items-center gap-1 text-xs text-rms-warning" role="status">
+                    <span class="min-w-0 flex-1">{{ topSellingNotice() }}</span>
+                    <app-rms-button size="sm" variant="link" (click)="retryTopSelling()"
+                      >Reintentar</app-rms-button
+                    >
+                  </div>
+                }
+                <ol class="flex-1 space-y-1.5 overflow-auto pr-1">
+                  @for (item of topProducts(); track item.productId; let i = $index) {
+                    <li class="flex items-center gap-2 text-sm">
+                      <span
+                        class="w-5 h-5 flex-shrink-0 flex items-center justify-center rounded-full bg-rms-subtle text-xs font-semibold text-rms-ink"
+                      >
+                        {{ i + 1 }}
+                      </span>
+                      <div class="flex-1 min-w-0">
+                        <p class="truncate font-medium text-rms-ink">{{ item.product }}</p>
+                        <p class="text-xs text-muted truncate">
+                          {{ item.category }} · {{ item.units }}
+                          {{ item.units === 1 ? 'unidad' : 'unidades' }}
+                        </p>
+                      </div>
+                      <span class="text-sm font-semibold text-rms-ink whitespace-nowrap">
+                        {{ item.total | money }}
+                      </span>
+                    </li>
+                  }
+                </ol>
+              }
+            </div>
+
+            <div
+              class="lg:col-span-2 flex flex-col min-h-0 lg:border-l lg:border-rms-border lg:pl-3"
+            >
+              <app-rms-chart-frame
+                title="Ventas por categoría"
+                [height]="150"
+                [loading]="isOrdersLoading() && orders().length === 0"
+                [empty]="!isOrdersLoading() && salesByCategory().length === 0"
+                [error]="ordersError() ?? ''"
+                [summary]="categoryChartSummary()"
+                dataMode="hidden"
+                dataLabel="Ver datos por categoría"
+                (retry)="retryDashboard()"
+              >
+                <app-rms-treemap [items]="categoryTreemapItems()" />
+                <table rmsChartData>
+                  <caption class="sr-only">
+                    Ventas por categoría
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th>Categoría</th>
+                      <th>Ventas</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of salesByCategory(); track row.category) {
+                      <tr>
+                        <td>{{ row.category }}</td>
+                        <td>{{ row.total | money }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </app-rms-chart-frame>
+            </div>
+          </div>
+        </section>
+      } @placeholder {
+        <div
+          class="min-h-[24rem] rounded-xl border border-rms-border bg-rms-surface"
+          aria-hidden="true"
+        ></div>
+      }
+
+      <div class="flex-1 flex gap-4 min-h-0">
+        <!-- Tablet branch: below the fold after the hero and hourly chart. -->
+        <section
+          class="rms-defer-view rms-defer-view--lg w-full border border-rms-border rounded-xl bg-rms-surface flex flex-col overflow-hidden"
+        >
+          <header
+            class="flex justify-between items-center p-3 border-b border-rms-border flex-shrink-0"
+          >
+            <h2 class="text-base font-bold text-rms-ink">Pedidos del Día</h2>
+            @if (isOrdersLoading()) {
+              <p-skeleton width="30px" height="18px" borderRadius="12px" />
+            } @else {
+              <app-rms-badge [label]="orders().length.toString()" tone="brand" variant="solid" />
+            }
+          </header>
+
+          <div class="flex-1 overflow-auto p-2">
+            @if (isOrdersLoading()) {
+              <app-list-skeleton
+                [itemCount]="3"
+                firstColWidth="40px"
+                secondColWidth="50px"
+                badgeWidth="60px"
+                badgeHeight="18px"
+                badgeBorderRadius="12px"
+                actionSize="1.5rem"
+              />
+            } @else {
+              <div class="space-y-2">
+                @for (order of orders(); track order.id) {
+                  <div class="bg-rms-subtle rounded-lg p-2 border border-rms-border">
+                    <div class="flex justify-between items-start mb-1">
+                      <div class="flex items-center gap-2">
+                        <span class="font-medium text-sm">{{ tableLabel(order) }}</span>
+                      </div>
+                      <app-rms-status-pill
+                        [label]="getStatusText(order.status)"
+                        [status]="getStatusRole(order.status)"
+                      />
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                      <span class="text-xs text-muted">{{ formatDate(order.date) }}</span>
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold">{{ calcTotal(order) | money }}</span>
+                        <app-rms-icon-button
+                          icon="pi pi-ellipsis-h"
+                          ariaLabel="Ver detalle del pedido"
+                          tooltip="Ver detalle del pedido"
+                          (click)="viewOrderDetails(order)"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                } @empty {
+                  <app-rms-empty-state
+                    icon="pi pi-inbox"
+                    title="No hay pedidos para mostrar"
+                    message="Aún no hay pedidos registrados hoy."
+                  />
+                }
+              </div>
+            }
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="hidden lg:grid lg:grid-cols-5 gap-6 min-w-0 h-full">
+      <div class="col-span-3 flex min-h-0 flex-col gap-4">
+        <header
+          class="flex-shrink-0 border border-rms-border rounded-2xl bg-rms-subtle overflow-hidden relative"
+        >
+          <div
+            class="relative z-10 flex flex-row justify-between items-center px-4 py-1.5 border-b border-rms-border"
+          >
+            <div class="flex flex-col">
+              <h2 class="text-lg font-bold text-rms-ink">{{ currentDate() }}</h2>
+              <p class="text-sm text-muted">{{ currentTime() }}</p>
+            </div>
+            <button
+              type="button"
+              class="inline-flex min-h-11 items-center rounded-full"
+              (click)="checkServerStatus()"
+              [attr.aria-label]="serverStatusLabel()"
+            >
+              <app-rms-status-pill [status]="serverStatusTone()" [label]="serverStatusLabel()" />
+            </button>
+          </div>
+
+          <section class="relative z-10 flex-1 flex flex-row px-4 py-1 gap-2 min-h-[5rem]">
+            @if (!isStatsLoaded()) {
+              <div
+                class="flex-1 text-center border-r border-rms-border flex flex-col justify-center"
+              >
+                <p-skeleton width="100px" height="28px" styleClass="mx-auto" />
+              </div>
+              <div
+                class="flex-1 text-center border-r border-rms-border flex flex-col justify-center"
+              >
+                <p-skeleton width="40px" height="28px" styleClass="mx-auto" />
+              </div>
+              <div class="flex-1 text-center flex flex-col justify-center">
+                <p-skeleton width="40px" height="28px" styleClass="mx-auto" />
+              </div>
+            } @else {
+              <div
+                class="flex-1 text-center border-r border-rms-border flex flex-col justify-center"
+              >
+                <div class="flex justify-center items-center gap-2">
+                  <div class="text-xl font-bold tabular-nums whitespace-nowrap text-rms-ink">
+                    @if (showSales()) {
+                      {{ totalSales() | money }}
+                    } @else {
+                      •••••
+                    }
+                  </div>
+                  <app-rms-icon-button
+                    [icon]="showSales() ? 'pi pi-eye' : 'pi pi-eye-slash'"
+                    [ariaLabel]="showSales() ? 'Ocultar ventas' : 'Mostrar ventas'"
+                    [tooltip]="showSales() ? 'Ocultar ventas' : 'Mostrar ventas'"
+                    (click)="toggleSalesVisibility()"
+                  />
+                </div>
+                <div class="text-sm text-muted mt-1">Ventas del Día</div>
+                <p class="text-xs text-muted">
+                  {{ completedOrdersCount() }}
+                  {{ completedOrdersCount() === 1 ? 'pedido' : 'pedidos' }}
+                </p>
+              </div>
+
+              <div
+                class="flex-1 text-center border-r border-rms-border flex flex-col justify-center"
+              >
+                <div class="text-2xl font-bold text-rms-ink">
+                  {{ occupiedTablesCount() }}
+                </div>
+                <div class="text-sm text-muted mt-1">Mesas Ocupadas</div>
+                <p class="text-xs text-muted">De {{ totalTables() }} totales</p>
+              </div>
+
+              <div class="flex-1 text-center flex flex-col justify-center">
+                <div class="text-2xl font-bold text-rms-ink">
+                  {{ preparingOrdersCount() }}
+                </div>
+                <div class="text-sm text-muted mt-1">En Preparación</div>
+                <p class="text-xs text-muted">Pedidos activos</p>
+              </div>
+            }
+          </section>
+        </header>
+
+        <section
+          class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-rms-border bg-rms-surface"
+        >
+          <header
+            class="flex flex-wrap justify-between items-center gap-2 px-4 py-2.5 border-b border-rms-border flex-shrink-0"
+          >
+            <div class="flex flex-col">
+              <h2 class="text-base font-bold text-rms-ink">Composición de ventas</h2>
+              <p class="text-xs text-muted">Productos más vendidos y distribución por categoría</p>
+            </div>
+            <span class="whitespace-nowrap text-sm text-muted">{{
+              topProductsTotal() | money
+            }}</span>
+          </header>
+
+          <div class="grid min-h-0 flex-1 grid-cols-1 gap-4 p-4 lg:grid-cols-5">
+            <div class="lg:col-span-3 flex flex-col min-h-0">
+              <h3 class="text-xs font-semibold text-muted uppercase tracking-wide mb-3">
+                Los 6 más vendidos
+              </h3>
+              @if (topProductsLoading()) {
+                <div
+                  class="flex-1 space-y-2"
+                  role="status"
+                  aria-label="Cargando productos más vendidos"
+                >
+                  @for (row of [1, 2, 3, 4, 5]; track row) {
+                    <p-skeleton height="2.25rem" />
+                  }
+                </div>
+              } @else if (topProducts().length === 0) {
+                <app-rms-empty-state
+                  icon="pi pi-chart-bar"
+                  title="Aún no hay pedidos servidos hoy"
+                  message="Cuando se entregue el primer pedido, verás aquí el ranking."
+                />
+              } @else {
+                @if (topSellingNotice()) {
+                  <div class="mb-2 flex items-center gap-1 text-xs text-rms-warning" role="status">
+                    <span class="min-w-0 flex-1">{{ topSellingNotice() }}</span>
+                    <app-rms-button size="sm" variant="link" (click)="retryTopSelling()"
+                      >Reintentar</app-rms-button
+                    >
+                  </div>
+                }
+                <ol
+                  class="flex-1 space-y-2 overflow-auto pr-1"
+                  tabindex="0"
+                  aria-label="Productos más vendidos"
+                >
+                  @for (item of topProducts(); track item.productId; let i = $index) {
+                    <li class="flex items-center gap-3 text-sm">
+                      <span
+                        class="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-full bg-rms-subtle text-xs font-semibold text-rms-ink"
+                      >
+                        {{ i + 1 }}
+                      </span>
+                      <div class="flex-1 min-w-0">
+                        <p class="truncate font-medium text-rms-ink">{{ item.product }}</p>
+                        <p class="text-xs text-muted truncate">
+                          {{ item.category }} · {{ item.units }}
+                          {{ item.units === 1 ? 'unidad' : 'unidades' }}
+                        </p>
+                      </div>
+                      <span class="text-sm font-semibold text-rms-ink whitespace-nowrap">
+                        {{ item.total | money }}
+                      </span>
+                    </li>
+                  }
+                </ol>
+              }
+            </div>
+
+            <div
+              class="flex min-h-0 flex-col lg:col-span-2 lg:border-l lg:border-rms-border lg:pl-4"
+            >
+              <app-rms-chart-frame
+                title="Ventas por categoría"
+                [fill]="true"
+                [loading]="isOrdersLoading() && orders().length === 0"
+                [empty]="!isOrdersLoading() && salesByCategory().length === 0"
+                [error]="ordersError() ?? ''"
+                [summary]="categoryChartSummary()"
+                dataMode="hidden"
+                dataLabel="Ver datos por categoría"
+                (retry)="retryDashboard()"
+              >
+                <app-rms-treemap [items]="categoryTreemapItems()" />
+                <table rmsChartData>
+                  <caption class="sr-only">
+                    Ventas por categoría
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th>Categoría</th>
+                      <th>Ventas</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of salesByCategory(); track row.category) {
+                      <tr>
+                        <td>{{ row.category }}</td>
+                        <td>{{ row.total | money }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </app-rms-chart-frame>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="col-span-2 flex min-h-0 flex-col gap-4">
+        <section
+          class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-rms-border bg-rms-surface"
+        >
+          <header class="flex items-center justify-between p-4 flex-shrink-0">
+            <h2 class="text-lg font-bold text-rms-ink break-words">Pedidos del Día</h2>
+            <app-rms-badge
+              [label]="orders().length.toString()"
+              tone="brand"
+              variant="solid"
+              size="md"
+            />
+          </header>
+
+          <div class="p-4 pt-0 flex-1 min-h-0 overflow-hidden">
+            <p-table
+              [value]="orders()"
+              size="small"
+              selectionMode="single"
+              [scrollable]="true"
+              scrollHeight="flex"
+              styleClass="h-full"
+              [pt]="{ table: { 'aria-label': 'Pedidos del día' } }"
+              [stripedRows]="true"
+              [loading]="isOrdersLoading()"
+              [showLoader]="false"
+            >
+              <ng-template pTemplate="header">
+                <tr>
+                  <th class="text-left">Mesa</th>
+                  <th class="text-left">Fecha</th>
+                  <th class="text-left">Estado</th>
+                  <th class="text-right">Total</th>
+                  <th class="w-10 text-center"><span class="sr-only">Detalles</span></th>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="body" let-order>
+                <tr>
+                  <td class="font-medium">
+                    <span class="whitespace-nowrap">{{ tableLabel(order) }}</span>
+                  </td>
+                  <td class="text-sm text-muted whitespace-nowrap">
+                    {{ formatDate(order.date) }}
+                  </td>
+                  <td>
+                    <app-rms-status-pill
+                      [label]="getStatusText(order.status)"
+                      [status]="getStatusRole(order.status)"
+                    />
+                  </td>
+                  <td class="text-right font-semibold">
+                    {{ calcTotal(order) | money }}
+                  </td>
+                  <td class="text-center">
+                    <app-rms-icon-button
+                      icon="pi pi-ellipsis-h"
+                      ariaLabel="Ver detalle del pedido"
+                      tooltip="Ver detalle del pedido"
+                      (click)="viewOrderDetails(order)"
+                    />
+                  </td>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="loadingbody">
+                <tr>
+                  <td colspan="5" class="p-0">
+                    <div class="min-h-[300px] w-full">
+                      <app-table-skeleton [colCount]="5" />
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="5">
+                    <app-rms-empty-state
+                      icon="pi pi-inbox"
+                      title="No hay pedidos para mostrar"
+                      message="Aún no hay pedidos registrados hoy."
+                    />
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </section>
+
+        <section class="flex-shrink-0 rounded-2xl border border-rms-border bg-rms-surface p-3">
+          <!-- Chart.js loads after first paint; the placeholder keeps the card height. -->
+          @defer (on idle) {
+            <app-dashboard-hourly-chart
+              [bars]="hourlyRhythm()"
+              [loading]="isOrdersLoading() && orders().length === 0"
+              [error]="ordersError() ?? ''"
+              [closed]="todayClosed()"
+              (retry)="retryDashboard()"
+            />
+          } @placeholder {
+            <div class="min-h-[11.125rem]" aria-hidden="true"></div>
+          } @loading {
+            <div
+              class="min-h-[11.125rem]"
+              role="status"
+              aria-label="Cargando pedidos por hora"
+            ></div>
+          }
+        </section>
+      </div>
     </div>
   </div>
-</div>
 }
 
-<app-order-detail-dialog [(visible)]="showOrderDetail" [order]="selectedOrder()"
-  (closed)="closeOrderDetail()">
+<app-order-detail-dialog
+  [(visible)]="showOrderDetail"
+  [order]="selectedOrder()"
+  (closed)="closeOrderDetail()"
+>
 </app-order-detail-dialog>

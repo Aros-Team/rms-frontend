@@ -1,4 +1,19 @@
-import { Component, OnInit, OnDestroy, OnChanges, SimpleChanges, SimpleChange, inject, Input, Output, EventEmitter, ChangeDetectorRef, ChangeDetectionStrategy, ContentChild, TemplateRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  OnChanges,
+  SimpleChanges,
+  SimpleChange,
+  inject,
+  Input,
+  Output,
+  EventEmitter,
+  ChangeDetectorRef,
+  ChangeDetectionStrategy,
+  ContentChild,
+  TemplateRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { Router, NavigationEnd } from '@angular/router';
@@ -72,16 +87,18 @@ export class Layout implements OnInit, OnDestroy, OnChanges {
   }
 
   private setupResizeListener(): void {
-    this.resizeHandler = () => { this.checkScreenSize(); };
+    this.resizeHandler = () => {
+      this.checkScreenSize();
+    };
     window.addEventListener('resize', this.resizeHandler);
   }
 
   private setupRouterListener(): void {
-    this.routerSubscription = this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe(() => {
-      this.cdr.markForCheck();
-    });
+    this.routerSubscription = this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe(() => {
+        this.cdr.markForCheck();
+      });
   }
 
   toggleSidebar(): void {

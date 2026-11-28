@@ -25,7 +25,12 @@ describe('Chat stream parser', () => {
   function setup(): Chat {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [{ provide: Logging, useValue: { info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() } }],
+      providers: [
+        {
+          provide: Logging,
+          useValue: { info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() },
+        },
+      ],
     });
     return TestBed.inject(Chat);
   }

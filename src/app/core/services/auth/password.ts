@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class Password {
   private http = inject(HttpClient);
@@ -15,14 +15,14 @@ export class Password {
   resetPassword(token: string, newPassword: string): Observable<unknown> {
     return this.http.post('auth/reset-password', {
       token,
-      newPassword
+      newPassword,
     });
   }
 
   changePassword(currentPassword: string, newPassword: string): Observable<unknown> {
     return this.http.put('v1/users/me/password', {
       currentPassword,
-      newPassword
+      newPassword,
     });
   }
 }

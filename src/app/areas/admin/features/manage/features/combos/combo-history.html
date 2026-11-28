@@ -3,10 +3,13 @@
     title="Historial del Combo"
     [subtitle]="'Versiones y cambios del combo #' + id()"
     backLabel="Volver a combos"
-    (back)="goBack()" />
+    (back)="goBack()"
+  />
 
   <!-- Content container -->
-  <div class="flex-1 min-h-0 border border-rms-border rounded-2xl bg-rms-surface overflow-hidden p-6">
+  <div
+    class="flex-1 min-h-0 border border-rms-border rounded-2xl bg-rms-surface overflow-hidden p-6"
+  >
     @if (isLoading()) {
       <div class="flex items-center justify-center py-12">
         <i class="pi pi-spin pi-spinner text-2xl text-muted" aria-hidden="true"></i>
@@ -16,16 +19,19 @@
       <app-rms-empty-state
         icon="pi pi-history"
         title="Sin historial disponible"
-        message="Este combo todavía no registra versiones." />
+        message="Este combo todavía no registra versiones."
+      />
     } @else {
       <!-- Timeline -->
       <ul class="relative border-l-2 border-rms-border space-y-6 ml-4">
         @for (entry of entries(); track entry.version) {
           <li class="relative pl-6">
             <!-- Timeline dot -->
-            <span class="absolute -left-2 top-1 w-4 h-4 rounded-full border-2 border-rms-border"
-                  [class.bg-rms-success]="entry.isCurrent"
-                  [class.bg-rms-surface]="!entry.isCurrent">
+            <span
+              class="absolute -left-2 top-1 w-4 h-4 rounded-full border-2 border-rms-border"
+              [class.bg-rms-success]="entry.isCurrent"
+              [class.bg-rms-surface]="!entry.isCurrent"
+            >
             </span>
 
             <!-- Timeline content card -->
@@ -33,7 +39,10 @@
               <!-- Header row -->
               <div class="flex items-center justify-between gap-2 mb-2">
                 <div class="flex items-center gap-2 flex-wrap">
-                  <app-rms-badge [label]="changeTypeLabel(entry.changeType)" [tone]="changeTypeTone(entry.changeType)" />
+                  <app-rms-badge
+                    [label]="changeTypeLabel(entry.changeType)"
+                    [tone]="changeTypeTone(entry.changeType)"
+                  />
                   @if (entry.isCurrent) {
                     <app-rms-badge label="Actual" tone="success" />
                   }
@@ -45,7 +54,7 @@
               <div class="text-sm text-muted mb-3">
                 <span class="font-medium">{{ entry.changedBy }}</span>
                 <span class="mx-1">·</span>
-                <span>{{ entry.changedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                <span>{{ entry.changedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
               </div>
 
               <!-- Snapshot viewer (expandable) -->
@@ -54,12 +63,15 @@
                   <app-rms-button
                     variant="secondary"
                     size="sm"
-                    (click)="toggleSnapshot(entry.version)">
+                    (click)="toggleSnapshot(entry.version)"
+                  >
                     {{ expandedVersions().has(entry.version) ? 'Ocultar detalle' : 'Ver detalle' }}
                   </app-rms-button>
                 </div>
                 @if (expandedVersions().has(entry.version)) {
-                  <pre class="bg-rms-sunken text-rms-ink-secondary p-4 rounded-lg overflow-auto max-h-96 text-xs font-mono">{{ entry.snapshot | json }}</pre>
+                  <pre
+                    class="bg-rms-sunken text-rms-ink-secondary p-4 rounded-lg overflow-auto max-h-96 text-xs font-mono"
+                    >{{ entry.snapshot | json }}</pre>
                 }
               } @else {
                 <span class="text-xs text-muted italic">Sin datos del combo (eliminado)</span>
@@ -72,7 +84,8 @@
                     variant="secondary"
                     size="sm"
                     iconStart="pi pi-history"
-                    (click)="revert(entry)">
+                    (click)="revert(entry)"
+                  >
                     Revertir a esta versión
                   </app-rms-button>
                 </div>

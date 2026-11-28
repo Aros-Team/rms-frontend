@@ -15,11 +15,7 @@ import { FormGroup } from '@angular/forms';
  * verbatim so screens that migrated to a primitive's `[error]` input read the
  * same as the remaining `app-form-validation` consumers.
  */
-export function fieldError(
-  form: FormGroup,
-  field: string,
-  backendError?: string,
-): string {
+export function fieldError(form: FormGroup, field: string, backendError?: string): string {
   if (backendError) return backendError;
 
   const control = form.get(field);

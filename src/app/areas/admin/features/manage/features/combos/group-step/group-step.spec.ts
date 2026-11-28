@@ -9,7 +9,10 @@ import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { signal, type WritableSignal } from '@angular/core';
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import type { WizardFormData, WizardGroupDraft } from '@app/core/services/combos/combo-wizard-state';
+import type {
+  WizardFormData,
+  WizardGroupDraft,
+} from '@app/core/services/combos/combo-wizard-state';
 import { ComboReferenceCache } from '@app/core/services/combos/combo-reference-cache';
 import { ComboWizardState } from '@app/core/services/combos/combo-wizard-state';
 import type { ProductResponse } from '@app/shared/models/dto/products/product-response';
@@ -27,10 +30,54 @@ import iconButtonHtml from '@shared/ui/icon-button/icon-button.html?raw';
 const TEST_CATEGORY_ID = 7;
 
 const MOCK_PRODUCTS: ProductResponse[] = [
-  { id: 1, name: 'Hamburguesa', basePrice: 15000, active: true, categoryId: TEST_CATEGORY_ID, categoryName: 'Comidas', areaId: 1, areaName: 'Cocina', recipe: [], selectionType: 'SPECIAL_SELECTION' },
-  { id: 2, name: 'Papas fritas', basePrice: 8000, active: true, categoryId: TEST_CATEGORY_ID, categoryName: 'Comidas', areaId: 1, areaName: 'Cocina', recipe: [], selectionType: 'SPECIAL_SELECTION' },
-  { id: 3, name: 'Gaseosa', basePrice: 5000, active: true, categoryId: TEST_CATEGORY_ID, categoryName: 'Comidas', areaId: 1, areaName: 'Cocina', recipe: [], selectionType: 'SPECIAL_SELECTION' },
-  { id: 4, name: 'Inactivo', basePrice: 10000, active: false, categoryId: TEST_CATEGORY_ID, categoryName: 'Comidas', areaId: 1, areaName: 'Cocina', recipe: [], selectionType: 'SPECIAL_SELECTION' },
+  {
+    id: 1,
+    name: 'Hamburguesa',
+    basePrice: 15000,
+    active: true,
+    categoryId: TEST_CATEGORY_ID,
+    categoryName: 'Comidas',
+    areaId: 1,
+    areaName: 'Cocina',
+    recipe: [],
+    selectionType: 'SPECIAL_SELECTION',
+  },
+  {
+    id: 2,
+    name: 'Papas fritas',
+    basePrice: 8000,
+    active: true,
+    categoryId: TEST_CATEGORY_ID,
+    categoryName: 'Comidas',
+    areaId: 1,
+    areaName: 'Cocina',
+    recipe: [],
+    selectionType: 'SPECIAL_SELECTION',
+  },
+  {
+    id: 3,
+    name: 'Gaseosa',
+    basePrice: 5000,
+    active: true,
+    categoryId: TEST_CATEGORY_ID,
+    categoryName: 'Comidas',
+    areaId: 1,
+    areaName: 'Cocina',
+    recipe: [],
+    selectionType: 'SPECIAL_SELECTION',
+  },
+  {
+    id: 4,
+    name: 'Inactivo',
+    basePrice: 10000,
+    active: false,
+    categoryId: TEST_CATEGORY_ID,
+    categoryName: 'Comidas',
+    areaId: 1,
+    areaName: 'Cocina',
+    recipe: [],
+    selectionType: 'SPECIAL_SELECTION',
+  },
 ];
 
 const MOCK_CATEGORY_NAME = 'Comidas';
@@ -202,9 +249,7 @@ describe('GroupStep', () => {
       const selected = getNative().querySelectorAll('[data-testid="selected-product"]');
       expect(selected.length).toBe(2);
 
-      const removeBtns = getNative().querySelectorAll(
-        '[data-testid="remove-product-btn"] button',
-      );
+      const removeBtns = getNative().querySelectorAll('[data-testid="remove-product-btn"] button');
       expect(Array.from(removeBtns).map((btn) => btn.getAttribute('aria-label'))).toEqual([
         'Eliminar Hamburguesa',
         'Eliminar Papas fritas',
@@ -223,7 +268,9 @@ describe('GroupStep', () => {
     });
 
     it('shows required badge when group is required', () => {
-      createComponent({ groups: [mockGroup({ required: true, minSelections: 1, maxSelections: 3 })] });
+      createComponent({
+        groups: [mockGroup({ required: true, minSelections: 1, maxSelections: 3 })],
+      });
       fixture.detectChanges();
 
       expect(getNative().querySelector('h2')?.nextElementSibling?.textContent.trim()).toBe(
@@ -283,7 +330,9 @@ describe('GroupStep', () => {
       component.addProduct(2);
       fixture.detectChanges();
 
-      const group = wizardMock.data().groups.find((g: WizardGroupDraft) => g.categoryId === TEST_CATEGORY_ID);
+      const group = wizardMock
+        .data()
+        .groups.find((g: WizardGroupDraft) => g.categoryId === TEST_CATEGORY_ID);
       expect(group?.productIds.length).toBe(2);
     });
 
@@ -294,7 +343,9 @@ describe('GroupStep', () => {
       component.removeProduct(1);
       fixture.detectChanges();
 
-      const group = wizardMock.data().groups.find((g: WizardGroupDraft) => g.categoryId === TEST_CATEGORY_ID);
+      const group = wizardMock
+        .data()
+        .groups.find((g: WizardGroupDraft) => g.categoryId === TEST_CATEGORY_ID);
       expect(group?.productIds).toEqual([2]);
     });
 
@@ -306,12 +357,16 @@ describe('GroupStep', () => {
       component.toggleProduct(product1);
       fixture.detectChanges();
 
-      const group = wizardMock.data().groups.find((g: WizardGroupDraft) => g.categoryId === TEST_CATEGORY_ID);
+      const group = wizardMock
+        .data()
+        .groups.find((g: WizardGroupDraft) => g.categoryId === TEST_CATEGORY_ID);
       expect(group?.productIds).toEqual([]);
     });
 
     it('shows warning when removing below minimum', () => {
-      createComponent({ groups: [mockGroup({ minSelections: 2, maxSelections: 3, productIds: [1, 2] })] });
+      createComponent({
+        groups: [mockGroup({ minSelections: 2, maxSelections: 3, productIds: [1, 2] })],
+      });
       fixture.detectChanges();
 
       component.removeProduct(1);
@@ -330,7 +385,9 @@ describe('GroupStep', () => {
       component.removeProduct(2);
       fixture.detectChanges();
 
-      const group = wizardMock.data().groups.find((g: WizardGroupDraft) => g.categoryId === TEST_CATEGORY_ID);
+      const group = wizardMock
+        .data()
+        .groups.find((g: WizardGroupDraft) => g.categoryId === TEST_CATEGORY_ID);
       expect(group?.productIds.length).toBe(2);
     });
 
@@ -415,7 +472,9 @@ describe('GroupStep', () => {
       component.addProduct(2);
       fixture.detectChanges();
 
-      const group = wizardMock.data().groups.find((g: WizardGroupDraft) => g.categoryId === TEST_CATEGORY_ID);
+      const group = wizardMock
+        .data()
+        .groups.find((g: WizardGroupDraft) => g.categoryId === TEST_CATEGORY_ID);
       expect(group?.productIds).toEqual([1, 2]);
     });
   });

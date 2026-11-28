@@ -15,13 +15,13 @@ export class CategoriesCache {
   // Product categories - TTL largo (30 min)
   readonly productCategories = new ResourceCache<CategorySimpleResponse[]>(
     () => this.categoryService.getCategories(this.categoriesListParams.search),
-    { ttlMs: 30 * 60 * 1000, staleWhileRevalidate: true }
+    { ttlMs: 30 * 60 * 1000, staleWhileRevalidate: true },
   );
 
   // Supply categories - TTL largo (30 min)
   readonly supplyCategories = new ResourceCache<SupplyCategoryResponse[]>(
     () => this.supplyService.getCategories(),
-    { ttlMs: 30 * 60 * 1000, staleWhileRevalidate: true }
+    { ttlMs: 30 * 60 * 1000, staleWhileRevalidate: true },
   );
 
   setCategoriesListParams(params: { search?: string }): void {

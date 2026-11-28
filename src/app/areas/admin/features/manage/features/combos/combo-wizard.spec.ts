@@ -128,7 +128,9 @@ async function setupHostTestBed<T extends object>(host: Type<T>): Promise<HostEn
   imports: [ComboWizard],
   template: `
     <app-combo-wizard>
-      <div comboWizardStep="general" data-testid="custom-general">Contenido General Personalizado</div>
+      <div comboWizardStep="general" data-testid="custom-general">
+        Contenido General Personalizado
+      </div>
     </app-combo-wizard>
   `,
 })
@@ -260,12 +262,7 @@ describe('ComboWizard shell', () => {
 
       const labels = env.wizard.stepView().map((step) => step.label);
 
-      expect(labels).toEqual([
-        'Información general',
-        'Categoría #42',
-        'Preguntas',
-        'Precio final',
-      ]);
+      expect(labels).toEqual(['Información general', 'Categoría #42', 'Preguntas', 'Precio final']);
     });
 
     it('reflects category name updates from the reference cache reactively', async () => {
@@ -512,11 +509,17 @@ describe('ComboWizard shell', () => {
         expect(visiblePanes.item(0).getAttribute('data-step-pane')).toBe(activeId);
 
         const visibleContent = root.querySelectorAll('[data-testid^="custom-"]');
-        const visibleTestIds = Array.from(visibleContent).map((node) => node.getAttribute('data-testid'));
+        const visibleTestIds = Array.from(visibleContent).map((node) =>
+          node.getAttribute('data-testid'),
+        );
         expect(visibleTestIds).toEqual([activeTestId]);
 
-        const inactiveTestIds = ['custom-general', 'custom-category', 'custom-questions', 'custom-pricing']
-          .filter((id) => id !== activeTestId);
+        const inactiveTestIds = [
+          'custom-general',
+          'custom-category',
+          'custom-questions',
+          'custom-pricing',
+        ].filter((id) => id !== activeTestId);
         for (const inactiveId of inactiveTestIds) {
           expect(root.querySelector(`[data-testid="${inactiveId}"]`)).toBeNull();
         }

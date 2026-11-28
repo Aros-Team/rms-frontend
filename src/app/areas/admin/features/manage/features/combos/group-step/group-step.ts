@@ -61,8 +61,8 @@ export class GroupStep implements OnInit {
 
   readonly showMinWarning = signal(false);
 
-  readonly categoryName = computed(() =>
-    this.reference.categoryName(this.categoryId) ?? 'Categoría #' + String(this.categoryId),
+  readonly categoryName = computed(
+    () => this.reference.categoryName(this.categoryId) ?? 'Categoría #' + String(this.categoryId),
   );
 
   readonly currentGroup = computed<WizardGroupDraft | undefined>(() =>
@@ -81,9 +81,7 @@ export class GroupStep implements OnInit {
 
   readonly canSelectMore = computed(() => true);
 
-  private readonly allProducts = computed<ProductResponse[]>(() =>
-    this.categoryProducts(),
-  );
+  private readonly allProducts = computed<ProductResponse[]>(() => this.categoryProducts());
 
   readonly availableProducts = computed<ProductResponse[]>(() => {
     const selected = new Set(this.selectedProductIds());
@@ -145,15 +143,18 @@ export class GroupStep implements OnInit {
   }
 
   private loadCategoryProducts(): void {
-    this.productService.getProductsByCategories([this.categoryId], true).pipe(
-      map((p: unknown): ProductResponse[] => {
-        const arr: unknown = (p as { content?: ProductResponse[] }).content ?? p;
-        return Array.isArray(arr) ? (arr as ProductResponse[]) : [];
-      }),
-      catchError(() => of([] as ProductResponse[])),
-    ).subscribe((products) => {
-      this.categoryProducts.set(products);
-    });
+    this.productService
+      .getProductsByCategories([this.categoryId], true)
+      .pipe(
+        map((p: unknown): ProductResponse[] => {
+          const arr: unknown = (p as { content?: ProductResponse[] }).content ?? p;
+          return Array.isArray(arr) ? (arr as ProductResponse[]) : [];
+        }),
+        catchError(() => of([] as ProductResponse[])),
+      )
+      .subscribe((products) => {
+        this.categoryProducts.set(products);
+      });
   }
 
   onSearchInput(value: string): void {

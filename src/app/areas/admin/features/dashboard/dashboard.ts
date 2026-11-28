@@ -1,4 +1,14 @@
-import { Component, inject, OnInit, signal, HostListener, computed, DestroyRef, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  inject,
+  OnInit,
+  signal,
+  HostListener,
+  computed,
+  DestroyRef,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { TableModule } from 'primeng/table';
@@ -24,7 +34,10 @@ import { extractProblemDetail } from '@app/shared/lib/problem-detail/problem-det
 import { environment } from '@environments/environment';
 import { of } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
-import { calculateLineTotal, calculateTotalPrice } from '@app/shared/models/dto/orders/order-response';
+import {
+  calculateLineTotal,
+  calculateTotalPrice,
+} from '@app/shared/models/dto/orders/order-response';
 import { ListSkeleton } from '@shared/skeletons/list-skeleton/list-skeleton';
 import { TableSkeleton } from '@shared/skeletons/table-skeleton/table-skeleton';
 import { ServerDownPage } from '@shared/components/server-down-page/server-down-page';
@@ -52,11 +65,11 @@ interface TopProductRow {
 const RHYTHM_START_HOUR = 8;
 
 const WS_TOPICS = {
-  created:     '/topic/orders/created',
-  preparing:   '/topic/orders/preparing',
-  ready:       '/topic/orders/ready',
-  delivered:   '/topic/orders/delivered',
-  cancelled:   '/topic/orders/cancelled',
+  created: '/topic/orders/created',
+  preparing: '/topic/orders/preparing',
+  ready: '/topic/orders/ready',
+  delivered: '/topic/orders/delivered',
+  cancelled: '/topic/orders/cancelled',
   tableStatus: '/topic/tables/status',
 } as const;
 
@@ -116,24 +129,24 @@ export class Dashboard implements OnInit {
   topSellingLoading = signal(true);
   topSellingError = signal<string | null>(null);
 
-  completedOrdersCount = computed(() =>
-    this.orders().filter(o => o.status === 'DELIVERED').length
+  completedOrdersCount = computed(
+    () => this.orders().filter((o) => o.status === 'DELIVERED').length,
   );
-  preparingOrdersCount = computed(() =>
-    this.orders().filter(o => o.status === 'PREPARING').length
+  preparingOrdersCount = computed(
+    () => this.orders().filter((o) => o.status === 'PREPARING').length,
   );
   totalSales = computed(() =>
     this.orders()
-      .filter(o => o.status === 'DELIVERED')
-      .reduce((sum, o) => sum + calculateTotalPrice(o), 0)
+      .filter((o) => o.status === 'DELIVERED')
+      .reduce((sum, o) => sum + calculateTotalPrice(o), 0),
   );
 
   /** productId -> category name, used because order details omit categoryName. */
   private categoryByProductId = signal<Map<number, string>>(new Map());
 
   private allTables = signal<TableResponse[]>([]);
-  occupiedTablesCount = computed(() =>
-    this.allTables().filter(t => t.status === 'OCCUPIED').length
+  occupiedTablesCount = computed(
+    () => this.allTables().filter((t) => t.status === 'OCCUPIED').length,
   );
   totalTables = computed(() => this.allTables().length);
 
@@ -169,7 +182,9 @@ export class Dashboard implements OnInit {
     return { start, end };
   });
 
-  readonly hourlyRhythm = computed<{ hour: number; label: string; delivered: number; revenue: number; isCurrent: boolean }[]>(() => {
+  readonly hourlyRhythm = computed<
+    { hour: number; label: string; delivered: number; revenue: number; isCurrent: boolean }[]
+  >(() => {
     const now = new Date();
     const todayStart = new Date(now);
     todayStart.setHours(0, 0, 0, 0);
@@ -217,7 +232,9 @@ export class Dashboard implements OnInit {
    * Used only when `GET /v1/products/top-selling` fails or returns no rows for
    * today; the server ranking is the source of truth.
    */
-  readonly topProductsBySales = computed<{ product: string; category: string; total: number; units: number }[]>(() => {
+  readonly topProductsBySales = computed<
+    { product: string; category: string; total: number; units: number }[]
+  >(() => {
     const map = new Map<string, { category: string; total: number; units: number }>();
     for (const order of this.orders()) {
       if (order.status !== 'DELIVERED') continue;
@@ -231,7 +248,12 @@ export class Dashboard implements OnInit {
         map.set(productName, current);
       }
     }
-    return Array.from(map, ([product, v]) => ({ product, category: v.category, total: v.total, units: v.units }))
+    return Array.from(map, ([product, v]) => ({
+      product,
+      category: v.category,
+      total: v.total,
+      units: v.units,
+    }))
       .sort((a, b) => b.total - a.total)
       .slice(0, 6);
   });
@@ -269,7 +291,11 @@ export class Dashboard implements OnInit {
   readonly topSellingNotice = computed(() => {
     const error = this.topSellingError();
     if (error) return `Ranking del servidor no disponible (${error}). Se muestra el cálculo local.`;
-    if (!this.topSellingLoading() && this.topSelling().length === 0 && this.topProductsBySales().length > 0) {
+    if (
+      !this.topSellingLoading() &&
+      this.topSelling().length === 0 &&
+      this.topProductsBySales().length > 0
+    ) {
       return 'El servidor no devolvió un ranking para hoy; se muestra el cálculo local.';
     }
     return '';
@@ -287,8 +313,9 @@ export class Dashboard implements OnInit {
         map.set(categoryName, current);
       }
     }
-    return Array.from(map, ([category, v]) => ({ category, total: v.total, units: v.units }))
-      .sort((a, b) => b.total - a.total);
+    return Array.from(map, ([category, v]) => ({ category, total: v.total, units: v.units })).sort(
+      (a, b) => b.total - a.total,
+    );
   });
 
   readonly salesByCategoryTotal = computed(() =>
@@ -346,7 +373,9 @@ export class Dashboard implements OnInit {
     }, 0);
 
     this.connectWebSocket();
-    setInterval(() => { this.updateDateTime(); }, 60000);
+    setInterval(() => {
+      this.updateDateTime();
+    }, 60000);
   }
 
   /**
@@ -438,45 +467,63 @@ export class Dashboard implements OnInit {
 
     this.wsService.connect(environment.wsUrl, token);
 
-    this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.created)
+    this.wsService
+      .subscribeToTopic<OrderResponse>(WS_TOPICS.created)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((order) => {
         this.logger.debug('Dashboard: orderCreated', order.id);
-        this.orders.update(list =>
-          list.some(o => o.id === order.id) ? list : [order, ...list]
+        this.orders.update((list) =>
+          list.some((o) => o.id === order.id) ? list : [order, ...list],
         );
         this.cdr.markForCheck();
       });
 
     const updateOrderStatus = (updated: OrderResponse): void => {
-      this.orders.update(list =>
-        list.map(o => o.id === updated.id ? { ...o, status: updated.status } : o)
+      this.orders.update((list) =>
+        list.map((o) => (o.id === updated.id ? { ...o, status: updated.status } : o)),
       );
       this.cdr.markForCheck();
     };
 
-    this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.preparing)
+    this.wsService
+      .subscribeToTopic<OrderResponse>(WS_TOPICS.preparing)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((o) => { this.logger.debug('Dashboard: orderPreparing', o.id); updateOrderStatus(o); });
+      .subscribe((o) => {
+        this.logger.debug('Dashboard: orderPreparing', o.id);
+        updateOrderStatus(o);
+      });
 
-    this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.ready)
+    this.wsService
+      .subscribeToTopic<OrderResponse>(WS_TOPICS.ready)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((o) => { this.logger.debug('Dashboard: orderReady', o.id); updateOrderStatus(o); });
+      .subscribe((o) => {
+        this.logger.debug('Dashboard: orderReady', o.id);
+        updateOrderStatus(o);
+      });
 
-    this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.delivered)
+    this.wsService
+      .subscribeToTopic<OrderResponse>(WS_TOPICS.delivered)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((o) => { this.logger.debug('Dashboard: orderDelivered', o.id); updateOrderStatus(o); });
+      .subscribe((o) => {
+        this.logger.debug('Dashboard: orderDelivered', o.id);
+        updateOrderStatus(o);
+      });
 
-    this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.cancelled)
+    this.wsService
+      .subscribeToTopic<OrderResponse>(WS_TOPICS.cancelled)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((o) => { this.logger.debug('Dashboard: orderCancelled', o.id); updateOrderStatus(o); });
+      .subscribe((o) => {
+        this.logger.debug('Dashboard: orderCancelled', o.id);
+        updateOrderStatus(o);
+      });
 
-    this.wsService.subscribeToTopic<TableResponse>(WS_TOPICS.tableStatus)
+    this.wsService
+      .subscribeToTopic<TableResponse>(WS_TOPICS.tableStatus)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((updated) => {
         this.logger.debug('Dashboard: tableStatus', updated.id, updated.status);
-        this.allTables.update(list =>
-          list.map(t => t.id === updated.id ? { ...t, ...updated } : t)
+        this.allTables.update((list) =>
+          list.map((t) => (t.id === updated.id ? { ...t, ...updated } : t)),
         );
         this.cdr.markForCheck();
       });
@@ -507,30 +554,36 @@ export class Dashboard implements OnInit {
     todayStart.setHours(0, 0, 0, 0);
 
     this.ordersError.set(null);
-    this.orderService.getAllOrdersByDateRange(todayStart, now).pipe(
-      catchError((error: unknown) => {
-        this.logger.warn('Dashboard: today orders unavailable', error);
-        this.ordersError.set(
-          extractProblemDetail(error) ?? 'No se pudieron cargar los pedidos de hoy.',
-        );
-        return of(null);
-      }),
-      finalize(() => { this.isOrdersLoading.set(false); })
-    ).subscribe(result => {
-      if (result !== null) {
-        this.orders.set(result.items);
-        this.ordersTruncated.set(result.truncated);
-      }
-      this.isStatsLoaded.set(true);
-    });
+    this.orderService
+      .getAllOrdersByDateRange(todayStart, now)
+      .pipe(
+        catchError((error: unknown) => {
+          this.logger.warn('Dashboard: today orders unavailable', error);
+          this.ordersError.set(
+            extractProblemDetail(error) ?? 'No se pudieron cargar los pedidos de hoy.',
+          );
+          return of(null);
+        }),
+        finalize(() => {
+          this.isOrdersLoading.set(false);
+        }),
+      )
+      .subscribe((result) => {
+        if (result !== null) {
+          this.orders.set(result.items);
+          this.ordersTruncated.set(result.truncated);
+        }
+        this.isStatsLoaded.set(true);
+      });
 
-    this.tableService.getTables().pipe(
-      catchError(() => of(null))
-    ).subscribe(tables => {
-      if (tables !== null) {
-        this.allTables.set(tables);
-      }
-    });
+    this.tableService
+      .getTables()
+      .pipe(catchError(() => of(null)))
+      .subscribe((tables) => {
+        if (tables !== null) {
+          this.allTables.set(tables);
+        }
+      });
   }
 
   private updateDateTime(): void {
@@ -541,15 +594,17 @@ export class Dashboard implements OnInit {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      hour12: true
+      hour12: true,
     };
     this.currentDate.set(now.toLocaleDateString('es-ES', dateOptions));
 
-    this.currentTime.set(now.toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    }));
+    this.currentTime.set(
+      now.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      }),
+    );
   }
 
   private loadOpeningHours(): void {
@@ -571,7 +626,7 @@ export class Dashboard implements OnInit {
     return new Intl.DateTimeFormat('es-ES', {
       hour: '2-digit',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
     }).format(dateObj);
   }
 
@@ -595,39 +650,56 @@ export class Dashboard implements OnInit {
    */
   getStatusRole(status: string): RmsStatus {
     switch (status) {
-      case 'READY':      return 'success';
-      case 'PREPARING':  return 'info';
-      case 'QUEUE':      return 'warning';
-      case 'CANCELLED':  return 'danger';
+      case 'READY':
+        return 'success';
+      case 'PREPARING':
+        return 'info';
+      case 'QUEUE':
+        return 'warning';
+      case 'CANCELLED':
+        return 'danger';
       case 'DELIVERED':
-      default:           return 'neutral';
+      default:
+        return 'neutral';
     }
   }
 
   readonly serverStatusTone = computed<RmsStatus>(() => {
     switch (this.serverStatus()) {
-      case 'online':   return 'success';
-      case 'offline':  return 'danger';
-      default:         return 'warning';
+      case 'online':
+        return 'success';
+      case 'offline':
+        return 'danger';
+      default:
+        return 'warning';
     }
   });
 
   readonly serverStatusLabel = computed(() => {
     switch (this.serverStatus()) {
-      case 'online':   return 'Servidor online';
-      case 'offline':  return 'Servidor offline';
-      default:         return 'Verificando servidor';
+      case 'online':
+        return 'Servidor online';
+      case 'offline':
+        return 'Servidor offline';
+      default:
+        return 'Verificando servidor';
     }
   });
 
   getStatusText(status: string): string {
     switch (status) {
-      case 'DELIVERED': return 'Entregado';
-      case 'PREPARING': return 'En preparación';
-      case 'READY':     return 'Listo';
-      case 'QUEUE':     return 'En cola';
-      case 'CANCELLED': return 'Cancelado';
-      default:          return status;
+      case 'DELIVERED':
+        return 'Entregado';
+      case 'PREPARING':
+        return 'En preparación';
+      case 'READY':
+        return 'Listo';
+      case 'QUEUE':
+        return 'En cola';
+      case 'CANCELLED':
+        return 'Cancelado';
+      default:
+        return status;
     }
   }
 
@@ -641,7 +713,7 @@ export class Dashboard implements OnInit {
       },
       error: (error) => {
         this.logger.error('Dashboard: error loading product details', error);
-      }
+      },
     });
   }
 

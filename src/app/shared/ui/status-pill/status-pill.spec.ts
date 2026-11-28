@@ -34,14 +34,16 @@ describe('RmsStatusPill', () => {
 
   it('maps the status to the semantic pill class', () => {
     expect(
-      (fixture.nativeElement as HTMLElement).querySelector('.rms-pill')?.classList.contains('rms-pill--info'),
+      (fixture.nativeElement as HTMLElement)
+        .querySelector('.rms-pill')
+        ?.classList.contains('rms-pill--info'),
     ).toBe(true);
   });
 
   it('always renders the status label', () => {
-    expect((fixture.nativeElement as HTMLElement).querySelector('.rms-pill__label')?.textContent.trim()).toBe(
-      'Preparando',
-    );
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.rms-pill__label')?.textContent.trim(),
+    ).toBe('Preparando');
   });
 
   it('renders no dot when dot is false', () => {

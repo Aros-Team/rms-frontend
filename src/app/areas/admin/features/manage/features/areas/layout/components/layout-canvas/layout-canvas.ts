@@ -448,8 +448,7 @@ export class LayoutCanvas implements AfterViewInit, OnDestroy {
     const rect = element.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return null;
     const frame = this.frame();
-    const column =
-      frame.x + Math.floor(((event.clientX - rect.left) / rect.width) * frame.width);
+    const column = frame.x + Math.floor(((event.clientX - rect.left) / rect.width) * frame.width);
     const row = frame.y + Math.floor(((event.clientY - rect.top) / rect.height) * frame.height);
     return cellKey(row, column);
   }

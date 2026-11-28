@@ -383,9 +383,7 @@ export function shapeForCells(cells: ReadonlySet<CellKey>): RegionShape {
     maxColumn = Math.max(maxColumn, column);
 
     if (!cells.has(cellKey(row - 1, column))) {
-      outlineParts.push(
-        `M${String(column)} ${String(row)}L${String(column + 1)} ${String(row)}`,
-      );
+      outlineParts.push(`M${String(column)} ${String(row)}L${String(column + 1)} ${String(row)}`);
     }
     if (!cells.has(cellKey(row, column + 1))) {
       outlineParts.push(
@@ -398,9 +396,7 @@ export function shapeForCells(cells: ReadonlySet<CellKey>): RegionShape {
       );
     }
     if (!cells.has(cellKey(row, column - 1))) {
-      outlineParts.push(
-        `M${String(column)} ${String(row)}L${String(column)} ${String(row + 1)}`,
-      );
+      outlineParts.push(`M${String(column)} ${String(row)}L${String(column)} ${String(row + 1)}`);
     }
   }
 

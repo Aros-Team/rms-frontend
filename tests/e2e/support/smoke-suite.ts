@@ -1,10 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import {
-  expectNotErrorPage,
-  expectRoutePath,
-  expectShell,
-  type RouteCase,
-} from './routes';
+import { expectNotErrorPage, expectRoutePath, expectShell, type RouteCase } from './routes';
 import { collectIssues, expectNoIssues, issueSummary, settle } from './collect';
 import { publicStorageState, type RoleKey } from './paths';
 

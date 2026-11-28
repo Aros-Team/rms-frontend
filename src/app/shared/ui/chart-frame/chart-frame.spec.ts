@@ -84,9 +84,7 @@ describe('RmsChartFrame', () => {
     const plot = (fixture.nativeElement as HTMLElement).querySelector('.rms-chart-frame__plot');
 
     expect(plot?.getAttribute('role')).toBe('img');
-    expect(plot?.getAttribute('aria-label')).toBe(
-      'Ventas netas por mes, de mayo a octubre',
-    );
+    expect(plot?.getAttribute('aria-label')).toBe('Ventas netas por mes, de mayo a octubre');
   });
 
   it('renders the empty state as a status and keeps the data table available', () => {

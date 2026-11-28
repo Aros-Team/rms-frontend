@@ -135,9 +135,7 @@ describe('envelopeInterceptor', () => {
       .get('/v1/reports/export', { responseType: 'blob' })
       .subscribe((value) => (received = value));
 
-    httpMock
-      .expectOne('/v1/reports/export')
-      .flush(blob, { status: 200, statusText: 'OK' });
+    httpMock.expectOne('/v1/reports/export').flush(blob, { status: 200, statusText: 'OK' });
 
     expect(received).toBe(blob);
   });
@@ -164,9 +162,7 @@ describe('envelopeInterceptor', () => {
     let error: HttpErrorResponse | undefined;
     http.get('/v1/orders').subscribe({ error: (err: HttpErrorResponse) => (error = err) });
 
-    httpMock
-      .expectOne('/v1/orders')
-      .flush(null, { status: 401, statusText: 'Unauthorized' });
+    httpMock.expectOne('/v1/orders').flush(null, { status: 401, statusText: 'Unauthorized' });
 
     expect(error?.status).toBe(401);
     expect(error?.error).toBeNull();

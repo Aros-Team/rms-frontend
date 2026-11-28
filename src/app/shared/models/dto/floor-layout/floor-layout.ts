@@ -31,7 +31,6 @@ export interface FloorLayoutRequest {
   readonly regions: readonly FloorLayoutRegion[];
 }
 
-
 /** One table placed on a floor-grid cell. */
 export interface FloorTablePlacement {
   readonly tableId: number;

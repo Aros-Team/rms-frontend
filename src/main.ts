@@ -7,5 +7,6 @@ import localeEs from '@angular/common/locales/es';
 // Register Spanish locale
 registerLocaleData(localeEs);
 
-bootstrapApplication(App, appConfig)
-  .catch((err: unknown) => { console.error(err); });
+bootstrapApplication(App, appConfig).catch((err: unknown) => {
+  console.error(err);
+});

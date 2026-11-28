@@ -114,9 +114,7 @@ export class NotificationsSettingsSection implements OnInit {
         });
       },
       error: (error: unknown) => {
-        this.saveError.set(
-          problemMessage(error, 'No se pudieron guardar las notificaciones.'),
-        );
+        this.saveError.set(problemMessage(error, 'No se pudieron guardar las notificaciones.'));
         this.saving.set(false);
       },
     });

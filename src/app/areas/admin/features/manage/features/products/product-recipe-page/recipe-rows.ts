@@ -51,10 +51,7 @@ export function nextRecipeRowKey(): number {
   return rowSequence;
 }
 
-export function createRecipeRow(
-  supplyVariantId: number | null = null,
-  quantity = '1',
-): RecipeRow {
+export function createRecipeRow(supplyVariantId: number | null = null, quantity = '1'): RecipeRow {
   return { key: nextRecipeRowKey(), supplyVariantId, quantity };
 }
 
@@ -172,9 +169,6 @@ export function validateRecipeRows(
 }
 
 /** Issues for a row (`''` fields when the row is fine). */
-export function issuesForRow(
-  validation: RecipeValidation,
-  row: RecipeRow,
-): RecipeRowIssues {
+export function issuesForRow(validation: RecipeValidation, row: RecipeRow): RecipeRowIssues {
   return validation.issues.get(row.key) ?? EMPTY_ISSUES;
 }

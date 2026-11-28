@@ -44,7 +44,10 @@
     class="flex flex-1 flex-col px-3 pt-4 lg:order-2"
     [ngClass]="isKitchen() ? 'pb-4 kitchen-main' : 'pb-28 lg:pb-4'"
   >
-    <div class="mx-auto flex w-full min-h-0 flex-1 flex-col" [ngClass]="isKitchen() ? '' : 'max-w-7xl'">
+    <div
+      class="mx-auto flex w-full min-h-0 flex-1 flex-col"
+      [ngClass]="isKitchen() ? '' : 'max-w-7xl'"
+    >
       @if (!isKitchen() && !hideBreadcrumbs()) {
         <app-breadcrumbs class="mb-2 block px-1" />
       }
@@ -57,7 +60,9 @@
       class="fixed inset-x-0 bottom-0 z-[var(--rms-z-sticky)] border-t border-rms-border bg-rms-page pb-[env(safe-area-inset-bottom)] lg:order-1 lg:static lg:inset-auto lg:z-auto lg:border-t-0 lg:border-b lg:bg-transparent lg:pb-0"
       aria-label="Navegación de servicio"
     >
-      <ul class="mx-auto flex w-full max-w-3xl items-stretch lg:max-w-7xl lg:items-center lg:gap-1 lg:px-3 lg:pt-3 lg:pb-1">
+      <ul
+        class="mx-auto flex w-full max-w-3xl items-stretch lg:max-w-7xl lg:items-center lg:gap-1 lg:px-3 lg:pt-3 lg:pb-1"
+      >
         @for (item of navItems(); track item.id) {
           <li class="flex min-w-0 flex-1 lg:flex-none">
             <a

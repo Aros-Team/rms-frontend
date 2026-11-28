@@ -10,7 +10,13 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 
 import { MessageService } from 'primeng/api';
 
@@ -64,14 +70,7 @@ const CURRENCY_OPTIONS: readonly RmsSelectOption[] = [
 @Component({
   selector: 'app-settings-currency',
   templateUrl: './currency-settings.html',
-  imports: [
-    ReactiveFormsModule,
-    RmsSection,
-    RmsSelect,
-    RmsButton,
-    RmsEmptyState,
-    RmsSkeleton,
-  ],
+  imports: [ReactiveFormsModule, RmsSection, RmsSelect, RmsButton, RmsEmptyState, RmsSkeleton],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CurrencySettingsSection implements OnInit {

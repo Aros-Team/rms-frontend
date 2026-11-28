@@ -53,7 +53,10 @@ export function sumMoney(values: readonly (Money | null | undefined)[]): Money |
 }
 
 /** Exact `a - b`. Returns `null` when either side is missing. */
-export function subtractMoney(a: Money | null | undefined, b: Money | null | undefined): Money | null {
+export function subtractMoney(
+  a: Money | null | undefined,
+  b: Money | null | undefined,
+): Money | null {
   if (a === null || a === undefined || b === null || b === undefined) return null;
   const left = toMinorUnits(a.amount);
   const right = toMinorUnits(b.amount);

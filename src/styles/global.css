@@ -11,22 +11,22 @@
    ========================================================================== */
 
 :where(
-    a[href],
-    area,
-    button,
-    input:not([type='hidden']),
-    select,
-    textarea,
-    summary,
-    details,
-    [role='button'],
-    [role='tab'],
-    [role='switch'],
-    [role='checkbox'],
-    [role='radio'],
-    [role='option'],
-    [tabindex]:not([tabindex='-1'])
-  ):focus-visible {
+  a[href],
+  area,
+  button,
+  input:not([type='hidden']),
+  select,
+  textarea,
+  summary,
+  details,
+  [role='button'],
+  [role='tab'],
+  [role='switch'],
+  [role='checkbox'],
+  [role='radio'],
+  [role='option'],
+  [tabindex]:not([tabindex='-1'])
+):focus-visible {
   outline: var(--rms-focus-ring);
   outline-offset: var(--rms-focus-ring-offset);
   /* A ring is an outline; never duplicate it with a shadow. */

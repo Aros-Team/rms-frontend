@@ -161,7 +161,10 @@ export function shiftKey(bucket: TimeBucket, key: string, delta: number): string
     case 'weekly':
       return keyForDate(bucket, new Date(date.getTime() + delta * 7 * DAY_MS));
     case 'monthly':
-      return keyForDate(bucket, new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + delta, 1)));
+      return keyForDate(
+        bucket,
+        new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + delta, 1)),
+      );
     case 'yearly':
       return keyForDate(bucket, new Date(Date.UTC(date.getUTCFullYear() + delta, 0, 1)));
   }
@@ -198,13 +201,11 @@ export function bucketCount(bucket: TimeBucket, from: string, to: string): numbe
     case 'weekly':
       return Math.max(0, Math.round((end.getTime() - start.getTime()) / (7 * DAY_MS)) + 1);
     case 'monthly':
-      return (
-        Math.max(
-          0,
-          (end.getUTCFullYear() - start.getUTCFullYear()) * 12 +
-            (end.getUTCMonth() - start.getUTCMonth()) +
-            1,
-        )
+      return Math.max(
+        0,
+        (end.getUTCFullYear() - start.getUTCFullYear()) * 12 +
+          (end.getUTCMonth() - start.getUTCMonth()) +
+          1,
       );
     case 'yearly':
       return Math.max(0, end.getUTCFullYear() - start.getUTCFullYear() + 1);
@@ -261,11 +262,7 @@ export function defaultPeriod(now: Date = new Date()): PeriodRange & { bucket: T
 }
 
 /** Formats a single key for display (Spanish, es-CO by default). */
-export function titleForKey(
-  bucket: TimeBucket,
-  key: string,
-  locale = 'es-CO',
-): string {
+export function titleForKey(bucket: TimeBucket, key: string, locale = 'es-CO'): string {
   const date = keyToDate(bucket, key);
   if (date === null) return key;
   switch (bucket) {
@@ -295,12 +292,7 @@ export function titleForKey(
  * Label for the applied range. It is derived from the same keys sent to the
  * API, so the label can never disagree with the request (Sprint 0 F-014).
  */
-export function rangeLabel(
-  bucket: TimeBucket,
-  from: string,
-  to: string,
-  locale = 'es-CO',
-): string {
+export function rangeLabel(bucket: TimeBucket, from: string, to: string, locale = 'es-CO'): string {
   if (from === to) return titleForKey(bucket, from, locale);
   return `${titleForKey(bucket, from, locale)} – ${titleForKey(bucket, to, locale)}`;
 }

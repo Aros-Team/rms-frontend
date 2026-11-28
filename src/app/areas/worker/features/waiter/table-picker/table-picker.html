@@ -14,10 +14,7 @@
             <p class="picker__eyebrow">Mesa actual</p>
             <p class="picker__current-name">Mesa {{ table.tableNumber }}</p>
           </div>
-          <app-rms-status-pill
-            [label]="statusLabel(table.status)"
-            [status]="tone(table.status)"
-          />
+          <app-rms-status-pill [label]="statusLabel(table.status)" [status]="tone(table.status)" />
         </div>
       }
 
@@ -52,19 +49,14 @@
               (tableSelected)="chooseById($event)"
             />
           </div>
-          <p class="picker__hint">
-            Toca una mesa libre del plano para seleccionarla.
-          </p>
+          <p class="picker__hint">Toca una mesa libre del plano para seleccionarla.</p>
         </section>
 
         @if (unplacedFreeTables().length > 0) {
           <section aria-labelledby="tables-unplaced-heading">
             <div class="picker__heading">
               <h3 id="tables-unplaced-heading" class="picker__title">Sin ubicar en el plano</h3>
-              <app-rms-badge
-                [label]="unplacedFreeTables().length + ' libres'"
-                tone="neutral"
-              />
+              <app-rms-badge [label]="unplacedFreeTables().length + ' libres'" tone="neutral" />
             </div>
             <div class="table-grid" role="group" aria-labelledby="tables-unplaced-heading">
               @for (table of unplacedFreeTables(); track table.id) {

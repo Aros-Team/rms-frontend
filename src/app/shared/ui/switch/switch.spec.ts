@@ -52,9 +52,7 @@ describe('RmsSwitch', () => {
   it('exposes switch semantics with the initial state', () => {
     expect(button.getAttribute('role')).toBe('switch');
     expect(button.getAttribute('aria-checked')).toBe('false');
-    expect(button.querySelector('.rms-switch__state')?.textContent.trim()).toBe(
-      'Desactivado',
-    );
+    expect(button.querySelector('.rms-switch__state')?.textContent.trim()).toBe('Desactivado');
   });
 
   it('toggles the form control and the visible state label', () => {

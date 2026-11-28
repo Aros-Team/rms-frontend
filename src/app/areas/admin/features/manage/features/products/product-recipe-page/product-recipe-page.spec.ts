@@ -535,9 +535,7 @@ describe('ProductRecipePage', () => {
 
   it('renders a no-permission state for a 403 without a retry action', () => {
     const env = configure();
-    env.productStub.findProduct.mockReturnValue(
-      throwError(() => htmlError(403, 'No autorizado')),
-    );
+    env.productStub.findProduct.mockReturnValue(throwError(() => htmlError(403, 'No autorizado')));
     const fixture = mount();
 
     expect(fixture.componentInstance.failure()?.forbidden).toBe(true);
@@ -727,7 +725,12 @@ describe('ProductRecipePage', () => {
     const env = configure();
     env.productStub.getOptions.mockReturnValue(of([]));
     env.productStub.getCostBreakdown.mockReturnValue(
-      of({ ...buildBreakdown(), options: [], projectedOptionCost: money('0'), projectedEffectiveCost: money('2000') }),
+      of({
+        ...buildBreakdown(),
+        options: [],
+        projectedOptionCost: money('0'),
+        projectedEffectiveCost: money('2000'),
+      }),
     );
     const fixture = mount();
 

@@ -29,16 +29,11 @@ describe('Cohort', () => {
     await resolveTemplates({ 'cohort.html': cohortHtml });
   });
 
-  async function setup(
-    cache: ReturnType<typeof makeCacheStub>,
-  ): Promise<ComponentFixture<Cohort>> {
+  async function setup(cache: ReturnType<typeof makeCacheStub>): Promise<ComponentFixture<Cohort>> {
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [Cohort],
-      providers: [
-        { provide: AnalyticsCache, useValue: cache },
-        AnalyticsPeriodState,
-      ],
+      providers: [{ provide: AnalyticsCache, useValue: cache }, AnalyticsPeriodState],
     }).compileComponents();
     const fixture = TestBed.createComponent(Cohort);
     fixture.detectChanges();

@@ -52,14 +52,18 @@
       }
 
       @if (unavailable) {
-        <div class="absolute top-2 left-2 bg-rms-ink-secondary text-rms-ink-inverse text-xs font-bold px-2 py-0.5 rounded">
+        <div
+          class="absolute top-2 left-2 bg-rms-ink-secondary text-rms-ink-inverse text-xs font-bold px-2 py-0.5 rounded"
+        >
           No disponible
         </div>
       }
     </div>
 
     <div class="flex flex-col gap-1 p-2">
-      <span class="text-xs sm:text-sm font-medium text-rms-ink truncate leading-tight">{{ product?.name }}</span>
+      <span class="text-xs sm:text-sm font-medium text-rms-ink truncate leading-tight">{{
+        product?.name
+      }}</span>
       <span class="text-xs sm:text-sm font-semibold text-muted" [class.line-through]="unavailable">
         {{ product?.basePrice | money }}
       </span>

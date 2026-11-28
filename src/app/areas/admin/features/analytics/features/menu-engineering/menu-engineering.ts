@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import type { ChartData, PointStyle } from 'chart.js';
 import { finalize } from 'rxjs';
@@ -115,7 +122,8 @@ export class MenuEngineering {
 
   readonly rangeLabel = this.period.label;
   readonly subtitle = computed(
-    () => `Qué productos dejan plata y cuáles revisar · agrupado por ${bucketLabel(this.period.bucket()).toLowerCase()}`,
+    () =>
+      `Qué productos dejan plata y cuáles revisar · agrupado por ${bucketLabel(this.period.bucket()).toLowerCase()}`,
   );
 
   readonly categoryId = signal<number | undefined>(undefined);

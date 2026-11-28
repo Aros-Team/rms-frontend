@@ -1,5 +1,18 @@
-import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
-import { AbstractControl, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {
+  Component,
+  inject,
+  OnInit,
+  signal,
+  computed,
+  ChangeDetectionStrategy,
+} from '@angular/core';
+import {
+  AbstractControl,
+  ReactiveFormsModule,
+  FormBuilder,
+  FormGroup,
+  Validators,
+} from '@angular/forms';
 
 import { Category } from '@app/core/services/category/category';
 import { Logging } from '@app/core/services/logging/logging';
@@ -48,8 +61,8 @@ export class Categories implements OnInit {
 
   // ── Product categories ───────────────────────────────────────────
   productCategories = computed(() => this.cache.productCategories.data() ?? []);
-  activeCategories = computed(() => this.productCategories().filter(c => c.enabled));
-  inactiveCategories = computed(() => this.productCategories().filter(c => !c.enabled));
+  activeCategories = computed(() => this.productCategories().filter((c) => c.enabled));
+  inactiveCategories = computed(() => this.productCategories().filter((c) => !c.enabled));
   productCategoryDialogOpen = signal(false);
 
   productCategoryForm: FormGroup = this.fb.group({
@@ -123,7 +136,11 @@ export class Categories implements OnInit {
         this.productCategorySaved.set(true);
         this.productCategoryForm.reset();
         this.refreshProductCategories();
-        this.messageService.add({ severity: 'success', summary: 'Categoría creada', detail: 'Categoría de producto guardada.' });
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Categoría creada',
+          detail: 'Categoría de producto guardada.',
+        });
         this.productCategoryDialogOpen.set(false);
       },
       error: () => {
@@ -140,18 +157,28 @@ export class Categories implements OnInit {
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Confirmar',
       rejectLabel: 'Cancelar',
-      accept: () => { this.toggleCategory(id); },
+      accept: () => {
+        this.toggleCategory(id);
+      },
     });
   }
 
   private toggleCategory(id: number): void {
     this.categoryService.toggleCategory(id).subscribe({
       next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Estado actualizado', detail: 'Se actualizó el estado de la categoría.' });
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Estado actualizado',
+          detail: 'Se actualizó el estado de la categoría.',
+        });
         this.refreshProductCategories();
       },
       error: () => {
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo actualizar la categoría.' });
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo actualizar la categoría.',
+        });
       },
     });
   }
@@ -182,7 +209,11 @@ export class Categories implements OnInit {
         this.supplyCategorySaved.set(true);
         this.supplyCategoryForm.reset();
         this.refreshSupplyCategories();
-        this.messageService.add({ severity: 'success', summary: 'Categoría creada', detail: 'Categoría de insumo guardada.' });
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Categoría creada',
+          detail: 'Categoría de insumo guardada.',
+        });
         this.supplyCategoryDialogOpen.set(false);
       },
       error: () => {

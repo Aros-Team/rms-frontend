@@ -80,9 +80,10 @@ export class FloorLayout implements OnInit {
 
   private engine: FloorLayoutEditorEngine | null = null;
   private pendingDiscardAction: DiscardAction = null;
-  private readonly wide = typeof window !== 'undefined'
-    && typeof window.matchMedia === 'function'
-    && window.matchMedia('(min-width: 1024px)').matches;
+  private readonly wide =
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(min-width: 1024px)').matches;
 
   readonly panelOpen = signal(this.wide);
 
@@ -281,9 +282,10 @@ export class FloorLayout implements OnInit {
     if (result.reason === 'no-area') {
       this.announce('Selecciona un área antes de dibujar.');
     } else if (result.reason === 'owned-by-other') {
-      const owner = result.conflictAreaId === null
-        ? 'otra área'
-        : (this.areaById().get(result.conflictAreaId)?.name ?? 'otra área');
+      const owner =
+        result.conflictAreaId === null
+          ? 'otra área'
+          : (this.areaById().get(result.conflictAreaId)?.name ?? 'otra área');
       this.announce(`Esa zona ya pertenece al área ${owner}.`);
     }
     this.syncFromEngine();

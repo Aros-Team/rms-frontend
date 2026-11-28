@@ -92,9 +92,7 @@ describe('NotificationsSettingsSection', () => {
       dailySummaryEnabled: true,
     });
     expect(component.dirty()).toBe(false);
-    expect(messages.add).toHaveBeenCalledWith(
-      expect.objectContaining({ severity: 'success' }),
-    );
+    expect(messages.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
   });
 
   it('marks the section dirty on a toggle', () => {

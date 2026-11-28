@@ -22,27 +22,28 @@ export class ComboReferenceCache {
   private readonly productService = inject(Product);
 
   readonly reference = new ResourceCache<ComboReferenceData>(
-    () => forkJoin({
-      categories: this.categoryService.getCategories().pipe(
-        catchError(() => of([] as CategorySimpleResponse[])),
-      ),
-      products: this.productService.getProductsPaginated(0, 100, false, true).pipe(
-        map((p: unknown): ProductResponse[] => {
-          const arr: unknown = (p as { content?: ProductResponse[] }).content ?? p;
-          return Array.isArray(arr) ? (arr as ProductResponse[]) : [];
-        }),
-        catchError(() => of([] as ProductResponse[])),
-      ),
-    }),
-    { ttlMs: COMBO_REFERENCE_TTL_MS, staleWhileRevalidate: true }
+    () =>
+      forkJoin({
+        categories: this.categoryService
+          .getCategories()
+          .pipe(catchError(() => of([] as CategorySimpleResponse[]))),
+        products: this.productService.getProductsPaginated(0, 100, false, true).pipe(
+          map((p: unknown): ProductResponse[] => {
+            const arr: unknown = (p as { content?: ProductResponse[] }).content ?? p;
+            return Array.isArray(arr) ? (arr as ProductResponse[]) : [];
+          }),
+          catchError(() => of([] as ProductResponse[])),
+        ),
+      }),
+    { ttlMs: COMBO_REFERENCE_TTL_MS, staleWhileRevalidate: true },
   );
 
   readonly categories: Signal<CategorySimpleResponse[]> = computed(
-    () => this.reference.data()?.categories ?? []
+    () => this.reference.data()?.categories ?? [],
   );
 
   readonly products: Signal<ProductResponse[]> = computed(
-    () => this.reference.data()?.products ?? []
+    () => this.reference.data()?.products ?? [],
   );
 
   readonly isLoading: Signal<boolean> = computed(() => this.reference.isLoading());
@@ -51,9 +52,7 @@ export class ComboReferenceCache {
 
   readonly error: Signal<Error | undefined> = computed(() => this.reference.error());
 
-  readonly status: Signal<'fresh' | 'stale' | 'loading'> = computed(
-    () => this.reference.status()
-  );
+  readonly status: Signal<'fresh' | 'stale' | 'loading'> = computed(() => this.reference.status());
 
   load(): void {
     this.reference.load();
@@ -97,7 +96,7 @@ export class ComboReferenceCache {
 
   specialSelectionProductsByCategory(categoryId: number): ProductResponse[] {
     return this.products().filter(
-      (p) => p.categoryId === categoryId && p.selectionType === SELECTION_TYPE.SPECIAL_SELECTION
+      (p) => p.categoryId === categoryId && p.selectionType === SELECTION_TYPE.SPECIAL_SELECTION,
     );
   }
 }

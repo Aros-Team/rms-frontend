@@ -1,10 +1,19 @@
-import type { WizardGroupDraft, WizardFormData } from '@app/core/services/combos/combo-wizard-state';
+import type {
+  WizardGroupDraft,
+  WizardFormData,
+} from '@app/core/services/combos/combo-wizard-state';
 import type { ProductResponse } from '@app/shared/models/dto/products/product-response';
 import { SELECTION_TYPE } from '@app/shared/models/dto/special-selections/selection-type';
 
 export interface GroupValidationError {
   categoryId: number;
-  type: 'MIN_NOT_MET' | 'MAX_EXCEEDED' | 'NO_ELIGIBLE_PRODUCTS' | 'INVALID_BOUNDS' | 'DUPLICATE_CATEGORY' | 'EMPTY_GROUP';
+  type:
+    | 'MIN_NOT_MET'
+    | 'MAX_EXCEEDED'
+    | 'NO_ELIGIBLE_PRODUCTS'
+    | 'INVALID_BOUNDS'
+    | 'DUPLICATE_CATEGORY'
+    | 'EMPTY_GROUP';
   message: string;
 }
 
@@ -19,8 +28,7 @@ const ERROR_MESSAGES: Record<GroupValidationError['type'], (categoryId: number) 
     `${CAT_PREFIX}${String(catId)} no tiene productos disponibles para selección especial.`,
   INVALID_BOUNDS: (catId) =>
     `${CAT_PREFIX}${String(catId)} tiene valores de mínimo y máximo inválidos.`,
-  DUPLICATE_CATEGORY: (catId) =>
-    `${CAT_PREFIX}${String(catId)} está asignada a más de un grupo.`,
+  DUPLICATE_CATEGORY: (catId) => `${CAT_PREFIX}${String(catId)} está asignada a más de un grupo.`,
   EMPTY_GROUP: (catId) =>
     `${CAT_PREFIX}${String(catId)} es obligatoria y no tiene productos seleccionados.`,
 };
@@ -39,7 +47,11 @@ export function validateGroup(
     };
   }
 
-  if (group.minSelections < 0 || group.maxSelections < 1 || group.minSelections > group.maxSelections) {
+  if (
+    group.minSelections < 0 ||
+    group.maxSelections < 1 ||
+    group.minSelections > group.maxSelections
+  ) {
     return {
       categoryId,
       type: 'INVALID_BOUNDS',
@@ -108,7 +120,11 @@ export function validateAllGroups(
 }
 
 export function canAdvanceFromGroups(errors: GroupValidationError[]): boolean {
-  const criticalTypes = new Set<GroupValidationError['type']>(['MIN_NOT_MET', 'MAX_EXCEEDED', 'EMPTY_GROUP']);
+  const criticalTypes = new Set<GroupValidationError['type']>([
+    'MIN_NOT_MET',
+    'MAX_EXCEEDED',
+    'EMPTY_GROUP',
+  ]);
   return !errors.some((e) => criticalTypes.has(e.type));
 }
 
@@ -117,6 +133,9 @@ export function computeEligibleProducts(
   products: ProductResponse[],
 ): ProductResponse[] {
   return products.filter(
-    (p) => p.categoryId === group.categoryId && p.active && p.selectionType === SELECTION_TYPE.SPECIAL_SELECTION,
+    (p) =>
+      p.categoryId === group.categoryId &&
+      p.active &&
+      p.selectionType === SELECTION_TYPE.SPECIAL_SELECTION,
   );
 }

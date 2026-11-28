@@ -374,7 +374,8 @@ export class WeekGrid implements OnInit, OnChanges {
         .filter(({ shift }) => shift.minutes > 0)
         .sort(
           (left, right) =>
-            (timeToMinutes(left.shift.startTime) ?? 0) - (timeToMinutes(right.shift.startTime) ?? 0),
+            (timeToMinutes(left.shift.startTime) ?? 0) -
+            (timeToMinutes(right.shift.startTime) ?? 0),
         );
 
       const laneEnds: number[] = [];
@@ -752,9 +753,7 @@ export class WeekGrid implements OnInit, OnChanges {
     }
 
     const handle =
-      event.target instanceof Element
-        ? event.target.closest('[data-shift-handle]')
-        : null;
+      event.target instanceof Element ? event.target.closest('[data-shift-handle]') : null;
     const handleKind = handle?.getAttribute('data-shift-handle');
     const mode: ShiftInteractionMode =
       handleKind === 'start' ? 'resize-start' : handleKind === 'end' ? 'resize-end' : 'move';
@@ -1058,9 +1057,7 @@ export class WeekGrid implements OnInit, OnChanges {
     this.scheduleService.update(schedule.id, payload).subscribe({
       next: (updated) => {
         this.schedules.set(
-          this.schedules().map((candidate) =>
-            candidate.id === updated.id ? updated : candidate,
-          ),
+          this.schedules().map((candidate) => (candidate.id === updated.id ? updated : candidate)),
         );
         this.savingTemplateId.set(null);
         const shared =
@@ -1296,7 +1293,9 @@ export class WeekGrid implements OnInit, OnChanges {
   }
 
   removalHours(schedule: ScheduleModel | null | undefined): string {
-    return schedule === null || schedule === undefined ? '0 h' : formatMinutes(scheduleMinutes(schedule));
+    return schedule === null || schedule === undefined
+      ? '0 h'
+      : formatMinutes(scheduleMinutes(schedule));
   }
 
   private showNotice(message: string): void {

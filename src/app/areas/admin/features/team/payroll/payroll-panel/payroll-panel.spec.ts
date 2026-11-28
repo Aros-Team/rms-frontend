@@ -139,7 +139,10 @@ function calculateResponse(): PayrollCalculateResponse {
 
 /** `Intl` separates the COP symbol from the amount with U+00A0. */
 function normalize(text: string): string {
-  return text.replace(/\u00a0|\u202f/g, ' ').replace(/\s+/g, ' ').trim();
+  return text
+    .replace(/\u00a0|\u202f/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function textOf(fixture: ComponentFixture<PayrollPanel>, testId: string): string {
@@ -493,9 +496,7 @@ describe('PayrollPanel', () => {
     component.settle();
     fixture.detectChanges();
 
-    expect(payrollApi.settle).toHaveBeenCalledWith(
-      expect.objectContaining({ amount: 100000 }),
-    );
+    expect(payrollApi.settle).toHaveBeenCalledWith(expect.objectContaining({ amount: 100000 }));
   });
 
   it('blocks an overpayment until the difference is acknowledged', async () => {
@@ -505,9 +506,7 @@ describe('PayrollPanel', () => {
     component.onSettleAmountChange(1200000);
     fixture.detectChanges();
 
-    expect(textOf(fixture, 'settle-divergence')).toBe(
-      'El monto supera el pendiente por $ 50.000.',
-    );
+    expect(textOf(fixture, 'settle-divergence')).toBe('El monto supera el pendiente por $ 50.000.');
 
     component.settle();
     fixture.detectChanges();
@@ -521,9 +520,7 @@ describe('PayrollPanel', () => {
     component.settle();
     fixture.detectChanges();
 
-    expect(payrollApi.settle).toHaveBeenCalledWith(
-      expect.objectContaining({ amount: 1200000 }),
-    );
+    expect(payrollApi.settle).toHaveBeenCalledWith(expect.objectContaining({ amount: 1200000 }));
   });
 
   it('refuses to settle a zero amount', async () => {

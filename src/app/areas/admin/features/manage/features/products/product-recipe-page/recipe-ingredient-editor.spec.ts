@@ -194,10 +194,7 @@ describe('RecipeIngredientEditor', () => {
   });
 
   it('labels a variant without unit cost instead of showing a zero cost', () => {
-    const fixture = mount(
-      [createRecipeRow(301, '1')],
-      [variant(301, 'Tomate', 1, 'Verduras', '')],
-    );
+    const fixture = mount([createRecipeRow(301, '1')], [variant(301, 'Tomate', 1, 'Verduras', '')]);
     const badge = (fixture.nativeElement as HTMLElement).querySelector(
       '.ingredient-table__numeric .rms-badge__label',
     );

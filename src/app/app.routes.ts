@@ -50,8 +50,7 @@ export const routes: Routes = [
       {
         path: 'login',
         title: 'Iniciar sesión',
-        loadComponent: () =>
-          import('@areas/auth/features/login/login').then((m) => m.LoginForm),
+        loadComponent: () => import('@areas/auth/features/login/login').then((m) => m.LoginForm),
         canActivate: [RedirectGuard],
       },
       {
@@ -166,9 +165,7 @@ export const routes: Routes = [
             path: 'payroll',
             title: 'Nómina',
             loadComponent: () =>
-              import('@areas/admin/features/team/payroll/payroll-page').then(
-                (m) => m.PayrollPage,
-              ),
+              import('@areas/admin/features/team/payroll/payroll-page').then((m) => m.PayrollPage),
             data: { preload: false },
           },
         ],
@@ -196,9 +193,9 @@ export const routes: Routes = [
             path: 'products/:id/recipe',
             title: 'Receta del producto',
             loadComponent: () =>
-              import(
-                '@areas/admin/features/manage/features/products/product-recipe-page/product-recipe-page'
-              ).then((m) => m.ProductRecipePage),
+              import('@areas/admin/features/manage/features/products/product-recipe-page/product-recipe-page').then(
+                (m) => m.ProductRecipePage,
+              ),
           },
           {
             path: 'categories',
@@ -297,9 +294,9 @@ export const routes: Routes = [
             path: 'menu-engineering',
             title: 'Ingeniería de menú',
             loadComponent: () =>
-              import(
-                '@areas/admin/features/analytics/features/menu-engineering/menu-engineering'
-              ).then((m) => m.MenuEngineering),
+              import('@areas/admin/features/analytics/features/menu-engineering/menu-engineering').then(
+                (m) => m.MenuEngineering,
+              ),
             data: { preload: false },
           },
           {

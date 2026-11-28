@@ -1,5 +1,5 @@
-import { Component, Input, OnInit, inject } from "@angular/core";
-import { ControlContainer, FormGroup, FormGroupDirective } from "@angular/forms";
+import { Component, Input, OnInit, inject } from '@angular/core';
+import { ControlContainer, FormGroup, FormGroupDirective } from '@angular/forms';
 import { fieldError } from '@app/shared/lib/form-error';
 
 @Component({

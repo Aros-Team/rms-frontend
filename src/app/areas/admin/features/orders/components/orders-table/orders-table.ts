@@ -1,4 +1,13 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef, NgZone, ViewChild } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  inject,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  NgZone,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { SelectModule } from 'primeng/select';
@@ -6,10 +15,7 @@ import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { Subscription } from 'rxjs';
 import { Order, OrderStatus } from '@app/core/services/orders/order';
-import {
-  OrderResponse,
-  calculateTotalPrice,
-} from '@models/dto/orders/order-response';
+import { OrderResponse, calculateTotalPrice } from '@models/dto/orders/order-response';
 import { SharedDatepicker } from '@app/shared/components/datepicker/datepicker';
 import { WebSocket } from '@services/websocket/websocket';
 import { Auth } from '@services/auth/auth';
@@ -25,9 +31,9 @@ import { RmsStatusPill } from '@shared/ui/status-pill/status-pill';
 import type { RmsStatus } from '@shared/ui/types/ui-types';
 
 const WS_TOPICS = {
-  created:   '/topic/orders/created',
+  created: '/topic/orders/created',
   preparing: '/topic/orders/preparing',
-  ready:     '/topic/orders/ready',
+  ready: '/topic/orders/ready',
   delivered: '/topic/orders/delivered',
   cancelled: '/topic/orders/cancelled',
 } as const;
@@ -50,7 +56,6 @@ const WS_TOPICS = {
   templateUrl: './orders-table.html',
 })
 export class OrdersTable implements OnInit, OnDestroy {
-
   @ViewChild('dt') table: Table | undefined;
 
   orders: OrderResponse[] = [];
@@ -84,7 +89,7 @@ export class OrdersTable implements OnInit, OnDestroy {
     { label: 'En Preparación', value: 'PREPARING' },
     { label: 'Listo', value: 'READY' },
     { label: 'Entregado', value: 'DELIVERED' },
-    { label: 'Cancelado', value: 'CANCELLED' }
+    { label: 'Cancelado', value: 'CANCELLED' },
   ];
 
   /**
@@ -97,7 +102,7 @@ export class OrdersTable implements OnInit, OnDestroy {
   editableStatusOptions = [
     { label: 'Listo', value: 'READY' },
     { label: 'Entregado', value: 'DELIVERED' },
-    { label: 'Cancelado', value: 'CANCELLED' }
+    { label: 'Cancelado', value: 'CANCELLED' },
   ];
 
   selectedStatus = 'ALL';
@@ -146,7 +151,9 @@ export class OrdersTable implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.wsSubs.forEach(sub => { sub.unsubscribe(); });
+    this.wsSubs.forEach((sub) => {
+      sub.unsubscribe();
+    });
   }
 
   private connectWebSocket(): void {
@@ -161,10 +168,10 @@ export class OrdersTable implements OnInit, OnDestroy {
     // the row belongs.
     const updateOrder = (updated: OrderResponse) => {
       this.ngZone.run(() => {
-        const idx = this.orders.findIndex(o => o.id === updated.id);
+        const idx = this.orders.findIndex((o) => o.id === updated.id);
         if (idx !== -1) {
-          this.orders = this.orders.map(o =>
-            o.id === updated.id ? { ...o, status: updated.status } : o
+          this.orders = this.orders.map((o) =>
+            o.id === updated.id ? { ...o, status: updated.status } : o,
           );
         } else {
           this.fetchOrders();
@@ -182,11 +189,21 @@ export class OrdersTable implements OnInit, OnDestroy {
       });
     };
 
-    this.wsSubs.push(this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.created).subscribe(updateOrder));
-    this.wsSubs.push(this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.preparing).subscribe(updateOrder));
-    this.wsSubs.push(this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.ready).subscribe(updateOrder));
-    this.wsSubs.push(this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.delivered).subscribe(updateOrder));
-    this.wsSubs.push(this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.cancelled).subscribe(updateOrder));
+    this.wsSubs.push(
+      this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.created).subscribe(updateOrder),
+    );
+    this.wsSubs.push(
+      this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.preparing).subscribe(updateOrder),
+    );
+    this.wsSubs.push(
+      this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.ready).subscribe(updateOrder),
+    );
+    this.wsSubs.push(
+      this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.delivered).subscribe(updateOrder),
+    );
+    this.wsSubs.push(
+      this.wsService.subscribeToTopic<OrderResponse>(WS_TOPICS.cancelled).subscribe(updateOrder),
+    );
   }
 
   onStatusChange(value: string): void {
@@ -217,8 +234,7 @@ export class OrdersTable implements OnInit, OnDestroy {
 
     // `sortOrder` is 1 (asc), -1 (desc) or 0 when the header cycles sorting off.
     // The third state falls back to the documented default: newest first.
-    const requestedField =
-      typeof event.sortField === 'string' ? event.sortField : this.sortField;
+    const requestedField = typeof event.sortField === 'string' ? event.sortField : this.sortField;
     const requestedOrder = event.sortOrder ?? this.sortOrder;
     const sortField = requestedOrder === 0 ? 'date' : requestedField;
     const sortOrder = requestedOrder === 0 ? -1 : requestedOrder;
@@ -281,30 +297,28 @@ export class OrdersTable implements OnInit, OnDestroy {
       ? this.orderService.getOrdersByDateRangePage(date, date, filters)
       : this.orderService.getOrdersPage(filters);
 
-    request
-      .subscribe({
-        next: (res) => {
-          this.orders = res.items;
-          this.totalRecords = res.total;
-          this.originalOrders.clear();
-          res.items.forEach(order => {
-            this.originalOrders.set(order.id, { ...order });
-          });
-          this.modifiedOrders.clear();
-          this.loadedOnce = true;
-          this.inFlightKey = null;
-          this.loading = false;
-          this.cdr.markForCheck();
-        },
-        error: (err: unknown) => {
-          console.error(err);
-          this.error =
-            extractProblemDetail(err) ?? 'No se pudieron cargar los pedidos.';
-          this.inFlightKey = null;
-          this.loading = false;
-          this.cdr.markForCheck();
-        },
-      });
+    request.subscribe({
+      next: (res) => {
+        this.orders = res.items;
+        this.totalRecords = res.total;
+        this.originalOrders.clear();
+        res.items.forEach((order) => {
+          this.originalOrders.set(order.id, { ...order });
+        });
+        this.modifiedOrders.clear();
+        this.loadedOnce = true;
+        this.inFlightKey = null;
+        this.loading = false;
+        this.cdr.markForCheck();
+      },
+      error: (err: unknown) => {
+        console.error(err);
+        this.error = extractProblemDetail(err) ?? 'No se pudieron cargar los pedidos.';
+        this.inFlightKey = null;
+        this.loading = false;
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   /** Retry hook for the error banner. */
@@ -319,7 +333,7 @@ export class OrdersTable implements OnInit, OnDestroy {
     const time = new Intl.DateTimeFormat('es-ES', {
       hour: '2-digit',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
     }).format(dateObj);
 
     // Recent orders read better relative to today: "Hoy" / "Ayer" instead of
@@ -336,7 +350,7 @@ export class OrdersTable implements OnInit, OnDestroy {
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
     }).format(dateObj);
   }
 
@@ -349,19 +363,24 @@ export class OrdersTable implements OnInit, OnDestroy {
   }
 
   getStatusLabel(status: string): string {
-    const option = this.comboStatusOptions.find(o => o.value === status);
+    const option = this.comboStatusOptions.find((o) => o.value === status);
     return option ? option.label : status;
   }
 
   /** Domain status mapped to the DS status roles (docs/DESIGN.md §2.3). */
   getStatusRole(status: string): RmsStatus {
     switch (status) {
-      case 'READY': return 'success';
-      case 'PREPARING': return 'info';
-      case 'QUEUE': return 'warning';
-      case 'CANCELLED': return 'danger';
+      case 'READY':
+        return 'success';
+      case 'PREPARING':
+        return 'info';
+      case 'QUEUE':
+        return 'warning';
+      case 'CANCELLED':
+        return 'danger';
       case 'DELIVERED':
-      default: return 'neutral';
+      default:
+        return 'neutral';
     }
   }
 
@@ -403,7 +422,7 @@ export class OrdersTable implements OnInit, OnDestroy {
     }
 
     this.saving = true;
-    const updates = Array.from(this.modifiedOrders.values()).map(orderChanges => {
+    const updates = Array.from(this.modifiedOrders.values()).map((orderChanges) => {
       const status = orderChanges.status;
 
       const orderId = orderChanges.id;
@@ -413,24 +432,24 @@ export class OrdersTable implements OnInit, OnDestroy {
 
       if (status === 'READY') {
         return this.orderService.markAsReady(orderId).pipe(
-          catchError(error => {
+          catchError((error) => {
             console.error('Error updating order:', orderId, error);
             return of({ error: true, orderId });
-          })
+          }),
         );
       } else if (status === 'DELIVERED') {
         return this.orderService.deliverOrder(orderId).pipe(
-          catchError(error => {
+          catchError((error) => {
             console.error('Error delivering order:', orderId, error);
             return of({ error: true, orderId });
-          })
+          }),
         );
       } else if (status === 'CANCELLED') {
         return this.orderService.cancelOrder(orderId).pipe(
-          catchError(error => {
+          catchError((error) => {
             console.error('Error cancelling order:', orderId, error);
             return of({ error: true, orderId });
-          })
+          }),
         );
       } else {
         // Estado no soportado para cambio manual
@@ -469,7 +488,12 @@ export class OrdersTable implements OnInit, OnDestroy {
           this.messageService.add({
             severity: 'warn',
             summary: 'Guardado parcial',
-            detail: 'Se actualizaron ' + String(successCount) + ' pedido(s), pero ' + String(errors.length) + ' fallaron.',
+            detail:
+              'Se actualizaron ' +
+              String(successCount) +
+              ' pedido(s), pero ' +
+              String(errors.length) +
+              ' fallaron.',
             life: 5000,
           });
         }
@@ -488,7 +512,7 @@ export class OrdersTable implements OnInit, OnDestroy {
         });
         this.saving = false;
         this.cdr.markForCheck();
-      }
+      },
     });
   }
 }

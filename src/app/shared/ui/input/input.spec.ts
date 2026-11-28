@@ -90,9 +90,7 @@ describe('RmsInput', () => {
     input = (fixture.nativeElement as HTMLElement).querySelector('input.rms-input');
 
     expect(input.getAttribute('aria-invalid')).toBe('true');
-    expect(input.getAttribute('aria-describedby')).toBe(
-      `${input.id}-hint ${input.id}-error`,
-    );
+    expect(input.getAttribute('aria-describedby')).toBe(`${input.id}-hint ${input.id}-error`);
   });
 
   it('paints the invalid state before a message exists', () => {

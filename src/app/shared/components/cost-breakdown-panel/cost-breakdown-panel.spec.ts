@@ -22,38 +22,54 @@ describe('CostBreakdownPanel', () => {
     });
   });
 
-  function buildBreakdown(overrides: Partial<{
-    productId: number;
-    name: string;
-    baseCost: { amount: number | string; currency: string };
-    options: {
-      optionId: number;
+  function buildBreakdown(
+    overrides: Partial<{
+      productId: number;
       name: string;
-      cost: { amount: number | string; currency: string };
-      extraPrice: { amount: number | string; currency: string };
-      categoryId: number;
-      categorySelectionType: string;
-    }[];
-    categories: {
-      categoryId: number;
-      name: string;
-      selectionType: string;
-      defaultSlotCost: { amount: number | string; currency: string };
-      slotProjectedCost: { amount: number | string; currency: string };
-      projectedContribution: { amount: number | string; currency: string };
-    }[];
-    projectedOptionCost: { amount: number | string; currency: string };
-    projectedEffectiveCost: { amount: number | string; currency: string };
-  }> = {}) {
+      baseCost: { amount: number | string; currency: string };
+      options: {
+        optionId: number;
+        name: string;
+        cost: { amount: number | string; currency: string };
+        extraPrice: { amount: number | string; currency: string };
+        categoryId: number;
+        categorySelectionType: string;
+      }[];
+      categories: {
+        categoryId: number;
+        name: string;
+        selectionType: string;
+        defaultSlotCost: { amount: number | string; currency: string };
+        slotProjectedCost: { amount: number | string; currency: string };
+        projectedContribution: { amount: number | string; currency: string };
+      }[];
+      projectedOptionCost: { amount: number | string; currency: string };
+      projectedEffectiveCost: { amount: number | string; currency: string };
+    }> = {},
+  ) {
     return {
       productId: 1,
       name: 'Hamburguesa',
       baseCost: { amount: 15000, currency: 'COP' },
       options: [
-        { optionId: 1, name: 'Queso extra', cost: { amount: 2000, currency: 'COP' }, extraPrice: { amount: 2000, currency: 'COP' }, categoryId: 1, categorySelectionType: 'SINGLE' },
+        {
+          optionId: 1,
+          name: 'Queso extra',
+          cost: { amount: 2000, currency: 'COP' },
+          extraPrice: { amount: 2000, currency: 'COP' },
+          categoryId: 1,
+          categorySelectionType: 'SINGLE',
+        },
       ],
       categories: [
-        { categoryId: 1, name: 'Extras', selectionType: 'SINGLE', defaultSlotCost: { amount: 0, currency: 'COP' }, slotProjectedCost: { amount: 2000, currency: 'COP' }, projectedContribution: { amount: 2000, currency: 'COP' } },
+        {
+          categoryId: 1,
+          name: 'Extras',
+          selectionType: 'SINGLE',
+          defaultSlotCost: { amount: 0, currency: 'COP' },
+          slotProjectedCost: { amount: 2000, currency: 'COP' },
+          projectedContribution: { amount: 2000, currency: 'COP' },
+        },
       ],
       projectedOptionCost: { amount: 2000, currency: 'COP' },
       projectedEffectiveCost: { amount: 17000, currency: 'COP' },
@@ -61,10 +77,12 @@ describe('CostBreakdownPanel', () => {
     };
   }
 
-  async function setup(opts: {
-    breakdown?: ReturnType<typeof buildBreakdown> | null;
-    compact?: boolean;
-  } = {}): Promise<ComponentFixture<CostBreakdownPanelComponent>> {
+  async function setup(
+    opts: {
+      breakdown?: ReturnType<typeof buildBreakdown> | null;
+      compact?: boolean;
+    } = {},
+  ): Promise<ComponentFixture<CostBreakdownPanelComponent>> {
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [CostBreakdownPanelComponent],
@@ -159,7 +177,12 @@ describe('CostBreakdownPanel', () => {
   });
 
   it('hides options section when options array is empty', async () => {
-    const fixture = await setup({ breakdown: buildBreakdown({ options: [], projectedOptionCost: { amount: 0, currency: 'COP' } }) });
+    const fixture = await setup({
+      breakdown: buildBreakdown({
+        options: [],
+        projectedOptionCost: { amount: 0, currency: 'COP' },
+      }),
+    });
     const text = getText(fixture);
     expect(text).not.toContain('Opciones');
   });

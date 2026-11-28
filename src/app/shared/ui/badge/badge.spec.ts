@@ -42,14 +42,16 @@ describe('RmsBadge', () => {
   });
 
   it('renders the label as text', () => {
-    expect((fixture.nativeElement as HTMLElement).querySelector('.rms-badge__label')?.textContent.trim()).toBe(
-      'Activo',
-    );
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.rms-badge__label')?.textContent.trim(),
+    ).toBe('Activo');
   });
 
   it('hides the dot from assistive technology', () => {
     expect(
-      (fixture.nativeElement as HTMLElement).querySelector('.rms-badge__dot')?.getAttribute('aria-hidden'),
+      (fixture.nativeElement as HTMLElement)
+        .querySelector('.rms-badge__dot')
+        ?.getAttribute('aria-hidden'),
     ).toBe('true');
   });
 });

@@ -34,7 +34,11 @@ function money(amount: string): Money {
   return { amount, currency: 'COP' };
 }
 
-function makeEntry(oldSalary: Money | null, newSalary: Money, reason = 'Ajuste anual'): SalaryHistoryEntry {
+function makeEntry(
+  oldSalary: Money | null,
+  newSalary: Money,
+  reason = 'Ajuste anual',
+): SalaryHistoryEntry {
   return {
     oldSalary,
     newSalary,
@@ -46,7 +50,10 @@ function makeEntry(oldSalary: Money | null, newSalary: Money, reason = 'Ajuste a
 
 /** `Intl` separates the COP symbol from the amount with U+00A0. */
 function normalize(text: string): string {
-  return text.replace(/\u00a0|\u202f/g, ' ').replace(/\s+/g, ' ').trim();
+  return text
+    .replace(/\u00a0|\u202f/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 describe('SalaryHistory', () => {
@@ -89,7 +96,9 @@ describe('SalaryHistory', () => {
   }
 
   function cellOf(row: Element, testId: string): string {
-    return normalize(row.querySelector<HTMLElement>(`[data-testid="${testId}"]`)?.textContent ?? '');
+    return normalize(
+      row.querySelector<HTMLElement>(`[data-testid="${testId}"]`)?.textContent ?? '',
+    );
   }
 
   function cell(testId: string): string {

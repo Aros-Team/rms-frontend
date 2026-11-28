@@ -80,8 +80,6 @@ describe('RmsField', () => {
 
   it('marks the group invalid and the required marker as decorative', () => {
     expect(element.classList.contains('rms-field--invalid')).toBe(true);
-    expect(element.querySelector('.rms-field__required')?.getAttribute('aria-hidden')).toBe(
-      'true',
-    );
+    expect(element.querySelector('.rms-field__required')?.getAttribute('aria-hidden')).toBe('true');
   });
 });

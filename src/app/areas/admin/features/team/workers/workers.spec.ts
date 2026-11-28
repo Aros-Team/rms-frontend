@@ -167,9 +167,7 @@ describe('Workers — list-only screen', () => {
       component.createWorker();
 
       // Read through the component's public accessor, as the template does.
-      expect(component.getBackendError('document')).toBe(
-        'Document must contain only digits',
-      );
+      expect(component.getBackendError('document')).toBe('Document must contain only digits');
     });
   });
 

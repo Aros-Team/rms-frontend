@@ -193,9 +193,11 @@ describe('Order', () => {
 
     it('stops walking once the reported total is reached', () => {
       const next = vi.fn();
-      service.getAllOrdersByDateRange(new Date(2026, 6, 15), new Date(2026, 6, 15), {
-        size: 2,
-      }).subscribe(next);
+      service
+        .getAllOrdersByDateRange(new Date(2026, 6, 15), new Date(2026, 6, 15), {
+          size: 2,
+        })
+        .subscribe(next);
 
       httpMock
         .expectOne((r) => r.url === 'v1/orders' && r.params.get('page') === '0')

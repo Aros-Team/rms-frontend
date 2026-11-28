@@ -26,9 +26,7 @@
             }
           </div>
         } @else if (tables().length === 0) {
-          <p class="p-6 text-center text-sm text-rms-ink-secondary">
-            No hay mesas registradas.
-          </p>
+          <p class="p-6 text-center text-sm text-rms-ink-secondary">No hay mesas registradas.</p>
         } @else {
           <ul class="table-grid" aria-label="Lista de mesas">
             @for (table of tables(); track table.id) {
@@ -57,7 +55,9 @@
                 <div class="table-tile__foot">
                   <span
                     class="table-tile__status"
-                    [class]="'table-tile__status table-tile__status--' + getStatusTone(table.status)"
+                    [class]="
+                      'table-tile__status table-tile__status--' + getStatusTone(table.status)
+                    "
                   >
                     <span class="table-tile__dot" aria-hidden="true"></span>
                     {{ getStatusLabel(table.status) }}
@@ -87,9 +87,7 @@
       <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
         <div>
           <h2 class="rms-h3">Distribución</h2>
-          <p class="text-xs text-rms-ink-secondary">
-            Arrastra una mesa al plano para ubicarla.
-          </p>
+          <p class="text-xs text-rms-ink-secondary">Arrastra una mesa al plano para ubicarla.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
           @if (savingPlacements()) {
@@ -109,11 +107,15 @@
         </div>
       </div>
 
-      <div class="w-full max-w-[36rem] self-center rounded-xl border border-rms-border bg-rms-surface p-2">
+      <div
+        class="w-full max-w-[36rem] self-center rounded-xl border border-rms-border bg-rms-surface p-2"
+      >
         @if (floorLoading()) {
           <app-rms-skeleton height="16rem" ariaLabel="Cargando distribución" />
         } @else if (floorError(); as message) {
-          <div class="flex h-full min-h-[16rem] flex-col items-center justify-center gap-2 p-4 text-center">
+          <div
+            class="flex h-full min-h-[16rem] flex-col items-center justify-center gap-2 p-4 text-center"
+          >
             <p class="text-sm text-rms-danger">{{ message }}</p>
             <app-rms-button variant="secondary" size="sm" (click)="loadFloor()">
               Reintentar
@@ -155,12 +157,7 @@
       type="number"
       formControlName="tableNumber"
     />
-    <app-rms-input
-      id="editCapacity"
-      label="Capacidad"
-      type="number"
-      formControlName="capacity"
-    />
+    <app-rms-input id="editCapacity" label="Capacidad" type="number" formControlName="capacity" />
   </form>
 
   <div rmsDialogFooter>
@@ -168,7 +165,6 @@
     <app-rms-button [disabled]="tableForm.invalid" (click)="saveTable()">Guardar</app-rms-button>
   </div>
 </app-rms-dialog>
-
 
 <app-rms-dialog
   header="Levantar todas las mesas"
@@ -184,8 +180,6 @@
     <app-rms-button variant="secondary" (click)="cancelClearAllPlacements()">
       Cancelar
     </app-rms-button>
-    <app-rms-button (click)="confirmClearAllPlacements()">
-      Levantar todas
-    </app-rms-button>
+    <app-rms-button (click)="confirmClearAllPlacements()"> Levantar todas </app-rms-button>
   </div>
 </app-rms-dialog>

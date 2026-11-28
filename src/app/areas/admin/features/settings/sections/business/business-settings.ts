@@ -79,10 +79,7 @@ export class BusinessSettings implements OnInit {
   readonly fieldErrors = signal<Partial<Record<BusinessField, string>>>({});
 
   readonly form: BusinessForm = this.fb.nonNullable.group({
-    restaurantName: this.fb.nonNullable.control('', [
-      requiredValidator,
-      Validators.maxLength(120),
-    ]),
+    restaurantName: this.fb.nonNullable.control('', [requiredValidator, Validators.maxLength(120)]),
     legalName: this.fb.nonNullable.control('', [Validators.maxLength(160)]),
     taxId: this.fb.nonNullable.control('', [Validators.maxLength(40)]),
     address: this.fb.nonNullable.control('', [Validators.maxLength(200)]),
@@ -121,9 +118,7 @@ export class BusinessSettings implements OnInit {
         this.loading.set(false);
       },
       error: (error: unknown) => {
-        this.loadError.set(
-          problemMessage(error, 'No se pudo cargar la información del negocio.'),
-        );
+        this.loadError.set(problemMessage(error, 'No se pudo cargar la información del negocio.'));
         this.loading.set(false);
       },
     });
@@ -176,7 +171,8 @@ export class BusinessSettings implements OnInit {
     if (control.hasError('required')) return 'Este campo es obligatorio.';
     if (control.hasError('email')) return 'Escribe un correo válido.';
     if (control.hasError('maxlength')) return 'El valor es demasiado largo.';
-    if (control.hasError('timezone')) return 'Usa una zona IANA válida, por ejemplo America/Bogota.';
+    if (control.hasError('timezone'))
+      return 'Usa una zona IANA válida, por ejemplo America/Bogota.';
     if (control.hasError('locale')) return 'Usa una etiqueta regional válida, por ejemplo es-CO.';
     return 'Revisa este campo.';
   }

@@ -1,7 +1,5 @@
 <div class="analytics-page">
-  <app-rms-page-header
-    title="Cohortes de clientes"
-    [subtitle]="subtitle()">
+  <app-rms-page-header title="Cohortes de clientes" [subtitle]="subtitle()">
     <span rmsPageHeaderMeta class="page-meta">
       @if (strategy(); as strategyLabel) {
         Huella: {{ strategyLabel }}
@@ -15,7 +13,8 @@
         variant="secondary"
         iconStart="pi pi-download"
         [disabled]="report() === null"
-        (click)="exportCsv()">
+        (click)="exportCsv()"
+      >
         Exportar CSV
       </app-rms-button>
     </div>
@@ -26,7 +25,8 @@
     [errorTitle]="errorInfo()?.title ?? ''"
     [forbidden]="errorInfo()?.forbidden ?? false"
     [notes]="notes()"
-    (retry)="reload()" />
+    (retry)="reload()"
+  />
 
   @if (isEmpty()) {
     <app-rms-empty-state
@@ -35,7 +35,8 @@
       message="No hay pedidos con huella de cliente en el rango seleccionado. Prueba otro periodo."
       actionLabel="Reintentar"
       actionIcon="pi pi-refresh"
-      (action)="reload()" />
+      (action)="reload()"
+    />
   } @else {
     <section class="kpi-grid" aria-label="Indicadores de cohorte">
       <app-rms-stat-tile
@@ -44,25 +45,29 @@
         [period]="rangeLabel()"
         [loading]="busy()"
         icon="pi pi-users"
-        [emphasis]="true" />
+        [emphasis]="true"
+      />
       <app-rms-stat-tile
         label="Clientes nuevos"
         [value]="report()?.newClients ?? null"
         [period]="rangeLabel()"
         [loading]="busy()"
-        icon="pi pi-user-plus" />
+        icon="pi pi-user-plus"
+      />
       <app-rms-stat-tile
         label="Tasa de recurrencia"
         [value]="formatPct(report()?.recurringRatePct, 1)"
         [period]="rangeLabel()"
         [loading]="busy()"
-        icon="pi pi-replay" />
+        icon="pi pi-replay"
+      />
       <app-rms-stat-tile
         label="Pedidos"
         [value]="report()?.totalOrders ?? null"
         [period]="rangeLabel()"
         [loading]="busy()"
-        icon="pi pi-shopping-cart" />
+        icon="pi pi-shopping-cart"
+      />
     </section>
 
     <section class="chart-grid" aria-label="Retención por periodo">
@@ -77,7 +82,8 @@
         summary="Pedidos nuevos y recurrentes por periodo"
         dataMode="disclosure"
         dataLabel="Ver datos de cohorte"
-        (retry)="reload()">
+        (retry)="reload()"
+      >
         <app-rms-chart
           type="bar"
           [data]="chartData()"
@@ -90,8 +96,17 @@
         </ul>
         <div rmsChartData>
           <table class="data-table">
-            <caption class="sr-only">Pedidos nuevos y recurrentes por periodo</caption>
-            <thead><tr><th>Periodo</th><th>Nuevos</th><th>Recurrentes</th><th>Total</th></tr></thead>
+            <caption class="sr-only">
+              Pedidos nuevos y recurrentes por periodo
+            </caption>
+            <thead>
+              <tr>
+                <th>Periodo</th>
+                <th>Nuevos</th>
+                <th>Recurrentes</th>
+                <th>Total</th>
+              </tr>
+            </thead>
             <tbody>
               @for (row of rows(); track row.key) {
                 <tr>
@@ -131,13 +146,18 @@
     </section>
 
     <!-- Retention table: below the KPI row and the new-vs-recurring chart. -->
-    <section
-      class="panel rms-defer-view rms-defer-view--md"
-      aria-labelledby="cohort-table-title">
+    <section class="panel rms-defer-view rms-defer-view--md" aria-labelledby="cohort-table-title">
       <h2 id="cohort-table-title" class="panel__title">Retención por periodo</h2>
-      <div class="panel__scroll" role="region" tabindex="0" aria-label="Retención por periodo, desplazable">
+      <div
+        class="panel__scroll"
+        role="region"
+        tabindex="0"
+        aria-label="Retención por periodo, desplazable"
+      >
         <table class="data-table">
-          <caption class="sr-only">Nuevos, recurrentes, total de pedidos y tasa de recurrencia por periodo</caption>
+          <caption class="sr-only">
+            Nuevos, recurrentes, total de pedidos y tasa de recurrencia por periodo
+          </caption>
           <thead>
             <tr>
               <th>Periodo</th>

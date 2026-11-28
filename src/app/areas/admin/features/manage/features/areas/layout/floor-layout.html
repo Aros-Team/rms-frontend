@@ -20,11 +20,7 @@
 
   <div class="floor-editor__dock">
     <aside class="floor-editor__panel" aria-label="Áreas y ajustes del lienzo">
-      <details
-        class="floor-editor__details"
-        [open]="panelOpen()"
-        (toggle)="onPanelToggle($event)"
-      >
+      <details class="floor-editor__details" [open]="panelOpen()" (toggle)="onPanelToggle($event)">
         <summary class="floor-editor__details-summary">Áreas y ajustes</summary>
 
         @if (loading()) {
@@ -35,7 +31,11 @@
         } @else if (loadError(); as message) {
           <app-rms-empty-state
             icon="pi pi-exclamation-triangle"
-            [title]="forbidden() ? 'Sin permiso para editar la distribución' : 'No se pudo cargar la distribución'"
+            [title]="
+              forbidden()
+                ? 'Sin permiso para editar la distribución'
+                : 'No se pudo cargar la distribución'
+            "
             [message]="message"
             [actionLabel]="forbidden() ? '' : 'Reintentar'"
             actionIcon="pi pi-refresh"
@@ -86,8 +86,8 @@
             }
 
             <p class="floor-editor__grow-hint">
-              Usa Mover, el botón central del mouse o mantén el puntero en un borde mientras
-              dibujas para desplazarte en cualquier dirección.
+              Usa Mover, el botón central del mouse o mantén el puntero en un borde mientras dibujas
+              para desplazarte en cualquier dirección.
             </p>
           </div>
         }
@@ -174,4 +174,3 @@
     </div>
   </div>
 }
-

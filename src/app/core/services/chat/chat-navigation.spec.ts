@@ -20,18 +20,14 @@ describe('resolveAgentNavigation', () => {
   });
 
   it('opens the product recipe when an entity id is known', () => {
-    expect(
-      resolveAgentNavigation({ screen: 'product_recipe', entity_id: 42 }),
-    ).toEqual({
+    expect(resolveAgentNavigation({ screen: 'product_recipe', entity_id: 42 })).toEqual({
       commands: ['/admin/manage/products', 42, 'recipe'],
       label: 'Receta del producto',
     });
   });
 
   it('falls back to the searchable list when the recipe lacks an id', () => {
-    expect(
-      resolveAgentNavigation({ screen: 'product_recipe', query: 'Lasaña' }),
-    ).toEqual({
+    expect(resolveAgentNavigation({ screen: 'product_recipe', query: 'Lasaña' })).toEqual({
       commands: ['/admin/manage/products'],
       queryParams: { search: 'Lasaña' },
       label: 'Productos',
@@ -39,9 +35,7 @@ describe('resolveAgentNavigation', () => {
   });
 
   it('passes search to the workers screen', () => {
-    expect(
-      resolveAgentNavigation({ screen: 'workers', query: 'Ana', tab: 'payroll' }),
-    ).toEqual({
+    expect(resolveAgentNavigation({ screen: 'workers', query: 'Ana', tab: 'payroll' })).toEqual({
       commands: ['/admin/team/workers'],
       queryParams: { search: 'Ana' },
       label: 'Trabajadores',
@@ -49,9 +43,7 @@ describe('resolveAgentNavigation', () => {
   });
 
   it('opens the salary history for a concrete employee', () => {
-    expect(
-      resolveAgentNavigation({ screen: 'salary_history', entity_id: 7 }),
-    ).toEqual({
+    expect(resolveAgentNavigation({ screen: 'salary_history', entity_id: 7 })).toEqual({
       commands: ['/admin/team/workers', 7, 'salary-history'],
       label: 'Historial salarial',
     });

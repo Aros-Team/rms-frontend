@@ -13,7 +13,7 @@ export interface MenuItem {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class Menu {
   private menuItemsSubject = new BehaviorSubject<MenuItem[]>([]);
@@ -33,7 +33,7 @@ export class Menu {
 
   removeMenuItem(id: string): void {
     const currentItems = this.menuItemsSubject.value;
-    const filteredItems = currentItems.filter(item => item.id !== id);
+    const filteredItems = currentItems.filter((item) => item.id !== id);
     this.menuItemsSubject.next(filteredItems);
   }
 

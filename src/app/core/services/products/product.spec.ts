@@ -36,11 +36,7 @@ describe('Product service', () => {
   beforeEach(() => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        Product,
-      ],
+      providers: [provideHttpClient(), provideHttpClientTesting(), Product],
     });
 
     service = TestBed.inject(Product);
@@ -54,11 +50,12 @@ describe('Product service', () => {
   it('getProducts() hits GET v1/products asking for the maximum page size', () => {
     service.getProducts().subscribe();
 
-    const req = httpMock.expectOne(r =>
-      r.url === 'v1/products' &&
-      r.params.get('page') === '0' &&
-      r.params.get('size') === '100' &&
-      !r.params.has('includeSelections')
+    const req = httpMock.expectOne(
+      (r) =>
+        r.url === 'v1/products' &&
+        r.params.get('page') === '0' &&
+        r.params.get('size') === '100' &&
+        !r.params.has('includeSelections'),
     );
     expect(req.request.method).toBe('GET');
     req.flush({ content: [], page: { size: 100, number: 0, totalElements: 0, totalPages: 0 } });
@@ -67,8 +64,8 @@ describe('Product service', () => {
   it('getProducts(true) hits GET v1/products?includeSelections=true', () => {
     service.getProducts(true).subscribe();
 
-    const req = httpMock.expectOne(r =>
-      r.url === 'v1/products' && r.params.get('includeSelections') === 'true'
+    const req = httpMock.expectOne(
+      (r) => r.url === 'v1/products' && r.params.get('includeSelections') === 'true',
     );
     expect(req.request.method).toBe('GET');
     req.flush([mockProduct]);
@@ -77,8 +74,8 @@ describe('Product service', () => {
   it('getProducts(false) does not add includeSelections param', () => {
     service.getProducts(false).subscribe();
 
-    const req = httpMock.expectOne(r =>
-      r.url === 'v1/products' && !r.params.has('includeSelections')
+    const req = httpMock.expectOne(
+      (r) => r.url === 'v1/products' && !r.params.has('includeSelections'),
     );
     expect(req.request.method).toBe('GET');
     req.flush([]);
@@ -86,9 +83,13 @@ describe('Product service', () => {
 
   it('getProducts flattens the page envelope into a bare array', () => {
     let emitted: ProductResponse[] | undefined;
-    service.getProducts().subscribe(value => { emitted = value; });
+    service.getProducts().subscribe((value) => {
+      emitted = value;
+    });
 
-    const req = httpMock.expectOne(r => r.url === 'v1/products' && r.params.get('size') === '100');
+    const req = httpMock.expectOne(
+      (r) => r.url === 'v1/products' && r.params.get('size') === '100',
+    );
     req.flush({
       content: [mockProduct],
       page: { size: 100, number: 0, totalElements: 1, totalPages: 1 },
@@ -100,8 +101,8 @@ describe('Product service', () => {
   it('getAllProducts(true) hits GET v1/products?includeSelections=true', () => {
     service.getAllProducts(true).subscribe();
 
-    const req = httpMock.expectOne(r =>
-      r.url === 'v1/products' && r.params.get('includeSelections') === 'true'
+    const req = httpMock.expectOne(
+      (r) => r.url === 'v1/products' && r.params.get('includeSelections') === 'true',
     );
     expect(req.request.method).toBe('GET');
     req.flush([]);
@@ -110,10 +111,11 @@ describe('Product service', () => {
   it('getProductsByCategories merges category filter with includeSelections', () => {
     service.getProductsByCategories([2, 5], true).subscribe();
 
-    const req = httpMock.expectOne(r =>
-      r.url === 'v1/products' &&
-      r.params.get('categories') === '2,5' &&
-      r.params.get('includeSelections') === 'true'
+    const req = httpMock.expectOne(
+      (r) =>
+        r.url === 'v1/products' &&
+        r.params.get('categories') === '2,5' &&
+        r.params.get('includeSelections') === 'true',
     );
     expect(req.request.method).toBe('GET');
     req.flush([]);
@@ -122,8 +124,8 @@ describe('Product service', () => {
   it('filterByCategories hits GET v1/products with categories param', () => {
     service.filterByCategories([2, 5]).subscribe();
 
-    const req = httpMock.expectOne(r =>
-      r.url === 'v1/products' && r.params.get('categories') === '2,5'
+    const req = httpMock.expectOne(
+      (r) => r.url === 'v1/products' && r.params.get('categories') === '2,5',
     );
     expect(req.request.method).toBe('GET');
     req.flush([]);
@@ -131,9 +133,13 @@ describe('Product service', () => {
 
   it('filterByCategories flattens the page envelope into a bare array', () => {
     let emitted: ProductResponse[] | undefined;
-    service.filterByCategories([2]).subscribe(value => { emitted = value; });
+    service.filterByCategories([2]).subscribe((value) => {
+      emitted = value;
+    });
 
-    const req = httpMock.expectOne(r => r.url === 'v1/products' && r.params.get('categories') === '2');
+    const req = httpMock.expectOne(
+      (r) => r.url === 'v1/products' && r.params.get('categories') === '2',
+    );
     req.flush({
       content: [mockProduct],
       page: { size: 100, number: 0, totalElements: 1, totalPages: 1 },
@@ -199,7 +205,7 @@ describe('Product service', () => {
     };
 
     let emitted: ProductCostResponse | undefined;
-    service.getCost(1).subscribe(value => {
+    service.getCost(1).subscribe((value) => {
       emitted = value;
     });
 
@@ -233,16 +239,17 @@ describe('Product service', () => {
   describe('getProductsPaginated', () => {
     it('flattens nested page metadata into flat paginated response', () => {
       let emitted: PaginatedProductsResponse | undefined;
-      service.getProductsPaginated(1, 6, false, true).subscribe(value => {
+      service.getProductsPaginated(1, 6, false, true).subscribe((value) => {
         emitted = value;
       });
 
-      const req = httpMock.expectOne(r =>
-        r.url === 'v1/products' &&
-        r.params.get('page') === '1' &&
-        r.params.get('size') === '6' &&
-        r.params.get('includeInactive') === 'false' &&
-        r.params.get('includeSelections') === 'true'
+      const req = httpMock.expectOne(
+        (r) =>
+          r.url === 'v1/products' &&
+          r.params.get('page') === '1' &&
+          r.params.get('size') === '6' &&
+          r.params.get('includeInactive') === 'false' &&
+          r.params.get('includeSelections') === 'true',
       );
       expect(req.request.method).toBe('GET');
 
@@ -274,14 +281,13 @@ describe('Product service', () => {
 
     it('falls back to empty defaults when page metadata is missing', () => {
       let emitted: PaginatedProductsResponse | undefined;
-      service.getProductsPaginated(1, 6, false, true).subscribe(value => {
+      service.getProductsPaginated(1, 6, false, true).subscribe((value) => {
         emitted = value;
       });
 
-      const req = httpMock.expectOne(r =>
-        r.url === 'v1/products' &&
-        r.params.get('page') === '1' &&
-        r.params.get('size') === '6'
+      const req = httpMock.expectOne(
+        (r) =>
+          r.url === 'v1/products' && r.params.get('page') === '1' && r.params.get('size') === '6',
       );
       req.flush({});
 

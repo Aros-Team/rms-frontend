@@ -80,7 +80,9 @@ describe('Header', () => {
     const element = create('ADMIN');
 
     expect(
-      element.querySelector('[data-testid="restaurant-identity"] > span:first-child')?.textContent.trim(),
+      element
+        .querySelector('[data-testid="restaurant-identity"] > span:first-child')
+        ?.textContent.trim(),
     ).toBe(environment.customer);
     expect(element.querySelector('[data-testid="restaurant-subtitle"]')?.textContent.trim()).toBe(
       'Panel de administración',
@@ -104,7 +106,9 @@ describe('Header', () => {
       'Administrador',
     );
     expect(
-      element.querySelector('[data-testid="user-menu-chevron"]')?.classList.contains('pi-angle-down'),
+      element
+        .querySelector('[data-testid="user-menu-chevron"]')
+        ?.classList.contains('pi-angle-down'),
     ).toBe(true);
   });
 

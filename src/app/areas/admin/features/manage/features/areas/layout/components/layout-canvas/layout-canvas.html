@@ -1,4 +1,8 @@
-<div class="floor-canvas" [class.floor-canvas--disabled]="disabled" [class.floor-canvas--fullbleed]="fullBleed">
+<div
+  class="floor-canvas"
+  [class.floor-canvas--disabled]="disabled"
+  [class.floor-canvas--fullbleed]="fullBleed"
+>
   <div class="floor-canvas__scroll">
     <svg
       #canvas
@@ -10,7 +14,13 @@
       preserveAspectRatio="none"
       role="group"
       tabindex="0"
-      [attr.aria-label]="'Lienzo de distribución del restaurante. ' + layout.columns + ' por ' + layout.rows + ' celdas.'"
+      [attr.aria-label]="
+        'Lienzo de distribución del restaurante. ' +
+        layout.columns +
+        ' por ' +
+        layout.rows +
+        ' celdas.'
+      "
       [attr.aria-describedby]="instructionsId"
       (pointerdown)="onPointerDown($event)"
       (pointermove)="onPointerMove($event)"
@@ -20,18 +30,8 @@
       (contextmenu)="onContextMenu($event)"
     >
       <defs>
-        <pattern
-          [attr.id]="gridId"
-          width="1"
-          height="1"
-          patternUnits="userSpaceOnUse"
-        >
-          <path
-            d="M 1 0 L 0 0 L 0 1"
-            fill="none"
-            stroke="var(--rms-border)"
-            stroke-width="0.035"
-          />
+        <pattern [attr.id]="gridId" width="1" height="1" patternUnits="userSpaceOnUse">
+          <path d="M 1 0 L 0 0 L 0 1" fill="none" stroke="var(--rms-border)" stroke-width="0.035" />
         </pattern>
       </defs>
 
@@ -45,16 +45,9 @@
       />
 
       @for (item of areaShapes(); track item.areaId) {
-        <g
-          class="area-shape"
-          [attr.data-color]="item.colorIndex"
-        >
+        <g class="area-shape" [attr.data-color]="item.colorIndex">
           <title>{{ item.name }} · {{ item.cellCount }} celdas</title>
-          <path
-            class="area-shape__fill"
-            [attr.d]="item.shape.fillPath"
-            pointer-events="none"
-          />
+          <path class="area-shape__fill" [attr.d]="item.shape.fillPath" pointer-events="none" />
           <path
             class="area-shape__outline"
             [attr.d]="item.shape.outlinePath"

@@ -5,7 +5,8 @@
         variant="secondary"
         iconStart="pi pi-download"
         [disabled]="report() === null"
-        (click)="exportCsv()">
+        (click)="exportCsv()"
+      >
         Exportar CSV
       </app-rms-button>
     </div>
@@ -16,7 +17,8 @@
     [errorTitle]="errorInfo()?.title ?? ''"
     [forbidden]="errorInfo()?.forbidden ?? false"
     [notes]="notes()"
-    (retry)="reload()" />
+    (retry)="reload()"
+  />
 
   @if (isEmpty()) {
     <app-rms-empty-state
@@ -25,7 +27,8 @@
       message="No hay ventas ni costos registrados para el rango seleccionado. Prueba otro periodo o actualiza los datos."
       actionLabel="Reintentar"
       actionIcon="pi pi-refresh"
-      (action)="reload()" />
+      (action)="reload()"
+    />
   } @else {
     <section class="kpi-grid" aria-label="Indicadores del periodo">
       <app-rms-stat-tile
@@ -34,25 +37,29 @@
         [period]="rangeLabel()"
         [loading]="busy()"
         icon="pi pi-wallet"
-        [emphasis]="true" />
+        [emphasis]="true"
+      />
       <app-rms-stat-tile
         label="Costo primo"
         [value]="totals().primeCost | money"
         [period]="formatPct(totals().primeCostPct) + ' de las ventas'"
         [loading]="busy()"
-        icon="pi pi-percentage" />
+        icon="pi pi-percentage"
+      />
       <app-rms-stat-tile
         label="Ganancia bruta"
         [value]="formatPct(totals().grossProfitPct)"
         [period]="rangeLabel()"
         [loading]="busy()"
-        icon="pi pi-arrow-up-right" />
+        icon="pi pi-arrow-up-right"
+      />
       <app-rms-stat-tile
         label="Ganancia neta"
         [value]="formatPct(totals().netProfitPct)"
         [period]="rangeLabel()"
         [loading]="busy()"
-        icon="pi pi-chart-line" />
+        icon="pi pi-chart-line"
+      />
     </section>
 
     <section class="chart-grid" aria-label="Tendencias del periodo">
@@ -67,7 +74,8 @@
         summary="Ventas brutas y netas por periodo"
         dataMode="disclosure"
         dataLabel="Ver datos de ventas"
-        (retry)="reload()">
+        (retry)="reload()"
+      >
         <app-rms-chart
           type="line"
           [data]="salesData()"
@@ -76,13 +84,24 @@
         />
         <ul rmsChartLegend class="chart-legend">
           <li><span class="chart-legend__swatch chart-legend__swatch--1"></span>Ventas netas</li>
-          <li><span class="chart-legend__swatch chart-legend__swatch--dashed chart-legend__swatch--line-7"></span>Ventas brutas</li>
+          <li>
+            <span
+              class="chart-legend__swatch chart-legend__swatch--dashed chart-legend__swatch--line-7"
+            ></span
+            >Ventas brutas
+          </li>
         </ul>
         <div rmsChartData>
           <table class="data-table">
-            <caption class="sr-only">Ventas brutas y netas por periodo</caption>
+            <caption class="sr-only">
+              Ventas brutas y netas por periodo
+            </caption>
             <thead>
-              <tr><th>Periodo</th><th>Ventas brutas</th><th>Ventas netas</th></tr>
+              <tr>
+                <th>Periodo</th>
+                <th>Ventas brutas</th>
+                <th>Ventas netas</th>
+              </tr>
             </thead>
             <tbody>
               @for (row of tableRows(); track row.key) {
@@ -108,7 +127,8 @@
         summary="Costo primo y márgenes por periodo"
         dataMode="disclosure"
         dataLabel="Ver datos de márgenes"
-        (retry)="reload()">
+        (retry)="reload()"
+      >
         <app-rms-chart
           type="line"
           [data]="marginData()"
@@ -118,13 +138,25 @@
         <ul rmsChartLegend class="chart-legend">
           <li><span class="chart-legend__swatch chart-legend__swatch--4"></span>Costo primo</li>
           <li><span class="chart-legend__swatch chart-legend__swatch--2"></span>Margen bruto</li>
-          <li><span class="chart-legend__swatch chart-legend__swatch--dashed chart-legend__swatch--line-3"></span>Margen neto</li>
+          <li>
+            <span
+              class="chart-legend__swatch chart-legend__swatch--dashed chart-legend__swatch--line-3"
+            ></span
+            >Margen neto
+          </li>
         </ul>
         <div rmsChartData>
           <table class="data-table">
-            <caption class="sr-only">Costo primo y márgenes por periodo</caption>
+            <caption class="sr-only">
+              Costo primo y márgenes por periodo
+            </caption>
             <thead>
-              <tr><th>Periodo</th><th>Costo primo</th><th>Margen bruto</th><th>Margen neto</th></tr>
+              <tr>
+                <th>Periodo</th>
+                <th>Costo primo</th>
+                <th>Margen bruto</th>
+                <th>Margen neto</th>
+              </tr>
             </thead>
             <tbody>
               @for (row of tableRows(); track row.key) {
@@ -152,7 +184,8 @@
       summary="Costo de lo vendido por categoría"
       dataMode="disclosure"
       dataLabel="Ver datos de COGS"
-      (retry)="reload()">
+      (retry)="reload()"
+    >
       <app-rms-chart
         type="bar"
         [data]="cogsData()"
@@ -161,14 +194,24 @@
       />
       <ul rmsChartLegend class="chart-legend">
         @for (row of cogsRows(); track row.key) {
-          <li><span class="chart-legend__swatch" [attr.data-series]="row.key"></span>{{ row.label }}</li>
+          <li>
+            <span class="chart-legend__swatch" [attr.data-series]="row.key"></span>{{ row.label }}
+          </li>
         }
       </ul>
       <div rmsChartData>
         <table class="data-table">
-          <caption class="sr-only">Costo de lo vendido por categoría y periodo</caption>
+          <caption class="sr-only">
+            Costo de lo vendido por categoría y periodo
+          </caption>
           <thead>
-            <tr><th>Periodo</th><th>Comidas</th><th>Bebidas</th><th>Licores</th><th>Otros</th></tr>
+            <tr>
+              <th>Periodo</th>
+              <th>Comidas</th>
+              <th>Bebidas</th>
+              <th>Licores</th>
+              <th>Otros</th>
+            </tr>
           </thead>
           <tbody>
             @for (row of tableRows(); track row.key) {
@@ -186,14 +229,19 @@
 
     <!-- Bottom detail tables: below the KPI row and the two charts, so the
          browser can skip them while they are off-screen. -->
-    <section
-      class="table-grid rms-defer-view rms-defer-view--xl"
-      aria-label="Detalle del periodo">
+    <section class="table-grid rms-defer-view rms-defer-view--xl" aria-label="Detalle del periodo">
       <div class="panel">
         <h2 class="panel__title">Detalle por periodo</h2>
-        <div class="panel__scroll" role="region" tabindex="0" aria-label="Detalle por periodo, desplazable">
+        <div
+          class="panel__scroll"
+          role="region"
+          tabindex="0"
+          aria-label="Detalle por periodo, desplazable"
+        >
           <table class="data-table">
-            <caption class="sr-only">Ventas, costos y márgenes por periodo</caption>
+            <caption class="sr-only">
+              Ventas, costos y márgenes por periodo
+            </caption>
             <thead>
               <tr>
                 <th>Periodo</th>
@@ -228,8 +276,16 @@
         <div class="panel">
           <h2 class="panel__title">COGS por categoría (periodo)</h2>
           <table class="data-table">
-            <caption class="sr-only">Costo de lo vendido por categoría en el periodo</caption>
-            <thead><tr><th>Categoría</th><th>Monto</th><th>% del COGS</th></tr></thead>
+            <caption class="sr-only">
+              Costo de lo vendido por categoría en el periodo
+            </caption>
+            <thead>
+              <tr>
+                <th>Categoría</th>
+                <th>Monto</th>
+                <th>% del COGS</th>
+              </tr>
+            </thead>
             <tbody>
               @for (row of cogsRows(); track row.key) {
                 <tr>
@@ -244,8 +300,16 @@
         <div class="panel">
           <h2 class="panel__title">Nómina por área (periodo)</h2>
           <table class="data-table">
-            <caption class="sr-only">Costo de nómina por área en el periodo</caption>
-            <thead><tr><th>Área</th><th>Monto</th><th>% de la nómina</th></tr></thead>
+            <caption class="sr-only">
+              Costo de nómina por área en el periodo
+            </caption>
+            <thead>
+              <tr>
+                <th>Área</th>
+                <th>Monto</th>
+                <th>% de la nómina</th>
+              </tr>
+            </thead>
             <tbody>
               @for (row of laborRows(); track row.key) {
                 <tr>

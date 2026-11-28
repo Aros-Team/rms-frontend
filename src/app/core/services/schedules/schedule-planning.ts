@@ -22,9 +22,7 @@
 import type { DayOfWeek, Shift } from '@app/shared/models/dto/schedules/shift';
 import type { Schedule } from '@app/shared/models/dto/schedules/schedule';
 import type { TimeLogEntry } from '@app/shared/models/dto/schedules/time-log-entry';
-import type {
-  WorkerScheduleResponse,
-} from '@app/shared/models/dto/schedules/worker-schedule-response';
+import type { WorkerScheduleResponse } from '@app/shared/models/dto/schedules/worker-schedule-response';
 
 /** Monday-first day order used by every schedule surface. */
 export const DAY_ORDER: readonly DayOfWeek[] = [
@@ -783,9 +781,7 @@ export function buildCoverage(
   const hours: number[] = [];
   for (let hour = startHour; hour < endHour; hour++) hours.push(hour);
 
-  const counts = new Map<DayOfWeek, number[]>(
-    DAY_ORDER.map((day) => [day, hours.map(() => 0)]),
-  );
+  const counts = new Map<DayOfWeek, number[]>(DAY_ORDER.map((day) => [day, hours.map(() => 0)]));
 
   for (const week of weeks) {
     for (const day of week.days) {

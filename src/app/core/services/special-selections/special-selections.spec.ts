@@ -48,11 +48,7 @@ describe('SpecialSelections service', () => {
   beforeEach(() => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        SpecialSelections,
-      ],
+      providers: [provideHttpClient(), provideHttpClientTesting(), SpecialSelections],
     });
 
     service = TestBed.inject(SpecialSelections);
@@ -64,7 +60,7 @@ describe('SpecialSelections service', () => {
   });
 
   it('getById hits GET v1/special-selections/{id}', () => {
-    service.getById(7).subscribe(res => {
+    service.getById(7).subscribe((res) => {
       expect(res.productId).toBe(7);
     });
 
@@ -75,7 +71,7 @@ describe('SpecialSelections service', () => {
   });
 
   it('getPublicById hits the waiter-safe GET v1/special-selections/{id}', () => {
-    service.getPublicById(7).subscribe(res => {
+    service.getPublicById(7).subscribe((res) => {
       expect(res.productId).toBe(7);
     });
 
@@ -182,13 +178,11 @@ describe('SpecialSelections service', () => {
       page: { size: 10, number: 0, totalElements: 0, totalPages: 0 },
     };
 
-    service.getHistory(7, 0, 10).subscribe(res => {
+    service.getHistory(7, 0, 10).subscribe((res) => {
       expect(res.page.totalElements).toBe(0);
     });
 
-    const req = httpMock.expectOne(
-      'v1/admin/special-selections/7/history?page=0&size=10',
-    );
+    const req = httpMock.expectOne('v1/admin/special-selections/7/history?page=0&size=10');
     expect(req.request.method).toBe('GET');
     req.flush(page);
   });
@@ -209,7 +203,7 @@ describe('SpecialSelections service', () => {
       breakdown: [{ productId: 10, name: 'Lentejas', cost: 1.2 }],
     };
 
-    service.suggestPrice(7, { marginPercent: 30 }).subscribe(res => {
+    service.suggestPrice(7, { marginPercent: 30 }).subscribe((res) => {
       expect(res.breakdown[0].productId).toBe(10);
     });
 

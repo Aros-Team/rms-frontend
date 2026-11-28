@@ -45,19 +45,23 @@ describe('RmsStatTile', () => {
   });
 
   it('renders an em dash when there is no value', () => {
-    expect((fixture.nativeElement as HTMLElement).querySelector('.rms-stat__value')?.textContent.trim()).toBe('—');
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.rms-stat__value')?.textContent.trim(),
+    ).toBe('—');
   });
 
   it('renders zero as a real value', () => {
     fixture.destroy();
     create(0);
-    expect((fixture.nativeElement as HTMLElement).querySelector('.rms-stat__value')?.textContent.trim()).toBe('0');
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.rms-stat__value')?.textContent.trim(),
+    ).toBe('0');
   });
 
   it('renders the period qualifier', () => {
-    expect((fixture.nativeElement as HTMLElement).querySelector('.rms-stat__period')?.textContent.trim()).toBe(
-      'Último mes',
-    );
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.rms-stat__period')?.textContent.trim(),
+    ).toBe('Último mes');
   });
 
   it('maps the delta tone to the arrow and class', () => {

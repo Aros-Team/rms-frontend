@@ -7,8 +7,8 @@
 
 ## 0. Core principle: the mutation mindset
 
-Before writing a test, ask: *"If this component/service/pipe were broken — deleted,
-returned the wrong value, or crashed on input X — would this test fail?"*
+Before writing a test, ask: _"If this component/service/pipe were broken — deleted,
+returned the wrong value, or crashed on input X — would this test fail?"_
 
 If the test would still pass, it has no value. Rewrite it or delete it.
 
@@ -65,18 +65,19 @@ Assert the **observable contract**, not a side effect or a weak signal.
 
 ### Forbidden anti-patterns
 
-| Pattern | Why it's weak |
-|---|---|
+| Pattern                                                      | Why it's weak                                       |
+| ------------------------------------------------------------ | --------------------------------------------------- |
 | `expect(text).toContain('X')` as sole assertion on rendering | Passes if X appears anywhere, including wrong place |
-| `expect(element).toBeTruthy()` alone | Almost always true; doesn't verify content |
-| `expect(component).toBeDefined()` | Verifies nothing meaningful |
-| Asserting "no exception"/"didn't crash" | Verifies nothing about the outcome |
-| `expect(x).not.toBeNull()` alone | Almost always passes |
-| Reading private state (`component._internal`) | Tests implementation, not behavior |
+| `expect(element).toBeTruthy()` alone                         | Almost always true; doesn't verify content          |
+| `expect(component).toBeDefined()`                            | Verifies nothing meaningful                         |
+| Asserting "no exception"/"didn't crash"                      | Verifies nothing about the outcome                  |
+| `expect(x).not.toBeNull()` alone                             | Almost always passes                                |
+| Reading private state (`component._internal`)                | Tests implementation, not behavior                  |
 
 ### Example: weak → strong
 
 Weak:
+
 ```typescript
 it('renders product name', async () => {
   const fixture = await setup();
@@ -88,6 +89,7 @@ it('renders product name', async () => {
 Passes even if the name appears in a footer, tooltip, or error message.
 
 Strong:
+
 ```typescript
 it('renders product name in the title element', async () => {
   const fixture = await setup();

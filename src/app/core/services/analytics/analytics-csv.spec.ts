@@ -31,7 +31,10 @@ describe('toCsv', () => {
         { header: 'A', value: (row) => row.a },
         { header: 'B', value: (row) => row.b },
       ],
-      [{ a: 'plain', b: 'a,b' }, { a: 'say "hi"', b: 'line\nbreak' }],
+      [
+        { a: 'plain', b: 'a,b' },
+        { a: 'say "hi"', b: 'line\nbreak' },
+      ],
     );
     expect(csv).toBe('A,B\r\nplain,"a,b"\r\n"say ""hi""","line\nbreak"');
   });

@@ -1,22 +1,9 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  forwardRef,
-  Input,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, Input, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 import { RmsField } from '../field/field';
 
-export type RmsInputType =
-  | 'text'
-  | 'email'
-  | 'password'
-  | 'search'
-  | 'number'
-  | 'tel'
-  | 'url';
+export type RmsInputType = 'text' | 'email' | 'password' | 'search' | 'number' | 'tel' | 'url';
 
 const NOOP = (): void => {
   // CVA placeholder before Angular registers the callbacks.

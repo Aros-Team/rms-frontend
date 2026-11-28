@@ -17,7 +17,7 @@ export const urlInterceptor: HttpInterceptorFn = (req, next) => {
   logger.http(`Transforming URL: ${req.url} -> ${absoluteUrl}`);
 
   const newReq = req.clone({
-    url: absoluteUrl
+    url: absoluteUrl,
   });
 
   return next(newReq);

@@ -4,11 +4,14 @@
 >
   @if (isDev) {
     <div class="flex flex-col gap-4">
-      <p class="rounded-lg border border-rms-warning bg-rms-surface px-4 py-3 text-rms-body text-rms-ink">
+      <p
+        class="rounded-lg border border-rms-warning bg-rms-surface px-4 py-3 text-rms-body text-rms-ink"
+      >
         <strong>Esta sección solo existe en desarrollo.</strong>
         No hay un botón destructivo: el restablecimiento por HTTP requiere
-        <code class="font-mono">app.seed.enabled=true</code> y un perfil <code class="font-mono">dev</code>
-        o <code class="font-mono">test</code>. Ejecuta los comandos en el backend.
+        <code class="font-mono">app.seed.enabled=true</code> y un perfil
+        <code class="font-mono">dev</code> o <code class="font-mono">test</code>. Ejecuta los
+        comandos en el backend.
       </p>
 
       <ul class="grid gap-3">
@@ -16,7 +19,9 @@
           <li class="rounded-lg border border-rms-border px-4 py-3">
             <p class="text-rms-h4 text-rms-ink">{{ item.label }}</p>
             <p class="mt-1 text-rms-caption text-rms-ink-muted">{{ item.description }}</p>
-            <pre class="mt-3 overflow-x-auto rounded-lg border border-rms-border bg-rms-sunken px-3 py-2"><code class="font-mono text-rms-caption text-rms-ink">{{ item.command }}</code></pre>
+            <pre
+              class="mt-3 overflow-x-auto rounded-lg border border-rms-border bg-rms-sunken px-3 py-2"
+            ><code class="font-mono text-rms-caption text-rms-ink">{{ item.command }}</code></pre>
           </li>
         }
       </ul>

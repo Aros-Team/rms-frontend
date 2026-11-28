@@ -10,16 +10,13 @@
       [attr.viewBox]="frame().viewBox"
       preserveAspectRatio="xMidYMid meet"
       role="img"
-      [attr.aria-label]="'Distribución del restaurante, ' + dto.columns + ' por ' + dto.rows + ' celdas'"
+      [attr.aria-label]="
+        'Distribución del restaurante, ' + dto.columns + ' por ' + dto.rows + ' celdas'
+      "
     >
       <defs>
         <pattern [attr.id]="gridId" width="1" height="1" patternUnits="userSpaceOnUse">
-          <path
-            d="M 1 0 L 0 0 L 0 1"
-            fill="none"
-            stroke="var(--rms-border)"
-            stroke-width="0.04"
-          />
+          <path d="M 1 0 L 0 0 L 0 1" fill="none" stroke="var(--rms-border)" stroke-width="0.04" />
         </pattern>
       </defs>
 
@@ -35,11 +32,7 @@
         <g class="layout-preview__region">
           <title>{{ item.name }}</title>
           <path [attr.d]="item.shape.fillPath" class="layout-preview__fill" />
-          <path
-            [attr.d]="item.shape.outlinePath"
-            class="layout-preview__outline"
-            fill="none"
-          />
+          <path [attr.d]="item.shape.outlinePath" class="layout-preview__outline" fill="none" />
           @if (item.shape.showLabel) {
             <text
               class="layout-preview__label"

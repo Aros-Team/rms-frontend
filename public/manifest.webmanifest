@@ -7,11 +7,7 @@
   "orientation": "any",
   "background_color": "#f8fafc",
   "theme_color": "#FDEFC7",
-  "categories": [
-    "food",
-    "business",
-    "productivity"
-  ],
+  "categories": ["food", "business", "productivity"],
   "icons": [
     {
       "src": "/icons/icon-72x72.png",

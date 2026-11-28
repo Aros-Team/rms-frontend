@@ -150,19 +150,22 @@ export class ComboEditor {
 
   private loadAreas(): void {
     this.loading.set(true);
-    this.areaService.getAreas().pipe(
-      catchError(() => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudieron cargar las áreas',
-        });
-        return EMPTY;
-      }),
-    ).subscribe((data) => {
-      this.areas.set(data);
-      this.loading.set(false);
-    });
+    this.areaService
+      .getAreas()
+      .pipe(
+        catchError(() => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudieron cargar las áreas',
+          });
+          return EMPTY;
+        }),
+      )
+      .subscribe((data) => {
+        this.areas.set(data);
+        this.loading.set(false);
+      });
   }
 
   private populateForm(data: SpecialSelectionResponse): void {
@@ -173,37 +176,45 @@ export class ComboEditor {
     this.active.set(data.active);
     this.baseRecipeEnabled.set(data.baseRecipeEnabled);
     this.schedulingRequired.set(data.schedulingRequired);
-    this.editableGroups.set(data.groups.map(g => ({
-      id: g.id,
-      categoryId: g.categoryId,
-      displayOrder: g.displayOrder,
-      required: g.required,
-      minSelections: g.minSelections,
-      maxSelections: g.maxSelections,
-      productIds: [...g.productIds],
-    })));
-    this.editableAdditions.set(data.additions.map(a => ({
-      name: a.name,
-      optionId: a.optionId,
-      extraPrice: toAmount(a.extraPrice),
-      displayOrder: a.displayOrder,
-    })));
-    this.editableQuestions.set(data.questions.map(q => ({
-      question: q.question,
-      required: q.required,
-      displayOrder: q.displayOrder,
-    })));
-    this.schedule.set(data.schedule.map(s => ({
-      dayOfWeek: s.dayOfWeek,
-      startTime: s.startTime,
-      endTime: s.endTime,
-    })));
+    this.editableGroups.set(
+      data.groups.map((g) => ({
+        id: g.id,
+        categoryId: g.categoryId,
+        displayOrder: g.displayOrder,
+        required: g.required,
+        minSelections: g.minSelections,
+        maxSelections: g.maxSelections,
+        productIds: [...g.productIds],
+      })),
+    );
+    this.editableAdditions.set(
+      data.additions.map((a) => ({
+        name: a.name,
+        optionId: a.optionId,
+        extraPrice: toAmount(a.extraPrice),
+        displayOrder: a.displayOrder,
+      })),
+    );
+    this.editableQuestions.set(
+      data.questions.map((q) => ({
+        question: q.question,
+        required: q.required,
+        displayOrder: q.displayOrder,
+      })),
+    );
+    this.schedule.set(
+      data.schedule.map((s) => ({
+        dayOfWeek: s.dayOfWeek,
+        startTime: s.startTime,
+        endTime: s.endTime,
+      })),
+    );
 
     // Populate scheduleDays from response
     if (data.schedule.length > 0) {
       for (const day of this.scheduleDays) {
-        const matches = data.schedule.filter(s => s.dayOfWeek === day.value);
-        day.entries = matches.map(s => ({ startTime: s.startTime, endTime: s.endTime }));
+        const matches = data.schedule.filter((s) => s.dayOfWeek === day.value);
+        day.entries = matches.map((s) => ({ startTime: s.startTime, endTime: s.endTime }));
       }
     }
   }
@@ -236,72 +247,90 @@ export class ComboEditor {
 
     this.saving.set(true);
     const id = this.comboId();
-    const obs = id !== null
-      ? this.cache.update(id, req)
-      : this.cache.create(req);
+    const obs = id !== null ? this.cache.update(id, req) : this.cache.create(req);
 
-    obs.pipe(
-      catchError(() => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudo guardar el combo',
-        });
+    obs
+      .pipe(
+        catchError(() => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo guardar el combo',
+          });
+          this.saving.set(false);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => {
         this.saving.set(false);
-        return EMPTY;
-      }),
-    ).subscribe(() => {
-      this.saving.set(false);
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Éxito',
-        detail: 'Combo guardado correctamente',
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Combo guardado correctamente',
+        });
+        void this.router.navigate(['/admin/manage/combos']);
       });
-      void this.router.navigate(['/admin/manage/combos']);
-    });
   }
 
   // ─── Grupo helpers ─────────────────────────────────────────────────────
   addGroup(): void {
-    this.editableGroups.update(g => [...g, {
-      categoryId: null, displayOrder: g.length + 1, required: false,
-      minSelections: 1, maxSelections: 1, productIds: [],
-    }]);
+    this.editableGroups.update((g) => [
+      ...g,
+      {
+        categoryId: null,
+        displayOrder: g.length + 1,
+        required: false,
+        minSelections: 1,
+        maxSelections: 1,
+        productIds: [],
+      },
+    ]);
   }
 
   removeGroup(index: number): void {
-    this.editableGroups.update(g => g.filter((_, i) => i !== index));
+    this.editableGroups.update((g) => g.filter((_, i) => i !== index));
   }
 
   onGroupReorder(): void {
-    this.editableGroups.update(g => g.map((item, i) => ({ ...item, displayOrder: i + 1 })));
+    this.editableGroups.update((g) => g.map((item, i) => ({ ...item, displayOrder: i + 1 })));
   }
 
   // ─── Adición helpers ────────────────────────────────────────────────────
   addAddition(): void {
-    this.editableAdditions.update(a => [...a, {
-      name: '', optionId: 0, extraPrice: 0, displayOrder: a.length + 1,
-    }]);
+    this.editableAdditions.update((a) => [
+      ...a,
+      {
+        name: '',
+        optionId: 0,
+        extraPrice: 0,
+        displayOrder: a.length + 1,
+      },
+    ]);
   }
 
   removeAddition(index: number): void {
-    this.editableAdditions.update(a => a.filter((_, i) => i !== index));
+    this.editableAdditions.update((a) => a.filter((_, i) => i !== index));
   }
 
   // ─── Pregunta helpers ───────────────────────────────────────────────────
   addQuestion(): void {
-    this.editableQuestions.update(q => [...q, {
-      question: '', required: false, displayOrder: q.length + 1,
-    }]);
+    this.editableQuestions.update((q) => [
+      ...q,
+      {
+        question: '',
+        required: false,
+        displayOrder: q.length + 1,
+      },
+    ]);
   }
 
   removeQuestion(index: number): void {
-    this.editableQuestions.update(q => q.filter((_, i) => i !== index));
+    this.editableQuestions.update((q) => q.filter((_, i) => i !== index));
   }
 
   // ─── Horario helpers ────────────────────────────────────────────────────
   addScheduleEntry(dayValue: string): void {
-    const day = this.scheduleDays.find(d => d.value === dayValue);
+    const day = this.scheduleDays.find((d) => d.value === dayValue);
     if (day) {
       day.entries = [...day.entries, { startTime: '', endTime: '' }];
       this.scheduleErrors.set([]);
@@ -309,15 +338,20 @@ export class ComboEditor {
   }
 
   removeScheduleEntry(dayValue: string, index: number): void {
-    const day = this.scheduleDays.find(d => d.value === dayValue);
+    const day = this.scheduleDays.find((d) => d.value === dayValue);
     if (day) {
       day.entries = day.entries.filter((_, i) => i !== index);
       this.syncScheduleToSignal();
     }
   }
 
-  updateScheduleTime(dayValue: string, index: number, field: 'startTime' | 'endTime', value: string): void {
-    const day = this.scheduleDays.find(d => d.value === dayValue);
+  updateScheduleTime(
+    dayValue: string,
+    index: number,
+    field: 'startTime' | 'endTime',
+    value: string,
+  ): void {
+    const day = this.scheduleDays.find((d) => d.value === dayValue);
     if (day?.entries[index]) {
       day.entries[index] = { ...day.entries[index], [field]: value };
       this.syncScheduleToSignal();
@@ -346,7 +380,7 @@ export class ComboEditor {
       for (const entry of day.entries) {
         if (entry.startTime && entry.endTime && entry.startTime >= entry.endTime) {
           errors.push(
-            `Horario inválido en ${day.label}: la hora de inicio (${entry.startTime}) debe ser menor a la hora de fin (${entry.endTime})`
+            `Horario inválido en ${day.label}: la hora de inicio (${entry.startTime}) debe ser menor a la hora de fin (${entry.endTime})`,
           );
         }
       }
@@ -386,7 +420,9 @@ export class ComboEditor {
         if (err instanceof HttpErrorResponse) {
           this.priceError.set(mapHttpError(err));
         } else {
-          this.priceError.set(err instanceof Error ? err.message : 'Error al calcular precio sugerido');
+          this.priceError.set(
+            err instanceof Error ? err.message : 'Error al calcular precio sugerido',
+          );
         }
       },
     });

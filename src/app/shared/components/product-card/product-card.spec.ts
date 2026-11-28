@@ -63,12 +63,14 @@ describe('ProductCard', () => {
     });
   });
 
-  async function setupHost(overrides: Partial<{
-    loading: boolean;
-    selected: boolean;
-    disabled: boolean;
-    unavailable: boolean;
-  }> = {}): Promise<ComponentFixture<TestHost>> {
+  async function setupHost(
+    overrides: Partial<{
+      loading: boolean;
+      selected: boolean;
+      disabled: boolean;
+      unavailable: boolean;
+    }> = {},
+  ): Promise<ComponentFixture<TestHost>> {
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [TestHost],
@@ -133,7 +135,9 @@ describe('ProductCard', () => {
     if (!card) throw new Error('card not rendered');
 
     let emitted = false;
-    fixture.componentInstance.onToggle = () => { emitted = true; };
+    fixture.componentInstance.onToggle = () => {
+      emitted = true;
+    };
 
     card.click();
     expect(emitted).toBe(false);
@@ -162,9 +166,13 @@ describe('ProductCard', () => {
     if (!cardEl) throw new Error('card not rendered');
 
     let emitted: ProductSimpleResponse | null = null;
-    fixture.debugElement.children[0]?.injector.get(ProductCard).cardToggle.subscribe((p) => { emitted = p; });
+    fixture.debugElement.children[0]?.injector.get(ProductCard).cardToggle.subscribe((p) => {
+      emitted = p;
+    });
 
-    cardEl.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    cardEl.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
+    );
     expect(emitted).toEqual(TEST_PRODUCT);
   });
 
@@ -175,9 +183,13 @@ describe('ProductCard', () => {
     if (!cardEl) throw new Error('card not rendered');
 
     let emitted: ProductSimpleResponse | null = null;
-    fixture.debugElement.children[0]?.injector.get(ProductCard).cardToggle.subscribe((p) => { emitted = p; });
+    fixture.debugElement.children[0]?.injector.get(ProductCard).cardToggle.subscribe((p) => {
+      emitted = p;
+    });
 
-    cardEl.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true }));
+    cardEl.dispatchEvent(
+      new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true }),
+    );
     expect(emitted).toEqual(TEST_PRODUCT);
   });
 

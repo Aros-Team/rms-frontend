@@ -1,6 +1,9 @@
-<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.workers" (appLazyLoadVisible)="onVisible()">
-  <app-rms-page-header
-    [compact]="true" title="Administración de trabajadores">
+<div
+  class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full"
+  [appLazyLoad]="cache.workers"
+  (appLazyLoadVisible)="onVisible()"
+>
+  <app-rms-page-header [compact]="true" title="Administración de trabajadores">
     <div rmsPageHeaderActions>
       <app-rms-button iconStart="pi pi-user-plus" (click)="showCreationModal()">
         Nuevo empleado
@@ -18,7 +21,7 @@
     </div>
     @if (cache.workers.isLoading() && workers().length === 0) {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        @for (skeleton of [1,2,3,4,5,6,7,8]; track skeleton) {
+        @for (skeleton of [1, 2, 3, 4, 5, 6, 7, 8]; track skeleton) {
           <div class="border border-rms-border rounded-xl bg-rms-surface p-4 flex flex-col gap-3">
             <div class="flex items-center gap-3">
               <p-skeleton shape="circle" size="3rem" />
@@ -42,7 +45,8 @@
         <app-rms-empty-state
           icon="pi pi-search"
           title="Sin resultados"
-          message="Ningún trabajador coincide con la búsqueda." />
+          message="Ningún trabajador coincide con la búsqueda."
+        />
       } @else {
         <app-rms-empty-state
           icon="pi pi-users"
@@ -50,7 +54,8 @@
           message="Crea el primer empleado para asignarle un área y horarios."
           actionLabel="Nuevo empleado"
           actionIcon="pi pi-user-plus"
-          (action)="showCreationModal()" />
+          (action)="showCreationModal()"
+        />
       }
     } @else {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -68,7 +73,6 @@
       </div>
     }
   </div>
-
 </div>
 
 <p-dialog
@@ -82,13 +86,15 @@
 >
   <div class="p-4">
     @if (editing) {
-    <span class="text-rms-ink-secondary block mb-8">Edita la información del trabajador</span>
+      <span class="text-rms-ink-secondary block mb-8">Edita la información del trabajador</span>
     } @else {
-    <span class="text-rms-ink-secondary block mb-8">Crea un nuevo trabajador</span>
+      <span class="text-rms-ink-secondary block mb-8">Crea un nuevo trabajador</span>
     }
 
     <div class="flex items-center gap-4 mb-6">
-      <div class="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center font-bold text-xl flex-shrink-0 bg-rms-brand-soft text-rms-brand-text">
+      <div
+        class="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center font-bold text-xl flex-shrink-0 bg-rms-brand-soft text-rms-brand-text"
+      >
         @if (imagePreview(); as preview) {
           <img class="w-full h-full object-cover" [src]="preview" alt="Foto del trabajador" />
         } @else {
@@ -101,14 +107,16 @@
           type="file"
           accept="image/jpeg,image/png,image/webp"
           hidden
-          (change)="onImageSelect($event)" />
+          (change)="onImageSelect($event)"
+        />
         <div class="flex flex-wrap gap-2">
           <app-rms-button
             variant="secondary"
             size="sm"
             iconStart="pi pi-camera"
             [loading]="imageBusy()"
-            (click)="workerImageInput.click()">
+            (click)="workerImageInput.click()"
+          >
             {{ imagePreview() ? 'Cambiar foto' : 'Agregar foto' }}
           </app-rms-button>
           @if (imagePreview() || pendingImageFile()) {
@@ -117,7 +125,8 @@
               size="sm"
               iconStart="pi pi-trash"
               [disabled]="imageBusy()"
-              (click)="removeWorkerImage()">
+              (click)="removeWorkerImage()"
+            >
               Quitar
             </app-rms-button>
           }
@@ -140,13 +149,12 @@
           display="chip"
           placeholder="Seleccione el área de trabajo"
           appendTo="body"
-          formControlName="areaIds" />
+          formControlName="areaIds"
+        />
         @if (fieldError('areaIds')) {
           <p class="text-xs text-rms-danger" role="alert">{{ fieldError('areaIds') }}</p>
         }
-        <p class="text-xs text-rms-ink-muted">
-          Un área exclusiva no se puede combinar con otras.
-        </p>
+        <p class="text-xs text-rms-ink-muted">Un área exclusiva no se puede combinar con otras.</p>
       </div>
 
       <app-rms-input
@@ -242,33 +250,36 @@
       }
     </form>
 
-      @if (selectedAreasForActivities().length > 0) {
-        <div class="flex flex-col gap-3">
-          <span class="rms-label">Actividades por área</span>
-          @for (area of selectedAreasForActivities(); track area.id) {
-            <div class="rounded-lg border border-rms-border bg-rms-subtle px-3 py-2">
-              <p class="text-sm font-medium text-rms-ink">{{ area.name }}</p>
-              <div class="mt-1 flex flex-col gap-1">
-                @for (activity of area.activities; track activity) {
-                  <app-rms-checkbox
-                    [id]="'worker-activity-' + area.id + '-' + activity"
-                    [label]="activityLabel(activity)"
-                    [ngModel]="workerActivitySelected(area.id, activity)"
-                    (ngModelChange)="toggleWorkerActivity(area.id, activity, $any($event))" />
-                }
-              </div>
+    @if (selectedAreasForActivities().length > 0) {
+      <div class="flex flex-col gap-3">
+        <span class="rms-label">Actividades por área</span>
+        @for (area of selectedAreasForActivities(); track area.id) {
+          <div class="rounded-lg border border-rms-border bg-rms-subtle px-3 py-2">
+            <p class="text-sm font-medium text-rms-ink">{{ area.name }}</p>
+            <div class="mt-1 flex flex-col gap-1">
+              @for (activity of area.activities; track activity) {
+                <app-rms-checkbox
+                  [id]="'worker-activity-' + area.id + '-' + activity"
+                  [label]="activityLabel(activity)"
+                  [ngModel]="workerActivitySelected(area.id, activity)"
+                  (ngModelChange)="toggleWorkerActivity(area.id, activity, $any($event))"
+                />
+              }
             </div>
-          }
-        </div>
-      }
+          </div>
+        }
+      </div>
+    }
 
     <div class="flex justify-start gap-2 mt-8">
       @if (editing) {
-      <app-rms-button iconStart="pi pi-save" (click)="updateWorker()">Actualizar</app-rms-button>
+        <app-rms-button iconStart="pi pi-save" (click)="updateWorker()">Actualizar</app-rms-button>
       } @else {
-      <app-rms-button iconStart="pi pi-save" (click)="createWorker()">Crear</app-rms-button>
+        <app-rms-button iconStart="pi pi-save" (click)="createWorker()">Crear</app-rms-button>
       }
-      <app-rms-button variant="secondary" iconStart="pi pi-ban" (click)="closeModals()">Cancelar</app-rms-button>
+      <app-rms-button variant="secondary" iconStart="pi pi-ban" (click)="closeModals()"
+        >Cancelar</app-rms-button
+      >
     </div>
   </div>
 </p-dialog>
@@ -290,7 +301,9 @@
     } @else {
       <div class="flex flex-col gap-2 max-h-[400px] overflow-y-auto">
         @for (schedule of allSchedules(); track schedule.id) {
-          <div class="flex items-center justify-between p-3 border border-rms-border rounded-lg bg-rms-subtle">
+          <div
+            class="flex items-center justify-between p-3 border border-rms-border rounded-lg bg-rms-subtle"
+          >
             <div class="flex flex-col min-w-0">
               <span class="font-medium text-rms-ink">{{ schedule.name }}</span>
               @if (schedule.description) {
@@ -302,24 +315,26 @@
                 variant="danger"
                 size="sm"
                 [loading]="isScheduleAssigning(schedule.id)"
-                (click)="unassignSchedule(schedule.id)">
+                (click)="unassignSchedule(schedule.id)"
+              >
                 Desasignar
               </app-rms-button>
             } @else {
               <app-rms-button
                 size="sm"
                 [loading]="isScheduleAssigning(schedule.id)"
-                (click)="assignSchedule(schedule.id)">
+                (click)="assignSchedule(schedule.id)"
+              >
                 Asignar
               </app-rms-button>
             }
           </div>
-        }
-        @empty {
+        } @empty {
           <app-rms-empty-state
             icon="pi pi-calendar"
             title="No hay horarios disponibles"
-            message="Crea una plantilla de horario para poder asignarla." />
+            message="Crea una plantilla de horario para poder asignarla."
+          />
         }
       </div>
     }

@@ -8,13 +8,13 @@
 
 Five analytical modules, all read-only, all admin-only:
 
-| # | Module | Path prefix | Backing aggregate |
-|---|--------|-------------|-------------------|
-| 1 | Prime Cost & Margins | `/prime-cost` | `monthly_financial_summary` (rolled up from daily) |
-| 2 | Menu Engineering (BCG) | `/menu-engineering` | `menu_performance_cache` (invalidated on price/recipe change) |
-| 3 | Operational Efficiency (RevPASH & Turns) | `/operations` | Live + daily rollups |
-| 4 | Customer Cohort | `/cohort` | Live (window functions over `orders`) |
-| 5 | Variance Alerts | `/alerts` | `system_alerts` (populated by nightly job) |
+| #   | Module                                   | Path prefix         | Backing aggregate                                             |
+| --- | ---------------------------------------- | ------------------- | ------------------------------------------------------------- |
+| 1   | Prime Cost & Margins                     | `/prime-cost`       | `monthly_financial_summary` (rolled up from daily)            |
+| 2   | Menu Engineering (BCG)                   | `/menu-engineering` | `menu_performance_cache` (invalidated on price/recipe change) |
+| 3   | Operational Efficiency (RevPASH & Turns) | `/operations`       | Live + daily rollups                                          |
+| 4   | Customer Cohort                          | `/cohort`           | Live (window functions over `orders`)                         |
+| 5   | Variance Alerts                          | `/alerts`           | `system_alerts` (populated by nightly job)                    |
 
 ## 2. Auth
 
@@ -27,12 +27,12 @@ Five analytical modules, all read-only, all admin-only:
 
 Four buckets supported everywhere a period is accepted:
 
-| `bucket` | Key format | Example |
-|----------|------------|---------|
-| `daily`   | `YYYY-MM-DD` | `2026-07-17` |
-| `weekly`  | `YYYY-Www` (ISO week) | `2026-W29` |
-| `monthly` | `YYYY-MM` | `2026-07` |
-| `yearly`  | `YYYY` | `2026` |
+| `bucket`  | Key format            | Example      |
+| --------- | --------------------- | ------------ |
+| `daily`   | `YYYY-MM-DD`          | `2026-07-17` |
+| `weekly`  | `YYYY-Www` (ISO week) | `2026-W29`   |
+| `monthly` | `YYYY-MM`             | `2026-07`    |
+| `yearly`  | `YYYY`                | `2026`       |
 
 ### Query pattern
 
@@ -46,25 +46,25 @@ GET /api/v1/analytics/prime-cost?bucket=monthly&from=2026-01&to=2026-07
 GET /api/v1/analytics/prime-cost?bucket=monthly&year=2026&month=7
 ```
 
-| Param | Required | Notes |
-|-------|----------|-------|
-| `bucket` | yes | `daily` \| `weekly` \| `monthly` \| `yearly` |
-| `from`   | yes (A) | inclusive, format must match bucket |
-| `to`     | yes (A) | inclusive, must be `>= from` |
-| `year`   | yes (B) | 4 digits |
-| `month`  | only for `monthly` (B) | 1–12 |
-| `week`   | only for `weekly` (B)  | 1–53 (ISO) |
-| `day`    | only for `daily` (B)   | 1–31 |
-| `categoryId` | optional, menu-engineering only | filter menu items by product category |
-| `limit`, `offset` | optional, alerts only | paging, max `limit=100` |
+| Param             | Required                        | Notes                                        |
+| ----------------- | ------------------------------- | -------------------------------------------- |
+| `bucket`          | yes                             | `daily` \| `weekly` \| `monthly` \| `yearly` |
+| `from`            | yes (A)                         | inclusive, format must match bucket          |
+| `to`              | yes (A)                         | inclusive, must be `>= from`                 |
+| `year`            | yes (B)                         | 4 digits                                     |
+| `month`           | only for `monthly` (B)          | 1–12                                         |
+| `week`            | only for `weekly` (B)           | 1–53 (ISO)                                   |
+| `day`             | only for `daily` (B)            | 1–31                                         |
+| `categoryId`      | optional, menu-engineering only | filter menu items by product category        |
+| `limit`, `offset` | optional, alerts only           | paging, max `limit=100`                      |
 
 ### Validation
 
-| Failure | HTTP | `type` URI |
-|---------|------|-----------|
-| Bad date format for bucket | 400 | `/analytics/invalid-period` |
-| `to < from` | 422 | `/analytics/invalid-range` |
-| Range > 366 days | 422 | `/analytics/range-too-large` |
+| Failure                    | HTTP | `type` URI                   |
+| -------------------------- | ---- | ---------------------------- |
+| Bad date format for bucket | 400  | `/analytics/invalid-period`  |
+| `to < from`                | 422  | `/analytics/invalid-range`   |
+| Range > 366 days           | 422  | `/analytics/range-too-large` |
 
 ## 4. Money
 
@@ -81,6 +81,7 @@ All monetary fields in responses use this wrapper. Never raw floats.
 ### 5.1 Prime Cost (`GET /api/v1/analytics/prime-cost`)
 
 **Math** (per user's spec):
+
 ```
 COGS_category   = starting_inventory + purchases − ending_inventory       (per category)
 labor_area      = gross_wages + employer_taxes + benefits                  (per area FOH/BOH)
@@ -138,6 +139,7 @@ prime_cost_pct  = prime_cost / net_sales
 ### 5.2 Menu Engineering (`GET /api/v1/analytics/menu-engineering`)
 
 **Math**:
+
 ```
 For each active SKU:
   units_sold      = Σ quantity over period
@@ -168,30 +170,32 @@ Quadrant:
       "categoryId": 3,
       "categoryName": "Platos fuertes",
       "unitsSold": 320,
-      "revenue":   { "amount": "9600000.00", "currency": "COP" },
-      "recipeCost":{ "amount": "3200000.00", "currency": "COP" },
+      "revenue": { "amount": "9600000.00", "currency": "COP" },
+      "recipeCost": { "amount": "3200000.00", "currency": "COP" },
       "grossProfitPerUnit": { "amount": "20000.00", "currency": "COP" },
-      "totalContribution":  { "amount": "6400000.00", "currency": "COP" },
-      "quadrant": "STAR"
-    }
+      "totalContribution": { "amount": "6400000.00", "currency": "COP" },
+      "quadrant": "STAR",
+    },
   ],
   "cacheStatus": {
     "lastRefreshedAt": "2026-07-17T02:00:00Z",
     "sourceVersion": "v17",
-    "ttlSeconds": 86400
+    "ttlSeconds": 86400,
   },
-  "dataCompleteness": "FULL"
+  "dataCompleteness": "FULL",
 }
 ```
 
 **Cache**: `menu_performance_cache` table. Invalidated on:
+
 - `products.base_price` change
 - any row in `product_recipes` change
 
 ### 5.3 Operational Efficiency (`GET /api/v1/analytics/operations`)
 
 **Math**:
-```
+
+````
 For each order:
   occupied_minutes = close_time − open_time
 Total:
@@ -205,7 +209,7 @@ Segment turns by day_part: LUNCH (11:00–15:00), DINNER (18:00–23:00), OTHER
 **Performance index** (range scan over `orders`):
 ```sql
 CREATE INDEX idx_orders_open_close ON orders (open_time, close_time);
-```
+````
 
 **Response shape** (`OperationsReport`):
 
@@ -213,22 +217,20 @@ CREATE INDEX idx_orders_open_close ON orders (open_time, close_time);
 {
   "period": { "bucket": "monthly", "from": "2026-07", "to": "2026-07", "keys": ["2026-07"] },
   "revPash": {
-    "value":                   { "amount": "18500.00", "currency": "COP" },
-    "totalNetSales":           { "amount": "125000000.00", "currency": "COP" },
-    "totalAvailableSeatHours": 6757.5
+    "value": { "amount": "18500.00", "currency": "COP" },
+    "totalNetSales": { "amount": "125000000.00", "currency": "COP" },
+    "totalAvailableSeatHours": 6757.5,
   },
   "tableTurnover": {
     "overall": 4.8,
     "byDayPart": [
-      { "dayPart": "LUNCH",  "turns": 2.1, "covers":  42, "tables": 20 },
-      { "dayPart": "DINNER", "turns": 2.7, "covers":  54, "tables": 20 }
-    ]
+      { "dayPart": "LUNCH", "turns": 2.1, "covers": 42, "tables": 20 },
+      { "dayPart": "DINNER", "turns": 2.7, "covers": 54, "tables": 20 },
+    ],
   },
   "avgOccupancyMinutes": 47.3,
   "dataCompleteness": "PARTIAL",
-  "notes": [
-    "Operating hours taken from analytics_config.default (00:00-23:59); override pending."
-  ]
+  "notes": ["Operating hours taken from analytics_config.default (00:00-23:59); override pending."],
 }
 ```
 
@@ -236,7 +238,7 @@ CREATE INDEX idx_orders_open_close ON orders (open_time, close_time);
 
 ### 5.4 Customer Cohort (`GET /api/v1/analytics/cohort`)
 
-**Re-framed per user**: there is **no `customers` table**; per the user's instruction *"a client is an order"*, we do **not** persist customers. Instead, this module treats each `orders.id` as the atomic unit of a "client visit" and computes:
+**Re-framed per user**: there is **no `customers` table**; per the user's instruction _"a client is an order"_, we do **not** persist customers. Instead, this module treats each `orders.id` as the atomic unit of a "client visit" and computes:
 
 ```
 new_in_period    = COUNT(orders.id WHERE created_at IN [from, to])
@@ -251,17 +253,17 @@ avg_ticket_per_cover  = Σ order_total / Σ party_size   (party_size defaults to
 ```jsonc
 {
   "period": { "bucket": "monthly", "from": "2026-07", "to": "2026-07", "keys": ["2026-07"] },
-  "newClients":       1820,
-  "recurringClients":  943,
-  "totalOrders":      2763,
+  "newClients": 1820,
+  "recurringClients": 943,
+  "totalOrders": 2763,
   "recurringRatePct": 34.13,
   "averageTicketPerOrder": { "amount": "45232.00", "currency": "COP" },
-  "averageTicketPerCover":  { "amount": "22616.00", "currency": "COP" },
-  "fingerprintStrategy": "PHONE_OR_TABLE",   // PHONE | PHONE_OR_TABLE | TABLE_ONLY
+  "averageTicketPerCover": { "amount": "22616.00", "currency": "COP" },
+  "fingerprintStrategy": "PHONE_OR_TABLE", // PHONE | PHONE_OR_TABLE | TABLE_ONLY
   "dataCompleteness": "PARTIAL",
   "notes": [
-    "Phone number captured on 62% of orders in range; remaining rows fingerprint by table_id."
-  ]
+    "Phone number captured on 62% of orders in range; remaining rows fingerprint by table_id.",
+  ],
 }
 ```
 
@@ -283,31 +285,31 @@ PATCH  /api/v1/analytics/alerts/{id}/read
   "items": [
     {
       "id": 17,
-      "severity": "RED",          // RED | YELLOW | INFO
+      "severity": "RED", // RED | YELLOW | INFO
       "type": "FOOD_COST_DEVIATION", // see enum
       "message": "Food cost is 4.2pp above 12-month MA",
       "metric": "food_cost_pct",
-      "baseline":  { "amount": "28.50" },        // number-as-string
-      "current":   { "amount": "32.70" },
+      "baseline": { "amount": "28.50" }, // number-as-string
+      "current": { "amount": "32.70" },
       "deviationPct": 14.74,
       "period": "2026-07",
       "detectedAt": "2026-07-17T02:00:00Z",
-      "status": "OPEN"            // OPEN | READ | DISMISSED
-    }
+      "status": "OPEN", // OPEN | READ | DISMISSED
+    },
   ],
-  "page": { "limit": 50, "offset": 0, "total": 134 }
+  "page": { "limit": 50, "offset": 0, "total": 134 },
 }
 ```
 
 **Alert types** (enum):
 
-| `type` | Trigger |
-|--------|---------|
-| `FOOD_COST_DEVIATION` | food cost % deviates > 2 pp vs 12-month MA |
-| `LABOR_COST_DEVIATION` | labor cost % deviates > 3 pp vs 12-month MA |
-| `SALES_DROP_YOY` | sales drop > 10 % vs same weekday last year |
+| `type`                 | Trigger                                       |
+| ---------------------- | --------------------------------------------- |
+| `FOOD_COST_DEVIATION`  | food cost % deviates > 2 pp vs 12-month MA    |
+| `LABOR_COST_DEVIATION` | labor cost % deviates > 3 pp vs 12-month MA   |
+| `SALES_DROP_YOY`       | sales drop > 10 % vs same weekday last year   |
 | `LOW_MARGIN_SKU_SPIKE` | a DOG-quadrant SKU increases units > 50 % WoW |
-| `REVPASH_DROP` | RevPASH drops > 15 % vs 4-week MA |
+| `REVPASH_DROP`         | RevPASH drops > 15 % vs 4-week MA             |
 
 `PATCH /alerts/{id}/read` returns `204 No Content`; idempotent.
 
@@ -322,35 +324,33 @@ RFC 7807 `application/problem+json`:
   "status": 400,
   "detail": "bucket=monthly but 'from' is not YYYY-MM",
   "instance": "/api/v1/analytics/prime-cost",
-  "errors": [
-    { "parameter": "from", "value": "2026-1", "expected": "YYYY-MM" }
-  ]
+  "errors": [{ "parameter": "from", "value": "2026-1", "expected": "YYYY-MM" }]
 }
 ```
 
 Status code map (single source):
 
-| Status | Type URI |
-|--------|----------|
-| 400 | `/analytics/invalid-period`, `/analytics/invalid-parameter` |
-| 401 | `/auth/unauthorized` |
-| 403 | `/auth/forbidden` |
-| 404 | `/analytics/alert-not-found` |
-| 422 | `/analytics/invalid-range`, `/analytics/range-too-large` |
-| 500 | `/internal` |
+| Status | Type URI                                                    |
+| ------ | ----------------------------------------------------------- |
+| 400    | `/analytics/invalid-period`, `/analytics/invalid-parameter` |
+| 401    | `/auth/unauthorized`                                        |
+| 403    | `/auth/forbidden`                                           |
+| 404    | `/analytics/alert-not-found`                                |
+| 422    | `/analytics/invalid-range`, `/analytics/range-too-large`    |
+| 500    | `/internal`                                                 |
 
 ## 7. Data-source assumptions & fallback strategy
 
-Per user's instruction *"use what we have now; only create tables if the business model needs them"*:
+Per user's instruction _"use what we have now; only create tables if the business model needs them"_:
 
-| Module | Source today | Action if missing |
-|--------|--------------|-------------------|
-| Prime Cost — COGS | `inventory_movements`, `purchase_orders`, `inventory_stock` | If no snapshot table → approximate FIFO; flag `dataCompleteness=PARTIAL` |
-| Prime Cost — Labor | `schedules` + `time_logs` (V22) | Need hourly rate per user. Add `users.hourly_rate` column in A6 (business-essential). Fallback: skip labor row, flag note |
-| Menu Engineering | `order_details`, `products`, `product_recipes` | OK today; cache invalidation needs hooks on price/recipe change |
-| Operations | `tables`, `orders` | Need `open_time`, `close_time` on orders, `seat_count` on tables (verify), `analytics_config` for hours |
-| Cohort | `orders` only | "Client = order" proxy. No new table |
-| Alerts | All aggregates above | Need 30+ days history for MA to work; cold-start flagged |
+| Module             | Source today                                                | Action if missing                                                                                                         |
+| ------------------ | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Prime Cost — COGS  | `inventory_movements`, `purchase_orders`, `inventory_stock` | If no snapshot table → approximate FIFO; flag `dataCompleteness=PARTIAL`                                                  |
+| Prime Cost — Labor | `schedules` + `time_logs` (V22)                             | Need hourly rate per user. Add `users.hourly_rate` column in A6 (business-essential). Fallback: skip labor row, flag note |
+| Menu Engineering   | `order_details`, `products`, `product_recipes`              | OK today; cache invalidation needs hooks on price/recipe change                                                           |
+| Operations         | `tables`, `orders`                                          | Need `open_time`, `close_time` on orders, `seat_count` on tables (verify), `analytics_config` for hours                   |
+| Cohort             | `orders` only                                               | "Client = order" proxy. No new table                                                                                      |
+| Alerts             | All aggregates above                                        | Need 30+ days history for MA to work; cold-start flagged                                                                  |
 
 Tables/columns that **are required** by the business model and will be created in follow-up activities:
 

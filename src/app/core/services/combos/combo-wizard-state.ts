@@ -305,7 +305,14 @@ export class ComboWizardState {
     this.removePersistedDraft();
   }
 
-  updateData(partial: Partial<Omit<WizardFormData, 'groups' | 'additions' | 'questions' | 'schedule' | 'selectedCategoryIds'>>): void {
+  updateData(
+    partial: Partial<
+      Omit<
+        WizardFormData,
+        'groups' | 'additions' | 'questions' | 'schedule' | 'selectedCategoryIds'
+      >
+    >,
+  ): void {
     this.draftState.update((current) => ({
       sourceId: current.sourceId,
       data: { ...current.data, ...partial },
@@ -359,13 +366,14 @@ export class ComboWizardState {
   setSteps(steps: readonly WizardStep[]): void {
     const next = [...steps];
     const prev = this.stepsState();
-    const changed = prev.length !== next.length
-      || prev.some((s, i) => s.id !== next[i].id || s.label !== next[i].label);
+    const changed =
+      prev.length !== next.length ||
+      prev.some((s, i) => s.id !== next[i].id || s.label !== next[i].label);
     if (changed) {
       this.stepsState.set(next);
     }
     const currentId = this.currentStepIdState();
-    if (currentId === null || changed && !next.some((step) => step.id === currentId)) {
+    if (currentId === null || (changed && !next.some((step) => step.id === currentId))) {
       this.currentStepIdState.set(next.length > 0 ? next[0].id : null);
     }
   }
@@ -435,10 +443,7 @@ export class ComboWizardState {
       updatedAt: now,
     };
     try {
-      window.localStorage.setItem(
-        COMBO_WIZARD_DRAFT_STORAGE_KEY,
-        JSON.stringify(payload),
-      );
+      window.localStorage.setItem(COMBO_WIZARD_DRAFT_STORAGE_KEY, JSON.stringify(payload));
       this.lastPersistedAtState.set(now);
     } catch {
       this.lastPersistedAtState.set(null);

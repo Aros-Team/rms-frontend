@@ -11,12 +11,11 @@
   <div class="border border-rms-border rounded-xl p-3 bg-rms-subtle">
     <p class="text-xs sm:text-sm text-muted mb-2">
       <i class="pi pi-info-circle mr-1" aria-hidden="true"></i>
-      Límites de selección para el cliente — ¿cuántos productos puede escoger el cliente en esta categoría?
+      Límites de selección para el cliente — ¿cuántos productos puede escoger el cliente en esta
+      categoría?
     </p>
     <div class="flex flex-wrap items-center gap-2">
-      <label for="max-selections" class="rms-label">
-        Máximo de productos por cliente
-      </label>
+      <label for="max-selections" class="rms-label"> Máximo de productos por cliente </label>
       <p-inputNumber
         [ngModel]="groupMaxSelections()"
         (ngModelChange)="onMaxChange($event)"
@@ -32,7 +31,10 @@
 
   <!-- Search input -->
   <div class="relative w-full max-w-md">
-    <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-rms-ink-muted" aria-hidden="true"></i>
+    <i
+      class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-rms-ink-muted"
+      aria-hidden="true"
+    ></i>
     <input
       class="rms-input rms-input--md w-full pl-10"
       placeholder="Buscar productos..."
@@ -48,9 +50,7 @@
     <!-- Available products -->
     <div class="flex flex-col gap-3">
       <div class="flex items-center justify-between">
-        <h3 class="text-sm font-semibold text-rms-ink-secondary">
-          Productos disponibles
-        </h3>
+        <h3 class="text-sm font-semibold text-rms-ink-secondary">Productos disponibles</h3>
       </div>
 
       <div
@@ -82,18 +82,14 @@
 
       <!-- Mobile-only: Agregados label above selected section -->
       <div class="block md:hidden">
-        <h3 class="text-sm font-semibold text-rms-ink-secondary mb-2">
-          Agregados
-        </h3>
+        <h3 class="text-sm font-semibold text-rms-ink-secondary mb-2">Agregados</h3>
       </div>
     </div>
 
     <!-- Selected products -->
     <div class="flex flex-col gap-3" data-testid="selected-section">
       <div class="flex items-center justify-between">
-        <h3 class="text-sm font-semibold text-rms-ink-secondary">
-          Productos seleccionados
-        </h3>
+        <h3 class="text-sm font-semibold text-rms-ink-secondary">Productos seleccionados</h3>
         <span class="text-xs text-muted" data-testid="selection-count">
           {{ selectionCountText() }}
         </span>
@@ -108,12 +104,7 @@
         data-testid="selected-list"
       >
         @for (product of selectedProducts(); track product.id) {
-          <div
-            cdkDrag
-            [cdkDragData]="product.id"
-            class="relative"
-            data-testid="selected-product"
-          >
+          <div cdkDrag [cdkDragData]="product.id" class="relative" data-testid="selected-product">
             <app-product-card
               [product]="product"
               [selected]="true"
@@ -126,7 +117,8 @@
               variant="danger"
               size="sm"
               (click)="removeProduct(product.id)"
-              data-testid="remove-product-btn" />
+              data-testid="remove-product-btn"
+            />
           </div>
         } @empty {
           <div
@@ -142,10 +134,7 @@
 
   <!-- Min violation warning -->
   @if (showMinWarning()) {
-    <p
-      class="text-sm text-accent flex items-center gap-1"
-      data-testid="min-warning"
-    >
+    <p class="text-sm text-accent flex items-center gap-1" data-testid="min-warning">
       <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
       Debe seleccionar al menos {{ groupMinSelections() }} producto(s)
     </p>

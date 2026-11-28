@@ -4,7 +4,11 @@
   </h1>
 
   <!-- Tab navigation -->
-  <nav class="icon-text-nav gap-1 md:gap-2 mb-4 md:mb-6 flex flex-wrap border-b border-rms-border pb-3" role="tablist" aria-label="Opciones de configuración">
+  <nav
+    class="icon-text-nav gap-1 md:gap-2 mb-4 md:mb-6 flex flex-wrap border-b border-rms-border pb-3"
+    role="tablist"
+    aria-label="Opciones de configuración"
+  >
     @for (tab of tabs(); track tab.id; let i = $index) {
       <button
         type="button"
@@ -30,7 +34,13 @@
   @switch (activeTab()) {
     <!-- Accesibilidad panel -->
     @case ('accesibilidad') {
-      <section id="panel-accesibilidad" role="tabpanel" aria-labelledby="tab-accesibilidad" tabindex="0" class="py-4">
+      <section
+        id="panel-accesibilidad"
+        role="tabpanel"
+        aria-labelledby="tab-accesibilidad"
+        tabindex="0"
+        class="py-4"
+      >
         <div class="flex flex-col gap-6 bg-rms-surface border border-rms-border rounded-xl">
           <!-- Font size -->
           <div role="group" aria-labelledby="font-size-label" class="p-4">
@@ -39,35 +49,59 @@
               <button
                 type="button"
                 role="radio"
-                [class]="currentFontSize() === 'small' ? 'settings-toggle settings-toggle--active text-xs' : 'settings-toggle text-xs'"
+                [class]="
+                  currentFontSize() === 'small'
+                    ? 'settings-toggle settings-toggle--active text-xs'
+                    : 'settings-toggle text-xs'
+                "
                 aria-label="Pequeño"
                 [attr.aria-checked]="currentFontSize() === 'small'"
                 (click)="setFontSize('small')"
-              >A</button>
+              >
+                A
+              </button>
               <button
                 type="button"
                 role="radio"
-                [class]="currentFontSize() === 'normal' ? 'settings-toggle settings-toggle--active text-sm' : 'settings-toggle text-sm'"
+                [class]="
+                  currentFontSize() === 'normal'
+                    ? 'settings-toggle settings-toggle--active text-sm'
+                    : 'settings-toggle text-sm'
+                "
                 aria-label="Normal"
                 [attr.aria-checked]="currentFontSize() === 'normal'"
                 (click)="setFontSize('normal')"
-              >A</button>
+              >
+                A
+              </button>
               <button
                 type="button"
                 role="radio"
-                [class]="currentFontSize() === 'large' ? 'settings-toggle settings-toggle--active text-base' : 'settings-toggle text-base'"
+                [class]="
+                  currentFontSize() === 'large'
+                    ? 'settings-toggle settings-toggle--active text-base'
+                    : 'settings-toggle text-base'
+                "
                 aria-label="Grande"
                 [attr.aria-checked]="currentFontSize() === 'large'"
                 (click)="setFontSize('large')"
-              >A</button>
+              >
+                A
+              </button>
               <button
                 type="button"
                 role="radio"
-                [class]="currentFontSize() === 'extra-large' ? 'settings-toggle settings-toggle--active text-lg' : 'settings-toggle text-lg'"
+                [class]="
+                  currentFontSize() === 'extra-large'
+                    ? 'settings-toggle settings-toggle--active text-lg'
+                    : 'settings-toggle text-lg'
+                "
                 aria-label="Extra grande"
                 [attr.aria-checked]="currentFontSize() === 'extra-large'"
                 (click)="setFontSize('extra-large')"
-              >A</button>
+              >
+                A
+              </button>
             </div>
           </div>
 
@@ -78,19 +112,31 @@
               <button
                 type="button"
                 role="radio"
-                [class]="currentContrast() === 'normal' ? 'settings-toggle settings-toggle--active' : 'settings-toggle'"
+                [class]="
+                  currentContrast() === 'normal'
+                    ? 'settings-toggle settings-toggle--active'
+                    : 'settings-toggle'
+                "
                 aria-label="Contraste normal"
                 [attr.aria-checked]="currentContrast() === 'normal'"
                 (click)="setContrast('normal')"
-              >Normal</button>
+              >
+                Normal
+              </button>
               <button
                 type="button"
                 role="radio"
-                [class]="currentContrast() === 'high' ? 'settings-toggle settings-toggle--active' : 'settings-toggle'"
+                [class]="
+                  currentContrast() === 'high'
+                    ? 'settings-toggle settings-toggle--active'
+                    : 'settings-toggle'
+                "
                 aria-label="Alto contraste"
                 [attr.aria-checked]="currentContrast() === 'high'"
                 (click)="setContrast('high')"
-              >Alto</button>
+              >
+                Alto
+              </button>
             </div>
           </div>
 
@@ -101,7 +147,11 @@
               <button
                 type="button"
                 role="radio"
-                [class]="currentTheme() === 'light' ? 'settings-toggle settings-toggle--active' : 'settings-toggle'"
+                [class]="
+                  currentTheme() === 'light'
+                    ? 'settings-toggle settings-toggle--active'
+                    : 'settings-toggle'
+                "
                 aria-label="Tema claro"
                 [attr.aria-checked]="currentTheme() === 'light'"
                 (click)="setTheme('light')"
@@ -112,7 +162,11 @@
               <button
                 type="button"
                 role="radio"
-                [class]="currentTheme() === 'dark' ? 'settings-toggle settings-toggle--active' : 'settings-toggle'"
+                [class]="
+                  currentTheme() === 'dark'
+                    ? 'settings-toggle settings-toggle--active'
+                    : 'settings-toggle'
+                "
                 aria-label="Tema oscuro"
                 [attr.aria-checked]="currentTheme() === 'dark'"
                 (click)="setTheme('dark')"
@@ -128,14 +182,26 @@
 
     <!-- Horarios panel (ADMIN only) -->
     @case ('horarios') {
-      <section id="panel-horarios" role="tabpanel" aria-labelledby="tab-horarios" tabindex="0" class="py-4">
+      <section
+        id="panel-horarios"
+        role="tabpanel"
+        aria-labelledby="tab-horarios"
+        tabindex="0"
+        class="py-4"
+      >
         <app-schedules></app-schedules>
       </section>
     }
 
     <!-- Cuenta panel -->
     @case ('cuenta') {
-      <section id="panel-cuenta" role="tabpanel" aria-labelledby="tab-cuenta" tabindex="0" class="py-4">
+      <section
+        id="panel-cuenta"
+        role="tabpanel"
+        aria-labelledby="tab-cuenta"
+        tabindex="0"
+        class="py-4"
+      >
         <!-- User info -->
         <div class="border border-rms-border rounded-xl bg-rms-surface p-4 mb-4">
           <h2 class="rms-h3 mb-3">Información del usuario</h2>
@@ -182,12 +248,19 @@
           <div class="flex justify-between items-center">
             <div>
               <h2 class="rms-h3 mb-3">Cambiar contraseña</h2>
-              <p class="text-sm text-muted">Actualiza tu contraseña periódicamente para mantener tu cuenta segura</p>
+              <p class="text-sm text-muted">
+                Actualiza tu contraseña periódicamente para mantener tu cuenta segura
+              </p>
             </div>
-            <app-rms-button iconStart="pi pi-lock" (click)="changePasswordVisible.set(true)">Cambiar</app-rms-button>
+            <app-rms-button iconStart="pi pi-lock" (click)="changePasswordVisible.set(true)"
+              >Cambiar</app-rms-button
+            >
           </div>
         </div>
-        <app-change-password [(visible)]="changePasswordVisible" (passwordChanged)="changePasswordVisible.set(false)"></app-change-password>
+        <app-change-password
+          [(visible)]="changePasswordVisible"
+          (passwordChanged)="changePasswordVisible.set(false)"
+        ></app-change-password>
 
         <!-- My schedule (workers) — D-020 -->
         @if (!isAdmin()) {
@@ -195,12 +268,17 @@
             routerLink="/worker/my-schedule"
             class="flex items-center gap-3 min-h-14 rounded-xl border border-rms-border bg-rms-surface p-4 mb-4 text-rms-ink no-underline"
           >
-            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-rms-subtle text-rms-ink-secondary" aria-hidden="true">
+            <span
+              class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-rms-subtle text-rms-ink-secondary"
+              aria-hidden="true"
+            >
               <i class="pi pi-calendar"></i>
             </span>
             <span class="min-w-0 flex-1">
               <span class="block text-lg font-semibold">Mi horario</span>
-              <span class="block text-sm text-rms-ink-muted">Consulta tus turnos de esta semana.</span>
+              <span class="block text-sm text-rms-ink-muted"
+                >Consulta tus turnos de esta semana.</span
+              >
             </span>
             <i class="pi pi-chevron-right text-rms-ink-muted" aria-hidden="true"></i>
           </a>
@@ -232,9 +310,15 @@
                   <tbody>
                     @for (entry of salaryHistory(); track entry.changedAt) {
                       <tr class="border-b border-rms-border">
-                        <td class="py-2 px-2 text-rms-ink-secondary whitespace-nowrap">{{ formatDateTime(entry.changedAt) }}</td>
-                        <td class="py-2 px-2 text-right font-mono text-rms-ink-secondary">{{ formatSalary(entry.oldSalary) }}</td>
-                        <td class="py-2 px-2 text-right font-mono text-rms-ink-secondary">{{ formatSalary(entry.newSalary) }}</td>
+                        <td class="py-2 px-2 text-rms-ink-secondary whitespace-nowrap">
+                          {{ formatDateTime(entry.changedAt) }}
+                        </td>
+                        <td class="py-2 px-2 text-right font-mono text-rms-ink-secondary">
+                          {{ formatSalary(entry.oldSalary) }}
+                        </td>
+                        <td class="py-2 px-2 text-right font-mono text-rms-ink-secondary">
+                          {{ formatSalary(entry.newSalary) }}
+                        </td>
                         <td class="py-2 px-2 text-rms-ink-secondary">{{ entry.reason }}</td>
                       </tr>
                     }
@@ -251,7 +335,13 @@
           <div class="flex justify-between items-center">
             <div>
               <span class="text-muted">Estado: </span>
-              <span [class]="habeasDataAccepted() ? 'rms-text-success font-medium' : 'rms-text-danger font-medium'">
+              <span
+                [class]="
+                  habeasDataAccepted()
+                    ? 'rms-text-success font-medium'
+                    : 'rms-text-danger font-medium'
+                "
+              >
                 {{ habeasDataAccepted() ? 'Aceptado' : 'Pendiente' }}
               </span>
               @if (habeasDataAccepted()) {
@@ -262,7 +352,9 @@
               variant="secondary"
               iconStart="pi pi-eye"
               ariaLabel="Ver aviso de habeas data"
-              (click)="showHabeasDialog = true">Ver aviso</app-rms-button>
+              (click)="showHabeasDialog = true"
+              >Ver aviso</app-rms-button
+            >
           </div>
         </div>
       </section>
@@ -270,21 +362,24 @@
 
     <!-- Cerrar sesión panel -->
     @case ('cerrar-session') {
-      <section id="panel-cerrar-session" role="tabpanel" aria-labelledby="tab-cerrar-session" tabindex="0" class="py-4">
+      <section
+        id="panel-cerrar-session"
+        role="tabpanel"
+        aria-labelledby="tab-cerrar-session"
+        tabindex="0"
+        class="py-4"
+      >
         <div class="border border-rms-border rounded-xl bg-rms-surface p-6 text-center">
           <i class="pi pi-sign-out text-4xl text-muted mb-4 block" aria-hidden="true"></i>
           <h2 class="rms-h3 mb-2">Cerrar sesión</h2>
-          <p class="text-muted mb-6">
-            ¿Estás seguro de que deseas cerrar la sesión actual?
-          </p>
+          <p class="text-muted mb-6">¿Estás seguro de que deseas cerrar la sesión actual?</p>
           <div class="flex gap-3 justify-center">
-            <app-rms-button
-              variant="secondary"
-              (click)="activeTab.set('cuenta')">Cancelar</app-rms-button>
-            <app-rms-button
-              variant="danger"
-              iconStart="pi pi-sign-out"
-              (click)="confirmLogout()">Cerrar sesión</app-rms-button>
+            <app-rms-button variant="secondary" (click)="activeTab.set('cuenta')"
+              >Cancelar</app-rms-button
+            >
+            <app-rms-button variant="danger" iconStart="pi pi-sign-out" (click)="confirmLogout()"
+              >Cerrar sesión</app-rms-button
+            >
           </div>
         </div>
       </section>
@@ -305,8 +400,9 @@
 >
   <div class="max-h-[60vh] overflow-y-auto text-sm leading-relaxed text-rms-ink-secondary">
     <p class="mb-4">
-      <strong>RMS</strong> (Restaurant Management System) le informa que es responsable del tratamiento
-      de sus datos personales conforme a la Ley 1581 de 2012 y sus decreto reglamentarios.
+      <strong>RMS</strong> (Restaurant Management System) le informa que es responsable del
+      tratamiento de sus datos personales conforme a la Ley 1581 de 2012 y sus decreto
+      reglamentarios.
     </p>
 
     <p class="mb-4">
@@ -337,19 +433,15 @@
     </p>
 
     <p class="mb-4">
-      <strong>Contacto:</strong> Para ejercer sus derechos o requerir información adicional,
-      puede contactarnos a través de los canales establecidos por la organización.
+      <strong>Contacto:</strong> Para ejercer sus derechos o requerir información adicional, puede
+      contactarnos a través de los canales establecidos por la organización.
     </p>
 
-    <p class="text-xs text-muted mt-6">
-      Fecha de última actualización: 13 de Marzo de 2026
-    </p>
+    <p class="text-xs text-muted mt-6">Fecha de última actualización: 13 de Marzo de 2026</p>
   </div>
 
   <div class="flex justify-end gap-2 mt-4">
-    <app-rms-button
-      variant="secondary"
-      (click)="showHabeasDialog = false">Cerrar</app-rms-button>
+    <app-rms-button variant="secondary" (click)="showHabeasDialog = false">Cerrar</app-rms-button>
     @if (!habeasDataAccepted()) {
       <app-rms-button (click)="acceptHabeasData()">Aceptar</app-rms-button>
     }
@@ -368,16 +460,14 @@
   header="Confirmar cierre de sesión"
 >
   <p class="text-rms-ink-secondary">
-    ¿Estás seguro de que deseas cerrar la sesión? Deberás iniciar sesión nuevamente para acceder al sistema.
+    ¿Estás seguro de que deseas cerrar la sesión? Deberás iniciar sesión nuevamente para acceder al
+    sistema.
   </p>
 
   <div class="flex justify-end gap-2 mt-4">
-    <app-rms-button
-      variant="secondary"
-      (click)="showLogoutDialog = false">Cancelar</app-rms-button>
-    <app-rms-button
-      variant="danger"
-      iconStart="pi pi-sign-out"
-      (click)="logout()">Cerrar sesión</app-rms-button>
+    <app-rms-button variant="secondary" (click)="showLogoutDialog = false">Cancelar</app-rms-button>
+    <app-rms-button variant="danger" iconStart="pi pi-sign-out" (click)="logout()"
+      >Cerrar sesión</app-rms-button
+    >
   </div>
 </p-dialog>

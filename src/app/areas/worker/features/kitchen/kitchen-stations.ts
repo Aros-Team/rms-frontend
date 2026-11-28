@@ -189,12 +189,23 @@ export function stationCounts(
     });
   }
 
-  const apply = (orders: readonly OrderResponse[], column: 'queue' | 'preparing' | 'ready'): void => {
+  const apply = (
+    orders: readonly OrderResponse[],
+    column: 'queue' | 'preparing' | 'ready',
+  ): void => {
     for (const order of orders) {
       for (const station of orderStations(order, stations)) {
         let count = index.get(station.key);
         if (!count) {
-          count = { key: station.key, name: station.name, rank: station.rank, queue: 0, preparing: 0, ready: 0, total: 0 };
+          count = {
+            key: station.key,
+            name: station.name,
+            rank: station.rank,
+            queue: 0,
+            preparing: 0,
+            ready: 0,
+            total: 0,
+          };
           index.set(station.key, count);
         }
         count[column] += 1;

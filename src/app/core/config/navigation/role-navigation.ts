@@ -105,7 +105,9 @@ export const ADMIN_NAV: readonly NavItem[] = [
 ];
 
 /** Activities assigned to the user (empty when unauthenticated). */
-export function userActivities(user: Pick<UserInfo, 'areas' | 'areaActivities'> | undefined): AreaActivityValue[] {
+export function userActivities(
+  user: Pick<UserInfo, 'areas' | 'areaActivities'> | undefined,
+): AreaActivityValue[] {
   const explicit = (user?.areaActivities ?? []).flatMap((assignment) =>
     assignment.activities.filter(
       (activity): activity is AreaActivityValue =>
@@ -143,8 +145,12 @@ function legacyActivity(type: string | undefined): AreaActivityValue | null {
 }
 
 /** Legacy alias kept for the old area-type tests. */
-export function userAreaTypes(user: Pick<UserInfo, 'areas' | 'areaActivities'> | undefined): string[] {
-  return (user?.areas ?? []).map((area) => (area as { type?: string }).type).filter((value): value is string => !!value);
+export function userAreaTypes(
+  user: Pick<UserInfo, 'areas' | 'areaActivities'> | undefined,
+): string[] {
+  return (user?.areas ?? [])
+    .map((area) => (area as { type?: string }).type)
+    .filter((value): value is string => !!value);
 }
 
 export function canAccessWorkspace(
@@ -159,7 +165,9 @@ export function canAccessWorkspace(
 }
 
 /** Every workspace the user may enter, ordered by landing priority. */
-export function workerWorkspaces(user: Pick<UserInfo, 'areas' | 'areaActivities'> | undefined): WorkerWorkspace[] {
+export function workerWorkspaces(
+  user: Pick<UserInfo, 'areas' | 'areaActivities'> | undefined,
+): WorkerWorkspace[] {
   return WORKSPACE_PRIORITY.filter((workspace) => canAccessWorkspace(user, workspace));
 }
 
@@ -171,13 +179,17 @@ export function primaryWorkerWorkspace(
 }
 
 /** Landing route for a worker, or `null` when they have no known area. */
-export function workerHome(user: Pick<UserInfo, 'areas' | 'areaActivities'> | undefined): string | null {
+export function workerHome(
+  user: Pick<UserInfo, 'areas' | 'areaActivities'> | undefined,
+): string | null {
   const workspace = primaryWorkerWorkspace(user);
   return workspace ? WORKSPACE_HOME[workspace] : null;
 }
 
 /** Whether the user works the service floor (waiter / bar). */
-export function isServiceWorker(user: Pick<UserInfo, 'areas' | 'areaActivities'> | undefined): boolean {
+export function isServiceWorker(
+  user: Pick<UserInfo, 'areas' | 'areaActivities'> | undefined,
+): boolean {
   return canAccessWorkspace(user, 'waiter');
 }
 

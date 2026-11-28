@@ -8,7 +8,7 @@ import { HabeasDataEvents } from './habeas-data-events';
 @Component({
   selector: 'app-habeas-data',
   imports: [DialogModule, RmsButton],
-  templateUrl: './habeas-data.html'
+  templateUrl: './habeas-data.html',
 })
 export class HabeasData implements OnInit, OnDestroy {
   visible = false;
@@ -33,12 +33,14 @@ export class HabeasData implements OnInit, OnDestroy {
     this.subs.push(
       this.habeasDataService.showDialog.subscribe(() => {
         this.visible = true;
-      })
+      }),
     );
   }
 
   ngOnDestroy(): void {
-    this.subs.forEach(s => { s.unsubscribe(); });
+    this.subs.forEach((s) => {
+      s.unsubscribe();
+    });
   }
 
   accept(): void {
@@ -46,7 +48,7 @@ export class HabeasData implements OnInit, OnDestroy {
     const dateStr = now.toLocaleDateString('es-CO', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
     localStorage.setItem('habeas_data_accepted', 'true');
     localStorage.setItem('habeas_data_date', dateStr);

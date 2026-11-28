@@ -1,4 +1,11 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy, computed } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  OnInit,
+  ChangeDetectionStrategy,
+  computed,
+} from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -24,13 +31,7 @@ import {
 @Component({
   selector: 'app-setup-account',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    PasswordModule,
-    NgClass,
-    RmsButton,
-    RmsInput,
-  ],
+  imports: [ReactiveFormsModule, PasswordModule, NgClass, RmsButton, RmsInput],
   templateUrl: './setup-account.html',
   styleUrl: './setup-account.css',
 })
@@ -55,8 +56,14 @@ export class SetupAccount implements OnInit {
   });
 
   adminStep1Form: FormGroup = new FormGroup({
-    name: new FormControl<string>('', [(control) => Validators.required(control), (control) => Validators.minLength(2)(control)]),
-    document: new FormControl<string>('', [(control) => Validators.required(control), (control) => Validators.minLength(5)(control)]),
+    name: new FormControl<string>('', [
+      (control) => Validators.required(control),
+      (control) => Validators.minLength(2)(control),
+    ]),
+    document: new FormControl<string>('', [
+      (control) => Validators.required(control),
+      (control) => Validators.minLength(5)(control),
+    ]),
   });
 
   private token = '';
@@ -184,12 +191,18 @@ export class SetupAccount implements OnInit {
 
   checkPasswordRequirement(password: string, requirement: string): boolean {
     switch (requirement) {
-      case 'minLength': return hasMinPasswordLength(password);
-      case 'upperCase': return hasUpperCase(password);
-      case 'lowerCase': return hasLowerCase(password);
-      case 'number': return hasNumber(password);
-      case 'symbol': return hasSymbol(password);
-      default: return false;
+      case 'minLength':
+        return hasMinPasswordLength(password);
+      case 'upperCase':
+        return hasUpperCase(password);
+      case 'lowerCase':
+        return hasLowerCase(password);
+      case 'number':
+        return hasNumber(password);
+      case 'symbol':
+        return hasSymbol(password);
+      default:
+        return false;
     }
   }
 

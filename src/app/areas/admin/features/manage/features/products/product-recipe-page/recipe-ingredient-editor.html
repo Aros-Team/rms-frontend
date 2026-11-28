@@ -8,7 +8,8 @@
       (ngModelChange)="onSearch($event)"
       (keydown)="onSearchKeydown($event)"
       [disabled]="disabled"
-      autocomplete="off" />
+      autocomplete="off"
+    />
 
     @if (showCategoryFilter) {
       <app-rms-select
@@ -19,7 +20,8 @@
         [showClear]="true"
         placeholder="Todas las categorías"
         size="sm"
-        [disabled]="disabled" />
+        [disabled]="disabled"
+      />
     }
   </div>
 
@@ -32,7 +34,8 @@
             class="ingredient-result"
             data-recipe-result
             [disabled]="disabled"
-            (click)="addVariant(variant)">
+            (click)="addVariant(variant)"
+          >
             <span class="ingredient-result__main">
               <span class="ingredient-result__name">{{ variant.supplyName }}</span>
               <span class="ingredient-result__meta">
@@ -58,7 +61,8 @@
       [message]="emptyMessage"
       actionLabel="Buscar insumo"
       actionIcon="pi pi-search"
-      (action)="focusSearch()" />
+      (action)="focusSearch()"
+    />
   } @else {
     <div class="ingredient-table-wrap">
       <table class="ingredient-table" aria-label="Insumos de la receta">
@@ -87,7 +91,8 @@
                   (ngModelChange)="onVariantChange(row, $event)"
                   [error]="issuesFor(row).variant"
                   placeholder="Selecciona un insumo"
-                  [disabled]="disabled" />
+                  [disabled]="disabled"
+                />
               </td>
               <td class="ingredient-table__quantity">
                 <app-rms-input
@@ -98,7 +103,8 @@
                   [ngModel]="row.quantity"
                   (ngModelChange)="onQuantityInput(row, $event)"
                   [error]="issuesFor(row).quantity"
-                  [disabled]="disabled" />
+                  [disabled]="disabled"
+                />
               </td>
               <td class="ingredient-table__unit">{{ unitLabel(row) }}</td>
               <td class="ingredient-table__numeric">
@@ -117,7 +123,8 @@
                   variant="danger"
                   size="sm"
                   [disabled]="disabled"
-                  (click)="removeRow(row)" />
+                  (click)="removeRow(row)"
+                />
               </td>
             </tr>
           }

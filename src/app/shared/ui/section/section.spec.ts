@@ -52,7 +52,9 @@ describe('RmsSection', () => {
   });
 
   it('renders the description as supporting prose', () => {
-    const description = (fixture.nativeElement as HTMLElement).querySelector('.rms-section__description');
+    const description = (fixture.nativeElement as HTMLElement).querySelector(
+      '.rms-section__description',
+    );
 
     expect(description?.textContent.trim()).toBe('Pedidos entregados y cobrados.');
   });

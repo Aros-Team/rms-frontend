@@ -27,9 +27,7 @@ export interface OrderLineView {
 }
 
 function namesOf(values: readonly { name?: string | null }[] | undefined): string[] {
-  return (values ?? [])
-    .map((value) => value.name?.trim() ?? '')
-    .filter((name) => name.length > 0);
+  return (values ?? []).map((value) => value.name?.trim() ?? '').filter((name) => name.length > 0);
 }
 
 /** Wire fields the backend can send as null even though the TS type says string. */
@@ -76,7 +74,9 @@ function clarificationLabels(detail: OrderDetailItem): string[] {
       answer: value.answer?.trim() ?? '',
     }))
     .filter((value) => value.answer.length > 0)
-    .map((value) => (value.question.length > 0 ? `${value.question}: ${value.answer}` : value.answer));
+    .map((value) =>
+      value.question.length > 0 ? `${value.question}: ${value.answer}` : value.answer,
+    );
 }
 
 /** Stable grouping key: same product, price, options and instructions. */

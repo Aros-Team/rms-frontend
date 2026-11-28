@@ -1,4 +1,18 @@
-import { Component, ElementRef, inject, signal, afterNextRender, effect, ChangeDetectionStrategy, OnDestroy, AfterViewChecked, AfterViewInit, Output, EventEmitter, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  inject,
+  signal,
+  afterNextRender,
+  effect,
+  ChangeDetectionStrategy,
+  OnDestroy,
+  AfterViewChecked,
+  AfterViewInit,
+  Output,
+  EventEmitter,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -99,10 +113,13 @@ export class Chat implements OnDestroy, AfterViewChecked, AfterViewInit {
       const reduceMotion =
         typeof window !== 'undefined' &&
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      this.revealTimer = setTimeout(() => {
-        this.revealTimer = null;
-        this.contentReady.set(true);
-      }, reduceMotion ? 0 : Chat.PANEL_TRANSITION_MS);
+      this.revealTimer = setTimeout(
+        () => {
+          this.revealTimer = null;
+          this.contentReady.set(true);
+        },
+        reduceMotion ? 0 : Chat.PANEL_TRANSITION_MS,
+      );
     });
   }
 
@@ -159,9 +176,11 @@ export class Chat implements OnDestroy, AfterViewChecked, AfterViewInit {
       timestamp: new Date(),
     };
 
-    this.messages.update(msgs => [...msgs, userMessage]);
+    this.messages.update((msgs) => [...msgs, userMessage]);
     this.lastUserMessage.set(content);
-    setTimeout(() => { this.scrollToBottom(true); }, 50);
+    setTimeout(() => {
+      this.scrollToBottom(true);
+    }, 50);
     this.currentMessage.set('');
     this.loading.set(true);
     this.error.set(null);
@@ -177,13 +196,11 @@ export class Chat implements OnDestroy, AfterViewChecked, AfterViewInit {
 
     const applyContent = (): void => {
       const filteredContent = this.filterDisplayContent(assistantContent);
-      this.messages.update(msgs => {
-        const existing = msgs.find(m => m.id === assistantMessageId);
+      this.messages.update((msgs) => {
+        const existing = msgs.find((m) => m.id === assistantMessageId);
         if (existing) {
-          return msgs.map(m =>
-            m.id === assistantMessageId
-              ? { ...m, content: filteredContent }
-              : m
+          return msgs.map((m) =>
+            m.id === assistantMessageId ? { ...m, content: filteredContent } : m,
           );
         }
         if (!filteredContent) {
@@ -483,24 +500,21 @@ export class Chat implements OnDestroy, AfterViewChecked, AfterViewInit {
       return;
     }
     const next = new Set<string>();
-    for (const bubble of Array.from(
-      container.querySelectorAll<HTMLElement>('[data-message-id]'),
-    )) {
+    for (const bubble of Array.from(container.querySelectorAll<HTMLElement>('[data-message-id]'))) {
       const id = bubble.dataset['messageId'];
       if (!id) {
         continue;
       }
-      const overflows = Array.from(
-        bubble.querySelectorAll<HTMLElement>('.chat-table, pre'),
-      ).some((node) => node.scrollWidth > node.clientWidth + 1);
+      const overflows = Array.from(bubble.querySelectorAll<HTMLElement>('.chat-table, pre')).some(
+        (node) => node.scrollWidth > node.clientWidth + 1,
+      );
       if (overflows) {
         next.add(id);
       }
     }
 
     const current = this.overflowingMessageIds();
-    const changed =
-      next.size !== current.size || [...next].some((id) => !current.has(id));
+    const changed = next.size !== current.size || [...next].some((id) => !current.has(id));
     if (changed) {
       this.overflowingMessageIds.set(next);
     }
@@ -517,8 +531,7 @@ export class Chat implements OnDestroy, AfterViewChecked, AfterViewInit {
     if (!element) {
       return;
     }
-    const distanceToBottom =
-      element.scrollHeight - element.scrollTop - element.clientHeight;
+    const distanceToBottom = element.scrollHeight - element.scrollTop - element.clientHeight;
     this.autoScroll.set(distanceToBottom <= Chat.AUTO_SCROLL_THRESHOLD);
   }
 
@@ -632,7 +645,8 @@ export class Chat implements OnDestroy, AfterViewChecked, AfterViewInit {
     ) {
       return null;
     }
-    const parsedDate = typeof raw['timestamp'] === 'string' ? new Date(raw['timestamp']) : new Date();
+    const parsedDate =
+      typeof raw['timestamp'] === 'string' ? new Date(raw['timestamp']) : new Date();
     const timestamp = Number.isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
     const message: ChatMessage = {
       id: raw['id'],
@@ -693,7 +707,9 @@ export class Chat implements OnDestroy, AfterViewChecked, AfterViewInit {
   copyMessage(content: string): void {
     void navigator.clipboard.writeText(content).then(() => {
       this.copySuccess.set(true);
-      setTimeout(() => { this.copySuccess.set(false); }, 2000);
+      setTimeout(() => {
+        this.copySuccess.set(false);
+      }, 2000);
     });
   }
 

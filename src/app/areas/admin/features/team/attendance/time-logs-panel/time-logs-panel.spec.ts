@@ -80,7 +80,9 @@ describe('TimeLogsPanel', () => {
 
   beforeEach(() => {
     TestBed.resetTestingModule();
-    timeLogApi = { getTimeLogs: vi.fn(() => of([log(1, 1001, 11, 0, 'IN'), log(2, 1001, 15, 0, 'OUT')])) };
+    timeLogApi = {
+      getTimeLogs: vi.fn(() => of([log(1, 1001, 11, 0, 'IN'), log(2, 1001, 15, 0, 'OUT')])),
+    };
     TestBed.configureTestingModule({
       imports: [TimeLogsPanel],
       providers: [
@@ -170,9 +172,7 @@ describe('TimeLogsPanel', () => {
 
     const labels = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
-    ).map(
-      (button) => `${button.textContent} ${button.getAttribute('aria-label') ?? ''}`,
-    );
+    ).map((button) => `${button.textContent} ${button.getAttribute('aria-label') ?? ''}`);
     expect(labels.some((label) => label.toLowerCase().includes('marcar'))).toBe(false);
   });
 });

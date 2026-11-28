@@ -4,8 +4,8 @@
   [modal]="true"
   [style]="{ width: '600px' }"
   [maximizable]="true"
-  (onHide)="onClose()">
-
+  (onHide)="onClose()"
+>
   @if (order) {
     <div class="space-y-4">
       <!-- Order Info -->
@@ -20,7 +20,7 @@
         </div>
         <div>
           <p class="text-sm font-medium text-rms-ink-muted mb-1">Fecha</p>
-          <p>{{ order.date | date:'dd/MM/yyyy HH:mm' }}</p>
+          <p>{{ order.date | date: 'dd/MM/yyyy HH:mm' }}</p>
         </div>
         <div>
           <p class="text-sm font-medium text-rms-ink-muted mb-1">Estado</p>
@@ -33,7 +33,9 @@
       <div>
         <h4 class="rms-h4 text-rms-ink mb-3">Productos del Pedido</h4>
         <div class="border border-rms-border rounded-xl">
-          <div class="grid grid-cols-12 gap-2 p-3 bg-rms-subtle border-b border-rms-border font-semibold text-sm">
+          <div
+            class="grid grid-cols-12 gap-2 p-3 bg-rms-subtle border-b border-rms-border font-semibold text-sm"
+          >
             <div class="col-span-6">Producto</div>
             <div class="col-span-2 text-center">Cantidad</div>
             <div class="col-span-2 text-right">Precio Unit.</div>

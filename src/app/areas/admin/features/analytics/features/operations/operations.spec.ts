@@ -52,10 +52,7 @@ describe('Operations', () => {
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [Operations],
-      providers: [
-        { provide: AnalyticsCache, useValue: cache },
-        AnalyticsPeriodState,
-      ],
+      providers: [{ provide: AnalyticsCache, useValue: cache }, AnalyticsPeriodState],
     }).compileComponents();
     const fixture = TestBed.createComponent(Operations);
     fixture.detectChanges();
@@ -94,34 +91,26 @@ describe('Operations', () => {
   });
 
   it('charts the day-part turns', async () => {
-    const fixture = await setup(
-      makeCacheStub({ operations: { data: makeOperationsReport() } }),
-    );
+    const fixture = await setup(makeCacheStub({ operations: { data: makeOperationsReport() } }));
     const chart = fixture.componentInstance.chartData();
     expect(chart.labels).toEqual(['Almuerzo', 'Cena', 'Otros']);
     expect(chart.datasets[0]?.data).toEqual([846, 1234.85, 157.05]);
   });
 
   it('labels the comparison period', async () => {
-    const fixture = await setup(
-      makeCacheStub({ operations: { data: makeOperationsReport() } }),
-    );
+    const fixture = await setup(makeCacheStub({ operations: { data: makeOperationsReport() } }));
     expect(fixture.componentInstance.previousLabel()).toContain('–');
   });
 
   it('exports the operations metrics', async () => {
-    const fixture = await setup(
-      makeCacheStub({ operations: { data: makeOperationsReport() } }),
-    );
+    const fixture = await setup(makeCacheStub({ operations: { data: makeOperationsReport() } }));
     const csv = fixture.componentInstance.buildCsv();
     expect(csv).toContain('RevPASH');
     expect(csv).toContain('Rotacion LUNCH');
   });
 
   it('shows the page title and exposes the CSV export', async () => {
-    const fixture = await setup(
-      makeCacheStub({ operations: { data: makeOperationsReport() } }),
-    );
+    const fixture = await setup(makeCacheStub({ operations: { data: makeOperationsReport() } }));
     const root = fixture.nativeElement as HTMLElement;
     const heading = root.querySelector('h1');
     expect(heading?.textContent.trim()).toBe('Eficiencia operativa');

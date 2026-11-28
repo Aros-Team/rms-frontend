@@ -18,9 +18,14 @@
     ariaLabel="Pedidos entregados por hora del día"
   />
   <table rmsChartData>
-    <caption class="sr-only">Pedidos entregados por hora del día</caption>
+    <caption class="sr-only">
+      Pedidos entregados por hora del día
+    </caption>
     <thead>
-      <tr><th>Hora</th><th>Pedidos entregados</th></tr>
+      <tr>
+        <th>Hora</th>
+        <th>Pedidos entregados</th>
+      </tr>
     </thead>
     <tbody>
       @for (row of rows; track row.hour) {

@@ -69,7 +69,9 @@ describe('extractProblemDetail', () => {
   });
 
   it('returns null when the detail itself contains markup', () => {
-    expect(extractProblemDetail(errorResponse({ detail: '<img src=x onerror=alert(1)>' }))).toBeNull();
+    expect(
+      extractProblemDetail(errorResponse({ detail: '<img src=x onerror=alert(1)>' })),
+    ).toBeNull();
     expect(extractProblemDetail(errorResponse({ detail: 'Error <b>grave</b>' }))).toBeNull();
   });
 
@@ -80,7 +82,9 @@ describe('extractProblemDetail', () => {
   });
 
   it('reads a bare { error: body } shape too', () => {
-    expect(extractProblemDetail({ status: 422, error: { detail: 'Datos inválidos' } })).toBe('Datos inválidos');
+    expect(extractProblemDetail({ status: 422, error: { detail: 'Datos inválidos' } })).toBe(
+      'Datos inválidos',
+    );
   });
 
   it('truncates an over-long detail to 300 characters', () => {

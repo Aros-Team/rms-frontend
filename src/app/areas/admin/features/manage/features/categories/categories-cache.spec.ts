@@ -77,7 +77,9 @@ describe('CategoriesCache', () => {
   it('setCategoriesListParams passes search to getCategories', () => {
     cache.setCategoriesListParams({ search: 'beb' });
 
-    const req = httpMock.expectOne((r) => r.url === 'v1/categories' && r.params.get('search') === 'beb');
+    const req = httpMock.expectOne(
+      (r) => r.url === 'v1/categories' && r.params.get('search') === 'beb',
+    );
     expect(req.request.method).toBe('GET');
     req.flush([]);
 

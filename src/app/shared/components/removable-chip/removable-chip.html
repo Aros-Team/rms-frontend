@@ -1,4 +1,6 @@
-<div class="inline-flex items-center gap-2 px-3 py-2 rounded-full border-2 border-rms-border bg-rms-subtle transition-all">
+<div
+  class="inline-flex items-center gap-2 px-3 py-2 rounded-full border-2 border-rms-border bg-rms-subtle transition-all"
+>
   @if (chip.icon) {
     <i class="pi text-sm" [class]="chip.icon" aria-hidden="true"></i>
   }
@@ -13,7 +15,8 @@
     [class.cursor-not-allowed]="chip.disabled"
     [disabled]="chip.disabled"
     (click)="onRemove($event)"
-    aria-label="Quitar">
+    aria-label="Quitar"
+  >
     <i class="pi pi-times text-xs" aria-hidden="true"></i>
   </button>
 </div>

@@ -234,8 +234,7 @@
 
           @if (difference() !== null) {
             <p class="shift-dialog__difference" [class]="differenceClass()">
-              {{ differenceLabel() }}:
-              {{ differencePrefix() }}{{ differenceAmount() | money }}
+              {{ differenceLabel() }}: {{ differencePrefix() }}{{ differenceAmount() | money }}
             </p>
           }
 

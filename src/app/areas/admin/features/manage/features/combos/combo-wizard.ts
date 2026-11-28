@@ -106,11 +106,7 @@ export class ComboWizard {
     return this.wizard.steps().map((step) => {
       const isCurrent = step.id === currentId;
       const isCompleted = !isCurrent && completed.has(step.id);
-      const marker: StepMarkerState = isCurrent
-        ? 'active'
-        : isCompleted
-          ? 'completed'
-          : 'inactive';
+      const marker: StepMarkerState = isCurrent ? 'active' : isCompleted ? 'completed' : 'inactive';
       return {
         id: step.id,
         label: step.label,
@@ -163,9 +159,7 @@ export class ComboWizard {
   }
 
   markerConnectorClass(state: StepMarkerState): string {
-    return state === 'completed'
-      ? 'bg-rms-brand'
-      : 'bg-rms-border';
+    return state === 'completed' ? 'bg-rms-brand' : 'bg-rms-border';
   }
 
   statusLabel(state: StepMarkerState): string {

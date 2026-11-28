@@ -41,7 +41,8 @@ export class RmsButton {
 
   get classes(): string {
     return (
-      `rms-btn rms-btn--${this.variant} rms-btn--${this.size}` + (this.block ? ' rms-btn--block' : '')
+      `rms-btn rms-btn--${this.variant} rms-btn--${this.size}` +
+      (this.block ? ' rms-btn--block' : '')
     );
   }
 }

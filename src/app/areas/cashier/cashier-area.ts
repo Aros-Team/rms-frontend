@@ -39,10 +39,7 @@ import { CashierOrderLookup } from './data/order-lookup';
 import { CashierOrderCharge } from './components/order-charge/order-charge';
 import { CashierPendingBoard } from './components/pending-board/pending-board';
 import { CashierReceipt } from './components/receipt/receipt';
-import {
-  CashierShiftDialog,
-  type CloseShiftPayload,
-} from './components/shift-dialog/shift-dialog';
+import { CashierShiftDialog, type CloseShiftPayload } from './components/shift-dialog/shift-dialog';
 import { CashierVoidDialog } from './components/void-payment-dialog/void-payment-dialog';
 
 const BOARD_PAGE_SIZE = 20;

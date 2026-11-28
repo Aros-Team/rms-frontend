@@ -1,10 +1,16 @@
 @if (serverStatus.isOffline()) {
-  <div class="rms-status-surface--danger border-b px-4 py-3 flex items-center justify-center gap-3 text-sm font-medium">
+  <div
+    class="rms-status-surface--danger border-b px-4 py-3 flex items-center justify-center gap-3 text-sm font-medium"
+  >
     <i class="pi pi-exclamation-triangle text-base flex-shrink-0" aria-hidden="true"></i>
-    <span>El servidor está presentando inconvenientes. Estamos trabajando para restablecerlo. Los datos mostrados pueden no estar actualizados.</span>
+    <span
+      >El servidor está presentando inconvenientes. Estamos trabajando para restablecerlo. Los datos
+      mostrados pueden no estar actualizados.</span
+    >
     <button
       class="rms-solid--danger ml-auto flex-shrink-0 px-3 py-1 rounded-md text-xs font-semibold transition-opacity cursor-pointer hover:opacity-90"
-      (click)="serverStatus.check()">
+      (click)="serverStatus.check()"
+    >
       Reintentar
     </button>
   </div>

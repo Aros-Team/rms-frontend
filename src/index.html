@@ -1,71 +1,103 @@
 <!doctype html>
 <html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>RMS — Sistema de gestión de restaurante</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta
+      name="description"
+      content="Sistema de gestión de restaurante - Administración de pedidos, mesas, menú y operaciones de cocina"
+    />
 
-<head>
-  <meta charset="utf-8">
-  <title>RMS — Sistema de gestión de restaurante</title>
-  <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Sistema de gestión de restaurante - Administración de pedidos, mesas, menú y operaciones de cocina">
-
-  <!-- Light/dark support: lets the browser theme native UI (scrollbars, form
+    <!-- Light/dark support: lets the browser theme native UI (scrollbars, form
        controls, canvas) and paint the correct background before CSS loads. -->
-  <meta name="color-scheme" content="light dark">
-  <script>
-    // FOUC prevention only. Applies the stored theme before first paint.
-    // Kept inline and synchronous on purpose: do not defer or make it a module.
-    try {
-      var stored = localStorage.getItem('theme');
-      var scheme = stored === 'dark' || stored === 'light'
-        ? stored
-        : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      document.documentElement.classList.toggle('dark', scheme === 'dark');
-      document.querySelector('meta[name="color-scheme"]').content = scheme;
-    } catch (e) { /* storage blocked: fall back to the media query */ }
-  </script>
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      // FOUC prevention only. Applies the stored theme before first paint.
+      // Kept inline and synchronous on purpose: do not defer or make it a module.
+      try {
+        var stored = localStorage.getItem('theme');
+        var scheme =
+          stored === 'dark' || stored === 'light'
+            ? stored
+            : window.matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light';
+        document.documentElement.classList.toggle('dark', scheme === 'dark');
+        document.querySelector('meta[name="color-scheme"]').content = scheme;
+      } catch (e) {
+        /* storage blocked: fall back to the media query */
+      }
+    </script>
 
-  <!-- Opt into OS-level dynamic type / text scaling (Accessibility) -->
-  <meta name="text-scale" content="scale">
+    <!-- Opt into OS-level dynamic type / text scaling (Accessibility) -->
+    <meta name="text-scale" content="scale" />
 
-  <meta id="theme-color-light" name="theme-color" content="#FDEFC7" media="(prefers-color-scheme: light)">
-  <meta id="theme-color-dark" name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
+    <meta
+      id="theme-color-light"
+      name="theme-color"
+      content="#FDEFC7"
+      media="(prefers-color-scheme: light)"
+    />
+    <meta
+      id="theme-color-dark"
+      name="theme-color"
+      content="#0f172a"
+      media="(prefers-color-scheme: dark)"
+    />
 
-  <!-- PWA -->
-  <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="RMS">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="RMS" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-  <!-- Transparent mark, no background. The adaptive SVG flips its fill with the
+    <!-- Transparent mark, no background. The adaptive SVG flips its fill with the
        OS theme; the two explicit variants cover browsers that honour `media` on
        link icons. Order matters: the no-preference SVG stays first (Safari) and
        the light variant last (safe default when `media` is ignored). -->
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="icon" type="image/svg+xml" href="/favicon-dark.svg" media="(prefers-color-scheme: dark)">
-  <link rel="icon" type="image/svg+xml" href="/favicon-light.svg" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="/favicon-dark.svg"
+      media="(prefers-color-scheme: dark)"
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="/favicon-light.svg"
+      media="(prefers-color-scheme: light)"
+    />
 
-  <!-- Security Headers -->
-  <meta name="referrer" content="strict-origin-when-cross-origin">
+    <!-- Security Headers -->
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
 
-  <!-- Preload the font used for above-the-fold text -->
-  <link rel="preload" href="/fonts/Archivo-Variable-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <!-- Preload the font used for above-the-fold text -->
+    <link
+      rel="preload"
+      href="/fonts/Archivo-Variable-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
 
-  <!-- Preconnect for external APIs. `crossorigin` matches the CORS fetch the
+    <!-- Preconnect for external APIs. `crossorigin` matches the CORS fetch the
        app performs, so the socket is reused instead of opened twice. The agent
        host is only used by the chat screen, so DNS is enough. -->
-  <link rel="preconnect" href="https://api.rms.aros.services" crossorigin>
-  <link rel="dns-prefetch" href="https://abi.aros.services">
-</head>
+    <link rel="preconnect" href="https://api.rms.aros.services" crossorigin />
+    <link rel="dns-prefetch" href="https://abi.aros.services" />
+  </head>
 
-<body class="lg:overflow-hidden">
-  <app-root></app-root>
-  <noscript>
-    <p style="padding: 1rem; font-family: sans-serif">
-      RMS necesita JavaScript activado para funcionar.
-    </p>
-  </noscript>
-</body>
-
+  <body class="lg:overflow-hidden">
+    <app-root></app-root>
+    <noscript>
+      <p style="padding: 1rem; font-family: sans-serif">
+        RMS necesita JavaScript activado para funcionar.
+      </p>
+    </noscript>
+  </body>
 </html>

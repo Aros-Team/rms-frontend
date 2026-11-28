@@ -51,7 +51,9 @@ describe('OrderDetailDialog', () => {
   it('returns 0 for an unparseable amount instead of NaN', () => {
     const dialog = new OrderDetailDialog();
 
-    const total = dialog.getLineTotal(makeDetail({ unitPrice: { amount: 'oops', currency: 'COP' } }));
+    const total = dialog.getLineTotal(
+      makeDetail({ unitPrice: { amount: 'oops', currency: 'COP' } }),
+    );
 
     expect(Number.isNaN(total)).toBe(false);
     expect(total).toBe(0);
@@ -80,4 +82,3 @@ describe('OrderDetailDialog', () => {
     expect(dialog.getTotalPrice()).toBe(0);
   });
 });
-

@@ -5,9 +5,12 @@
         <img
           class="w-12 h-12 rounded-full object-cover flex-shrink-0"
           [src]="imageUrl"
-          [alt]="'Foto de ' + worker().name" />
+          [alt]="'Foto de ' + worker().name"
+        />
       } @else {
-        <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 bg-rms-brand-soft text-rms-brand-text">
+        <div
+          class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 bg-rms-brand-soft text-rms-brand-text"
+        >
           {{ initials() }}
         </div>
       }
@@ -35,7 +38,8 @@
         <span class="text-rms-ink-muted">Turnos</span>
         <app-rms-badge
           [label]="assignedSchedules().length + ' · ' + weeklyHoursLabel()"
-          [tone]="assignedSchedules().length > 0 ? 'info' : 'neutral'" />
+          [tone]="assignedSchedules().length > 0 ? 'info' : 'neutral'"
+        />
       </div>
     </div>
 
@@ -45,14 +49,16 @@
           icon="pi pi-calendar"
           ariaLabel="Asignar horarios"
           tooltip="Asignar horarios"
-          (click)="onAssignSchedule()" />
+          (click)="onAssignSchedule()"
+        />
       </div>
       <div class="flex-1 flex justify-center">
         <app-rms-icon-button
           icon="pi pi-pencil"
           ariaLabel="Editar trabajador"
           tooltip="Editar trabajador"
-          (click)="onEdit()" />
+          (click)="onEdit()"
+        />
       </div>
       @if (worker().status === 'PENDING') {
         <div class="flex-1 flex justify-center">
@@ -60,7 +66,8 @@
             icon="pi pi-envelope"
             ariaLabel="Reenviar invitación"
             tooltip="Reenviar invitación"
-            (click)="onRetryEmail()" />
+            (click)="onRetryEmail()"
+          />
         </div>
       }
       <div class="flex-1 flex justify-center">
@@ -68,7 +75,8 @@
           icon="pi pi-history"
           ariaLabel="Ver historial salarial"
           tooltip="Ver historial salarial"
-          [routerLink]="['/admin/team/workers', worker().id, 'salary-history']" />
+          [routerLink]="['/admin/team/workers', worker().id, 'salary-history']"
+        />
       </div>
       <div class="flex-1 flex justify-center">
         <app-rms-icon-button
@@ -76,7 +84,8 @@
           ariaLabel="Eliminar trabajador"
           tooltip="Eliminar trabajador"
           variant="danger"
-          (click)="onDelete()" />
+          (click)="onDelete()"
+        />
       </div>
     </div>
   </div>

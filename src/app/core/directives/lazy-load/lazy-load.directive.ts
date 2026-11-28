@@ -1,9 +1,18 @@
-import { Directive, ElementRef, Input, Output, EventEmitter, OnInit, OnDestroy, inject } from '@angular/core';
+import {
+  Directive,
+  ElementRef,
+  Input,
+  Output,
+  EventEmitter,
+  OnInit,
+  OnDestroy,
+  inject,
+} from '@angular/core';
 import { ResourceCache } from '../../cache/resource-cache/resource-cache';
 
 @Directive({
   selector: '[appLazyLoad]',
-  standalone: true
+  standalone: true,
 })
 export class LazyLoad implements OnInit, OnDestroy {
   @Input() appLazyLoad!: ResourceCache<unknown>;
@@ -30,8 +39,8 @@ export class LazyLoad implements OnInit, OnDestroy {
       {
         root: this.appLazyLoadRoot,
         rootMargin: this.appLazyLoadMargin,
-        threshold: 0
-      }
+        threshold: 0,
+      },
     );
 
     this.observer.observe(element as Element);

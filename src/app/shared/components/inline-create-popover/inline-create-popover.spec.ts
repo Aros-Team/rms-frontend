@@ -31,10 +31,16 @@ describe('InlineCreatePopover', () => {
   const mockFields: InlineCreateField[] = [
     { name: 'name', label: 'Nombre', type: 'text', required: true, placeholder: 'Ej: Mesa 1' },
     { name: 'quantity', label: 'Cantidad', type: 'number', required: true, placeholder: '0' },
-    { name: 'category', label: 'Categoría', type: 'select', required: false, options: [
-      { label: 'Entrada', value: 'appetizer' },
-      { label: 'Plato fuerte', value: 'main' },
-    ]},
+    {
+      name: 'category',
+      label: 'Categoría',
+      type: 'select',
+      required: false,
+      options: [
+        { label: 'Entrada', value: 'appetizer' },
+        { label: 'Plato fuerte', value: 'main' },
+      ],
+    },
   ];
 
   beforeEach(async () => {

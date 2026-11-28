@@ -1,8 +1,8 @@
-import { HttpClient } from "@angular/common/http";
-import { inject, Injectable } from "@angular/core";
-import { Observable, map } from "rxjs";
-import { TableRequest, ChangeStatusRequest } from "@app/shared/models/dto/tables/table";
-import { TableResponse } from "@app/shared/models/dto/tables/table-response";
+import { HttpClient } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { Observable, map } from 'rxjs';
+import { TableRequest, ChangeStatusRequest } from '@app/shared/models/dto/tables/table';
+import { TableResponse } from '@app/shared/models/dto/tables/table-response';
 
 @Injectable({
   providedIn: 'root',
@@ -30,19 +30,22 @@ export class Table {
     return this.http.put<TableResponse>(`v1/tables/${String(id)}`, data);
   }
 
-  public changeStatus(id: number, status: 'AVAILABLE' | 'OCCUPIED' | 'RESERVED'): Observable<TableResponse> {
-    return this.http.put<TableResponse>(`v1/tables/${String(id)}/status`, { status } as ChangeStatusRequest);
+  public changeStatus(
+    id: number,
+    status: 'AVAILABLE' | 'OCCUPIED' | 'RESERVED',
+  ): Observable<TableResponse> {
+    return this.http.put<TableResponse>(`v1/tables/${String(id)}/status`, {
+      status,
+    } as ChangeStatusRequest);
   }
 
   public getOccupiedTablesCount(): Observable<number> {
     return this.getTables().pipe(
-      map(tables => tables.filter(t => t.status === 'OCCUPIED').length)
+      map((tables) => tables.filter((t) => t.status === 'OCCUPIED').length),
     );
   }
 
   public getTotalTablesCount(): Observable<number> {
-    return this.getTables().pipe(
-      map(tables => tables.length)
-    );
+    return this.getTables().pipe(map((tables) => tables.length));
   }
 }

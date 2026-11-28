@@ -73,7 +73,9 @@ export function readRmsToken(name: string, fallback: string): string {
 /** The eight categorical series colours for the active theme. */
 export function rmsChartPalette(): string[] {
   const fallbacks = isDark() ? FALLBACKS_DARK : FALLBACKS_LIGHT;
-  return fallbacks.map((fallback, index) => readRmsToken(`--rms-chart-${String(index + 1)}`, fallback));
+  return fallbacks.map((fallback, index) =>
+    readRmsToken(`--rms-chart-${String(index + 1)}`, fallback),
+  );
 }
 
 export function rmsChartAxisColor(): string {
@@ -143,10 +145,7 @@ export function applyRmsChartDefaults(): void {
   legend.labels.boxHeight = 10;
   legend.labels.padding = 16;
   legend.labels.usePointStyle = false;
-  legend.labels.color = readRmsToken(
-    '--rms-chart-legend-text',
-    isDark() ? '#cbd5e1' : '#475569',
-  );
+  legend.labels.color = readRmsToken('--rms-chart-legend-text', isDark() ? '#cbd5e1' : '#475569');
   legend.labels.font = { size: 12 };
 
   const tooltip = Chart.defaults.plugins.tooltip;

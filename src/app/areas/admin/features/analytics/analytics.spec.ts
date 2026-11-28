@@ -27,7 +27,10 @@ const analyticsHtml = analyticsHtmlRaw as string;
 const navHtml = navHtmlRaw as string;
 const selectorHtml = selectorHtmlRaw as string;
 
-@Component({ selector: 'app-stub-prime-cost', template: '<div data-testid="prime-cost">Rentabilidad</div>' })
+@Component({
+  selector: 'app-stub-prime-cost',
+  template: '<div data-testid="prime-cost">Rentabilidad</div>',
+})
 class StubPrimeCost {
   readonly marker = 'prime-cost' as const;
 }
@@ -37,7 +40,10 @@ class StubMenu {
   readonly marker = 'menu' as const;
 }
 
-@Component({ selector: 'app-stub-operations', template: '<div data-testid="operations">Operación</div>' })
+@Component({
+  selector: 'app-stub-operations',
+  template: '<div data-testid="operations">Operación</div>',
+})
 class StubOperations {
   readonly marker = 'operations' as const;
 }

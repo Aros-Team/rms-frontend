@@ -1,11 +1,26 @@
-import { Component, OnInit, OnDestroy, Output, EventEmitter, inject, Input, signal, computed, effect, HostListener } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  Output,
+  EventEmitter,
+  inject,
+  Input,
+  signal,
+  computed,
+  effect,
+  HostListener,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd, NavigationStart } from '@angular/router';
 import { MenuItem, Menu } from '@core/services/menu/menu';
 import { Auth } from '@core/services/auth/auth';
-import { NotificationCenter, AppNotification } from '@core/services/notifications/notification-center';
+import {
+  NotificationCenter,
+  AppNotification,
+} from '@core/services/notifications/notification-center';
 import { Subscription } from 'rxjs';
-import { Logo } from "../logo/logo";
+import { Logo } from '../logo/logo';
 import { environment } from '@environments/environment';
 import { DialogModule } from 'primeng/dialog';
 import { RmsButton } from '@app/shared/ui/button/button';
@@ -71,7 +86,7 @@ export class Header implements OnInit, OnDestroy {
     const email = this.currentUser()?.email ?? '';
     return email ? email.charAt(0).toUpperCase() : 'U';
   });
-  
+
   private itemsSubscription: Subscription | undefined;
   private navigationSubscription: Subscription | undefined;
   showLogoutDialog = false;
@@ -93,13 +108,13 @@ export class Header implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.itemsSubscription = this.menuService.menuItems$.subscribe(items => {
+    this.itemsSubscription = this.menuService.menuItems$.subscribe((items) => {
       this.menuItems = items;
       this.calculateVisibleItems();
       this.syncMenuItemFromRoute();
     });
 
-    this.navigationSubscription = this.router.events.subscribe(event => {
+    this.navigationSubscription = this.router.events.subscribe((event) => {
       if (event instanceof NavigationStart) {
         this.isNavigating.set(true);
         this.showOverflowMenu.set(false);
@@ -115,7 +130,7 @@ export class Header implements OnInit, OnDestroy {
 
   private syncMenuItemFromRoute(): void {
     const url = this.router.url;
-    const matched = this.menuItems.find(item => {
+    const matched = this.menuItems.find((item) => {
       if (!item.routerLink) return false;
       if (item.exact) return url === item.routerLink;
       return url.startsWith(item.routerLink);
@@ -153,14 +168,14 @@ export class Header implements OnInit, OnDestroy {
 
   private calculateVisibleItems() {
     const width = window.innerWidth;
-    
+
     if (width >= 768 && width < 1024) {
       const reservedWidth = 280;
       const availableWidth = Math.max(0, width - reservedWidth);
-      
+
       const visible: MenuItem[] = [];
       let usedWidth = 0;
-      
+
       for (let i = 0; i < this.menuItems.length; i++) {
         const item = this.menuItems[i];
         const remainingItems = this.menuItems.length - i - 1;
@@ -168,7 +183,7 @@ export class Header implements OnInit, OnDestroy {
         const itemWidth = this.estimateItemWidth(item);
         const moreButtonWidth = needsMoreButton ? 50 : 0;
         const totalWidth = usedWidth + itemWidth + moreButtonWidth + 10;
-        
+
         if (totalWidth <= availableWidth) {
           visible.push(item);
           usedWidth += itemWidth + 4;
@@ -176,20 +191,21 @@ export class Header implements OnInit, OnDestroy {
           break;
         }
       }
-      
+
       const overflow = this.menuItems.slice(visible.length);
-      
+
       if (overflow.length === 1) {
-        const lastVisibleWidth = visible.length > 0 ? this.estimateItemWidth(visible[visible.length - 1]) : 0;
+        const lastVisibleWidth =
+          visible.length > 0 ? this.estimateItemWidth(visible[visible.length - 1]) : 0;
         const overflowWidth = this.estimateItemWidth(overflow[0]);
-        
+
         if (usedWidth - lastVisibleWidth + overflowWidth + 50 <= availableWidth) {
           visible.pop();
           visible.push(overflow[0]);
           overflow.length = 0;
         }
       }
-      
+
       this.visibleMenuItems.set(visible);
       this.overflowMenuItems.set(overflow);
     } else {
@@ -207,13 +223,13 @@ export class Header implements OnInit, OnDestroy {
 
   toggleOverflowMenu(event: Event) {
     event.stopPropagation();
-    this.showOverflowMenu.update(v => !v);
+    this.showOverflowMenu.update((v) => !v);
   }
 
   toggleUserMenu(event: Event) {
     event.stopPropagation();
     this.showNotifications.set(false);
-    this.showUserMenu.update(open => !open);
+    this.showUserMenu.update((open) => !open);
   }
 
   toggleNotifications(event: Event) {
@@ -250,9 +266,10 @@ export class Header implements OnInit, OnDestroy {
       date.getMonth() === now.getMonth() &&
       date.getFullYear() === now.getFullYear();
 
-    return new Intl.DateTimeFormat('es-ES', sameDay
-      ? { hour: '2-digit', minute: '2-digit' }
-      : { day: '2-digit', month: 'short' }).format(date);
+    return new Intl.DateTimeFormat(
+      'es-ES',
+      sameDay ? { hour: '2-digit', minute: '2-digit' } : { day: '2-digit', month: 'short' },
+    ).format(date);
   }
 
   toneClass(tone: AppNotification['tone']): string {
@@ -270,11 +287,11 @@ export class Header implements OnInit, OnDestroy {
 
   onOverflowItemClick(item: MenuItem) {
     this.showOverflowMenu.set(false);
-    
+
     if (item.routerLink) {
       void this.router.navigate([item.routerLink]);
     }
-    
+
     if (item.command) {
       item.command();
     }

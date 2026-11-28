@@ -43,7 +43,9 @@ export const OPTION_SELECTION_TYPE_CONFIG: Record<OptionSelectionType, Selection
 };
 
 /** Get config for a given internal selection type. Returns SINGLE_CHOICE config as fallback. */
-export function getSelectionTypeConfig(type: OptionSelectionType | string | null | undefined): SelectionTypeConfig {
+export function getSelectionTypeConfig(
+  type: OptionSelectionType | string | null | undefined,
+): SelectionTypeConfig {
   if (type && type in OPTION_SELECTION_TYPE_CONFIG) {
     return OPTION_SELECTION_TYPE_CONFIG[type as OptionSelectionType];
   }

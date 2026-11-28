@@ -6,7 +6,6 @@ import { Accessibility } from '@services/accessibility/accessibility';
 import { ToastModule } from 'primeng/toast';
 import { HabeasData } from '@shared/features/habeas-data/habeas-data';
 
-
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, ToastModule, HabeasData],
@@ -26,6 +25,6 @@ export class App {
   private accessibility = inject(Accessibility);
 
   constructor() {
-    this.theme.setDefault()
+    this.theme.setDefault();
   }
 }

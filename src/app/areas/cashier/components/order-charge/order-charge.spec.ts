@@ -83,15 +83,20 @@ describe('CashierOrderCharge', () => {
     root = fixture.nativeElement as HTMLElement;
   });
 
-  async function setup(overrides: {
-    order?: OrderResponse | null;
-    shiftOpen?: boolean;
-    submitting?: boolean;
-    submitError?: string | null;
-    error?: string | null;
-    loading?: boolean;
-  } = {}): Promise<void> {
-    fixture.componentRef.setInput('order', overrides.order === undefined ? makeOrder() : overrides.order);
+  async function setup(
+    overrides: {
+      order?: OrderResponse | null;
+      shiftOpen?: boolean;
+      submitting?: boolean;
+      submitError?: string | null;
+      error?: string | null;
+      loading?: boolean;
+    } = {},
+  ): Promise<void> {
+    fixture.componentRef.setInput(
+      'order',
+      overrides.order === undefined ? makeOrder() : overrides.order,
+    );
     fixture.componentRef.setInput('tableNumber', 2);
     fixture.componentRef.setInput('shiftOpen', overrides.shiftOpen ?? true);
     fixture.componentRef.setInput('submitting', overrides.submitting ?? false);
@@ -171,7 +176,10 @@ describe('CashierOrderCharge', () => {
 
     confirmButton().click();
     expect(spy).toHaveBeenCalledWith(
-      expect.objectContaining({ tipAmount: '6200.00', tenders: [{ method: 'CASH', amount: '68200.00' }] }),
+      expect.objectContaining({
+        tipAmount: '6200.00',
+        tenders: [{ method: 'CASH', amount: '68200.00' }],
+      }),
     );
   });
 
@@ -259,7 +267,9 @@ describe('CashierOrderCharge', () => {
     await setup({ shiftOpen: false });
 
     expect(confirmButton().disabled).toBe(true);
-    expect(root.textContent).toContain('La caja está cerrada. Abre un turno para registrar cobros.');
+    expect(root.textContent).toContain(
+      'La caja está cerrada. Abre un turno para registrar cobros.',
+    );
 
     const open = Array.from(root.querySelectorAll('button')).find(
       (button) => button.textContent.trim() === 'Abrir caja',

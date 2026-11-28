@@ -66,15 +66,15 @@ describe('OptionGroupBadgeComponent', () => {
 
   it('should have selector app-option-group-badge', async () => {
     await setupHost(OptionSelectionType.SINGLE_CHOICE);
-    const badge = fixture.debugElement.children[0]?.componentInstance as OptionGroupBadgeComponent | undefined;
+    const badge = fixture.debugElement.children[0]?.componentInstance as
+      | OptionGroupBadgeComponent
+      | undefined;
     expect(badge).toBeInstanceOf(OptionGroupBadgeComponent);
   });
 
   it('should render an app-rms-badge element', async () => {
     await setupHost(OptionSelectionType.SINGLE_CHOICE);
-    expect(
-      (fixture.nativeElement as HTMLElement).querySelector('app-rms-badge'),
-    ).not.toBeNull();
+    expect((fixture.nativeElement as HTMLElement).querySelector('app-rms-badge')).not.toBeNull();
   });
 
   it('should render SINGLE_CHOICE with correct config', async () => {

@@ -20,9 +20,7 @@ import { ComboReferenceCache } from '@app/core/services/combos/combo-reference-c
 import { SpecialSelectionResponse } from '@app/shared/models/dto/special-selections/special-selection-response';
 import { SpecialSelectionRequest } from '@app/shared/models/dto/special-selections/special-selection-request';
 import { SpecialSelectionWsPayload } from '@app/shared/models/dto/special-selections/special-selection-ws-payload';
-import {
-  SpecialSelectionHistoryPage,
-} from '@app/shared/models/dto/special-selections/special-selection-history';
+import { SpecialSelectionHistoryPage } from '@app/shared/models/dto/special-selections/special-selection-history';
 
 describe('SpecialSelectionsCacheService', () => {
   let service: SpecialSelectionsCache;
@@ -110,7 +108,9 @@ describe('SpecialSelectionsCacheService', () => {
 
   it('create POSTs and invalidates top-level caches', () => {
     let emitted = false;
-    service.create({} as unknown as SpecialSelectionRequest).subscribe(() => { emitted = true; });
+    service.create({} as unknown as SpecialSelectionRequest).subscribe(() => {
+      emitted = true;
+    });
 
     const req = httpMock.expectOne('v1/admin/special-selections');
     expect(req.request.method).toBe('POST');
@@ -125,7 +125,8 @@ describe('SpecialSelectionsCacheService', () => {
 
     service.delete(1).subscribe();
     const req = httpMock.expectOne('v1/admin/special-selections/1');
-    expect(req.request.method).toBe('DELETE');    req.flush({});
+    expect(req.request.method).toBe('DELETE');
+    req.flush({});
 
     service.detail(1).load();
     httpMock.expectOne('v1/admin/special-selections/1');
@@ -152,14 +153,14 @@ describe('SpecialSelectionsCacheService', () => {
 
   it('suggestPrice returns SuggestedPriceResponse on 200', () => {
     const response = {
-      suggestedPrice: 15.50,
+      suggestedPrice: 15.5,
       totalCost: 10.85,
       marginPercent: 30,
-      breakdown: [{ productId: 10, name: 'Lentejas', cost: 1.20 }],
+      breakdown: [{ productId: 10, name: 'Lentejas', cost: 1.2 }],
     };
 
     service.suggestPrice(1, 30).subscribe((data) => {
-      expect(data.suggestedPrice).toBe(15.50);
+      expect(data.suggestedPrice).toBe(15.5);
       expect(data.breakdown.length).toBe(1);
     });
 
@@ -304,7 +305,10 @@ describe('SpecialSelectionsCacheService', () => {
     });
 
     it('PRICE_CHANGE invalidates every affected cache and applies selection data', () => {
-      verifyKnownRealtimeChange('PRICE_CHANGE', { ...mockSelection, basePrice: { amount: '18.00', currency: 'COP' } });
+      verifyKnownRealtimeChange('PRICE_CHANGE', {
+        ...mockSelection,
+        basePrice: { amount: '18.00', currency: 'COP' },
+      });
     });
 
     it('DELETE with null selection resets held caches before removing them', () => {
@@ -473,7 +477,9 @@ describe('SpecialSelectionsCacheService', () => {
   describe('modifiedCombo$ signal', () => {
     it('emits the productId when an UPDATE event arrives', () => {
       const emissions: (number | null)[] = [];
-      service.modifiedCombo$.subscribe((id) => { emissions.push(id); });
+      service.modifiedCombo$.subscribe((id) => {
+        emissions.push(id);
+      });
 
       realtimeSubject.next({
         changeType: 'UPDATE',
@@ -488,7 +494,9 @@ describe('SpecialSelectionsCacheService', () => {
 
     it('emits the productId when a SCHEDULE_CHANGE event arrives', () => {
       const emissions: (number | null)[] = [];
-      service.modifiedCombo$.subscribe((id) => { emissions.push(id); });
+      service.modifiedCombo$.subscribe((id) => {
+        emissions.push(id);
+      });
 
       realtimeSubject.next({
         changeType: 'SCHEDULE_CHANGE',
@@ -503,22 +511,34 @@ describe('SpecialSelectionsCacheService', () => {
 
     it('emits the productId when a PRICE_CHANGE event arrives', () => {
       const emissions: (number | null)[] = [];
-      service.modifiedCombo$.subscribe((id) => { emissions.push(id); });
+      service.modifiedCombo$.subscribe((id) => {
+        emissions.push(id);
+      });
 
       realtimeSubject.next({
         changeType: 'PRICE_CHANGE',
         productId: 13,
         active: true,
-        selection: { ...mockSelection, productId: 13, basePrice: { amount: '20.00', currency: 'COP' } },
+        selection: {
+          ...mockSelection,
+          productId: 13,
+          basePrice: { amount: '20.00', currency: 'COP' },
+        },
       });
-      flushAvailableNowRefresh({ ...mockSelection, productId: 13, basePrice: { amount: '20.00', currency: 'COP' } });
+      flushAvailableNowRefresh({
+        ...mockSelection,
+        productId: 13,
+        basePrice: { amount: '20.00', currency: 'COP' },
+      });
 
       expect(emissions).toEqual([null, 13]);
     });
 
     it('does NOT emit when a CREATE event arrives', () => {
       const emissions: (number | null)[] = [];
-      service.modifiedCombo$.subscribe((id) => { emissions.push(id); });
+      service.modifiedCombo$.subscribe((id) => {
+        emissions.push(id);
+      });
 
       realtimeSubject.next({
         changeType: 'CREATE',
@@ -533,7 +553,9 @@ describe('SpecialSelectionsCacheService', () => {
 
     it('does NOT emit when a DELETE event arrives', () => {
       const emissions: (number | null)[] = [];
-      service.modifiedCombo$.subscribe((id) => { emissions.push(id); });
+      service.modifiedCombo$.subscribe((id) => {
+        emissions.push(id);
+      });
 
       realtimeSubject.next({
         changeType: 'DELETE',
@@ -556,14 +578,18 @@ describe('SpecialSelectionsCacheService', () => {
       flushAvailableNowRefresh({ ...mockSelection, productId: 31 });
 
       const lateEmissions: (number | null)[] = [];
-      service.modifiedCombo$.subscribe((id) => { lateEmissions.push(id); });
+      service.modifiedCombo$.subscribe((id) => {
+        lateEmissions.push(id);
+      });
 
       expect(lateEmissions).toEqual([31]);
     });
 
     it('only emits the latest productId when several modification events fire in sequence', () => {
       const emissions: (number | null)[] = [];
-      service.modifiedCombo$.subscribe((id) => { emissions.push(id); });
+      service.modifiedCombo$.subscribe((id) => {
+        emissions.push(id);
+      });
 
       realtimeSubject.next({
         changeType: 'UPDATE',
@@ -674,7 +700,9 @@ describe('SpecialSelectionsCacheService realtime source collapse', () => {
 
   it('registers the realtime topic exactly once even when cache and a manual consumer both subscribe', () => {
     const manualEmissions: SpecialSelectionWsPayload[] = [];
-    realtime.updates$.subscribe((value) => { manualEmissions.push(value); });
+    realtime.updates$.subscribe((value) => {
+      manualEmissions.push(value);
+    });
 
     const event: SpecialSelectionWsPayload = {
       changeType: 'UPDATE',
@@ -692,7 +720,9 @@ describe('SpecialSelectionsCacheService realtime source collapse', () => {
 
     // BehaviorSubject semantics: a late subscriber still sees the last modified combo id.
     const lateModified: (number | null)[] = [];
-    cache.modifiedCombo$.subscribe((value) => { lateModified.push(value); });
+    cache.modifiedCombo$.subscribe((value) => {
+      lateModified.push(value);
+    });
     expect(lateModified).toEqual([99]);
   });
 
@@ -701,9 +731,15 @@ describe('SpecialSelectionsCacheService realtime source collapse', () => {
     const secondConsumer: SpecialSelectionWsPayload[] = [];
     const thirdConsumer: SpecialSelectionWsPayload[] = [];
 
-    realtime.updates$.subscribe((value) => { firstConsumer.push(value); });
-    realtime.updates$.subscribe((value) => { secondConsumer.push(value); });
-    realtime.updates$.subscribe((value) => { thirdConsumer.push(value); });
+    realtime.updates$.subscribe((value) => {
+      firstConsumer.push(value);
+    });
+    realtime.updates$.subscribe((value) => {
+      secondConsumer.push(value);
+    });
+    realtime.updates$.subscribe((value) => {
+      thirdConsumer.push(value);
+    });
 
     const event: SpecialSelectionWsPayload = {
       changeType: 'SCHEDULE_CHANGE',
@@ -733,7 +769,9 @@ describe('SpecialSelectionsCacheService realtime source collapse', () => {
     flushAvailableNow();
     expect(topicSubscribeCalls).toBe(1);
 
-    realtime.updates$.subscribe((value) => { lateEmissions.push(value); });
+    realtime.updates$.subscribe((value) => {
+      lateEmissions.push(value);
+    });
 
     realtimeSource.next({
       changeType: 'PRICE_CHANGE',

@@ -1,7 +1,4 @@
-<app-rms-section
-  title="Cuenta"
-  [hideHeader]="true"
->
+<app-rms-section title="Cuenta" [hideHeader]="true">
   <div class="flex flex-col gap-4">
     <section class="rounded-lg border border-rms-border px-4 py-3">
       <h3 class="text-rms-h4 text-rms-ink">Perfil</h3>
@@ -25,19 +22,27 @@
       </dl>
     </section>
 
-    <section class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rms-border px-4 py-3">
+    <section
+      class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rms-border px-4 py-3"
+    >
       <div class="min-w-0">
         <h3 class="text-rms-h4 text-rms-ink">Contraseña</h3>
         <p class="mt-1 text-rms-caption text-rms-ink-muted">
           Cámbiala periódicamente para mantener tu cuenta segura.
         </p>
       </div>
-      <app-rms-button variant="secondary" iconStart="pi pi-lock" (click)="changePasswordVisible.set(true)">
+      <app-rms-button
+        variant="secondary"
+        iconStart="pi pi-lock"
+        (click)="changePasswordVisible.set(true)"
+      >
         Cambiar contraseña
       </app-rms-button>
     </section>
 
-    <section class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rms-border px-4 py-3">
+    <section
+      class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rms-border px-4 py-3"
+    >
       <div class="min-w-0">
         <h3 class="text-rms-h4 text-rms-ink">Privacidad</h3>
         <p class="mt-1 text-rms-caption text-rms-ink-muted">
@@ -51,7 +56,9 @@
       <app-rms-button variant="link" (click)="openPrivacyNotice()">Ver aviso</app-rms-button>
     </section>
 
-    <section class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rms-border px-4 py-3">
+    <section
+      class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rms-border px-4 py-3"
+    >
       <div class="min-w-0">
         <h3 class="text-rms-h4 text-rms-ink">Sesión</h3>
         <p class="mt-1 text-rms-caption text-rms-ink-muted">
@@ -75,12 +82,12 @@
     [visible]="logoutVisible()"
     (visibleChange)="logoutVisible.set($event)"
   >
-    <p class="text-rms-body text-rms-ink">
-      ¿Estás seguro de que deseas cerrar la sesión actual?
-    </p>
+    <p class="text-rms-body text-rms-ink">¿Estás seguro de que deseas cerrar la sesión actual?</p>
 
     <div rmsDialogFooter class="flex flex-wrap justify-end gap-3">
-      <app-rms-button variant="secondary" (click)="logoutVisible.set(false)">Cancelar</app-rms-button>
+      <app-rms-button variant="secondary" (click)="logoutVisible.set(false)"
+        >Cancelar</app-rms-button
+      >
       <app-rms-button variant="danger" (click)="logout()">Cerrar sesión</app-rms-button>
     </div>
   </app-rms-dialog>

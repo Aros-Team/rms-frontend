@@ -35,10 +35,7 @@ describe('Alerts', () => {
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [Alerts],
-      providers: [
-        { provide: Analytics, useValue: api },
-        AnalyticsPeriodState,
-      ],
+      providers: [{ provide: Analytics, useValue: api }, AnalyticsPeriodState],
     }).compileComponents();
     const fixture = TestBed.createComponent(Alerts);
     fixture.detectChanges();

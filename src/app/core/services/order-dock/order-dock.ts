@@ -91,14 +91,12 @@ export class OrderDock {
 
   readonly totalDiners = computed(() => this._diners().length);
 
-  readonly hasItems = computed(() =>
-    this._diners().some(d => d.items.length > 0)
-  );
+  readonly hasItems = computed(() => this._diners().some((d) => d.items.length > 0));
 
   readonly canPlaceOrder = computed(() => this.hasItems() && this.hasSelectedTable());
 
-  readonly allDinersEmpty = computed(() =>
-    this._diners().length > 0 && this._diners().every(d => d.items.length === 0)
+  readonly allDinersEmpty = computed(
+    () => this._diners().length > 0 && this._diners().every((d) => d.items.length === 0),
   );
 
   readonly hasSelectedTable = computed(() => this.selectedTableId() !== null);
@@ -163,15 +161,15 @@ export class OrderDock {
   }
 
   addDiner(): void {
-    this._diners.update(diners => {
-      const newId = Math.max(...diners.map(d => d.id), 0) + 1;
+    this._diners.update((diners) => {
+      const newId = Math.max(...diners.map((d) => d.id), 0) + 1;
       return [...diners, { id: newId, items: [] }];
     });
     this._selectedDinerIndex.set(this._diners().length - 1);
   }
 
   removeDiner(dinerIndex: number): void {
-    this._diners.update(diners => {
+    this._diners.update((diners) => {
       if (diners.length <= 1) return diners;
       return diners.filter((_, i) => i !== dinerIndex);
     });
@@ -185,26 +183,33 @@ export class OrderDock {
 
   addItemToDiner(item: DockItem): void {
     const index = this._selectedDinerIndex();
-    this._diners.update(diners => {
+    this._diners.update((diners) => {
       const updated = [...diners];
       const currentItems = updated[index].items;
 
       // Check if same product + same options + same instructions exists
-      const existingIndex = currentItems.findIndex(ex =>
-        ex.product.id === item.product.id &&
-        ex.instructions === item.instructions &&
-        ex.selectedOptionIds.length === item.selectedOptionIds.length &&
-        ex.selectedOptionIds.every((id, i) => id === item.selectedOptionIds[i])
+      const existingIndex = currentItems.findIndex(
+        (ex) =>
+          ex.product.id === item.product.id &&
+          ex.instructions === item.instructions &&
+          ex.selectedOptionIds.length === item.selectedOptionIds.length &&
+          ex.selectedOptionIds.every((id, i) => id === item.selectedOptionIds[i]),
       );
 
       if (existingIndex >= 0) {
         // Increment quantity on existing item
         const items = [...currentItems];
-        items[existingIndex] = { ...items[existingIndex], quantity: items[existingIndex].quantity + 1 };
+        items[existingIndex] = {
+          ...items[existingIndex],
+          quantity: items[existingIndex].quantity + 1,
+        };
         updated[index] = { ...updated[index], items };
       } else {
         // Add new item with quantity
-        updated[index] = { ...updated[index], items: [...currentItems, { ...item, quantity: item.quantity || 1 }] };
+        updated[index] = {
+          ...updated[index],
+          items: [...currentItems, { ...item, quantity: item.quantity || 1 }],
+        };
       }
       return updated;
     });
@@ -212,11 +217,11 @@ export class OrderDock {
 
   removeItemFromDiner(itemIndex: number): void {
     const index = this._selectedDinerIndex();
-    this._diners.update(diners => {
+    this._diners.update((diners) => {
       const updated = [...diners];
       const diner = {
         ...updated[index],
-        items: updated[index].items.filter((_, i) => i !== itemIndex)
+        items: updated[index].items.filter((_, i) => i !== itemIndex),
       };
       updated[index] = diner;
       return updated;
@@ -225,7 +230,7 @@ export class OrderDock {
 
   incrementItemQuantity(itemIndex: number): void {
     const dinerIndex = this._selectedDinerIndex();
-    this._diners.update(diners => {
+    this._diners.update((diners) => {
       const updated = [...diners];
       const items = [...updated[dinerIndex].items];
       items[itemIndex] = { ...items[itemIndex], quantity: items[itemIndex].quantity + 1 };
@@ -236,14 +241,17 @@ export class OrderDock {
 
   decrementItemQuantity(itemIndex: number): void {
     const dinerIndex = this._selectedDinerIndex();
-    this._diners.update(diners => {
+    this._diners.update((diners) => {
       const updated = [...diners];
       const currentItems = updated[dinerIndex].items;
       const currentQty = currentItems[itemIndex].quantity;
 
       if (currentQty <= 1) {
         // Remove item when quantity reaches 0
-        updated[dinerIndex] = { ...updated[dinerIndex], items: currentItems.filter((_, i) => i !== itemIndex) };
+        updated[dinerIndex] = {
+          ...updated[dinerIndex],
+          items: currentItems.filter((_, i) => i !== itemIndex),
+        };
       } else {
         const items = [...currentItems];
         items[itemIndex] = { ...items[itemIndex], quantity: currentQty - 1 };
@@ -254,8 +262,9 @@ export class OrderDock {
   }
 
   updateDinerItem(dinerIndex: number, itemIndex: number, updates: Partial<DockItem>): void {
-    this._diners.update(diners => {
-      if (dinerIndex >= diners.length || itemIndex >= diners[dinerIndex].items.length) return diners;
+    this._diners.update((diners) => {
+      if (dinerIndex >= diners.length || itemIndex >= diners[dinerIndex].items.length)
+        return diners;
       const updated = [...diners];
       const items = [...updated[dinerIndex].items];
       items[itemIndex] = { ...items[itemIndex], ...updates };
@@ -275,7 +284,7 @@ export class OrderDock {
     this.masterData.reloadTables().subscribe({
       next: (tables) => {
         this.allTables.set(tables);
-        this.availableTables.set(tables.filter(t => t.status === 'AVAILABLE'));
+        this.availableTables.set(tables.filter((t) => t.status === 'AVAILABLE'));
         this.tablesLoading.set(false);
       },
       error: (err) => {
@@ -299,25 +308,27 @@ export class OrderDock {
   }
 
   getOrderDetailsForAllDiners(): { dinerId: number; details: CreateOrderDetail[] }[] {
-    return this._diners().map(diner => ({
-      dinerId: diner.id,
-      details: diner.items.flatMap(item =>
-        Array.from({ length: item.quantity }, () => ({
-          productId: item.product.id,
-          instructions: item.instructions,
-          selectedOptionIds: item.selectedOptionIds,
-          additionIds: item.additionIds,
-          clarifications: item.clarifications,
-          selectedProductIds: item.selectedProductIds,
-        }))
-      )
-    })).filter(d => d.details.length > 0);
+    return this._diners()
+      .map((diner) => ({
+        dinerId: diner.id,
+        details: diner.items.flatMap((item) =>
+          Array.from({ length: item.quantity }, () => ({
+            productId: item.product.id,
+            instructions: item.instructions,
+            selectedOptionIds: item.selectedOptionIds,
+            additionIds: item.additionIds,
+            clarifications: item.clarifications,
+            selectedProductIds: item.selectedProductIds,
+          })),
+        ),
+      }))
+      .filter((d) => d.details.length > 0);
   }
 
   getOrderDetailsForDiner(dinerIndex: number): CreateOrderDetail[] {
     const diners = this._diners();
     if (dinerIndex >= diners.length) return [];
-    return diners[dinerIndex].items.flatMap(item =>
+    return diners[dinerIndex].items.flatMap((item) =>
       Array.from({ length: item.quantity }, () => ({
         productId: item.product.id,
         instructions: item.instructions,
@@ -325,7 +336,7 @@ export class OrderDock {
         additionIds: item.additionIds,
         clarifications: item.clarifications,
         selectedProductIds: item.selectedProductIds,
-      }))
+      })),
     );
   }
 }
@@ -385,12 +396,10 @@ function readSnapshot(): PersistedDock | null {
     const parsed = JSON.parse(raw) as Partial<PersistedDock>;
     if (!Array.isArray(parsed.diners)) return null;
 
-    const diners = (parsed.diners as unknown[])
-      .filter(isDinerState)
-      .map((diner) => ({
-        id: diner.id,
-        items: (diner.items as unknown[]).filter(isDockItem),
-      }));
+    const diners = (parsed.diners as unknown[]).filter(isDinerState).map((diner) => ({
+      id: diner.id,
+      items: (diner.items as unknown[]).filter(isDockItem),
+    }));
     if (diners.length === 0) return null;
 
     const rawIndex = parsed.selectedDinerIndex;

@@ -5,7 +5,11 @@
  * Contract: Enum has 4 values; isApiSelectionType validates API strings correctly.
  * Approach: Import enum and validator directly, assert exact values and validation results.
  */
-import { OptionSelectionType, API_SELECTION_TYPE_VALUES, isApiSelectionType } from './option-selection-type';
+import {
+  OptionSelectionType,
+  API_SELECTION_TYPE_VALUES,
+  isApiSelectionType,
+} from './option-selection-type';
 
 describe('OptionSelectionType enum', () => {
   it('has 4 internal values', () => {
@@ -35,7 +39,7 @@ describe('API_SELECTION_TYPE_VALUES', () => {
 
 describe('isApiSelectionType', () => {
   it('returns true for all valid API values', () => {
-    API_SELECTION_TYPE_VALUES.forEach(v => {
+    API_SELECTION_TYPE_VALUES.forEach((v) => {
       expect(isApiSelectionType(v)).toBe(true);
     });
   });

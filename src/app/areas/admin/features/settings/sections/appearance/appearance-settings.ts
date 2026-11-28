@@ -1,6 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 
-import { Accessibility, type ContrastMode, type FontSize } from '@services/accessibility/accessibility';
+import {
+  Accessibility,
+  type ContrastMode,
+  type FontSize,
+} from '@services/accessibility/accessibility';
 import { Theme, type ThemeName } from '@services/theme/theme';
 import { RmsSection } from '@shared/ui/section/section';
 

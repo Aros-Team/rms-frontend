@@ -23,14 +23,14 @@ services/products/product.ts       # Correcto en carpeta pero nombre genérico
 
 ### 1.2 Naming por tipo
 
-| Element | Folder | File Name | Example |
-|---------|--------|-----------|---------|
-| Component | `nombre/` | `nombre.ts` | `login-form/login-form.ts` |
+| Element            | Folder     | File Name          | Example                                     |
+| ------------------ | ---------- | ------------------ | ------------------------------------------- |
+| Component          | `nombre/`  | `nombre.ts`        | `login-form/login-form.ts`                  |
 | Service (use case) | `entidad/` | `verbo-entidad.ts` | `products/get-all.ts`, `products/create.ts` |
-| Guard | `nombre/` | `nombre.ts` | `auth/auth.ts` (guard suffix allowed) |
-| Model/DTO | `nombre/` | `nombre.ts` | `orders/order-response.ts` |
-| Pipe | `nombre/` | `nombre.ts` | `money/money.ts` |
-| Skeleton | `nombre/` | `nombre.ts` | `table-skeleton/table-skeleton.ts` |
+| Guard              | `nombre/`  | `nombre.ts`        | `auth/auth.ts` (guard suffix allowed)       |
+| Model/DTO          | `nombre/`  | `nombre.ts`        | `orders/order-response.ts`                  |
+| Pipe               | `nombre/`  | `nombre.ts`        | `money/money.ts`                            |
+| Skeleton           | `nombre/`  | `nombre.ts`        | `table-skeleton/table-skeleton.ts`          |
 
 ### 1.3 Sufijos prohibidos
 
@@ -58,14 +58,14 @@ Cada archivo contiene **una sola clase** que hace **una sola cosa**.
 
 ```typescript
 // Good
-export class LoginForm { }
-export class Auth { }
-export class Areas { }
+export class LoginForm {}
+export class Auth {}
+export class Areas {}
 
 // Bad
-export class LoginFormComponent { }
-export class AuthService { }
-export class AreasManager { }
+export class LoginFormComponent {}
+export class AuthService {}
+export class AreasManager {}
 ```
 
 ---
@@ -78,7 +78,7 @@ export class AreasManager { }
   templateUrl: './login-form.html',
   styleUrl: './login-form.css',
 })
-export class LoginForm { }
+export class LoginForm {}
 ```
 
 **Always use `templateUrl` + `styleUrl`. No inline `template` or `styles`.**
@@ -117,15 +117,16 @@ Elements should NOT feel flat. Use different surface tones to create visual dept
 
 **Background hierarchy:**
 
-| Level | Usage | Light mode | Dark mode |
-|---|---|---|---|
-| **Header panels** | Stats, date/time, quick info sections | `bg-surface-100` | `dark:bg-surface-800` |
-| **Primary content** | Main tables, data panels, card sections | `bg-primary-contrast` | `dark:bg-surface-800` |
-| **Nested cards** | Items inside panels, detail blocks | `bg-surface-50` | `dark:bg-surface-800` |
-| **Borders** | All containers | `border-surface-200` | `dark:border-surface-700` |
-| **Rounding** | Outer containers | `rounded-xl` or `rounded-2xl` | same |
+| Level               | Usage                                   | Light mode                    | Dark mode                 |
+| ------------------- | --------------------------------------- | ----------------------------- | ------------------------- |
+| **Header panels**   | Stats, date/time, quick info sections   | `bg-surface-100`              | `dark:bg-surface-800`     |
+| **Primary content** | Main tables, data panels, card sections | `bg-primary-contrast`         | `dark:bg-surface-800`     |
+| **Nested cards**    | Items inside panels, detail blocks      | `bg-surface-50`               | `dark:bg-surface-800`     |
+| **Borders**         | All containers                          | `border-surface-200`          | `dark:border-surface-700` |
+| **Rounding**        | Outer containers                        | `rounded-xl` or `rounded-2xl` | same                      |
 
 **Page module template (header + table):**
+
 ```html
 <div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0">
   <!-- Title area (no container, just spacing) -->
@@ -137,26 +138,34 @@ Elements should NOT feel flat. Use different surface tones to create visual dept
   </div>
 
   <!-- Content container: white in light, surface-800 in dark -->
-  <div class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast overflow-hidden">
+  <div
+    class="flex-1 min-h-0 border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast overflow-hidden"
+  >
     <!-- Table or content here -->
   </div>
 </div>
 ```
 
 **Dashboard-style info panel (stats, date, etc.):**
+
 ```html
 <!-- Slightly off-white header to stand out from white content -->
-<header class="border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-100 dark:bg-surface-800 overflow-hidden">
+<header
+  class="border border-surface-200 dark:border-surface-700 rounded-xl bg-surface-100 dark:bg-surface-800 overflow-hidden"
+>
   <!-- Stats, info content -->
 </header>
 
 <!-- White content area for contrast -->
-<section class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast overflow-hidden">
+<section
+  class="border border-surface-200 dark:border-surface-700 rounded-xl bg-primary-contrast overflow-hidden"
+>
   <!-- Tables, lists -->
 </section>
 ```
 
 **DO NOT use:**
+
 - `shadow-sm` or any box-shadow (no shadows anywhere)
 - `bg-surface-0` — use `bg-primary-contrast` instead
 - Plain containers without borders (they feel floating/disconnected)
@@ -195,11 +204,11 @@ core/services/
 
 ### 6.2 Convención de nombres
 
-| Parte | Regla | Ejemplo |
-|-------|-------|---------|
-| Carpeta | Nombre de la entidad en plural o singular (`products/`, `auth/`) | `products/` |
-| Archivo | `verbo-[que-hace].ts` en kebab-case | `get-all.ts`, `upload-image.ts` |
-| Clase | PascalCase del archivo | `GetAll`, `UploadImage` |
+| Parte   | Regla                                                            | Ejemplo                         |
+| ------- | ---------------------------------------------------------------- | ------------------------------- |
+| Carpeta | Nombre de la entidad en plural o singular (`products/`, `auth/`) | `products/`                     |
+| Archivo | `verbo-[que-hace].ts` en kebab-case                              | `get-all.ts`, `upload-image.ts` |
+| Clase   | PascalCase del archivo                                           | `GetAll`, `UploadImage`         |
 
 ### 6.3 Reglas
 
@@ -291,12 +300,12 @@ Siempre que necesites crear un componente, directiva, pipe o servicio:
 
 ### 12.2 Criterios para decidir
 
-| Pregunta | Decisión |
-|----------|----------|
-| ¿Es específico de una sola vista? | Queda en la feature |
-| ¿Podría usarlo otra feature o área? | Va a `shared/components/` o `shared/lib/` |
-| ¿Ya existe algo similar? | Extiéndelo, no lo dupliques |
-| ¿Es un patrón visual/técnico genérico? | Crea componente genérico en `shared/` |
+| Pregunta                               | Decisión                                  |
+| -------------------------------------- | ----------------------------------------- |
+| ¿Es específico de una sola vista?      | Queda en la feature                       |
+| ¿Podría usarlo otra feature o área?    | Va a `shared/components/` o `shared/lib/` |
+| ¿Ya existe algo similar?               | Extiéndelo, no lo dupliques               |
+| ¿Es un patrón visual/técnico genérico? | Crea componente genérico en `shared/`     |
 
 ### 12.3 Shared directory map
 
@@ -362,11 +371,11 @@ features/*/skeletons/      # Feature-specific skeletons
 
 ### 13.3 Skeleton Naming
 
-| Skeleton | Selector | File |
-|----------|----------|------|
-| Stats | `app-stats-skeleton` | `stats-skeleton.ts` |
+| Skeleton    | Selector                   | File                      |
+| ----------- | -------------------------- | ------------------------- |
+| Stats       | `app-stats-skeleton`       | `stats-skeleton.ts`       |
 | Orders List | `app-orders-list-skeleton` | `orders-list-skeleton.ts` |
-| Day Menu | `app-daymenu-skeleton` | `daymenu-skeleton.ts` |
+| Day Menu    | `app-daymenu-skeleton`     | `daymenu-skeleton.ts`     |
 
 ### 13.4 Responsive Variants
 
@@ -384,9 +393,9 @@ variant = input<'mobile' | 'tablet' | 'desktop'>('desktop');
 
 ```html
 @if (isLoading()) {
-  <app-stats-skeleton variant="mobile" />
+<app-stats-skeleton variant="mobile" />
 } @else {
-  <!-- real content -->
+<!-- real content -->
 }
 ```
 

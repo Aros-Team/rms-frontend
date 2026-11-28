@@ -44,18 +44,14 @@ const MODE_OPTIONS: RmsSelectOption[] = [
   { label: 'Estándar: promedio de salarios o tarifa fija', value: 'STANDARD' },
 ];
 
-function nonNegativeNumberValidator(
-  control: AbstractControl<string>,
-): ValidationErrors | null {
+function nonNegativeNumberValidator(control: AbstractControl<string>): ValidationErrors | null {
   const value = control.value.trim();
   if (value.length === 0) return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed >= 0 ? null : { amount: true };
 }
 
-function hoursValidator(
-  control: AbstractControl<string>,
-): ValidationErrors | null {
+function hoursValidator(control: AbstractControl<string>): ValidationErrors | null {
   const value = control.value.trim();
   if (value.length === 0) return null;
   const parsed = Number(value);
@@ -157,9 +153,7 @@ export class LaborSettingsSection implements OnInit {
         this.patch(settings);
       },
       error: (error: unknown) => {
-        this.loadError.set(
-          problemMessage(error, 'No se pudo cargar la configuración de nómina.'),
-        );
+        this.loadError.set(problemMessage(error, 'No se pudo cargar la configuración de nómina.'));
         this.loading.set(false);
       },
     });

@@ -90,10 +90,7 @@ describe('computeCharge', () => {
   it('splits between card and cash and returns the cash change', () => {
     const result = computeCharge(
       draft({
-        tenders: [
-          { method: 'CARD', amount: 30000, reference: 'AUTH-1' },
-          cash(40000),
-        ],
+        tenders: [{ method: 'CARD', amount: 30000, reference: 'AUTH-1' }, cash(40000)],
       }),
     );
 

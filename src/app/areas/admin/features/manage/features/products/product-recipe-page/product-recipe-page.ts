@@ -232,9 +232,7 @@ export class ProductRecipePage implements OnInit {
   readonly variantById = computed(
     () => new Map(this.variants().map((variant) => [variant.id, variant])),
   );
-  readonly knownVariantIds = computed(
-    () => new Set(this.variants().map((variant) => variant.id)),
-  );
+  readonly knownVariantIds = computed(() => new Set(this.variants().map((variant) => variant.id)));
 
   // ── Validation ───────────────────────────────────────────────────
   readonly recipeValidation = computed(() =>
@@ -289,23 +287,22 @@ export class ProductRecipePage implements OnInit {
       areaId: draft.areaId,
       salePrice: price === null ? draft.salePrice.trim() : String(price),
       requiredWorkers: this.workersValue() ?? draft.requiredWorkers.trim(),
-      estimatedPrepMinutes:
-        this.estimatedMinutesValue() ?? draft.estimatedPrepMinutes.trim(),
+      estimatedPrepMinutes: this.estimatedMinutesValue() ?? draft.estimatedPrepMinutes.trim(),
       prepTimeMode: draft.prepTimeMode,
       recipe: recipeSnapshot(this.recipeRows()),
     });
   }
 
   readonly dirty = computed(
-    () => this.state() === 'ready' && this.baseline().length > 0 && this.draftSnapshot() !== this.baseline(),
+    () =>
+      this.state() === 'ready' &&
+      this.baseline().length > 0 &&
+      this.draftSnapshot() !== this.baseline(),
   );
 
   readonly canSave = computed(
     () =>
-      this.dirty() &&
-      !this.saving() &&
-      this.formErrors().length === 0 &&
-      !this.optionsLoading(),
+      this.dirty() && !this.saving() && this.formErrors().length === 0 && !this.optionsLoading(),
   );
 
   // ── Live cost ────────────────────────────────────────────────────
@@ -382,9 +379,11 @@ export class ProductRecipePage implements OnInit {
 
   readonly realPrepAvailable = computed(() => {
     const prep = this.prepTime();
-    return prep !== null
-      && prep.realPrepMinutes !== null
-      && prep.realPrepSampleCount >= prep.minimumSamples;
+    return (
+      prep !== null &&
+      prep.realPrepMinutes !== null &&
+      prep.realPrepSampleCount >= prep.minimumSamples
+    );
   });
 
   readonly effectivePrepMinutes = computed(() => {
@@ -408,8 +407,7 @@ export class ProductRecipePage implements OnInit {
     const cost = this.cost();
     if (cost === null) return null;
     const serverLabor = moneyToMicro(cost.laborCost);
-    const serverMinutes =
-      cost.prepTimeUsedMinutes ?? this.product()?.estimatedPrepMinutes ?? null;
+    const serverMinutes = cost.prepTimeUsedMinutes ?? this.product()?.estimatedPrepMinutes ?? null;
     return laborForPreparation(
       serverLabor,
       serverMinutes,
@@ -520,7 +518,9 @@ export class ProductRecipePage implements OnInit {
   readonly updatedLabel = computed(() => {
     const loadedAt = this.costLoadedAt();
     if (loadedAt === null) return '';
-    return new Intl.DateTimeFormat('es-CO', { hour: '2-digit', minute: '2-digit' }).format(loadedAt);
+    return new Intl.DateTimeFormat('es-CO', { hour: '2-digit', minute: '2-digit' }).format(
+      loadedAt,
+    );
   });
 
   readonly projectedEffectiveMoney = computed(
@@ -535,9 +535,7 @@ export class ProductRecipePage implements OnInit {
       warnings.push('La receta está vacía: el costo de material será 0.');
     }
     if (this.missingCostCount() > 0) {
-      warnings.push(
-        'Hay insumos sin costo unitario configurado; el costo de material es parcial.',
-      );
+      warnings.push('Hay insumos sin costo unitario configurado; el costo de material es parcial.');
     }
     const minutes = this.effectivePrepMinutes();
     if (minutes === null || minutes <= 0) {
@@ -688,7 +686,9 @@ export class ProductRecipePage implements OnInit {
     forkJoin({
       prepTime: this.productService.getPrepTime(id).pipe(
         catchError((err: unknown) => {
-          this.prepTimeError.set(this.problemMessage(err, 'No se pudieron leer los tiempos reales'));
+          this.prepTimeError.set(
+            this.problemMessage(err, 'No se pudieron leer los tiempos reales'),
+          );
           return of(null);
         }),
       ),

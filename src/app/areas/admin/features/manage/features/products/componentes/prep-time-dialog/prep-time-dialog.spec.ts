@@ -83,7 +83,9 @@ describe('PrepTimeDialog', () => {
     });
 
     let emitted: PrepTimeEstimate | null = null;
-    component.estimateApplied.subscribe((e) => { emitted = e; });
+    component.estimateApplied.subscribe((e) => {
+      emitted = e;
+    });
 
     component.visible.set(true);
     component.apply();
@@ -106,7 +108,9 @@ describe('PrepTimeDialog', () => {
     });
 
     let emitted = false;
-    component.estimateApplied.subscribe(() => { emitted = true; });
+    component.estimateApplied.subscribe(() => {
+      emitted = true;
+    });
 
     component.apply();
 
@@ -117,7 +121,9 @@ describe('PrepTimeDialog', () => {
   it('close emits visibleChange false', () => {
     const component = setup();
     let visible = true;
-    component.visibleChange.subscribe((v) => { visible = v; });
+    component.visibleChange.subscribe((v) => {
+      visible = v;
+    });
 
     component.close();
 

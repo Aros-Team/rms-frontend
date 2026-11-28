@@ -20,11 +20,7 @@ import { Auth } from '@services/auth/auth';
 import { SettingsApi } from '@services/settings/settings-api';
 import { problemMessage } from '@services/settings/problem-detail';
 import type { AreaResponse } from '@models/dto/areas/area';
-import type {
-  UserRoleValue,
-  UserStatusValue,
-  UserSummary,
-} from '@models/dto/settings/settings';
+import type { UserRoleValue, UserStatusValue, UserSummary } from '@models/dto/settings/settings';
 import { RmsBadge, type RmsBadgeTone } from '@shared/ui/badge/badge';
 import { RmsButton } from '@shared/ui/button/button';
 import { RmsDialog } from '@shared/ui/dialog/dialog';

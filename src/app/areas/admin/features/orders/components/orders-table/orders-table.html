@@ -2,12 +2,12 @@
   <div class="rounded-xl">
     <div class="flex flex-col lg:flex-row justify-between gap-4">
       <div class="flex flex-col sm:flex-row gap-3 flex-wrap items-start sm:items-center flex-1">
-        <p-select 
-          [options]="comboStatusOptions" 
-          [(ngModel)]="selectedStatus" 
-          placeholder="Filtrar por estado" 
+        <p-select
+          [options]="comboStatusOptions"
+          [(ngModel)]="selectedStatus"
+          placeholder="Filtrar por estado"
           class="w-full sm:w-48"
-          (onChange)="onStatusChange($event.value)" 
+          (onChange)="onStatusChange($event.value)"
           appendTo="body"
         />
 
@@ -21,15 +21,9 @@
           aria-label="Buscar pedido"
         />
 
-        <app-shared-datepicker
-          (dateChange)="onDateChange($event)"
-        ></app-shared-datepicker>
+        <app-shared-datepicker (dateChange)="onDateChange($event)"></app-shared-datepicker>
 
-        <app-rms-button
-          variant="secondary"
-          iconStart="pi pi-filter-slash"
-          (click)="clearFilters()"
-        >
+        <app-rms-button variant="secondary" iconStart="pi pi-filter-slash" (click)="clearFilters()">
           Limpiar filtros
         </app-rms-button>
       </div>
@@ -57,21 +51,21 @@
     @if (loading) {
       <p class="sr-only" role="status">Cargando pedidos…</p>
     }
-    <p-table 
+    <p-table
       #dt
-      [value]="orders" 
+      [value]="orders"
       [lazy]="true"
       [(first)]="first"
       [rows]="rows"
       [totalRecords]="totalRecords"
       [sortField]="sortField"
       [sortOrder]="sortOrder"
-      [scrollable]="true" 
-      scrollHeight="flex" 
-      [paginator]="true" 
+      [scrollable]="true"
+      scrollHeight="flex"
+      [paginator]="true"
       [rowsPerPageOptions]="[10, 20, 50]"
       styleClass="h-full rounded-xl overflow-hidden"
-      [tableStyle]="{'min-width': '900px'}"
+      [tableStyle]="{ 'min-width': '900px' }"
       [loading]="loading"
       [showLoader]="false"
       [globalFilterFields]="['id', 'tableId']"
@@ -82,47 +76,56 @@
         <tr>
           <th class="text-xs md:text-sm w-16" pSortableColumn="id">ID <p-sortIcon field="id" /></th>
           <th class="text-xs md:text-sm w-32">Estado</th>
-          <th class="text-xs md:text-sm w-40" pSortableColumn="date">Fecha y Hora <p-sortIcon field="date" /></th>
-          <th class="text-xs md:text-sm w-24" pSortableColumn="tableId">Mesa <p-sortIcon field="tableId" /></th>
+          <th class="text-xs md:text-sm w-40" pSortableColumn="date">
+            Fecha y Hora <p-sortIcon field="date" />
+          </th>
+          <th class="text-xs md:text-sm w-24" pSortableColumn="tableId">
+            Mesa <p-sortIcon field="tableId" />
+          </th>
           <th class="text-xs md:text-sm w-28">Total</th>
           <th class="text-xs md:text-sm">Productos</th>
         </tr>
       </ng-template>
-      
+
       <ng-template pTemplate="body" let-order>
         <tr>
           <td class="font-medium">#{{ order.id }}</td>
-          
+
           <td>
             <div class="flex flex-col gap-2">
-              <app-rms-status-pill [label]="getStatusLabel(order.status)" [status]="getStatusRole(order.status)" />
-              <p-select 
-                [options]="editableStatusOptions" 
-                [(ngModel)]="order.status" 
+              <app-rms-status-pill
+                [label]="getStatusLabel(order.status)"
+                [status]="getStatusRole(order.status)"
+              />
+              <p-select
+                [options]="editableStatusOptions"
+                [(ngModel)]="order.status"
                 (onChange)="onStatusFieldChange(order, $event.value)"
-                placeholder="Cambiar estado" 
-                optionLabel="label" 
-                optionValue="value" 
-                class="w-full" 
+                placeholder="Cambiar estado"
+                optionLabel="label"
+                optionValue="value"
+                class="w-full"
                 size="small"
                 appendTo="body"
               />
             </div>
           </td>
-          
+
           <td class="text-sm whitespace-nowrap">{{ formatDate(order.date) }}</td>
-          
+
           <td class="text-sm">Mesa {{ order.tableId }}</td>
-          
+
           <td class="font-medium text-sm">
-            {{ (order.total ?? getOrderTotal(order)) | money }}
+            {{ order.total ?? getOrderTotal(order) | money }}
           </td>
-          
+
           <td>
             @if (order.details && order.details.length > 0) {
               <div class="flex flex-col gap-1">
                 @for (detail of order.details; track detail.id) {
-                  <div class="flex items-center gap-2 text-sm py-1 border-b border-rms-border last:border-0">
+                  <div
+                    class="flex items-center gap-2 text-sm py-1 border-b border-rms-border last:border-0"
+                  >
                     <span class="font-medium flex-1">{{ detail.productName }}</span>
                     <span class="font-medium text-rms-ink">
                       {{ detail.unitPrice | money }}
@@ -153,7 +156,8 @@
             <app-rms-empty-state
               icon="pi pi-inbox"
               title="No hay pedidos para mostrar"
-              message="Ajusta los filtros o elige otra fecha." />
+              message="Ajusta los filtros o elige otra fecha."
+            />
           </td>
         </tr>
       </ng-template>
@@ -161,7 +165,10 @@
   </div>
 
   @if (error) {
-    <div class="flex flex-wrap items-center gap-3 rounded-xl border border-rms-danger bg-rms-subtle p-4 text-rms-danger" role="alert">
+    <div
+      class="flex flex-wrap items-center gap-3 rounded-xl border border-rms-danger bg-rms-subtle p-4 text-rms-danger"
+      role="alert"
+    >
       <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
       <span class="min-w-0 flex-1">{{ error }}</span>
       <app-rms-button size="sm" variant="secondary" iconStart="pi pi-refresh" (click)="retry()">

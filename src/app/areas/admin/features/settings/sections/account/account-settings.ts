@@ -29,8 +29,8 @@ export class AccountSettingsSection {
     return 'Sin rol';
   });
 
-  readonly areaLabels = computed(() =>
-    (this.user?.areas ?? []).map((area) => area.name).join(', ') || 'Todas las áreas',
+  readonly areaLabels = computed(
+    () => (this.user?.areas ?? []).map((area) => area.name).join(', ') || 'Todas las áreas',
   );
 
   readonly changePasswordVisible = signal(false);

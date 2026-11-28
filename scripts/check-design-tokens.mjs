@@ -97,7 +97,9 @@ if (violations.length === 0) {
 
 console.error(`design:check failed with ${String(violations.length)} violation(s):\n`);
 for (const violation of violations) {
-  console.error(`  ${violation.file}:${String(violation.line)}  [${violation.rule}] ${violation.message}`);
+  console.error(
+    `  ${violation.file}:${String(violation.line)}  [${violation.rule}] ${violation.message}`,
+  );
   console.error(`    ${violation.text}`);
 }
 console.error('\nSee docs/DESIGN.md section 11 (migration rules).');

@@ -34,22 +34,23 @@ export class TablesCache implements OnDestroy {
   // Tables - TTL medio (5 min)
   readonly tables = new ResourceCache<TableResponse[]>(
     () => this.tableService.getTables(this.tablesListParams.search),
-    { ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true }
+    { ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true },
   );
 
   // Areas - TTL largo (30 min)
   readonly areas = new ResourceCache<AreaResponse[]>(
     () => this.areaService.getAreas(this.areasListParams.search),
-    { ttlMs: 30 * 60 * 1000, staleWhileRevalidate: true }
+    { ttlMs: 30 * 60 * 1000, staleWhileRevalidate: true },
   );
 
   // Combined data - para uso en modales
   readonly tablesAndAreas = new ResourceCache<TablesAndAreasData>(
-    () => forkJoin({
-      tables: this.tableService.getTables(),
-      areas: this.areaService.getAreas()
-    }),
-    { ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true }
+    () =>
+      forkJoin({
+        tables: this.tableService.getTables(),
+        areas: this.areaService.getAreas(),
+      }),
+    { ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true },
   );
 
   constructor() {
@@ -62,11 +63,11 @@ export class TablesCache implements OnDestroy {
    */
   applyTableUpdate(updated: TableResponse): void {
     const patchTables = (list: TableResponse[]): TableResponse[] =>
-      list.map(t => t.id === updated.id ? { ...t, ...updated } : t);
+      list.map((t) => (t.id === updated.id ? { ...t, ...updated } : t));
 
     this.tables.patchData(patchTables);
 
-    this.tablesAndAreas.patchData(data => ({
+    this.tablesAndAreas.patchData((data) => ({
       ...data,
       tables: patchTables(data.tables),
     }));

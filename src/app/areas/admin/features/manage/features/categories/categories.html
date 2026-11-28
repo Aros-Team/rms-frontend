@@ -1,62 +1,111 @@
-<main class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full" [appLazyLoad]="cache.productCategories" (appLazyLoadVisible)="onVisible()">
+<main
+  class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full"
+  [appLazyLoad]="cache.productCategories"
+  (appLazyLoadVisible)="onVisible()"
+>
   <h1 class="sr-only">{{ title }}</h1>
 
   <div class="flex-1 min-h-0 overflow-hidden pb-4">
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 p-4 md:p-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 p-4 md:p-6">
+      <!-- ══ CATEGORÍAS DE PRODUCTO ══ -->
+      <div class="bg-rms-surface rounded-xl border border-rms-border p-4 md:p-6">
+        <div
+          class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4"
+        >
+          <div>
+            <p class="font-semibold text-rms-ink">Categorías de producto</p>
+            <p class="text-xs text-muted mt-0.5">Agrupan los productos de la carta</p>
+          </div>
+          <app-rms-icon-button
+            icon="pi pi-plus"
+            ariaLabel="Nueva categoría de producto"
+            tooltip="Nueva categoría"
+            (click)="openProductCategoryDialog()"
+          />
+        </div>
 
-  <!-- ══ CATEGORÍAS DE PRODUCTO ══ -->
-  <div class="bg-rms-surface rounded-xl border border-rms-border p-4 md:p-6">
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
-      <div>
-        <p class="font-semibold text-rms-ink">Categorías de producto</p>
-        <p class="text-xs text-muted mt-0.5">Agrupan los productos de la carta</p>
+        <div class="flex flex-col gap-4">
+          <div>
+            <p class="text-xs font-semibold text-muted uppercase tracking-wide mb-2">Activas</p>
+            @if (activeCategories().length === 0) {
+              <p class="text-muted text-sm italic">Aún no hay categorías activas.</p>
+            } @else {
+              <div class="flex flex-wrap gap-3">
+                @for (c of activeCategories(); track c.id) {
+                  <p-chip class="border border-rms-border">
+                    <div class="flex items-center gap-2">
+                      <i class="pi pi-tag" aria-hidden="true"></i>
+                      <span class="mx-1">{{ c.name }}</span>
+                      <app-rms-icon-button
+                        icon="pi pi-times-circle"
+                        [ariaLabel]="'Desactivar categoría ' + c.name"
+                        tooltip="Desactivar"
+                        variant="danger"
+                        size="sm"
+                        (click)="confirmCategoryToggle(c.id)"
+                      />
+                    </div>
+                  </p-chip>
+                }
+              </div>
+            }
+          </div>
+
+          <div>
+            <p class="text-xs font-semibold text-muted uppercase tracking-wide mb-2">
+              Desactivadas
+            </p>
+            @if (inactiveCategories().length === 0) {
+              <p class="text-muted text-sm italic">No hay categorías desactivadas.</p>
+            } @else {
+              <div class="flex flex-wrap gap-3">
+                @for (c of inactiveCategories(); track c.id) {
+                  <p-chip class="border border-rms-border opacity-60">
+                    <div class="flex items-center gap-2">
+                      <i class="pi pi-tag" aria-hidden="true"></i>
+                      <span class="mx-1 line-through">{{ c.name }}</span>
+                      <app-rms-icon-button
+                        icon="pi pi-check-circle"
+                        [ariaLabel]="'Activar categoría ' + c.name"
+                        tooltip="Activar"
+                        size="sm"
+                        (click)="confirmCategoryToggle(c.id)"
+                      />
+                    </div>
+                  </p-chip>
+                }
+              </div>
+            }
+          </div>
+        </div>
       </div>
-      <app-rms-icon-button icon="pi pi-plus" ariaLabel="Nueva categoría de producto" tooltip="Nueva categoría" (click)="openProductCategoryDialog()" />
-    </div>
 
-    <div class="flex flex-col gap-4">
-      <div>
-        <p class="text-xs font-semibold text-muted uppercase tracking-wide mb-2">Activas</p>
-        @if (activeCategories().length === 0) {
-          <p class="text-muted text-sm italic">Aún no hay categorías activas.</p>
+      <!-- ══ CATEGORÍAS DE INSUMO ══ -->
+      <div class="bg-rms-surface rounded-xl border border-rms-border p-4 md:p-6">
+        <div
+          class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4"
+        >
+          <div>
+            <p class="font-semibold text-rms-ink">Categorías de insumo</p>
+            <p class="text-xs text-muted mt-0.5">Agrupan los insumos de la cocina</p>
+          </div>
+          <app-rms-icon-button
+            icon="pi pi-plus"
+            ariaLabel="Nueva categoría de insumo"
+            tooltip="Nueva categoría de insumo"
+            (click)="openSupplyCategoryDialog()"
+          />
+        </div>
+
+        @if (supplyCategories().length === 0) {
+          <p class="text-muted text-sm italic">Aún no hay categorías de insumo.</p>
         } @else {
           <div class="flex flex-wrap gap-3">
-            @for (c of activeCategories(); track c.id) {
+            @for (c of supplyCategories(); track c.id) {
               <p-chip class="border border-rms-border">
                 <div class="flex items-center gap-2">
                   <i class="pi pi-tag" aria-hidden="true"></i>
                   <span class="mx-1">{{ c.name }}</span>
-                  <app-rms-icon-button
-                    icon="pi pi-times-circle"
-                    [ariaLabel]="'Desactivar categoría ' + c.name"
-                    tooltip="Desactivar"
-                    variant="danger"
-                    size="sm"
-                    (click)="confirmCategoryToggle(c.id)" />
-                </div>
-              </p-chip>
-            }
-          </div>
-        }
-      </div>
-
-      <div>
-        <p class="text-xs font-semibold text-muted uppercase tracking-wide mb-2">Desactivadas</p>
-        @if (inactiveCategories().length === 0) {
-          <p class="text-muted text-sm italic">No hay categorías desactivadas.</p>
-        } @else {
-          <div class="flex flex-wrap gap-3">
-            @for (c of inactiveCategories(); track c.id) {
-              <p-chip class="border border-rms-border opacity-60">
-                <div class="flex items-center gap-2">
-                  <i class="pi pi-tag" aria-hidden="true"></i>
-                  <span class="mx-1 line-through">{{ c.name }}</span>
-                  <app-rms-icon-button
-                    icon="pi pi-check-circle"
-                    [ariaLabel]="'Activar categoría ' + c.name"
-                    tooltip="Activar"
-                    size="sm"
-                    (click)="confirmCategoryToggle(c.id)" />
                 </div>
               </p-chip>
             }
@@ -64,43 +113,18 @@
         }
       </div>
     </div>
-  </div>
-
-  <!-- ══ CATEGORÍAS DE INSUMO ══ -->
-  <div class="bg-rms-surface rounded-xl border border-rms-border p-4 md:p-6">
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
-      <div>
-        <p class="font-semibold text-rms-ink">Categorías de insumo</p>
-        <p class="text-xs text-muted mt-0.5">Agrupan los insumos de la cocina</p>
-      </div>
-      <app-rms-icon-button icon="pi pi-plus" ariaLabel="Nueva categoría de insumo" tooltip="Nueva categoría de insumo" (click)="openSupplyCategoryDialog()" />
-    </div>
-
-    @if (supplyCategories().length === 0) {
-      <p class="text-muted text-sm italic">Aún no hay categorías de insumo.</p>
-    } @else {
-      <div class="flex flex-wrap gap-3">
-        @for (c of supplyCategories(); track c.id) {
-          <p-chip class="border border-rms-border">
-            <div class="flex items-center gap-2">
-              <i class="pi pi-tag" aria-hidden="true"></i>
-              <span class="mx-1">{{ c.name }}</span>
-            </div>
-          </p-chip>
-        }
-      </div>
-    }
-  </div>
-
-  </div>
   </div>
 </main>
 
 <!-- ══ DIALOG: Nueva categoría de producto ══ -->
-<p-dialog [modal]="true" [(visible)]="productCategoryDialogOpen"
+<p-dialog
+  [modal]="true"
+  [(visible)]="productCategoryDialogOpen"
   header="Nueva categoría de producto"
-  draggable="false" styleClass="w-[28rem]" appendTo="body">
-
+  draggable="false"
+  styleClass="w-[28rem]"
+  appendTo="body"
+>
   <form [formGroup]="productCategoryForm" class="flex flex-col gap-4 pt-2">
     <app-rms-input
       id="prod-cat-name"
@@ -108,21 +132,30 @@
       formControlName="name"
       autocomplete="off"
       [required]="true"
-      [error]="productNameError()" />
+      [error]="productNameError()"
+    />
   </form>
 
   <ng-template #footer>
-    <app-rms-button variant="secondary" iconStart="pi pi-times"
-      (click)="productCategoryDialogOpen.set(false)">Cancelar</app-rms-button>
+    <app-rms-button
+      variant="secondary"
+      iconStart="pi pi-times"
+      (click)="productCategoryDialogOpen.set(false)"
+      >Cancelar</app-rms-button
+    >
     <app-rms-button iconStart="pi pi-save" (click)="saveProductCategory()">Guardar</app-rms-button>
   </ng-template>
 </p-dialog>
 
 <!-- ══ DIALOG: Nueva categoría de insumo ══ -->
-<p-dialog [modal]="true" [(visible)]="supplyCategoryDialogOpen"
+<p-dialog
+  [modal]="true"
+  [(visible)]="supplyCategoryDialogOpen"
   header="Nueva categoría de insumo"
-  draggable="false" styleClass="w-[28rem]" appendTo="body">
-
+  draggable="false"
+  styleClass="w-[28rem]"
+  appendTo="body"
+>
   <form [formGroup]="supplyCategoryForm" class="flex flex-col gap-4 pt-2">
     <app-rms-input
       id="sup-cat-name"
@@ -130,12 +163,17 @@
       formControlName="name"
       autocomplete="off"
       [required]="true"
-      [error]="supplyNameError()" />
+      [error]="supplyNameError()"
+    />
   </form>
 
   <ng-template #footer>
-    <app-rms-button variant="secondary" iconStart="pi pi-times"
-      (click)="supplyCategoryDialogOpen.set(false)">Cancelar</app-rms-button>
+    <app-rms-button
+      variant="secondary"
+      iconStart="pi pi-times"
+      (click)="supplyCategoryDialogOpen.set(false)"
+      >Cancelar</app-rms-button
+    >
     <app-rms-button iconStart="pi pi-save" (click)="saveSupplyCategory()">Guardar</app-rms-button>
   </ng-template>
 </p-dialog>

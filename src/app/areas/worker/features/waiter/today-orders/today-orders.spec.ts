@@ -39,11 +39,7 @@ function makeOrder(id: number, status: string): OrderResponse {
   };
 }
 
-function collection(
-  items: OrderResponse[],
-  total: number,
-  truncated = false,
-): OrderCollection {
+function collection(items: OrderResponse[], total: number, truncated = false): OrderCollection {
   return { items, total, truncated };
 }
 
@@ -62,20 +58,22 @@ describe('TodayOrders', () => {
   });
 
   beforeEach(async () => {
-    getAll = vi.fn().mockReturnValue(
-      of(
-        collection(
-          [
-            makeOrder(1, 'QUEUE'),
-            makeOrder(2, 'DELIVERED'),
-            makeOrder(3, 'READY'),
-            makeOrder(4, 'CANCELLED'),
-            makeOrder(5, 'PREPARING'),
-          ],
-          5,
+    getAll = vi
+      .fn()
+      .mockReturnValue(
+        of(
+          collection(
+            [
+              makeOrder(1, 'QUEUE'),
+              makeOrder(2, 'DELIVERED'),
+              makeOrder(3, 'READY'),
+              makeOrder(4, 'CANCELLED'),
+              makeOrder(5, 'PREPARING'),
+            ],
+            5,
+          ),
         ),
-      ),
-    );
+      );
     deliver = vi.fn().mockImplementation((id: number) => of(makeOrder(id, 'DELIVERED')));
 
     TestBed.resetTestingModule();

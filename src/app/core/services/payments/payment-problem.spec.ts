@@ -78,7 +78,11 @@ describe('httpStatus', () => {
 
 describe('isShiftConflict', () => {
   it('treats a 409 without paymentId as a shift conflict', () => {
-    expect(isShiftConflict(httpError(409, { detail: 'No hay un turno de caja abierto; abre la caja antes de cobrar' }))).toBe(true);
+    expect(
+      isShiftConflict(
+        httpError(409, { detail: 'No hay un turno de caja abierto; abre la caja antes de cobrar' }),
+      ),
+    ).toBe(true);
   });
 
   it('does not treat an already-paid 409 as a shift conflict', () => {

@@ -46,8 +46,7 @@ describe('Analytics service', () => {
   it('GETs menu engineering with an optional categoryId', () => {
     service.getMenuEngineering('monthly', '2026-06', '2026-11', 42).subscribe();
     const req = httpMock.expectOne(
-      (r) =>
-        r.url === 'v1/analytics/menu-engineering' && r.params.get('categoryId') === '42',
+      (r) => r.url === 'v1/analytics/menu-engineering' && r.params.get('categoryId') === '42',
     );
     req.flush({});
   });

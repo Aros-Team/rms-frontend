@@ -8,7 +8,7 @@ import { SpecialSelectionHistoryPage } from '@app/shared/models/dto/special-sele
 import { SuggestedPriceResponse } from '@app/shared/models/dto/special-selections/special-selection-suggested-price';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SpecialSelections {
   private http = inject(HttpClient);
@@ -24,8 +24,14 @@ export class SpecialSelections {
   }
 
   /** The API expects `{ schedule: [...] }` (see `SpecialSelectionSchedulePatchRequest`). */
-  patchSchedule(id: number, body: { schedule: ScheduleEntryRequest[] }): Observable<SpecialSelectionResponse> {
-    return this.http.put<SpecialSelectionResponse>(this.base + '/' + String(id) + '/schedule', body);
+  patchSchedule(
+    id: number,
+    body: { schedule: ScheduleEntryRequest[] },
+  ): Observable<SpecialSelectionResponse> {
+    return this.http.put<SpecialSelectionResponse>(
+      this.base + '/' + String(id) + '/schedule',
+      body,
+    );
   }
 
   patchPrice(id: number, body: { basePrice: number }): Observable<SpecialSelectionResponse> {
@@ -59,15 +65,21 @@ export class SpecialSelections {
 
   getHistory(id: number, page = 0, size = 10): Observable<SpecialSelectionHistoryPage> {
     return this.http.get<SpecialSelectionHistoryPage>(this.base + '/' + String(id) + '/history', {
-      params: { page: String(page), size: String(size) }
+      params: { page: String(page), size: String(size) },
     });
   }
 
   revertHistory(id: number, version: number): Observable<SpecialSelectionResponse> {
-    return this.http.post<SpecialSelectionResponse>(this.base + '/' + String(id) + '/revert/' + String(version), {});
+    return this.http.post<SpecialSelectionResponse>(
+      this.base + '/' + String(id) + '/revert/' + String(version),
+      {},
+    );
   }
 
   suggestPrice(id: number, body: { marginPercent: number }): Observable<SuggestedPriceResponse> {
-    return this.http.post<SuggestedPriceResponse>(this.base + '/' + String(id) + '/suggest-price', body);
+    return this.http.post<SuggestedPriceResponse>(
+      this.base + '/' + String(id) + '/suggest-price',
+      body,
+    );
   }
 }

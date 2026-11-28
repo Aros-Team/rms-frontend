@@ -1,6 +1,13 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 
-import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import {
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+  AbstractControl,
+  ValidationErrors,
+} from '@angular/forms';
 import { NgClass } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PasswordModule } from 'primeng/password';
@@ -28,13 +35,7 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
   selector: 'app-reset-password',
   templateUrl: './reset-password.html',
   styleUrls: ['./reset-password.css'],
-  imports: [
-    ReactiveFormsModule,
-    NgClass,
-    PasswordModule,
-    MessageModule,
-    RmsButton,
-  ],
+  imports: [ReactiveFormsModule, NgClass, PasswordModule, MessageModule, RmsButton],
 })
 export class ResetPassword implements OnInit {
   private passwordService = inject(Password);
@@ -49,20 +50,29 @@ export class ResetPassword implements OnInit {
 
   token = signal<string | null>(null);
 
-  form: FormGroup = new FormGroup({
-    newPassword: new FormControl<string>('', [(control) => Validators.required(control)]),
-    confirmPassword: new FormControl<string>('', [(control) => Validators.required(control)])
-  }, { validators: (control) => passwordMatchValidator(control) });
+  form: FormGroup = new FormGroup(
+    {
+      newPassword: new FormControl<string>('', [(control) => Validators.required(control)]),
+      confirmPassword: new FormControl<string>('', [(control) => Validators.required(control)]),
+    },
+    { validators: (control) => passwordMatchValidator(control) },
+  );
 
   checkPasswordRequirement(requirement: string): boolean {
     const password = (this.form.get('newPassword')?.value as string | null | undefined) ?? '';
     switch (requirement) {
-      case 'minLength': return hasMinPasswordLength(password);
-      case 'upperCase': return hasUpperCase(password);
-      case 'lowerCase': return hasLowerCase(password);
-      case 'number': return hasNumber(password);
-      case 'symbol': return hasSymbol(password);
-      default: return false;
+      case 'minLength':
+        return hasMinPasswordLength(password);
+      case 'upperCase':
+        return hasUpperCase(password);
+      case 'lowerCase':
+        return hasLowerCase(password);
+      case 'number':
+        return hasNumber(password);
+      case 'symbol':
+        return hasSymbol(password);
+      default:
+        return false;
     }
   }
 
@@ -94,7 +104,7 @@ export class ResetPassword implements OnInit {
   }
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.subscribe((params) => {
       const token = params['token'] as string | null;
       this.token.set(token);
     });
@@ -124,7 +134,7 @@ export class ResetPassword implements OnInit {
         this.messageService.add({
           severity: 'success',
           summary: 'Éxito',
-          detail: 'Tu contraseña ha sido restablecida'
+          detail: 'Tu contraseña ha sido restablecida',
         });
       },
       error: (err: { status?: number; error?: unknown }) => {
@@ -138,7 +148,7 @@ export class ResetPassword implements OnInit {
           this.error.set(problemDetail ?? 'Ocurrió un error. Por favor, intenta más tarde.');
         }
         this.logger.error('Reset password failed', err);
-      }
+      },
     });
   }
 

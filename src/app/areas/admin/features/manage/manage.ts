@@ -6,7 +6,7 @@ import { RouterModule } from '@angular/router';
   selector: 'app-manage',
   imports: [RouterModule],
   templateUrl: './manage.html',
-  styleUrl: './manage.css'
+  styleUrl: './manage.css',
 })
 export class Manage {
   activeSection = 'staff';
@@ -15,6 +15,6 @@ export class Manage {
     { id: 'staff', label: 'Trabajadores', icon: 'pi pi-users' },
     { id: 'tables', label: 'Mesas', icon: 'pi pi-table' },
     { id: 'areas', label: 'Áreas de trabajo', icon: 'pi pi-th-large' },
-    { id: 'categories', label: 'Categorías', icon: 'pi pi-folder' }
+    { id: 'categories', label: 'Categorías', icon: 'pi pi-folder' },
   ];
 }

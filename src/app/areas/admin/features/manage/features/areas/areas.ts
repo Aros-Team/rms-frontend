@@ -1,6 +1,13 @@
 import { Component, OnInit, OnDestroy, inject, computed, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { Area } from '@app/core/services/areas/area';
 import { FloorLayoutApi } from '@app/core/services/floor-layout/floor-layout';
 import { AreaRequest, AreaActivityValue } from '@app/shared/models/dto/areas/area';
@@ -51,7 +58,7 @@ import { LayoutPreview } from './layout/components/layout-preview/layout-preview
     FloorLayoutEditor,
     LayoutPreview,
   ],
-  templateUrl: './areas.html'
+  templateUrl: './areas.html',
 })
 export class Areas implements OnInit, OnDestroy {
   private areaService = inject(Area);
@@ -74,7 +81,10 @@ export class Areas implements OnInit, OnDestroy {
 
   form: FormGroup = this.fb.group({
     name: ['', (control: AbstractControl) => Validators.required(control)],
-    activities: [[] as AreaActivityValue[], (control: AbstractControl) => Validators.required(control)],
+    activities: [
+      [] as AreaActivityValue[],
+      (control: AbstractControl) => Validators.required(control),
+    ],
     exclusive: [false],
   });
 
@@ -88,12 +98,18 @@ export class Areas implements OnInit, OnDestroy {
   activityLabels(activities: AreaActivityValue[] | undefined): string {
     if (!activities || activities.length === 0) return 'Sin actividades';
     return activities
-      .map((activity) => this.activityOptions.find((item) => item.value === activity)?.label ?? activity)
+      .map(
+        (activity) =>
+          this.activityOptions.find((item) => item.value === activity)?.label ?? activity,
+      )
       .join(', ');
   }
 
   isActivitySelected(activity: AreaActivityValue): boolean {
-    return (this.form.get('activities')?.value as AreaActivityValue[] | null)?.includes(activity) ?? false;
+    return (
+      (this.form.get('activities')?.value as AreaActivityValue[] | null)?.includes(activity) ??
+      false
+    );
   }
 
   toggleActivity(activity: AreaActivityValue, checked: boolean): void {
@@ -188,7 +204,9 @@ export class Areas implements OnInit, OnDestroy {
           this.loadAreas();
           this.modalVisible = false;
         },
-        error: (error: unknown) => { this.showSaveError(error); },
+        error: (error: unknown) => {
+          this.showSaveError(error);
+        },
       });
     } else {
       this.areaService.createArea(data).subscribe({
@@ -196,7 +214,9 @@ export class Areas implements OnInit, OnDestroy {
           this.loadAreas();
           this.modalVisible = false;
         },
-        error: (error: unknown) => { this.showSaveError(error); },
+        error: (error: unknown) => {
+          this.showSaveError(error);
+        },
       });
     }
   };
@@ -216,7 +236,9 @@ export class Areas implements OnInit, OnDestroy {
 
   toggleArea = (area: AreaSimpleResponse): void => {
     this.areaService.toggleArea(area.id).subscribe({
-      next: () => { this.loadAreas(); },
+      next: () => {
+        this.loadAreas();
+      },
     });
   };
 }

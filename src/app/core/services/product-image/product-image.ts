@@ -16,7 +16,10 @@ export class ProductImage {
   readonly isUploading = signal(false);
   readonly uploadError = signal<string | null>(null);
 
-  uploadImage(productId: number, file: File): Observable<{ progress: number; image?: ProductImageResponse }> {
+  uploadImage(
+    productId: number,
+    file: File,
+  ): Observable<{ progress: number; image?: ProductImageResponse }> {
     return new Observable((observer) => {
       this.isUploading.set(true);
       this.uploadProgress.set(0);
@@ -25,36 +28,34 @@ export class ProductImage {
       const formData = new FormData();
       formData.append('file', file);
 
-      const sub: Subscription = this.http.post<ProductImageResponse>(
-        `v1/products/${String(productId)}/images`,
-        formData,
-        {
+      const sub: Subscription = this.http
+        .post<ProductImageResponse>(`v1/products/${String(productId)}/images`, formData, {
           reportProgress: true,
           observe: 'events',
-        }
-      ).subscribe({
-        next: (event) => {
-          if (event.type === HttpEventType.UploadProgress && event.total) {
-            const progress = Math.round((event.loaded * 100) / event.total);
-            this.uploadProgress.set(progress);
-            observer.next({ progress });
-          } else if (event.type === HttpEventType.Response && event.body) {
+        })
+        .subscribe({
+          next: (event) => {
+            if (event.type === HttpEventType.UploadProgress && event.total) {
+              const progress = Math.round((event.loaded * 100) / event.total);
+              this.uploadProgress.set(progress);
+              observer.next({ progress });
+            } else if (event.type === HttpEventType.Response && event.body) {
+              this.isUploading.set(false);
+              this.uploadProgress.set(100);
+              const image = event.body;
+              observer.next({ progress: 100, image });
+              observer.complete();
+            }
+          },
+          error: (err: unknown) => {
             this.isUploading.set(false);
-            this.uploadProgress.set(100);
-            const image = event.body;
-            observer.next({ progress: 100, image });
-            observer.complete();
-          }
-        },
-        error: (err: unknown) => {
-          this.isUploading.set(false);
-          this.uploadProgress.set(0);
-          const message = extractProblemDetail(err) ?? 'Upload failed';
-          this.uploadError.set(message);
-          this.logging.error('ProductImage upload failed', err);
-          observer.error(err);
-        },
-      });
+            this.uploadProgress.set(0);
+            const message = extractProblemDetail(err) ?? 'Upload failed';
+            this.uploadError.set(message);
+            this.logging.error('ProductImage upload failed', err);
+            observer.error(err);
+          },
+        });
 
       return () => {
         sub.unsubscribe();

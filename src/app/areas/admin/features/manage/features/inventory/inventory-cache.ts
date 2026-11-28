@@ -28,7 +28,7 @@ export class InventoryCache {
   // Lista completa de insumos (para warning de costo cero, picker de compra y transferencia)
   readonly supplies = new ResourceCache<SupplyVariantResponse[]>(
     () => this.supplyService.getSupplyVariants(),
-    { ttlMs: 2 * 60 * 1000, staleWhileRevalidate: true }
+    { ttlMs: 2 * 60 * 1000, staleWhileRevalidate: true },
   );
 
   // Lista paginada de insumos - la página/tamaño se configuran por componente
@@ -37,34 +37,36 @@ export class InventoryCache {
   private purchasesParams: { search?: string } = {};
 
   readonly suppliesPage = new ResourceCache<PaginatedSuppliesResponse>(
-    () => this.supplyService.getSupplyVariantsPaginated(
-      this.supplyListParams.page,
-      this.supplyListParams.size,
-      this.supplyListParams.search,
-    ),
-    { ttlMs: 10 * 60 * 1000, staleWhileRevalidate: true }
+    () =>
+      this.supplyService.getSupplyVariantsPaginated(
+        this.supplyListParams.page,
+        this.supplyListParams.size,
+        this.supplyListParams.search,
+      ),
+    { ttlMs: 10 * 60 * 1000, staleWhileRevalidate: true },
   );
 
   // Suppliers - TTL largo (30 min), con búsqueda server-side
   readonly suppliers = new ResourceCache<SupplierResponse[]>(
     () => this.supplierService.getSuppliers(this.suppliersParams.search),
-    { ttlMs: 30 * 60 * 1000, staleWhileRevalidate: true }
+    { ttlMs: 30 * 60 * 1000, staleWhileRevalidate: true },
   );
 
   // Purchases - TTL medio (5 min), con búsqueda server-side
   readonly purchases = new ResourceCache<PurchaseResponse[]>(
     () => this.purchaseService.getPurchases(this.purchasesParams.search),
-    { ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true }
+    { ttlMs: 5 * 60 * 1000, staleWhileRevalidate: true },
   );
 
   // Datos de referencia - solo bajo demanda, TTL largo (30 min)
   readonly referenceData = new ResourceCache<InventoryReferenceData>(
-    () => forkJoin({
-      categories: this.supplyService.getCategories(),
-      units: this.supplyService.getUnits(),
-      allSupplies: this.supplyService.getSupplies()
-    }),
-    { ttlMs: 30 * 60 * 1000, staleWhileRevalidate: true }
+    () =>
+      forkJoin({
+        categories: this.supplyService.getCategories(),
+        units: this.supplyService.getUnits(),
+        allSupplies: this.supplyService.getSupplies(),
+      }),
+    { ttlMs: 30 * 60 * 1000, staleWhileRevalidate: true },
   );
 
   /** Cambia la página/tamaño de la lista de insumos y vuelve a consultarla al servidor. */

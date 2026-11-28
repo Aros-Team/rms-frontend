@@ -13,11 +13,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import {
-  hasSymbol,
-  isPasswordValid,
-  isPrintableAscii,
-} from './password-policy';
+import { hasSymbol, isPasswordValid, isPrintableAscii } from './password-policy';
 
 describe('password policy', () => {
   it('accepts every ASCII punctuation character as a symbol', () => {

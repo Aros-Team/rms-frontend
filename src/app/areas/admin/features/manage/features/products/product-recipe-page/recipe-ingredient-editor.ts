@@ -19,12 +19,7 @@ import { RmsSelect } from '@app/shared/ui/select/select';
 import type { Money } from '@app/shared/models/dto/common/money';
 import { Money as MoneyPipe } from '@app/shared/pipes/money/money';
 
-import {
-  currencyOf,
-  lineCostMicro,
-  microToMoney,
-  moneyToMicro,
-} from './recipe-costing';
+import { currencyOf, lineCostMicro, microToMoney, moneyToMicro } from './recipe-costing';
 import {
   createRecipeRow,
   issuesForRow,
@@ -67,15 +62,7 @@ export interface RecipeVariantView {
   templateUrl: './recipe-ingredient-editor.html',
   styleUrl: './recipe-ingredient-editor.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    FormsModule,
-    RmsBadge,
-    RmsEmptyState,
-    RmsIconButton,
-    RmsInput,
-    RmsSelect,
-    MoneyPipe,
-  ],
+  imports: [FormsModule, RmsBadge, RmsEmptyState, RmsIconButton, RmsInput, RmsSelect, MoneyPipe],
 })
 export class RecipeIngredientEditor {
   private readonly host: ElementRef<HTMLElement> = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -116,7 +103,9 @@ export class RecipeIngredientEditor {
     () => new Set(this.variantsState().map((variant) => variant.id)),
   );
 
-  readonly validation = computed(() => validateRecipeRows(this.rowsState(), this.knownVariantIds()));
+  readonly validation = computed(() =>
+    validateRecipeRows(this.rowsState(), this.knownVariantIds()),
+  );
 
   readonly usedVariantIds = computed(() => {
     const used = new Set<number>();
@@ -145,22 +134,17 @@ export class RecipeIngredientEditor {
     const category = this.categoryId();
     const used = this.usedVariantIds();
     const pool = this.variantsState().filter(
-      (variant) =>
-        !used.has(variant.id) && (category === null || variant.categoryId === category),
+      (variant) => !used.has(variant.id) && (category === null || variant.categoryId === category),
     );
     if (term.length === 0) {
       // With no search text, a chosen category lists its first options; with no
       // filter at all, the catalogue is too large to dump into the page.
       return category === null ? [] : pool.slice(0, 8);
     }
-    return pool
-      .filter((variant) => variant.displayName.toLowerCase().includes(term))
-      .slice(0, 8);
+    return pool.filter((variant) => variant.displayName.toLowerCase().includes(term)).slice(0, 8);
   });
 
-  readonly hasQuery = computed(
-    () => this.search().trim().length > 0 || this.categoryId() !== null,
-  );
+  readonly hasQuery = computed(() => this.search().trim().length > 0 || this.categoryId() !== null);
 
   readonly searchHint = computed(() => {
     if (this.variantsState().length === 0) return 'Cargando catálogo de insumos…';
@@ -248,9 +232,8 @@ export class RecipeIngredientEditor {
       return;
     }
     if (event.key === 'ArrowDown') {
-      const firstResult = this.host.nativeElement.querySelector<HTMLButtonElement>(
-        '[data-recipe-result]',
-      );
+      const firstResult =
+        this.host.nativeElement.querySelector<HTMLButtonElement>('[data-recipe-result]');
       if (firstResult !== null) {
         event.preventDefault();
         firstResult.focus();
@@ -270,7 +253,9 @@ export class RecipeIngredientEditor {
   }
 
   private replaceRow(row: RecipeRow, next: RecipeRow): void {
-    this.commit(this.rowsState().map((candidate) => (candidate.key === row.key ? next : candidate)));
+    this.commit(
+      this.rowsState().map((candidate) => (candidate.key === row.key ? next : candidate)),
+    );
   }
 
   private commit(rows: RecipeRow[]): void {

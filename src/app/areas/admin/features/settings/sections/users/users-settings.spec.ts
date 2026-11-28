@@ -90,12 +90,8 @@ describe('UsersSettingsSection', () => {
       updateUserRole: vi.fn((id: number, role: string) =>
         of({ ...(id === ADMIN.id ? ADMIN : WAITER), role }),
       ),
-      updateUserAreas: vi.fn((id: number, areaIds: number[]) =>
-        of({ ...WAITER, id, areaIds }),
-      ),
-      updateUserStatus: vi.fn((id: number, status: string) =>
-        of({ ...WAITER, id, status }),
-      ),
+      updateUserAreas: vi.fn((id: number, areaIds: number[]) => of({ ...WAITER, id, areaIds })),
+      updateUserStatus: vi.fn((id: number, status: string) => of({ ...WAITER, id, status })),
     };
     messages = { add: vi.fn() };
 
@@ -239,8 +235,6 @@ describe('UsersSettingsSection', () => {
 
     expect(component.dialogError()).toBe('Debe quedar al menos un administrador activo');
     expect(api.listUsers).toHaveBeenCalledTimes(2);
-    expect(messages.add).not.toHaveBeenCalledWith(
-      expect.objectContaining({ severity: 'success' }),
-    );
+    expect(messages.add).not.toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
   });
 });

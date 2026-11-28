@@ -9,7 +9,8 @@
             [ngModel]="bucket()"
             (ngModelChange)="onBucketChange($event)"
             [ngModelOptions]="{ standalone: true }"
-            size="sm" />
+            size="sm"
+          />
         </div>
         <div class="period-field period-field--select">
           <app-rms-select
@@ -18,7 +19,8 @@
             [ngModel]="preset()"
             (ngModelChange)="onPresetChange($event)"
             [ngModelOptions]="{ standalone: true }"
-            size="sm" />
+            size="sm"
+          />
         </div>
         <div class="period-field">
           <label for="period-from" class="period-label">Desde</label>
@@ -30,7 +32,8 @@
             [ngModelOptions]="{ standalone: true }"
             [placeholder]="formatHint()"
             [attr.aria-invalid]="!fromValid()"
-            autocomplete="off" />
+            autocomplete="off"
+          />
         </div>
         <div class="period-field">
           <label for="period-to" class="period-label">Hasta</label>
@@ -42,10 +45,16 @@
             [ngModelOptions]="{ standalone: true }"
             [placeholder]="formatHint()"
             [attr.aria-invalid]="!toValid()"
-            autocomplete="off" />
+            autocomplete="off"
+          />
         </div>
         <div class="period-actions">
-          <app-rms-button type="submit" size="sm" iconStart="pi pi-check" [disabled]="!!errorMessage()">
+          <app-rms-button
+            type="submit"
+            size="sm"
+            iconStart="pi pi-check"
+            [disabled]="!!errorMessage()"
+          >
             Aplicar
           </app-rms-button>
           <app-rms-button variant="secondary" size="sm" iconStart="pi pi-refresh" (click)="reset()">
@@ -57,7 +66,8 @@
           icon="pi pi-chevron-up"
           ariaLabel="Cerrar selector de periodo"
           tooltip="Cerrar"
-          (click)="collapse()" />
+          (click)="collapse()"
+        />
         @if (errorMessage(); as message) {
           <p class="period-error" role="alert">{{ message }}</p>
         }
@@ -69,7 +79,8 @@
           class="period-dock__range"
           (click)="toggle()"
           [attr.aria-expanded]="expanded()"
-          aria-controls="period-dock-form">
+          aria-controls="period-dock-form"
+        >
           <i class="pi pi-calendar" aria-hidden="true"></i>
           <span class="period-dock__caption">Periodo</span>
           <span class="period-dock__value">{{ currentRangeLabel() }}</span>
@@ -80,12 +91,14 @@
           icon="pi pi-refresh"
           ariaLabel="Actualizar datos"
           tooltip="Actualizar datos"
-          (click)="refreshActive()" />
+          (click)="refreshActive()"
+        />
         <app-rms-icon-button
           icon="pi pi-chevron-down"
           ariaLabel="Expandir selector de periodo"
           tooltip="Cambiar periodo"
-          (click)="toggle()" />
+          (click)="toggle()"
+        />
       </div>
     }
   </div>
@@ -97,7 +110,8 @@
         [options]="bucketOptions"
         [ngModel]="bucket()"
         (ngModelChange)="onBucketChange($event)"
-        size="sm" />
+        size="sm"
+      />
     </div>
     <div class="period-field period-field--select">
       <app-rms-select
@@ -105,7 +119,8 @@
         [options]="presetOptions()"
         [ngModel]="preset()"
         (ngModelChange)="onPresetChange($event)"
-        size="sm" />
+        size="sm"
+      />
     </div>
     <div class="period-field">
       <label for="period-from" class="period-label">Desde</label>
@@ -116,7 +131,8 @@
         (ngModelChange)="onFromChange($event)"
         [placeholder]="formatHint()"
         [attr.aria-invalid]="!fromValid()"
-        autocomplete="off" />
+        autocomplete="off"
+      />
     </div>
     <div class="period-field">
       <label for="period-to" class="period-label">Hasta</label>
@@ -127,10 +143,16 @@
         (ngModelChange)="onToChange($event)"
         [placeholder]="formatHint()"
         [attr.aria-invalid]="!toValid()"
-        autocomplete="off" />
+        autocomplete="off"
+      />
     </div>
     <div class="period-actions">
-      <app-rms-button size="sm" iconStart="pi pi-check" [disabled]="!!errorMessage()" (click)="apply()">
+      <app-rms-button
+        size="sm"
+        iconStart="pi pi-check"
+        [disabled]="!!errorMessage()"
+        (click)="apply()"
+      >
         Aplicar
       </app-rms-button>
       <app-rms-button variant="secondary" size="sm" iconStart="pi pi-refresh" (click)="reset()">

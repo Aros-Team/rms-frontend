@@ -16,7 +16,9 @@
       <p class="orders__empty-copy">
         Cuando cocina tome un pedido aparecerá aquí, y podrás entregarlo en cuanto esté listo.
       </p>
-      <app-rms-button size="lg" iconStart="pi pi-book" (click)="goToCarta()">Ver la carta</app-rms-button>
+      <app-rms-button size="lg" iconStart="pi pi-book" (click)="goToCarta()"
+        >Ver la carta</app-rms-button
+      >
     </div>
   } @else {
     <ul class="order-list">
@@ -64,7 +66,8 @@
                           iconStart="pi pi-check"
                           [loading]="isProcessing(order.id)"
                           [disabled]="isProcessing(order.id) || order.status === 'DELIVERED'"
-                          (click)="deliverLine(order, line)">
+                          (click)="deliverLine(order, line)"
+                        >
                           Entregar
                         </app-rms-button>
                       } @else {

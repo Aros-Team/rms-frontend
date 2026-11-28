@@ -31,7 +31,9 @@ export function mapHttpError(err: HttpErrorResponse, context?: string): string {
 
   if (context === 'payroll') {
     if (err.status === 400) {
-      return message ?? 'Datos de nómina inválidos: revisa la cantidad, el valor unitario y las fechas';
+      return (
+        message ?? 'Datos de nómina inválidos: revisa la cantidad, el valor unitario y las fechas'
+      );
     }
     if (err.status === 404) {
       return 'No se encontró la nómina, el evento o la liquidación solicitada';

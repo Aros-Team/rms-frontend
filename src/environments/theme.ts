@@ -22,7 +22,7 @@ export const theme = {
     700: '#392d11',
     800: '#57441a',
     900: '#725a23',
-    950: '#ab8734'
+    950: '#ab8734',
   },
 
   semantic: {
@@ -37,7 +37,7 @@ export const theme = {
       700: '#1d4ed8',
       800: '#1e40af',
       900: '#1e3a8a',
-      950: '#172554'
+      950: '#172554',
     },
     success: {
       50: '#ecfdf5',
@@ -50,7 +50,7 @@ export const theme = {
       700: '#047857',
       800: '#065f46',
       900: '#064e3b',
-      950: '#022c22'
+      950: '#022c22',
     },
     warn: {
       50: '#fffbeb',
@@ -63,17 +63,17 @@ export const theme = {
       700: '#b45309',
       800: '#92400e',
       900: '#78350f',
-      950: '#451a03'
-    }
+      950: '#451a03',
+    },
   },
 
   surface: {
-    0: '#ffffff',   // card surface — pure white (enterprise clean)
-    50: '#f8fafc',   // page background — slate-50 (sober neutral)
-    100: '#f1f5f9',   // slate-100
-    200: '#e2e8f0',   // slate-200 — hairline borders
+    0: '#ffffff', // card surface — pure white (enterprise clean)
+    50: '#f8fafc', // page background — slate-50 (sober neutral)
+    100: '#f1f5f9', // slate-100
+    200: '#e2e8f0', // slate-200 — hairline borders
     300: '#cbd5e1',
     400: '#94a3b8',
-    500: '#64748b'
-  }
+    500: '#64748b',
+  },
 };

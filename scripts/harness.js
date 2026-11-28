@@ -17,7 +17,10 @@ const NC = '\x1b[0m';
 
 const ok = (msg) => console.log(`${GREEN}[OK]${NC}    ${msg}`);
 const warn = (msg) => console.log(`${YELLOW}[WARN]${NC}  ${msg}`);
-const fail = (msg) => { console.log(`${RED}[FAIL]${NC}  ${msg}`); exitCode = 1; };
+const fail = (msg) => {
+  console.log(`${RED}[FAIL]${NC}  ${msg}`);
+  exitCode = 1;
+};
 
 console.log('── 1. Environment Check ─────────────────────────────');
 
@@ -64,7 +67,7 @@ try {
   const activities = Array.isArray(data) ? data : data.activities || [];
   const validStatuses = new Set(['pending', 'in_progress', 'done', 'blocked']);
   const validTypes = new Set(['fix', 'feat', 'chore']);
-  const inProgress = activities.filter(a => a.status === 'in_progress');
+  const inProgress = activities.filter((a) => a.status === 'in_progress');
 
   if (inProgress.length > 1) {
     fail(`Found ${inProgress.length} activities in in_progress (max 1)`);
@@ -72,13 +75,13 @@ try {
   }
 
   for (const a of activities) {
-    if (a.status === 'done' && a.tasks && a.tasks.some(t => t.status !== 'done')) {
+    if (a.status === 'done' && a.tasks && a.tasks.some((t) => t.status !== 'done')) {
       warn(`Activity ${a.id} is done but has tasks not done`);
     }
   }
 
   for (const a of inProgress) {
-    if (!a.tasks || !a.tasks.some(t => t.status === 'in_progress')) {
+    if (!a.tasks || !a.tasks.some((t) => t.status === 'in_progress')) {
       warn(`Activity ${a.id} is in_progress but no task is in_progress`);
     }
   }
@@ -106,7 +109,9 @@ try {
           hasInvalid = true;
         }
         if (t.agent && !validAgents.has(t.agent)) {
-          fail(`Invalid task agent in activity ${a.id}: ${t.agent} (must be implementer or reviewer)`);
+          fail(
+            `Invalid task agent in activity ${a.id}: ${t.agent} (must be implementer or reviewer)`,
+          );
           hasInvalid = true;
         }
       }
@@ -157,10 +162,13 @@ if (hasDesignMd) {
   let styleErrors = 0;
 
   // Scan HTML templates for black/000 violations
-  const htmlFiles = execSync(
-    'find src -name "*.html" -not -path "*/node_modules/*"',
-    { encoding: 'utf8', cwd: PROJECT_ROOT }
-  ).trim().split('\n').filter(Boolean);
+  const htmlFiles = execSync('find src -name "*.html" -not -path "*/node_modules/*"', {
+    encoding: 'utf8',
+    cwd: PROJECT_ROOT,
+  })
+    .trim()
+    .split('\n')
+    .filter(Boolean);
 
   const shadowPattern = /\b(shadow-sm|shadow-md|shadow-lg|shadow-xl|shadow-xs|shadow-2xl)\b/;
   const bgWhitePattern = /\bbg-white\b/;
@@ -181,10 +189,13 @@ if (hasDesignMd) {
   }
 
   // Scan CSS files for box-shadow violations (excluding high-contrast and scrollbar)
-  const cssFiles = execSync(
-    'find src -name "*.css" -not -path "*/node_modules/*"',
-    { encoding: 'utf8', cwd: PROJECT_ROOT }
-  ).trim().split('\n').filter(Boolean);
+  const cssFiles = execSync('find src -name "*.css" -not -path "*/node_modules/*"', {
+    encoding: 'utf8',
+    cwd: PROJECT_ROOT,
+  })
+    .trim()
+    .split('\n')
+    .filter(Boolean);
 
   const boxShadowPattern = /box-shadow\s*:\s*(?!none\b)(?![^;}]*none)/;
 

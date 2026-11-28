@@ -1,7 +1,4 @@
-<app-rms-section
-  title="Notificaciones"
-  [hideHeader]="true"
->
+<app-rms-section title="Notificaciones" [hideHeader]="true">
   @if (loading()) {
     <div class="flex flex-col gap-3">
       <app-rms-skeleton height="2rem" ariaLabel="Cargando preferencias de notificaciones" />
@@ -28,7 +25,9 @@
         </p>
       }
 
-      <p class="rounded-lg border border-rms-border bg-rms-subtle px-4 py-3 text-rms-body text-rms-ink-secondary">
+      <p
+        class="rounded-lg border border-rms-border bg-rms-subtle px-4 py-3 text-rms-body text-rms-ink-secondary"
+      >
         Estos avisos son globales para todo el restaurante. Un cambio aquí afecta a todas las
         estaciones y dispositivos conectados.
       </p>

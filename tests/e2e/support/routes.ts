@@ -33,7 +33,13 @@ export type RoleKey = 'admin' | 'waiter' | 'kitchen' | 'cashier';
 export const ROLE_ROUTES: Record<RoleKey, RouteCase[]> = {
   admin: [
     { path: '/admin', slug: 'admin', label: 'Dashboard', shell: 'admin', expectPath: '/admin' },
-    { path: '/admin/orders', slug: 'orders', label: 'Orders', shell: 'admin', expectPath: '/admin/orders' },
+    {
+      path: '/admin/orders',
+      slug: 'orders',
+      label: 'Orders',
+      shell: 'admin',
+      expectPath: '/admin/orders',
+    },
     {
       path: '/admin/team',
       slug: 'team',

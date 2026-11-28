@@ -72,8 +72,6 @@ export class GeneralStep {
 
   readonly allDays = ALL_DAYS;
 
-
-
   // ── Schedule state ───────────────────────────────────────────────────
   private nextScheduleId = 0;
   private scheduleBlocks = signal<ScheduleBlock[]>([]);
@@ -95,9 +93,15 @@ export class GeneralStep {
     });
   }
 
-  onNameChange(value: string): void { this.wizard.updateData({ name: value }); }
-  onDescriptionChange(value: string): void { this.wizard.updateData({ description: value }); }
-  onSchedulingRequiredChange(value: boolean): void { this.wizard.updateData({ schedulingRequired: value }); }
+  onNameChange(value: string): void {
+    this.wizard.updateData({ name: value });
+  }
+  onDescriptionChange(value: string): void {
+    this.wizard.updateData({ description: value });
+  }
+  onSchedulingRequiredChange(value: boolean): void {
+    this.wizard.updateData({ schedulingRequired: value });
+  }
 
   // ── Categories ───────────────────────────────────────────────────────
   isCategorySelected(id: number): boolean {
@@ -160,14 +164,23 @@ export class GeneralStep {
   }
 
   isDayInBlock(blockId: number, day: DayOfWeek): boolean {
-    return this.scheduleBlocks().find((b) => b.id === blockId)?.dayOfWeek.includes(day) ?? false;
+    return (
+      this.scheduleBlocks()
+        .find((b) => b.id === blockId)
+        ?.dayOfWeek.includes(day) ?? false
+    );
   }
 
   toggleBlockDay(blockId: number, day: DayOfWeek): void {
     this.scheduleBlocks.update((blocks) =>
       blocks.map((b) =>
         b.id === blockId
-          ? { ...b, dayOfWeek: b.dayOfWeek.includes(day) ? b.dayOfWeek.filter((d) => d !== day) : [...b.dayOfWeek, day] }
+          ? {
+              ...b,
+              dayOfWeek: b.dayOfWeek.includes(day)
+                ? b.dayOfWeek.filter((d) => d !== day)
+                : [...b.dayOfWeek, day],
+            }
           : b,
       ),
     );
@@ -213,7 +226,11 @@ export class GeneralStep {
     const entries: { dayOfWeek: DayOfWeek; startTime: string; endTime: string }[] = [];
     for (const block of this.scheduleBlocks()) {
       for (const day of block.dayOfWeek) {
-        entries.push({ dayOfWeek: day, startTime: this.formatTime(block.startTime), endTime: this.formatTime(block.endTime) });
+        entries.push({
+          dayOfWeek: day,
+          startTime: this.formatTime(block.startTime),
+          endTime: this.formatTime(block.endTime),
+        });
       }
     }
     this.wizard.updateSchedule(entries);

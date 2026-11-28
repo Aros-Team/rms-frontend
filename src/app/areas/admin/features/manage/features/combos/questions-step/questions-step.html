@@ -2,15 +2,15 @@
 
 <div class="flex flex-col gap-4">
   <div class="flex items-center justify-between">
-    <h2 class="rms-h2">
-      Preguntas adicionales
-    </h2>
+    <h2 class="rms-h2">Preguntas adicionales</h2>
     <app-rms-button
       variant="secondary"
       iconStart="pi pi-plus"
       size="sm"
       (click)="addQuestion()"
-      data-testid="add-question-btn">Agregar pregunta</app-rms-button>
+      data-testid="add-question-btn"
+      >Agregar pregunta</app-rms-button
+    >
   </div>
 
   <p class="text-sm text-muted">
@@ -24,7 +24,8 @@
     >
       <i class="pi pi-question-circle text-3xl text-muted" aria-hidden="true"></i>
       <p class="text-muted text-sm text-center max-w-sm">
-        No hay preguntas configuradas. Agrega una pregunta para obtener información adicional del cliente.
+        No hay preguntas configuradas. Agrega una pregunta para obtener información adicional del
+        cliente.
       </p>
     </div>
   } @else {
@@ -53,10 +54,7 @@
               inputId="required-{{ idx }}"
               data-testid="required-checkbox"
             />
-            <label
-              [for]="'required-' + idx"
-              class="text-sm text-rms-ink-secondary cursor-pointer"
-            >
+            <label [for]="'required-' + idx" class="text-sm text-rms-ink-secondary cursor-pointer">
               (Obligatorio)
             </label>
           </div>
@@ -67,7 +65,8 @@
             variant="danger"
             size="sm"
             (click)="confirmRemove($event, idx)"
-            data-testid="remove-question-btn" />
+            data-testid="remove-question-btn"
+          />
         </div>
       }
     </div>

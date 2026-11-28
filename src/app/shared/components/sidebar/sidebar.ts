@@ -1,4 +1,13 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, inject, TemplateRef } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  OnInit,
+  OnDestroy,
+  inject,
+  TemplateRef,
+} from '@angular/core';
 import { CommonModule, NgTemplateOutlet } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MenuItem, Menu } from '@core/services/menu/menu';
@@ -28,7 +37,7 @@ export class Sidebar implements OnInit, OnDestroy {
   private menuService = inject(Menu);
 
   ngOnInit(): void {
-    this.menuSubscription = this.menuService.menuItems$.subscribe(items => {
+    this.menuSubscription = this.menuService.menuItems$.subscribe((items) => {
       this.menuItems = items;
     });
   }

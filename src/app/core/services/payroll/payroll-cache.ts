@@ -32,22 +32,28 @@ export class PayrollCache {
   /** Every payroll record of one worker (`GET /v1/payroll/worker/{userId}`). */
   worker(userId: number): ResourceCache<PayrollResponse[]> {
     const key = String(userId);
-    return this.memoize(this.workerCaches, key, () =>
-      new ResourceCache<PayrollResponse[]>(() => this.api.getPayrollsByWorker(userId), {
-        ttlMs: PAYROLL_TTL_MS,
-        staleWhileRevalidate: true,
-      }),
+    return this.memoize(
+      this.workerCaches,
+      key,
+      () =>
+        new ResourceCache<PayrollResponse[]>(() => this.api.getPayrollsByWorker(userId), {
+          ttlMs: PAYROLL_TTL_MS,
+          staleWhileRevalidate: true,
+        }),
     );
   }
 
   /** Events of one worker in one month. */
   events(userId: number, year: number, month: number): ResourceCache<PayrollEventResponse[]> {
     const key = `${String(userId)}-${String(year)}-${String(month)}`;
-    return this.memoize(this.eventCaches, key, () =>
-      new ResourceCache<PayrollEventResponse[]>(
-        () => this.api.getEvents(userId, year, month),
-        { ttlMs: PAYROLL_TTL_MS, staleWhileRevalidate: true },
-      ),
+    return this.memoize(
+      this.eventCaches,
+      key,
+      () =>
+        new ResourceCache<PayrollEventResponse[]>(() => this.api.getEvents(userId, year, month), {
+          ttlMs: PAYROLL_TTL_MS,
+          staleWhileRevalidate: true,
+        }),
     );
   }
 
@@ -58,11 +64,14 @@ export class PayrollCache {
     month: number,
   ): ResourceCache<PayrollSettlementResponse[]> {
     const key = `${String(userId)}-${String(year)}-${String(month)}`;
-    return this.memoize(this.settlementCaches, key, () =>
-      new ResourceCache<PayrollSettlementResponse[]>(
-        () => this.api.getSettlements(userId, year, month),
-        { ttlMs: PAYROLL_TTL_MS, staleWhileRevalidate: true },
-      ),
+    return this.memoize(
+      this.settlementCaches,
+      key,
+      () =>
+        new ResourceCache<PayrollSettlementResponse[]>(
+          () => this.api.getSettlements(userId, year, month),
+          { ttlMs: PAYROLL_TTL_MS, staleWhileRevalidate: true },
+        ),
     );
   }
 
@@ -80,11 +89,7 @@ export class PayrollCache {
     for (const cache of this.settlementCaches.values()) cache.invalidate();
   }
 
-  private memoize<T>(
-    store: Map<string, T>,
-    key: string,
-    create: () => T,
-  ): T {
+  private memoize<T>(store: Map<string, T>, key: string, create: () => T): T {
     const existing = store.get(key);
     if (existing !== undefined) return existing;
 

@@ -59,7 +59,8 @@ describe('OrdersTable (server-side paging)', () => {
 
   beforeAll(async () => {
     await resolveComponentResources((url: string) => {
-      if (url.endsWith('orders-table.html')) return Promise.resolve(ordersTableHtml as unknown as string);
+      if (url.endsWith('orders-table.html'))
+        return Promise.resolve(ordersTableHtml as unknown as string);
       // Child widgets (datepicker, skeleton, prime components) are irrelevant here.
       return Promise.resolve('');
     });
@@ -148,7 +149,12 @@ describe('OrdersTable (server-side paging)', () => {
   });
 
   it('sends a descending sort when the header toggles', () => {
-    fixture.componentInstance.onLazyLoad({ first: 0, rows: 10, sortField: 'tableId', sortOrder: -1 });
+    fixture.componentInstance.onLazyLoad({
+      first: 0,
+      rows: 10,
+      sortField: 'tableId',
+      sortOrder: -1,
+    });
 
     const query = getPage.mock.calls[1][0] as Record<string, unknown>;
     expect(query).toMatchObject({ page: 0, sort: 'tableId,desc' });
@@ -205,9 +211,15 @@ describe('OrdersTable (server-side paging)', () => {
     try {
       vi.setSystemTime(new Date(2026, 10, 27, 18, 0, 0));
 
-      expect(fixture.componentInstance.formatDate(new Date(2026, 10, 27, 9, 5))).toBe('Hoy, 09:05 a. m.');
-      expect(fixture.componentInstance.formatDate(new Date(2026, 10, 26, 21, 30))).toBe('Ayer, 09:30 p. m.');
-      expect(fixture.componentInstance.formatDate(new Date(2026, 10, 25, 12, 0))).toBe('25/11/2026, 12:00 p. m.');
+      expect(fixture.componentInstance.formatDate(new Date(2026, 10, 27, 9, 5))).toBe(
+        'Hoy, 09:05 a. m.',
+      );
+      expect(fixture.componentInstance.formatDate(new Date(2026, 10, 26, 21, 30))).toBe(
+        'Ayer, 09:30 p. m.',
+      );
+      expect(fixture.componentInstance.formatDate(new Date(2026, 10, 25, 12, 0))).toBe(
+        '25/11/2026, 12:00 p. m.',
+      );
     } finally {
       vi.useRealTimers();
     }
@@ -248,7 +260,10 @@ describe('OrdersTable (server-side paging)', () => {
 
   it('shows the RFC 7807 detail from a failed request instead of a generic message', () => {
     getPage.mockReturnValueOnce(
-      throwError(() => ({ status: 500, error: { detail: 'Servidor ocupado, inténtalo de nuevo.' } })),
+      throwError(() => ({
+        status: 500,
+        error: { detail: 'Servidor ocupado, inténtalo de nuevo.' },
+      })),
     );
 
     fixture.componentInstance.retry();

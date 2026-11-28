@@ -1,9 +1,5 @@
 import type { OrderDetailItem } from '@app/shared/models/dto/orders/order-response';
-import {
-  stationForDetail,
-  type KitchenStation,
-  type KitchenStationMap,
-} from './kitchen-stations';
+import { stationForDetail, type KitchenStation, type KitchenStationMap } from './kitchen-stations';
 
 /**
  * Readable kitchen line model.
@@ -132,7 +128,9 @@ function toLine(detail: OrderDetailItem, station: KitchenStation): KitchenLine {
     details: [readinessOf(detail)],
     options: uniqueSorted((detail.selectedOptions ?? []).map(optionLabel)),
     combos: uniqueSorted((detail.selectedProducts ?? []).map((product) => product.name ?? '')),
-    additions: uniqueSorted((detail.selectedAdditions ?? []).map((addition) => addition.name ?? '')),
+    additions: uniqueSorted(
+      (detail.selectedAdditions ?? []).map((addition) => addition.name ?? ''),
+    ),
     clarifications: (detail.clarifications ?? []).map((clarification) => ({
       question: clarification.question,
       answer: clarification.answer,

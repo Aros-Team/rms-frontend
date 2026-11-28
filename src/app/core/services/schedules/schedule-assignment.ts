@@ -20,10 +20,9 @@ export class ScheduleAssignment {
     const wid = String(workerId);
     const sid = String(scheduleId);
     this.logger.debug('ScheduleAssignment: Calling POST assign worker:', wid, 'schedule:', sid);
-    return this.http.post<ScheduleAssignmentResponse>(
-      `v1/workers/${wid}/schedule-assignments`,
-      { scheduleId },
-    );
+    return this.http.post<ScheduleAssignmentResponse>(`v1/workers/${wid}/schedule-assignments`, {
+      scheduleId,
+    });
   }
 
   getAssignments(workerId: number): Observable<number[]> {

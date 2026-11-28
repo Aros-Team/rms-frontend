@@ -119,8 +119,10 @@ export class HourlySalesChart {
   private buildSummary(rows: readonly HourlySalesBar[]): string {
     const parts = rows
       .filter((row) => row.revenue > 0 || row.delivered > 0)
-      .map((row) => `${row.label}: ${String(row.delivered)} ${row.delivered === 1 ? 'pedido' : 'pedidos'}`);
+      .map(
+        (row) =>
+          `${row.label}: ${String(row.delivered)} ${row.delivered === 1 ? 'pedido' : 'pedidos'}`,
+      );
     return parts.length > 0 ? `Ventas por hora de hoy. ${parts.join('; ')}.` : '';
   }
-
 }

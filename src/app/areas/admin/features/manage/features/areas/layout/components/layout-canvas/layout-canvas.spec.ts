@@ -110,6 +110,8 @@ describe('LayoutCanvas', () => {
     expect(area.querySelector('.area-shape__outline')?.getAttribute('d')).toContain('M0 0L1 0');
     expect(host.querySelectorAll('g.area-shape')).toHaveLength(2);
     expect(queryElement(host, '.region-selection').getAttribute('d')).toContain('M0 0L1 0');
-    expect(host.querySelector('svg')?.getAttribute('aria-label')).toContain('Lienzo de distribución');
+    expect(host.querySelector('svg')?.getAttribute('aria-label')).toContain(
+      'Lienzo de distribución',
+    );
   });
 });

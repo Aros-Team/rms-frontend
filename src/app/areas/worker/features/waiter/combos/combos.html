@@ -21,8 +21,8 @@
       <span class="combos__empty-icon" aria-hidden="true"><i class="pi pi-box"></i></span>
       <h2 class="combos__empty-title">No hay combos disponibles</h2>
       <p class="combos__empty-copy">
-        Los combos están disponibles todos los días de 11:00 a 23:00. Fuera de ese horario
-        puedes seguir tomando pedidos desde la carta.
+        Los combos están disponibles todos los días de 11:00 a 23:00. Fuera de ese horario puedes
+        seguir tomando pedidos desde la carta.
       </p>
       <app-rms-button size="lg" iconStart="pi pi-book" (click)="goToCarta()">
         Ver la carta
@@ -44,10 +44,7 @@
           @if (combo.groups.length > 0) {
             <div class="combo-card__groups" aria-label="Grupos del combo">
               @for (group of combo.groups; track group.id) {
-                <span
-                  class="combo-group"
-                  [attr.title]="groupProducts(combo, group) || null"
-                >
+                <span class="combo-group" [attr.title]="groupProducts(combo, group) || null">
                   <span class="combo-group__name">{{ groupName(group) }}</span>
                   @if (group.required) {
                     <span class="combo-group__flag">Obligatorio</span>
@@ -64,7 +61,11 @@
                 {{ combo.basePrice | money }}
               </span>
             </div>
-            <app-rms-button size="lg" iconStart="pi pi-sliders-h" (click)="selectCombo(combo.productId)">
+            <app-rms-button
+              size="lg"
+              iconStart="pi pi-sliders-h"
+              (click)="selectCombo(combo.productId)"
+            >
               Armar combo
             </app-rms-button>
           </footer>

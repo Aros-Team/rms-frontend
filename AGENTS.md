@@ -17,20 +17,20 @@
 
 **Workspace root:** `/home/jorge/Projects/aros/rms/frontend`
 
-| File / folder | Contains | When read |
-|---|---|---|
-| `activities.json` | Activity list (pending/in_progress/done) | Always, at start |
-| `progress/current.md` | Current session state | Always, at start |
-| `progress/history.md` | Append-only log prev sessions | Need historical context |
-| `docs/architecture.md` | What "good work" means in this project | Before implement |
-| `docs/conventions.md` | Style rules, names, structure | Before write code |
-| `docs/verification.md` | How verify work works | Before declare task `done` |
-| `docs/testing.md` | Testing policy (write tests that catch bugs) | Before write or review tests |
-| `docs/CHECKPOINTS.md` | Final state evaluation checklist | Before declare task `done` |
-| `scripts/harness.js` | Entry harness (verifies env + quality) | Before start |
-| `scripts/build_harness.js` | Creates activities.json + progress/ folder | For setup |
-| `src/` | Application code | For implement |
-| `tests/` | Automated tests | For verify |
+| File / folder              | Contains                                     | When read                    |
+| -------------------------- | -------------------------------------------- | ---------------------------- |
+| `activities.json`          | Activity list (pending/in_progress/done)     | Always, at start             |
+| `progress/current.md`      | Current session state                        | Always, at start             |
+| `progress/history.md`      | Append-only log prev sessions                | Need historical context      |
+| `docs/architecture.md`     | What "good work" means in this project       | Before implement             |
+| `docs/conventions.md`      | Style rules, names, structure                | Before write code            |
+| `docs/verification.md`     | How verify work works                        | Before declare task `done`   |
+| `docs/testing.md`          | Testing policy (write tests that catch bugs) | Before write or review tests |
+| `docs/CHECKPOINTS.md`      | Final state evaluation checklist             | Before declare task `done`   |
+| `scripts/harness.js`       | Entry harness (verifies env + quality)       | Before start                 |
+| `scripts/build_harness.js` | Creates activities.json + progress/ folder   | For setup                    |
+| `src/`                     | Application code                             | For implement                |
+| `tests/`                   | Automated tests                              | For verify                   |
 
 ## 2.1 Path Rules
 
@@ -58,12 +58,12 @@
 
 Use the `delegate` tool to assign tasks. Available agents:
 
-| Agent | Use When |
-|-------|----------|
-| `task-executor` | Leader assigns specific implementation tasks |
-| `implementation-reviewer` | Validate completed work before marking done |
-| `explore` | Fast codebase exploration (find files, search patterns) |
-| `general` | Research complex questions, multi-step tasks |
+| Agent                     | Use When                                                |
+| ------------------------- | ------------------------------------------------------- |
+| `task-executor`           | Leader assigns specific implementation tasks            |
+| `implementation-reviewer` | Validate completed work before marking done             |
+| `explore`                 | Fast codebase exploration (find files, search patterns) |
+| `general`                 | Research complex questions, multi-step tasks            |
 
 ### 5.1 How to Delegate
 
@@ -93,6 +93,7 @@ Before end:
 ## 6.1 All Activities Complete
 
 When ALL activities in activities.json are marked "done":
+
 1. Ask the user: "Do you want to clean the session to start another one? (yes/no)"
 2. If user says "yes":
    - Clear all entries from activities.json (reset to empty array [])

@@ -1,71 +1,83 @@
 <div class="manage-layout">
-    <!-- Horizontal Navigation -->
-    <div class="manage-nav-bar">
-        <nav aria-label="Secciones de gestión" class="manage-nav-list icon-text-nav">
-            <a [routerLink]="['/admin/manage/products']"
-                #rla="routerLinkActive"
-                routerLinkActive="manage-nav-item-active"
-                [routerLinkActiveOptions]="{ exact: true }"
-                [attr.aria-current]="rla.isActive ? 'page' : null"
-                class="manage-nav-item nav-item">
-                <i class="pi pi-file" aria-hidden="true"></i>
-                <span class="nav-label">Carta</span>
-            </a>
+  <!-- Horizontal Navigation -->
+  <div class="manage-nav-bar">
+    <nav aria-label="Secciones de gestión" class="manage-nav-list icon-text-nav">
+      <a
+        [routerLink]="['/admin/manage/products']"
+        #rla="routerLinkActive"
+        routerLinkActive="manage-nav-item-active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        [attr.aria-current]="rla.isActive ? 'page' : null"
+        class="manage-nav-item nav-item"
+      >
+        <i class="pi pi-file" aria-hidden="true"></i>
+        <span class="nav-label">Carta</span>
+      </a>
 
-            <a [routerLink]="['/admin/manage/categories']"
-                #rla="routerLinkActive"
-                routerLinkActive="manage-nav-item-active"
-                [routerLinkActiveOptions]="{ exact: true }"
-                [attr.aria-current]="rla.isActive ? 'page' : null"
-                class="manage-nav-item nav-item">
-                <i class="pi pi-tags" aria-hidden="true"></i>
-                <span class="nav-label">Categorías</span>
-            </a>
+      <a
+        [routerLink]="['/admin/manage/categories']"
+        #rla="routerLinkActive"
+        routerLinkActive="manage-nav-item-active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        [attr.aria-current]="rla.isActive ? 'page' : null"
+        class="manage-nav-item nav-item"
+      >
+        <i class="pi pi-tags" aria-hidden="true"></i>
+        <span class="nav-label">Categorías</span>
+      </a>
 
-            <a [routerLink]="['/admin/manage/tables']"
-                #rla="routerLinkActive"
-                routerLinkActive="manage-nav-item-active"
-                [routerLinkActiveOptions]="{ exact: true }"
-                [attr.aria-current]="rla.isActive ? 'page' : null"
-                class="manage-nav-item nav-item">
-                <i class="pi pi-table" aria-hidden="true"></i>
-                <span class="nav-label">Mesas</span>
-            </a>
+      <a
+        [routerLink]="['/admin/manage/tables']"
+        #rla="routerLinkActive"
+        routerLinkActive="manage-nav-item-active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        [attr.aria-current]="rla.isActive ? 'page' : null"
+        class="manage-nav-item nav-item"
+      >
+        <i class="pi pi-table" aria-hidden="true"></i>
+        <span class="nav-label">Mesas</span>
+      </a>
 
-            <a [routerLink]="['/admin/manage/areas']"
-                #rla="routerLinkActive"
-                routerLinkActive="manage-nav-item-active"
-                [routerLinkActiveOptions]="{ exact: true }"
-                [attr.aria-current]="rla.isActive ? 'page' : null"
-                class="manage-nav-item nav-item">
-                <i class="pi pi-th-large" aria-hidden="true"></i>
-                <span class="nav-label">Áreas</span>
-            </a>
+      <a
+        [routerLink]="['/admin/manage/areas']"
+        #rla="routerLinkActive"
+        routerLinkActive="manage-nav-item-active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        [attr.aria-current]="rla.isActive ? 'page' : null"
+        class="manage-nav-item nav-item"
+      >
+        <i class="pi pi-th-large" aria-hidden="true"></i>
+        <span class="nav-label">Áreas</span>
+      </a>
 
-            <a [routerLink]="['/admin/manage/combos']"
-                #rla="routerLinkActive"
-                routerLinkActive="manage-nav-item-active"
-                [routerLinkActiveOptions]="{ exact: true }"
-                [attr.aria-current]="rla.isActive ? 'page' : null"
-                class="manage-nav-item nav-item">
-                <i class="pi pi-list" aria-hidden="true"></i>
-                <span class="nav-label">Combos</span>
-            </a>
+      <a
+        [routerLink]="['/admin/manage/combos']"
+        #rla="routerLinkActive"
+        routerLinkActive="manage-nav-item-active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        [attr.aria-current]="rla.isActive ? 'page' : null"
+        class="manage-nav-item nav-item"
+      >
+        <i class="pi pi-list" aria-hidden="true"></i>
+        <span class="nav-label">Combos</span>
+      </a>
 
-            <a [routerLink]="['/admin/manage/inventory']"
-                #rla="routerLinkActive"
-                routerLinkActive="manage-nav-item-active"
-                [routerLinkActiveOptions]="{ exact: true }"
-                [attr.aria-current]="rla.isActive ? 'page' : null"
-                class="manage-nav-item nav-item">
-                <i class="pi pi-box" aria-hidden="true"></i>
-                <span class="nav-label">Inventario</span>
-            </a>
-        </nav>
-    </div>
+      <a
+        [routerLink]="['/admin/manage/inventory']"
+        #rla="routerLinkActive"
+        routerLinkActive="manage-nav-item-active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        [attr.aria-current]="rla.isActive ? 'page' : null"
+        class="manage-nav-item nav-item"
+      >
+        <i class="pi pi-box" aria-hidden="true"></i>
+        <span class="nav-label">Inventario</span>
+      </a>
+    </nav>
+  </div>
 
-    <!-- Content -->
-    <div class="manage-content">
-        <router-outlet />
-    </div>
+  <!-- Content -->
+  <div class="manage-content">
+    <router-outlet />
+  </div>
 </div>

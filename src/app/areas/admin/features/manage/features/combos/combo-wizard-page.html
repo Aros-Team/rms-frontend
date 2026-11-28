@@ -7,11 +7,7 @@
   <app-questions-step comboWizardStep="questions" />
   <app-pricing-step comboWizardStep="pricing" />
 
-  <app-rms-button
-    footerActions
-    iconStart="pi pi-check"
-    (click)="save()"
-    [loading]="saving()">
+  <app-rms-button footerActions iconStart="pi pi-check" (click)="save()" [loading]="saving()">
     Guardar combo
   </app-rms-button>
 </app-combo-wizard>

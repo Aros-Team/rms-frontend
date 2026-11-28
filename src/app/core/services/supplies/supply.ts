@@ -55,10 +55,7 @@ export class Supply {
     return this.collectAllPages<SupplyResponse>('v1/supplies');
   }
 
-  private collectAllPages<T>(
-    url: string,
-    params: Record<string, string> = {},
-  ): Observable<T[]> {
+  private collectAllPages<T>(url: string, params: Record<string, string> = {}): Observable<T[]> {
     const fetchPage = (page: number): Observable<Page<T>> =>
       this.http
         .get<PageEnvelope<T>>(url, {
@@ -97,7 +94,7 @@ export class Supply {
         totalPages: res.page?.totalPages ?? 0,
         page: res.page?.number ?? 0,
         size: res.page?.size ?? 0,
-      }))
+      })),
     );
   }
 

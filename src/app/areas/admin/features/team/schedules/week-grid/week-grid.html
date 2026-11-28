@@ -299,8 +299,8 @@
 
     <footer class="week-grid__footer">
       <span class="rms-caption">
-        {{ filteredRows().length }} trabajadores · {{ formatMinutes(totalWeeklyMinutes()) }} asignadas
-        en la vista.
+        {{ filteredRows().length }} trabajadores ·
+        {{ formatMinutes(totalWeeklyMinutes()) }} asignadas en la vista.
       </span>
       <span class="rms-caption week-grid__footer-hint">
         Arrastra un turno para moverlo, usa sus bordes para ajustar el inicio o el fin, y pulsa
@@ -321,15 +321,24 @@
     <p class="week-grid__dialog-copy">
       ¿Quitar <strong>{{ pending.schedule.name }}</strong> de
       <strong>{{ pending.worker.name }}</strong>? Se eliminarán
-      {{ removalShiftCount(pending.schedule) }} turnos semanales
-      ({{ removalHours(pending.schedule) }}).
+      {{ removalShiftCount(pending.schedule) }} turnos semanales ({{
+        removalHours(pending.schedule)
+      }}).
     </p>
   }
   <div rmsDialogFooter class="week-grid__dialog-footer">
-    <app-rms-button variant="secondary" [disabled]="savingWorkerId() !== null" (click)="cancelRemoval()">
+    <app-rms-button
+      variant="secondary"
+      [disabled]="savingWorkerId() !== null"
+      (click)="cancelRemoval()"
+    >
       Cancelar
     </app-rms-button>
-    <app-rms-button variant="danger" [loading]="savingWorkerId() !== null" (click)="confirmRemoval()">
+    <app-rms-button
+      variant="danger"
+      [loading]="savingWorkerId() !== null"
+      (click)="confirmRemoval()"
+    >
       Quitar turno
     </app-rms-button>
   </div>

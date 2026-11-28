@@ -84,5 +84,7 @@ export class AnalyticsCache {
 }
 
 function wrap<T>(source: Observable<T>): Observable<T> {
-  return source.pipe(catchError((error: unknown) => throwError(() => toAnalyticsRequestError(error))));
+  return source.pipe(
+    catchError((error: unknown) => throwError(() => toAnalyticsRequestError(error))),
+  );
 }

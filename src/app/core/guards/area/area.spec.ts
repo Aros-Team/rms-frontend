@@ -223,8 +223,6 @@ describe('AreaGuard', () => {
   it('allows the intersection of a multi-workspace route', () => {
     auth.getData.mockReturnValue(worker('GRILL'));
 
-    expect(
-      guard.canActivate(route({ workerWorkspaces: ['waiter', 'kitchen'] })),
-    ).toBe(true);
+    expect(guard.canActivate(route({ workerWorkspaces: ['waiter', 'kitchen'] }))).toBe(true);
   });
 });

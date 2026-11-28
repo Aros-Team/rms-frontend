@@ -13,7 +13,9 @@
       <div class="py-2 border-b border-rms-border">
         <div class="flex justify-between items-center mb-1">
           <span class="text-sm text-rms-ink-muted">Opciones</span>
-          <span class="text-sm font-medium text-accent">{{ breakdown.projectedOptionCost | money }}</span>
+          <span class="text-sm font-medium text-accent">{{
+            breakdown.projectedOptionCost | money
+          }}</span>
         </div>
         @if (!compact) {
           @for (option of breakdown.options; track option.optionId) {
@@ -42,7 +44,9 @@
     <!-- Total -->
     <div class="flex justify-between items-center pt-2">
       <span class="text-sm font-semibold text-rms-ink">Costo efectivo</span>
-      <span class="text-sm font-bold text-rms-brand-text">{{ breakdown.projectedEffectiveCost | money }}</span>
+      <span class="text-sm font-bold text-rms-brand-text">{{
+        breakdown.projectedEffectiveCost | money
+      }}</span>
     </div>
   </div>
 }

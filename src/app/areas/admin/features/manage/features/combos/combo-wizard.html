@@ -10,7 +10,9 @@
     </div>
   </div>
 
-  <div class="flex-1 min-h-0 border border-rms-border rounded-xl bg-rms-surface overflow-hidden flex flex-col">
+  <div
+    class="flex-1 min-h-0 border border-rms-border rounded-xl bg-rms-surface overflow-hidden flex flex-col"
+  >
     <!-- Horizontal Timeline Steps -->
     <div class="border-b border-rms-border bg-rms-subtle px-4 md:px-6 py-3 overflow-x-auto">
       <div class="flex items-center gap-0 min-w-max">
@@ -25,9 +27,17 @@
                 [attr.data-step-id]="step.id"
                 [attr.data-step-marker]="step.marker"
               >
-                <i [class]="markerIcon(step.marker)" class="text-sm" [class.pi-spin]="step.marker === 'active'" aria-hidden="true"></i>
+                <i
+                  [class]="markerIcon(step.marker)"
+                  class="text-sm"
+                  [class.pi-spin]="step.marker === 'active'"
+                  aria-hidden="true"
+                ></i>
               </span>
-              <span class="text-xs font-medium text-center leading-tight" [class]="statusClass(step.marker)">
+              <span
+                class="text-xs font-medium text-center leading-tight"
+                [class]="statusClass(step.marker)"
+              >
                 {{ step.label }}
               </span>
             </div>
@@ -51,7 +61,10 @@
         <div class="flex flex-col gap-4" data-step-pane="general">
           <ng-content select="[comboWizardStep=general]"></ng-content>
           @if (!hasSlotContent('general')) {
-            <div class="border border-rms-border rounded-xl bg-rms-subtle p-4 flex flex-col gap-3" data-testid="step-placeholder">
+            <div
+              class="border border-rms-border rounded-xl bg-rms-subtle p-4 flex flex-col gap-3"
+              data-testid="step-placeholder"
+            >
               <div class="flex items-center gap-2">
                 <p-skeleton width="10rem" height="1.25rem" borderRadius="6px" />
               </div>
@@ -75,7 +88,10 @@
         <div class="flex flex-col gap-4" data-step-pane="questions">
           <ng-content select="[comboWizardStep=questions]"></ng-content>
           @if (!hasSlotContent('questions')) {
-            <div class="border border-rms-border rounded-xl bg-rms-subtle p-4 flex flex-col gap-3" data-testid="step-placeholder">
+            <div
+              class="border border-rms-border rounded-xl bg-rms-subtle p-4 flex flex-col gap-3"
+              data-testid="step-placeholder"
+            >
               <div class="flex items-center gap-2">
                 <p-skeleton width="10rem" height="1.25rem" borderRadius="6px" />
               </div>
@@ -95,7 +111,10 @@
         <div class="flex flex-col gap-4" data-step-pane="pricing">
           <ng-content select="[comboWizardStep=pricing]"></ng-content>
           @if (!hasSlotContent('pricing')) {
-            <div class="border border-rms-border rounded-xl bg-rms-subtle p-4 flex flex-col gap-3" data-testid="step-placeholder">
+            <div
+              class="border border-rms-border rounded-xl bg-rms-subtle p-4 flex flex-col gap-3"
+              data-testid="step-placeholder"
+            >
               <div class="flex items-center gap-2">
                 <p-skeleton width="10rem" height="1.25rem" borderRadius="6px" />
               </div>
@@ -115,20 +134,20 @@
     </section>
 
     <!-- Footer -->
-    <footer class="flex items-center justify-between gap-3 px-4 md:px-6 py-4 border-t border-rms-border bg-rms-subtle">
+    <footer
+      class="flex items-center justify-between gap-3 px-4 md:px-6 py-4 border-t border-rms-border bg-rms-subtle"
+    >
       <app-rms-button
         variant="secondary"
         iconStart="pi pi-arrow-left"
         [disabled]="!canGoBack()"
-        (click)="onBack()">
+        (click)="onBack()"
+      >
         Atrás
       </app-rms-button>
       <div class="flex items-center gap-2">
         <ng-content select="[footerActions]" />
-        <app-rms-button
-          iconEnd="pi pi-arrow-right"
-          [disabled]="!canAdvance()"
-          (click)="onNext()">
+        <app-rms-button iconEnd="pi pi-arrow-right" [disabled]="!canAdvance()" (click)="onNext()">
           Siguiente
         </app-rms-button>
       </div>

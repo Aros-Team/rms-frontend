@@ -27,16 +27,16 @@
     <div class="schedule-templates__feedback schedule-templates__feedback--error" role="alert">
       <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
       <span>{{ message }}</span>
-      <app-rms-icon-button
-        icon="pi pi-times"
-        ariaLabel="Cerrar error"
-        (click)="dismissError()"
-      />
+      <app-rms-icon-button icon="pi pi-times" ariaLabel="Cerrar error" (click)="dismissError()" />
     </div>
   }
 
   @if (loading()) {
-    <div class="schedule-templates__loading" role="status" aria-label="Cargando plantillas de horario">
+    <div
+      class="schedule-templates__loading"
+      role="status"
+      aria-label="Cargando plantillas de horario"
+    >
       <app-rms-skeleton height="3rem" ariaLabel="Cargando plantillas de horario" />
       <app-rms-skeleton height="3rem" ariaLabel="Cargando plantillas de horario" />
       <app-rms-skeleton height="3rem" ariaLabel="Cargando plantillas de horario" />
@@ -44,7 +44,11 @@
   } @else if (loadError(); as message) {
     <app-rms-empty-state
       icon="pi pi-exclamation-triangle"
-      [title]="forbidden() ? 'Sin permiso para administrar plantillas' : 'No se pudieron cargar las plantillas'"
+      [title]="
+        forbidden()
+          ? 'Sin permiso para administrar plantillas'
+          : 'No se pudieron cargar las plantillas'
+      "
       [message]="message"
       [actionLabel]="forbidden() ? '' : 'Reintentar'"
       actionIcon="pi pi-refresh"
@@ -62,7 +66,9 @@
   } @else {
     <div class="schedule-templates__table-wrap">
       <table class="rms-table">
-        <caption class="sr-only">Plantillas de horario registradas</caption>
+        <caption class="sr-only">
+          Plantillas de horario registradas
+        </caption>
         <thead>
           <tr>
             <th scope="col">Plantilla</th>
@@ -227,11 +233,7 @@
   </form>
 
   <div rmsDialogFooter class="schedule-form__footer">
-    <app-rms-button
-      variant="secondary"
-      [disabled]="saving()"
-      (click)="dialogVisible.set(false)"
-    >
+    <app-rms-button variant="secondary" [disabled]="saving()" (click)="dialogVisible.set(false)">
       Cancelar
     </app-rms-button>
     <app-rms-button [loading]="saving()" (click)="saveSchedule()">Guardar plantilla</app-rms-button>

@@ -20,13 +20,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import {
-  toAmount,
-  tryToAmount,
-  type Money,
-  type MoneyDto,
-  type MoneyLike,
-} from './money';
+import { toAmount, tryToAmount, type Money, type MoneyDto, type MoneyLike } from './money';
 
 describe('toAmount', () => {
   it('extracts the numeric amount from a MoneyDto object', () => {

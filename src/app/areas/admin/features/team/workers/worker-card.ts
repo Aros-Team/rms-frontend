@@ -41,7 +41,9 @@ function compactDays(days: readonly DayOfWeek[]): string {
   if (indexes.length === 0) {
     return '';
   }
-  const consecutive = indexes.every((value, index) => index === 0 || value === indexes[index - 1] + 1);
+  const consecutive = indexes.every(
+    (value, index) => index === 0 || value === indexes[index - 1] + 1,
+  );
   if (consecutive && indexes.length > 2) {
     return `${DAY_SHORT[DAY_ORDER[indexes[0]]]}–${DAY_SHORT[DAY_ORDER[indexes[indexes.length - 1]]]}`;
   }
@@ -52,7 +54,7 @@ function weeklyMinutes(schedules: readonly Schedule[]): number {
   return schedules.reduce(
     (total, schedule) =>
       total +
-      (schedule.shifts).reduce((sum, shift) => {
+      schedule.shifts.reduce((sum, shift) => {
         const [startHour, startMinute] = shift.startTime.split(':').map(Number);
         const [endHour, endMinute] = shift.endTime.split(':').map(Number);
         return sum + (endHour * 60 + endMinute) - (startHour * 60 + startMinute);
@@ -78,7 +80,7 @@ export class WorkerCard {
 
   initials = computed(() => {
     const name = this.worker().name || '';
-    const parts = name.split(' ').filter(p => p.length > 0);
+    const parts = name.split(' ').filter((p) => p.length > 0);
     if (parts.length >= 2) {
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
@@ -88,7 +90,7 @@ export class WorkerCard {
   areaName = computed(() => {
     const ids = this.worker().assignedAreas ?? [];
     const names = ids.flatMap((areaId) => {
-      const area = this.areas().find(a => a.id === areaId);
+      const area = this.areas().find((a) => a.id === areaId);
       return area === undefined ? [] : [area.name];
     });
     return names.length > 0 ? names.join(', ') : 'Sin área';
@@ -132,21 +134,31 @@ export class WorkerCard {
 
   statusLabel = computed(() => {
     switch (this.worker().status) {
-      case 'PENDING': return 'Pendiente';
-      case 'ERROR': return 'Error';
-      case 'ACTIVE': return 'Activo';
-      case 'INACTIVE': return 'Inactivo';
-      default: return this.worker().status ?? 'Desconocido';
+      case 'PENDING':
+        return 'Pendiente';
+      case 'ERROR':
+        return 'Error';
+      case 'ACTIVE':
+        return 'Activo';
+      case 'INACTIVE':
+        return 'Inactivo';
+      default:
+        return this.worker().status ?? 'Desconocido';
     }
   });
 
   statusTone = computed<'success' | 'warning' | 'danger' | 'neutral'>(() => {
     switch (this.worker().status) {
-      case 'PENDING': return 'warning';
-      case 'ERROR': return 'danger';
-      case 'ACTIVE': return 'success';
-      case 'INACTIVE': return 'neutral';
-      default: return 'neutral';
+      case 'PENDING':
+        return 'warning';
+      case 'ERROR':
+        return 'danger';
+      case 'ACTIVE':
+        return 'success';
+      case 'INACTIVE':
+        return 'neutral';
+      default:
+        return 'neutral';
     }
   });
 

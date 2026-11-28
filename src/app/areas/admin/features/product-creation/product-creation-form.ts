@@ -37,7 +37,10 @@ export class ProductCreationForm implements OnInit {
     }),
     basePrice: new FormControl(0, {
       nonNullable: true,
-      validators: [(control) => Validators.required(control), (control) => Validators.min(0)(control)],
+      validators: [
+        (control) => Validators.required(control),
+        (control) => Validators.min(0)(control),
+      ],
     }),
     description: new FormControl('', { nonNullable: true }),
     estimatedPrepMinutes: new FormControl<number | null>(null),
@@ -47,12 +50,20 @@ export class ProductCreationForm implements OnInit {
 
   ngOnInit(): void {
     this.areaService.getAreas().subscribe({
-      next: (areas) => { this.areas.set(areas); },
-      error: (err: unknown) => { this.logger.error('Error loading areas', err); },
+      next: (areas) => {
+        this.areas.set(areas);
+      },
+      error: (err: unknown) => {
+        this.logger.error('Error loading areas', err);
+      },
     });
     this.categoryService.getCategories().subscribe({
-      next: (categories) => { this.categories.set(categories); },
-      error: (err: unknown) => { this.logger.error('Error loading categories', err); },
+      next: (categories) => {
+        this.categories.set(categories);
+      },
+      error: (err: unknown) => {
+        this.logger.error('Error loading categories', err);
+      },
     });
   }
 
@@ -62,23 +73,35 @@ export class ProductCreationForm implements OnInit {
       return;
     }
 
-    const { name, basePrice, description, estimatedPrepMinutes, categoryId, areaId } = this.form.getRawValue();
+    const { name, basePrice, description, estimatedPrepMinutes, categoryId, areaId } =
+      this.form.getRawValue();
     if (categoryId == null || areaId == null) return;
 
-    this.productService.createProduct({
-      name,
-      basePrice,
-      description: description || undefined,
-      estimatedPrepMinutes: estimatedPrepMinutes ?? undefined,
-      categoryId,
-      areaId,
-      recipe: [],
-    }).subscribe({
-      next: (product) => {
-        this.logger.debug('Product created:', product);
-        this.form.reset({ name: '', basePrice: 0, description: '', estimatedPrepMinutes: null, categoryId: null, areaId: null });
-      },
-      error: (err: unknown) => { this.logger.error('Error creating product:', err); },
-    });
+    this.productService
+      .createProduct({
+        name,
+        basePrice,
+        description: description || undefined,
+        estimatedPrepMinutes: estimatedPrepMinutes ?? undefined,
+        categoryId,
+        areaId,
+        recipe: [],
+      })
+      .subscribe({
+        next: (product) => {
+          this.logger.debug('Product created:', product);
+          this.form.reset({
+            name: '',
+            basePrice: 0,
+            description: '',
+            estimatedPrepMinutes: null,
+            categoryId: null,
+            areaId: null,
+          });
+        },
+        error: (err: unknown) => {
+          this.logger.error('Error creating product:', err);
+        },
+      });
   }
 }

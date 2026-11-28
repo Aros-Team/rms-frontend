@@ -23,14 +23,7 @@ interface HistoryEntryView extends SpecialSelectionHistoryEntry {
 
 @Component({
   selector: 'app-combo-history',
-  imports: [
-    DatePipe,
-    JsonPipe,
-    RmsBadge,
-    RmsButton,
-    RmsEmptyState,
-    RmsPageHeader,
-  ],
+  imports: [DatePipe, JsonPipe, RmsBadge, RmsButton, RmsEmptyState, RmsPageHeader],
   providers: [MessageService, ConfirmationService],
   templateUrl: './combo-history.html',
   styleUrl: './combo-history.css',
@@ -56,7 +49,9 @@ export class ComboHistory {
   readonly expandedVersions = signal<Set<number>>(new Set());
 
   constructor() {
-    effect(() => { this.historyRes().load(); });
+    effect(() => {
+      this.historyRes().load();
+    });
   }
 
   changeTypeLabel(type: ChangeType): string {
@@ -82,7 +77,7 @@ export class ComboHistory {
   }
 
   toggleSnapshot(version: number): void {
-    this.expandedVersions.update(s => {
+    this.expandedVersions.update((s) => {
       const next = new Set(s);
       if (next.has(version)) next.delete(version);
       else next.add(version);
@@ -98,11 +93,19 @@ export class ComboHistory {
       accept: () => {
         this.cache.revert(this.id(), entry.version).subscribe({
           next: () => {
-            this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Combo restaurado a versión anterior' });
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Éxito',
+              detail: 'Combo restaurado a versión anterior',
+            });
             this.historyRes().refresh();
           },
           error: () => {
-            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo revertir la versión' });
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'No se pudo revertir la versión',
+            });
           },
         });
       },

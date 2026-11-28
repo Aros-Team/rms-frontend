@@ -20,10 +20,7 @@ const DELAY_MS = 3_000;
 describe('SelectivePreloadingStrategy', () => {
   const original = Object.getOwnPropertyDescriptor(Navigator.prototype, 'connection');
 
-  function withConnection(
-    connection: unknown,
-    authenticated = true,
-  ): SelectivePreloadingStrategy {
+  function withConnection(connection: unknown, authenticated = true): SelectivePreloadingStrategy {
     Object.defineProperty(navigator, 'connection', {
       configurable: true,
       value: connection,
@@ -68,9 +65,7 @@ describe('SelectivePreloadingStrategy', () => {
     const complete = vi.fn();
 
     strategy.preload({ path: 'products' }, load).subscribe({ complete });
-    strategy
-      .preload({ path: 'orders', data: { preload: false } }, load)
-      .subscribe({ complete });
+    strategy.preload({ path: 'orders', data: { preload: false } }, load).subscribe({ complete });
 
     expect(load).not.toHaveBeenCalled();
     expect(complete).toHaveBeenCalledTimes(2);

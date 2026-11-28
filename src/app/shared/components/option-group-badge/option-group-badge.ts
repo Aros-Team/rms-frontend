@@ -1,6 +1,9 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { OptionSelectionType } from '@app/shared/models/dto/option-groups/option-selection-type';
-import { getSelectionTypeConfig, type TagSeverity } from '@app/shared/lib/option-selection-type-helper/option-selection-type-helper';
+import {
+  getSelectionTypeConfig,
+  type TagSeverity,
+} from '@app/shared/lib/option-selection-type-helper/option-selection-type-helper';
 import { RmsBadge, type RmsBadgeTone } from '@app/shared/ui/badge/badge';
 
 const TONE_BY_SEVERITY: Record<TagSeverity, RmsBadgeTone> = {

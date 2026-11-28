@@ -1,7 +1,4 @@
-<app-rms-section
-  title="Horario de atención"
-  [hideHeader]="true"
->
+<app-rms-section title="Horario de atención" [hideHeader]="true">
   @if (loading()) {
     <div class="flex flex-col gap-2">
       @for (row of [1, 2, 3, 4, 5, 6, 7]; track row) {
@@ -28,8 +25,8 @@
 
       <div class="opening-hours__intro">
         <p>
-          Los festivos usan el horario del domingo hasta que exista un calendario de festivos.
-          Los días cerrados no generan alertas de cobertura.
+          Los festivos usan el horario del domingo hasta que exista un calendario de festivos. Los
+          días cerrados no generan alertas de cobertura.
         </p>
       </div>
 
@@ -68,7 +65,10 @@
               </label>
             </div>
 
-            <span class="opening-hours__state" [class.opening-hours__state--closed]="day(name).closed">
+            <span
+              class="opening-hours__state"
+              [class.opening-hours__state--closed]="day(name).closed"
+            >
               {{ day(name).closed ? 'Cerrado' : 'Abierto' }}
             </span>
           </li>

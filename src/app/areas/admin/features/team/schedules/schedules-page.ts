@@ -44,14 +44,12 @@ export class SchedulesPage {
   constructor() {
     // The assistant can navigate while this page is already mounted, so the
     // view must follow query-param changes instead of reading the snapshot once.
-    this.route.queryParamMap
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((params) => {
-        const view = this.viewFrom(params.get('tab'));
-        if (view !== this.activeTab()) {
-          this.activeTab.set(view);
-        }
-      });
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const view = this.viewFrom(params.get('tab'));
+      if (view !== this.activeTab()) {
+        this.activeTab.set(view);
+      }
+    });
   }
 
   selectTab(id: SchedulesView): void {

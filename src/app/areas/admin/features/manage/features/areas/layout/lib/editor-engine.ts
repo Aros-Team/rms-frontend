@@ -233,10 +233,7 @@ export class FloorLayoutEditorEngine {
       targetKey = this.createKey();
       this.setLayout({
         ...this.current,
-        regions: [
-          ...this.current.regions,
-          { key: targetKey, areaId, cells: new Set(additions) },
-        ],
+        regions: [...this.current.regions, { key: targetKey, areaId, cells: new Set(additions) }],
       });
     } else {
       const key = targetKey;
@@ -371,13 +368,7 @@ export class FloorLayoutEditorEngine {
     if (deltaRow === 0 && deltaColumn === 0) {
       return { ok: true, changed: false, reason: null };
     }
-    const check = checkAreaMove(
-      this.current,
-      this.index,
-      areaId,
-      deltaRow,
-      deltaColumn,
-    );
+    const check = checkAreaMove(this.current, this.index, areaId, deltaRow, deltaColumn);
     if (!check.ok) {
       return { ok: false, changed: false, reason: check.reason };
     }
@@ -496,9 +487,7 @@ export class FloorLayoutEditorEngine {
       Math.max(
         this.current.columns,
         maxColumn + 1,
-        maxColumn >= this.current.columns - 1
-            ? this.current.columns + FLOOR_GROW_MARGIN
-            : 0,
+        maxColumn >= this.current.columns - 1 ? this.current.columns + FLOOR_GROW_MARGIN : 0,
       ),
     );
     const nextRows = Math.min(

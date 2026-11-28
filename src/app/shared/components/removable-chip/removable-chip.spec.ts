@@ -54,9 +54,9 @@ describe('RemovableChip', () => {
     const fixture = await setup(buildChip({ meta: '+$500' }));
     const el = fixture.nativeElement as HTMLElement;
     const spans = el.querySelectorAll('span');
-    const metaSpan = Array.from(spans).find((s) =>
-      s.classList.contains('text-xs')
-    ) as HTMLElement | undefined;
+    const metaSpan = Array.from(spans).find((s) => s.classList.contains('text-xs')) as
+      | HTMLElement
+      | undefined;
     expect(metaSpan?.textContent.trim()).toBe('+$500');
   });
 

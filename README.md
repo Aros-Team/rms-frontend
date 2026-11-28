@@ -8,16 +8,13 @@
 </div>
 <br><br>
 
-
 Robust, scalable frontend application that delivers an intuitive and accessible interface for restaurant operations management, enabling real-time data visualization and seamless user interactions.
-
 
 ## Context
 
 Our first project, ROS, focused exclusively on order management with a basic client interface. While it served its purpose, user experience and accessibility were not a primary concern.
 
 This new platform represents our evolution: a comprehensive Restaurant Management System frontend built around user needs. We're not just displaying data anymore; we're providing an accessible, intuitive experience that empowers every user—from kitchen staff to restaurant managers—with clear interfaces and real-time insights.
-
 
 ## Technologies We're Using
 
@@ -31,7 +28,6 @@ The Aros system frontend is built on a modern and scalable stack, optimized for 
 
 - **Real-time Communication:** WebSocket with STOMP protocol for live order updates in the kitchen.
 
-
 ## Features
 
 - **Real-time Kitchen Updates:** WebSocket integration provides instant notifications when orders are created, prepared, or ready for delivery—no page refresh needed.
@@ -41,7 +37,6 @@ The Aros system frontend is built on a modern and scalable stack, optimized for 
 - **Accessible Interface:** Built with WCAG AA compliance in mind, ensuring usability for all users.
 
 - **Responsive Design:** Optimized for desktop, tablet, and mobile devices.
-
 
 ## Requirements
 
@@ -53,22 +48,24 @@ Before running this project, ensure you have installed:
 - [Docker](https://www.docker.com/) – required for build
 - [Angular CLI](https://angular.io/cli) – to simplify command execution
 
-
 ## First steps
 
 This project uses [Taskfile](https://taskfile.dev/) for running common commands.
 
 - **Run the project:**
+
   ```bash
   task run
   ```
 
 - **Build the project:**
+
   ```bash
   task build
   ```
 
 - **Run tests:**
+
   ```bash
   task test
   ```

@@ -118,9 +118,7 @@ describe('BusinessSettings', () => {
     );
     expect(component.dirty()).toBe(false);
     expect(emitted.at(-1)).toBe(false);
-    expect(messages.add).toHaveBeenCalledWith(
-      expect.objectContaining({ severity: 'success' }),
-    );
+    expect(messages.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
   });
 
   it('maps a bean-validation problem onto its field', () => {
@@ -138,7 +136,9 @@ describe('BusinessSettings', () => {
     component.save();
     fixture.detectChanges();
 
-    expect(component.controlError('restaurantName')).toBe('El nombre del restaurante es obligatorio');
+    expect(component.controlError('restaurantName')).toBe(
+      'El nombre del restaurante es obligatorio',
+    );
     expect(component.saveError()).toBe('');
   });
 

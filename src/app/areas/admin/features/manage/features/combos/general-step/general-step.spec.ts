@@ -11,7 +11,10 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import type { WizardFormData, WizardGroupDraft } from '@app/core/services/combos/combo-wizard-state';
+import type {
+  WizardFormData,
+  WizardGroupDraft,
+} from '@app/core/services/combos/combo-wizard-state';
 import { ComboReferenceCache } from '@app/core/services/combos/combo-reference-cache';
 import { ComboWizardState } from '@app/core/services/combos/combo-wizard-state';
 import type { CategorySimpleResponse } from '@app/shared/models/dto/category/category-simple-response';
@@ -128,7 +131,6 @@ describe('GeneralStep', () => {
         provideRouter([]),
         { provide: ComboWizardState, useValue: wizardMock },
         { provide: ComboReferenceCache, useValue: referenceMock },
-
       ],
     });
     fixture = TestBed.createComponent(GeneralStep);
@@ -197,7 +199,6 @@ describe('GeneralStep', () => {
       createComponent({ name: 'Combo Test' });
       expect(wizardMock.data().name).toBe('Combo Test');
     });
-
   });
 
   describe('name input updates wizard state', () => {
@@ -238,7 +239,15 @@ describe('GeneralStep', () => {
       createComponent({
         selectedCategoryIds: [10, 20],
         groups: [
-          { id: 5, categoryId: 10, displayOrder: 0, required: true, minSelections: 1, maxSelections: 2, productIds: [100, 101] },
+          {
+            id: 5,
+            categoryId: 10,
+            displayOrder: 0,
+            required: true,
+            minSelections: 1,
+            maxSelections: 2,
+            productIds: [100, 101],
+          },
         ],
       });
       fixture.detectChanges();
@@ -262,8 +271,24 @@ describe('GeneralStep', () => {
       createComponent({
         selectedCategoryIds: [10, 20],
         groups: [
-          { id: 5, categoryId: 10, displayOrder: 0, required: true, minSelections: 1, maxSelections: 1, productIds: [] },
-          { id: 6, categoryId: 20, displayOrder: 1, required: true, minSelections: 1, maxSelections: 1, productIds: [] },
+          {
+            id: 5,
+            categoryId: 10,
+            displayOrder: 0,
+            required: true,
+            minSelections: 1,
+            maxSelections: 1,
+            productIds: [],
+          },
+          {
+            id: 6,
+            categoryId: 20,
+            displayOrder: 1,
+            required: true,
+            minSelections: 1,
+            maxSelections: 1,
+            productIds: [],
+          },
         ],
       });
       fixture.detectChanges();

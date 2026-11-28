@@ -6,7 +6,13 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
-import { FormBuilder, FormGroup, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  FormControl,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 
 import { MessageService } from 'primeng/api';
 
@@ -93,7 +99,10 @@ export class AdvancedSettingsSection implements OnInit {
   });
 
   readonly entryForm: FormGroup<EntryForm> = this.fb.nonNullable.group({
-    key: ['', [requiredValidator, Validators.maxLength(120), Validators.pattern(/^[A-Za-z0-9_.-]+$/)]],
+    key: [
+      '',
+      [requiredValidator, Validators.maxLength(120), Validators.pattern(/^[A-Za-z0-9_.-]+$/)],
+    ],
     value: ['', [requiredValidator, Validators.maxLength(500)]],
     description: ['', [Validators.maxLength(200)]],
     groupId: ['', [requiredValidator, Validators.pattern(/^\d+$/)]],
@@ -120,9 +129,7 @@ export class AdvancedSettingsSection implements OnInit {
         this.loading.set(false);
       },
       error: (error: unknown) => {
-        this.loadError.set(
-          problemMessage(error, 'No se pudo cargar la configuración avanzada.'),
-        );
+        this.loadError.set(problemMessage(error, 'No se pudo cargar la configuración avanzada.'));
         this.loading.set(false);
       },
     });
@@ -264,9 +271,7 @@ export class AdvancedSettingsSection implements OnInit {
         },
         error: (error: unknown) => {
           this.saving.set(false);
-          this.dialogError.set(
-            problemMessage(error, 'No se pudo guardar la entrada.'),
-          );
+          this.dialogError.set(problemMessage(error, 'No se pudo guardar la entrada.'));
         },
       });
   }

@@ -126,7 +126,10 @@ export function microToAmountString(micro: bigint): string {
 }
 
 /** Renders a micro amount as the exact `MoneyDto` shape the API sends. */
-export function microToMoney(micro: bigint, currency: string): { amount: string; currency: string } {
+export function microToMoney(
+  micro: bigint,
+  currency: string,
+): { amount: string; currency: string } {
   return { amount: microToAmountString(micro), currency };
 }
 
@@ -203,8 +206,7 @@ export function laborForPreparation(
   draftWorkers: number | null,
 ): bigint | null {
   if (laborMicro === null || laborMicro < 0n) return null;
-  const safeServerWorkers =
-    serverWorkers !== null && serverWorkers > 0 ? serverWorkers : 1;
+  const safeServerWorkers = serverWorkers !== null && serverWorkers > 0 ? serverWorkers : 1;
   const safeDraftWorkers = draftWorkers !== null && draftWorkers > 0 ? draftWorkers : 1;
   if (serverMinutes === null || serverMinutes <= 0) {
     return divideRounded(laborMicro * BigInt(safeDraftWorkers), BigInt(safeServerWorkers));
@@ -229,10 +231,7 @@ export function hourlyRateMicro(
   if (laborMicro === null || laborMicro <= 0n) return null;
   if (prepMinutes === null || prepMinutes <= 0) return null;
   const safeWorkers = workers !== null && workers > 0 ? workers : 1;
-  return divideRounded(
-    laborMicro * 60n,
-    BigInt(prepMinutes) * BigInt(safeWorkers),
-  );
+  return divideRounded(laborMicro * 60n, BigInt(prepMinutes) * BigInt(safeWorkers));
 }
 
 /** Spanish percentage label (`"42,4 %"`); em dash when the value is unknown. */

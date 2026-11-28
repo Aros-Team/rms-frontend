@@ -89,7 +89,10 @@ describe('Dashboard order aggregates', () => {
         provideHttpClientTesting(),
         Order,
         { provide: Table, useValue: { getTables: () => of<TableResponse[]>([]) } },
-        { provide: Product, useValue: { getProductById: () => of(null), getProducts: () => of([]) } },
+        {
+          provide: Product,
+          useValue: { getProductById: () => of(null), getProducts: () => of([]) },
+        },
         { provide: Analytics, useValue: { getTopSellingProducts: topSellingRequest } },
         {
           provide: Logging,
@@ -301,7 +304,8 @@ describe('Dashboard order aggregates', () => {
     expect(dashboard.ordersTruncated()).toBe(true);
   });
 
-  it('keeps empty aggregates and stops loading when the order walk fails', () => {    startLoad();
+  it('keeps empty aggregates and stops loading when the order walk fails', () => {
+    startLoad();
 
     httpMock
       .expectOne((r) => r.url === 'v1/orders' && r.params.get('page') === '0')

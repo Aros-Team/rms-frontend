@@ -7,12 +7,7 @@
       "installMode": "lazy",
       "updateMode": "lazy",
       "resources": {
-        "files": [
-          "/index.html",
-          "/manifest.webmanifest",
-          "/*.css",
-          "/*.js"
-        ]
+        "files": ["/index.html", "/manifest.webmanifest", "/*.css", "/*.js"]
       }
     },
     {
@@ -20,9 +15,7 @@
       "installMode": "prefetch",
       "updateMode": "prefetch",
       "resources": {
-        "files": [
-          "/fonts/**"
-        ]
+        "files": ["/fonts/**"]
       }
     },
     {

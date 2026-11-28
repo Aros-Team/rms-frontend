@@ -111,7 +111,7 @@ describe('ComboReferenceCache', () => {
     catReq.flush(categories);
 
     const prodReq = httpMock.expectOne(
-      (r) => r.url === 'v1/products' && r.params.get('includeSelections') === 'true'
+      (r) => r.url === 'v1/products' && r.params.get('includeSelections') === 'true',
     );
     expect(prodReq.request.method).toBe('GET');
     prodReq.flush({
@@ -128,7 +128,7 @@ describe('ComboReferenceCache', () => {
     catReq.flush(mockCategories);
 
     const prodReq = httpMock.expectOne(
-      (r) => r.url === 'v1/products' && r.params.get('includeSelections') === 'true'
+      (r) => r.url === 'v1/products' && r.params.get('includeSelections') === 'true',
     );
     expect(prodReq.request.method).toBe('GET');
     prodReq.flush({
@@ -158,16 +158,12 @@ describe('ComboReferenceCache', () => {
 
   it('returns empty data on HTTP errors', () => {
     cache.load();
-    httpMock.expectOne('v1/categories').flush(
-      { message: 'boom' },
-      { status: 500, statusText: 'Server Error' }
-    );
-    httpMock.expectOne(
-      (r) => r.url === 'v1/products' && r.params.get('includeSelections') === 'true'
-    ).flush(
-      { message: 'products boom' },
-      { status: 500, statusText: 'Server Error' }
-    );
+    httpMock
+      .expectOne('v1/categories')
+      .flush({ message: 'boom' }, { status: 500, statusText: 'Server Error' });
+    httpMock
+      .expectOne((r) => r.url === 'v1/products' && r.params.get('includeSelections') === 'true')
+      .flush({ message: 'products boom' }, { status: 500, statusText: 'Server Error' });
 
     expect(cache.hasData()).toBe(true);
     expect(cache.categories()).toEqual([]);
@@ -235,15 +231,12 @@ describe('ComboReferenceCache', () => {
 
     const catReq = httpMock.expectOne('v1/categories');
     const prodReq = httpMock.expectOne(
-      (r) => r.url === 'v1/products' && r.params.get('includeSelections') === 'true'
+      (r) => r.url === 'v1/products' && r.params.get('includeSelections') === 'true',
     );
-    catReq.flush(
-      { message: 'refresh failed' },
-      { status: 503, statusText: 'Service Unavailable' }
-    );
+    catReq.flush({ message: 'refresh failed' }, { status: 503, statusText: 'Service Unavailable' });
     prodReq.flush(
       { message: 'refresh failed' },
-      { status: 503, statusText: 'Service Unavailable' }
+      { status: 503, statusText: 'Service Unavailable' },
     );
 
     expect(cache.status()).toBe('fresh');
@@ -256,12 +249,12 @@ describe('ComboReferenceCache', () => {
     cache.loadIfStale();
 
     httpMock.expectOne('v1/categories').flush(mockCategories);
-    httpMock.expectOne(
-      (r) => r.url === 'v1/products' && r.params.get('includeSelections') === 'true'
-    ).flush({
-      content: mockProducts,
-      page: { size: 100, number: 0, totalElements: mockProducts.length, totalPages: 1 },
-    });
+    httpMock
+      .expectOne((r) => r.url === 'v1/products' && r.params.get('includeSelections') === 'true')
+      .flush({
+        content: mockProducts,
+        page: { size: 100, number: 0, totalElements: mockProducts.length, totalPages: 1 },
+      });
 
     expect(cache.hasData()).toBe(true);
   });
@@ -363,7 +356,9 @@ describe('ComboReferenceCache', () => {
 
     const combosSpecials = cache.specialSelectionProductsByCategory(2);
     expect(combosSpecials.length).toBe(2);
-    expect(combosSpecials.every((p) => p.categoryId === 2 && p.selectionType === 'SPECIAL_SELECTION')).toBe(true);
+    expect(
+      combosSpecials.every((p) => p.categoryId === 2 && p.selectionType === 'SPECIAL_SELECTION'),
+    ).toBe(true);
 
     expect(cache.specialSelectionProductsByCategory(1)).toEqual([]);
     expect(cache.specialSelectionProductsByCategory(3)).toEqual([]);

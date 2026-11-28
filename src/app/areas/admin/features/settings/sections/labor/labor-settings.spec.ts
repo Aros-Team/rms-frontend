@@ -115,9 +115,7 @@ describe('LaborSettingsSection', () => {
       defaultExpectedHoursPerMonth: 160,
     });
     expect(component.dirty()).toBe(false);
-    expect(messages.add).toHaveBeenCalledWith(
-      expect.objectContaining({ severity: 'success' }),
-    );
+    expect(messages.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
   });
 
   it('rejects a negative rate and an out-of-range hours value', () => {

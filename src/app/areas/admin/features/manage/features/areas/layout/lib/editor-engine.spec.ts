@@ -158,10 +158,7 @@ describe('FloorLayoutEditorEngine', () => {
   it('should crop on resize and keep the selection when the region survives', () => {
     const source: EditorLayout = {
       ...layout(),
-      regions: [
-        layout().regions[0],
-        { key: 'b', areaId: 2, cells: new Set([cellKey(9, 9)]) },
-      ],
+      regions: [layout().regions[0], { key: 'b', areaId: 2, cells: new Set([cellKey(9, 9)]) }],
     };
     const editor = new FloorLayoutEditorEngine(source, source, () => 'new-1');
     const result = editor.resize(10, 6);

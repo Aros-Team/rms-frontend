@@ -84,7 +84,8 @@ export class PrimeCost {
 
   readonly rangeLabel = this.period.label;
   readonly subtitle = computed(
-    () => `Ventas, costos y márgenes · agrupado por ${bucketLabel(this.period.bucket()).toLowerCase()}`,
+    () =>
+      `Ventas, costos y márgenes · agrupado por ${bucketLabel(this.period.bucket()).toLowerCase()}`,
   );
 
   readonly series = computed(() => this.report()?.series ?? []);
@@ -123,7 +124,8 @@ export class PrimeCost {
       category,
       amount: sumMoney(
         series.map(
-          (point) => point.cogs.byCategory.find((line) => line.category === category)?.amount ?? null,
+          (point) =>
+            point.cogs.byCategory.find((line) => line.category === category)?.amount ?? null,
         ),
       ),
     }));

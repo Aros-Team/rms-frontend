@@ -270,9 +270,7 @@ export class ShiftPlanner implements OnInit {
       next: () => {
         this.saving.set(false);
         this.dialogVisible.set(false);
-        this.notice.set(
-          editing === null ? 'Turno creado y asignado.' : 'Turno actualizado.',
-        );
+        this.notice.set(editing === null ? 'Turno creado y asignado.' : 'Turno actualizado.');
         this.load();
         this.changed.emit();
       },
@@ -321,21 +319,22 @@ export class ShiftPlanner implements OnInit {
     this.actionError.set(null);
   }
 
-  private createAndAssign(
-    request: CreateScheduleRequest,
-    workerId: number,
-  ): Observable<unknown> {
-    return this.scheduleService.create(request).pipe(
-      switchMap((schedule) =>
-        this.assignmentService.assign(workerId, schedule.id).pipe(
-          catchError((error: unknown) =>
-            this.scheduleService.delete(schedule.id).pipe(
-              switchMap(() => throwError(() => error)),
+  private createAndAssign(request: CreateScheduleRequest, workerId: number): Observable<unknown> {
+    return this.scheduleService
+      .create(request)
+      .pipe(
+        switchMap((schedule) =>
+          this.assignmentService
+            .assign(workerId, schedule.id)
+            .pipe(
+              catchError((error: unknown) =>
+                this.scheduleService
+                  .delete(schedule.id)
+                  .pipe(switchMap(() => throwError(() => error))),
+              ),
             ),
-          ),
         ),
-      ),
-    );
+      );
   }
 
   private buildRows(): readonly IndividualShift[] {

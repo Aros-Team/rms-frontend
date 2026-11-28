@@ -270,7 +270,9 @@ describe('LoginForm error messages', () => {
   it('falls back to the generic message on a bodiless 401', () => {
     setup();
     auth.login.mockReturnValue(
-      throwError(() => new HttpErrorResponse({ status: 401, statusText: 'Unauthorized', error: null })),
+      throwError(
+        () => new HttpErrorResponse({ status: 401, statusText: 'Unauthorized', error: null }),
+      ),
     );
 
     component.onSubmit();
@@ -298,7 +300,9 @@ describe('LoginForm error messages', () => {
 
     component.onSubmit();
 
-    expect(errorToast().detail).toBe('Ha ocurrido un error inesperado. Por favor, intente nuevamente.');
+    expect(errorToast().detail).toBe(
+      'Ha ocurrido un error inesperado. Por favor, intente nuevamente.',
+    );
   });
 });
 

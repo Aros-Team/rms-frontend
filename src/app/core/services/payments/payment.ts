@@ -2,17 +2,16 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
-import type { PaymentStatus, PaymentTenderMethod } from '@app/shared/models/dto/payments/payment-method';
+import type {
+  PaymentStatus,
+  PaymentTenderMethod,
+} from '@app/shared/models/dto/payments/payment-method';
 import type { PaymentResponse } from '@app/shared/models/dto/payments/payment-response';
 import type { PaymentSummaryResponse } from '@app/shared/models/dto/payments/payment-summary-response';
 import type { PendingOrderResponse } from '@app/shared/models/dto/payments/pending-order-response';
 import type { RegisterPaymentRequest } from '@app/shared/models/dto/payments/register-payment-request';
 import type { VoidPaymentRequest } from '@app/shared/models/dto/payments/void-payment-request';
-import {
-  type Page,
-  type PageEnvelope,
-  unwrapPage,
-} from '@app/shared/models/dto/common/pagination';
+import { type Page, type PageEnvelope, unwrapPage } from '@app/shared/models/dto/common/pagination';
 
 /** Query for the pending board (`GET /v1/payments/pending`). */
 export interface PendingPaymentsQuery {

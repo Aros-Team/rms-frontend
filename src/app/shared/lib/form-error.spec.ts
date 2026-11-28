@@ -24,8 +24,10 @@ import { fieldError } from './form-error';
 // flags passing a `Validators.*` method reference unbound.
 const required: ValidatorFn = (control) => Validators.required(control);
 const email: ValidatorFn = (control) => Validators.email(control);
-const pattern = (regex: RegExp): ValidatorFn => (control) =>
-  Validators.pattern(regex)(control);
+const pattern =
+  (regex: RegExp): ValidatorFn =>
+  (control) =>
+    Validators.pattern(regex)(control);
 
 describe('fieldError', () => {
   it('returns the backend message first, even for a valid untouched control', () => {

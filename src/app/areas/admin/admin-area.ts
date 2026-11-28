@@ -26,7 +26,7 @@ export class AdminArea implements OnInit {
   }
 
   togglePanel(): void {
-    this.isChatOpen.update(open => !open);
+    this.isChatOpen.update((open) => !open);
   }
 
   private configureAdminMenu(): void {

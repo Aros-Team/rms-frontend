@@ -74,8 +74,8 @@ export class PricingStep {
     return groups.map((group: WizardGroupDraft) => {
       const catName =
         group.categoryId !== null
-          ? this.reference.categoryName(group.categoryId) ??
-            `Categoría #${String(group.categoryId)}`
+          ? (this.reference.categoryName(group.categoryId) ??
+            `Categoría #${String(group.categoryId)}`)
           : 'Sin categoría';
       const products: ProductCostView[] = group.productIds
         .map((id: number) => this.reference.productById(id))
@@ -86,9 +86,7 @@ export class PricingStep {
           basePrice: toAmount(p.basePrice),
         }));
       const n = products.length;
-      const avg = n > 0
-        ? products.reduce((s, p) => s + p.basePrice, 0) / n
-        : 0;
+      const avg = n > 0 ? products.reduce((s, p) => s + p.basePrice, 0) / n : 0;
       const maxSel = group.maxSelections;
       return {
         categoryName: catName,

@@ -18,7 +18,11 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { PendingOrderResponse } from '@app/shared/models/dto/payments/pending-order-response';
 import { Money } from '@app/shared/pipes/money/money';
-import { buttonByText, resolveCashierResources, setInputValue } from '../../testing/cashier-test-resources';
+import {
+  buttonByText,
+  resolveCashierResources,
+  setInputValue,
+} from '../../testing/cashier-test-resources';
 import { CashierPendingBoard } from './pending-board';
 
 function pending(overrides: Partial<PendingOrderResponse> = {}): PendingOrderResponse {

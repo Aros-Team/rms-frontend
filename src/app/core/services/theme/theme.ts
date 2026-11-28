@@ -9,7 +9,7 @@ const CHROME_LIGHT = '#FDEFC7';
 const CHROME_DARK = '#0f172a';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class Theme {
   private mediaQuery?: MediaQueryList;
@@ -91,9 +91,7 @@ export class Theme {
 
     // Keep the <meta> in sync: it drives `color-scheme`, which themes native
     // UI (scrollbars, form controls, canvas) and prevents FOUC on reload.
-    document
-      .querySelector('meta[name="color-scheme"]')
-      ?.setAttribute('content', theme);
+    document.querySelector('meta[name="color-scheme"]')?.setAttribute('content', theme);
 
     // Browser chrome: both theme-colour metas carry the active colour with no
     // media query, so the address bar follows a manual toggle instead of only

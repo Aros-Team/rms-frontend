@@ -52,8 +52,8 @@ describe('Analytics service — full interceptor chain (regression for the api/a
   it('reaches /api/v1/analytics/menu-engineering (no double prefix)', () => {
     TestBed.inject(Analytics).getMenuEngineering('monthly', '2026-01', '2026-07').subscribe();
 
-    const req = httpMock.expectOne(
-      (r) => /\/api\/v1\/analytics\/menu-engineering(\?|$)/.test(r.url),
+    const req = httpMock.expectOne((r) =>
+      /\/api\/v1\/analytics\/menu-engineering(\?|$)/.test(r.url),
     );
     expect(req.request.url).not.toContain('/api/api/');
     req.flush({});

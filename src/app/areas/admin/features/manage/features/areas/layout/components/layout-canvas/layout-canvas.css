@@ -70,23 +70,55 @@
   fill-opacity: 0.08;
 }
 
-[data-color='1'] .area-shape__fill { fill: var(--rms-chart-1); }
-[data-color='2'] .area-shape__fill { fill: var(--rms-chart-2); }
-[data-color='3'] .area-shape__fill { fill: var(--rms-chart-3); }
-[data-color='4'] .area-shape__fill { fill: var(--rms-chart-4); }
-[data-color='5'] .area-shape__fill { fill: var(--rms-chart-5); }
-[data-color='6'] .area-shape__fill { fill: var(--rms-chart-6); }
-[data-color='7'] .area-shape__fill { fill: var(--rms-chart-7); }
-[data-color='8'] .area-shape__fill { fill: var(--rms-chart-8); }
+[data-color='1'] .area-shape__fill {
+  fill: var(--rms-chart-1);
+}
+[data-color='2'] .area-shape__fill {
+  fill: var(--rms-chart-2);
+}
+[data-color='3'] .area-shape__fill {
+  fill: var(--rms-chart-3);
+}
+[data-color='4'] .area-shape__fill {
+  fill: var(--rms-chart-4);
+}
+[data-color='5'] .area-shape__fill {
+  fill: var(--rms-chart-5);
+}
+[data-color='6'] .area-shape__fill {
+  fill: var(--rms-chart-6);
+}
+[data-color='7'] .area-shape__fill {
+  fill: var(--rms-chart-7);
+}
+[data-color='8'] .area-shape__fill {
+  fill: var(--rms-chart-8);
+}
 
-[data-color='1'] .area-shape__outline { stroke: var(--rms-chart-1); }
-[data-color='2'] .area-shape__outline { stroke: var(--rms-chart-2); }
-[data-color='3'] .area-shape__outline { stroke: var(--rms-chart-3); }
-[data-color='4'] .area-shape__outline { stroke: var(--rms-chart-4); }
-[data-color='5'] .area-shape__outline { stroke: var(--rms-chart-5); }
-[data-color='6'] .area-shape__outline { stroke: var(--rms-chart-6); }
-[data-color='7'] .area-shape__outline { stroke: var(--rms-chart-7); }
-[data-color='8'] .area-shape__outline { stroke: var(--rms-chart-8); }
+[data-color='1'] .area-shape__outline {
+  stroke: var(--rms-chart-1);
+}
+[data-color='2'] .area-shape__outline {
+  stroke: var(--rms-chart-2);
+}
+[data-color='3'] .area-shape__outline {
+  stroke: var(--rms-chart-3);
+}
+[data-color='4'] .area-shape__outline {
+  stroke: var(--rms-chart-4);
+}
+[data-color='5'] .area-shape__outline {
+  stroke: var(--rms-chart-5);
+}
+[data-color='6'] .area-shape__outline {
+  stroke: var(--rms-chart-6);
+}
+[data-color='7'] .area-shape__outline {
+  stroke: var(--rms-chart-7);
+}
+[data-color='8'] .area-shape__outline {
+  stroke: var(--rms-chart-8);
+}
 
 .area-shape__outline {
   stroke-width: 1.5;

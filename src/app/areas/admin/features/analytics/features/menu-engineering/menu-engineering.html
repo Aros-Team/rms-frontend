@@ -1,7 +1,5 @@
 <div class="analytics-page">
-  <app-rms-page-header
-    title="Tu carta, clasificada"
-    [subtitle]="subtitle()">
+  <app-rms-page-header title="Tu carta, clasificada" [subtitle]="subtitle()">
     <span rmsPageHeaderMeta class="page-meta">
       @if (refreshedLabel(); as label) {
         Datos actualizados: {{ label }}
@@ -12,14 +10,16 @@
         variant="secondary"
         iconStart="pi pi-refresh"
         [loading]="refreshing()"
-        (click)="refresh()">
+        (click)="refresh()"
+      >
         Actualizar
       </app-rms-button>
       <app-rms-button
         variant="secondary"
         iconStart="pi pi-download"
         [disabled]="report() === null"
-        (click)="exportCsv()">
+        (click)="exportCsv()"
+      >
         Exportar CSV
       </app-rms-button>
     </div>
@@ -30,7 +30,8 @@
     [errorTitle]="errorInfo()?.title ?? ''"
     [forbidden]="errorInfo()?.forbidden ?? false"
     [notes]="notes()"
-    (retry)="reload()" />
+    (retry)="reload()"
+  />
 
   @if (isEmpty()) {
     <app-rms-empty-state
@@ -39,7 +40,8 @@
       message="El análisis se genera con las ventas y los costos de receta. Registra productos con receta y ventas para ver la clasificación."
       actionLabel="Reintentar"
       actionIcon="pi pi-refresh"
-      (action)="reload()" />
+      (action)="reload()"
+    />
   } @else {
     <div class="filters" role="group" aria-label="Filtros de carta">
       <app-rms-select
@@ -49,7 +51,8 @@
         (ngModelChange)="onCategoryChange($event)"
         [showClear]="true"
         placeholder="Todas las categorías"
-        size="sm" />
+        size="sm"
+      />
       @if (selectedQuadrant(); as quadrant) {
         <app-rms-button variant="link" size="sm" iconStart="pi pi-times" (click)="clearQuadrant()">
           Quitar filtro: {{ quadrantMeta(quadrant).label }}
@@ -64,25 +67,29 @@
         [period]="rangeLabel()"
         [loading]="busy()"
         icon="pi pi-chart-bar"
-        [emphasis]="true" />
+        [emphasis]="true"
+      />
       <app-rms-stat-tile
         label="Productos analizados"
         [value]="stats().count"
         [period]="rangeLabel()"
         [loading]="busy()"
-        icon="pi pi-box" />
+        icon="pi pi-box"
+      />
       <app-rms-stat-tile
         label="Ventas típicas"
         [value]="stats().medianVolume ?? null"
         period="unidades por producto (mediana)"
         [loading]="busy()"
-        icon="pi pi-shopping-cart" />
+        icon="pi pi-shopping-cart"
+      />
       <app-rms-stat-tile
         label="Margen típico"
         [value]="stats().medianMargin | money"
         period="ganancia por unidad (mediana)"
         [loading]="busy()"
-        icon="pi pi-percentage" />
+        icon="pi pi-percentage"
+      />
     </section>
 
     <section class="matrix-grid" aria-label="Diagnóstico por cuadrante">
@@ -94,7 +101,8 @@
             [attr.data-quadrant]="summary.quadrant"
             [class.quadrant--selected]="isSelected(summary.quadrant)"
             [attr.aria-pressed]="isSelected(summary.quadrant)"
-            (click)="toggleQuadrant(summary.quadrant)">
+            (click)="toggleQuadrant(summary.quadrant)"
+          >
             <span class="sr-only">Filtrar por </span>
             <span class="quadrant__head">
               <span class="quadrant__name">
@@ -127,7 +135,8 @@
         [summary]="chartSummary()"
         dataMode="disclosure"
         dataLabel="Ver datos del mapa"
-        (retry)="reload()">
+        (retry)="reload()"
+      >
         <app-rms-chart
           type="bubble"
           [data]="chartData()"
@@ -144,8 +153,16 @@
         </ul>
         <div rmsChartData>
           <table class="data-table">
-            <caption class="sr-only">Productos, ganancia por unidad y unidades vendidas</caption>
-            <thead><tr><th>Producto</th><th>Unidades</th><th>Ganancia por unidad</th></tr></thead>
+            <caption class="sr-only">
+              Productos, ganancia por unidad y unidades vendidas
+            </caption>
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Unidades</th>
+                <th>Ganancia por unidad</th>
+              </tr>
+            </thead>
             <tbody>
               @for (row of filteredItems(); track row.productId) {
                 <tr>
@@ -161,13 +178,18 @@
     </section>
 
     <!-- Full product table: below the KPI row and the quadrant matrix. -->
-    <section
-      class="panel rms-defer-view rms-defer-view--lg"
-      aria-labelledby="menu-table-title">
+    <section class="panel rms-defer-view rms-defer-view--lg" aria-labelledby="menu-table-title">
       <h2 id="menu-table-title" class="panel__title">Productos clasificados</h2>
-      <div class="panel__scroll" role="region" tabindex="0" aria-label="Productos clasificados, desplazable">
+      <div
+        class="panel__scroll"
+        role="region"
+        tabindex="0"
+        aria-label="Productos clasificados, desplazable"
+      >
         <table class="data-table">
-          <caption class="sr-only">Productos con su cuadrante, ventas y margen</caption>
+          <caption class="sr-only">
+            Productos con su cuadrante, ventas y margen
+          </caption>
           <thead>
             <tr>
               <th>Producto</th>
@@ -201,7 +223,9 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="9" class="empty-cell">No hay productos para los filtros seleccionados.</td>
+                <td colspan="9" class="empty-cell">
+                  No hay productos para los filtros seleccionados.
+                </td>
               </tr>
             }
           </tbody>

@@ -61,10 +61,7 @@ describe('RmsSheet', () => {
   it('emits openChange(false) from the close control', () => {
     const spy = vi.fn();
     sheet.openChange.subscribe(spy);
-    queryElement(
-      fixture.nativeElement as HTMLElement,
-      'button[aria-label="Cerrar"]',
-    ).click();
+    queryElement(fixture.nativeElement as HTMLElement, 'button[aria-label="Cerrar"]').click();
 
     expect(spy).toHaveBeenCalledWith(false);
   });
@@ -72,7 +69,9 @@ describe('RmsSheet', () => {
   it('hides the close control when the sheet is not dismissible', () => {
     fixture.destroy();
     create(true, false);
-    const close = (fixture.nativeElement as HTMLElement).querySelector('button[aria-label="Cerrar"]');
+    const close = (fixture.nativeElement as HTMLElement).querySelector(
+      'button[aria-label="Cerrar"]',
+    );
 
     expect(close).toBeNull();
   });

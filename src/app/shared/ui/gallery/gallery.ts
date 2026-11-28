@@ -86,14 +86,11 @@ export class UiGallery {
   readonly isDev = isDevMode();
 
   readonly dark = signal(document.documentElement.classList.contains('dark'));
-  readonly highContrast = signal(
-    document.documentElement.getAttribute('data-contrast') === 'high',
-  );
+  readonly highContrast = signal(document.documentElement.getAttribute('data-contrast') === 'high');
 
   readonly dialogVisible = signal(false);
   readonly sheetOpen = signal(false);
   readonly sheetEnd = signal(false);
-
 
   readonly selectOptions: RmsSelectOption[] = [
     { label: 'Salón', value: 'FOH' },
@@ -122,7 +119,8 @@ export class UiGallery {
     },
     {
       title: 'Marca',
-      description: 'El dorado es relleno. El texto usa brand-text; sobre relleno dorado usa on-brand.',
+      description:
+        'El dorado es relleno. El texto usa brand-text; sobre relleno dorado usa on-brand.',
       swatches: [
         { token: '--rms-brand-500', note: 'relleno' },
         { token: '--rms-brand-600', note: 'resalte' },
@@ -226,10 +224,18 @@ export class UiGallery {
     { className: 'rms-h4', label: 'H4 · Panel', meta: '16 / 24 · 600' },
     { className: 'rms-body-lg', label: 'Cuerpo grande · texto de servicio', meta: '16 / 26 · 400' },
     { className: 'rms-body', label: 'Cuerpo · texto de administración', meta: '14 / 22 · 400' },
-    { className: 'rms-caption', label: 'Leyenda · actualizado hace 2 minutos', meta: '12 / 18 · 400' },
+    {
+      className: 'rms-caption',
+      label: 'Leyenda · actualizado hace 2 minutos',
+      meta: '12 / 18 · 400',
+    },
     { className: 'rms-label', label: 'Etiqueta · NOMBRE', meta: '12 / 16 · 600' },
     { className: 'rms-numeric', label: 'Numérico · $ 28.000', meta: '16 / 24 · 600 · tabular' },
-    { className: 'rms-numeric-lg', label: 'Numérico grande · $ 1.284.000', meta: '30 / 36 · 700 · tabular' },
+    {
+      className: 'rms-numeric-lg',
+      label: 'Numérico grande · $ 1.284.000',
+      meta: '30 / 36 · 700 · tabular',
+    },
   ];
 
   readonly spacing = [

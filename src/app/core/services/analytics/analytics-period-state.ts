@@ -34,7 +34,10 @@ export class AnalyticsPeriodState {
   private readonly initial = defaultPeriod();
 
   private readonly bucketSignal = signal<TimeBucket>(this.initial.bucket);
-  private readonly rangeSignal = signal<PeriodRange>({ from: this.initial.from, to: this.initial.to });
+  private readonly rangeSignal = signal<PeriodRange>({
+    from: this.initial.from,
+    to: this.initial.to,
+  });
   private readonly presetSignal = signal<string>(defaultPresetFor('monthly').id);
   private readonly revisionSignal = signal(0);
 

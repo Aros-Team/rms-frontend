@@ -246,9 +246,24 @@
                 deltaTone="positive"
                 [emphasis]="true"
               />
-              <app-rms-stat-tile label="Costo primo" value="31,8 %" period="Último mes" delta="↓ 2,1 %" deltaTone="positive" />
-              <app-rms-stat-tile label="Margen bruto" [value]="null" period="Periodo seleccionado" />
-              <app-rms-stat-tile label="Ticket promedio" value="$ 28.000" period="Hoy" [loading]="true" />
+              <app-rms-stat-tile
+                label="Costo primo"
+                value="31,8 %"
+                period="Último mes"
+                delta="↓ 2,1 %"
+                deltaTone="positive"
+              />
+              <app-rms-stat-tile
+                label="Margen bruto"
+                [value]="null"
+                period="Periodo seleccionado"
+              />
+              <app-rms-stat-tile
+                label="Ticket promedio"
+                value="$ 28.000"
+                period="Hoy"
+                [loading]="true"
+              />
             </div>
           </app-rms-card>
 
@@ -265,7 +280,12 @@
           <app-rms-card title="Esqueleto de carga" subtitle="Forma del contenido final">
             <div class="skeleton-demo">
               <app-rms-skeleton variant="text" [lines]="3" ariaLabel="Cargando descripción" />
-              <app-rms-skeleton variant="circle" width="3rem" height="3rem" ariaLabel="Cargando avatar" />
+              <app-rms-skeleton
+                variant="circle"
+                width="3rem"
+                height="3rem"
+                ariaLabel="Cargando avatar"
+              />
               <app-rms-skeleton width="80%" height="2.5rem" ariaLabel="Cargando indicador" />
             </div>
           </app-rms-card>
@@ -303,16 +323,29 @@
             >
               <div class="chart-placeholder" aria-hidden="true">plot</div>
               <ul rmsChartLegend class="chart-legend">
-                <li><span class="chart-legend__swatch chart-legend__swatch--1"></span>Ventas netas</li>
-                <li><span class="chart-legend__swatch chart-legend__swatch--7"></span>Comparación</li>
+                <li>
+                  <span class="chart-legend__swatch chart-legend__swatch--1"></span>Ventas netas
+                </li>
+                <li>
+                  <span class="chart-legend__swatch chart-legend__swatch--7"></span>Comparación
+                </li>
               </ul>
               <table rmsChartData class="chart-table">
                 <thead>
-                  <tr><th>Mes</th><th>Ventas</th></tr>
+                  <tr>
+                    <th>Mes</th>
+                    <th>Ventas</th>
+                  </tr>
                 </thead>
                 <tbody>
-                  <tr><td>Mayo</td><td>$ 127.000.000</td></tr>
-                  <tr><td>Junio</td><td>$ 98.400.000</td></tr>
+                  <tr>
+                    <td>Mayo</td>
+                    <td>$ 127.000.000</td>
+                  </tr>
+                  <tr>
+                    <td>Junio</td>
+                    <td>$ 98.400.000</td>
+                  </tr>
                 </tbody>
               </table>
             </app-rms-chart-frame>
@@ -330,10 +363,7 @@
             <app-rms-chart-frame title="Cargando" [loading]="true">
               <div class="chart-placeholder" aria-hidden="true">plot</div>
             </app-rms-chart-frame>
-            <app-rms-chart-frame
-              title="Error"
-              error="No se pudo cargar la información."
-            >
+            <app-rms-chart-frame title="Error" error="No se pudo cargar la información.">
               <div class="chart-placeholder" aria-hidden="true">plot</div>
             </app-rms-chart-frame>
           </app-rms-card>
@@ -347,8 +377,8 @@
         <div class="demo-grid">
           <app-rms-card title="Foco">
             <p class="gallery-note">
-              Tabulá por esta tarjeta: el anillo azul de 2px con offset de 2px aparece en
-              cada control. No se elimina ningún outline.
+              Tabulá por esta tarjeta: el anillo azul de 2px con offset de 2px aparece en cada
+              control. No se elimina ningún outline.
             </p>
             <div class="demo-row">
               <app-rms-button>Primero</app-rms-button>

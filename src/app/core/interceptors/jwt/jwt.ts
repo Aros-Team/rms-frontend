@@ -13,7 +13,7 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
     '/auth/register',
   ];
 
-  const isPublicPath = publicPaths.some(path => req.url.includes(path));
+  const isPublicPath = publicPaths.some((path) => req.url.includes(path));
 
   if (isPublicPath) {
     return next(req);

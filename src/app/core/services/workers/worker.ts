@@ -1,12 +1,14 @@
-import { HttpClient, HttpParams } from "@angular/common/http";
-import { Injectable, inject } from "@angular/core";
-import { CreateWorkerRequest } from "@app/shared/models/dto/workers/create-worker-request";
-import { SalaryHistoryEntry } from "@app/shared/models/dto/workers/salary-history-entry";
-import { UpdateWorkerRequest, WorkerResponse } from "@app/shared/models/dto/workers/worker-response";
-import { UserRegisterResponse } from "@app/shared/models/dto/workers/user-register-response";
-import { Observable } from "rxjs";
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { CreateWorkerRequest } from '@app/shared/models/dto/workers/create-worker-request';
+import { SalaryHistoryEntry } from '@app/shared/models/dto/workers/salary-history-entry';
+import {
+  UpdateWorkerRequest,
+  WorkerResponse,
+} from '@app/shared/models/dto/workers/worker-response';
+import { UserRegisterResponse } from '@app/shared/models/dto/workers/user-register-response';
+import { Observable } from 'rxjs';
 import { Logging } from '@app/core/services/logging/logging';
-
 
 @Injectable({
   providedIn: 'root',
@@ -29,7 +31,10 @@ export class Worker {
     return this.http.post<UserRegisterResponse>('v1/workers', data);
   }
 
-  public updateAreaActivities(id: number, areaActivities: Record<string, string[]>): Observable<unknown> {
+  public updateAreaActivities(
+    id: number,
+    areaActivities: Record<string, string[]>,
+  ): Observable<unknown> {
     return this.http.put<unknown>(`v1/workers/${String(id)}/area-activities`, { areaActivities });
   }
 

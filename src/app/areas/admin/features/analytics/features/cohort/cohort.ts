@@ -59,7 +59,8 @@ export class Cohort {
 
   readonly rangeLabel = this.period.label;
   readonly subtitle = computed(
-    () => `Clientes nuevos y recurrentes · agrupado por ${bucketLabel(this.period.bucket()).toLowerCase()}`,
+    () =>
+      `Clientes nuevos y recurrentes · agrupado por ${bucketLabel(this.period.bucket()).toLowerCase()}`,
   );
 
   readonly busy = computed(() => this.isLoading() && this.report() === null);

@@ -13,7 +13,11 @@
     <div class="shift-planner__feedback" role="status">
       <i class="pi pi-check-circle" aria-hidden="true"></i>
       <span>{{ message }}</span>
-      <app-rms-icon-button icon="pi pi-times" ariaLabel="Cerrar confirmación" (click)="dismissNotice()" />
+      <app-rms-icon-button
+        icon="pi pi-times"
+        ariaLabel="Cerrar confirmación"
+        (click)="dismissNotice()"
+      />
     </div>
   }
 
@@ -86,18 +90,23 @@
             <span class="rms-caption">{{ row.areaNames.join(', ') || 'Sin área' }}</span>
           </div>
 
-          <div class="shift-row__days" role="img" [attr.aria-label]="'Días: ' + row.days.join(', ')">
+          <div
+            class="shift-row__days"
+            role="img"
+            [attr.aria-label]="'Días: ' + row.days.join(', ')"
+          >
             @for (day of dayOrder; track day) {
               <span
                 class="shift-day"
                 [class.shift-day--on]="row.days.includes(day)"
                 [attr.aria-hidden]="true"
-              >{{ dayShortLabels[day] }}</span>
+                >{{ dayShortLabels[day] }}</span
+              >
             }
           </div>
 
           <div class="shift-row__hours">
-            <span class="shift-row__range">{{ row.ranges.join(" · ") }}</span>
+            <span class="shift-row__range">{{ row.ranges.join(' · ') }}</span>
             <span class="rms-caption">{{ formatMinutes(row.minutes) }}</span>
           </div>
 
@@ -179,8 +188,8 @@
 
       @if (editingMultiRange()) {
         <p class="rms-caption">
-          Este turno agrupa varios rangos horarios. Al guardar se reemplaza el turno completo
-          por el rango indicado.
+          Este turno agrupa varios rangos horarios. Al guardar se reemplaza el turno completo por el
+          rango indicado.
         </p>
       }
 
@@ -207,8 +216,8 @@
   >
     @if (pendingDelete(); as row) {
       <p class="rms-body">
-        ¿Quitar el turno de <strong>{{ row.workerName }}</strong>
-        ({{ row.ranges.join(" · ") }})? Esta acción no se puede deshacer.
+        ¿Quitar el turno de <strong>{{ row.workerName }}</strong> ({{ row.ranges.join(' · ') }})?
+        Esta acción no se puede deshacer.
       </p>
     }
 

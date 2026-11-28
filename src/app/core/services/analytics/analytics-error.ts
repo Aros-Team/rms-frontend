@@ -48,7 +48,8 @@ export function describeAnalyticsError(error: unknown): AnalyticsErrorInfo {
       : extractProblemDetail(error);
   return {
     title: DEFAULT_TITLE,
-    detail: serverDetail ?? (error instanceof Error && error.message ? error.message : DEFAULT_DETAIL),
+    detail:
+      serverDetail ?? (error instanceof Error && error.message ? error.message : DEFAULT_DETAIL),
     forbidden: false,
     status,
   };

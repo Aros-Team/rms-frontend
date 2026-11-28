@@ -1,65 +1,76 @@
 <div class="h-full flex flex-col max-w-[900px] m-auto lg:mt-1">
-
   <div class="bg-rms-surface rounded-2xl border border-rms-border p-6">
     <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-6">
       <app-rms-input label="Mesa (ID)" type="number" formControlName="table" placeholder="Ej. 5" />
       <div>
-
-
         <div class="space-y-4">
           @for (co of clientOrders.controls; track $index; let i = $index) {
-          <div class="rounded-xl border border-rms-border bg-rms-subtle p-4">
-            <div class="flex items-center justify-between mb-3">
-              <div class="rms-h4">Orden de cliente</div>
-            </div>
-
-            <div class="space-y-3">
-              <div class="flex items-center justify-between">
-                <div class="rms-label">Detalles</div>
-                <app-rms-button
-                  variant="secondary"
-                  size="sm"
-                  iconStart="pi pi-plus"
-                  (click)="addDetail(i)">Agregar producto</app-rms-button>
+            <div class="rounded-xl border border-rms-border bg-rms-subtle p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div class="rms-h4">Orden de cliente</div>
               </div>
 
               <div class="space-y-3">
-                @for (d of detailsAt(i).controls; track $index; let j = $index) {
-                <div
-                  class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end rounded-xl border border-rms-border p-3 bg-rms-surface"
-                  [formGroup]="$any(detailsAt(i).at(j))">
-                  <div class="flex flex-col gap-1">
-                    <label class="rms-label" [attr.for]="'product-' + i + '-' + j">Producto {{j + 1}}</label>
-                    <select
-                      [id]="'product-' + i + '-' + j"
-                      formControlName="product"
-                      class="w-full rounded-lg border border-rms-border bg-rms-surface p-2 text-rms-ink">
-                      <option [ngValue]="null" disabled>Seleccione un producto</option>
-                      @for (product of products; track product.id) {
-                        <option [ngValue]="product.id">{{ product.name }} · {{ product.basePrice | money }}</option>
-                      }
-                    </select>
-                  </div>
-                  <app-rms-input label="Cantidad" type="number" formControlName="quantity" />
-                  <app-rms-input label="Observaciones" type="text" formControlName="observations" />
-                  <app-rms-input
-                    label="Para menú del día"
-                    formControlName="subProducts"
-                    placeholder="Ej. 1, 2, 3 " />
-                  <div class="md:col-span-4 flex justify-end">
-                    <app-rms-icon-button
-                      icon="pi pi-trash"
-                      ariaLabel="Eliminar detalle"
-                      variant="danger"
-                      size="sm"
-                      [disabled]="detailsAt(i).length === 1"
-                      (click)="removeDetail(i, j)" />
-                  </div>
+                <div class="flex items-center justify-between">
+                  <div class="rms-label">Detalles</div>
+                  <app-rms-button
+                    variant="secondary"
+                    size="sm"
+                    iconStart="pi pi-plus"
+                    (click)="addDetail(i)"
+                    >Agregar producto</app-rms-button
+                  >
                 </div>
-                }
+
+                <div class="space-y-3">
+                  @for (d of detailsAt(i).controls; track $index; let j = $index) {
+                    <div
+                      class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end rounded-xl border border-rms-border p-3 bg-rms-surface"
+                      [formGroup]="$any(detailsAt(i).at(j))"
+                    >
+                      <div class="flex flex-col gap-1">
+                        <label class="rms-label" [attr.for]="'product-' + i + '-' + j"
+                          >Producto {{ j + 1 }}</label
+                        >
+                        <select
+                          [id]="'product-' + i + '-' + j"
+                          formControlName="product"
+                          class="w-full rounded-lg border border-rms-border bg-rms-surface p-2 text-rms-ink"
+                        >
+                          <option [ngValue]="null" disabled>Seleccione un producto</option>
+                          @for (product of products; track product.id) {
+                            <option [ngValue]="product.id">
+                              {{ product.name }} · {{ product.basePrice | money }}
+                            </option>
+                          }
+                        </select>
+                      </div>
+                      <app-rms-input label="Cantidad" type="number" formControlName="quantity" />
+                      <app-rms-input
+                        label="Observaciones"
+                        type="text"
+                        formControlName="observations"
+                      />
+                      <app-rms-input
+                        label="Para menú del día"
+                        formControlName="subProducts"
+                        placeholder="Ej. 1, 2, 3 "
+                      />
+                      <div class="md:col-span-4 flex justify-end">
+                        <app-rms-icon-button
+                          icon="pi pi-trash"
+                          ariaLabel="Eliminar detalle"
+                          variant="danger"
+                          size="sm"
+                          [disabled]="detailsAt(i).length === 1"
+                          (click)="removeDetail(i, j)"
+                        />
+                      </div>
+                    </div>
+                  }
+                </div>
               </div>
             </div>
-          </div>
           }
         </div>
       </div>

@@ -160,21 +160,19 @@ export class TodayOrders implements OnInit {
     endDate.setHours(23, 59, 59, 999);
 
     this.subscription?.unsubscribe();
-    this.subscription = this.orderService
-      .getAllOrdersByDateRange(startDate, endDate)
-      .subscribe({
-        next: (result) => {
-          if (seq !== this.loadSeq) return;
-          this.allOrders.set(result.items);
-          this.loading.set(false);
-        },
-        error: (err: unknown) => {
-          if (seq !== this.loadSeq) return;
-          this.log.error('TodayOrders: error', err);
-          this.error.set('No se pudieron cargar los pedidos. Revisa la conexión.');
-          this.loading.set(false);
-        },
-      });
+    this.subscription = this.orderService.getAllOrdersByDateRange(startDate, endDate).subscribe({
+      next: (result) => {
+        if (seq !== this.loadSeq) return;
+        this.allOrders.set(result.items);
+        this.loading.set(false);
+      },
+      error: (err: unknown) => {
+        if (seq !== this.loadSeq) return;
+        this.log.error('TodayOrders: error', err);
+        this.error.set('No se pudieron cargar los pedidos. Revisa la conexión.');
+        this.loading.set(false);
+      },
+    });
   }
 
   deliverLine(order: OrderResponse, line: OrderLineView): void {

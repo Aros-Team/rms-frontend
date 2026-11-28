@@ -249,7 +249,9 @@ describe('Auth stale area claims', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(withInterceptors([jwtInterceptor, errorInterceptor, envelopeInterceptor])),
+        provideHttpClient(
+          withInterceptors([jwtInterceptor, errorInterceptor, envelopeInterceptor]),
+        ),
         provideHttpClientTesting(),
         provideRouter([]),
         Auth,
@@ -286,7 +288,9 @@ describe('Auth stale area claims', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(withInterceptors([jwtInterceptor, errorInterceptor, envelopeInterceptor])),
+        provideHttpClient(
+          withInterceptors([jwtInterceptor, errorInterceptor, envelopeInterceptor]),
+        ),
         provideHttpClientTesting(),
         provideRouter([]),
         Auth,

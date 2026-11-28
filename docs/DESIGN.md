@@ -6,13 +6,13 @@
 
 Owner: DS lane. Files owned by this lane:
 
-| Path | Purpose |
-|---|---|
+| Path                    | Purpose                                                  |
+| ----------------------- | -------------------------------------------------------- |
 | `src/styles/tokens.css` | Primitive, semantic, dark and high-contrast token values |
 | `src/styles/global.css` | Focus system, type roles, reduced/forced motion, helpers |
-| `src/styles.css` | Tailwind theme bridge, font faces, legacy compatibility |
-| `src/app/app.config.ts` | PrimeNG preset mapped to the semantic tokens |
-| `src/app/shared/ui/**` | Primitives, chart theme and the dev gallery |
+| `src/styles.css`        | Tailwind theme bridge, font faces, legacy compatibility  |
+| `src/app/app.config.ts` | PrimeNG preset mapped to the semantic tokens             |
+| `src/app/shared/ui/**`  | Primitives, chart theme and the dev gallery              |
 
 No feature lane may add raw colours, raw radii or palette classes. See
 "Migration rules" at the end.
@@ -37,11 +37,11 @@ primitive  ->  semantic  ->  component
 
 Theme activation:
 
-| Theme | Selector |
-|---|---|
-| Light | `:root` (default) |
-| Dark | `.dark` on `<html>` |
-| High contrast (OS) | `@media (prefers-contrast: more)` |
+| Theme                  | Selector                                             |
+| ---------------------- | ---------------------------------------------------- |
+| Light                  | `:root` (default)                                    |
+| Dark                   | `.dark` on `<html>`                                  |
+| High contrast (OS)     | `@media (prefers-contrast: more)`                    |
 | High contrast (in-app) | `html[data-contrast="high"]` (Accessibility service) |
 
 The theme boots in `index.html` before first paint and is kept in sync by
@@ -53,26 +53,26 @@ The theme boots in `index.html` before first paint and is kept in sync by
 
 ### 2.1 Neutral and brand primitives
 
-| Token | Value | Use |
-|---|---|---|
-| `--rms-neutral-0` | `#ffffff` | Card surface (light) |
-| `--rms-neutral-50` | `#f8fafc` | Page (light) |
-| `--rms-neutral-100` | `#f1f5f9` | Subtle fill, table header |
-| `--rms-neutral-200` | `#e2e8f0` | Hairline border |
-| `--rms-neutral-300` | `#cbd5e1` | Input border (light), strong border |
-| `--rms-neutral-400` | `#94a3b8` | Placeholder, muted text (dark) |
-| `--rms-neutral-500` | `#64748b` | Slate mid-tone primitive (see `--rms-text-muted`) |
-| `--rms-neutral-600` | `#475569` | Secondary text (light, 7.24:1) |
-| `--rms-neutral-700` | `#334155` | Border (dark), body text (light) |
-| `--rms-neutral-800` | `#1e293b` | Card surface (dark) |
-| `--rms-neutral-900` | `#0f172a` | Page (dark), primary text (light) |
-| `--rms-neutral-950` | `#020617` | Sunken surface (dark) |
-| `--rms-brand-500` | `#fdefc7` | **Fill only**: primary CTA, selected marker |
-| `--rms-brand-600` | `#d9a209` | Primary hover |
-| `--rms-brand-700` | `#b07e06` | Primary active, large graphic strokes |
-| `--rms-brand-text` | `#8a6508` / `#f2daa2` | Brand-coloured **text and borders** |
-| `--rms-brand-soft` | `#fef7e0` / `#2a230f` | Selected row/badge background |
-| `--rms-on-brand` | `#896511` | Dark-gold **ink** on the cream fill |
+| Token               | Value                 | Use                                               |
+| ------------------- | --------------------- | ------------------------------------------------- |
+| `--rms-neutral-0`   | `#ffffff`             | Card surface (light)                              |
+| `--rms-neutral-50`  | `#f8fafc`             | Page (light)                                      |
+| `--rms-neutral-100` | `#f1f5f9`             | Subtle fill, table header                         |
+| `--rms-neutral-200` | `#e2e8f0`             | Hairline border                                   |
+| `--rms-neutral-300` | `#cbd5e1`             | Input border (light), strong border               |
+| `--rms-neutral-400` | `#94a3b8`             | Placeholder, muted text (dark)                    |
+| `--rms-neutral-500` | `#64748b`             | Slate mid-tone primitive (see `--rms-text-muted`) |
+| `--rms-neutral-600` | `#475569`             | Secondary text (light, 7.24:1)                    |
+| `--rms-neutral-700` | `#334155`             | Border (dark), body text (light)                  |
+| `--rms-neutral-800` | `#1e293b`             | Card surface (dark)                               |
+| `--rms-neutral-900` | `#0f172a`             | Page (dark), primary text (light)                 |
+| `--rms-neutral-950` | `#020617`             | Sunken surface (dark)                             |
+| `--rms-brand-500`   | `#fdefc7`             | **Fill only**: primary CTA, selected marker       |
+| `--rms-brand-600`   | `#d9a209`             | Primary hover                                     |
+| `--rms-brand-700`   | `#b07e06`             | Primary active, large graphic strokes             |
+| `--rms-brand-text`  | `#8a6508` / `#f2daa2` | Brand-coloured **text and borders**               |
+| `--rms-brand-soft`  | `#fef7e0` / `#2a230f` | Selected row/badge background                     |
+| `--rms-on-brand`    | `#896511`             | Dark-gold **ink** on the cream fill               |
 
 ### 2.1.1 Hard rule — a colour keeps its role
 
@@ -98,26 +98,26 @@ deliberate and must never be inverted:
 
 ### 2.2 Semantic roles
 
-| Token | Light | Dark | Role |
-|---|---|---|---|
-| `--rms-bg-page` | `#f8fafc` | `#0f172a` | App/page background |
-| `--rms-bg-surface` | `#ffffff` | `#1e293b` | Card, dialog, input surface |
-| `--rms-bg-subtle` | `#f1f5f9` | `#172033` | Table header, quiet fill |
-| `--rms-bg-sunken` | `#eef2f7` | `#0b1220` | Inset well |
-| `--rms-bg-inverse` | `#0f172a` | `#f1f5f9` | Inverted band |
-| `--rms-bg-selected` | `#fef7e0` | `#2a230f` | Selected row/option |
-| `--rms-bg-disabled` | `#f1f5f9` | `#1e293b` | Disabled control |
-| `--rms-bg-overlay` | `rgb(15 23 42 / .55)` | `rgb(2 6 23 / .72)` | Modal scrim |
-| `--rms-border` | `#e2e8f0` | `#334155` | Hairline |
-| `--rms-border-strong` | `#cbd5e1` | `#475569` | Input/control border |
-| `--rms-text` | `#0f172a` | `#e2e8f0` | Body and headings |
-| `--rms-text-secondary` | `#475569` | `#cbd5e1` | Labels, support copy |
-| `--rms-text-muted` | `#5f6b7d` | `#94a3b8` | Captions, hints (4.9:1 on subtle/sunken) |
-| `--rms-text-inverse` | `#ffffff` | `#0f172a` | On inverse surfaces |
-| `--rms-text-on-brand` | `#1e1b19` | `#1e1b19` | On a gold fill |
-| `--rms-text-disabled` | `#94a3b8` | `#64748b` | Disabled text |
-| `--rms-link` | `#8a6508` | `#f2daa2` | Inline links — brand ink |
-| `--rms-focus` | `#0f172a` | `#f1f5f9` | Focus ring — neutral ink |
+| Token                  | Light                 | Dark                | Role                                     |
+| ---------------------- | --------------------- | ------------------- | ---------------------------------------- |
+| `--rms-bg-page`        | `#f8fafc`             | `#0f172a`           | App/page background                      |
+| `--rms-bg-surface`     | `#ffffff`             | `#1e293b`           | Card, dialog, input surface              |
+| `--rms-bg-subtle`      | `#f1f5f9`             | `#172033`           | Table header, quiet fill                 |
+| `--rms-bg-sunken`      | `#eef2f7`             | `#0b1220`           | Inset well                               |
+| `--rms-bg-inverse`     | `#0f172a`             | `#f1f5f9`           | Inverted band                            |
+| `--rms-bg-selected`    | `#fef7e0`             | `#2a230f`           | Selected row/option                      |
+| `--rms-bg-disabled`    | `#f1f5f9`             | `#1e293b`           | Disabled control                         |
+| `--rms-bg-overlay`     | `rgb(15 23 42 / .55)` | `rgb(2 6 23 / .72)` | Modal scrim                              |
+| `--rms-border`         | `#e2e8f0`             | `#334155`           | Hairline                                 |
+| `--rms-border-strong`  | `#cbd5e1`             | `#475569`           | Input/control border                     |
+| `--rms-text`           | `#0f172a`             | `#e2e8f0`           | Body and headings                        |
+| `--rms-text-secondary` | `#475569`             | `#cbd5e1`           | Labels, support copy                     |
+| `--rms-text-muted`     | `#5f6b7d`             | `#94a3b8`           | Captions, hints (4.9:1 on subtle/sunken) |
+| `--rms-text-inverse`   | `#ffffff`             | `#0f172a`           | On inverse surfaces                      |
+| `--rms-text-on-brand`  | `#1e1b19`             | `#1e1b19`           | On a gold fill                           |
+| `--rms-text-disabled`  | `#94a3b8`             | `#64748b`           | Disabled text                            |
+| `--rms-link`           | `#8a6508`             | `#f2daa2`           | Inline links — brand ink                 |
+| `--rms-focus`          | `#0f172a`             | `#f1f5f9`           | Focus ring — neutral ink                 |
 
 Rules:
 
@@ -134,12 +134,12 @@ Rules:
 Every status has four roles: `fg` (text), `bg` (soft fill), `border`, `solid`
 (filled chip/button) and `on-solid`. Light:
 
-| Status | fg | bg | border | solid |
-|---|---|---|---|---|
+| Status  | fg        | bg        | border    | solid     |
+| ------- | --------- | --------- | --------- | --------- |
 | success | `#065f46` | `#ecfdf5` | `#a7f3d0` | `#047857` |
 | warning | `#854d0e` | `#fefce8` | `#fde047` | `#a16207` |
-| danger | `#9f1239` | `#fff1f2` | `#fda4af` | `#be123c` |
-| info | `#1d4ed8` | `#eff6ff` | `#bfdbfe` | `#1d4ed8` |
+| danger  | `#9f1239` | `#fff1f2` | `#fda4af` | `#be123c` |
+| info    | `#1d4ed8` | `#eff6ff` | `#bfdbfe` | `#1d4ed8` |
 | neutral | `#334155` | `#f1f5f9` | `#e2e8f0` | `#475569` |
 
 Dark variants are the light-text/soft-fill counterparts (`#6ee7b7` on
@@ -151,14 +151,14 @@ label uses `on-solid`.
 
 Domain mapping (do not invent per-screen colours):
 
-| State | Token |
-|---|---|
-| Table AVAILABLE / Order READY / Worker ACTIVE | success |
-| Table OCCUPIED / Order PREPARING | info |
-| Table RESERVED / Order PENDING / IN_QUEUE / low stock | warning |
-| Table DIRTY / Order DELIVERED / Worker INACTIVE | neutral |
-| Order CANCELLED / stock 0 | danger |
-| Data partial | warning banner (`role="status"`) |
+| State                                                 | Token                            |
+| ----------------------------------------------------- | -------------------------------- |
+| Table AVAILABLE / Order READY / Worker ACTIVE         | success                          |
+| Table OCCUPIED / Order PREPARING                      | info                             |
+| Table RESERVED / Order PENDING / IN_QUEUE / low stock | warning                          |
+| Table DIRTY / Order DELIVERED / Worker INACTIVE       | neutral                          |
+| Order CANCELLED / stock 0                             | danger                           |
+| Data partial                                          | warning banner (`role="status"`) |
 
 ### 2.4 Chart tokens
 
@@ -188,19 +188,19 @@ plum. There is no brown/terracotta and no neutral-gray series. Fixed mappings:
 One family (Archivo, self-hosted variable), four weights (400/600/700, plus 900
 for the wordmark only).
 
-| Class / token | Size / line | Weight | Use |
-|---|---|---|---|
-| `.rms-display` | 36 / 44 | 700 | Auth hero, error pages |
-| `.rms-h1` | 30 / 38 | 700 | Page title, one per route |
-| `.rms-h2` | 24 / 32 | 700 | Section title |
-| `.rms-h3` | 20 / 28 | 600 | Card/group title |
-| `.rms-h4` | 16 / 24 | 600 | Panel subheading |
-| `.rms-body-lg` | 16 / 26 | 400 | Waiter/kitchen/auth reading text |
-| `.rms-body` | 14 / 22 | 400 | Admin default |
-| `.rms-caption` | 12 / 18 | 400 | Hints, timestamps, axis labels |
-| `.rms-label` | 12 / 16 | 600 | Form labels, table headers |
-| `.rms-numeric` | 16 / 24 | 600 | KPI value, tabular |
-| `.rms-numeric-lg` | 30 / 36 | 700 | Primary KPI only, tabular |
+| Class / token     | Size / line | Weight | Use                              |
+| ----------------- | ----------- | ------ | -------------------------------- |
+| `.rms-display`    | 36 / 44     | 700    | Auth hero, error pages           |
+| `.rms-h1`         | 30 / 38     | 700    | Page title, one per route        |
+| `.rms-h2`         | 24 / 32     | 700    | Section title                    |
+| `.rms-h3`         | 20 / 28     | 600    | Card/group title                 |
+| `.rms-h4`         | 16 / 24     | 600    | Panel subheading                 |
+| `.rms-body-lg`    | 16 / 26     | 400    | Waiter/kitchen/auth reading text |
+| `.rms-body`       | 14 / 22     | 400    | Admin default                    |
+| `.rms-caption`    | 12 / 18     | 400    | Hints, timestamps, axis labels   |
+| `.rms-label`      | 12 / 16     | 600    | Form labels, table headers       |
+| `.rms-numeric`    | 16 / 24     | 600    | KPI value, tabular               |
+| `.rms-numeric-lg` | 30 / 36     | 700    | Primary KPI only, tabular        |
 
 Rules:
 
@@ -233,28 +233,28 @@ blur shadows on content. Overlays separate with a scrim, not a drop shadow.
 
 Density is a surface decision:
 
-| Token | Value | Surface |
-|---|---|---|
-| `--rms-control-sm` | 32 | Compact admin tables |
-| `--rms-control-md` | 40 | Admin comfortable |
-| `--rms-control-lg` | 48 | Waiter, cashier |
-| `--rms-control-xl` | 56 | Kitchen |
-| `--rms-touch-min` | 44 | Product floor for any touch target |
-| `--rms-row-compact` | 40 | Admin restaurant tables |
-| `--rms-row-comfortable` | 48 | Everything else |
+| Token                   | Value | Surface                            |
+| ----------------------- | ----- | ---------------------------------- |
+| `--rms-control-sm`      | 32    | Compact admin tables               |
+| `--rms-control-md`      | 40    | Admin comfortable                  |
+| `--rms-control-lg`      | 48    | Waiter, cashier                    |
+| `--rms-control-xl`      | 56    | Kitchen                            |
+| `--rms-touch-min`       | 44    | Product floor for any touch target |
+| `--rms-row-compact`     | 40    | Admin restaurant tables            |
+| `--rms-row-comfortable` | 48    | Everything else                    |
 
 ---
 
 ## 5. Motion
 
-| Token | Value | Use |
-|---|---|---|
-| `--rms-motion-fast` | 120ms | Hover, focus, colour |
-| `--rms-motion-base` | 180ms | Expand, tab, toast |
-| `--rms-motion-slow` | 280ms | Sheet/drawer |
-| `--rms-motion-chart` | 240ms | First chart render |
-| `--rms-ease` | `cubic-bezier(.2,0,0,1)` | Enter/move |
-| `--rms-ease-exit` | `cubic-bezier(.4,0,1,1)` | Dismiss |
+| Token                | Value                    | Use                  |
+| -------------------- | ------------------------ | -------------------- |
+| `--rms-motion-fast`  | 120ms                    | Hover, focus, colour |
+| `--rms-motion-base`  | 180ms                    | Expand, tab, toast   |
+| `--rms-motion-slow`  | 280ms                    | Sheet/drawer         |
+| `--rms-motion-chart` | 240ms                    | First chart render   |
+| `--rms-ease`         | `cubic-bezier(.2,0,0,1)` | Enter/move           |
+| `--rms-ease-exit`    | `cubic-bezier(.4,0,1,1)` | Dismiss              |
 
 Motion communicates state, never decoration: no bounce, no idle pulse, no scale
 on hover. A global `prefers-reduced-motion: reduce` block sets animation and
@@ -294,22 +294,22 @@ contrast and focus gates belong to the QA lane.
 The preset lives in `src/app/app.config.ts` and maps PrimeNG onto the semantic
 layer:
 
-| PrimeNG token | Value |
-|---|---|
-| `--p-primary-color` | `var(--rms-brand-500)` |
-| `--p-primary-contrast-color` | `#ffffff` (kept for `bg-primary-contrast` cards) |
-| `--p-surface-0..950` | the slate ramp, identical in light and dark |
-| `--p-content-background` | `#ffffff` / `#1e293b` |
-| `--p-content-border-color` | `#e2e8f0` / `#334155` |
-| `--p-text-color` | `#0f172a` / `#e2e8f0` |
-| `--p-text-muted-color` | `#64748b` / `#94a3b8` |
-| `--p-form-field-background` | `#ffffff` / `#1e293b` |
-| `--p-form-field-border-color` | `#cbd5e1` / `#475569` |
-| `--p-focus-ring-color` | `var(--rms-focus)` |
-| `--p-focus-ring-width` | `2px` |
-| `--p-focus-ring-offset` | `2px` |
-| `--p-highlight-background` | `var(--rms-bg-selected)` |
-| `--p-highlight-color` | `var(--rms-brand-text)` |
+| PrimeNG token                 | Value                                            |
+| ----------------------------- | ------------------------------------------------ |
+| `--p-primary-color`           | `var(--rms-brand-500)`                           |
+| `--p-primary-contrast-color`  | `#ffffff` (kept for `bg-primary-contrast` cards) |
+| `--p-surface-0..950`          | the slate ramp, identical in light and dark      |
+| `--p-content-background`      | `#ffffff` / `#1e293b`                            |
+| `--p-content-border-color`    | `#e2e8f0` / `#334155`                            |
+| `--p-text-color`              | `#0f172a` / `#e2e8f0`                            |
+| `--p-text-muted-color`        | `#64748b` / `#94a3b8`                            |
+| `--p-form-field-background`   | `#ffffff` / `#1e293b`                            |
+| `--p-form-field-border-color` | `#cbd5e1` / `#475569`                            |
+| `--p-focus-ring-color`        | `var(--rms-focus)`                               |
+| `--p-focus-ring-width`        | `2px`                                            |
+| `--p-focus-ring-offset`       | `2px`                                            |
+| `--p-highlight-background`    | `var(--rms-bg-selected)`                         |
+| `--p-highlight-color`         | `var(--rms-brand-text)`                          |
 
 Rules:
 
@@ -362,10 +362,10 @@ uses signals. Keep it that way for every new primitive.
 
 ### 9.1 Actions
 
-| Component | API |
-|---|---|
-| `app-rms-button` | `variant: primary\|secondary\|ghost\|danger\|link` (default primary), `size: sm\|md\|lg\|xl` (md), `type`, `disabled`, `loading`, `iconStart`, `iconEnd`, `ariaLabel`, `block`. Label is projected. |
-| `app-rms-icon-button` | `icon` (required), `ariaLabel` (required), `tooltip`, `variant: ghost\|secondary\|danger`, `size`, `disabled`, `type`. |
+| Component             | API                                                                                                                                                                                                 |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app-rms-button`      | `variant: primary\|secondary\|ghost\|danger\|link` (default primary), `size: sm\|md\|lg\|xl` (md), `type`, `disabled`, `loading`, `iconStart`, `iconEnd`, `ariaLabel`, `block`. Label is projected. |
+| `app-rms-icon-button` | `icon` (required), `ariaLabel` (required), `tooltip`, `variant: ghost\|secondary\|danger`, `size`, `disabled`, `type`.                                                                              |
 
 ```html
 <app-rms-button variant="primary" iconStart="pi pi-plus">Nuevo producto</app-rms-button>
@@ -374,14 +374,14 @@ uses signals. Keep it that way for every new primitive.
 
 ### 9.2 Forms
 
-| Component | API |
-|---|---|
-| `app-rms-field` | `label` (required), `controlId`, `hint`, `error`, `required`, `optionalLabel`, `hideLabel`, `size`. Exposes `describedBy`, `labelId`, `hintId`, `errorId`. |
-| `app-rms-input` | `label` (required), `id`, `type`, `placeholder`, `hint`, `error`, `required`, `optionalLabel`, `hideLabel`, `autocomplete`, `inputMode`, `maxLength`, `name`, `size`, `disabled`, `readonly`, `invalid` (paint the invalid state before a message exists, e.g. touched + invalid); CVA. |
-| `app-rms-textarea` | same as input plus `rows`, `showCount`, `invalid`; CVA. |
-| `app-rms-select` | `label` (required), `options: {label, value, disabled?}[]`, `placeholder`, `hint`, `error`, `required`, `showClear`, `filter` (auto above 8 options), `size`, `disabled`, `invalid`; CVA. |
-| `app-rms-checkbox` | `label` (required), `description`, `disabled`, `required`; CVA boolean. |
-| `app-rms-switch` | `label` (required), `onLabel`, `offLabel`, `showState`, `disabled`; CVA boolean, `role="switch"`. |
+| Component          | API                                                                                                                                                                                                                                                                                     |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app-rms-field`    | `label` (required), `controlId`, `hint`, `error`, `required`, `optionalLabel`, `hideLabel`, `size`. Exposes `describedBy`, `labelId`, `hintId`, `errorId`.                                                                                                                              |
+| `app-rms-input`    | `label` (required), `id`, `type`, `placeholder`, `hint`, `error`, `required`, `optionalLabel`, `hideLabel`, `autocomplete`, `inputMode`, `maxLength`, `name`, `size`, `disabled`, `readonly`, `invalid` (paint the invalid state before a message exists, e.g. touched + invalid); CVA. |
+| `app-rms-textarea` | same as input plus `rows`, `showCount`, `invalid`; CVA.                                                                                                                                                                                                                                 |
+| `app-rms-select`   | `label` (required), `options: {label, value, disabled?}[]`, `placeholder`, `hint`, `error`, `required`, `showClear`, `filter` (auto above 8 options), `size`, `disabled`, `invalid`; CVA.                                                                                               |
+| `app-rms-checkbox` | `label` (required), `description`, `disabled`, `required`; CVA boolean.                                                                                                                                                                                                                 |
+| `app-rms-switch`   | `label` (required), `onLabel`, `offLabel`, `showState`, `disabled`; CVA boolean, `role="switch"`.                                                                                                                                                                                       |
 
 ```html
 <app-rms-input formControlName="name" label="Nombre" [error]="nameError" />
@@ -394,10 +394,10 @@ control's `aria-describedby`.
 
 ### 9.3 Overlays
 
-| Component | API |
-|---|---|
+| Component        | API                                                                                                                                                            |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `app-rms-dialog` | `visible` + `visibleChange`, `header` (required), `width` (clamped to 92vw), `closeOnEscape`, `dismissableMask`. Project body; footer via `[rmsDialogFooter]`. |
-| `app-rms-sheet` | `open` + `openChange`, `title` (required), `side: bottom\|end`, `dismissible`. Native `<dialog>` + `showModal()`. Footer via `[rmsSheetFooter]`. |
+| `app-rms-sheet`  | `open` + `openChange`, `title` (required), `side: bottom\|end`, `dismissible`. Native `<dialog>` + `showModal()`. Footer via `[rmsSheetFooter]`.               |
 
 D-012: PrimeNG Dialog for complex flows, native sheet for simple panels.
 
@@ -413,18 +413,18 @@ D-012: PrimeNG Dialog for complex flows, native sheet for simple panels.
 
 ### 9.4 Surfaces and feedback
 
-| Component | API |
-|---|---|
-| `app-rms-card` | `tone: surface\|subtle\|sunken`, `padding: none\|sm\|md\|lg`, `title`, `subtitle`. Slots `[rmsCardActions]`, `[rmsCardFooter]`. |
-| `app-rms-section` | `title` (required), `description`, `level: 2\|3`. Slot `[rmsSectionActions]`. |
-| `app-rms-badge` | `label` (required), `tone: success\|warning\|danger\|info\|neutral\|brand`, `variant: soft\|solid\|outline`, `size`, `dot`. |
-| `app-rms-status-pill` | `label` (required), `status: RmsStatus`, `dot`, `size`. |
-| `app-rms-empty-state` | `icon`, `title` (required), `message`, `actionLabel`, `actionIcon`, `secondaryLabel`; outputs `action`, `secondaryAction`. |
-| `app-rms-skeleton` | `variant: text\|rect\|circle`, `width`, `height`, `lines`, `ariaLabel`. |
-| `app-rms-page-header` | `title` (required), `subtitle`, `backLabel`; output `back`. Slots `[rmsPageHeaderMeta]`, `[rmsPageHeaderActions]`. |
-| `app-rms-stat-tile` | `label` (required), `value`, `period`, `delta`, `deltaTone`, `icon`, `loading`, `emphasis`. |
+| Component             | API                                                                                                                                                                                                                                                                                     |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app-rms-card`        | `tone: surface\|subtle\|sunken`, `padding: none\|sm\|md\|lg`, `title`, `subtitle`. Slots `[rmsCardActions]`, `[rmsCardFooter]`.                                                                                                                                                         |
+| `app-rms-section`     | `title` (required), `description`, `level: 2\|3`. Slot `[rmsSectionActions]`.                                                                                                                                                                                                           |
+| `app-rms-badge`       | `label` (required), `tone: success\|warning\|danger\|info\|neutral\|brand`, `variant: soft\|solid\|outline`, `size`, `dot`.                                                                                                                                                             |
+| `app-rms-status-pill` | `label` (required), `status: RmsStatus`, `dot`, `size`.                                                                                                                                                                                                                                 |
+| `app-rms-empty-state` | `icon`, `title` (required), `message`, `actionLabel`, `actionIcon`, `secondaryLabel`; outputs `action`, `secondaryAction`.                                                                                                                                                              |
+| `app-rms-skeleton`    | `variant: text\|rect\|circle`, `width`, `height`, `lines`, `ariaLabel`.                                                                                                                                                                                                                 |
+| `app-rms-page-header` | `title` (required), `subtitle`, `backLabel`; output `back`. Slots `[rmsPageHeaderMeta]`, `[rmsPageHeaderActions]`.                                                                                                                                                                      |
+| `app-rms-stat-tile`   | `label` (required), `value`, `period`, `delta`, `deltaTone`, `icon`, `loading`, `emphasis`.                                                                                                                                                                                             |
 | `app-rms-chart-frame` | `title` (required), `subtitle`, `height`, `loading`, `empty`, `error`, `emptyMessage`, `emptyActionLabel`, `errorTitle`, `summary`, `dataMode: none\|disclosure\|hidden`, `dataLabel`; outputs `retry`, `emptyAction`. Slots `[rmsChartActions]`, `[rmsChartLegend]`, `[rmsChartData]`. |
-| `app-rms-chart` | `type: bar\|line\|doughnut\|bubble` (required), `data` (required), `options`, `ariaLabel`. |
+| `app-rms-chart`       | `type: bar\|line\|doughnut\|bubble` (required), `data` (required), `options`, `ariaLabel`.                                                                                                                                                                                              |
 
 `app-rms-chart` imports Chart.js core (not `chart.js/auto`), the frame owns the
 summary and the data table, and the canvas is `role="img"`.
@@ -532,15 +532,15 @@ Adoption is now tracked per area instead of per component. The legacy API
 (`p-button`, `pInputText`, `text-surface-*`, `dark:` pairs,
 `bg-primary-contrast`) is closed to new use and is being removed area by area.
 
-| Area | Status |
-|---|---|
-| `areas/auth/**` | migrated (2026-11-23) |
-| `areas/admin/manage/combos`, `categories`, `areas`, `tables` | migrated (2026-11-23) |
-| `shared/features/settings`, `shared/components/{inline-create-popover,search-input,removable-chip}` | migrated (2026-11-23) |
-| `areas/admin/manage/{workers,time-logs,inventory,schedules}` | migrated (2026-11-23) |
-| `areas/admin/features/dashboard`, analytics | migrated; charts use `app-rms-chart` (Chart.js core); off-screen blocks deferred |
-| `shared/components`, error pages, skeletons, chat, orders, product creation | migrated (2026-11-23) |
-| `areas/admin/manage/products`, `areas/worker/**`, `areas/cashier/**`, product card/options | next batch (3 legacy templates) |
+| Area                                                                                                | Status                                                                           |
+| --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `areas/auth/**`                                                                                     | migrated (2026-11-23)                                                            |
+| `areas/admin/manage/combos`, `categories`, `areas`, `tables`                                        | migrated (2026-11-23)                                                            |
+| `shared/features/settings`, `shared/components/{inline-create-popover,search-input,removable-chip}` | migrated (2026-11-23)                                                            |
+| `areas/admin/manage/{workers,time-logs,inventory,schedules}`                                        | migrated (2026-11-23)                                                            |
+| `areas/admin/features/dashboard`, analytics                                                         | migrated; charts use `app-rms-chart` (Chart.js core); off-screen blocks deferred |
+| `shared/components`, error pages, skeletons, chat, orders, product creation                         | migrated (2026-11-23)                                                            |
+| `areas/admin/manage/products`, `areas/worker/**`, `areas/cashier/**`, product card/options          | next batch (3 legacy templates)                                                  |
 
 Shell surfaces (decision 2026-11-23): the workstation shell is **fluid**.
 Header, sidebar and the page share `bg-rms-page`; there is no divider border
@@ -551,22 +551,22 @@ admin shell, the content column in the worker shell), using
 
 Radius rule (one radius per role, no `rounded`/`rounded-md` in feature code):
 
-| Role | Value | Utility |
-|---|---|---|
-| Controls, buttons, nav items | 8 px | `rounded-lg` |
-| Cards, grouped inputs | 12 px | `rounded-xl` |
-| Page panels, sheets | 16 px | `rounded-2xl` |
+| Role                         | Value | Utility       |
+| ---------------------------- | ----- | ------------- |
+| Controls, buttons, nav items | 8 px  | `rounded-lg`  |
+| Cards, grouped inputs        | 12 px | `rounded-xl`  |
+| Page panels, sheets          | 16 px | `rounded-2xl` |
 
 Layer scale (never a numeric `z-[…]` in feature code):
 
-| Token | Value | Use |
-|---|---|---|
-| `--rms-z-raised` | 10 | raised content |
-| `--rms-z-sticky` | 20 | fixed header |
-| `--rms-z-drawer` | 40 | mobile drawer, sidebar |
-| `--rms-z-overlay` | 1000 | scrim, popovers |
-| `--rms-z-dialog` | 1100 | dialogs, sheets |
-| `--rms-z-toast` | 1200 | toasts, skip link |
+| Token             | Value | Use                    |
+| ----------------- | ----- | ---------------------- |
+| `--rms-z-raised`  | 10    | raised content         |
+| `--rms-z-sticky`  | 20    | fixed header           |
+| `--rms-z-drawer`  | 40    | mobile drawer, sidebar |
+| `--rms-z-overlay` | 1000  | scrim, popovers        |
+| `--rms-z-dialog`  | 1100  | dialogs, sheets        |
+| `--rms-z-toast`   | 1200  | toasts, skip link      |
 
 Automated gates: `npm run lint:check` (Oxlint with the type-aware `tsgolint`
 backend for TypeScript, ESLint for Angular templates including no-inline-styles

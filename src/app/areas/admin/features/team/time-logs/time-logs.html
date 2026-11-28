@@ -18,15 +18,29 @@
     />
     <div class="flex flex-col gap-1">
       <label class="rms-label" for="filter-from">Desde</label>
-      <p-datepicker id="filter-from" [(ngModel)]="filterFrom" [showTime]="true" dateFormat="dd/mm/yy" placeholder="Fecha inicio"></p-datepicker>
+      <p-datepicker
+        id="filter-from"
+        [(ngModel)]="filterFrom"
+        [showTime]="true"
+        dateFormat="dd/mm/yy"
+        placeholder="Fecha inicio"
+      ></p-datepicker>
     </div>
     <div class="flex flex-col gap-1">
       <label class="rms-label" for="filter-to">Hasta</label>
-      <p-datepicker id="filter-to" [(ngModel)]="filterTo" [showTime]="true" dateFormat="dd/mm/yy" placeholder="Fecha fin"></p-datepicker>
+      <p-datepicker
+        id="filter-to"
+        [(ngModel)]="filterTo"
+        [showTime]="true"
+        dateFormat="dd/mm/yy"
+        placeholder="Fecha fin"
+      ></p-datepicker>
     </div>
     <div class="flex items-end gap-2">
       <app-rms-button iconStart="pi pi-search" (click)="loadTimeLogs()">Filtrar</app-rms-button>
-      <app-rms-button variant="secondary" iconStart="pi pi-times" (click)="clearFilters()">Limpiar</app-rms-button>
+      <app-rms-button variant="secondary" iconStart="pi pi-times" (click)="clearFilters()"
+        >Limpiar</app-rms-button
+      >
     </div>
   </div>
 
@@ -37,7 +51,9 @@
     } @else if (error()) {
       <div class="flex flex-col items-center justify-center h-full p-8">
         <p class="text-rms-ink-secondary">{{ error() }}</p>
-        <app-rms-button class="mt-4" iconStart="pi pi-refresh" (click)="loadTimeLogs()">Reintentar</app-rms-button>
+        <app-rms-button class="mt-4" iconStart="pi pi-refresh" (click)="loadTimeLogs()"
+          >Reintentar</app-rms-button
+        >
       </div>
     } @else if (timeLogs().length === 0) {
       <div class="flex flex-col items-center justify-center h-full p-8">
@@ -45,8 +61,14 @@
         <p class="text-rms-ink-secondary text-lg">Sin registros de ingreso</p>
       </div>
     } @else {
-      <p-table [value]="timeLogs()" dataKey="id" [paginator]="true" [rows]="15"
-        [rowsPerPageOptions]="[10, 15, 25, 50]" [loading]="loading()">
+      <p-table
+        [value]="timeLogs()"
+        dataKey="id"
+        [paginator]="true"
+        [rows]="15"
+        [rowsPerPageOptions]="[10, 15, 25, 50]"
+        [loading]="loading()"
+      >
         <ng-template pTemplate="header">
           <tr>
             <th>ID</th>
@@ -75,7 +97,9 @@
         </ng-template>
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="6" class="text-center p-4 text-rms-ink-secondary">Sin registros de ingreso</td>
+            <td colspan="6" class="text-center p-4 text-rms-ink-secondary">
+              Sin registros de ingreso
+            </td>
           </tr>
         </ng-template>
       </p-table>

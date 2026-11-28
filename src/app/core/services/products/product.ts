@@ -1,6 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { ProductCreateRequest, ProductOptionCreateRequest } from '@app/shared/models/dto/products/product-create-request';
+import {
+  ProductCreateRequest,
+  ProductOptionCreateRequest,
+} from '@app/shared/models/dto/products/product-create-request';
 import { ProductResponse } from '@app/shared/models/dto/products/product-response';
 import { ProductListResponse } from '@app/shared/models/dto/products/product-list-response';
 import { ProductUpdateRequest } from '@app/shared/models/dto/products/product-update-request';
@@ -75,7 +78,13 @@ export class Product {
     return this.listAll<ProductResponse>(includeSelections ? { includeSelections: 'true' } : {});
   }
 
-  public getProductsPaginated(page = 0, size = 20, includeInactive = false, includeSelections?: boolean, search?: string): Observable<PaginatedProductsResponse> {
+  public getProductsPaginated(
+    page = 0,
+    size = 20,
+    includeInactive = false,
+    includeSelections?: boolean,
+    search?: string,
+  ): Observable<PaginatedProductsResponse> {
     let params: Record<string, string> = {
       page: String(page),
       size: String(size),
@@ -94,12 +103,14 @@ export class Product {
         totalPages: res.page?.totalPages ?? 0,
         page: res.page?.number ?? 0,
         size: res.page?.size ?? 0,
-      }))
+      })),
     );
   }
 
   public getAllProducts(includeSelections?: boolean): Observable<ProductListResponse[]> {
-    return this.listAll<ProductListResponse>(includeSelections ? { includeSelections: 'true' } : {});
+    return this.listAll<ProductListResponse>(
+      includeSelections ? { includeSelections: 'true' } : {},
+    );
   }
 
   /** Flattens the page envelope; `categories` is a comma-separated `List<Long>` filter. */
@@ -132,7 +143,9 @@ export class Product {
   }
 
   public getCostBreakdown(productId: number): Observable<ProductCostBreakdownResponse> {
-    return this.http.get<ProductCostBreakdownResponse>('v1/products/' + String(productId) + '/cost-breakdown');
+    return this.http.get<ProductCostBreakdownResponse>(
+      'v1/products/' + String(productId) + '/cost-breakdown',
+    );
   }
 
   public disableProduct(id: number): Observable<object> {
@@ -145,22 +158,28 @@ export class Product {
 
   getProductById(id: number): Observable<ProductData | undefined> {
     return this.findProduct(id).pipe(
-      map((product: ProductResponse) => ({
-        id: product.id,
-        name: product.name,
-        basePrice: toAmount(product.basePrice),
-        active: product.active,
-        categoryId: product.categoryId,
-        categoryName: product.categoryName,
-        areaId: product.areaId,
-        quantity: null,
-        observations: null
-      } as ProductData)),
-      catchError(() => of(undefined))
+      map(
+        (product: ProductResponse) =>
+          ({
+            id: product.id,
+            name: product.name,
+            basePrice: toAmount(product.basePrice),
+            active: product.active,
+            categoryId: product.categoryId,
+            categoryName: product.categoryName,
+            areaId: product.areaId,
+            quantity: null,
+            observations: null,
+          }) as ProductData,
+      ),
+      catchError(() => of(undefined)),
     );
   }
 
-  getProductsByCategories(categoryIds: number[], includeSelections?: boolean): Observable<ProductResponse[]> {
+  getProductsByCategories(
+    categoryIds: number[],
+    includeSelections?: boolean,
+  ): Observable<ProductResponse[]> {
     if (categoryIds.length === 0) {
       return this.getProducts(includeSelections);
     }
@@ -193,17 +212,14 @@ export class Product {
     optionId: number,
     extraPrice: number,
   ): Observable<object> {
-    return this.http.put<object>(
-      `v1/products/${String(productId)}/options/${String(optionId)}`,
-      { extraPrice },
-    );
+    return this.http.put<object>(`v1/products/${String(productId)}/options/${String(optionId)}`, {
+      extraPrice,
+    });
   }
 
   /** Removes one option association from a product. */
   public detachOption(productId: number, optionId: number): Observable<object> {
-    return this.http.delete<object>(
-      `v1/products/${String(productId)}/options/${String(optionId)}`,
-    );
+    return this.http.delete<object>(`v1/products/${String(productId)}/options/${String(optionId)}`);
   }
 
   /**

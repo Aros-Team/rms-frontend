@@ -98,7 +98,11 @@ function makeOrder(
   return { id, date, status, tableId, details };
 }
 
-function collection(items: OrderResponse[], total = items.length, truncated = false): OrderCollection {
+function collection(
+  items: OrderResponse[],
+  total = items.length,
+  truncated = false,
+): OrderCollection {
   return { items, total, truncated };
 }
 
@@ -165,9 +169,7 @@ describe('Kitchen', () => {
           detail(1031, 1, 'Hamburguesa', { preparationStartedAt: '2026-01-01T11:55:00' }),
         ]),
       ],
-      READY: [
-        makeOrder(104, 'READY', '2026-01-01T11:40:00', [detail(1041, 2, 'Limonada')]),
-      ],
+      READY: [makeOrder(104, 'READY', '2026-01-01T11:40:00', [detail(1041, 2, 'Limonada')])],
     };
 
     // Emulates the API: an `areaId` query returns tickets with at least one
@@ -175,8 +177,7 @@ describe('Kitchen', () => {
     getAllByStatus = vi.fn((status: string, query: { areaId?: number } = {}) => {
       const orders = (board[status] ?? []).filter(
         (order) =>
-          query.areaId === undefined ||
-          order.details.some((line) => line.areaId === query.areaId),
+          query.areaId === undefined || order.details.some((line) => line.areaId === query.areaId),
       );
       return of(collection(orders));
     });
@@ -271,9 +272,9 @@ describe('Kitchen', () => {
   }
 
   function columnIds(column: string): string[] {
-    return Array.from(
-      host().querySelectorAll(`[data-column="${column}"] .ticket__number`),
-    ).map((element) => text(element));
+    return Array.from(host().querySelectorAll(`[data-column="${column}"] .ticket__number`)).map(
+      (element) => text(element),
+    );
   }
 
   function innerButton(testId: string): HTMLButtonElement {
@@ -284,8 +285,8 @@ describe('Kitchen', () => {
   }
 
   function stationButton(name: string): HTMLButtonElement {
-    const button = Array.from(host().querySelectorAll('.kitchen__stations button')).find((candidate) =>
-      text(candidate).startsWith(name),
+    const button = Array.from(host().querySelectorAll('.kitchen__stations button')).find(
+      (candidate) => text(candidate).startsWith(name),
     );
     if (!button) throw new Error(`Expected a station button for "${name}"`);
     return button as HTMLButtonElement;
@@ -356,9 +357,7 @@ describe('Kitchen', () => {
 
     it('never renders the same order twice when a fetch repeats a row', () => {
       board.QUEUE.push({ ...board.QUEUE[0] });
-      getAllByStatus.mockImplementation((status: string) =>
-        of(collection(board[status] ?? [])),
-      );
+      getAllByStatus.mockImplementation((status: string) => of(collection(board[status] ?? [])));
 
       component.fetchAll(true);
       fixture.detectChanges();
@@ -394,9 +393,9 @@ describe('Kitchen', () => {
       expect(columnIds('ready')).toEqual(['#104']);
 
       // The filtered ticket keeps only the lines of the selected station.
-      expect(component.groupsFor(component.queueOrders()[0]).map((group) => group.station.name)).toEqual([
-        'Bar',
-      ]);
+      expect(
+        component.groupsFor(component.queueOrders()[0]).map((group) => group.station.name),
+      ).toEqual(['Bar']);
 
       stationButton('Todas').click();
       fixture.detectChanges();
@@ -421,7 +420,9 @@ describe('Kitchen', () => {
     });
 
     it('mutes and unmutes the new-order sound from one icon control', () => {
-      const soundButton = host().querySelector<HTMLButtonElement>('[data-testid="sound-toggle"] button');
+      const soundButton = host().querySelector<HTMLButtonElement>(
+        '[data-testid="sound-toggle"] button',
+      );
       expect(soundButton?.getAttribute('aria-label')).toBe('Silenciar avisos');
 
       soundButton?.click();
@@ -533,7 +534,9 @@ describe('Kitchen', () => {
     });
 
     it('patches created, preparing, ready, delivered and cancelled events idempotently', () => {
-      const created = makeOrder(900, 'QUEUE', '2026-01-01T12:15:00', [detail(9001, 1, 'Hamburguesa')]);
+      const created = makeOrder(900, 'QUEUE', '2026-01-01T12:15:00', [
+        detail(9001, 1, 'Hamburguesa'),
+      ]);
       wsEvents['/topic/orders/created'].next(created);
       fixture.detectChanges();
 
@@ -591,7 +594,9 @@ describe('Kitchen', () => {
 
     it('shows the error banner and stops the spinner when a column fails', () => {
       getAllByStatus.mockImplementation((status: string) =>
-        status === 'QUEUE' ? throwError(() => new Error('boom')) : of(collection(board[status] ?? [])),
+        status === 'QUEUE'
+          ? throwError(() => new Error('boom'))
+          : of(collection(board[status] ?? [])),
       );
 
       component.fetchAll(true);
@@ -631,9 +636,9 @@ describe('Kitchen', () => {
 
       expect(component.stationError()).toContain('No se pudo cargar el mapa de estaciones');
       expect(columnIds('queue')).toEqual(['#101', '#102']);
-      expect(text(host().querySelector('[data-column="queue"] [data-station="unknown"]'))).toContain(
-        'Hamburguesa',
-      );
+      expect(
+        text(host().querySelector('[data-column="queue"] [data-station="unknown"]')),
+      ).toContain('Hamburguesa');
     });
   });
 });

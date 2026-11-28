@@ -1,68 +1,96 @@
-<div class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full overflow-y-auto lg:overflow-hidden" [appLazyLoad]="cache.areas" (appLazyLoadVisible)="onVisible()">
+<div
+  class="flex flex-col p-4 md:p-6 min-w-0 min-h-0 h-full overflow-y-auto lg:overflow-hidden"
+  [appLazyLoad]="cache.areas"
+  (appLazyLoadVisible)="onVisible()"
+>
   <app-rms-page-header [compact]="true" title="Áreas de Trabajo" />
 
-  <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)] gap-4 flex-1 min-h-0">
+  <div
+    class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)] gap-4 flex-1 min-h-0"
+  >
     <div class="flex flex-col min-h-[24rem] lg:min-h-0 min-w-0">
-      <div class="flex-1 min-h-0 border border-rms-border rounded-xl bg-rms-surface overflow-hidden">
-    <p-table #dt [value]="areas()" [loading]="cache.areas.isLoading()" [showLoader]="false" [paginator]="true" [rows]="10" [scrollable]="true" scrollHeight="flex" responsiveLayout="scroll" styleClass="h-full" sortMode="multiple">
-      <ng-template #caption>
-        <div class="flex justify-end">
-          <app-rms-button iconStart="pi pi-plus" (click)="showCreateModal()">Nueva área</app-rms-button>
-        </div>
-      </ng-template>
-      <ng-template #header>
-        <tr>
-          <th class="text-xs md:text-sm" pSortableColumn="name">Nombre <p-sortIcon field="name" /></th>
-          <th class="text-xs md:text-sm">Actividades</th>
-          <th class="text-xs md:text-sm">Estado</th>
-          <th class="text-xs md:text-sm">Exclusiva</th>
-          <th class="text-center text-xs md:text-sm">Acc.</th>
-        </tr>
-      </ng-template>
-      <ng-template #body let-area>
-        <tr>
-          <td class="font-medium">{{ area.name }}</td>
-          <td class="text-sm">{{ activityLabels(area.activities) }}</td>
-          <td>
-            <app-rms-status-pill
-              [label]="area.enabled ? 'Activo' : 'Inactivo'"
-              [status]="area.enabled ? 'success' : 'danger'" />
-          </td>
-          <td>
-            <app-rms-status-pill
-              [label]="area.exclusive ? 'Sí' : 'No'"
-              [status]="area.exclusive ? 'warning' : 'neutral'" />
-          </td>
-          <td>
-            <div class="flex gap-1 items-center justify-center">
-              <app-rms-icon-button
-                icon="pi pi-pencil"
-                [ariaLabel]="'Editar área ' + area.name"
-                (click)="showEditModal(area)" />
-              <app-rms-icon-button
-                icon="pi pi-power-off"
-                [ariaLabel]="(area.enabled ? 'Desactivar área ' : 'Activar área ') + area.name"
-                [variant]="area.enabled ? 'danger' : 'secondary'"
-                (click)="toggleArea(area)" />
+      <div
+        class="flex-1 min-h-0 border border-rms-border rounded-xl bg-rms-surface overflow-hidden"
+      >
+        <p-table
+          #dt
+          [value]="areas()"
+          [loading]="cache.areas.isLoading()"
+          [showLoader]="false"
+          [paginator]="true"
+          [rows]="10"
+          [scrollable]="true"
+          scrollHeight="flex"
+          responsiveLayout="scroll"
+          styleClass="h-full"
+          sortMode="multiple"
+        >
+          <ng-template #caption>
+            <div class="flex justify-end">
+              <app-rms-button iconStart="pi pi-plus" (click)="showCreateModal()"
+                >Nueva área</app-rms-button
+              >
             </div>
-          </td>
-        </tr>
-      </ng-template>
-      <ng-template #loadingbody>
-        <tr>
-          <td colspan="5">
-            <div class="min-h-[400px] w-full">
-              <app-table-skeleton [rowCount]="6" [colCount]="5" />
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-      <ng-template #emptymessage>
-        <tr>
-          <td colspan="5" class="text-center">No hay áreas registradas</td>
-        </tr>
-      </ng-template>
-    </p-table>
+          </ng-template>
+          <ng-template #header>
+            <tr>
+              <th class="text-xs md:text-sm" pSortableColumn="name">
+                Nombre <p-sortIcon field="name" />
+              </th>
+              <th class="text-xs md:text-sm">Actividades</th>
+              <th class="text-xs md:text-sm">Estado</th>
+              <th class="text-xs md:text-sm">Exclusiva</th>
+              <th class="text-center text-xs md:text-sm">Acc.</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-area>
+            <tr>
+              <td class="font-medium">{{ area.name }}</td>
+              <td class="text-sm">{{ activityLabels(area.activities) }}</td>
+              <td>
+                <app-rms-status-pill
+                  [label]="area.enabled ? 'Activo' : 'Inactivo'"
+                  [status]="area.enabled ? 'success' : 'danger'"
+                />
+              </td>
+              <td>
+                <app-rms-status-pill
+                  [label]="area.exclusive ? 'Sí' : 'No'"
+                  [status]="area.exclusive ? 'warning' : 'neutral'"
+                />
+              </td>
+              <td>
+                <div class="flex gap-1 items-center justify-center">
+                  <app-rms-icon-button
+                    icon="pi pi-pencil"
+                    [ariaLabel]="'Editar área ' + area.name"
+                    (click)="showEditModal(area)"
+                  />
+                  <app-rms-icon-button
+                    icon="pi pi-power-off"
+                    [ariaLabel]="(area.enabled ? 'Desactivar área ' : 'Activar área ') + area.name"
+                    [variant]="area.enabled ? 'danger' : 'secondary'"
+                    (click)="toggleArea(area)"
+                  />
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template #loadingbody>
+            <tr>
+              <td colspan="5">
+                <div class="min-h-[400px] w-full">
+                  <app-table-skeleton [rowCount]="6" [colCount]="5" />
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template #emptymessage>
+            <tr>
+              <td colspan="5" class="text-center">No hay áreas registradas</td>
+            </tr>
+          </ng-template>
+        </p-table>
       </div>
     </div>
 
@@ -82,11 +110,15 @@
         </app-rms-button>
       </div>
 
-      <div class="flex-1 min-h-0 rounded-xl border border-rms-border bg-rms-surface overflow-hidden p-2">
+      <div
+        class="flex-1 min-h-0 rounded-xl border border-rms-border bg-rms-surface overflow-hidden p-2"
+      >
         @if (layoutPreviewLoading()) {
           <app-rms-skeleton height="18rem" ariaLabel="Cargando distribución" />
         } @else if (layoutPreviewError(); as message) {
-          <div class="flex h-full min-h-[14rem] flex-col items-center justify-center gap-2 p-4 text-center">
+          <div
+            class="flex h-full min-h-[14rem] flex-col items-center justify-center gap-2 p-4 text-center"
+          >
             <p class="text-sm text-rms-danger">{{ message }}</p>
             <app-rms-button variant="secondary" size="sm" (click)="loadLayoutPreview()">
               Reintentar
@@ -117,37 +149,43 @@
   }
 </app-rms-dialog>
 
-<p-dialog 
-  [header]="editMode ? 'Editar Área' : 'Nueva Área'" 
-  [(visible)]="modalVisible" 
+<p-dialog
+  [header]="editMode ? 'Editar Área' : 'Nueva Área'"
+  [(visible)]="modalVisible"
   [modal]="true"
   styleClass="w-[400px]"
 >
   <form [formGroup]="form" class="flex flex-col gap-4">
-    <app-rms-input id="name" label="Nombre" formControlName="name" [required]="true" [error]="fieldError('name')" />
+    <app-rms-input
+      id="name"
+      label="Nombre"
+      formControlName="name"
+      [required]="true"
+      [error]="fieldError('name')"
+    />
 
     <app-rms-checkbox
       id="exclusive"
       label="Área exclusiva"
       description="Un trabajador con esta área no puede tener ninguna otra."
-      formControlName="exclusive" />
+      formControlName="exclusive"
+    />
   </form>
 
-    <div class="flex flex-col gap-2">
-      <span class="rms-label">Actividades del área *</span>
-      @for (activity of activityOptions; track activity.value) {
-        <app-rms-checkbox
-          [id]="'activity-' + activity.value"
-          [label]="activity.label"
-          [ngModel]="isActivitySelected(activity.value)"
-          (ngModelChange)="toggleActivity(activity.value, $any($event))" />
-      }
-      @if (fieldError('activities')) {
-        <p class="text-xs text-rms-danger" role="alert">{{ fieldError('activities') }}</p>
-      }
-    </div>
-
-
+  <div class="flex flex-col gap-2">
+    <span class="rms-label">Actividades del área *</span>
+    @for (activity of activityOptions; track activity.value) {
+      <app-rms-checkbox
+        [id]="'activity-' + activity.value"
+        [label]="activity.label"
+        [ngModel]="isActivitySelected(activity.value)"
+        (ngModelChange)="toggleActivity(activity.value, $any($event))"
+      />
+    }
+    @if (fieldError('activities')) {
+      <p class="text-xs text-rms-danger" role="alert">{{ fieldError('activities') }}</p>
+    }
+  </div>
 
   <ng-template pTemplate="footer">
     <app-rms-button variant="secondary" (click)="modalVisible = false">Cancelar</app-rms-button>

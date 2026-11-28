@@ -16,10 +16,7 @@ import iconButtonHtml from '@shared/ui/icon-button/icon-button.html?raw';
 
 @Component({
   template: `
-    <app-search-input
-      [debounceMs]="debounceMs"
-      (searchChange)="onSearchChange($event)"
-    />
+    <app-search-input [debounceMs]="debounceMs" (searchChange)="onSearchChange($event)" />
   `,
   imports: [SearchInput],
 })
@@ -56,9 +53,11 @@ describe('SearchInput', () => {
     vi.useRealTimers();
   });
 
-  async function setupHost(overrides: Partial<{
-    debounceMs: number;
-  }> = {}): Promise<ComponentFixture<TestHost>> {
+  async function setupHost(
+    overrides: Partial<{
+      debounceMs: number;
+    }> = {},
+  ): Promise<ComponentFixture<TestHost>> {
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [TestHost],
@@ -125,7 +124,9 @@ describe('SearchInput', () => {
     vi.advanceTimersByTime(300);
     expect(host.searchChanges).toEqual(['foo']);
 
-    const clearButton = (fixture.nativeElement as HTMLElement).querySelector('app-rms-icon-button button');
+    const clearButton = (fixture.nativeElement as HTMLElement).querySelector(
+      'app-rms-icon-button button',
+    );
     if (!clearButton) throw new Error('clear button not rendered');
     clearButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     fixture.detectChanges();

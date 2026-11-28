@@ -54,9 +54,7 @@ export function resolveAgentNavigation(action: ChatNavigation): ResolvedAgentNav
   const entityId = Number(action.entity_id);
   const hasEntity = Number.isInteger(entityId) && entityId > 0;
 
-  const withQuery = (
-    params: Record<string, string | null | undefined>,
-  ): Params | undefined => {
+  const withQuery = (params: Record<string, string | null | undefined>): Params | undefined => {
     const clean: Record<string, string> = {};
     for (const [key, value] of Object.entries(params)) {
       if (value) {

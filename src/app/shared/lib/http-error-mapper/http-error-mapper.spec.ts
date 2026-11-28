@@ -28,7 +28,10 @@ describe('mapHttpError', () => {
   });
 
   it('surfaces the order 409 detail instead of the menu message', () => {
-    const err = new HttpErrorResponse({ status: 409, error: { detail: 'La mesa no está disponible' } });
+    const err = new HttpErrorResponse({
+      status: 409,
+      error: { detail: 'La mesa no está disponible' },
+    });
     expect(mapHttpError(err, 'order')).toBe('La mesa no está disponible');
   });
 
@@ -43,23 +46,36 @@ describe('mapHttpError', () => {
   });
 
   it('returns 422 special-selections message', () => {
-    const err = new HttpErrorResponse({ status: 422, error: { message: '', missingVariants: [1, 2] } });
-    expect(mapHttpError(err, 'special-selections')).toBe('Configura el costo unitario de los insumos para obtener un precio sugerido');
+    const err = new HttpErrorResponse({
+      status: 422,
+      error: { message: '', missingVariants: [1, 2] },
+    });
+    expect(mapHttpError(err, 'special-selections')).toBe(
+      'Configura el costo unitario de los insumos para obtener un precio sugerido',
+    );
   });
 
   it('returns 400 order missingGroups message', () => {
-    const err = new HttpErrorResponse({ status: 400, error: { message: 'Faltan grupos requeridos', missingGroups: ['Sopa', 'Plato'] } });
+    const err = new HttpErrorResponse({
+      status: 400,
+      error: { message: 'Faltan grupos requeridos', missingGroups: ['Sopa', 'Plato'] },
+    });
     expect(mapHttpError(err, 'order')).toBe('Completa los grupos requeridos: Sopa, Plato');
   });
 
   it('returns 400 order clarification message', () => {
-    const err = new HttpErrorResponse({ status: 400, error: { message: 'Falta clarificacion requerida' } });
+    const err = new HttpErrorResponse({
+      status: 400,
+      error: { message: 'Falta clarificacion requerida' },
+    });
     expect(mapHttpError(err, 'order')).toBe('Responde las preguntas obligatorias');
   });
 
   it('returns 400 schedule message with schedule context', () => {
     const err = new HttpErrorResponse({ status: 400, error: { message: 'Horario invalido' } });
-    expect(mapHttpError(err, 'schedule')).toBe('Horario inválido: la hora de inicio debe ser menor a la hora de fin');
+    expect(mapHttpError(err, 'schedule')).toBe(
+      'Horario inválido: la hora de inicio debe ser menor a la hora de fin',
+    );
   });
 
   it('returns original message when 400 without known context', () => {
@@ -68,7 +84,10 @@ describe('mapHttpError', () => {
   });
 
   it('returns 400 product-options not valid message', () => {
-    const err = new HttpErrorResponse({ status: 400, error: { message: 'Option 5 is not valid for product' } });
+    const err = new HttpErrorResponse({
+      status: 400,
+      error: { message: 'Option 5 is not valid for product' },
+    });
     expect(mapHttpError(err, 'product-options')).toBe('Opción no válida para este producto');
   });
 
@@ -79,11 +98,16 @@ describe('mapHttpError', () => {
 
   it('returns 400 product-options default when no message', () => {
     const err = new HttpErrorResponse({ status: 400 });
-    expect(mapHttpError(err, 'product-options')).toBe('Error al procesar las opciones del producto');
+    expect(mapHttpError(err, 'product-options')).toBe(
+      'Error al procesar las opciones del producto',
+    );
   });
 
   it('returns 400 option-group grupo message', () => {
-    const err = new HttpErrorResponse({ status: 400, error: { message: 'Faltan grupos requeridos' } });
+    const err = new HttpErrorResponse({
+      status: 400,
+      error: { message: 'Faltan grupos requeridos' },
+    });
     expect(mapHttpError(err, 'option-group')).toBe('Completa los grupos de opciones requeridos');
   });
 
@@ -98,7 +122,10 @@ describe('mapHttpError', () => {
   });
 
   it('returns 400 payroll message when the backend sends one', () => {
-    const err = new HttpErrorResponse({ status: 400, error: { message: 'quantity must be positive' } });
+    const err = new HttpErrorResponse({
+      status: 400,
+      error: { message: 'quantity must be positive' },
+    });
     expect(mapHttpError(err, 'payroll')).toBe('quantity must be positive');
   });
 

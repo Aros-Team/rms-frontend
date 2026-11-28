@@ -74,7 +74,9 @@ export function formatAge(ageMs: number): string {
   const seconds = totalSeconds % 60;
   const pad = (value: number): string => String(value).padStart(2, '0');
 
-  return hours > 0 ? `${String(hours)}:${pad(minutes)}:${pad(seconds)}` : `${pad(minutes)}:${pad(seconds)}`;
+  return hours > 0
+    ? `${String(hours)}:${pad(minutes)}:${pad(seconds)}`
+    : `${pad(minutes)}:${pad(seconds)}`;
 }
 
 /** `HH:mm` for an order date. Empty string when the date is unusable. */

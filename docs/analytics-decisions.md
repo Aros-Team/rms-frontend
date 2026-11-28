@@ -6,13 +6,13 @@
 
 Five admin-only analytical modules under `/admin/analytics/*`:
 
-| Path | Module | Page (component selector) |
-|------|--------|---------------------------|
-| `/admin/analytics/prime-cost`        | Prime Cost & Margins        | `<app-analytics-prime-cost>` |
-| `/admin/analytics/menu-engineering`  | Menu Engineering (BCG)      | `<app-analytics-menu-engineering>` |
-| `/admin/analytics/operations`        | Operational Efficiency      | `<app-analytics-operations>` |
-| `/admin/analytics/cohort`            | Customer Cohort             | `<app-analytics-cohort>` |
-| `/admin/analytics/alerts`            | Variance Alerts             | `<app-analytics-alerts>` |
+| Path                                | Module                 | Page (component selector)          |
+| ----------------------------------- | ---------------------- | ---------------------------------- |
+| `/admin/analytics/prime-cost`       | Prime Cost & Margins   | `<app-analytics-prime-cost>`       |
+| `/admin/analytics/menu-engineering` | Menu Engineering (BCG) | `<app-analytics-menu-engineering>` |
+| `/admin/analytics/operations`       | Operational Efficiency | `<app-analytics-operations>`       |
+| `/admin/analytics/cohort`           | Customer Cohort        | `<app-analytics-cohort>`           |
+| `/admin/analytics/alerts`           | Variance Alerts        | `<app-analytics-alerts>`           |
 
 The existing `<app-analytics>` becomes the shell (parent with `<router-outlet>` and nav). The legacy top-selling chart is dropped from `/admin/analytics` and the new shell redirects to `prime-cost` so the user lands on actual analytics, not the stub.
 
@@ -60,25 +60,25 @@ src/app/
 
 ## 3. Money / Money-related formatting
 
-| Concern | Decision |
-|---------|----------|
-| Wire format                  | Decimal string + ISO-4217 currency (e.g. `"125000000.00"` + `"COP"`). Never raw float. Matches `analytics.yaml` `Money`. |
-| Display format (COP)         | `Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })`. The schema says `.amount` keeps 2 decimals but display omits them for COP (no centavos). |
-| Display format (other)       | Default: `Intl.NumberFormat(locale, { style: 'currency', currency })`. Most analytics responses are COP. |
-| Negative values              | Prefix `"-"` outside the symbol, never parentheses (Spanish locale uses no currency-side neg). |
-| MetricValue (alert ratios)   | Display with 2 decimals and `%` suffix only for `FOOD_COST_DEVIATION`/`LABOR_COST_DEVIATION`/`deviationPct`. Other metric values use the raw decimal text. Implemented via `MetricValuePipe` + caller-supplied suffix label, not inferred from type. |
-| `null`                       | Render as `'—'` (em dash). |
-| Pipe name                    | `money` for `Money`. `metricValue` for `MetricValue`. |
-| Pipe location                | `src/app/shared/pipes/{money,metric-value}.ts`. |
+| Concern                    | Decision                                                                                                                                                                                                                                             |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Wire format                | Decimal string + ISO-4217 currency (e.g. `"125000000.00"` + `"COP"`). Never raw float. Matches `analytics.yaml` `Money`.                                                                                                                             |
+| Display format (COP)       | `Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })`. The schema says `.amount` keeps 2 decimals but display omits them for COP (no centavos).                                                             |
+| Display format (other)     | Default: `Intl.NumberFormat(locale, { style: 'currency', currency })`. Most analytics responses are COP.                                                                                                                                             |
+| Negative values            | Prefix `"-"` outside the symbol, never parentheses (Spanish locale uses no currency-side neg).                                                                                                                                                       |
+| MetricValue (alert ratios) | Display with 2 decimals and `%` suffix only for `FOOD_COST_DEVIATION`/`LABOR_COST_DEVIATION`/`deviationPct`. Other metric values use the raw decimal text. Implemented via `MetricValuePipe` + caller-supplied suffix label, not inferred from type. |
+| `null`                     | Render as `'—'` (em dash).                                                                                                                                                                                                                           |
+| Pipe name                  | `money` for `Money`. `metricValue` for `MetricValue`.                                                                                                                                                                                                |
+| Pipe location              | `src/app/shared/pipes/{money,metric-value}.ts`.                                                                                                                                                                                                      |
 
 ## 4. Period key formatting & validation
 
-| Bucket   | Key shape        | Example      | Validators |
-|----------|------------------|--------------|------------|
-| `daily`  | `YYYY-MM-DD`     | `2026-07-17` | ISO date, valid calendar day |
-| `weekly` | `YYYY-Www`       | `2026-W29`   | ISO week, 1..53 |
-| `monthly`| `YYYY-MM`        | `2026-07`    | month 1..12 |
-| `yearly` | `YYYY`           | `2026`       | year 1900..2999 |
+| Bucket    | Key shape    | Example      | Validators                   |
+| --------- | ------------ | ------------ | ---------------------------- |
+| `daily`   | `YYYY-MM-DD` | `2026-07-17` | ISO date, valid calendar day |
+| `weekly`  | `YYYY-Www`   | `2026-W29`   | ISO week, 1..53              |
+| `monthly` | `YYYY-MM`    | `2026-07`    | month 1..12                  |
+| `yearly`  | `YYYY`       | `2026`       | year 1900..2999              |
 
 Rules enforced client-side before query (server re-validates per `analytics.md` §3):
 
@@ -92,13 +92,13 @@ Rules enforced client-side before query (server re-validates per `analytics.md` 
 
 Each module gets its own `ResourceCache<T>` keyed by the current period `{bucket,from,to}`. Since `ResourceCache` keys by identity not by params, the cache service exposes a method that builds the fetch fn from the current period state and calls `cache.invalidate()` whenever the period changes (effect on the period state in the cache service).
 
-| Module            | TTL (ms) | staleWhileRevalidate | Rationale                                |
-|-------------------|---------:|----------------------|------------------------------------------|
-| `primeCost`       | 600_000  | true                 | Read-mostly rollup, slow-changing.       |
-| `menuEngineering` | 1_800_000| true                 | Cache table on backend; revalidate on price/recipe change later. |
-| `operations`      | 300_000  | true                 | Updated each shift; faster rollback.     |
-| `cohort`          | 600_000  | true                 | Heavier query; range not too volatile.   |
-| `alerts`          | 120_000  | true                 | User needs to see new alerts without spamming; markRead invalidates via mutate API. |
+| Module            |  TTL (ms) | staleWhileRevalidate | Rationale                                                                           |
+| ----------------- | --------: | -------------------- | ----------------------------------------------------------------------------------- |
+| `primeCost`       |   600_000 | true                 | Read-mostly rollup, slow-changing.                                                  |
+| `menuEngineering` | 1_800_000 | true                 | Cache table on backend; revalidate on price/recipe change later.                    |
+| `operations`      |   300_000 | true                 | Updated each shift; faster rollback.                                                |
+| `cohort`          |   600_000 | true                 | Heavier query; range not too volatile.                                              |
+| `alerts`          |   120_000 | true                 | User needs to see new alerts without spamming; markRead invalidates via mutate API. |
 
 Mark-read uses `patchData` on the alerts cache to flip status locally (optimistic) and lets HTTP confirm.
 
@@ -107,8 +107,8 @@ Mark-read uses `patchData` on the alerts cache to flip status locally (optimisti
 The existing `errorInterceptor` (in `src/app/core/interceptors/error.ts`) already shapes errors; we add per-endpoint toast mapping at the call site only when the canonical handler did not already surface a message. Module pattern:
 
 ```ts
-this.cache.primeCost.load()
-this.cache.primeCost.error();   // signal<Error | undefined>
+this.cache.primeCost.load();
+this.cache.primeCost.error(); // signal<Error | undefined>
 ```
 
 The component watches `error()`, shows a PrimeNG `<p-message>` with severity `error`. `dataCompleteness` does **not** trigger an error component; it triggers `<app-data-completeness-banner [notes]="...">`.
@@ -119,8 +119,8 @@ The component watches `error()`, shows a PrimeNG `<p-message>` with severity `er
 
 ```ts
 bucket = signal<TimeBucket>('monthly');
-from   = signal<string>('2026-02');   // default = 5 months ago
-to     = signal<string>('2026-07');   // default = current month
+from = signal<string>('2026-02'); // default = 5 months ago
+to = signal<string>('2026-07'); // default = current month
 ```
 
 `setPeriod(p: PeriodSelection)` validates before applying. `PeriodSelectorComponent` writes here; every `ResourceCache` in `AnalyticsCacheService` reads these signals and **invalidates** when they change (via effect). Browsing modules keeps the same period; switching bucket re-fetches.
@@ -132,6 +132,7 @@ PrimeNG `p-chart` (already used by `top-selling-chart` and bundled with `chart.j
 ## 9. dataCompleteness banner
 
 `<app-data-completeness-banner [completeness]="..." [notes]="..." />` — appears above the module's main content. When `FULL`, renders nothing. When `PARTIAL`/`EMPTY`, renders a PrimeNG `<p-message>` with severity `warn`/`error` containing:
+
 - A translated headline ("Datos parciales" / "Sin datos").
 - The `notes[]` list as bullet points.
 - A button to retry (calls the relevant cache `refresh()`).
@@ -150,18 +151,19 @@ The shell maintains the section title "Estadísticas" in the page header and the
 
 ## 11. Accessibility expectations
 
-| Surface | Targets |
-|---------|---------|
-| Period selector       | Inputs labelled, ARIA `combobox` for bucket, inline validation announced. |
-| Tab nav               | Each tab is `<a role="tab">`, active `aria-current="page"`, ←/→ arrow keys move focus. |
-| Charts                | Wrap in a `figure` with hidden `<figcaption>` summarising the chart (PrimeNG reads `ariaLabel`). |
-| Skeletons             | Use `p-skeleton` (PrimeNG component) with `role="status"` and `aria-live="polite"` wrapper. |
-| Tables                | `<p-table>` with `<caption>` + sort buttons ARIA-labelled. |
-| Alerts list           | Each row has a `role="button"` mark-read action with label "Marcar como leído". Toast for action confirmation. |
+| Surface         | Targets                                                                                                        |
+| --------------- | -------------------------------------------------------------------------------------------------------------- |
+| Period selector | Inputs labelled, ARIA `combobox` for bucket, inline validation announced.                                      |
+| Tab nav         | Each tab is `<a role="tab">`, active `aria-current="page"`, ←/→ arrow keys move focus.                         |
+| Charts          | Wrap in a `figure` with hidden `<figcaption>` summarising the chart (PrimeNG reads `ariaLabel`).               |
+| Skeletons       | Use `p-skeleton` (PrimeNG component) with `role="status"` and `aria-live="polite"` wrapper.                    |
+| Tables          | `<p-table>` with `<caption>` + sort buttons ARIA-labelled.                                                     |
+| Alerts list     | Each row has a `role="button"` mark-read action with label "Marcar como leído". Toast for action confirmation. |
 
 ## 12. Empty / error / loading states
 
 Every page renders:
+
 1. Skeleton (header + body placeholder) while loading.
 2. Banner if `dataCompleteness` ≠ `FULL` + notes list.
 3. Empty state with icon + button to retry if server returned 0 series / 0 items.
@@ -171,6 +173,7 @@ Every page renders:
 ## 13. Open questions / future work
 
 None blocking foundation. Follow-up activities can discuss:
+
 - WebSocket alerts refresh (`/topic/analytics/alerts`) — out of scope now.
 - Per-user period persistence (localStorage) — nice-to-have, not blocking.
 

@@ -396,9 +396,7 @@ describe('CashierArea', () => {
 
     payments.getPending.mockClear();
     component.onPageChange(1);
-    expect(payments.getPending).toHaveBeenCalledWith(
-      expect.objectContaining({ page: 1 }),
-    );
+    expect(payments.getPending).toHaveBeenCalledWith(expect.objectContaining({ page: 1 }));
 
     payments.getPending.mockClear();
     component.onDateChange('2026-11-20');
@@ -409,9 +407,7 @@ describe('CashierArea', () => {
   });
 
   it('keeps the board on a silent refresh failure', () => {
-    payments.getPending.mockReturnValue(
-      throwError(() => new HttpErrorResponse({ status: 500 })),
-    );
+    payments.getPending.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
 
     component.loadPending(true);
 

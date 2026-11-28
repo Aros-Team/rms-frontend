@@ -24,11 +24,7 @@ const ANALYTICS = 'v1/analytics';
 export class Analytics {
   private readonly http = inject(HttpClient);
 
-  getPrimeCost(
-    bucket: TimeBucket,
-    from: string,
-    to: string,
-  ): Observable<PrimeCostReport> {
+  getPrimeCost(bucket: TimeBucket, from: string, to: string): Observable<PrimeCostReport> {
     return this.http.get<PrimeCostReport>(`${ANALYTICS}/prime-cost`, {
       params: periodParams(bucket, from, to),
     });
@@ -86,16 +82,9 @@ export class Analytics {
    * (`YYYY-MM-DD`), not bucket keys; the screen converts the selected period
    * with `rangeToDates`.
    */
-  getTopSellingProducts(
-    from: string,
-    to: string,
-    limit = 10,
-  ): Observable<TopSellingProduct[]> {
+  getTopSellingProducts(from: string, to: string, limit = 10): Observable<TopSellingProduct[]> {
     return this.http.get<TopSellingProduct[]>('v1/products/top-selling', {
-      params: new HttpParams()
-        .set('from', from)
-        .set('to', to)
-        .set('limit', String(limit)),
+      params: new HttpParams().set('from', from).set('to', to).set('limit', String(limit)),
     });
   }
 }

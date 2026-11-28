@@ -2,7 +2,8 @@
   <app-rms-page-header
     title="Historial Salarial"
     backLabel="Volver a trabajadores"
-    (back)="goBack()" />
+    (back)="goBack()"
+  />
 
   <div class="flex-1 min-h-0 border border-rms-border rounded-xl bg-rms-surface overflow-hidden">
     @if (isLoading()) {
@@ -16,7 +17,8 @@
       <app-rms-empty-state
         icon="pi pi-history"
         title="Sin cambios salariales registrados"
-        message="No hay entradas en el historial de salarios para este empleado." />
+        message="No hay entradas en el historial de salarios para este empleado."
+      />
     } @else {
       <p-table
         [value]="entries() ?? []"
@@ -40,10 +42,16 @@
         <ng-template #body let-entry>
           <tr>
             <td class="text-sm whitespace-nowrap">{{ formatDateTime(entry.changedAt) }}</td>
-            <td class="text-sm font-mono" data-testid="old-salary">{{ entry.oldSalary | money }}</td>
-            <td class="text-sm font-mono" data-testid="new-salary">{{ entry.newSalary | money }}</td>
+            <td class="text-sm font-mono" data-testid="old-salary">
+              {{ entry.oldSalary | money }}
+            </td>
+            <td class="text-sm font-mono" data-testid="new-salary">
+              {{ entry.newSalary | money }}
+            </td>
             <td class="text-sm">{{ entry.reason }}</td>
-            <td class="text-sm hidden lg:table-cell max-w-52 truncate">{{ entry.observations ?? '-' }}</td>
+            <td class="text-sm hidden lg:table-cell max-w-52 truncate">
+              {{ entry.observations ?? '-' }}
+            </td>
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">

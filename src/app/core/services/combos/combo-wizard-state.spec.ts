@@ -49,7 +49,11 @@ function makeAddition(id: number, name: string, price: number): SpecialSelection
   };
 }
 
-function makeQuestion(id: number, question: string, required: boolean): SpecialSelectionQuestionResponse {
+function makeQuestion(
+  id: number,
+  question: string,
+  required: boolean,
+): SpecialSelectionQuestionResponse {
   return {
     id,
     question,
@@ -108,10 +112,7 @@ function setupTestBed(cacheStub?: ReturnType<typeof buildCacheStub>): ComboWizar
   const stub = cacheStub ?? buildCacheStub(null);
   TestBed.resetTestingModule();
   TestBed.configureTestingModule({
-    providers: [
-      ComboWizardState,
-      { provide: SpecialSelectionsCache, useValue: stub },
-    ],
+    providers: [ComboWizardState, { provide: SpecialSelectionsCache, useValue: stub }],
   });
   return TestBed.inject(ComboWizardState);
 }
@@ -199,7 +200,14 @@ describe('ComboWizardState', () => {
         ...mockResponse,
         basePrice: { amount: '15000.00', currency: 'COP' },
         additions: [
-          { id: 1, name: 'Queso', optionId: 1, extraPrice: { amount: '1500.00', currency: 'COP' }, displayOrder: 1, optionName: 'Queso' },
+          {
+            id: 1,
+            name: 'Queso',
+            optionId: 1,
+            extraPrice: { amount: '1500.00', currency: 'COP' },
+            displayOrder: 1,
+            optionName: 'Queso',
+          },
         ],
       };
 
@@ -298,8 +306,12 @@ describe('ComboWizardState', () => {
     it('updateAdditions and updateQuestions mutate their respective collections', () => {
       const state = setupTestBed();
 
-      state.updateAdditions([{ id: null, name: 'Tocineta', optionId: 5, extraPrice: 2, displayOrder: 0 }]);
-      state.updateQuestions([{ id: null, question: 'Para llevar', required: false, displayOrder: 0 }]);
+      state.updateAdditions([
+        { id: null, name: 'Tocineta', optionId: 5, extraPrice: 2, displayOrder: 0 },
+      ]);
+      state.updateQuestions([
+        { id: null, question: 'Para llevar', required: false, displayOrder: 0 },
+      ]);
       state.updateSchedule([{ dayOfWeek: 'TUESDAY', startTime: '10:00', endTime: '14:00' }]);
 
       expect(state.data().additions.length).toBe(1);
@@ -534,10 +546,7 @@ describe('ComboWizardState', () => {
     });
 
     it('restoreFromStorage discards payload that does not match the expected shape', () => {
-      window.localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ schemaVersion: 1, random: true }),
-      );
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ schemaVersion: 1, random: true }));
       const state = setupTestBed();
 
       const result = state.restoreFromStorage();

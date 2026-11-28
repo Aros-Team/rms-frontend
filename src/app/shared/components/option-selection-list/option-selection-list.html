@@ -1,9 +1,10 @@
 <div class="flex flex-col gap-2">
   @for (option of options; track option.id) {
-    <label class="option-row flex items-center gap-3 p-2 rounded-lg hover:bg-rms-subtle transition-colors"
-           [attr.for]="groupName + '-' + option.id"
-           [class.opacity-50]="option.disabled">
-
+    <label
+      class="option-row flex items-center gap-3 p-2 rounded-lg hover:bg-rms-subtle transition-colors"
+      [attr.for]="groupName + '-' + option.id"
+      [class.opacity-50]="option.disabled"
+    >
       @if (isRadio) {
         <p-radiobutton
           [name]="groupName"
@@ -11,14 +12,16 @@
           [value]="option.id"
           [ngModel]="isSelected(option.id)"
           (onChange)="onRadioChange(option.id)"
-          [disabled]="!!option.disabled" />
+          [disabled]="!!option.disabled"
+        />
       } @else {
         <p-checkbox
           [binary]="true"
           [inputId]="groupName + '-' + option.id"
           [ngModel]="isSelected(option.id)"
           (onChange)="onCheckboxChange(option.id, $event.checked)"
-          [disabled]="!!option.disabled" />
+          [disabled]="!!option.disabled"
+        />
       }
 
       <div class="flex-1 min-w-0">

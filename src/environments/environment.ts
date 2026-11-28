@@ -4,5 +4,5 @@ export const environment = {
   wsUrl: 'wss://api.rms.aros.services/ws-native',
   customer: 'Restaurante de prueba',
   baseColor: '#FDEFC7',
-  agentHost: 'https://abi.aros.services/api/v1'
+  agentHost: 'https://abi.aros.services/api/v1',
 };

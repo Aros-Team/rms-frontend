@@ -82,15 +82,14 @@ describe('RmsPageHeader', () => {
 
   it('renders the subtitle', () => {
     expect(
-      (fixture.nativeElement as HTMLElement).querySelector('.rms-page-header__subtitle')?.textContent.trim(),
+      (fixture.nativeElement as HTMLElement)
+        .querySelector('.rms-page-header__subtitle')
+        ?.textContent.trim(),
     ).toBe('Pedidos del día');
   });
 
   it('emits back from the back link', () => {
-    queryElement(
-      fixture.nativeElement as HTMLElement,
-      '.rms-page-header__back button',
-    ).click();
+    queryElement(fixture.nativeElement as HTMLElement, '.rms-page-header__back button').click();
 
     expect(host.backClicks).toBe(1);
   });

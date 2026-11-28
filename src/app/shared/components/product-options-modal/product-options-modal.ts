@@ -1,4 +1,13 @@
-import { Component, Input, Output, EventEmitter, signal, computed, effect, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  signal,
+  computed,
+  effect,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -10,9 +19,15 @@ import { Money as MoneyPipe } from '@app/shared/pipes/money/money';
 import { ProductOption } from '@app/shared/models/dto/products/product-option';
 import { OptionSelectionType } from '@app/shared/models/dto/option-groups/option-selection-type';
 import { fromApi } from '@app/shared/lib/option-selection-type-mapper/option-selection-type-mapper';
-import { OptionSelectionList, SelectionOption } from '@app/shared/components/option-selection-list/option-selection-list';
+import {
+  OptionSelectionList,
+  SelectionOption,
+} from '@app/shared/components/option-selection-list/option-selection-list';
 import { OptionGroupBadgeComponent } from '@app/shared/components/option-group-badge/option-group-badge';
-import { RemovableChip, RemovableChipData } from '@app/shared/components/removable-chip/removable-chip';
+import {
+  RemovableChip,
+  RemovableChipData,
+} from '@app/shared/components/removable-chip/removable-chip';
 import { productImageSrcSet } from '@app/shared/lib/product-image';
 
 export interface SelectedOption {
@@ -40,7 +55,15 @@ export interface GroupMeta {
   selector: 'app-product-options-modal',
   templateUrl: './product-options-modal.html',
   styleUrl: './product-options-modal.css',
-  imports: [CommonModule, DialogModule, FormsModule, OptionSelectionList, OptionGroupBadgeComponent, RemovableChip, MoneyPipe],
+  imports: [
+    CommonModule,
+    DialogModule,
+    FormsModule,
+    OptionSelectionList,
+    OptionGroupBadgeComponent,
+    RemovableChip,
+    MoneyPipe,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductOptionsModal {
@@ -125,12 +148,13 @@ export class ProductOptionsModal {
     const selIds = this.selectedOptionIds();
     const opts = this.optionsState();
     return selIds
-      .map(id => opts.find(o => o.id === id))
+      .map((id) => opts.find((o) => o.id === id))
       .filter((o): o is ProductOption => !!o)
-      .map(o => ({
+      .map((o) => ({
         id: o.id,
         label: o.name,
-        meta: toAmount(o.extraPrice) > 0 ? this.moneyPipe.transform(toAmount(o.extraPrice)) : undefined,
+        meta:
+          toAmount(o.extraPrice) > 0 ? this.moneyPipe.transform(toAmount(o.extraPrice)) : undefined,
       }));
   });
 
@@ -139,7 +163,7 @@ export class ProductOptionsModal {
     const selIds = this.selectedOptionIds();
     const opts = this.optionsState();
     return selIds.reduce((sum, id) => {
-      const opt = opts.find(o => o.id === id);
+      const opt = opts.find((o) => o.id === id);
       return sum + toAmount(opt?.extraPrice);
     }, 0);
   });
@@ -148,15 +172,16 @@ export class ProductOptionsModal {
   readonly missingRequiredGroups = computed<GroupMeta[]>(() => {
     const selected = new Set(this.selectedOptionIds());
     return this.groupMeta().filter(
-      (group) =>
-        group.required && !group.options.some((option) => selected.has(option.id)),
+      (group) => group.required && !group.options.some((option) => selected.has(option.id)),
     );
   });
 
   readonly canConfirm = computed(() => this.missingRequiredGroups().length === 0);
 
   readonly missingRequiredLabel = computed(() =>
-    this.missingRequiredGroups().map((group) => group.groupName).join(', '),
+    this.missingRequiredGroups()
+      .map((group) => group.groupName)
+      .join(', '),
   );
 
   readonly validationMessage = signal('');
@@ -176,33 +201,33 @@ export class ProductOptionsModal {
   // ── Public methods ──
 
   getSelectedIdsForGroup(groupId: number): number[] {
-    const group = this.groupMeta().find(g => g.groupId === groupId);
+    const group = this.groupMeta().find((g) => g.groupId === groupId);
     if (!group) return [];
-    const groupOptionIds = group.options.map(o => o.id);
-    return this.selectedOptionIds().filter(id => groupOptionIds.includes(id));
+    const groupOptionIds = group.options.map((o) => o.id);
+    return this.selectedOptionIds().filter((id) => groupOptionIds.includes(id));
   }
 
   onGroupSelectionChange(groupId: number, selectedIds: number[]): void {
-    const group = this.groupMeta().find(g => g.groupId === groupId);
+    const group = this.groupMeta().find((g) => g.groupId === groupId);
     if (!group) return;
-    const groupOptionIds = new Set(group.options.map(o => o.id));
-    this.selectedOptionIds.update(ids => {
-      const withoutGroup = ids.filter(id => !groupOptionIds.has(id));
+    const groupOptionIds = new Set(group.options.map((o) => o.id));
+    this.selectedOptionIds.update((ids) => {
+      const withoutGroup = ids.filter((id) => !groupOptionIds.has(id));
       return [...withoutGroup, ...selectedIds];
     });
   }
 
   removeSelection(optionId: number): void {
-    this.selectedOptionIds.update(ids => ids.filter(id => id !== optionId));
+    this.selectedOptionIds.update((ids) => ids.filter((id) => id !== optionId));
   }
 
   toggleOption(optionId: number, optionGroupId: number): void {
     const sameCategory = this.options
-      .filter(o => o.optionGroupId === optionGroupId)
-      .map(o => o.id);
+      .filter((o) => o.optionGroupId === optionGroupId)
+      .map((o) => o.id);
 
-    this.selectedOptionIds.update(ids => {
-      const withoutCategory = ids.filter(id => !sameCategory.includes(id));
+    this.selectedOptionIds.update((ids) => {
+      const withoutCategory = ids.filter((id) => !sameCategory.includes(id));
       return ids.includes(optionId) ? withoutCategory : [...withoutCategory, optionId];
     });
   }
@@ -212,7 +237,7 @@ export class ProductOptionsModal {
   }
 
   changeQuantity(delta: number): void {
-    this.quantity.update(q => Math.max(1, Math.min(99, q + delta)));
+    this.quantity.update((q) => Math.max(1, Math.min(99, q + delta)));
   }
 
   onConfirm(): void {
@@ -229,9 +254,9 @@ export class ProductOptionsModal {
     this.validationMessage.set('');
 
     const selIds = this.selectedOptionIds();
-    const selOptions: SelectedOption[] = selIds.map(id => ({
+    const selOptions: SelectedOption[] = selIds.map((id) => ({
       optionId: id,
-      optionName: this.optionsState().find(o => o.id === id)?.name ?? '',
+      optionName: this.optionsState().find((o) => o.id === id)?.name ?? '',
     }));
 
     this.confirm.emit({

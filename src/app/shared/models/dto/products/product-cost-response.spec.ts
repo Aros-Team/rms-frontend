@@ -6,11 +6,7 @@
  * Approach: Create objects matching DTO interfaces and normalize them with `toAmount`.
  */
 import { toAmount } from '@app/shared/models/dto/common/money';
-import type {
-  CostItem,
-  CostItemType,
-  ProductCostResponse,
-} from './product-cost-response';
+import type { CostItem, CostItemType, ProductCostResponse } from './product-cost-response';
 
 describe('ProductCostResponse DTO contract', () => {
   it('accepts the backend production-cost shape', () => {
@@ -25,7 +21,11 @@ describe('ProductCostResponse DTO contract', () => {
           amount: { amount: '15.50', currency: 'COP' },
           type: 'MATERIAL',
         },
-        { description: 'Labor: kitchen', amount: { amount: '10.25', currency: 'COP' }, type: 'LABOR' },
+        {
+          description: 'Labor: kitchen',
+          amount: { amount: '10.25', currency: 'COP' },
+          type: 'LABOR',
+        },
       ],
     };
 

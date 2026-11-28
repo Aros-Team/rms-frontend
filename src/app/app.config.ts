@@ -17,11 +17,7 @@ import { provideServiceWorker } from '@angular/service-worker';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { LOCALE_ID } from '@angular/core';
 
-
-import {
-  provideHttpClient,
-  withInterceptors,
-} from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { jwtInterceptor } from '@core/interceptors/jwt/jwt';
 import { urlInterceptor } from '@core/interceptors/url-interceptor/url-interceptor';
 import { errorInterceptor } from '@core/interceptors/error/error';
@@ -65,7 +61,7 @@ const arosPreset = definePreset(Aura, {
       700: '#b07e06',
       800: '#8a6508',
       900: '#6b4e06',
-      950: '#2e2202'
+      950: '#2e2202',
     },
 
     /** One focus ring for every component; same value as `--rms-focus`. */
@@ -74,7 +70,7 @@ const arosPreset = definePreset(Aura, {
       style: 'solid',
       color: 'var(--rms-focus)',
       offset: '2px',
-      shadow: 'none'
+      shadow: 'none',
     },
 
     colorScheme: {
@@ -92,7 +88,7 @@ const arosPreset = definePreset(Aura, {
           700: '#334155',
           800: '#1e293b',
           900: '#0f172a',
-          950: '#020617'
+          950: '#020617',
         },
         primary: {
           color: 'var(--rms-brand-500)',
@@ -100,26 +96,26 @@ const arosPreset = definePreset(Aura, {
           // Keep it white; button labels get their own ink token below.
           contrastColor: '#ffffff',
           hoverColor: 'var(--rms-brand-600)',
-          activeColor: 'var(--rms-brand-700)'
+          activeColor: 'var(--rms-brand-700)',
         },
         text: {
           color: '#0f172a',
           hoverColor: '#020617',
           mutedColor: '#64748b',
-          hoverMutedColor: '#475569'
+          hoverMutedColor: '#475569',
         },
         content: {
           background: '#ffffff',
           hoverBackground: '#f1f5f9',
           borderColor: '#e2e8f0',
           color: '#0f172a',
-          hoverColor: '#020617'
+          hoverColor: '#020617',
         },
         highlight: {
           background: 'var(--rms-bg-selected)',
           focusBackground: 'var(--rms-bg-selected)',
           color: 'var(--rms-brand-text)',
-          focusColor: 'var(--rms-brand-text)'
+          focusColor: 'var(--rms-brand-text)',
         },
         formField: {
           background: '#ffffff',
@@ -139,12 +135,12 @@ const arosPreset = definePreset(Aura, {
           floatLabelFocusColor: 'var(--rms-brand-text)',
           floatLabelActiveColor: '#475569',
           iconColor: '#64748b',
-          shadow: 'none'
+          shadow: 'none',
         },
         overlay: {
           select: { background: '#ffffff', borderColor: '#e2e8f0', color: '#0f172a' },
           popover: { background: '#ffffff', borderColor: '#e2e8f0', color: '#0f172a' },
-          modal: { background: '#ffffff', borderColor: '#e2e8f0', color: '#0f172a' }
+          modal: { background: '#ffffff', borderColor: '#e2e8f0', color: '#0f172a' },
         },
         list: {
           option: {
@@ -154,14 +150,14 @@ const arosPreset = definePreset(Aura, {
             color: '#0f172a',
             focusColor: '#020617',
             selectedColor: 'var(--rms-brand-text)',
-            selectedFocusColor: 'var(--rms-brand-text)'
-          }
+            selectedFocusColor: 'var(--rms-brand-text)',
+          },
         },
         mask: { background: 'var(--rms-bg-overlay)', color: '#e2e8f0' },
         info: { color: '#1d4ed8', contrastColor: '#ffffff' },
         success: { color: '#047857', contrastColor: '#ffffff' },
         warn: { color: '#b45309', contrastColor: '#ffffff' },
-        danger: { color: '#b91c1c', contrastColor: '#ffffff' }
+        danger: { color: '#b91c1c', contrastColor: '#ffffff' },
       },
       dark: {
         surface: {
@@ -176,32 +172,32 @@ const arosPreset = definePreset(Aura, {
           700: '#334155',
           800: '#1e293b',
           900: '#0f172a',
-          950: '#020617'
+          950: '#020617',
         },
         primary: {
           color: 'var(--rms-brand-500)',
           contrastColor: '#ffffff',
           hoverColor: 'var(--rms-brand-600)',
-          activeColor: 'var(--rms-brand-700)'
+          activeColor: 'var(--rms-brand-700)',
         },
         text: {
           color: '#e2e8f0',
           hoverColor: '#f8fafc',
           mutedColor: '#94a3b8',
-          hoverMutedColor: '#cbd5e1'
+          hoverMutedColor: '#cbd5e1',
         },
         content: {
           background: '#1e293b',
           hoverBackground: '#172033',
           borderColor: '#334155',
           color: '#e2e8f0',
-          hoverColor: '#f8fafc'
+          hoverColor: '#f8fafc',
         },
         highlight: {
           background: 'var(--rms-bg-selected)',
           focusBackground: 'var(--rms-bg-selected)',
           color: 'var(--rms-brand-text)',
-          focusColor: 'var(--rms-brand-text)'
+          focusColor: 'var(--rms-brand-text)',
         },
         formField: {
           background: '#1e293b',
@@ -221,12 +217,12 @@ const arosPreset = definePreset(Aura, {
           floatLabelFocusColor: 'var(--rms-brand-text)',
           floatLabelActiveColor: '#cbd5e1',
           iconColor: '#94a3b8',
-          shadow: 'none'
+          shadow: 'none',
         },
         overlay: {
           select: { background: '#1e293b', borderColor: '#334155', color: '#e2e8f0' },
           popover: { background: '#1e293b', borderColor: '#334155', color: '#e2e8f0' },
-          modal: { background: '#1e293b', borderColor: '#334155', color: '#e2e8f0' }
+          modal: { background: '#1e293b', borderColor: '#334155', color: '#e2e8f0' },
         },
         list: {
           option: {
@@ -236,20 +232,20 @@ const arosPreset = definePreset(Aura, {
             color: '#e2e8f0',
             focusColor: '#f8fafc',
             selectedColor: 'var(--rms-brand-text)',
-            selectedFocusColor: 'var(--rms-brand-text)'
-          }
+            selectedFocusColor: 'var(--rms-brand-text)',
+          },
         },
         mask: { background: 'var(--rms-bg-overlay)', color: '#e2e8f0' },
         info: { color: '#60a5fa', contrastColor: '#1e1b19' },
         success: { color: '#34d399', contrastColor: '#1e1b19' },
         warn: { color: '#fbbf24', contrastColor: '#1e1b19' },
-        danger: { color: '#f87171', contrastColor: '#1e1b19' }
-      }
-    }
+        danger: { color: '#f87171', contrastColor: '#1e1b19' },
+      },
+    },
   },
 
   extend: {
-    Semantic: Semantic
+    Semantic: Semantic,
   },
 
   components: {
@@ -352,7 +348,7 @@ const arosPreset = definePreset(Aura, {
         },
       },
     },
-  }
+  },
 });
 
 export const appConfig: ApplicationConfig = {
@@ -368,19 +364,19 @@ export const appConfig: ApplicationConfig = {
       withInMemoryScrolling({ scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled' }),
     ),
     provideHttpClient(
-      withInterceptors([urlInterceptor, jwtInterceptor, errorInterceptor, envelopeInterceptor])
+      withInterceptors([urlInterceptor, jwtInterceptor, errorInterceptor, envelopeInterceptor]),
     ),
     {
       provide: LOCALE_ID,
-      useValue: 'es-ES'
+      useValue: 'es-ES',
     },
     providePrimeNG({
       theme: {
         preset: arosPreset,
         options: {
-          darkModeSelector: '.dark'
-        }
-      }
+          darkModeSelector: '.dark',
+        },
+      },
     }),
     { provide: TitleStrategy, useClass: AppTitleStrategy },
     MessageService,
@@ -391,8 +387,7 @@ export const appConfig: ApplicationConfig = {
     // to be stable (max 5 s) and then caches the assets actually visited.
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode,
-      registrationStrategy: 'registerWhenStable:5000'
+      registrationStrategy: 'registerWhenStable:5000',
     }),
-
   ],
 };

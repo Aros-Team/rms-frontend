@@ -32,13 +32,15 @@ describe('InventoryCache', () => {
 
   beforeEach(() => {
     supplyStub = {
-      getSupplyVariantsPaginated: vi.fn().mockReturnValue(of({
-        content: [],
-        totalElements: 0,
-        totalPages: 0,
-        page: 0,
-        size: 20,
-      })),
+      getSupplyVariantsPaginated: vi.fn().mockReturnValue(
+        of({
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          page: 0,
+          size: 20,
+        }),
+      ),
       getSupplyVariants: vi.fn().mockReturnValue(of([])),
       getCategories: vi.fn().mockReturnValue(of([])),
       getUnits: vi.fn().mockReturnValue(of([])),

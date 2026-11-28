@@ -20,13 +20,7 @@ import { STEP_QUESTIONS_ID } from '../combo-wizard';
 
 @Component({
   selector: 'app-questions-step[comboWizardStep=questions]',
-  imports: [
-    FormsModule,
-    CheckboxModule,
-    ConfirmPopupModule,
-    RmsButton,
-    RmsIconButton,
-  ],
+  imports: [FormsModule, CheckboxModule, ConfirmPopupModule, RmsButton, RmsIconButton],
   templateUrl: './questions-step.html',
   styleUrl: './questions-step.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,9 +29,7 @@ export class QuestionsStep {
   private readonly wizard = inject(ComboWizardState);
   private readonly confirmationService = inject(ConfirmationService);
 
-  readonly questions = computed<WizardQuestionDraft[]>(() =>
-    this.wizard.data().questions,
-  );
+  readonly questions = computed<WizardQuestionDraft[]>(() => this.wizard.data().questions);
 
   constructor() {
     effect(() => {
@@ -65,16 +57,12 @@ export class QuestionsStep {
   }
 
   onQuestionChange(index: number, value: string): void {
-    const updated = this.questions().map((q, i) =>
-      i === index ? { ...q, question: value } : q,
-    );
+    const updated = this.questions().map((q, i) => (i === index ? { ...q, question: value } : q));
     this.wizard.updateQuestions(updated);
   }
 
   onRequiredChange(index: number, value: boolean): void {
-    const updated = this.questions().map((q, i) =>
-      i === index ? { ...q, required: value } : q,
-    );
+    const updated = this.questions().map((q, i) => (i === index ? { ...q, required: value } : q));
     this.wizard.updateQuestions(updated);
   }
 

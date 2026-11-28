@@ -42,10 +42,10 @@ describe('ResourceCache', () => {
 
   describe('in-flight cancellation', () => {
     it('invalidate() cancels the in-flight request, keeps prior data, and marks stale', () => {
-      const cache = new ResourceCache<Sample>(
-        () => httpClient.get<Sample>('v1/sample'),
-        { ttlMs: 60_000, staleWhileRevalidate: true },
-      );
+      const cache = new ResourceCache<Sample>(() => httpClient.get<Sample>('v1/sample'), {
+        ttlMs: 60_000,
+        staleWhileRevalidate: true,
+      });
 
       cache.load();
       httpMock.expectOne('v1/sample').flush(freshSample);
@@ -64,10 +64,10 @@ describe('ResourceCache', () => {
     });
 
     it('reset() cancels the in-flight request, clears data, and marks stale', () => {
-      const cache = new ResourceCache<Sample>(
-        () => httpClient.get<Sample>('v1/sample'),
-        { ttlMs: 60_000, staleWhileRevalidate: true },
-      );
+      const cache = new ResourceCache<Sample>(() => httpClient.get<Sample>('v1/sample'), {
+        ttlMs: 60_000,
+        staleWhileRevalidate: true,
+      });
 
       cache.load();
       httpMock.expectOne('v1/sample').flush(freshSample);
@@ -85,10 +85,10 @@ describe('ResourceCache', () => {
     });
 
     it('refresh() cancels the in-flight request and starts a new fetch with a new version', () => {
-      const cache = new ResourceCache<Sample>(
-        () => httpClient.get<Sample>('v1/sample'),
-        { ttlMs: 60_000, staleWhileRevalidate: true },
-      );
+      const cache = new ResourceCache<Sample>(() => httpClient.get<Sample>('v1/sample'), {
+        ttlMs: 60_000,
+        staleWhileRevalidate: true,
+      });
 
       cache.load();
       httpMock.expectOne('v1/sample').flush(freshSample);
@@ -113,10 +113,10 @@ describe('ResourceCache', () => {
 
   describe('late response handling', () => {
     it('ignores a late response from a superseded fetch when invalidate() runs mid-flight', () => {
-      const cache = new ResourceCache<Sample>(
-        () => httpClient.get<Sample>('v1/sample'),
-        { ttlMs: 60_000, staleWhileRevalidate: true },
-      );
+      const cache = new ResourceCache<Sample>(() => httpClient.get<Sample>('v1/sample'), {
+        ttlMs: 60_000,
+        staleWhileRevalidate: true,
+      });
 
       cache.load();
       httpMock.expectOne('v1/sample').flush(freshSample);
@@ -139,10 +139,10 @@ describe('ResourceCache', () => {
 
     it('ignores a late response from a reset fetch even if the upstream observable still emits', () => {
       const subject = new Subject<Sample>();
-      const cache = new ResourceCache<Sample>(
-        () => subject.asObservable(),
-        { ttlMs: 60_000, staleWhileRevalidate: true },
-      );
+      const cache = new ResourceCache<Sample>(() => subject.asObservable(), {
+        ttlMs: 60_000,
+        staleWhileRevalidate: true,
+      });
 
       cache.load();
       expect(cache.status()).toBe('loading');
@@ -161,10 +161,10 @@ describe('ResourceCache', () => {
 
     it('ignores a late response from an invalidated fetch even if the upstream observable still emits', () => {
       const subject = new Subject<Sample>();
-      const cache = new ResourceCache<Sample>(
-        () => subject.asObservable(),
-        { ttlMs: 60_000, staleWhileRevalidate: true },
-      );
+      const cache = new ResourceCache<Sample>(() => subject.asObservable(), {
+        ttlMs: 60_000,
+        staleWhileRevalidate: true,
+      });
 
       cache.load();
       subject.next({ id: 1, label: 'first' });
@@ -187,10 +187,10 @@ describe('ResourceCache', () => {
 
   describe('version behavior on reset', () => {
     it('reset() followed by load() produces a fresh request and accepts its response', () => {
-      const cache = new ResourceCache<Sample>(
-        () => httpClient.get<Sample>('v1/sample'),
-        { ttlMs: 60_000, staleWhileRevalidate: true },
-      );
+      const cache = new ResourceCache<Sample>(() => httpClient.get<Sample>('v1/sample'), {
+        ttlMs: 60_000,
+        staleWhileRevalidate: true,
+      });
 
       cache.load();
       httpMock.expectOne('v1/sample').flush(freshSample);
@@ -207,10 +207,10 @@ describe('ResourceCache', () => {
     });
 
     it('multiple consecutive reset() calls during in-flight requests all cancel without restoring data', () => {
-      const cache = new ResourceCache<Sample>(
-        () => httpClient.get<Sample>('v1/sample'),
-        { ttlMs: 60_000, staleWhileRevalidate: true },
-      );
+      const cache = new ResourceCache<Sample>(() => httpClient.get<Sample>('v1/sample'), {
+        ttlMs: 60_000,
+        staleWhileRevalidate: true,
+      });
 
       cache.load();
       httpMock.expectOne('v1/sample').flush(freshSample);

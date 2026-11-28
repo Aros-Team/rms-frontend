@@ -6,7 +6,10 @@ import { catchError, map, switchMap } from 'rxjs/operators';
 
 import { MessageService } from 'primeng/api';
 
-import { ComboWizardState, type WizardFormData } from '@app/core/services/combos/combo-wizard-state';
+import {
+  ComboWizardState,
+  type WizardFormData,
+} from '@app/core/services/combos/combo-wizard-state';
 import { Product } from '@app/core/services/products/product';
 import { SpecialSelectionsCache } from '@app/core/services/special-selections/special-selections-cache';
 import type { ProductCreateRequest } from '@app/shared/models/dto/products/product-create-request';
@@ -26,22 +29,26 @@ export class ComboSubmission {
     const data = this.wizard.data();
     const sourceId = this.wizard.sourceId();
 
-    const obs = sourceId === null
-      ? this.createProductAndSelection(data)
-      : this.updateSelection(sourceId, data);
+    const obs =
+      sourceId === null
+        ? this.createProductAndSelection(data)
+        : this.updateSelection(sourceId, data);
 
     return obs.pipe(
       map(() => {
-        this.message.add({ severity: 'success', summary: 'Éxito', detail: 'Combo guardado correctamente' });
+        this.message.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Combo guardado correctamente',
+        });
         this.wizard.markSaved();
         this.wizard.discardDraft();
         void this.router.navigate(['/admin/manage/combos']);
         return true;
       }),
       catchError((err: unknown) => {
-        const detail = err instanceof HttpErrorResponse
-          ? mapHttpError(err)
-          : 'No se pudo guardar el combo';
+        const detail =
+          err instanceof HttpErrorResponse ? mapHttpError(err) : 'No se pudo guardar el combo';
         this.message.add({ severity: 'error', summary: 'Error', detail });
         return of(false);
       }),
@@ -58,11 +65,9 @@ export class ComboSubmission {
       recipe: [],
     };
 
-    return this.productService.createProduct(createReq).pipe(
-      switchMap((product) =>
-        this.cache.create(this.buildCreateRequest(data, product.id)),
-      ),
-    );
+    return this.productService
+      .createProduct(createReq)
+      .pipe(switchMap((product) => this.cache.create(this.buildCreateRequest(data, product.id))));
   }
 
   private buildCreateRequest(data: WizardFormData, productId: number): SpecialSelectionRequest {
@@ -102,7 +107,10 @@ export class ComboSubmission {
     };
   }
 
-  private updateSelection(sourceId: number, data: WizardFormData): Observable<SpecialSelectionResponse> {
+  private updateSelection(
+    sourceId: number,
+    data: WizardFormData,
+  ): Observable<SpecialSelectionResponse> {
     return this.cache.update(sourceId, this.buildRequest(data));
   }
 

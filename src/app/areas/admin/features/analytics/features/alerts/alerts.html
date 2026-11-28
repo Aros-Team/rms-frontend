@@ -1,7 +1,8 @@
 <div class="analytics-page">
   <app-rms-page-header
     title="Alertas de variación"
-    subtitle="Desvíos de costo, ventas y margen detectados en el periodo.">
+    subtitle="Desvíos de costo, ventas y margen detectados en el periodo."
+  >
     <span rmsPageHeaderMeta class="page-meta">
       @if (total() > 0) {
         {{ pageLabel() }}
@@ -15,7 +16,8 @@
         variant="secondary"
         iconStart="pi pi-download"
         [disabled]="items().length === 0"
-        (click)="exportCsv()">
+        (click)="exportCsv()"
+      >
         Exportar CSV
       </app-rms-button>
     </div>
@@ -25,17 +27,39 @@
     [error]="errorInfo()?.detail ?? ''"
     [errorTitle]="errorInfo()?.title ?? ''"
     [forbidden]="errorInfo()?.forbidden ?? false"
-    (retry)="retry()" />
+    (retry)="retry()"
+  />
 
   @if (actionError(); as message) {
     <p class="action-error" role="alert">{{ message }}</p>
   }
 
   <section class="kpi-grid" aria-label="Resumen de alertas">
-    <app-rms-stat-tile label="Abiertas" [value]="openOnPage()" period="en esta página" icon="pi pi-exclamation-circle" [emphasis]="true" />
-    <app-rms-stat-tile label="Alertas" [value]="total()" period="en los filtros actuales" icon="pi pi-bell" />
-    <app-rms-stat-tile label="Rojas" [value]="redOnPage()" period="en esta página" icon="pi pi-exclamation-triangle" />
-    <app-rms-stat-tile label="Amarillas" [value]="yellowOnPage()" period="en esta página" icon="pi pi-exclamation-circle" />
+    <app-rms-stat-tile
+      label="Abiertas"
+      [value]="openOnPage()"
+      period="en esta página"
+      icon="pi pi-exclamation-circle"
+      [emphasis]="true"
+    />
+    <app-rms-stat-tile
+      label="Alertas"
+      [value]="total()"
+      period="en los filtros actuales"
+      icon="pi pi-bell"
+    />
+    <app-rms-stat-tile
+      label="Rojas"
+      [value]="redOnPage()"
+      period="en esta página"
+      icon="pi pi-exclamation-triangle"
+    />
+    <app-rms-stat-tile
+      label="Amarillas"
+      [value]="yellowOnPage()"
+      period="en esta página"
+      icon="pi pi-exclamation-circle"
+    />
   </section>
 
   <div class="filters" role="group" aria-label="Filtros de alertas">
@@ -44,13 +68,15 @@
       [options]="statusOptions"
       [ngModel]="status()"
       (ngModelChange)="onStatusChange($event)"
-      size="sm" />
+      size="sm"
+    />
     <app-rms-select
       label="Severidad"
       [options]="severityOptions"
       [ngModel]="severity()"
       (ngModelChange)="onSeverityChange($event)"
-      size="sm" />
+      size="sm"
+    />
   </div>
 
   @if (loading() && page() === null) {
@@ -64,16 +90,22 @@
       message="Cuando una métrica se desvíe de su línea base aparecerá aquí. Prueba con otro estado o severidad."
       actionLabel="Quitar filtros"
       actionIcon="pi pi-filter-slash"
-      (action)="onStatusChange(''); onSeverityChange('')" />
+      (action)="onStatusChange(''); onSeverityChange('')"
+    />
   } @else {
     <!-- Alerts table: below the KPI row and the filters. -->
-    <section
-      class="panel rms-defer-view rms-defer-view--md"
-      aria-labelledby="alerts-table-title">
+    <section class="panel rms-defer-view rms-defer-view--md" aria-labelledby="alerts-table-title">
       <h2 id="alerts-table-title" class="panel__title">Alertas detectadas</h2>
-      <div class="panel__scroll" role="region" tabindex="0" aria-label="Alertas detectadas, desplazable">
+      <div
+        class="panel__scroll"
+        role="region"
+        tabindex="0"
+        aria-label="Alertas detectadas, desplazable"
+      >
         <table class="data-table data-table--text alerts-table">
-          <caption class="sr-only">Alertas de variación con severidad, periodo y estado</caption>
+          <caption class="sr-only">
+            Alertas de variación con severidad, periodo y estado
+          </caption>
           <thead>
             <tr>
               <th>Severidad</th>
@@ -92,7 +124,8 @@
                 <td>
                   <app-rms-status-pill
                     [label]="severityLabel(alert.severity)"
-                    [status]="severityTone(alert.severity)" />
+                    [status]="severityTone(alert.severity)"
+                  />
                 </td>
                 <td>{{ typeLabel(alert.type) }}</td>
                 <td class="alerts-table__description">{{ describe(alert) }}</td>
@@ -105,7 +138,8 @@
                 <td>
                   <app-rms-status-pill
                     [label]="statusLabel(alert.status)"
-                    [status]="statusTone(alert.status)" />
+                    [status]="statusTone(alert.status)"
+                  />
                 </td>
                 <td>
                   @if (alert.status === 'OPEN') {
@@ -115,7 +149,8 @@
                       iconStart="pi pi-check"
                       [loading]="marking() === alert.id"
                       [disabled]="marking() !== null"
-                      (click)="markRead(alert)">
+                      (click)="markRead(alert)"
+                    >
                       Marcar leída
                     </app-rms-button>
                   } @else {
@@ -136,7 +171,8 @@
             size="sm"
             iconStart="pi pi-chevron-left"
             [disabled]="!canPrevious()"
-            (click)="previousPage()">
+            (click)="previousPage()"
+          >
             Anterior
           </app-rms-button>
           <app-rms-button
@@ -144,7 +180,8 @@
             size="sm"
             iconEnd="pi pi-chevron-right"
             [disabled]="!canNext()"
-            (click)="nextPage()">
+            (click)="nextPage()"
+          >
             Siguiente
           </app-rms-button>
         </div>

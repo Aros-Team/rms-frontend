@@ -20,7 +20,6 @@ security:
   - bearerAuth: []
 
 paths:
-
   /api/v1/analytics/prime-cost:
     get:
       tags: [Analytics]
@@ -168,7 +167,6 @@ paths:
         '404': { $ref: '#/components/responses/AlertNotFound' }
 
 components:
-
   securitySchemes:
     bearerAuth:
       type: http
@@ -224,7 +222,6 @@ components:
           schema: { $ref: '#/components/schemas/ProblemDetail' }
 
   schemas:
-
     TimeBucket:
       type: string
       enum: [daily, weekly, monthly, yearly]
@@ -241,8 +238,13 @@ components:
       type: object
       required: [amount, currency]
       properties:
-        amount:   { type: string, example: "125000000.00", description: "Decimal string, no thousand separators" }
-        currency: { type: string, example: "COP", minLength: 3, maxLength: 3 }
+        amount:
+          {
+            type: string,
+            example: '125000000.00',
+            description: 'Decimal string, no thousand separators',
+          }
+        currency: { type: string, example: 'COP', minLength: 3, maxLength: 3 }
 
     MetricValue:
       type: object
@@ -253,15 +255,15 @@ components:
         LOW_MARGIN_SKU_SPIKE). Unit is implied by `Alert.type`.
       required: [amount]
       properties:
-        amount: { type: string, example: "28.50" }
+        amount: { type: string, example: '28.50' }
 
     Period:
       type: object
       required: [bucket, from, to, keys]
       properties:
         bucket: { $ref: '#/components/schemas/TimeBucket' }
-        from:   { type: string, example: "2026-07" }
-        to:     { type: string, example: "2026-07" }
+        from: { type: string, example: '2026-07' }
+        to: { type: string, example: '2026-07' }
         keys:
           type: array
           items: { type: string }
@@ -284,16 +286,16 @@ components:
       type: object
       required: [key, netSales, grossSales, cogs, labor, primeCost, primeCostPct, dataCompleteness]
       properties:
-        key:        { type: string, example: "2026-07" }
-        netSales:   { $ref: '#/components/schemas/Money' }
+        key: { type: string, example: '2026-07' }
+        netSales: { $ref: '#/components/schemas/Money' }
         grossSales: { $ref: '#/components/schemas/Money' }
-        discounts:  { $ref: '#/components/schemas/Money' }
-        comped:     { $ref: '#/components/schemas/Money' }
+        discounts: { $ref: '#/components/schemas/Money' }
+        comped: { $ref: '#/components/schemas/Money' }
         cogs:
           type: object
           required: [total, byCategory]
           properties:
-            total:      { $ref: '#/components/schemas/Money' }
+            total: { $ref: '#/components/schemas/Money' }
             byCategory:
               type: array
               items:
@@ -304,12 +306,12 @@ components:
                     type: string
                     enum: [FOOD, BEVERAGE, ALCOHOL, OTHER]
                   amount: { $ref: '#/components/schemas/Money' }
-                  pct:    { type: number, format: double, description: "0..100" }
+                  pct: { type: number, format: double, description: '0..100' }
         labor:
           type: object
           required: [total, byArea]
           properties:
-            total:  { $ref: '#/components/schemas/Money' }
+            total: { $ref: '#/components/schemas/Money' }
             byArea:
               type: array
               items:
@@ -320,14 +322,14 @@ components:
                     type: string
                     enum: [FOH, BOH, OTHER]
                   amount: { $ref: '#/components/schemas/Money' }
-                  pct:    { type: number, format: double }
-        primeCost:    { $ref: '#/components/schemas/Money' }
-        primeCostPct: { type: number, format: double, description: "0..100" }
+                  pct: { type: number, format: double }
+        primeCost: { $ref: '#/components/schemas/Money' }
+        primeCostPct: { type: number, format: double, description: '0..100' }
         margins:
           type: object
           properties:
             grossProfitPct: { type: number, format: double }
-            netProfitPct:   { type: number, format: double }
+            netProfitPct: { type: number, format: double }
         dataCompleteness: { $ref: '#/components/schemas/DataCompleteness' }
 
     MenuEngineeringReport:
@@ -349,8 +351,8 @@ components:
           required: [lastRefreshedAt, sourceVersion, ttlSeconds]
           properties:
             lastRefreshedAt: { type: string, format: date-time }
-            sourceVersion:   { type: string, example: "v17" }
-            ttlSeconds:      { type: integer, example: 86400 }
+            sourceVersion: { type: string, example: 'v17' }
+            ttlSeconds: { type: integer, example: 86400 }
         dataCompleteness: { $ref: '#/components/schemas/DataCompleteness' }
         notes:
           type: array
@@ -358,17 +360,27 @@ components:
 
     MenuEngineeringItem:
       type: object
-      required: [productId, productName, unitsSold, revenue, recipeCost, grossProfitPerUnit, totalContribution, quadrant]
+      required:
+        [
+          productId,
+          productName,
+          unitsSold,
+          revenue,
+          recipeCost,
+          grossProfitPerUnit,
+          totalContribution,
+          quadrant,
+        ]
       properties:
-        productId:           { type: integer, format: int64 }
-        productName:         { type: string }
-        categoryId:          { type: integer, format: int64, nullable: true }
-        categoryName:        { type: string, nullable: true }
-        unitsSold:           { type: integer }
-        revenue:             { $ref: '#/components/schemas/Money' }
-        recipeCost:          { $ref: '#/components/schemas/Money' }
-        grossProfitPerUnit:  { $ref: '#/components/schemas/Money' }
-        totalContribution:   { $ref: '#/components/schemas/Money' }
+        productId: { type: integer, format: int64 }
+        productName: { type: string }
+        categoryId: { type: integer, format: int64, nullable: true }
+        categoryName: { type: string, nullable: true }
+        unitsSold: { type: integer }
+        revenue: { $ref: '#/components/schemas/Money' }
+        recipeCost: { $ref: '#/components/schemas/Money' }
+        grossProfitPerUnit: { $ref: '#/components/schemas/Money' }
+        totalContribution: { $ref: '#/components/schemas/Money' }
         quadrant:
           type: string
           enum: [STAR, PLOWHORSE, PUZZLE, DOG]
@@ -382,8 +394,8 @@ components:
           type: object
           required: [value, totalNetSales, totalAvailableSeatHours]
           properties:
-            value:                   { $ref: '#/components/schemas/Money' }
-            totalNetSales:           { $ref: '#/components/schemas/Money' }
+            value: { $ref: '#/components/schemas/Money' }
+            totalNetSales: { $ref: '#/components/schemas/Money' }
             totalAvailableSeatHours: { type: number, format: double, example: 6757.5 }
         tableTurnover:
           type: object
@@ -399,26 +411,37 @@ components:
                   dayPart:
                     type: string
                     enum: [LUNCH, DINNER, OTHER]
-                  turns:  { type: number, format: double }
+                  turns: { type: number, format: double }
                   covers: { type: integer }
                   tables: { type: integer }
         avgOccupancyMinutes: { type: number, format: double, example: 47.3 }
-        dataCompleteness:    { $ref: '#/components/schemas/DataCompleteness' }
+        dataCompleteness: { $ref: '#/components/schemas/DataCompleteness' }
         notes:
           type: array
           items: { type: string }
 
     CohortReport:
       type: object
-      required: [period, newClients, recurringClients, totalOrders, recurringRatePct, averageTicketPerOrder, averageTicketPerCover, fingerprintStrategy, dataCompleteness]
+      required:
+        [
+          period,
+          newClients,
+          recurringClients,
+          totalOrders,
+          recurringRatePct,
+          averageTicketPerOrder,
+          averageTicketPerCover,
+          fingerprintStrategy,
+          dataCompleteness,
+        ]
       properties:
         period: { $ref: '#/components/schemas/Period' }
-        newClients:           { type: integer }
-        recurringClients:     { type: integer }
-        totalOrders:          { type: integer }
-        recurringRatePct:     { type: number, format: double, description: "0..100" }
+        newClients: { type: integer }
+        recurringClients: { type: integer }
+        totalOrders: { type: integer }
+        recurringRatePct: { type: number, format: double, description: '0..100' }
         averageTicketPerOrder: { $ref: '#/components/schemas/Money' }
-        averageTicketPerCover:  { $ref: '#/components/schemas/Money' }
+        averageTicketPerCover: { $ref: '#/components/schemas/Money' }
         fingerprintStrategy:
           type: string
           enum: [PHONE, PHONE_OR_TABLE, TABLE_ONLY]
@@ -446,19 +469,20 @@ components:
 
     Alert:
       type: object
-      required: [id, severity, type, message, metric, current, deviationPct, period, detectedAt, status]
+      required:
+        [id, severity, type, message, metric, current, deviationPct, period, detectedAt, status]
       properties:
-        id:           { type: integer, format: int64 }
-        severity:     { $ref: '#/components/schemas/AlertSeverity' }
-        type:         { $ref: '#/components/schemas/AlertType' }
-        message:      { type: string }
-        metric:       { type: string, example: "food_cost_pct" }
-        baseline:     { $ref: '#/components/schemas/MetricValue' }
-        current:      { $ref: '#/components/schemas/MetricValue' }
+        id: { type: integer, format: int64 }
+        severity: { $ref: '#/components/schemas/AlertSeverity' }
+        type: { $ref: '#/components/schemas/AlertType' }
+        message: { type: string }
+        metric: { type: string, example: 'food_cost_pct' }
+        baseline: { $ref: '#/components/schemas/MetricValue' }
+        current: { $ref: '#/components/schemas/MetricValue' }
         deviationPct: { type: number, format: double }
-        period:       { type: string, example: "2026-07" }
-        detectedAt:   { type: string, format: date-time }
-        status:       { $ref: '#/components/schemas/AlertStatus' }
+        period: { type: string, example: '2026-07' }
+        detectedAt: { type: string, format: date-time }
+        status: { $ref: '#/components/schemas/AlertStatus' }
 
     AlertsPage:
       type: object
@@ -471,19 +495,19 @@ components:
           type: object
           required: [limit, offset, total]
           properties:
-            limit:  { type: integer }
+            limit: { type: integer }
             offset: { type: integer }
-            total:  { type: integer }
+            total: { type: integer }
 
     ProblemDetail:
       type: object
       description: RFC 7807
       required: [type, title, status]
       properties:
-        type:     { type: string, format: uri, example: "/analytics/invalid-period" }
-        title:    { type: string, example: "Invalid period" }
-        status:   { type: integer, example: 400 }
-        detail:   { type: string }
+        type: { type: string, format: uri, example: '/analytics/invalid-period' }
+        title: { type: string, example: 'Invalid period' }
+        status: { type: integer, example: 400 }
+        detail: { type: string }
         instance: { type: string, format: uri }
         errors:
           type: array
@@ -491,5 +515,5 @@ components:
             type: object
             properties:
               parameter: { type: string }
-              value:     { type: string }
-              expected:  { type: string }
+              value: { type: string }
+              expected: { type: string }

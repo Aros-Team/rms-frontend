@@ -17,9 +17,7 @@ import type {
   ShiftDifferenceKind,
 } from '@app/shared/models/dto/cash-shifts/cash-shift';
 import { toAmount } from '@app/shared/models/dto/common/money';
-import {
-  parseMoneyInput,
-} from '@app/shared/models/dto/payments/money-amount';
+import { parseMoneyInput } from '@app/shared/models/dto/payments/money-amount';
 import type { PaymentSummaryResponse } from '@app/shared/models/dto/payments/payment-summary-response';
 import { formatInstant } from '@app/shared/lib/date-format/date-format';
 import { Money } from '@app/shared/pipes/money/money';
@@ -89,7 +87,9 @@ export class CashierShiftDialog implements OnChanges {
   readonly floatError = computed(() => {
     const value = this.floatValue();
     if (value === null) {
-      return this.floatInput().trim().length === 0 ? 'Ingresa el fondo inicial.' : 'Monto inválido.';
+      return this.floatInput().trim().length === 0
+        ? 'Ingresa el fondo inicial.'
+        : 'Monto inválido.';
     }
     return value < 0 ? 'El fondo no puede ser negativo.' : '';
   });
@@ -97,7 +97,9 @@ export class CashierShiftDialog implements OnChanges {
   readonly countedError = computed(() => {
     const value = this.countedValue();
     if (value === null) {
-      return this.countedInput().trim().length === 0 ? 'Ingresa el efectivo contado.' : 'Monto inválido.';
+      return this.countedInput().trim().length === 0
+        ? 'Ingresa el efectivo contado.'
+        : 'Monto inválido.';
     }
     return value < 0 ? 'El efectivo contado no puede ser negativo.' : '';
   });

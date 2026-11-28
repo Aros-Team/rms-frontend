@@ -17,7 +17,7 @@ export class ResourceCache<T> {
   private readonly entry = signal<CacheEntry<T>>({
     data: null,
     timestamp: 0,
-    status: 'loading'
+    status: 'loading',
   });
 
   private readonly _config: CacheConfig;
@@ -32,15 +32,12 @@ export class ResourceCache<T> {
   readonly isLoading: Signal<boolean> = computed(() => this.entry().status === 'loading');
   readonly hasData: Signal<boolean> = computed(() => this.entry().data !== null);
 
-  constructor(
-    fetchFn: () => Observable<T>,
-    config: Partial<CacheConfig> = {}
-  ) {
+  constructor(fetchFn: () => Observable<T>, config: Partial<CacheConfig> = {}) {
     this.fetchFn = fetchFn;
     this._config = {
       ttlMs: 5 * 60 * 1000,
       staleWhileRevalidate: true,
-      ...config
+      ...config,
     };
   }
 
@@ -48,7 +45,7 @@ export class ResourceCache<T> {
     if (this.isLoadingFlag) return;
 
     const current = this.entry();
-    
+
     if (this._config.staleWhileRevalidate && current.data !== null) {
       this.entry.set({ ...current, status: 'stale' });
       this.fetchFresh();
@@ -61,7 +58,7 @@ export class ResourceCache<T> {
   loadIfStale(): void {
     const current = this.entry();
     if (current.status === 'loading' && this.isLoadingFlag) return;
-    
+
     if (current.status === 'stale' || !current.data || this.isExpired(current)) {
       this.load();
     }
@@ -76,7 +73,7 @@ export class ResourceCache<T> {
 
   refresh(): void {
     this.cancelActiveRequest();
-    this.entry.update(current => ({ ...current, status: 'stale' }));
+    this.entry.update((current) => ({ ...current, status: 'stale' }));
     this.load();
   }
 
@@ -117,7 +114,7 @@ export class ResourceCache<T> {
         this.entry.set({
           data,
           timestamp: Date.now(),
-          status: 'fresh'
+          status: 'fresh',
         });
         this.isLoadingFlag = false;
       },
@@ -128,7 +125,7 @@ export class ResourceCache<T> {
         this.entry.set({
           ...current,
           status: 'stale',
-          error: err instanceof Error ? err : new Error(String(err))
+          error: err instanceof Error ? err : new Error(String(err)),
         });
         this.isLoadingFlag = false;
         this.activeRequest = undefined;
@@ -138,7 +135,7 @@ export class ResourceCache<T> {
 
         this.isLoadingFlag = false;
         this.activeRequest = undefined;
-      }
+      },
     });
 
     if (!request.closed && requestVersion === this.requestVersion) {

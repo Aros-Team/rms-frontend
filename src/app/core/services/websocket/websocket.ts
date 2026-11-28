@@ -154,11 +154,12 @@ export class WebSocket implements OnDestroy {
 
       const shared = subject.pipe(
         share({
-          resetOnRefCountZero: () => new Observable((observer) => {
-            // Teardown: destroy the STOMP subscription when no one is listening
-            this.destroyStompSubscription(topic);
-            observer.complete();
-          }),
+          resetOnRefCountZero: () =>
+            new Observable((observer) => {
+              // Teardown: destroy the STOMP subscription when no one is listening
+              this.destroyStompSubscription(topic);
+              observer.complete();
+            }),
         }),
       );
 
@@ -196,7 +197,11 @@ export class WebSocket implements OnDestroy {
    * Emits a cache-invalidation event so other services can refresh their data.
    * This is an internal pub/sub channel — it does NOT send anything to the broker.
    */
-  emitCacheInvalidation(resource: string, action: 'create' | 'update' | 'delete', id?: number): void {
+  emitCacheInvalidation(
+    resource: string,
+    action: 'create' | 'update' | 'delete',
+    id?: number,
+  ): void {
     this.cacheInvalidationSubject.next({ resource, action, id });
     this.logger.debug('WebSocket: Cache invalidation emitted', { resource, action, id });
   }

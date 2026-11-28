@@ -12,7 +12,9 @@
   </div>
 
   <!-- Content -->
-  <div class="flex-1 min-h-0 border border-rms-border rounded-2xl bg-rms-surface overflow-hidden p-6">
+  <div
+    class="flex-1 min-h-0 border border-rms-border rounded-2xl bg-rms-surface overflow-hidden p-6"
+  >
     <p-tabs [(value)]="activeTab">
       <p-tablist>
         <p-tab value="0">General</p-tab>
@@ -27,16 +29,35 @@
           <div class="flex flex-col gap-4 max-w-lg pt-4">
             <app-rms-input id="name" label="Nombre" [(ngModel)]="name" />
 
-            <app-rms-textarea id="description" label="Descripción" [rows]="3" [(ngModel)]="description" />
+            <app-rms-textarea
+              id="description"
+              label="Descripción"
+              [rows]="3"
+              [(ngModel)]="description"
+            />
 
             <div class="flex flex-col gap-1">
               <label for="basePrice" class="rms-label">Precio Base ($)</label>
-              <p-inputNumber inputId="basePrice" [(ngModel)]="basePrice" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" />
+              <p-inputNumber
+                inputId="basePrice"
+                [(ngModel)]="basePrice"
+                mode="decimal"
+                [minFractionDigits]="2"
+                [maxFractionDigits]="2"
+              />
             </div>
 
             <div class="flex flex-col gap-1">
               <label for="areaId" class="rms-label">Área</label>
-              <p-select inputId="areaId" [(ngModel)]="areaId" [options]="areas()" optionLabel="name" optionValue="id" placeholder="Seleccionar área" class="w-full" />
+              <p-select
+                inputId="areaId"
+                [(ngModel)]="areaId"
+                [options]="areas()"
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Seleccionar área"
+                class="w-full"
+              />
             </div>
 
             <div class="flex items-center gap-3 mt-2">
@@ -46,12 +67,16 @@
 
             <div class="flex items-center gap-3">
               <p-toggleswitch [(ngModel)]="baseRecipeEnabled" inputId="baseRecipe" />
-              <label for="baseRecipe" class="text-sm text-rms-ink-secondary">Receta base habilitada</label>
+              <label for="baseRecipe" class="text-sm text-rms-ink-secondary"
+                >Receta base habilitada</label
+              >
             </div>
 
             <div class="flex items-center gap-3">
               <p-toggleswitch [(ngModel)]="schedulingRequired" inputId="schedulingReq" />
-              <label for="schedulingReq" class="text-sm text-rms-ink-secondary">Requiere programación horaria</label>
+              <label for="schedulingReq" class="text-sm text-rms-ink-secondary"
+                >Requiere programación horaria</label
+              >
             </div>
           </div>
         </p-tabpanel>
@@ -61,10 +86,17 @@
           <div class="flex flex-col gap-3 pt-4">
             <div class="flex justify-between items-center">
               <span class="text-sm text-muted">Agregar, editar y reordenar grupos de opciones</span>
-              <app-rms-button variant="secondary" iconStart="pi pi-plus" (click)="addGroup()">Agregar grupo</app-rms-button>
+              <app-rms-button variant="secondary" iconStart="pi pi-plus" (click)="addGroup()"
+                >Agregar grupo</app-rms-button
+              >
             </div>
 
-            <p-orderList [value]="editableGroups()" [dragdrop]="true" (onReorder)="onGroupReorder()" [listStyle]="{ 'max-height': '500px' }">
+            <p-orderList
+              [value]="editableGroups()"
+              [dragdrop]="true"
+              (onReorder)="onGroupReorder()"
+              [listStyle]="{ 'max-height': '500px' }"
+            >
               <ng-template pTemplate="item" let-group let-i="index">
                 <div class="flex items-center gap-2 p-2 border-b border-rms-border">
                   <i class="pi pi-bars cursor-move text-muted" aria-hidden="true"></i>
@@ -75,10 +107,27 @@
                       Sin categoría
                     }
                   </span>
-                  <p-inputNumber [(ngModel)]="group.minSelections" [min]="0" [showButtons]="true" styleClass="w-20" placeholder="Mín" />
-                  <p-inputNumber [(ngModel)]="group.maxSelections" [min]="1" [showButtons]="true" styleClass="w-20" placeholder="Máx" />
+                  <p-inputNumber
+                    [(ngModel)]="group.minSelections"
+                    [min]="0"
+                    [showButtons]="true"
+                    styleClass="w-20"
+                    placeholder="Mín"
+                  />
+                  <p-inputNumber
+                    [(ngModel)]="group.maxSelections"
+                    [min]="1"
+                    [showButtons]="true"
+                    styleClass="w-20"
+                    placeholder="Máx"
+                  />
                   <p-toggleswitch [(ngModel)]="group.required" />
-                  <app-rms-icon-button icon="pi pi-trash" ariaLabel="Eliminar grupo" variant="danger" (click)="removeGroup(i)" />
+                  <app-rms-icon-button
+                    icon="pi pi-trash"
+                    ariaLabel="Eliminar grupo"
+                    variant="danger"
+                    (click)="removeGroup(i)"
+                  />
                 </div>
               </ng-template>
             </p-orderList>
@@ -90,16 +139,41 @@
           <div class="flex flex-col gap-3 pt-4">
             <div class="flex justify-between items-center">
               <span class="text-sm text-muted">Adiciones opcionales con precio extra</span>
-              <app-rms-button variant="secondary" iconStart="pi pi-plus" (click)="addAddition()">Agregar adición</app-rms-button>
+              <app-rms-button variant="secondary" iconStart="pi pi-plus" (click)="addAddition()"
+                >Agregar adición</app-rms-button
+              >
             </div>
 
             @for (add of editableAdditions(); track $index) {
               <div class="flex items-center gap-2 p-2 border border-rms-border rounded-xl">
-                <input class="rms-input rms-input--md flex-1" aria-label="Nombre de la adición" [(ngModel)]="add.name" placeholder="Nombre" />
-                <p-inputNumber [(ngModel)]="add.optionId" [min]="0" [showButtons]="true" styleClass="w-20" placeholder="ID de opción" />
+                <input
+                  class="rms-input rms-input--md flex-1"
+                  aria-label="Nombre de la adición"
+                  [(ngModel)]="add.name"
+                  placeholder="Nombre"
+                />
+                <p-inputNumber
+                  [(ngModel)]="add.optionId"
+                  [min]="0"
+                  [showButtons]="true"
+                  styleClass="w-20"
+                  placeholder="ID de opción"
+                />
                 <div class="flex items-center gap-1 text-sm text-muted">+$</div>
-                <p-inputNumber [(ngModel)]="add.extraPrice" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" [showButtons]="true" styleClass="w-24" />
-                <app-rms-icon-button icon="pi pi-trash" ariaLabel="Eliminar adición" variant="danger" (click)="removeAddition($index)" />
+                <p-inputNumber
+                  [(ngModel)]="add.extraPrice"
+                  mode="decimal"
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                  [showButtons]="true"
+                  styleClass="w-24"
+                />
+                <app-rms-icon-button
+                  icon="pi pi-trash"
+                  ariaLabel="Eliminar adición"
+                  variant="danger"
+                  (click)="removeAddition($index)"
+                />
               </div>
             }
           </div>
@@ -110,15 +184,27 @@
           <div class="flex flex-col gap-3 pt-4">
             <div class="flex justify-between items-center">
               <span class="text-sm text-muted">Preguntas personalizadas al momento del pedido</span>
-              <app-rms-button variant="secondary" iconStart="pi pi-plus" (click)="addQuestion()">Agregar pregunta</app-rms-button>
+              <app-rms-button variant="secondary" iconStart="pi pi-plus" (click)="addQuestion()"
+                >Agregar pregunta</app-rms-button
+              >
             </div>
 
             @for (q of editableQuestions(); track $index) {
               <div class="flex items-center gap-2 p-2 border border-rms-border rounded-xl">
-                <input class="rms-input rms-input--md flex-1" aria-label="Texto de la pregunta" [(ngModel)]="q.question" placeholder="Pregunta" />
+                <input
+                  class="rms-input rms-input--md flex-1"
+                  aria-label="Texto de la pregunta"
+                  [(ngModel)]="q.question"
+                  placeholder="Pregunta"
+                />
                 <p-toggleswitch [(ngModel)]="q.required" />
                 <span class="text-sm text-muted min-w-fit">Obligatorio</span>
-                <app-rms-icon-button icon="pi pi-trash" ariaLabel="Eliminar pregunta" variant="danger" (click)="removeQuestion($index)" />
+                <app-rms-icon-button
+                  icon="pi pi-trash"
+                  ariaLabel="Eliminar pregunta"
+                  variant="danger"
+                  (click)="removeQuestion($index)"
+                />
               </div>
             }
           </div>
@@ -137,22 +223,50 @@
                     <span class="text-xs text-muted italic">Sin horario</span>
                   }
                   @for (entry of day.entries; track entry; let i = $index) {
-                    <input class="rms-input rms-input--sm w-20" aria-label="Hora de inicio" [ngModel]="entry.startTime" (ngModelChange)="updateScheduleTime(day.value, i, 'startTime', $event)" maxlength="5" placeholder="HH:mm" />
+                    <input
+                      class="rms-input rms-input--sm w-20"
+                      aria-label="Hora de inicio"
+                      [ngModel]="entry.startTime"
+                      (ngModelChange)="updateScheduleTime(day.value, i, 'startTime', $event)"
+                      maxlength="5"
+                      placeholder="HH:mm"
+                    />
                     <span class="text-muted">-</span>
-                    <input class="rms-input rms-input--sm w-20" aria-label="Hora de fin" [ngModel]="entry.endTime" (ngModelChange)="updateScheduleTime(day.value, i, 'endTime', $event)" maxlength="5" placeholder="HH:mm" />
-                    <app-rms-icon-button icon="pi pi-times" ariaLabel="Eliminar horario" variant="danger" size="sm" (click)="removeScheduleEntry(day.value, i)" />
+                    <input
+                      class="rms-input rms-input--sm w-20"
+                      aria-label="Hora de fin"
+                      [ngModel]="entry.endTime"
+                      (ngModelChange)="updateScheduleTime(day.value, i, 'endTime', $event)"
+                      maxlength="5"
+                      placeholder="HH:mm"
+                    />
+                    <app-rms-icon-button
+                      icon="pi pi-times"
+                      ariaLabel="Eliminar horario"
+                      variant="danger"
+                      size="sm"
+                      (click)="removeScheduleEntry(day.value, i)"
+                    />
                     @if (i < day.entries.length - 1) {
                       <span class="text-rms-ink-muted mx-1">|</span>
                     }
                   }
                 </div>
-                <app-rms-icon-button icon="pi pi-plus" ariaLabel="Agregar horario del día" variant="secondary" size="sm" (click)="addScheduleEntry(day.value)" />
+                <app-rms-icon-button
+                  icon="pi pi-plus"
+                  ariaLabel="Agregar horario del día"
+                  variant="secondary"
+                  size="sm"
+                  (click)="addScheduleEntry(day.value)"
+                />
               </div>
             }
           </div>
 
           @if (scheduleErrors().length > 0) {
-            <div class="mt-3 p-2 bg-rms-subtle border border-rms-danger rounded-lg text-sm text-rms-danger">
+            <div
+              class="mt-3 p-2 bg-rms-subtle border border-rms-danger rounded-lg text-sm text-rms-danger"
+            >
               @for (err of scheduleErrors(); track err) {
                 <p>{{ err }}</p>
               }
@@ -164,7 +278,9 @@
 
     <!-- Action buttons -->
     <div class="flex justify-end gap-2 mt-6 pt-4 border-t border-rms-border">
-      <app-rms-button variant="secondary" iconStart="pi pi-calculator" (click)="openPriceDialog()">Precio sugerido</app-rms-button>
+      <app-rms-button variant="secondary" iconStart="pi pi-calculator" (click)="openPriceDialog()"
+        >Precio sugerido</app-rms-button
+      >
       <app-rms-button variant="secondary" (click)="cancel()">Cancelar</app-rms-button>
       <app-rms-button (click)="save()" [loading]="saving()">Guardar</app-rms-button>
     </div>
@@ -172,13 +288,20 @@
 </div>
 
 <!-- Suggested price dialog -->
-<p-dialog header="Precio Sugerido" [(visible)]="showPriceDialog" [modal]="true"   styleClass="w-[550px]">
+<p-dialog
+  header="Precio Sugerido"
+  [(visible)]="showPriceDialog"
+  [modal]="true"
+  styleClass="w-[550px]"
+>
   <div class="flex flex-col gap-4">
     <!-- Margin input -->
     <div class="flex items-center gap-3">
       <span class="rms-label">Margen (%)</span>
       <p-inputNumber [(ngModel)]="priceMargin" [min]="0" [max]="100" [showButtons]="true" />
-      <app-rms-button (click)="calculatePrice()" [loading]="priceLoading()">Calcular</app-rms-button>
+      <app-rms-button (click)="calculatePrice()" [loading]="priceLoading()"
+        >Calcular</app-rms-button
+      >
     </div>
 
     <!-- 200 result -->
@@ -186,7 +309,9 @@
       <div class="border border-rms-border rounded-xl p-4">
         <div class="flex justify-between items-center mb-3">
           <span class="text-sm text-muted">Precio sugerido</span>
-          <span class="text-2xl font-bold text-rms-success">{{ result.suggestedPrice | money }}</span>
+          <span class="text-2xl font-bold text-rms-success">{{
+            result.suggestedPrice | money
+          }}</span>
         </div>
         <div class="flex justify-between items-center mb-3">
           <span class="text-sm text-muted">Costo total</span>
@@ -212,7 +337,13 @@
           </ng-template>
         </p-table>
 
-        <app-rms-button iconStart="pi pi-check" [block]="true" class="mt-3" (click)="applySuggestedPrice()">Aplicar al precio base</app-rms-button>
+        <app-rms-button
+          iconStart="pi pi-check"
+          [block]="true"
+          class="mt-3"
+          (click)="applySuggestedPrice()"
+          >Aplicar al precio base</app-rms-button
+        >
       </div>
     }
 
@@ -227,7 +358,9 @@
               <p-chip [label]="'ID: ' + id" severity="warn" />
             }
           </div>
-          <p class="text-xs text-muted mt-2">Ve al módulo de Inventario > Insumos para configurar los costos unitarios.</p>
+          <p class="text-xs text-muted mt-2">
+            Ve al módulo de Inventario > Insumos para configurar los costos unitarios.
+          </p>
         </div>
       }
     }

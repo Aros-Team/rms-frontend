@@ -28,19 +28,49 @@ const mockProduct: ProductListResponse = {
 };
 
 const mockOptions: ProductOption[] = [
-  { id: 10, name: 'Lechuga', optionGroupId: 1, optionGroupName: 'Guarniciones', categorySelectionType: OptionSelectionType.SINGLE_CHOICE },
-  { id: 11, name: 'Tomate', optionGroupId: 1, optionGroupName: 'Guarniciones', categorySelectionType: OptionSelectionType.SINGLE_CHOICE },
-  { id: 20, name: 'Tocineta', optionGroupId: 2, optionGroupName: 'Extras', extraPrice: { amount: 3000, currency: 'COP' }, categorySelectionType: 'ADD_ON' },
-  { id: 21, name: 'Queso', optionGroupId: 2, optionGroupName: 'Extras', extraPrice: { amount: 2000, currency: 'COP' }, categorySelectionType: 'ADD_ON' },
+  {
+    id: 10,
+    name: 'Lechuga',
+    optionGroupId: 1,
+    optionGroupName: 'Guarniciones',
+    categorySelectionType: OptionSelectionType.SINGLE_CHOICE,
+  },
+  {
+    id: 11,
+    name: 'Tomate',
+    optionGroupId: 1,
+    optionGroupName: 'Guarniciones',
+    categorySelectionType: OptionSelectionType.SINGLE_CHOICE,
+  },
+  {
+    id: 20,
+    name: 'Tocineta',
+    optionGroupId: 2,
+    optionGroupName: 'Extras',
+    extraPrice: { amount: 3000, currency: 'COP' },
+    categorySelectionType: 'ADD_ON',
+  },
+  {
+    id: 21,
+    name: 'Queso',
+    optionGroupId: 2,
+    optionGroupName: 'Extras',
+    extraPrice: { amount: 2000, currency: 'COP' },
+    categorySelectionType: 'ADD_ON',
+  },
 ];
 
 describe('ProductOptionsModal', () => {
   beforeAll(async () => {
     await resolveComponentResources((url: string) => {
-      if (url.endsWith('product-options-modal.html')) return Promise.resolve(productOptionsModalHtml as unknown as string);
-      if (url.endsWith('option-selection-list.html')) return Promise.resolve(optionSelectionListHtml as unknown as string);
-      if (url.endsWith('option-group-badge.html')) return Promise.resolve(optionGroupBadgeHtml as unknown as string);
-      if (url.endsWith('removable-chip.html')) return Promise.resolve(removableChipHtml as unknown as string);
+      if (url.endsWith('product-options-modal.html'))
+        return Promise.resolve(productOptionsModalHtml as unknown as string);
+      if (url.endsWith('option-selection-list.html'))
+        return Promise.resolve(optionSelectionListHtml as unknown as string);
+      if (url.endsWith('option-group-badge.html'))
+        return Promise.resolve(optionGroupBadgeHtml as unknown as string);
+      if (url.endsWith('removable-chip.html'))
+        return Promise.resolve(removableChipHtml as unknown as string);
       return Promise.resolve('');
     });
   });
@@ -246,7 +276,7 @@ describe('ProductOptionsModal', () => {
       component.quantity.set(2);
 
       let emitted: ProductOptionsConfirmEvent | undefined;
-      component.confirm.subscribe(e => emitted = e);
+      component.confirm.subscribe((e) => (emitted = e));
 
       component.onConfirm();
 
@@ -265,7 +295,7 @@ describe('ProductOptionsModal', () => {
       component.selectedOptionIds.set([20]);
 
       let emitted = false;
-      component.confirm.subscribe(() => emitted = true);
+      component.confirm.subscribe(() => (emitted = true));
 
       component.onConfirm();
 

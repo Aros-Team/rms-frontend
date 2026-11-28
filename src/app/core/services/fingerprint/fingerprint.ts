@@ -24,7 +24,7 @@ export class Fingerprint {
     fingerprint = this.generateFingerprint();
     const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
     const newExpiry = Date.now() + thirtyDaysMs;
-    
+
     localStorage.setItem(this.FINGERPRINT_KEY, fingerprint);
     localStorage.setItem(this.FINGERPRINT_EXPIRY, newExpiry.toString());
 
@@ -40,8 +40,8 @@ export class Fingerprint {
       screen.height.toString(),
       screen.colorDepth.toString(),
       new Date().getTimezoneOffset().toString(),
-      (navigator.hardwareConcurrency as number | undefined ?? 0).toString(),
-      (navigator.maxTouchPoints as number | undefined ?? 0).toString(),
+      ((navigator.hardwareConcurrency as number | undefined) ?? 0).toString(),
+      ((navigator.maxTouchPoints as number | undefined) ?? 0).toString(),
       Intl.DateTimeFormat().resolvedOptions().timeZone,
       Intl.DateTimeFormat().resolvedOptions().locale,
     ];
@@ -53,12 +53,12 @@ export class Fingerprint {
     let hash = 5381;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) + hash) + char;
+      hash = (hash << 5) + hash + char;
       hash = hash & hash;
     }
 
     const reversed = str.split('').reduce((h, char) => {
-      return ((h << 5) - h) + char.charCodeAt(0);
+      return (h << 5) - h + char.charCodeAt(0);
     }, 5381);
 
     hash = (hash ^ reversed) >>> 0;
